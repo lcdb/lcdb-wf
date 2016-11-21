@@ -64,37 +64,20 @@ for block in config['references']:
 rule all_references:
     input: references_targets
 
-# The downloading rules all have the same general form and support arbitrary
-# post-processing functions to be specified in the config file.
 
-rule download_fasta:
-    output: '{references_dir}/{assembly}/{assembly}_{tag}.fa.gz'
+# Downloads the configured URL, applies any configured post-processing, and
+# saves the resulting gzipped file to *.fasta.gz or *.gtf.gz.
+rule download_and_process:
+    output: temporary('{references_dir}/{assembly}/{_type}/{assembly}_{tag}.{_type}.gz')
     run:
         download_and_postprocess(output[0], config, wildcards.assembly, wildcards.tag)
 
 
-rule download_rrna:
-    output: '{references_dir}/{assembly}/rRNA/{assembly}_{tag}.fa.gz'
-    run:
-        download_and_postprocess(output[0], config, wildcards.assembly, wildcards.tag)
-
-
-rule unzip_fasta:
-    input: rules.download_fasta.output
-    output: temporary('{references_dir}/{assembly}/{assembly}_{tag}.fa')
+rule unzip:
+    input: rules.download_and_process.output
+    output: '{references_dir}/{assembly}/{_type}/{assembly}_{tag}.{_type}'
     shell: 'gunzip -c {input} > {output}'
 
-
-rule download_gtf:
-    output: '{references_dir}/{assembly}/{assembly}_{tag}.gtf.gz'
-    run:
-        download_and_postprocess(output[0], config, wildcards.assembly, wildcards.tag)
-
-
-rule unzip_gtf:
-    input: rules.download_gtf.output
-    output: '{references_dir}/{assembly}/{assembly}_{tag}.gtf'
-    shell: 'gunzip -c {input} > {output}'
 
 rule bowtie_index:
     output: aligners.bowtie2_index_from_prefix('{references_dir}/{assembly}/bowtie2/{assembly}_{tag}')
