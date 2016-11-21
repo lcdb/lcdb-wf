@@ -12,21 +12,21 @@ samples = sampletable.ix[:, 0]
 
 patterns = {
     'fastq':   'samples/{sample}/{sample}_R1.fastq.gz',
-    'trimmed': 'samples/{sample}/{sample}_R1.trim.fastq.gz',
-    'bam':     'samples/{sample}/{sample}.trim.bam',
+    'cutadapt': 'samples/{sample}/{sample}_R1.cutadapt.fastq.gz',
+    'bam':     'samples/{sample}/{sample}.cutadapt.bam',
     'fastqc': {
-        'raw': 'samples/{sample}/fastqc/{sample}_R1.fastq.gz.html',
-        'trim': 'samples/{sample}/fastqc/{sample}_R1.trim.fastq.gz.html',
-        'bam': 'samples/{sample}/fastqc/{sample}.trim.bam.html',
+        'raw': 'samples/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.zip',
+        'cutadapt': 'samples/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip',
+        'bam': 'samples/{sample}/fastqc/{sample}.cutadapt.bam_fastqc.zip',
     },
     'counts': {
         'fastq':   'samples/{sample}/{sample}_R1.fastq.gz.count',
-        'trimmed': 'samples/{sample}/{sample}_R1.trim.fastq.gz.count',
-        'bam':     'samples/{sample}/{sample}.trim.bam.count',
-        'rRNA':     'samples/{sample}/{sample}.trim.rRNA.bam.count',
+        'cutadapt': 'samples/{sample}/{sample}_R1.cutadapt.fastq.gz.count',
+        'bam':     'samples/{sample}/{sample}.cutadapt.bam.count',
+        'rRNA':     'samples/{sample}/{sample}.cutadapt.rRNA.bam.count',
     },
-    'rRNA': 'samples/{sample}/{sample}.trim.rRNA.bam',
-    'featurecounts': 'samples/{sample}/{sample}.trim.bam.featurecounts.txt',
+    'rRNA': 'samples/{sample}/{sample}.cutadapt.rRNA.bam',
+    'featurecounts': 'samples/{sample}/{sample}.cutadapt.bam.featurecounts.txt',
     'counts_table': 'counts_table.tsv',
     'multiqc': 'multiqc.html'
 }
@@ -47,9 +47,9 @@ rule cutadapt:
     input:
         fastq=patterns['fastq']
     output:
-        fastq=patterns['trimmed']
+        fastq=patterns['cutadapt']
     log:
-        patterns['fastq'] + '.log'
+        patterns['cutadapt'] + '.log'
     params:
         extra='-a file:adapters.fa -q 20'
     wrapper:
@@ -59,8 +59,8 @@ rule cutadapt:
 rule fastqc:
     input: 'samples/{sample}/{sample}{suffix}'
     output:
-        html='samples/{sample}/fastqc/{sample}{suffix}.html',
-        zip='samples/{sample}/fastqc/{sample}{suffix}.zip',
+        html='samples/{sample}/fastqc/{sample}{suffix}_fastqc.html',
+        zip='samples/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
     wrapper:
         wrapper_for('fastqc')
 
@@ -141,8 +141,10 @@ rule counts_table:
         df.to_csv(str(output), sep='\t')
 
 rule multiqc:
-    input: utils.flatten(targets['fastqc']) + [i + '.log' for i in utils.flatten(targets['cutadapt'])]
-    output: targets['multiqc']
+    input: utils.flatten(targets['fastqc']) + utils.flatten(targets['cutadapt'])
+    output: list(set(targets['multiqc']))
+    params:
+        analysis_directory='samples'
     log: 'multiqc.log'
     wrapper:
         wrapper_for('multiqc')
