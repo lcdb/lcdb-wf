@@ -23,6 +23,10 @@ index_extensions = {
     'kallisto': ['.idx'],
 }
 
+
+conversion_extensions = {
+    'intergenic': '.intergenic.gtf',
+    'refflat': '.refflat',
 }
 
 references_targets = []
@@ -49,6 +53,17 @@ for block in config['references']:
         '{block[assembly]}_{tag}.{block[type]}'.format(**locals())
     )
 
+    # Add conversions if specified.
+    if block['type'] == 'gtf':
+        conversions = block.get('conversions', [])
+        for conversion in conversions:
+            ext = conversion_extensions[conversion]
+            references_targets.append(
+                '{references_dir}/'
+                '{block[assembly]}/'
+                '{block[type]}/'
+                '{block[assembly]}_{tag}{ext}'.format(**locals())
+            )
 
     if block['type'] == 'fasta':
         # Add indexes if specified
@@ -108,6 +123,16 @@ rule kallisto_index:
         '''
         kallisto index -i {output} --make-unique {input} > {log} 2> {log}
         '''
+
+rule conversion_refflat:
+    input: '{references_dir}/{assembly}/gtf/{assembly}_{tag}.gtf'
+    output: '{references_dir}/{assembly}/gtf/{assembly}_{tag}.refflat'
+    log: '{references_dir}/{assembly}/gtf/{assembly}_{tag}.refflat.log'
+    shell:
+        'gtfToGenePred {input} {output}.tmp '
+        '''&& awk '{{print $1, $0}}' {output}.tmp > {output} '''
+        '&& rm {output}.tmp '
+
 
 rule chromsizes:
     output: '{references_dir}/{assembly}/fasta/{assembly}_{tag}.chromsizes'
