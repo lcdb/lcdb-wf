@@ -48,7 +48,7 @@ references:
     postprocess: "dm6.gtf_postprocess"
     tag: 'r6-11'
     conversions:
-      - 'intergenic'
+      - 'refflat'
 
   -
     assembly: 'dm6'
@@ -83,21 +83,27 @@ references:
 
 ```
 
-Each block describes either a fasta or gtf file. Each block has at least the
-assembly, type, and a URL.  They can also have a `postprocess`, which is an
+Each block describes either a `fasta` or `gtf` file. Each block has at least
+the assembly, type, and a URL.  They can also have a `postprocess`, which is an
 arbitrary function (described below) that converts the downloaded URL to
 something that conforms to the standards of the workflow (also described
 below). By supplying a tag, we can differentiate between different versions
 (e.g., FlyBase r6.04 vs r6.11) or different kinds of postprocessing (e.g, "chr"
 preprended to chrom names or not).
 
-Blocks with a type of "fasta" can have an optional  `indexes` entry which will
-build the specified indexes.
+Blocks with a type of `fasta` can have an optional  `indexes` entry which will
+build the specified indexes. Blocks with a type of `gtf` can have an optional
+`conversions` entry which will perform the specified conversion. Available
+indexes and conversions are described below.
 
 ## Post processing
-The `postprocessing` values are dotted names that refer to Python modules
-importable by the `reference.snakefile`. The dotted name should refer to
-a function that has the function signature:
+Sometimes the file at a URL is not in exactly the right format. The block can
+define a `postprocess` string, which contains a dotted name referring to Python
+function that is importable by the `reference.snakefile`. For example, if
+a `postprocess` string is `"hg19.fix_fasta"`, then there should be a file
+`hg19.py` that has within it a function called `fix_fasta()` in the same
+directory as the references Snakefile. The dotted name should refer to
+a function that has this function signature:
 
 ```python
 def func(temp_downloaded_filenames, final_postprocessed_filename)
@@ -108,6 +114,7 @@ you don't have to know or care exactly what the filenames are, just what has to
 be done to their contents. The first argument is a list corresponding to the
 tempfiles downloaded for each provided url; the second is the final filename to
 create.
+
 
 The job of a postprocessing function is to ensure that the
 fastq/gtf/transcriptome fasta meets the requirements below and is ready for any
@@ -144,9 +151,10 @@ references to get them into a uniform format.
 
 ## Requirements
 
-All files are required to be gzipped. Note that there is a `unzip_fasta` rule
-that will temporarily unzip the fasta for things like bowtie2 index building
-that don't support gzipped input.
+**All files created by a block are required to be gzipped.**
+
+If a URL points to an uncompressed GTF file, a post-processing function must
+gzip it. Any post-processing functions must write gzipped output files.
 
 Other than that, it's up to the user to decide what transformations (if any)
 are required. Examples might include:
@@ -156,14 +164,27 @@ are required. Examples might include:
 * renaming chromosomes (e.g., prepend "chr")
 * remove unnecessary annotations (e.g., keep only cds/exon/transcript/gene features)
 
-## TODO
+## Available indexes
 
-A rule should be triggered to be re-run based on md5sum of a concatenation of
-the URL and the code object of the post-processing function.
+Currently:
 
-How to differentiate between flybase r6.06 and r6.11? There should be a *tag*
-associated with each config block. Maybe borrow the build string idea from
-conda -- `{assembly}-{tag}.{extension}` or something.
+    - hisat2
+    - bowtie2
+    - kallisto
 
-How to handle cases like the hg19 GENCODE, where protein-coding transcripts are
-in one FASTA but lncRNAs are in another?
+Planned:
+
+    - salmon
+    - STAR
+    - bwa
+
+## Available conversions
+
+Currently:
+
+    - refflat (converts GTF to refFlat format)
+
+Planned:
+
+    - intergenic (needs chromsizes; therefor need to link a GTF tag to a FASTA
+    tag but not quite sure how best to do this)
