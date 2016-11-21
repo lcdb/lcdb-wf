@@ -1,2 +1,3 @@
 .snakemake
 __pycache__
+samples
