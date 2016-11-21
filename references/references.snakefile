@@ -60,6 +60,13 @@ for block in config['references']:
                 references_dir=references_dir, assembly=block['assembly'], index=index, tag=tag, ext=ext
             )
 
+        # Add chromsizes
+        references_targets.append(
+            '{references_dir}/'
+            '{block[assembly]}/'
+            '{block[type]}/'
+            '{block[assembly]}_{tag}.chromsizes'.format(**locals())
+        )
 
 rule all_references:
     input: references_targets
@@ -101,4 +108,16 @@ rule kallisto_index:
         '''
         kallisto index -i {output} --make-unique {input} > {log} 2> {log}
         '''
+
+rule chromsizes:
+    output: '{references_dir}/{assembly}/fasta/{assembly}_{tag}.chromsizes'
+    input: '{references_dir}/{assembly}/fasta/{assembly}_{tag}.fasta'
+    shell:
+        'rm -f {output}.tmp '
+        '&& picard CreateSequenceDictionary R={input} O={output}.tmp '
+        '&& grep "^@SQ" {output}.tmp '
+        '''| awk '{{print $2, $3}}' '''
+        '| sed "s/SN://g;s/ LN:/\\t/g" > {output} '
+        '&& rm -f {output}.tmp '
+
 # vim: ft=python
