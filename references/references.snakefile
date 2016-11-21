@@ -16,41 +16,48 @@ if not os.path.exists(references_dir):
     os.makedirs(references_dir)
 
 
-# Map "type" in config to file extensions
-ext_mapping = {
-    'gtf': '.gtf',
-    'fasta': '.fa.gz',
+# Map "indexes" value to a pattern specific to each index.
+index_extensions = {
+    'bowtie2': aligners.bowtie2_index_from_prefix(''),
+    'hisat2': aligners.hisat2_index_from_prefix(''),
+    'kallisto': ['.idx'],
 }
 
-# Map "indexes" value to a pattern specific to each index.
-index_mapping = {
-    'bowtie2': ('{references_dir}/{assembly}/bowtie2/{assembly}{tag}.{n}.bt2', dict(n=[1, 2, 3, 4])),
-    'hisat2': ('{references_dir}/{assembly}/hisat2/{assembly}{tag}.{n}.ht2', dict(n=range(1, 9))),
-    'kallisto': ('{references_dir}/{assembly}/kallisto/{assembly}{tag}.idx', dict()),
 }
 
 references_targets = []
 
 for block in config['references']:
+    # e.g.,
+    #
+    #   references_dir: /data/refs
+    #   -
+    #       assembly: hg19
+    #       tag: gencode-v25
+    #       type: gtf
+    #       url: ...
+    #
+    # will add the following to targets:
+    #
+    #   /data/refs/hg19/gtf/hg19_gencode-v25.gtf
+    #
+    tag = block.get('tag', 'default')
+    references_targets.append(
+        '{references_dir}/'
+        '{block[assembly]}/'
+        '{block[type]}/'
+        '{block[assembly]}_{tag}.{block[type]}'.format(**locals())
+    )
 
-    # build up the local vars for filling in the pattern
-    tag = '_' + block.get('tag', 'default')
-    ext = ext_mapping[block['type']]
-    assembly = block['assembly']
 
-    references_targets.append('{references_dir}/{assembly}/{assembly}{tag}{ext}'.format(**locals()))
-
-    # Add the indexes too, if they were asked for
     if block['type'] == 'fasta':
+        # Add indexes if specified
         indexes = block.get('indexes', [])
         for index in indexes:
-            pattern, kwargs = index_mapping[index]
-            kwargs = kwargs.copy()
-            references_targets.extend(
-                expand(
-                    pattern, assembly=assembly, tag=tag,
-                    references_dir=references_dir, **kwargs
-                )
+            ext = index_extensions[index]
+            references_targets += expand(
+                '{references_dir}/{assembly}/{index}/{assembly}_{tag}{ext}',
+                references_dir=references_dir, assembly=block['assembly'], index=index, tag=tag, ext=ext
             )
 
 
