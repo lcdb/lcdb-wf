@@ -79,23 +79,17 @@ rule unzip:
     shell: 'gunzip -c {input} > {output}'
 
 
-rule bowtie_index:
-    output: aligners.bowtie2_index_from_prefix('{references_dir}/{assembly}/bowtie2/{assembly}_{tag}')
-    input: rules.unzip_fasta.output
-    log: '{references_dir}/{assembly}/bowtie2/{assembly}{tag}.log'
-    shell:
-        '''
-        bowtie2-build {input} {references_dir}/{wildcards.assembly}/bowtie2/{wildcards.assembly}_{wildcards.tag} > {log} 2> {log}
-        '''
+rule bowtie2_index:
+    output: index=aligners.bowtie2_index_from_prefix('{references_dir}/{assembly}/bowtie2/{assembly}_{tag}')
+    input: fasta='{references_dir}/{assembly}/fasta/{assembly}_{tag}.fasta'
+    log: '{references_dir}/{assembly}/bowtie2/{assembly}_{tag}.log'
+    wrapper: wrapper_for('bowtie2/build')
 
 
 rule hisat2_index:
-    input:
-        fasta=rules.unzip_fasta.output
-    output:
-        index=aligners.hisat2_index_from_prefix('{references_dir}/{assembly}/hisat2/{assembly}_{tag}')
-    log:
-        '{references_dir}/{assembly}/hisat2/{assembly}{tag}.log'
+    output: index=aligners.hisat2_index_from_prefix('{references_dir}/{assembly}/hisat2/{assembly}_{tag}')
+    input: fasta='{references_dir}/{assembly}/fasta/{assembly}_{tag}.fasta'
+    log: '{references_dir}/{assembly}/hisat2/{assembly}_{tag}.log'
     wrapper: wrapper_for('hisat2/build')
 
 
