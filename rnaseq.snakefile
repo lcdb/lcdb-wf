@@ -74,7 +74,7 @@ rule fastqc:
 rule hisat2:
     input:
         fastq=rules.cutadapt.output.fastq,
-        index=aligners.hisat2_index_from_prefix(config['aligner_prefix'])
+        index=aligners.hisat2_index_from_prefix(config['aligner_prefix'].format(references_dir=references_dir))
     output:
         bam=patterns['bam']
     log:
@@ -104,7 +104,7 @@ rule bam_count:
 rule rrna:
     input:
         fastq=rules.cutadapt.output.fastq,
-        index=aligners.bowtie2_index_from_prefix(config['rrna_prefix'])
+        index=aligners.bowtie2_index_from_prefix(config['rrna_prefix'].format(references_dir=references_dir))
     output:
         bam=temporary(patterns['rRNA'])
     log:
@@ -116,7 +116,7 @@ rule rrna:
 
 rule featurecounts:
     input:
-        annotation=config['gtf'],
+        annotation=config['gtf'].format(references_dir=references_dir),
         bam=rules.hisat2.output
     output:
         counts=patterns['featurecounts']
