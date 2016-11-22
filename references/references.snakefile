@@ -107,20 +107,21 @@ rule download_and_process:
 rule unzip:
     input: rules.download_and_process.output
     output: '{references_dir}/{assembly}/{_type}/{assembly}_{tag}.{_type}'
+    log: '{references_dir}/logs/{assembly}/{_type}/{assembly}_{tag}.{_type}.log'
     shell: 'gunzip -c {input} > {output}'
 
 
 rule bowtie2_index:
     output: index=aligners.bowtie2_index_from_prefix('{references_dir}/{assembly}/bowtie2/{assembly}_{tag}')
     input: fasta='{references_dir}/{assembly}/fasta/{assembly}_{tag}.fasta'
-    log: '{references_dir}/{assembly}/bowtie2/{assembly}_{tag}.log'
+    log: '{references_dir}/logs/{assembly}/bowtie2/{assembly}_{tag}.log'
     wrapper: wrapper_for('bowtie2/build')
 
 
 rule hisat2_index:
     output: index=aligners.hisat2_index_from_prefix('{references_dir}/{assembly}/hisat2/{assembly}_{tag}')
     input: fasta='{references_dir}/{assembly}/fasta/{assembly}_{tag}.fasta'
-    log: '{references_dir}/{assembly}/hisat2/{assembly}_{tag}.log'
+    log: '{references_dir}/logs/{assembly}/hisat2/{assembly}_{tag}.log'
     wrapper: wrapper_for('hisat2/build')
 
 rule symlink_fasta_to_index_dir:
@@ -132,8 +133,8 @@ rule symlink_fasta_to_index_dir:
 
 rule kallisto_index:
     output: '{references_dir}/{assembly}/kallisto/{assembly}_{tag}.idx'
-    input: '{references_dir}/{assembly}/{assembly}{tag}.fa.gz'
-    log: '{references_dir}/{assembly}/kallisto/{assembly}{tag}.log'
+    input: '{references_dir}/{assembly}/fasta/{assembly}_{tag}.fasta'
+    log: '{references_dir}/logs/{assembly}/kallisto/{assembly}_{tag}.log'
     shell:
         '''
         kallisto index -i {output} --make-unique {input} > {log} 2> {log}
@@ -142,7 +143,7 @@ rule kallisto_index:
 rule conversion_refflat:
     input: '{references_dir}/{assembly}/gtf/{assembly}_{tag}.gtf'
     output: '{references_dir}/{assembly}/gtf/{assembly}_{tag}.refflat'
-    log: '{references_dir}/{assembly}/gtf/{assembly}_{tag}.refflat.log'
+    log: '{references_dir}/logs/{assembly}/gtf/{assembly}_{tag}.refflat.log'
     shell:
         'gtfToGenePred {input} {output}.tmp '
         '''&& awk '{{print $1, $0}}' {output}.tmp > {output} '''
@@ -152,6 +153,7 @@ rule conversion_refflat:
 rule chromsizes:
     output: '{references_dir}/{assembly}/fasta/{assembly}_{tag}.chromsizes'
     input: '{references_dir}/{assembly}/fasta/{assembly}_{tag}.fasta'
+    input: '{references_dir}/logs/{assembly}/fasta/{assembly}_{tag}.fasta.log'
     shell:
         'rm -f {output}.tmp '
         '&& picard CreateSequenceDictionary R={input} O={output}.tmp '
