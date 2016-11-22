@@ -53,8 +53,8 @@ def download_and_postprocess(outfile, config, assembly, tag):
         - calls the imported function using the tempfile[s] and outfile plus
           any additional specified arguments.
 
-    The function must assume a list of input gzipped files and must create the
-    gzipped output file (whose name is given as its 2nd input arg).
+    If defined, the function must assume a list of input gzipped files and must
+    create the gzipped output file (whose name is given as its 2nd input arg).
     """
     # Build a lookup dict of the config file keyed by (assembly, tag). Make sure
     # all references have a tag, using "default" if none specified.
@@ -108,7 +108,7 @@ def download_and_postprocess(outfile, config, assembly, tag):
     tmpfiles = ['{0}.{1}.tmp'.format(outfile, i) for i in range(len(urls))]
 
     for url, tmpfile in zip(urls, tmpfiles):
-        shell("wget {url} -O- > {tmpfile}")
+        shell("wget {url} -O- > {tmpfile} 2> {outfile}.log")
 
     func(tmpfiles, outfile, *args)
 
