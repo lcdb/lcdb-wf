@@ -78,6 +78,12 @@ for block in config['references']:
                 references_dir=references_dir, assembly=block['assembly'], index=index, tag=tag, ext=ext
             )
 
+            # symlink fasta
+            references_targets += expand(
+                '{references_dir}/{assembly}/{index}/{assembly}_{tag}{ext}',
+                references_dir=references_dir, assembly=block['assembly'], index=index, tag=tag, ext='.fasta'
+            )
+
         # Add chromsizes
         references_targets.append(
             '{references_dir}/'
@@ -117,6 +123,12 @@ rule hisat2_index:
     log: '{references_dir}/{assembly}/hisat2/{assembly}_{tag}.log'
     wrapper: wrapper_for('hisat2/build')
 
+rule symlink_fasta_to_index_dir:
+    input: fasta='{references_dir}/{assembly}/fasta/{assembly}_{tag}.fasta'
+    output: '{references_dir}/{assembly}/{index}/{assembly}_{tag}.fasta'
+    log: '{references_dir}/logs/{assembly}/{index}/{assembly}_{tag}.fasta.log'
+    shell:
+        'ln -sf {input} {output}'
 
 rule kallisto_index:
     output: '{references_dir}/{assembly}/kallisto/{assembly}_{tag}.idx'
