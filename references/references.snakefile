@@ -2,6 +2,7 @@ import os
 import sys
 import yaml
 import importlib
+from snakemake.utils import makedirs
 from lcdblib.utils.imports import resolve_name
 from lcdblib.snakemake import aligners, helpers
 from common import download_and_postprocess
@@ -11,10 +12,12 @@ def wrapper_for(path):
     return os.path.join('file://', str(srcdir('.')), '..', 'wrappers', 'wrappers', path)
 
 
-references_dir = config['references_dir']
-if not os.path.exists(references_dir):
-    os.makedirs(references_dir)
+references_dir = os.environ.get('REFERENCES_DIR', config.get('references_dir', None))
+if references_dir is None:
+    raise ValueError('references dir not set')
+config['references_dir'] = references_dir
 
+makedirs([references_dir, os.path.join(references_dir, 'logs')])
 
 # Map "indexes" value to a pattern specific to each index.
 index_extensions = {

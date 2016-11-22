@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from lcdblib.snakemake import helpers, aligners
 from lcdblib.utils import utils
@@ -5,6 +6,11 @@ from lcdblib.utils import utils
 shell.prefix('set -euo pipefail; ')
 
 include: 'references/references.snakefile'
+
+references_dir = os.environ.get('REFERENCES_DIR', config.get('references_dir', None))
+if references_dir is None:
+    raise ValueError('No references dir specified')
+config['references_dir'] = references_dir
 
 sampletable = pd.read_table(config['sampletable'])
 samples = sampletable.ix[:, 0]
