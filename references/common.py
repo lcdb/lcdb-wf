@@ -5,6 +5,10 @@ from lcdblib.utils.imports import resolve_name
 from snakemake.shell import shell
 
 
+def cat(tmpfiles, outfile):
+    shell('cat {tmpfiles} > {outfile}')
+
+
 def filter_fastas(tmpfiles, outfile, pattern):
     """
     Given input FASTAs, create a new one containing only records whose
