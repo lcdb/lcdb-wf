@@ -25,16 +25,19 @@ patterns = {
         'cutadapt': 'samples/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip',
         'bam': 'samples/{sample}/fastqc/{sample}.cutadapt.bam_fastqc.zip',
     },
-    'counts': {
-        'fastq':   'samples/{sample}/{sample}_R1.fastq.gz.count',
-        'cutadapt': 'samples/{sample}/{sample}_R1.cutadapt.fastq.gz.count',
-        'bam':     'samples/{sample}/{sample}.cutadapt.bam.count',
-        'rRNA':     'samples/{sample}/{sample}.cutadapt.rRNA.bam.count',
+    'libsizes': {
+        'fastq':   'samples/{sample}/{sample}_R1.fastq.gz.libsize',
+        'cutadapt': 'samples/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize',
+        'bam':     'samples/{sample}/{sample}.cutadapt.bam.libsize',
+        'rRNA':     'samples/{sample}/{sample}.cutadapt.rRNA.bam.libsize',
     },
     'rRNA': 'samples/{sample}/{sample}.cutadapt.rRNA.bam',
     'featurecounts': 'samples/{sample}/{sample}.cutadapt.bam.featurecounts.txt',
-    'counts_table': 'counts_table.tsv',
-    'multiqc': 'multiqc.html'
+    'libsizes_table': 'libsizes_table.tsv',
+    'multiqc': 'multiqc.html',
+    'kallisto': {
+        'h5': 'samples/{sample}/{sample}/kallisto/abundance.h5',
+    },
 }
 fill = dict(sample=samples, count=['.count', ''])
 targets = helpers.fill_patterns(patterns, fill)
@@ -46,7 +49,7 @@ def wrapper_for(path):
 
 
 rule targets:
-    input: targets['bam'] + utils.flatten(targets['fastqc']) + utils.flatten(targets['counts']) + [targets['counts_table']] + [targets['multiqc']]
+    input: targets['bam'] + utils.flatten(targets['fastqc']) + utils.flatten(targets['libsizes']) + [targets['libsizes_table']] + [targets['multiqc']]
 
 
 rule cutadapt:
@@ -87,7 +90,7 @@ rule fastq_count:
     input:
         fastq='samples/{sample}/{sample}{suffix}.fastq.gz'
     output:
-        count='samples/{sample}/{sample}{suffix}.fastq.gz.count'
+        count='samples/{sample}/{sample}{suffix}.fastq.gz.libsize'
     shell:
         'zcat {input} | echo $((`wc -l`/4)) > {output}'
 
@@ -96,7 +99,7 @@ rule bam_count:
     input:
         bam='samples/{sample}/{sample}{suffix}.bam'
     output:
-        count='samples/{sample}/{sample}{suffix}.bam.count'
+        count='samples/{sample}/{sample}{suffix}.bam.libsize'
     shell:
         'samtools view -c {input} > {output}'
 
@@ -126,9 +129,9 @@ rule featurecounts:
         wrapper_for('featurecounts')
 
 
-rule counts_table:
-    input: utils.flatten(targets['counts'])
-    output: patterns['counts_table']
+rule libsizes_table:
+    input: utils.flatten(targets['libsizes'])
+    output: patterns['libsizes_table']
     run:
         def sample(f):
             return os.path.basename(os.path.dirname(f))
@@ -154,5 +157,16 @@ rule multiqc:
     log: 'multiqc.log'
     wrapper:
         wrapper_for('multiqc')
+
+
+rule kallisto:
+    input:
+        index=config['kallisto_index'],
+        fastq=patterns['cutadapt']
+    output:
+        patterns['kallisto']['h5']
+    wrapper:
+        wrapper_for('kallisto/quant')
+
 
 # vim: ft=python
