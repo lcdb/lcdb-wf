@@ -5,7 +5,7 @@ sampletable: 'sampletable.tsv'
 
 # Can either specify full paths, or use the "{references_dir}" placeholder.
 aligner_prefix: "{references_dir}/dm6/hisat2/dm6_default"
-rrna_prefix: "{references_dir}/dicty/bowtie2/dm6_rRNA"
+rrna_prefix: "{references_dir}/dm6/bowtie2/dm6_rRNA"
 gtf: "{references_dir}/dm6/gtf/dm6_r6-11.gtf"
 kallisto_index: "{references_dir}/dm6/kallisto/dm6_r6-11_transcriptome.idx"
 
