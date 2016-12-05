@@ -103,15 +103,17 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
         urls = [urls]
 
     tmpfiles = ['{0}.{1}.tmp'.format(outfile, i) for i in range(len(urls))]
+    try:
+        for url, tmpfile in zip(urls, tmpfiles):
+            shell("wget {url} -O- > {tmpfile} 2> {outfile}.log")
 
-    for url, tmpfile in zip(urls, tmpfiles):
-        shell("wget {url} -O- > {tmpfile} 2> {outfile}.log")
-
-    func(tmpfiles, outfile, *args)
-
-    for i in tmpfiles:
-        if os.path.exists(i):
-            shell('rm {i}')
+        func(tmpfiles, outfile, *args)
+    except Exception as e:
+        raise e
+    finally:
+        for i in tmpfiles:
+            if os.path.exists(i):
+                shell('rm {i}')
 
 
 def get_references_dir(config):
