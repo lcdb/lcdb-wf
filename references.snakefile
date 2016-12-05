@@ -4,8 +4,9 @@ import yaml
 import importlib
 from snakemake.utils import makedirs
 from lcdblib.utils.imports import resolve_name
+from lcdblib.utils import utils
 from lcdblib.snakemake import aligners, helpers
-from common import download_and_postprocess
+from common import download_and_postprocess, config_to_dict
 
 
 def wrapper_for(path):
@@ -19,81 +20,10 @@ config['references_dir'] = references_dir
 
 makedirs([references_dir, os.path.join(references_dir, 'logs')])
 
-# Map "indexes" value to a pattern specific to each index.
-index_extensions = {
-    'bowtie2': aligners.bowtie2_index_from_prefix(''),
-    'hisat2': aligners.hisat2_index_from_prefix(''),
-    'kallisto': ['.idx'],
-}
-
-
-conversion_extensions = {
-    'intergenic': '.intergenic.gtf',
-    'refflat': '.refflat',
-}
-
-references_targets = []
-
-for block in config['references']:
-    # e.g.,
-    #
-    #   references_dir: /data/refs
-    #   -
-    #       assembly: hg19
-    #       tag: gencode-v25
-    #       type: gtf
-    #       url: ...
-    #
-    # will add the following to targets:
-    #
-    #   /data/refs/hg19/gtf/hg19_gencode-v25.gtf
-    #
-    tag = block.get('tag', 'default')
-    references_targets.append(
-        '{references_dir}/'
-        '{block[assembly]}/'
-        '{block[type]}/'
-        '{block[assembly]}_{tag}.{block[type]}'.format(**locals())
-    )
-
-    # Add conversions if specified.
-    if block['type'] == 'gtf':
-        conversions = block.get('conversions', [])
-        for conversion in conversions:
-            ext = conversion_extensions[conversion]
-            references_targets.append(
-                '{references_dir}/'
-                '{block[assembly]}/'
-                '{block[type]}/'
-                '{block[assembly]}_{tag}{ext}'.format(**locals())
-            )
-
-    if block['type'] == 'fasta':
-        # Add indexes if specified
-        indexes = block.get('indexes', [])
-        for index in indexes:
-            ext = index_extensions[index]
-            references_targets += expand(
-                '{references_dir}/{assembly}/{index}/{assembly}_{tag}{ext}',
-                references_dir=references_dir, assembly=block['assembly'], index=index, tag=tag, ext=ext
-            )
-
-            # symlink fasta
-            references_targets += expand(
-                '{references_dir}/{assembly}/{index}/{assembly}_{tag}{ext}',
-                references_dir=references_dir, assembly=block['assembly'], index=index, tag=tag, ext='.fasta'
-            )
-
-        # Add chromsizes
-        references_targets.append(
-            '{references_dir}/'
-            '{block[assembly]}/'
-            '{block[type]}/'
-            '{block[assembly]}_{tag}.chromsizes'.format(**locals())
-        )
+references_targets = utils.flatten(config_to_dict(config))
 
 rule all_references:
-    input: references_targets
+    input: utils.flatten(config_to_dict(config))
 
 
 # Downloads the configured URL, applies any configured post-processing, and
@@ -124,12 +54,14 @@ rule hisat2_index:
     log: '{references_dir}/logs/{assembly}/hisat2/{assembly}_{tag}.log'
     wrapper: wrapper_for('hisat2/build')
 
+
 rule symlink_fasta_to_index_dir:
     input: fasta='{references_dir}/{assembly}/fasta/{assembly}_{tag}.fasta'
     output: '{references_dir}/{assembly}/{index}/{assembly}_{tag}.fasta'
     log: '{references_dir}/logs/{assembly}/{index}/{assembly}_{tag}.fasta.log'
     shell:
         'ln -sf {input} {output}'
+
 
 rule kallisto_index:
     output: '{references_dir}/{assembly}/kallisto/{assembly}_{tag}.idx'

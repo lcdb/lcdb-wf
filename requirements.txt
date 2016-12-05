@@ -1,3 +1,0 @@
-snakemake >=3.9
-multiqc
-biopython
