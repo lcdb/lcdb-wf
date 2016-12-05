@@ -6,7 +6,7 @@ from snakemake.utils import makedirs
 from lcdblib.utils.imports import resolve_name
 from lcdblib.utils import utils
 from lcdblib.snakemake import aligners, helpers
-from common import download_and_postprocess, config_to_dict
+from common import download_and_postprocess, references_dict, get_references_dir
 
 
 HERE = str(srcdir('.'))
@@ -14,17 +14,12 @@ def wrapper_for(path):
     return 'file://' + os.path.join(HERE, 'wrappers', 'wrappers', path)
 
 
-references_dir = os.environ.get('REFERENCES_DIR', config.get('references_dir', None))
-if references_dir is None:
-    raise ValueError('references dir not set')
-config['references_dir'] = references_dir
-
+references_dir = get_references_dir(config)
 makedirs([references_dir, os.path.join(references_dir, 'logs')])
 
-references_targets = utils.flatten(config_to_dict(config))
 
 rule all_references:
-    input: utils.flatten(config_to_dict(config))
+    input: utils.flatten(references_dict(config))
 
 
 # Downloads the configured URL, applies any configured post-processing, and
@@ -32,7 +27,7 @@ rule all_references:
 rule download_and_process:
     output: temporary('{references_dir}/{assembly}/{_type}/{assembly}_{tag}.{_type}.gz')
     run:
-        download_and_postprocess(output[0], config, wildcards.assembly, wildcards.tag)
+        download_and_postprocess(output[0], config, wildcards.assembly, wildcards.tag, wildcards._type)
 
 
 rule unzip:
@@ -68,6 +63,7 @@ rule kallisto_index:
     output: '{references_dir}/{assembly}/kallisto/{assembly}_{tag}.idx'
     input: '{references_dir}/{assembly}/fasta/{assembly}_{tag}.fasta'
     log: '{references_dir}/logs/{assembly}/kallisto/{assembly}_{tag}.log'
+    conda: 'envs/references_env.yml'
     shell:
         '''
         kallisto index -i {output} --make-unique {input} > {log} 2> {log}

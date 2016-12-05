@@ -43,34 +43,25 @@ def filter_fastas(tmpfiles, outfile, pattern):
         SeqIO.write(gen(), fout, 'fasta')
 
 
-def download_and_postprocess(outfile, config, assembly, tag):
+def download_and_postprocess(outfile, config, assembly, tag, type_):
     """
     Given an output file, figure out what to do based on the config.
 
     This function:
 
-        - parses the assembly and tag from the `outfile`
-        - uses that as a key into the config dict to figure out:
-            - what postprocessing function (if any) was specified along with
-              its optional args
-            - the URL[s] to download
-        - resolves the name of that function and imports it
-        - downloads the URL[s] to tempfile[s]
-        - calls the imported function using the tempfile[s] and outfile plus
-          any additional specified arguments.
+     - uses assembly, tag, type_ as a key into the config dict to figure out:
+         - what postprocessing function (if any) was specified along with
+           its optional args
+         - the URL[s] to download
+     - resolves the name of that function and imports it
+     - downloads the URL[s] to tempfile[s]
+     - calls the imported function using the tempfile[s] and outfile plus
+       any additional specified arguments.
 
     If defined, the function must assume a list of input gzipped files and must
     create the gzipped output file (whose name is given as its 2nd input arg).
     """
-    # Build a lookup dict of the config file keyed by (assembly, tag). Make sure
-    # all references have a tag, using "default" if none specified.
-    d = {}
-    for i in config['references']:
-        k = (i['assembly'], i.get('tag', 'default'))
-        if k in d:
-            raise ValueError("key {} already exists".format(k))
-        d[k] = i
-
+    references_dir = get_references_dir(config)
 
     def default_postprocess(origfn, newfn):
         """
@@ -79,10 +70,10 @@ def download_and_postprocess(outfile, config, assembly, tag):
         """
         shell("mv {origfn} {newfn}")
 
-    base = os.path.relpath(outfile, config['references_dir'])
+    base = os.path.relpath(outfile, references_dir)
     basename = os.path.basename(outfile)
 
-    block = d[(assembly, tag)]
+    block = config['references'][assembly][tag][type_]
 
     # postprocess can be missing, in which case we use the default above
     post_process = block.get('postprocess', None)
@@ -123,7 +114,14 @@ def download_and_postprocess(outfile, config, assembly, tag):
             shell('rm {i}')
 
 
-def config_to_dict(config):
+def get_references_dir(config):
+    references_dir = os.environ.get('REFERENCES_DIR', config.get('references_dir', None))
+    if references_dir is None:
+        raise ValueError('References dir not set')
+    return references_dir
+
+
+def references_dict(config):
     """
     The config file is designed to be easy to edit and use from the user's
     standpoint. But it's not so great for practical usage. Here we convert the
@@ -134,27 +132,22 @@ def config_to_dict(config):
     >>> _ = fout.write(dedent('''
     ... references_dir: "/data"
     ... references:
-    ...   -
-    ...     assembly: dm6
-    ...     tag: "r6-11"
-    ...     url: ""
-    ...     type: fasta
-    ...     indexes:
-    ...         - bowtie2
-    ...         - hisat2
-    ...   -
-    ...     assembly: dm6
-    ...     tag: "r6-11_transcriptome"
-    ...     url: ""
-    ...     type: fasta
-    ...     indexes:
-    ...         - kallisto
-    ...   -
-    ...     assembly: dm6
-    ...     type: gtf
-    ...     url: ""
-    ...     conversions:
-    ...       - refflat
+    ...   dm6:
+    ...     r6-11:
+    ...       fasta:
+    ...         url: ""
+    ...         indexes:
+    ...           - bowtie2
+    ...           - hisat2
+    ...       gtf:
+    ...         url: ""
+    ...         conversions:
+    ...           - refflat
+    ...     r6-11_transcriptome:
+    ...       fasta:
+    ...         url: ""
+    ...         indexes:
+    ...           - kallisto
     ... '''))
     >>> fout.close()
 
@@ -166,6 +159,8 @@ def config_to_dict(config):
     ...   'dm6': {
     ...      'r6-11': {
     ...          'fasta': '/data/dm6/fasta/dm6_r6-11.fasta',
+    ...          'refflat': '/data/dm6/gtf/dm6_r6-11.refflat',
+    ...          'gtf': '/data/dm6/gtf/dm6_r6-11.gtf',
     ...          'chromsizes': '/data/dm6/fasta/dm6_r6-11.chromsizes',
     ...          'bowtie2': '/data/dm6/bowtie2/dm6_r6-11.1.bt2',
     ...          'hisat2': '/data/dm6/hisat2/dm6_r6-11.1.ht2',
@@ -175,10 +170,6 @@ def config_to_dict(config):
     ...          'chromsizes': '/data/dm6/fasta/dm6_r6-11_transcriptome.chromsizes',
     ...          'kallisto': '/data/dm6/kallisto/dm6_r6-11_transcriptome.idx',
     ...          },
-    ...      'default': {
-    ...          'gtf': '/data/dm6/gtf/dm6_default.gtf',
-    ...          'refflat': '/data/dm6/gtf/dm6_default.refflat',
-    ...       },
     ...     },
     ... }), d
     >>> os.unlink('tmp')
@@ -189,9 +180,7 @@ def config_to_dict(config):
     if isinstance(config, str):
         config = yaml.load(open(config))
 
-    references_dir = os.environ.get('REFERENCES_DIR', config.get('references_dir', None))
-    if references_dir is None:
-        raise ValueError('References dir not set')
+    references_dir = get_references_dir(config)
 
     # Map "indexes" value to a pattern specific to each index.
     index_extensions = {
@@ -207,58 +196,46 @@ def config_to_dict(config):
     }
 
     d = {}
-    for block in config['references']:
-        assembly = block['assembly']
-        tag = block.get('tag', 'default')
-        type_ = block['type']
-
-        if assembly not in d:
-            d[assembly] = {}
-
-        e = d[assembly].get(tag, {})
-
-        if type_ in e:
-            raise ValueError(
-                "tag {tag} already exists for type {type_} in assembly {assembly}"
-                .format(**locals())
-            )
-
-        e[type_] = (
-            '{references_dir}/'
-            '{assembly}/'
-            '{type_}/'
-            '{assembly}_{tag}.{type_}'.format(**locals())
-        )
-
-        # Add conversions if specified.
-        if block['type'] == 'gtf':
-            conversions = block.get('conversions', [])
-            for conversion in conversions:
-                ext = conversion_extensions[conversion]
-                e[conversion] = (
+    for assembly in config['references'].keys():
+        d[assembly] = {}
+        for tag in config['references'][assembly].keys():
+            e = {}
+            for type_, block in config['references'][assembly][tag].items():
+                e[type_] = (
                     '{references_dir}/'
                     '{assembly}/'
                     '{type_}/'
-                    '{assembly}_{tag}{ext}'.format(**locals())
+                    '{assembly}_{tag}.{type_}'.format(**locals())
                 )
 
-        if block['type'] == 'fasta':
-            # Add indexes if specified
-            indexes = block.get('indexes', [])
-            for index in indexes:
-                ext = index_extensions[index]
+                # Add conversions if specified.
+                if type_ == 'gtf':
+                    conversions = block.get('conversions', [])
+                    for conversion in conversions:
+                        ext = conversion_extensions[conversion]
+                        e[conversion] = (
+                            '{references_dir}/'
+                            '{assembly}/'
+                            '{type_}/'
+                            '{assembly}_{tag}{ext}'.format(**locals())
+                        )
 
-                e[index] = (
-                    '{references_dir}/{assembly}/{index}/{assembly}_{tag}{ext}'
-                    .format(**locals())
-                )
+                if type_== 'fasta':
+                    # Add indexes if specified
+                    indexes = block.get('indexes', [])
+                    for index in indexes:
+                        ext = index_extensions[index]
 
-            e['chromsizes'] = (
-                '{references_dir}/'
-                '{assembly}/'
-                '{type_}/'
-                '{assembly}_{tag}.chromsizes'.format(**locals())
-            )
-        d[assembly][tag] = e
+                        e[index] = (
+                            '{references_dir}/{assembly}/{index}/{assembly}_{tag}{ext}'
+                            .format(**locals())
+                        )
 
+                    e['chromsizes'] = (
+                        '{references_dir}/'
+                        '{assembly}/'
+                        '{type_}/'
+                        '{assembly}_{tag}.chromsizes'.format(**locals())
+                    )
+                d[assembly][tag] = e
     return d

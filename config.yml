@@ -1,164 +1,141 @@
 sampletable: 'sampletable.tsv'
+assembly: 'dm6'
 
-# This can be optionally set as an environment variable, REFERENCES_DIR.
-#references_dir: "/data/references"
+# If not specified here, use the environment variable REFERENCES_DIR.
+# references_dir:
 
-# Can either specify full paths, or use the "{references_dir}" placeholder.
-aligner_prefix: "{references_dir}/dm6/hisat2/dm6_default"
-rrna_prefix: "{references_dir}/dm6/bowtie2/dm6_rRNA"
-gtf: "{references_dir}/dm6/gtf/dm6_r6-11.gtf"
-kallisto_index: "{references_dir}/dm6/kallisto/dm6_r6-11_transcriptome.idx"
-
-
-# REFERENCES
-#
-# For each block, files will be created according to the following rules:
-#
-# If type == fasta:
-#
-#   - references_dir/assembly/fasta/assembly_tag.fa
-#
-#   If indexes:
-#
-#       - references_dir/assembly/indextype/assembly_tag.index-specific-extension
-#       - symlink to ../fasta/assembly_tag.fa
-#
-# If type == gtf:
-#
-#   - references_dir/assembly/gtf/assembly_tag.gtf
-#
-#   If conversions:
-#
-#       - references_dir/assembly/gtf/assembly_tag.conversion-specific-extension
-
-
-references:
-  -
-    assembly: 'sacCer3'
-    type: 'fasta'
-    url: 'http://hgdownload.cse.ucsc.edu/goldenPath/sacCer3/bigZips/chromFa.tar.gz'
-    postprocess: 'sacCer3.fasta_postprocess'
-    indexes:
-        - 'bowtie2'
-
-  -
-    assembly: 'dm6'
-    type: 'gtf'
-    url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/gtf/dmel-all-r6.11.gtf.gz'
-    postprocess: "dm6.gtf_postprocess"
+aligner:
+    index: 'hisat2'
     tag: 'r6-11'
 
-  -
-    assembly: 'dm6'
-    url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/fasta/dmel-all-chromosome-r6.11.fasta.gz'
-    postprocess: "dm6.fasta_postprocess"
-    type: 'fasta'
-    indexes:
-      - 'bowtie2'
-      - 'hisat2'
-  -
-    assembly: 'dm6'
-    type: 'fasta'
-    tag: 'r6-11_transcriptome'
-    url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/fasta/dmel-all-transcript-r6.11.fasta.gz'
-    indexes:
-      - 'kallisto'
-
-    assembly: "dm6"
-    type: 'fasta'
+rrna:
+    index: 'bowtie2'
     tag: 'rRNA'
-    url:
-        - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
-        - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
-    indexes:
-        - 'hisat2'
-        - 'bowtie2'
-    postprocess:
-        function: 'common.filter_fastas'
-        args: 'Drosophila melanogaster'
-  -
-    assembly: 'hg19'
-    type: 'fasta'
-    url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/GRCh37.p13.genome.fa.gz'
-    indexes:
-      - 'bowtie2'
-      - 'hisat2'
 
-  -
-    assembly: 'hg19'
-    type: 'gtf'
-    url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/gencode.v19.annotation.gtf.gz'
-    tag: 'gencode-v19'
+gtf:
+    tag: "r6-11"
 
-  -
-    assembly: 'hg19'
-    type: 'fasta'
-    tag: 'gencode_v19_plus_lncRNA_transcriptome'
-    url:
-      - 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/gencode.v19.pc_transcripts.fa.gz'
-      - 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/gencode.v19.lncRNA_transcripts.fa.gz'
-    postprocess: "hg19.plus_lncrna_fasta_postprocess"
-    indexes:
-      - 'kallisto'
+kallisto:
+    tag: "r6-11_transcriptome"
 
-  -
-    assembly: 'ecoli'
-    type: 'fasta'
-    url: 'ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF_000005845.2_ASM584v2/GCF_000005845.2_ASM584v2_genomic.fna.gz'
-    indexes:
-      - 'bowtie2'
 
-  -
-    assembly: 'wolbachia'
-    type: 'fasta'
-    url: 'ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF_000008025.1_ASM802v1/GCF_000008025.1_ASM802v1_genomic.fna.gz'
-    indexes:
-      - 'bowtie2'
+# references has the structure:
+#
+#   assembly:           [ used as top-level dir for references ]
+#     tag:              [ user-defined; often indicates version or release ]
+#       type:           [ must be either "gtf" or "fasta" ]
+#         url:          [ string or list of urls ]
+#         postprocess:  [ string of importable function or dict of function and args ]
+#         conversions:  [ list of gtf conversions; only if type == gtf ]
+#         indexes:      [ list of indexes to build; only if type == fasta ]
 
-  -
-    assembly: 'dicty'
-    type: 'gtf'
-    tag: 'ensembl_2.7.33'
-    url: 'ftp://ftp.ensemblgenomes.org/pub/release-33/protists/gtf/dictyostelium_discoideum/Dictyostelium_discoideum.dicty_2.7.33.gtf.gz'
-    conversions:
-        - 'refflat'
+references:
 
-  -
-    assembly: 'dicty'
-    type: 'fasta'
-    url: 'ftp://ftp.ensemblgenomes.org/pub/release-33/protists/fasta/dictyostelium_discoideum/cdna/Dictyostelium_discoideum.dicty_2.7.cdna.all.fa.gz'
-    tag: 'ensembl_transcriptome_2.7'
+  sacCer3:
+    default:
+      fasta:
+        url: 'http://hgdownload.cse.ucsc.edu/goldenPath/sacCer3/bigZips/chromFa.tar.gz'
+        postprocess: 'postprocess.sacCer3.fasta_postprocess'
+        indexes:
+            - 'bowtie2'
 
-  -
-    assembly: 'dicty'
-    type: 'fasta'
-    tag: 'ensembl_2.7'
-    url: 'ftp://ftp.ensemblgenomes.org/pub/protists/release-33/fasta/dictyostelium_discoideum/dna/Dictyostelium_discoideum.dicty_2.7.dna_sm.toplevel.fa.gz'
-    indexes:
-        - 'bowtie2'
-        - 'hisat2'
+  dm6:
+    r6-11:
 
-  -
-    assembly: "dicty"
-    type: "fasta"
-    tag: "transcriptome"
-    url:
-        - "ftp://ftp.ensemblgenomes.org/pub/protists/release-33/fasta/dictyostelium_discoideum/cdna/Dictyostelium_discoideum.dicty_2.7.cdna.all.fa.gz"
-        - "ftp://ftp.ensemblgenomes.org/pub/protists/release-33/fasta/dictyostelium_discoideum/ncrna/Dictyostelium_discoideum.dicty_2.7.ncrna.fa.gz"
-    postprocess: "common.cat"
-    indexes:
-        - "kallisto"
+      gtf:
+        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/gtf/dmel-all-r6.11.gtf.gz'
+        postprocess: "postprocess.dm6.gtf_postprocess"
+        conversions:
+          - 'refflat'
 
-  -
-    assembly: "dicty"
-    type: 'fasta'
-    tag: 'rRNA'
-    url:
-        - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
-        - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
-    indexes:
-        - 'hisat2'
-        - 'bowtie2'
-    postprocess:
-        function: 'common.filter_fastas'
-        args: 'Dictyostelium discoideum'
+      fasta:
+        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/fasta/dmel-all-chromosome-r6.11.fasta.gz'
+        postprocess: "postprocess.dm6.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+
+    r6-11_transcriptome:
+      fasta:
+        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/fasta/dmel-all-transcript-r6.11.fasta.gz'
+        indexes:
+          - 'kallisto'
+
+    rRNA:
+      fasta:
+        url:
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+        postprocess:
+            function: 'common.filter_fastas'
+            args: 'Drosophila melanogaster'
+        indexes:
+            - 'hisat2'
+            - 'bowtie2'
+
+  hg19:
+    gencode-v19:
+      fasta:
+        url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/GRCh37.p13.genome.fa.gz'
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+      gtf:
+        url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/gencode.v19.annotation.gtf.gz'
+
+    gencode_v19_plus_lncRNA_transcriptome:
+      fasta:
+        url:
+          - 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/gencode.v19.pc_transcripts.fa.gz'
+          - 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/gencode.v19.lncRNA_transcripts.fa.gz'
+        postprocess: "common.cat"
+        indexes:
+          - 'kallisto'
+
+  ecoli:
+    default:
+      fasta:
+        url: 'ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF_000005845.2_ASM584v2/GCF_000005845.2_ASM584v2_genomic.fna.gz'
+        indexes:
+          - 'bowtie2'
+
+  wolbachia:
+    default:
+      fasta:
+        url: 'ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF_000008025.1_ASM802v1/GCF_000008025.1_ASM802v1_genomic.fna.gz'
+        indexes:
+          - 'bowtie2'
+
+  dicty:
+    ensembl_2.7.33:
+      gtf:
+        url: 'ftp://ftp.ensemblgenomes.org/pub/release-33/protists/gtf/dictyostelium_discoideum/Dictyostelium_discoideum.dicty_2.7.33.gtf.gz'
+        conversions:
+          - 'refflat'
+
+    ensembl_transcriptome_2.7:
+      fasta:
+        url:
+            - "ftp://ftp.ensemblgenomes.org/pub/protists/release-33/fasta/dictyostelium_discoideum/cdna/Dictyostelium_discoideum.dicty_2.7.cdna.all.fa.gz"
+            - "ftp://ftp.ensemblgenomes.org/pub/protists/release-33/fasta/dictyostelium_discoideum/ncrna/Dictyostelium_discoideum.dicty_2.7.ncrna.fa.gz"
+        postprocess: "common.cat"
+        indexes:
+            - "kallisto"
+
+    ensembl_2.7:
+      fasta:
+        url: 'ftp://ftp.ensemblgenomes.org/pub/protists/release-33/fasta/dictyostelium_discoideum/dna/Dictyostelium_discoideum.dicty_2.7.dna_sm.toplevel.fa.gz'
+        indexes:
+            - 'bowtie2'
+            - 'hisat2'
+    rRNA:
+      fasta:
+        url:
+            - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+            - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+        indexes:
+            - 'hisat2'
+            - 'bowtie2'
+        postprocess:
+            function: 'common.filter_fastas'
+            args: 'Dictyostelium discoideum'
