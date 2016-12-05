@@ -1,11 +1,16 @@
 from snakemake.shell import shell
 
 def fasta_postprocess(origfn, newfn):
-    shell("""gunzip -c {origfn} | sed "s/>/>chr/g" | gzip -c > {newfn}  && rm {origfn}""")
+    shell(
+          "gunzip -c {origfn} "
+          "| chrom_convert --from FlyBase --to UCSC --fileType FASTA -i - "
+          "| gzip -c > {newfn} "
+          "&& rm {origfn}")
 
 def gtf_postprocess(origfn, newfn):
         shell(
             "gunzip -c {origfn} "
-            """| awk -F "\\t" '{{OFS="\\t"; if ($8=="") $8="."; print "chr"$0}}' """
+            """| awk -F "\\t" '{{OFS="\\t"; if ($8=="") $8="."; print $0}}' """
+            "| chrom_convert -i - --from FlyBase --to UCSC --fileType GTF"
             "| gzip -c > {newfn} "
             "&& rm {origfn}")
