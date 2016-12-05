@@ -9,8 +9,9 @@ from lcdblib.snakemake import aligners, helpers
 from common import download_and_postprocess, config_to_dict
 
 
+HERE = str(srcdir('.'))
 def wrapper_for(path):
-    return os.path.join('file://', str(srcdir('.')), '..', 'wrappers', 'wrappers', path)
+    return 'file://' + os.path.join(HERE, 'wrappers', 'wrappers', path)
 
 
 references_dir = os.environ.get('REFERENCES_DIR', config.get('references_dir', None))
@@ -76,6 +77,7 @@ rule conversion_refflat:
     input: '{references_dir}/{assembly}/gtf/{assembly}_{tag}.gtf'
     output: '{references_dir}/{assembly}/gtf/{assembly}_{tag}.refflat'
     log: '{references_dir}/logs/{assembly}/gtf/{assembly}_{tag}.refflat.log'
+    conda: 'envs/references_env.yml'
     shell:
         'gtfToGenePred {input} {output}.tmp '
         '''&& awk '{{print $1, $0}}' {output}.tmp > {output} '''
@@ -85,7 +87,8 @@ rule conversion_refflat:
 rule chromsizes:
     output: '{references_dir}/{assembly}/fasta/{assembly}_{tag}.chromsizes'
     input: '{references_dir}/{assembly}/fasta/{assembly}_{tag}.fasta'
-    input: '{references_dir}/logs/{assembly}/fasta/{assembly}_{tag}.fasta.log'
+    log: '{references_dir}/logs/{assembly}/fasta/{assembly}_{tag}.fasta.log'
+    conda: 'envs/references_env.yml'
     shell:
         'rm -f {output}.tmp '
         '&& picard CreateSequenceDictionary R={input} O={output}.tmp '
