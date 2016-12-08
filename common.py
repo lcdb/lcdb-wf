@@ -160,17 +160,17 @@ def references_dict(config):
     ... {
     ...   'dm6': {
     ...      'r6-11': {
-    ...          'fasta': '/data/dm6/fasta/dm6_r6-11.fasta',
-    ...          'refflat': '/data/dm6/gtf/dm6_r6-11.refflat',
-    ...          'gtf': '/data/dm6/gtf/dm6_r6-11.gtf',
-    ...          'chromsizes': '/data/dm6/fasta/dm6_r6-11.chromsizes',
-    ...          'bowtie2': '/data/dm6/bowtie2/dm6_r6-11.1.bt2',
-    ...          'hisat2': '/data/dm6/hisat2/dm6_r6-11.1.ht2',
+    ...          'fasta': '/data/dm6/r6-11/fasta/dm6_r6-11.fasta',
+    ...          'refflat': '/data/dm6/r6-11/gtf/dm6_r6-11.refflat',
+    ...          'gtf': '/data/dm6/r6-11/gtf/dm6_r6-11.gtf',
+    ...          'chromsizes': '/data/dm6/r6-11/fasta/dm6_r6-11.chromsizes',
+    ...          'bowtie2': '/data/dm6/r6-11/bowtie2/dm6_r6-11.1.bt2',
+    ...          'hisat2': '/data/dm6/r6-11/hisat2/dm6_r6-11.1.ht2',
     ...          },
     ...      'r6-11_transcriptome': {
-    ...          'fasta': '/data/dm6/fasta/dm6_r6-11_transcriptome.fasta',
-    ...          'chromsizes': '/data/dm6/fasta/dm6_r6-11_transcriptome.chromsizes',
-    ...          'kallisto': '/data/dm6/kallisto/dm6_r6-11_transcriptome.idx',
+    ...          'fasta': '/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.fasta',
+    ...          'chromsizes': '/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.chromsizes',
+    ...          'kallisto': '/data/dm6/r6-11_transcriptome/kallisto/dm6_r6-11_transcriptome.idx',
     ...          },
     ...     },
     ... }), d
@@ -206,6 +206,7 @@ def references_dict(config):
                 e[type_] = (
                     '{references_dir}/'
                     '{assembly}/'
+                    '{tag}/'
                     '{type_}/'
                     '{assembly}_{tag}.{type_}'.format(**locals())
                 )
@@ -218,6 +219,7 @@ def references_dict(config):
                         e[conversion] = (
                             '{references_dir}/'
                             '{assembly}/'
+                            '{tag}/'
                             '{type_}/'
                             '{assembly}_{tag}{ext}'.format(**locals())
                         )
@@ -229,13 +231,14 @@ def references_dict(config):
                         ext = index_extensions[index]
 
                         e[index] = (
-                            '{references_dir}/{assembly}/{index}/{assembly}_{tag}{ext}'
+                            '{references_dir}/{assembly}/{tag}/{index}/{assembly}_{tag}{ext}'
                             .format(**locals())
                         )
 
                     e['chromsizes'] = (
                         '{references_dir}/'
                         '{assembly}/'
+                        '{tag}/'
                         '{type_}/'
                         '{assembly}_{tag}.chromsizes'.format(**locals())
                     )

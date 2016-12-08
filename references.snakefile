@@ -25,44 +25,44 @@ rule all_references:
 # Downloads the configured URL, applies any configured post-processing, and
 # saves the resulting gzipped file to *.fasta.gz or *.gtf.gz.
 rule download_and_process:
-    output: temporary('{references_dir}/{assembly}/{_type}/{assembly}_{tag}.{_type}.gz')
+    output: temporary('{references_dir}/{assembly}/{tag}/{_type}/{assembly}_{tag}.{_type}.gz')
     run:
         download_and_postprocess(output[0], config, wildcards.assembly, wildcards.tag, wildcards._type)
 
 
 rule unzip:
     input: rules.download_and_process.output
-    output: '{references_dir}/{assembly}/{_type}/{assembly}_{tag}.{_type}'
-    log: '{references_dir}/logs/{assembly}/{_type}/{assembly}_{tag}.{_type}.log'
+    output: '{references_dir}/{assembly}/{tag}/{_type}/{assembly}_{tag}.{_type}'
+    log: '{references_dir}/logs/{assembly}/{tag}/{_type}/{assembly}_{tag}.{_type}.log'
     shell: 'gunzip -c {input} > {output}'
 
 
 rule bowtie2_index:
-    output: index=aligners.bowtie2_index_from_prefix('{references_dir}/{assembly}/bowtie2/{assembly}_{tag}')
-    input: fasta='{references_dir}/{assembly}/fasta/{assembly}_{tag}.fasta'
-    log: '{references_dir}/logs/{assembly}/bowtie2/{assembly}_{tag}.log'
+    output: index=aligners.bowtie2_index_from_prefix('{references_dir}/{assembly}/{tag}/bowtie2/{assembly}_{tag}')
+    input: fasta='{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
+    log: '{references_dir}/logs/{assembly}/{tag}/bowtie2/{assembly}_{tag}.log'
     wrapper: wrapper_for('bowtie2/build')
 
 
 rule hisat2_index:
-    output: index=aligners.hisat2_index_from_prefix('{references_dir}/{assembly}/hisat2/{assembly}_{tag}')
-    input: fasta='{references_dir}/{assembly}/fasta/{assembly}_{tag}.fasta'
-    log: '{references_dir}/logs/{assembly}/hisat2/{assembly}_{tag}.log'
+    output: index=aligners.hisat2_index_from_prefix('{references_dir}/{assembly}/{tag}/hisat2/{assembly}_{tag}')
+    input: fasta='{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
+    log: '{references_dir}/logs/{assembly}/{tag}/hisat2/{assembly}_{tag}.log'
     wrapper: wrapper_for('hisat2/build')
 
 
 rule symlink_fasta_to_index_dir:
-    input: fasta='{references_dir}/{assembly}/fasta/{assembly}_{tag}.fasta'
-    output: '{references_dir}/{assembly}/{index}/{assembly}_{tag}.fasta'
-    log: '{references_dir}/logs/{assembly}/{index}/{assembly}_{tag}.fasta.log'
+    input: fasta='{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
+    output: '{references_dir}/{assembly}/{tag}/{index}/{assembly}_{tag}.fasta'
+    log: '{references_dir}/logs/{assembly}/{tag}/{index}/{assembly}_{tag}.fasta.log'
     shell:
         'ln -sf {input} {output}'
 
 
 rule kallisto_index:
-    output: '{references_dir}/{assembly}/kallisto/{assembly}_{tag}.idx'
-    input: '{references_dir}/{assembly}/fasta/{assembly}_{tag}.fasta'
-    log: '{references_dir}/logs/{assembly}/kallisto/{assembly}_{tag}.log'
+    output: '{references_dir}/{assembly}/{tag}/kallisto/{assembly}_{tag}.idx'
+    input: '{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
+    log: '{references_dir}/logs/{assembly}/{tag}/kallisto/{assembly}_{tag}.log'
     conda: 'envs/references_env.yml'
     shell:
         '''
@@ -70,9 +70,9 @@ rule kallisto_index:
         '''
 
 rule conversion_refflat:
-    input: '{references_dir}/{assembly}/gtf/{assembly}_{tag}.gtf'
-    output: '{references_dir}/{assembly}/gtf/{assembly}_{tag}.refflat'
-    log: '{references_dir}/logs/{assembly}/gtf/{assembly}_{tag}.refflat.log'
+    input: '{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf'
+    output: '{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.refflat'
+    log: '{references_dir}/logs/{assembly}/{tag}/gtf/{assembly}_{tag}.refflat.log'
     conda: 'envs/references_env.yml'
     shell:
         'gtfToGenePred {input} {output}.tmp '
@@ -81,9 +81,9 @@ rule conversion_refflat:
 
 
 rule chromsizes:
-    output: '{references_dir}/{assembly}/fasta/{assembly}_{tag}.chromsizes'
-    input: '{references_dir}/{assembly}/fasta/{assembly}_{tag}.fasta'
-    log: '{references_dir}/logs/{assembly}/fasta/{assembly}_{tag}.fasta.log'
+    output: '{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.chromsizes'
+    input: '{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
+    log: '{references_dir}/logs/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta.log'
     conda: 'envs/references_env.yml'
     shell:
         'rm -f {output}.tmp '
