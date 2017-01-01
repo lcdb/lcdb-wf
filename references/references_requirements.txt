@@ -1,7 +1,0 @@
-biopython
-jsonschema
-kallisto
-snakemake
-bowtie2
-star
-hisat2

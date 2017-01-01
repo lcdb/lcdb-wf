@@ -2,10 +2,11 @@ import os
 import pandas as pd
 from lcdblib.snakemake import helpers, aligners
 from lcdblib.utils import utils
+import common
 
 shell.prefix('set -euo pipefail; ')
 
-include: 'references/references.snakefile'
+include: 'references.snakefile'
 
 references_dir = os.environ.get('REFERENCES_DIR', config.get('references_dir', None))
 if references_dir is None:
@@ -15,6 +16,8 @@ config['references_dir'] = references_dir
 sampletable = pd.read_table(config['sampletable'])
 samples = sampletable.ix[:, 0]
 
+assembly = config['assembly']
+refdict = common.references_dict(config)[assembly]
 
 patterns = {
     'fastq':   'samples/{sample}/{sample}_R1.fastq.gz',
@@ -43,13 +46,19 @@ fill = dict(sample=samples, count=['.count', ''])
 targets = helpers.fill_patterns(patterns, fill)
 
 
-HERE = str(srcdir(''))
 def wrapper_for(path):
-    return 'file://' + os.path.join(HERE, 'wrappers', 'wrappers', path)
-
+    return 'file://' + os.path.join('wrappers', 'wrappers', path)
 
 rule targets:
-    input: targets['bam'] + utils.flatten(targets['fastqc']) + utils.flatten(targets['libsizes']) + [targets['libsizes_table']] + [targets['multiqc']]
+    input:
+        (
+            targets['bam'] +
+            utils.flatten(targets['fastqc']) +
+            utils.flatten(targets['libsizes']) +
+            [targets['libsizes_table']] +
+            [targets['multiqc']] +
+            utils.flatten(targets['featurecounts'])
+        )
 
 
 rule cutadapt:
@@ -77,7 +86,7 @@ rule fastqc:
 rule hisat2:
     input:
         fastq=rules.cutadapt.output.fastq,
-        index=aligners.hisat2_index_from_prefix(config['aligner_prefix'].format(references_dir=references_dir))
+        index=[refdict[config['aligner']['tag']]['hisat2']]
     output:
         bam=patterns['bam']
     log:
@@ -107,7 +116,7 @@ rule bam_count:
 rule rrna:
     input:
         fastq=rules.cutadapt.output.fastq,
-        index=aligners.bowtie2_index_from_prefix(config['rrna_prefix'].format(references_dir=references_dir))
+        index=[refdict[config['rrna']['tag']]['bowtie2']]
     output:
         bam=temporary(patterns['rRNA'])
     log:
@@ -119,7 +128,7 @@ rule rrna:
 
 rule featurecounts:
     input:
-        annotation=config['gtf'].format(references_dir=references_dir),
+        annotation=refdict[config['gtf']['tag']]['gtf'],
         bam=rules.hisat2.output
     output:
         counts=patterns['featurecounts']
@@ -161,7 +170,7 @@ rule multiqc:
 
 rule kallisto:
     input:
-        index=config['kallisto_index'],
+        index=refdict[config['kallisto']['tag']]['kallisto'],
         fastq=patterns['cutadapt']
     output:
         patterns['kallisto']['h5']
