@@ -1,6 +1,2 @@
 snakemake >=3.9
-multiqc
-biopython
-hisat2
-bowtie2
-picard
+lcdblib

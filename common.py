@@ -7,6 +7,15 @@ from lcdblib.snakemake import aligners, helpers
 from snakemake.shell import shell
 
 
+def gzipped(tmpfiles, outfile):
+    """
+    Cat-and-gzip input files into a single output file.
+    """
+    with gzip.open(outfile, 'wt') as fout:
+        for f in tmpfiles:
+            for line in open(f):
+                fout.write(line)
+
 def cat(tmpfiles, outfile):
     shell('cat {tmpfiles} > {outfile}')
 
