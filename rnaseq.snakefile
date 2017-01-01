@@ -74,7 +74,7 @@ rule cutadapt:
     log:
         patterns['cutadapt'] + '.log'
     params:
-        extra='-a file:adapters.fa -q 20'
+        extra='-a file:adapters.fa -q 20 --minimum-length=25'
     wrapper:
         wrapper_for('cutadapt')
 
