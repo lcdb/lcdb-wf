@@ -38,6 +38,10 @@ patterns = {
     'featurecounts': 'samples/{sample}/{sample}.cutadapt.bam.featurecounts.txt',
     'libsizes_table': 'libsizes_table.tsv',
     'multiqc': 'multiqc.html',
+    'markduplicates': {
+        'bam': 'samples/{sample}/{sample}.cutadapt.markdups.bam',
+        'metrics': 'samples/{sample}/{sample}.cutadapt.markdups.bam.log',
+    },
     'kallisto': {
         'h5': 'samples/{sample}/{sample}/kallisto/abundance.h5',
     },
@@ -57,7 +61,8 @@ rule targets:
             utils.flatten(targets['libsizes']) +
             [targets['libsizes_table']] +
             [targets['multiqc']] +
-            utils.flatten(targets['featurecounts'])
+            utils.flatten(targets['featurecounts']) +
+            utils.flatten(targets['markduplicates'])
         )
 
 
@@ -69,7 +74,7 @@ rule cutadapt:
     log:
         patterns['cutadapt'] + '.log'
     params:
-        extra='-a file:adapters.fa -q 20'
+        extra='-a file:adapters.fa -q 20 --minimum-length=25'
     wrapper:
         wrapper_for('cutadapt')
 
@@ -177,5 +182,14 @@ rule kallisto:
     wrapper:
         wrapper_for('kallisto/quant')
 
+
+rule markduplicates:
+    input:
+        bam=rules.hisat2.output
+    output:
+        bam=patterns['markduplicates']['bam'],
+        metrics=patterns['markduplicates']['metrics']
+    wrapper:
+        wrapper_for('picard/markduplicates')
 
 # vim: ft=python
