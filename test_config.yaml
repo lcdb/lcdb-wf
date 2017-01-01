@@ -1,0 +1,63 @@
+sampletable: 'sampletable.tsv'
+assembly: 'dm6'
+
+# If not specified here, use the environment variable REFERENCES_DIR.
+references_dir: references_data
+
+aligner:
+    index: 'hisat2'
+    tag: 'test'
+
+rrna:
+    index: 'bowtie2'
+    tag: 'rRNA'
+
+gtf:
+    tag: "test"
+
+kallisto:
+    tag: "test_transcriptome"
+
+
+# references has the structure:
+#
+#   assembly:           [ used as top-level dir for references ]
+#     tag:              [ user-defined; often indicates version or release ]
+#       type:           [ must be either "gtf" or "fasta" ]
+#         url:          [ string or list of urls ]
+#         postprocess:  [ string of importable function or dict of function and args ]
+#         conversions:  [ list of gtf conversions; only if type == gtf ]
+#         indexes:      [ list of indexes to build; only if type == fasta ]
+
+references:
+  dm6:
+    test:
+      gtf:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.gtf"
+        postprocess: 'common.gzipped'
+        conversions:
+          - 'refflat'
+      fasta:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/2L.fa"
+        postprocess: 'common.gzipped'
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+
+    test_transcriptome:
+      fasta:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/transcriptome.fa/"
+        indexes:
+          - 'kallisto'
+
+    rRNA:
+      fasta:
+        url:
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+        postprocess:
+            function: 'common.filter_fastas'
+            args: 'Drosophila melanogaster'
+        indexes:
+            - 'hisat2'
+            - 'bowtie2'
