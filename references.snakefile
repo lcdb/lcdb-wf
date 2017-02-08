@@ -75,7 +75,7 @@ rule conversion_refflat:
     log: '{references_dir}/logs/{assembly}/{tag}/gtf/{assembly}_{tag}.refflat.log'
     conda: 'envs/references_env.yml'
     shell:
-        'gtfToGenePred {input} {output}.tmp '
+        'gtfToGenePred -ignoreGroupsWithoutExons {input} {output}.tmp '
         '''&& awk '{{print $1, $0}}' {output}.tmp > {output} '''
         '&& rm {output}.tmp '
 
