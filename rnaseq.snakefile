@@ -32,9 +32,8 @@ patterns = {
         'fastq':   'samples/{sample}/{sample}_R1.fastq.gz.libsize',
         'cutadapt': 'samples/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize',
         'bam':     'samples/{sample}/{sample}.cutadapt.bam.libsize',
-        'rRNA':     'samples/{sample}/{sample}.cutadapt.rRNA.bam.libsize',
     },
-    'rRNA': 'samples/{sample}/{sample}.cutadapt.rRNA.bam',
+    'fastq_screen': 'samples/{sample}/{sample}.cutadapt.screen.txt',
     'featurecounts': 'samples/{sample}/{sample}.cutadapt.bam.featurecounts.txt',
     'libsizes_table': 'libsizes_table.tsv',
     'multiqc': 'multiqc.html',
@@ -59,6 +58,7 @@ rule targets:
             targets['bam'] +
             utils.flatten(targets['fastqc']) +
             utils.flatten(targets['libsizes']) +
+            [targets['fastq_screen']] +
             [targets['libsizes_table']] +
             [targets['multiqc']] +
             utils.flatten(targets['featurecounts']) +
@@ -118,17 +118,19 @@ rule bam_count:
         'samtools view -c {input} > {output}'
 
 
-rule rrna:
+rule fastq_screen:
     input:
         fastq=rules.cutadapt.output.fastq,
-        index=[refdict[config['rrna']['tag']]['bowtie2']]
+        dm6=refdict[config['aligner']['tag']]['bowtie2'],
+        rRNA=refdict[config['rrna']['tag']]['bowtie2'],
+        phix=common.references_dict(config)['phix']['default']['bowtie2']
     output:
-        bam=temporary(patterns['rRNA'])
+        txt=patterns['fastq_screen']
     log:
-        patterns['rRNA'] + '.log'
-    params: extra='-k 1 --very-fast'
+        patterns['fastq_screen'] + '.log'
+    params: subset=100000
     wrapper:
-        wrapper_for('bowtie2/align')
+        wrapper_for('fastq_screen')
 
 
 rule featurecounts:
