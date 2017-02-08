@@ -32,7 +32,7 @@ rule download_and_process:
 
 rule unzip:
     input: rules.download_and_process.output
-    output: '{references_dir}/{assembly}/{tag}/{_type}/{assembly}_{tag}.{_type}'
+    output: protected('{references_dir}/{assembly}/{tag}/{_type}/{assembly}_{tag}.{_type}')
     log: '{references_dir}/logs/{assembly}/{tag}/{_type}/{assembly}_{tag}.{_type}.log'
     shell: 'gunzip -c {input} > {output}'
 
