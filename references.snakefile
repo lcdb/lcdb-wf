@@ -11,7 +11,7 @@ from common import download_and_postprocess, references_dict, get_references_dir
 
 HERE = str(srcdir('.'))
 def wrapper_for(path):
-    return 'file://' + os.path.join('wrappers', 'wrappers', path)
+    return 'file:' + os.path.join('wrappers', 'wrappers', path)
 
 
 references_dir = get_references_dir(config)
