@@ -139,3 +139,34 @@ references:
         postprocess:
             function: 'common.filter_fastas'
             args: 'Dictyostelium discoideum'
+
+  phix:
+    default:
+      fasta:
+        url: 'ftp://igenome:G3nom3s4u@ussd-ftp.illumina.com/PhiX/Illumina/RTA/PhiX_Illumina_RTA.tar.gz'
+        postprocess: "postprocess.phix.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
+
+  ercc:
+    srm2374:
+      fasta:
+        url: 'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        postprocess: "postprocess.ercc.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+      gtf:
+        url: 'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        postprocess: "postprocess.ercc.gtf_postprocess"
+
+    fisher92:
+      fasta:
+        url: 'https://tools.thermofisher.com/content/sfs/manuals/ERCC92.zip'
+        postprocess: "postprocess.erccFisher.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+      gtf:
+        url: 'https://tools.thermofisher.com/content/sfs/manuals/ERCC92.zip'
+        postprocess: "postprocess.erccFisher.gtf_postprocess"
