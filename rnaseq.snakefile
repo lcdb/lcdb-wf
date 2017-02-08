@@ -51,7 +51,7 @@ targets = helpers.fill_patterns(patterns, fill)
 
 
 def wrapper_for(path):
-    return 'file://' + os.path.join('wrappers', 'wrappers', path)
+    return 'file:' + os.path.join('wrappers', 'wrappers', path)
 
 rule targets:
     input:
