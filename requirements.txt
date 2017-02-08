@@ -1,2 +1,2 @@
-snakemake >=3.9
+snakemake ==3.10.1
 lcdblib
