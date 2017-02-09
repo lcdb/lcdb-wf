@@ -79,6 +79,18 @@ rule conversion_refflat:
         '''&& awk '{{print $1, $0}}' {output}.tmp > {output} '''
         '&& rm {output}.tmp '
 
+rule conversion_gffutils:
+    input: gtf='{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf'
+    output: db=protected('{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf.db')
+    log: '{references_dir}/logs/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf.db.log'
+    run:
+        import gffutils
+        db = gffutils.create_db(
+                data=input.gtf, dbfn=output.db, merge_strategy='merge',
+                id_spec={'transcript': ['transcript_id', 'transcript_symbol'],
+                         'gene': ['gene_id', 'gene_symbol']},
+                gtf_transcript_key='transcript_id', gtf_gene_key='gene_id',
+                disable_infer_genes=True)
 
 rule chromsizes:
     output: protected('{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.chromsizes')

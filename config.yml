@@ -47,6 +47,7 @@ references:
         postprocess: "postprocess.dm6.gtf_postprocess"
         conversions:
           - 'refflat'
+          - 'gffutils'
 
       fasta:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/fasta/dmel-all-chromosome-r6.11.fasta.gz'
@@ -170,3 +171,11 @@ references:
       gtf:
         url: 'https://tools.thermofisher.com/content/sfs/manuals/ERCC92.zip'
         postprocess: "postprocess.erccFisher.gtf_postprocess"
+
+  adapters:
+    default:
+      fasta:
+        url: 'https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/adapters.fa'
+        postprocess: "postprocess.adapters.fasta_postprocess"
+        indexes:
+          - 'bowtie2'

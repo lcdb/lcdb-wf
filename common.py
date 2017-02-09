@@ -204,6 +204,7 @@ def references_dict(config):
     conversion_extensions = {
         'intergenic': '.intergenic.gtf',
         'refflat': '.refflat',
+        'gffutils': '.gtf.db',
     }
 
     d = {}

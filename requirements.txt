@@ -1,2 +1,3 @@
+gffutils==0.8.7.1
 snakemake ==3.10.1
 lcdblib
