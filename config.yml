@@ -39,7 +39,7 @@ references:
         indexes:
             - 'bowtie2'
 
-  dm6:
+  dmel:
     r6-11:
 
       gtf:
@@ -74,7 +74,7 @@ references:
             - 'hisat2'
             - 'bowtie2'
 
-  hg19:
+  human:
     gencode-v19:
       fasta:
         url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/GRCh37.p13.genome.fa.gz'
