@@ -76,7 +76,7 @@ rule conversion_refflat:
     conda: 'envs/references_env.yml'
     shell:
         'gtfToGenePred -ignoreGroupsWithoutExons {input} {output}.tmp '
-        '''&& awk '{{print $1\t$0}}' {output}.tmp > {output} '''
+        '''&& awk '{{print $1"\t"$0}}' {output}.tmp > {output} '''
         '&& rm {output}.tmp '
 
 rule conversion_gffutils:
