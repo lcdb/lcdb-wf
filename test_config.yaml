@@ -1,5 +1,5 @@
 sampletable: 'sampletable.tsv'
-assembly: 'dm6'
+assembly: 'dmel'
 
 # If not specified here, use the environment variable REFERENCES_DIR.
 references_dir: references_data
@@ -30,7 +30,7 @@ kallisto:
 #         indexes:      [ list of indexes to build; only if type == fasta ]
 
 references:
-  dm6:
+  dmel:
     test:
       gtf:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.gtf"
@@ -61,3 +61,10 @@ references:
         indexes:
             - 'hisat2'
             - 'bowtie2'
+  phix:
+    default:
+      fasta:
+        url: 'ftp://igenome:G3nom3s4u@ussd-ftp.illumina.com/PhiX/Illumina/RTA/PhiX_Illumina_RTA.tar.gz'
+        postprocess: "postprocess.phix.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
