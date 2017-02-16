@@ -1,0 +1,29 @@
+# whitelist of files that should be copied over
+
+README.md
+
+# should have better organization; adapters.fa doesn't need to be in top level
+adapters.fa
+
+# definitely need snakefiles
+references.snakefile
+rnaseq.snakefile
+
+common.py
+
+envs/*
+postprocess/*
+
+# we want to keep everything in wrappers because otherwise dealing with the
+# submodule gets annoying
+wrappers/*
+wrappers/.*
+
+# git internals
+.gitignore
+.gitmodules
+.git
+
+requirements.txt
+test_config.yaml
+config.yml
