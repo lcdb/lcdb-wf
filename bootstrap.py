@@ -70,8 +70,8 @@ _run(
 
 
 # Whitelist of globs indicating files to keep
-MANIFEST = [i.strip() for i in open('manifest.txt') if
-            len(i.strip()) > 0 and not i.startswith('#')]
+MANIFEST = [i.strip() for i in open(os.path.join(source_dir, 'manifest.txt'))
+            if len(i.strip()) > 0 and not i.startswith('#')]
 
 keep = []
 for m in MANIFEST:
