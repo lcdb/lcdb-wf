@@ -93,6 +93,17 @@ references:
         indexes:
           - 'kallisto'
 
+    rRNA:
+      fasta:
+        url:
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+        postprocess:
+            function: 'common.filter_fastas'
+            args: 'Homo sapiens'
+        indexes:
+            - 'hisat2'
+            - 'bowtie2'
 
   mouse:
     gencode_m12:
