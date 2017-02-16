@@ -8,11 +8,12 @@ from lcdblib.utils import utils
 from lcdblib.snakemake import aligners, helpers
 from common import download_and_postprocess, references_dict, get_references_dir
 
+localrules: symlink_fasta_to_index_dir, chromsizes
 
 HERE = str(srcdir('.'))
+
 def wrapper_for(path):
     return 'file:' + os.path.join('wrappers', 'wrappers', path)
-
 
 references_dir = get_references_dir(config)
 makedirs([references_dir, os.path.join(references_dir, 'logs')])
