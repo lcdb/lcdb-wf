@@ -99,7 +99,6 @@ _run('cd {tmpdir} && git remote add upstream {remote}'.format(**locals()))
 
 # Now remove anything specified 
 for r in list(to_remove):
-    r = os.path.relpath(r, tmpdir)
     _run('(cd {tmpdir} && git rm -r {r} --quiet)'.format(**locals()))
 
 _run('cd {tmpdir} && git commit -a -m "cleanup for new project \'{args.label}\' in {dest_dir}" --quiet'.format(**locals()))
