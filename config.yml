@@ -93,6 +93,25 @@ references:
         indexes:
           - 'kallisto'
 
+
+  mouse:
+    gencode_m12:
+      fasta:
+        url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M12/GRCm38.primary_assembly.genome.fa.gz'
+        indexes:
+          - 'hisat2'
+          - 'bowtie2'
+      gtf:
+        url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M12/gencode.vM12.annotation.gtf.gz'
+        conversions:
+          - 'refflat'
+
+
+    gencode_m12_transcriptome:
+      fasta:
+        url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M12/gencode.vM12.transcripts.fa.gz'
+        indexes:
+          - 'kallisto'
   ecoli:
     default:
       fasta:
