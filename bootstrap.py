@@ -87,7 +87,7 @@ to_remove = set(existing_in_repo).difference(set(keep))
 # then add that to the remove list so that when copying over we don't
 # overwrite.
 existing_in_dest = recursive_find([args.dest])
-to_remove = to_remove.union(existing_in_dest)
+to_remove = to_remove.union(set(existing_in_dest).intersection(existing_in_repo))
 
 # add the remote
 if not args.https:
