@@ -39,7 +39,7 @@ patterns = {
     'multiqc': 'multiqc.html',
     'markduplicates': {
         'bam': 'samples/{sample}/{sample}.cutadapt.markdups.bam',
-        'metrics': 'samples/{sample}/{sample}.cutadapt.markdups.bam.log',
+        'metrics': 'samples/{sample}/{sample}.cutadapt.markdups.bam.metrics',
     },
     'kallisto': {
         'h5': 'samples/{sample}/{sample}/kallisto/abundance.h5',
@@ -191,6 +191,8 @@ rule markduplicates:
     output:
         bam=patterns['markduplicates']['bam'],
         metrics=patterns['markduplicates']['metrics']
+    log:
+        patterns['markduplicates']['bam'] + '.log'
     wrapper:
         wrapper_for('picard/markduplicates')
 
