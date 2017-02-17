@@ -166,7 +166,12 @@ rule libsizes_table:
         df.to_csv(str(output), sep='\t')
 
 rule multiqc:
-    input: utils.flatten(targets['fastqc']) + utils.flatten(targets['cutadapt'])
+    input:
+        utils.flatten(targets['fastqc']) +
+        utils.flatten(targets['cutadapt']) +
+        utils.flatten(targets['featurecounts']) +
+        utils.flatten(targets['bam']) +
+        utils.flatten(targets['markduplicates'])
     output: list(set(targets['multiqc']))
     params:
         analysis_directory='samples'
