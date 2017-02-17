@@ -25,7 +25,6 @@ colData$path <- sapply(
                            )
     )
 
-colData$group <- colData$treatment
 colData <- colData[, c('samplename', 'path', 'group')]
 colData$group <- factor(colData$group)
 knitr::kable(colData[, !grepl('path', colnames(colData))])
