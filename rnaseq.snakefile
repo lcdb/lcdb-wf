@@ -39,7 +39,7 @@ patterns = {
     'multiqc': 'multiqc.html',
     'markduplicates': {
         'bam': 'samples/{sample}/{sample}.cutadapt.markdups.bam',
-        'metrics': 'samples/{sample}/{sample}.cutadapt.markdups.bam.log',
+        'metrics': 'samples/{sample}/{sample}.cutadapt.markdups.bam.metrics',
     },
     'kallisto': {
         'h5': 'samples/{sample}/{sample}/kallisto/abundance.h5',
@@ -96,6 +96,7 @@ rule hisat2:
         bam=patterns['bam']
     log:
         patterns['bam'] + '.log'
+    threads: 6
     wrapper:
         wrapper_for('hisat2/align')
 
@@ -166,7 +167,12 @@ rule libsizes_table:
         df.to_csv(str(output), sep='\t')
 
 rule multiqc:
-    input: utils.flatten(targets['fastqc']) + utils.flatten(targets['cutadapt'])
+    input:
+        utils.flatten(targets['fastqc']) +
+        utils.flatten(targets['cutadapt']) +
+        utils.flatten(targets['featurecounts']) +
+        utils.flatten(targets['bam']) +
+        utils.flatten(targets['markduplicates'])
     output: list(set(targets['multiqc']))
     params:
         analysis_directory='samples'
@@ -191,6 +197,8 @@ rule markduplicates:
     output:
         bam=patterns['markduplicates']['bam'],
         metrics=patterns['markduplicates']['metrics']
+    log:
+        patterns['markduplicates']['bam'] + '.log'
     wrapper:
         wrapper_for('picard/markduplicates')
 

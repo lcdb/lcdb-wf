@@ -1,0 +1,360 @@
+```{r, include=FALSE}
+knitr::opts_chunk$set(collapse=TRUE, warning=FALSE, message=FALSE, bootstrap.show.code=FALSE, bootstrap.show.output=FALSE)
+```
+# Differential expression 
+
+Note: if you're unfamiliar with any of the plots or tables here, see the
+[Background and help](#background) section for details.
+
+## Experiment overview
+
+
+```{r setup}
+library(DESeq2)
+library(gridExtra)
+library(pheatmap)
+library(RColorBrewer)
+library(ggplot2)
+library(genefilter)
+library(org.Hs.eg.db)
+sample.table.filename = '../sampletable.tsv'
+colData <- read.table(sample.table.filename, sep='\t', header=TRUE)
+colData$path <- sapply(
+    colData$samplename,
+    function (x) file.path('samples', x, paste0(x, '.cutadapt.bam.featurecounts.txt')
+                           )
+    )
+
+colData <- colData[, c('samplename', 'path', 'group')]
+colData$group <- factor(colData$group)
+knitr::kable(colData[, !grepl('path', colnames(colData))])
+```
+
+```{r}
+# revised version of DESeq2::DESeqDataSetFromHTSeqCount to handle the
+# featureCounts default output format, which contains many more columns
+DESeqDataSetFromFeatureCounts <- function (sampleTable, directory='.', design,
+                                           ignoreRank=FALSE,  ...)
+{
+  l <- lapply(
+    as.character(sampleTable[, 'path']),
+    function(fn) read.table(file.path(directory, fn), stringsAsFactors=FALSE, skip=2)
+  )
+  if (!all(sapply(l, function(a) all(a$V1 == l[[1]]$V1))))
+    stop("Gene IDs in first column differ between files")
+  tbl <- sapply(l, function(a) a$V7)
+  colnames(tbl) <- sampleTable[, 1]
+  rownames(tbl) <- l[[1]]$V1
+  rownames(sampleTable) <- sampleTable[, 1]
+  object <- DESeqDataSetFromMatrix(countData=tbl, colData=sampleTable[, -grepl('path', colnames(sampleTable)),
+                                   drop=FALSE], design=design, ignoreRank, ...)
+  return(object)
+}
+```
+
+```{r dds, cache=TRUE}
+dds <- DESeqDataSetFromFeatureCounts(
+                                  sampleTable=colData,
+                                  directory='..',
+                                  design=~group)
+```
+
+```{r rld, cache=TRUE, depends='dds'}
+rld <- rlog(dds, blind=FALSE)
+```
+
+## Sample clustering and QC
+
+The following heatmap shows a hierarchical clustering of pairwise distances
+between samples. Darker blue means less distant (i.e. more similar). In general
+we expect to see replicates clustering together and separation of treatments.
+
+## Clustered heatmap
+
+```{r}
+sampleDists <- dist(t(assay(rld)))
+sampleDistMatrix <- as.matrix(sampleDists)
+rownames(sampleDistMatrix) <- colnames(dds)
+colnames(sampleDistMatrix) <- NULL
+colors <- colorRampPalette(rev(brewer.pal(9, 'Blues')))(255)
+df <- as.data.frame(colData(rld)[, c('group')])
+rownames(df) <- colnames(rld)
+colnames(df) <- c('group')
+pheatmap(sampleDistMatrix,
+         cluster_distance_rows=sampleDists,
+         cluster_distance_cols=sampleDists,
+         annotation_row=df,
+         col=colors)
+```
+
+## PCA
+
+Another way of looking at sample clustering is principal components analysis
+(PCA). The x- and y-axes do not have units, rather, they represent the
+dimensions along which the samples vary the most. The amount of variance
+explained by each principal component is indicated in the axes label.
+
+
+```{r}
+plotPCA(rld, intgroup='group')
+```
+
+
+## Most-varying genes
+
+We can also look at the most varying genes to get a sense of the clustering.
+This heatmap takes the top 50 most-varying genes and plots their deviation from
+the row mean.
+
+
+```{r, fig.height=12}
+vargenes.heatmap <- function(n=50){
+  topVarGenes <- head(order(rowVars(assay(rld)), decreasing=TRUE), n)
+  mat <- assay(rld)[topVarGenes,]
+  mat <- mat - rowMeans(mat)
+  df <- as.data.frame(colData(rld)[, c('group')])
+  rownames(df) <- colnames(rld)
+  colnames(df) <- c('group')
+  pheatmap(mat, annotation_col=df, cluster_cols=FALSE)
+}
+
+vargenes.heatmap(50)
+```
+
+
+```{r deseq, cache=TRUE, depends='dds'}
+dds <- DESeq(dds)
+```
+
+
+```{r results, cache=TRUE}
+res <- results(dds)
+```
+
+```{r}
+my.counts <- function(gene, dds){
+  geneCounts <- plotCounts(dds, gene=gene, intgroup=c('group'), returnData=TRUE)
+  p <- ggplot(geneCounts, aes(x=group, y=count, color=group, group=group)) +
+    scale_y_log10() +
+    geom_point(position=position_jitter(width=.1, height=0),  size=3) +
+    geom_line(color='#000000') + 
+    ggtitle(gene)
+  return(p)
+}
+
+
+lfc.order <- function(res, reverse=FALSE){
+    res.na <- res[!is.na(res$log2FoldChange),]
+    if (!reverse){
+        return(res.na[order(res.na$log2FoldChange),])
+    }
+    if (reverse){
+        return(res.na[rev(order(res.na$log2FoldChange)),])
+    }
+}
+p.order <- function(res){
+    return(res[order(res.ko.p7res$padj),])
+}
+
+
+
+top.plots <- function(res, n, func, dds){
+    ps <- list()
+    for (i in seq(n)){
+        name <- rownames(res)[i]
+        ps[[name]] <- func(name, dds)
+    }
+    grid.arrange(grobs=ps)
+}
+
+pval.hist <- function(res){
+    hist(res$pvalue[res$baseMean>1], breaks=0:20/20, col='grey50', border='white')
+}
+
+my.summary <- function(res, dds, alpha, ...){
+   if (missing(alpha)){
+       alpha <- if (is.null(metadata(res)$alpha)){ 0.1 } else { metadata(res)$alpha }
+        notallzero <- sum(res$baseMean > 0)
+   }
+    up <- sum(res$padj < alpha & res$log2FoldChange > 0, na.rm=TRUE)
+   down <- sum(res$padj < alpha & res$log2FoldChange < 0, na.rm=TRUE)
+   filt <- sum(!is.na(res$pvalue) & is.na(res$padj))
+   outlier <- sum(res$baseMean > 0 & is.na(res$pvalue))
+   ft <- if(is.null(metadata(res)$filterThreshold)){ 0 } else { round(metadata(res)$filterThreshold) }
+   df <- data.frame(
+                    total.annotated.genes=nrow(res),
+                    total.nonzero.read.count=notallzero,
+                    alpha=alpha,
+                    up=up,
+                    down=down,
+                    outliers=outlier,
+                    low.counts=filt,
+                    design=deparse(design(dds))
+                    )
+   return(df)
+}
+
+
+
+```
+## Differential expression
+
+See the [Help on plots](#plotshelp) section for more information on the plots and tables.
+
+
+### Effect of group
+
+```{r}
+knitr::kable(my.summary(res, dds))
+top.plots(lfc.order(res, reverse=TRUE), 3, my.counts, dds)
+top.plots(lfc.order(res), 3, my.counts, dds)
+plotMA(res, ylim=c(-2, 2))
+pval.hist(res)
+```
+
+```{r interaction, cache=TRUE}
+# example of interaction
+# dds.interaction <- DESeqDataSetFromHTSeqCount(
+#     sampleTable=colData,
+#     directory='.',
+#     design=~condition + stage + condition:stage
+# )
+# 
+# dds.interaction <- DESeq(dds.interaction)
+# res.interaction <- results(dds.interaction)
+# knitr::kable(my.summary(res.interaction, dds.interaction))
+# top.plots(lfc.order(res.interaction, reverse=TRUE), 3, my.counts, dds.interaction)
+# top.plots(lfc.order(res.interaction), 3, my.counts, dds.interaction)
+# plotMA(res.interaction, ylim=c(-2, 2))
+# pval.hist(res.interaction)
+```
+
+# Exported results
+
+See the [Help on results tables](#resultshelp) section for more information about these tables.
+
+```{r}
+res.list <- list(group=res)
+for (name in names(res.list)){
+    res <- res.list[[name]]
+    res$symbol <- mapIds(
+        org.Hs.eg.db,
+        keys=row.names(res),
+        column="SYMBOL",
+        keytype="ENSEMBL",
+        multiVals="first"
+    )
+    cn <- colnames(res)
+    res$gene <- rownames(res)
+    res <- res[, c('gene', cn)]
+    write.table(res, file=paste0(name, '.tsv'), row.names=FALSE, sep='\t')
+}
+```
+
+- [`group.tsv`](group.tsv), the results for comparing across group
+
+<a id="background"></a>
+
+# Background and help
+
+If this is your first RNA-seq experiment or you're looking for a refresher,
+this section will guide you through the output.
+
+## Preface
+This analysis uses DESeq2
+([1](http://genomebiology.biomedcentral.com/articles/10.1186/s13059-014-0550-8))
+to identify differentially expressed genes. It generally follows the
+Bioconductor RNA-seq workflow
+([1](http://www.bioconductor.org/help/workflows/rnaseqGene/)) with some
+experiment-specific modifications.
+
+This document uses RMarkdown
+([1](http://kbroman.org/knitr_knutshell/pages/Rmarkdown.html),
+[2](http://rmarkdown.rstudio.com/)), which documents the exact code to run the
+analysis to improve reproducibility. If you're interested, you can click on the
+"R Source" buttons to see the underlying R code. However to actually run the
+code you need the original data, which is generally too large to distribute
+easily.
+
+<a id="plotshelp"></a>
+
+## Help on plots
+
+For each comparison, we first look at a summary table showing up/down genes. The table has the following columns:
+
+|column|description                                                                |
+|------|---------------------------------------------------------------------------|
+|*total.annotated.genes*|the number of genes examined for differential expression|
+|*total.nonzero.read.count*|the number of genes that had zero reads in any replicate|
+|*alpha*|The threshold for adjusted p-value. Genes with `padj < alpha` are considered differentially expressed|
+|*up, down*|the number of genes going up (`(padj < alpha) & (log2FoldChange> 0)`) and down ((`padj < alpha) & (log2FoldChange < 0)`)
+|*outliers*|the number of genes with a too-high [Cook's distance](https://en.wikipedia.org/wiki/Cook's_distance). Not used when only2 replicates. See the [documentation](https://rdrr.io/bioc/DESeq2/man/results.html) for more details.|
+|*low.counts*| DESeq2 performs an independent filtering step, removing genes with low counts before performing p-value adjustments. The definition of "low counts" varies by dataset and the chosen alpha. This column shows the number of genes filtered out. See the [documentation](https://rdrr.io/bioc/DESeq2/man/results.html) for more details.|
+|*model*|The linear model used to perform the differential expression.|
+
+After the summary table are plots showing the top 3 upregulated and top
+3 downregulated genes. These show normalized counts on a log scale (y-axis) and
+categories of interest on the x-axis.
+
+Here's an example plot, showing different cell lines as different colors, and
+treatments along the x-axis. These plots are highly dependent on the
+experiment, so this is just an example.
+
+![img](http://www.bioconductor.org/help/workflows/rnaseqGene/rnaseqGene_files/figure-markdown_strict/ggplotcountsjitter-1.png)
+
+Finally there is a histogram of p-values. A successful differential expression
+experiment will look like this, with a peak near zero and otherwise uniform
+distribution:
+
+![img](http://www.bioconductor.org/help/workflows/rnaseqGene/rnaseqGene_files/figure-markdown_strict/histpvalue2-1.png)
+
+[This blog
+post](http://varianceexplained.org/statistics/interpreting-pvalue-histogram/)
+has a great discussion on the different histogram shapes and what they might
+mean.
+
+Another useful plot we show is an MA plot. Here is an example of an experiment
+with strong effects:
+
+![img](http://www.bioconductor.org/help/workflows/rnaseqGene/rnaseqGene_files/figure-markdown_strict/plotma-1.png)
+
+The x-axis is the mean number of normalized counts across all samples (on
+a log10 scale) and the y-axis is log2 fold change. Note that the x-axis is NOT
+"expression". Since we are comparing each gene in one condition to the same
+gene in another condition, we don't need to normalized for gene length for
+differential expression. But since we don't normalize to gene length, the
+x-axis cannot be interpreted as expression. In this plot, a 10kb gene with 100
+reads and a 100-bp gene with 100 reads will appear identical. But if we were to
+normalize to gene length, the smaller gene would have 100x higher expression.
+
+<a id="resultshelp"></a>
+
+## Help on results tables
+
+The results tables are TSV files (tab-separated values). Some people's
+computers are set up to open these directly in Excel. If this doesn't work for
+you, then first open Excel and then, from within Excel, open the saved TSV
+file.
+
+You can use Excel's sorting and filtering tools to find genes of interest (see
+[here](https://support.office.com/en-us/article/Sort-data-in-a-range-or-table-62d0b95d-2a90-4610-a6ae-2e545c4a4654)
+and
+[here](https://support.office.com/en-us/article/Filter-data-in-a-range-or-table-01832226-31b5-4568-8806-38c37dcc180e)
+if you're not familiar with this).
+
+Column descriptions:
+
+|column     |description                                                     |
+|-----------|----------------------------------------------------------------|
+|*gene*| Gene ID. Many times this will be an Ensembl accession or some other unique identifier. These kinds of IDs are not as ambiguous as more human-readable gene symbols.|
+|*baseMean*|The average normalized read counts across all samples. This is used as the x-axis in an MA plot|
+|*log2FoldChange*|Log2 fold change for the comparison. This is an important column because it shows the *magnitude* of the effect. If baseMean was zero, this will be `NA`|
+|*lfcSE*|Standard error of the log2 fold change column. This gives an indication of the variability across replicates. If there's a strong log2 fold change but a high pvalue, this column should be high, indicating uncertainty due to variable replicates.|
+|*stat*|The test statistic. Most of the time you can ignore this|
+|*pvalue*|The raw pvalue. Most of the time you can ignore this. If this is `NA`, it means the gene was an outlier and was filtered out.|
+|*padj*|The adjusted pvalue, or FDR. This indicates statistical significance of the log2 fold change. Unless otherwise noted, we use a cutoff of 0.1. If this is `NA`, it means the gene had too-low counts and was filtered out.|
+
+Any extra columns have been added after running DESeq2. Gene symbol is a common
+one that we add. In any of these cases, if a value is `NA` it means a missing
+value. For example, many Ensembl IDs do not have a corresponding human-readable
+gene symbol. In this case the gene symbol column will have `NA`.
