@@ -96,6 +96,7 @@ rule hisat2:
         bam=patterns['bam']
     log:
         patterns['bam'] + '.log'
+    threads: 6
     wrapper:
         wrapper_for('hisat2/align')
 
