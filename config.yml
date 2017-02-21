@@ -75,6 +75,22 @@ references:
             - 'bowtie2'
 
   human:
+    gencode-v25:
+      fasta:
+        url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh38.primary_assembly.genome.fa.gz'
+        indexes:
+          - 'hisat2'
+          - 'bowtie2'
+      gtf:
+        url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz'
+        postprocess: 'postprocess.hg38.strip_ensembl_version'
+
+    gencode-v25-transcriptome:
+      fasta:
+        url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz'
+        indexes:
+          - 'kallisto'
+
     gencode-v19:
       fasta:
         url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/GRCh37.p13.genome.fa.gz'
