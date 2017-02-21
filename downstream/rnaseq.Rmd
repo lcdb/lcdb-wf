@@ -9,7 +9,7 @@ Note: if you're unfamiliar with any of the plots or tables here, see the
 ## Experiment overview
 
 
-```{r}
+```{r setup}
 library(DESeq2)
 library(gridExtra)
 library(pheatmap)
@@ -46,7 +46,7 @@ DESeqDataSetFromFeatureCounts <- function (sampleTable, directory='.', design,
   colnames(tbl) <- sampleTable[, 1]
   rownames(tbl) <- l[[1]]$V1
   rownames(sampleTable) <- sampleTable[, 1]
-  object <- DESeqDataSetFromMatrix(countData=tbl, colData=sampleTable[, -(1:2),
+  object <- DESeqDataSetFromMatrix(countData=tbl, colData=sampleTable[, -grepl('path', colnames(sampleTable)),
                                    drop=FALSE], design=design, ignoreRank, ...)
   return(object)
 }
@@ -59,7 +59,7 @@ dds <- DESeqDataSetFromFeatureCounts(
                                   design=~group)
 ```
 
-```{r rld, cache=TRUE}
+```{r rld, cache=TRUE, depends='dds'}
 rld <- rlog(dds, blind=FALSE)
 ```
 
