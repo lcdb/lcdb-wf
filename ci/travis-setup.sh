@@ -17,4 +17,4 @@ conda config --add channels lcdb
 conda install -y python=3.5
 conda install -y --file requirements.txt
 
-python get-data.py
+python ci/get-data.py
