@@ -20,6 +20,7 @@ assembly = config['assembly']
 refdict = common.references_dict(config)[assembly]
 
 sample_dir = config.get('sample_dir', 'samples')
+agg_dir = config.get('aggregation_dir', 'aggregation')
 
 patterns = {
     'fastq':   '{sample_dir}/{sample}/{sample}_R1.fastq.gz',
@@ -37,7 +38,7 @@ patterns = {
     },
     'fastq_screen': '{sample_dir}/{sample}/{sample}.cutadapt.screen.txt',
     'featurecounts': '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.txt',
-    'libsizes_table': 'libsizes_table.tsv',
+    'libsizes_table': '{agg_dir}/libsizes_table.tsv',
     'multiqc': 'multiqc.html',
     'markduplicates': {
         'bam': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam',
@@ -47,7 +48,7 @@ patterns = {
         'h5': '{sample_dir}/{sample}/{sample}/kallisto/abundance.h5',
     },
 }
-fill = dict(sample=samples, count=['.count', ''], sample_dir=sample_dir)
+fill = dict(sample=samples, count=['.count', ''], sample_dir=sample_dir, agg_dir=agg_dir)
 targets = helpers.fill_patterns(patterns, fill)
 
 
@@ -177,7 +178,7 @@ rule multiqc:
         utils.flatten(targets['markduplicates'])
     output: list(set(targets['multiqc']))
     params:
-        analysis_directory=sample_dir
+        analysis_directory=sample_dir,
     log: 'multiqc.log'
     wrapper:
         wrapper_for('multiqc')

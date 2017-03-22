@@ -10,6 +10,9 @@ sampletable: 'config/sampletable.tsv'
 # expected.
 sample_dir: 'data/samples'
 
+# Directory to contain reports and other aggregations
+aggregation_dir: 'data/aggregation'
+
 # Which key in the `references` dict below to use
 assembly: 'dmel'
 
