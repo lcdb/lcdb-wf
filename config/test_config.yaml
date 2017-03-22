@@ -1,4 +1,16 @@
+
+# sampletable: TSV file defining sample metadata.
+#
+# First column must have header name "samplename".
 sampletable: 'config/sampletable.tsv'
+
+# sample_dir: directory in which each sample is expected to have its own
+# directory and fastq file[s]. If `sampletable` lists a sample with samplename
+# SAMPLE1, then at least the file $sample_dir/SAMPLE1/SAMPLE1_R1.fastq.gz is
+# expected.
+sample_dir: 'data/samples'
+
+# Which key in the `references` dict below to use
 assembly: 'dmel'
 
 # If not specified here, use the environment variable REFERENCES_DIR.

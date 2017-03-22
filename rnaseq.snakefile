@@ -19,33 +19,35 @@ samples = sampletable.ix[:, 0]
 assembly = config['assembly']
 refdict = common.references_dict(config)[assembly]
 
+sample_dir = config.get('sample_dir', 'samples')
+
 patterns = {
-    'fastq':   'samples/{sample}/{sample}_R1.fastq.gz',
-    'cutadapt': 'samples/{sample}/{sample}_R1.cutadapt.fastq.gz',
-    'bam':     'samples/{sample}/{sample}.cutadapt.bam',
+    'fastq':   '{sample_dir}/{sample}/{sample}_R1.fastq.gz',
+    'cutadapt': '{sample_dir}/{sample}/{sample}_R1.cutadapt.fastq.gz',
+    'bam':     '{sample_dir}/{sample}/{sample}.cutadapt.bam',
     'fastqc': {
-        'raw': 'samples/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.zip',
-        'cutadapt': 'samples/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip',
-        'bam': 'samples/{sample}/fastqc/{sample}.cutadapt.bam_fastqc.zip',
+        'raw': '{sample_dir}/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.zip',
+        'cutadapt': '{sample_dir}/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip',
+        'bam': '{sample_dir}/{sample}/fastqc/{sample}.cutadapt.bam_fastqc.zip',
     },
     'libsizes': {
-        'fastq':   'samples/{sample}/{sample}_R1.fastq.gz.libsize',
-        'cutadapt': 'samples/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize',
-        'bam':     'samples/{sample}/{sample}.cutadapt.bam.libsize',
+        'fastq':   '{sample_dir}/{sample}/{sample}_R1.fastq.gz.libsize',
+        'cutadapt': '{sample_dir}/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize',
+        'bam':     '{sample_dir}/{sample}/{sample}.cutadapt.bam.libsize',
     },
-    'fastq_screen': 'samples/{sample}/{sample}.cutadapt.screen.txt',
-    'featurecounts': 'samples/{sample}/{sample}.cutadapt.bam.featurecounts.txt',
+    'fastq_screen': '{sample_dir}/{sample}/{sample}.cutadapt.screen.txt',
+    'featurecounts': '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.txt',
     'libsizes_table': 'libsizes_table.tsv',
     'multiqc': 'multiqc.html',
     'markduplicates': {
-        'bam': 'samples/{sample}/{sample}.cutadapt.markdups.bam',
-        'metrics': 'samples/{sample}/{sample}.cutadapt.markdups.bam.metrics',
+        'bam': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam',
+        'metrics': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam.metrics',
     },
     'kallisto': {
-        'h5': 'samples/{sample}/{sample}/kallisto/abundance.h5',
+        'h5': '{sample_dir}/{sample}/{sample}/kallisto/abundance.h5',
     },
 }
-fill = dict(sample=samples, count=['.count', ''])
+fill = dict(sample=samples, count=['.count', ''], sample_dir=sample_dir)
 targets = helpers.fill_patterns(patterns, fill)
 
 
@@ -80,10 +82,10 @@ rule cutadapt:
 
 
 rule fastqc:
-    input: 'samples/{sample}/{sample}{suffix}'
+    input: '{sample_dir}/{sample}/{sample}{suffix}'
     output:
-        html='samples/{sample}/fastqc/{sample}{suffix}_fastqc.html',
-        zip='samples/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
+        html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
+        zip='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
     wrapper:
         wrapper_for('fastqc')
 
@@ -103,18 +105,18 @@ rule hisat2:
 
 rule fastq_count:
     input:
-        fastq='samples/{sample}/{sample}{suffix}.fastq.gz'
+        fastq='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz'
     output:
-        count='samples/{sample}/{sample}{suffix}.fastq.gz.libsize'
+        count='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
     shell:
         'zcat {input} | echo $((`wc -l`/4)) > {output}'
 
 
 rule bam_count:
     input:
-        bam='samples/{sample}/{sample}{suffix}.bam'
+        bam='{sample_dir}/{sample}/{sample}{suffix}.bam'
     output:
-        count='samples/{sample}/{sample}{suffix}.bam.libsize'
+        count='{sample_dir}/{sample}/{sample}{suffix}.bam.libsize'
     shell:
         'samtools view -c {input} > {output}'
 
@@ -175,7 +177,7 @@ rule multiqc:
         utils.flatten(targets['markduplicates'])
     output: list(set(targets['multiqc']))
     params:
-        analysis_directory='samples'
+        analysis_directory=sample_dir
     log: 'multiqc.log'
     wrapper:
         wrapper_for('multiqc')

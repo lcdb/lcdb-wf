@@ -15,3 +15,4 @@ def _download_file(fn, dest=None):
 
 _download_file('samples/sample1/sample1_R1.fastq.gz')
 _download_file('samples/sample2/sample2_R1.fastq.gz')
+shell('mkdir -p data && mv samples data')
