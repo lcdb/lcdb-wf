@@ -1,4 +1,4 @@
-sampletable: 'sampletable.tsv'
+sampletable: 'config/sampletable.tsv'
 assembly: 'dmel'
 
 # If not specified here, use the environment variable REFERENCES_DIR.
@@ -34,12 +34,12 @@ references:
     test:
       gtf:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.gtf"
-        postprocess: 'common.gzipped'
+        postprocess: 'lib.common.gzipped'
         conversions:
           - 'refflat'
       fasta:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/2L.fa"
-        postprocess: 'common.gzipped'
+        postprocess: 'lib.common.gzipped'
         indexes:
           - 'bowtie2'
           - 'hisat2'
@@ -56,7 +56,7 @@ references:
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
         postprocess:
-            function: 'common.filter_fastas'
+            function: 'lib.common.filter_fastas'
             args: 'Drosophila melanogaster'
         indexes:
             - 'hisat2'
@@ -65,6 +65,6 @@ references:
     default:
       fasta:
         url: 'ftp://igenome:G3nom3s4u@ussd-ftp.illumina.com/PhiX/Illumina/RTA/PhiX_Illumina_RTA.tar.gz'
-        postprocess: "postprocess.phix.fasta_postprocess"
+        postprocess: "lib.postprocess.phix.fasta_postprocess"
         indexes:
           - 'bowtie2'
