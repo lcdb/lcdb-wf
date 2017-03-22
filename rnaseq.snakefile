@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from lcdblib.snakemake import helpers, aligners
 from lcdblib.utils import utils
-import common
+from lib import common
 
 shell.prefix('set -euo pipefail; ')
 
@@ -74,7 +74,7 @@ rule cutadapt:
     log:
         patterns['cutadapt'] + '.log'
     params:
-        extra='-a file:adapters.fa -q 20 --minimum-length=25'
+        extra='-a file:include/adapters.fa -q 20 --minimum-length=25'
     wrapper:
         wrapper_for('cutadapt')
 
