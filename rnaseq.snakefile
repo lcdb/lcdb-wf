@@ -48,7 +48,7 @@ patterns = {
         'h5': '{sample_dir}/{sample}/{sample}/kallisto/abundance.h5',
     },
 }
-fill = dict(sample=samples, count=['.count', ''], sample_dir=sample_dir, agg_dir=agg_dir)
+fill = dict(sample=samples, sample_dir=sample_dir, agg_dir=agg_dir)
 targets = helpers.fill_patterns(patterns, fill)
 
 
