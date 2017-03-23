@@ -1,10 +1,15 @@
 import os
+import tempfile
 import pandas as pd
 from lcdblib.snakemake import helpers, aligners
 from lcdblib.utils import utils
 from lib import common
 
-shell.prefix('set -euo pipefail; ')
+TMPDIR = tempfile.gettempdir()
+JOBID = os.getenv('SLURM_JOBID')
+if JOBID:
+    TMPDIR = os.path.join('/lscratch', JOBID)
+shell.prefix('set -euo pipefail; export TMPDIR={};'.format(TMPDIR))
 
 include: 'references.snakefile'
 
