@@ -7,4 +7,5 @@ before_script:
 script:
   - snakemake -prs rnaseq.snakefile --configfile config/test_config.yaml --use-conda -j1
   - conda list
+  - python -c 'import pysam; print(pysam.__version__)'
   - py.test wrappers/test -v
