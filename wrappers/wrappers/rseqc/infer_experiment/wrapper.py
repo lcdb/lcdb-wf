@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, gettempdir
 from snakemake.shell import shell
 
 # All wrappers must be able to handle an optional params.extra.
@@ -16,7 +16,7 @@ log = snakemake.log_fmt_shell(stdout=False)
 
 # Get directories that I need to move between
 cwd = os.getcwd()
-tmpdir = os.getenv('TMPDIR')
+tmpdir = gettempdir()
 
 # Copy files over to ease I/O on filesystem.
 bam = NamedTemporaryFile(suffix='.bam').name
