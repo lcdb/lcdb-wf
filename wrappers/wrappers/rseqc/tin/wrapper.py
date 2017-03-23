@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, gettempdir
 from snakemake.shell import shell
 
 # All wrappers must be able to handle an optional params.extra.
@@ -15,7 +15,7 @@ log = snakemake.log_fmt_shell(stdout=False)
 
 # Get directories that I need to move between
 cwd = os.getcwd()
-tmpdir = os.getenv('TMPDIR')
+tmpdir = gettempdir()
 
 # tin uses the name of the BAM to create outputs. In order to write outputs to
 # tmp I need to copy the BAM over to tmp.
