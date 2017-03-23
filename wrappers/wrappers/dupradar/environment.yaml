@@ -4,5 +4,5 @@ channels:
   - lcdb
 dependencies:
   - bioconductor-dupradar ==1.2.2
-  - lcdblib ==0.1
+  - lcdblib ==0.1.1
   - ghostscript ==9.18
