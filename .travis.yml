@@ -1,6 +1,11 @@
 language: python
-install: bash travis-setup.sh
+install: bash ci/travis-setup.sh
 before_script:
   - export PATH=$HOME/anaconda/bin:$PATH
   - export JAVA_HOME=
-script: snakemake -prs rnaseq.snakefile --configfile test_config.yaml --use-conda -j1
+  - export TMPDIR=/tmp
+script:
+  - snakemake -prs rnaseq.snakefile --configfile config/test_config.yaml --use-conda -j1
+  - conda list
+  - python -c 'import pysam; print(pysam.__version__)'
+  - py.test wrappers/test -v

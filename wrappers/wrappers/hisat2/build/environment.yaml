@@ -1,0 +1,6 @@
+channels:
+  - bioconda
+  - lcdb
+dependencies:
+  - hisat2 ==2.0.5
+  - lcdblib ==0.1.1

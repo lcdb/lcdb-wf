@@ -1,0 +1,4 @@
+channels:
+  - lcdb
+dependencies:
+  - lcdblib ==0.1.1

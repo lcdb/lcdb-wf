@@ -1,0 +1,6 @@
+channels:
+  - bioconda
+  - lcdb
+dependencies:
+  - bowtie2 ==2.3.0
+  - lcdblib ==0.1.1

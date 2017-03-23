@@ -1,3 +1,9 @@
 .snakemake
 __pycache__
 samples
+
+multiqc_data
+multiqc.html
+multiqc.log
+libsizes_table.tsv
+references_data
