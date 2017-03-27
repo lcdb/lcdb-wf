@@ -5,18 +5,17 @@ from lcdblib.snakemake import aligners
 from utils import run, dpath, rm, symlink_in_tempdir
 
 
-def test_hisat2_build(dm6_fa, tmpdir):
+@pytest.fixture(scope='session')
+def hisat2_indexes(dm6_fa, tmpdir_factory):
+    d = tmpdir_for_func(tmpdir_factory)
     snakefile = '''
-                rule hisat2_build:
-                    input:
-                        fasta='2L.fa'
-                    output:
-                        index=expand('data/assembly/assembly.{n}.ht2', n=range(1,9))
-                    log: 'hisat.log'
-                    wrapper: "file:wrapper"
-
-                '''
-    input_data_func=symlink_in_tempdir(
+    rule hisat2:
+        input: fasta='2L.fa'
+        output: index=['2L.1.ht2', '2L.2.ht2']
+        log: 'hisat.log'
+        wrapper: 'file:wrapper'
+    '''
+    input_data_func = symlink_in_tempdir(
         {
             dm6_fa: '2L.fa'
         }

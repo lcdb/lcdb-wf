@@ -3,6 +3,29 @@ import zipfile
 from utils import run, dpath, rm, symlink_in_tempdir
 
 def test_fastqc(sample1_se_fq, tmpdir):
+import pytest
+rom utils import tmpdir_for_func, _download_file
+
+@pytest.fixture(scope='session')
+def fastqc(sample1_se_tiny_fq, tmpdir_factory):
+    snakefile = '''
+    rule fastqc:
+        input:
+            fastq='sample1_R1.fastq.gz'
+        output:
+            html='sample1_R1_fastqc.html',
+            zip='sample1_R1_fastqc.zip'
+        wrapper: "file:wrapper"'''
+    input_data_func = symlink_in_tempdir(
+        {
+            sample1_se_tiny_fq: 'sample1_R1.fastq.gz'
+        }
+    )
+    tmpdir = str(tmpdir_factory.mktemp('fastqc_fixture'))
+    run(dpath('../wrappers/fastqc'), snakefile, None, input_data_func, tmpdir)
+    return os.path.join(tmpdir, 'sample1_R1_fastqc.zip')
+
+
     snakefile = '''
     rule fastqc:
         input:

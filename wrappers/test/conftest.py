@@ -39,48 +39,6 @@ def kallisto_index(tmpdir_factory, transcriptome):
 
 
 @pytest.fixture(scope='session')
-
-@pytest.fixture(scope='session')
-def hisat2_indexes(dm6_fa, tmpdir_factory):
-    d = tmpdir_for_func(tmpdir_factory)
-    snakefile = '''
-    rule hisat2:
-        input: fasta='2L.fa'
-        output: index=['2L.1.ht2', '2L.2.ht2']
-        wrapper: 'file:wrapper'
-    '''
-    input_data_func = symlink_in_tempdir(
-        {
-            dm6_fa: '2L.fa'
-        }
-    )
-
-    run(
-        dpath('../wrappers/hisat2/build'),
-        snakefile, None, input_data_func, d)
-    return aligners.hisat2_index_from_prefix(os.path.join(d, '2L'))
-
-
-@pytest.fixture(scope='session')
-def bowtie2_indexes(dm6_fa, tmpdir_factory):
-    d = tmpdir_for_func(tmpdir_factory)
-    snakefile = '''
-    rule bowtie2:
-        input: fasta='2L.fa'
-        output: index=['2L.1.bt2', '2L.2.bt2']
-        wrapper: 'file:wrapper'
-    '''
-    input_data_func = symlink_in_tempdir(
-        {
-            dm6_fa: '2L.fa'
-        }
-    )
-
-    run(
-        dpath('../wrappers/bowtie2/build'),
-        snakefile, None, input_data_func, d)
-    return aligners.bowtie2_index_from_prefix(os.path.join(d, '2L'))
-
 def annotation_db(annotation):
     import gffutils
     gffutils.create_db(
@@ -109,24 +67,6 @@ def annotation_bed12(annotation_db):
 
 
 @pytest.fixture(scope='session')
-def fastqc(sample1_se_fq, tmpdir_factory):
-    snakefile = '''
-    rule fastqc:
-        input:
-            fastq='sample1_R1.fastq.gz'
-        output:
-            html='sample1_R1_fastqc.html',
-            zip='sample1_R1_fastqc.zip'
-        wrapper: "file:wrapper"'''
-    input_data_func = symlink_in_tempdir(
-        {
-            sample1_se_fq: 'sample1_R1.fastq.gz'
-        }
-    )
-    tmpdir = str(tmpdir_factory.mktemp('fastqc_fixture'))
-    run(dpath('../wrappers/fastqc'), snakefile, None, input_data_func, tmpdir)
-    return os.path.join(tmpdir, 'sample1_R1_fastqc.zip')
-
 def sample1_se_dupradar(sample1_se_bam_sorted_markdups, annotation, tmpdir_factory):
     snakefile = '''
     rule dupradar:
