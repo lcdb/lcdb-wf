@@ -4,6 +4,7 @@ set -x
 
 # Sets up travis-ci environment for testing bioconda-utils.
 curl -O https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+mkdir -p /opt/ci/miniconda
 bash Miniconda3-latest-Linux-x86_64.sh -f -b -p /opt/ci/miniconda
 export PATH=/opt/ci/miniconda/bin:$PATH
 
