@@ -2,5 +2,3 @@ steps:
   -
     label: setup
     command: bash ci/travis-setup.sh
-    env:
-      PATH: "$HOME/anaconda/bin:$PATH"
