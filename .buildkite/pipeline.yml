@@ -1,0 +1,3 @@
+steps:
+  - label: setup
+  - command: bash ci/travis-setup.sh
