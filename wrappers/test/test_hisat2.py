@@ -1,8 +1,8 @@
+import os
 import pytest
-import pysam
 from snakemake.shell import shell
 from lcdblib.snakemake import aligners
-from utils import run, dpath, rm, symlink_in_tempdir
+from utils import run, dpath, symlink_in_tempdir, tmpdir_for_func
 
 
 @pytest.fixture(scope='session')
@@ -23,9 +23,12 @@ def hisat2_indexes(dm6_fa, tmpdir_factory):
 
     def check():
         assert 'Total time for call to driver' in open('hisat.log').readlines()[-1]
-        assert list(shell('hisat2-inspect data/assembly/assembly -n', iterable=True)) == ['2L']
+        assert list(shell('hisat2-inspect 2L -n', iterable=True)) == ['2L', '2R']
 
-    run(dpath('../wrappers/hisat2/build'), snakefile, check, input_data_func, tmpdir)
+    run(
+        dpath('../wrappers/hisat2/build'),
+        snakefile, check, input_data_func, d)
+    return aligners.hisat2_index_from_prefix(os.path.join(d, '2L'))
 
 
 def _dict_of_hisat2_indexes(hisat2_indexes, prefix):
