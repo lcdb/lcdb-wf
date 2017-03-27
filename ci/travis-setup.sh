@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -eo pipefail
 set -x
 
 # Sets up travis-ci environment for testing bioconda-utils.
