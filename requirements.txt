@@ -1,5 +1,6 @@
 biopython ==1.68
 bowtie2 ==2.3.0
+conda <4.3
 gffutils ==0.8.7.1
 hisat2 ==2.0.5
 lcdblib ==0.1.1
