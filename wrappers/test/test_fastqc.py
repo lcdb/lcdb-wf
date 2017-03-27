@@ -42,7 +42,7 @@ def test_fastqc(sample1_se_tiny_fq, tmpdir):
 
     def check():
         assert '<html>' in open('results/sample1_R1.html').readline()
-        assert zipfile.ZipFile('sample1_R1.zip').namelist() == [
+        contents = [
             'sample1_R1_fastqc/',
             'sample1_R1_fastqc/Icons/',
             'sample1_R1_fastqc/Images/',
@@ -64,5 +64,7 @@ def test_fastqc(sample1_se_tiny_fq, tmpdir):
             'sample1_R1_fastqc/fastqc_data.txt',
             'sample1_R1_fastqc/fastqc.fo'
         ]
+        for i in zipfile.ZipFile('sample1_R1.zip').namelist():
+            assert i in contents
 
     run(dpath('../wrappers/fastqc'), snakefile, check, input_data_func, tmpdir)
