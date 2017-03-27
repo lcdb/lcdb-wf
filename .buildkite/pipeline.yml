@@ -1,3 +1,6 @@
 steps:
-  - label: setup
-    command: echo "hello"
+  -
+    label: setup
+    command: bash ci/travis-setup.sh
+    env:
+      PATH: "$HOME/anaconda/bin:$PATH"
