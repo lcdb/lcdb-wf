@@ -14,7 +14,9 @@ conda config --add channels r
 conda config --add channels bioconda
 conda config --add channels lcdb
 
-conda install -y python=3.5
-conda install -y --file requirements.txt
+ENVNAME=lcdb-wf-test
+conda env list | grep -q $ENVNAME && conda env rm -n $ENVNAME
+conda create -n $ENVNAME -y python=3.5 --file requirements.txt
+source activate $ENVNAME
 
 python ci/get-data.py
