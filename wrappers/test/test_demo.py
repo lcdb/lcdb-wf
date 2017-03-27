@@ -29,7 +29,7 @@ from utils import symlink_in_tempdir
 
 # Our first test. The test function names must start with `test_` in order for
 # py.test to find them.
-def test_demo(sample1_se_fq, tmpdir):
+def test_demo(sample1_se_tiny_fq, tmpdir):
 
     # A note on these arguments
     # -------------------------
@@ -73,7 +73,7 @@ def test_demo(sample1_se_fq, tmpdir):
     # that so:
     input_data_func=symlink_in_tempdir(
         {
-            sample1_se_fq: 'a.fastq.gz'
+            sample1_se_tiny_fq: 'a.fastq.gz'
         }
     )
 

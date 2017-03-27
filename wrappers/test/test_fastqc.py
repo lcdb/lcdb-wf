@@ -2,7 +2,6 @@ import os
 import zipfile
 from utils import run, dpath, rm, symlink_in_tempdir
 
-def test_fastqc(sample1_se_fq, tmpdir):
 import pytest
 rom utils import tmpdir_for_func, _download_file
 
@@ -26,6 +25,7 @@ def fastqc(sample1_se_tiny_fq, tmpdir_factory):
     return os.path.join(tmpdir, 'sample1_R1_fastqc.zip')
 
 
+def test_fastqc(sample1_se_tiny_fq, tmpdir):
     snakefile = '''
     rule fastqc:
         input:
@@ -36,7 +36,7 @@ def fastqc(sample1_se_tiny_fq, tmpdir_factory):
         wrapper: "file:wrapper"'''
     input_data_func=symlink_in_tempdir(
         {
-            sample1_se_fq: 'sample1_R1.fastq.gz'
+            sample1_se_tiny_fq: 'sample1_R1.fastq.gz'
         }
     )
 

@@ -38,7 +38,7 @@ def _dict_of_hisat2_indexes(hisat2_indexes, prefix):
     return d
 
 
-def test_hisat2_align_se(hisat2_indexes, sample1_se_fq, tmpdir):
+def test_hisat2_align_se(hisat2_indexes, sample1_se_tiny_fq, tmpdir):
     d = _dict_of_hisat2_indexes(hisat2_indexes, '2L')
     indexes = list(d.values())
     snakefile = '''
@@ -51,7 +51,7 @@ def test_hisat2_align_se(hisat2_indexes, sample1_se_fq, tmpdir):
             log: "hisat2.log"
             wrapper: "file:wrapper"
     '''.format(indexes=indexes)
-    d[sample1_se_fq] = 'sample1_R1.fastq.gz'
+    d[sample1_se_tiny_fq] = 'sample1_R1.fastq.gz'
     input_data_func = symlink_in_tempdir(d)
 
     def check():
@@ -89,7 +89,7 @@ def test_hisat2_align_se_SRA(hisat2_indexes, tmpdir):
     run(dpath('../wrappers/hisat2/align'), snakefile, check, input_data_func, tmpdir)
 
 
-def test_hisat2_align_se_rm_unmapped(hisat2_indexes, sample1_se_fq, tmpdir):
+def test_hisat2_align_se_rm_unmapped(hisat2_indexes, sample1_se_tiny_fq, tmpdir):
     d = _dict_of_hisat2_indexes(hisat2_indexes, '2L')
     indexes = list(d.values())
     snakefile = '''
@@ -104,7 +104,7 @@ def test_hisat2_align_se_rm_unmapped(hisat2_indexes, sample1_se_fq, tmpdir):
             log: "hisat2.log"
             wrapper: "file:wrapper"
     '''.format(indexes=indexes)
-    d[sample1_se_fq] = 'sample1_R1.fastq.gz'
+    d[sample1_se_tiny_fq] = 'sample1_R1.fastq.gz'
     input_data_func = symlink_in_tempdir(d)
 
     def check():

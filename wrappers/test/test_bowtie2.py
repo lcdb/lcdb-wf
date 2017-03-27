@@ -41,8 +41,8 @@ def _dict_of_bowtie2_indexes(bowtie2_indexes, prefix):
     return d
 
 
-def test_bowtie2_align_se(bowtie2_indexes, sample1_se_fq, tmpdir):
-    d = _dict_of_bowtie2_indexes(bowtie2_indexes, '2L')
+def test_bowtie2_align_se(bowtie2_indexes, sample1_se_tiny_fq, tmpdir):
+    d = _dict_of_bowtie2_indexes(bowtie2_indexes, 'dm6')
     indexes = list(d.values())
     snakefile = '''
         rule bowtie2_align:
@@ -54,7 +54,7 @@ def test_bowtie2_align_se(bowtie2_indexes, sample1_se_fq, tmpdir):
             log: "bowtie2.log"
             wrapper: "file:wrapper"
     '''.format(indexes=indexes)
-    d[sample1_se_fq] = 'sample1_R1.fastq.gz'
+    d[sample1_se_tiny_fq] = 'sample1_R1.fastq.gz'
     input_data_func = symlink_in_tempdir(d)
 
     def check():
@@ -67,8 +67,8 @@ def test_bowtie2_align_se(bowtie2_indexes, sample1_se_fq, tmpdir):
     run(dpath('../wrappers/bowtie2/align'), snakefile, check, input_data_func, tmpdir)
 
 
-def test_bowtie2_align_se_rm_unmapped(bowtie2_indexes, sample1_se_fq, tmpdir):
-    d = _dict_of_bowtie2_indexes(bowtie2_indexes, '2L')
+def test_bowtie2_align_se_rm_unmapped(bowtie2_indexes, sample1_se_tiny_fq, tmpdir):
+    d = _dict_of_bowtie2_indexes(bowtie2_indexes, 'dm6')
     indexes = list(d.values())
     snakefile = '''
         rule bowtie2_align:
@@ -82,7 +82,7 @@ def test_bowtie2_align_se_rm_unmapped(bowtie2_indexes, sample1_se_fq, tmpdir):
             log: "bowtie2.log"
             wrapper: "file:wrapper"
     '''.format(indexes=indexes)
-    d[sample1_se_fq] = 'sample1_R1.fastq.gz'
+    d[sample1_se_tiny_fq] = 'sample1_R1.fastq.gz'
     input_data_func = symlink_in_tempdir(d)
 
     def check():

@@ -29,7 +29,7 @@ def test_kallisto_index(transcriptome, tmpdir):
         snakefile, check, input_data_func, tmpdir)
 
 
-def test_kallisto_quant(tmpdir, sample1_se_fq, kallisto_index):
+def test_kallisto_quant(tmpdir, sample1_se_tiny_fq, kallisto_index):
     snakefile = '''
     rule kallisto_quant:
         input:
@@ -45,7 +45,7 @@ def test_kallisto_quant(tmpdir, sample1_se_fq, kallisto_index):
     '''
     input_data_func = symlink_in_tempdir(
         {
-            sample1_se_fq: 'sample1.fq.gz',
+            sample1_se_tiny_fq: 'sample1.fq.gz',
             kallisto_index: 'out/transcriptome.idx',
         }
     )
