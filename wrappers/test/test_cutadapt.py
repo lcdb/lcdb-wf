@@ -88,7 +88,7 @@ def test_cutadapt_se_with_list(sample1_se_tiny_fq, tmpdir):
 
     run(dpath('../wrappers/cutadapt'), snakefile, check, input_data_func, tmpdir)
 
-def test_cutadapt_pe(sample1_pe_fq, tmpdir):
+def test_cutadapt_pe(sample1_pe_tiny_fq, tmpdir):
     snakefile = '''
                 rule cutadapt:
                     input:
@@ -103,8 +103,8 @@ def test_cutadapt_pe(sample1_pe_fq, tmpdir):
                 '''
     input_data_func=symlink_in_tempdir(
         {
-            sample1_pe_fq[0]: 'sample1_R1.fastq.gz',
-            sample1_pe_fq[1]: 'sample1_R2.fastq.gz',
+            sample1_pe_tiny_fq[0]: 'sample1_R1.fastq.gz',
+            sample1_pe_tiny_fq[1]: 'sample1_R2.fastq.gz',
         }
     )
 
@@ -121,7 +121,7 @@ def test_cutadapt_pe(sample1_pe_fq, tmpdir):
 
     run(dpath('../wrappers/cutadapt'), snakefile, check, input_data_func, tmpdir)
 
-def test_cutadapt_pe_with_list(sample1_pe_fq, tmpdir):
+def test_cutadapt_pe_with_list(sample1_pe_tiny_fq, tmpdir):
     snakefile = '''
                 rule cutadapt:
                     input: 'sample1_R1.fastq.gz', 'sample1_R2.fastq.gz',
@@ -132,8 +132,8 @@ def test_cutadapt_pe_with_list(sample1_pe_fq, tmpdir):
                 '''
     input_data_func=symlink_in_tempdir(
         {
-            sample1_pe_fq[0]: 'sample1_R1.fastq.gz',
-            sample1_pe_fq[1]: 'sample1_R2.fastq.gz',
+            sample1_pe_tiny_fq[0]: 'sample1_R1.fastq.gz',
+            sample1_pe_tiny_fq[1]: 'sample1_R2.fastq.gz',
         }
     )
 
