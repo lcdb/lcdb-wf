@@ -3,7 +3,7 @@ import zipfile
 from utils import run, dpath, rm, symlink_in_tempdir
 
 import pytest
-rom utils import tmpdir_for_func, _download_file
+from utils import tmpdir_for_func, _download_file
 
 @pytest.fixture(scope='session')
 def fastqc(sample1_se_tiny_fq, tmpdir_factory):
