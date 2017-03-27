@@ -6,4 +6,4 @@ steps:
       - setup.log
   -
     label: wrappers
-    command: source $HOME/anaconda/bin/activate lcdb-wf-test && pytest wrappers/test -v -x
+    command: source $HOME/anaconda/bin/activate lcdb-wf-test && pytest wrappers/test -v -n 4
