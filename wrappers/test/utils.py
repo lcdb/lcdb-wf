@@ -11,13 +11,41 @@ import hashlib
 import urllib
 import shutil
 import shlex
+import inspect
 
 import pytest
 from snakemake import snakemake
 from snakemake.shell import shell
+from snakemake.utils import makedirs
 
 
 SCRIPTPATH = shutil.which('snakemake')
+
+# test data url
+URL = 'https://github.com/lcdb/lcdb-test-data/blob/add-chipseq/data/{}?raw=true'
+
+
+def tmpdir_for_func(factory):
+    caller = inspect.stack()[1][3]
+    return str(factory.mktemp(caller))
+
+
+def _download_file(fn, d):
+    """
+    Intended to be called from a pytest.fixture function.
+
+    `fn` is a path to a file that is used to fill in `URL`. `d` is a tempdir
+    likely created by the calling function to which the file will be
+    downloaded.
+
+    The path to the downloaded file is returned.
+    """
+    url = URL.format(fn)
+    dest = os.path.join(d, fn)
+    makedirs(os.path.dirname(dest))
+    basename = os.path.basename(fn)
+    shell('wget -q -O- {url} > {dest}')
+    return dest
 
 
 def dpath(path):
