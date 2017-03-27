@@ -4,7 +4,7 @@ set -x
 
 # Sets up travis-ci environment for testing bioconda-utils.
 curl -O https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/anaconda
+bash Miniconda3-latest-Linux-x86_64.sh -f -b -p $HOME/anaconda
 export PATH=$HOME/anaconda/bin:$PATH
 
 # Add channels in the specified order.
