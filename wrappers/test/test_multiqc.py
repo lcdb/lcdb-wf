@@ -2,6 +2,7 @@ import pytest
 import os
 import gzip
 from utils import run, dpath, rm, symlink_in_tempdir
+from test_fastqc import fastqc
 
 
 def test_multiqc(fastqc, tmpdir):
