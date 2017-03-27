@@ -51,7 +51,7 @@ def test_kallisto_quant(tmpdir, sample1_se_tiny_fq, kallisto_index):
     )
 
     def check():
-        assert sum(1 for _ in open('quant/abundance.tsv')) == 35
+        assert sum(1 for _ in open('quant/abundance.tsv')) == 310
         assert open('quant/abundance.tsv').readline() == (
                 'target_id\tlength\teff_length\test_counts\ttpm\n')
         keys = ['call', 'index_version', 'n_bootstraps', 'n_processed', 'n_targets', 'start_time']
