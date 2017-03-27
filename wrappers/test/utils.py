@@ -107,6 +107,7 @@ def run(path, snakefile, check=None, input_data_func=None, tmpdir=None, use_cond
 
         # write the snakefile, filling in the "wrapper" placeholder
         with open(os.path.join(tmpdir, 'Snakefile'), 'w') as fout:
+            fout.write('shell.executable("/bin/bash")\n')
             fout.write(dedent(snakefile))
 
         # Create the input data
