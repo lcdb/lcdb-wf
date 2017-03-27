@@ -16,7 +16,7 @@ conda config --add channels lcdb
 
 ENVNAME=lcdb-wf-test
 conda env list | grep -q $ENVNAME && conda env remove -y -n $ENVNAME
-conda create -n $ENVNAME -y python=3.5 --file requirements.txt
+conda create -n $ENVNAME -y python=3.5 --file requirements.txt | tee setup.log | grep -v " Time: "
 source activate $ENVNAME
 
 python ci/get-data.py
