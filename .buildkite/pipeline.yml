@@ -4,4 +4,7 @@ steps:
     command: bash ci/travis-setup.sh
   -
     label: wrappers
-    command: source activate lcdb-wf-test && pytest wrappers/test -v -n 6
+    command:
+      - export PATH="$HOME/anaconda/bin:$PATH"
+      - source activate lcdb-wf-test
+      - pytest wrappers/test -v -n 6
