@@ -34,7 +34,7 @@ if conda env list | grep -q $ENVNAME; then
     # conda install -y --file requirements.txt python=3.5
 
     # Remove the env. Seems like we're getting strange mkl symlink errors
-    conda env remove -n $ENVNAME
+    conda env remove -y -n $ENVNAME
 fi
 
 # Otherwise create a new environment (this will happen every time on
