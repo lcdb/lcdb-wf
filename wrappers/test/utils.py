@@ -58,7 +58,7 @@ def md5sum(filename):
     return hashlib.md5(data).hexdigest()
 
 
-def run(path, snakefile, check=None, input_data_func=None, tmpdir=None, use_conda=True, **params):
+def run(path, snakefile, check=None, input_data_func=None, tmpdir=None, use_conda=False, **params):
     """
     Parameters
     ----------
