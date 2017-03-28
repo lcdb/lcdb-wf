@@ -10,6 +10,7 @@ JOBID = os.getenv('SLURM_JOBID')
 if JOBID:
     TMPDIR = os.path.join('/lscratch', JOBID)
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(TMPDIR))
+shell.executable('/bin/bash')
 
 include: 'references.snakefile'
 
