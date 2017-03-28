@@ -9,10 +9,11 @@ ENVNAME=lcdb-wf-test
 if [[ ! -e $CONDA_DIR ]]; then
     curl -O https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
     bash Miniconda3-latest-Linux-x86_64.sh -f -b -p $CONDA_DIR
-    export PATH="$CONDA_DIR/bin:$PATH"
 else
     echo "$CONDA_DIR" exists, so skipping installation of miniconda
 fi
+
+export PATH="$CONDA_DIR/bin:$PATH"
 
 # Add channels in the specified order.
 conda config --add channels conda-forge
