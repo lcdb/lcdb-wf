@@ -33,7 +33,7 @@ def test_markduplicates_se(sample1_se_bam_markdups, tmpdir):
     assert open(sample1_se_bam_markdups['metrics']).readline().startswith('##')
 
 
-def test_picard_collectrnaseqmetrics_se(sample1_se_bam, annotation_refflat, tmpdir):
+def test_picard_collectrnaseqmetrics_se(sample1_se_tiny_bam, annotation_refflat, tmpdir):
     snakefile = '''
     rule collectrnaseqmetrics:
         input:
@@ -49,7 +49,7 @@ def test_picard_collectrnaseqmetrics_se(sample1_se_bam, annotation_refflat, tmpd
     '''
     input_data_func=symlink_in_tempdir(
         {
-            sample1_se_bam: 'sample1.bam',
+            sample1_se_tiny_bam: 'sample1.bam',
             annotation_refflat: 'dm6.refflat',
         }
     )
@@ -60,7 +60,7 @@ def test_picard_collectrnaseqmetrics_se(sample1_se_bam, annotation_refflat, tmpd
     run(dpath('../wrappers/picard/collectrnaseqmetrics'), snakefile, check, input_data_func, tmpdir)
 
 
-def test_picard_collectrnaseqmetrics_se_plot(sample1_se_bam, annotation_refflat, tmpdir):
+def test_picard_collectrnaseqmetrics_se_plot(sample1_se_tiny_bam, annotation_refflat, tmpdir):
     snakefile = '''
     rule collectrnaseqmetrics:
         input:
@@ -75,7 +75,7 @@ def test_picard_collectrnaseqmetrics_se_plot(sample1_se_bam, annotation_refflat,
     '''
     input_data_func=symlink_in_tempdir(
         {
-            sample1_se_bam: 'sample1.bam',
+            sample1_se_tiny_bam: 'sample1.bam',
             annotation_refflat: 'dm6.refflat',
         }
     )
@@ -87,7 +87,7 @@ def test_picard_collectrnaseqmetrics_se_plot(sample1_se_bam, annotation_refflat,
 
 
 @pytest.mark.xfail
-def test_picard_collectrnaseqmetrics_too_small_heap(sample1_se_bam, annotation_refflat, tmpdir):
+def test_picard_collectrnaseqmetrics_too_small_heap(sample1_se_tiny_bam, annotation_refflat, tmpdir):
     # set the java vm heap size to 128 bytes which should fail. This tests to
     # make sure the java args are making it through to the wrapper.
     snakefile = '''
@@ -105,7 +105,7 @@ def test_picard_collectrnaseqmetrics_too_small_heap(sample1_se_bam, annotation_r
     '''
     input_data_func=symlink_in_tempdir(
         {
-            sample1_se_bam: 'sample1.bam',
+            sample1_se_tiny_bam: 'sample1.bam',
             annotation_refflat: 'dm6.refflat',
         }
     )
