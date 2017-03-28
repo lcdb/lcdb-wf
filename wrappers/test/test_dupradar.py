@@ -17,7 +17,9 @@ def sample1_se_dupradar(sample1_se_bam_markdups, annotation, tmpdir_factory):
             expression_barplot='sample1.expression_barplot.png',
             expression_boxplot='sample1.expression_boxplot.png',
             multimapping_histogram='sample1.multimapping_histogram.png',
-            dataframe='sample1.dupradar.tsv'
+            dataframe='sample1.dupradar.tsv',
+            model='sample1.model.txt',
+            curve='sample1.curve.txt'
         wrapper:
             'file:wrapper'
     '''
