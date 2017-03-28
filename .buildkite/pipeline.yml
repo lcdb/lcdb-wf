@@ -6,4 +6,7 @@ steps:
       - setup.log
   -
     label: wrappers
-    command: source $HOME/anaconda/bin/activate lcdb-wf-test && pytest wrappers/test -v -n 6
+    command: source $HOME/anaconda/bin/activate lcdb-wf-test && pytest wrappers/test -v
+  -
+    label: rnaseq
+    command: source $HOME/anaconda/bin/activate lcdb-wf-test && snakemake -prs rnaseq.snakefile --configfile config/test_config.yaml --use-conda -j6
