@@ -39,34 +39,6 @@ def kallisto_index(tmpdir_factory, transcriptome):
 
 
 @pytest.fixture(scope='session')
-def annotation_db(annotation):
-    import gffutils
-    gffutils.create_db(
-        data=annotation, dbfn=annotation + '.db',
-        merge_strategy='merge',
-        id_spec={'transcript': ['transcript_id', 'transcript_symbol'],
-                 'gene': ['gene_id', 'gene_symbol']},
-        gtf_transcript_key='transcript_id',
-        gtf_gene_key='gene_id')
-
-    return annotation + '.db'
-
-
-@pytest.fixture(scope='session')
-def annotation_bed12(annotation_db):
-    import gffutils
-    db = gffutils.FeatureDB(annotation_db)
-
-    bed12 = '.'.join(annotation_db.strip().split('.')[:-2]) + '.bed12'
-
-    with open(bed12, 'w') as handle:
-        for t in db.features_of_type('transcript'):
-            handle.write(db.bed12(t, name_field='transcript_id') + '\n')
-
-    return bed12
-
-
-@pytest.fixture(scope='session')
 def sample1_se_dupradar(sample1_se_bam_sorted_markdups, annotation, tmpdir_factory):
     snakefile = '''
     rule dupradar:
