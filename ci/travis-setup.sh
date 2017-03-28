@@ -24,7 +24,7 @@ conda config --add channels lcdb
 
 # Environment exists; update with requirements. This can happen on a buildkite
 # agent.
-if [[ conda env list | grep -q $ENVNAME ]]; then
+if [[ $(conda env list | grep -q $ENVNAME) ]]; then
     echo "Environment $ENVNAME exists; updating it"
     conda install -y --file requirements.txt python=3.5
 else
