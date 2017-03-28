@@ -9,13 +9,8 @@ ENVNAME=lcdb-wf-test
 # commands fail
 touch setup.log
 
-# Install miniconda if it doesn't already exist.
-if [[ ! -e $CONDA_DIR ]]; then
-    curl -O https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-    bash Miniconda3-latest-Linux-x86_64.sh -f -b -p $CONDA_DIR
-else
-    echo "$CONDA_DIR" exists, so skipping installation of miniconda
-fi
+curl -O https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh -f -b -p $CONDA_DIR
 
 export PATH="$CONDA_DIR/bin:$PATH"
 
