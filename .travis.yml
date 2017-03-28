@@ -5,7 +5,5 @@ before_script:
   - export JAVA_HOME=
   - export TMPDIR=/tmp
 script:
-  - snakemake -prs rnaseq.snakefile --configfile config/test_config.yaml --use-conda -j1
-  - conda list
-  - python -c 'import pysam; print(pysam.__version__)'
-  - py.test wrappers/test -v
+  - source activate lcdb-wf-test && snakemake -prs rnaseq.snakefile --configfile config/test_config.yaml --use-conda -j1
+  - source activate lcdb-wf-test && py.test wrappers/test -v

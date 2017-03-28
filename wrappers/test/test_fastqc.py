@@ -2,7 +2,30 @@ import os
 import zipfile
 from utils import run, dpath, rm, symlink_in_tempdir
 
-def test_fastqc(sample1_se_fq, tmpdir):
+import pytest
+from utils import tmpdir_for_func, _download_file
+
+@pytest.fixture(scope='session')
+def fastqc(sample1_se_tiny_fq, tmpdir_factory):
+    snakefile = '''
+    rule fastqc:
+        input:
+            fastq='sample1_R1.fastq.gz'
+        output:
+            html='sample1_R1_fastqc.html',
+            zip='sample1_R1_fastqc.zip'
+        wrapper: "file:wrapper"'''
+    input_data_func = symlink_in_tempdir(
+        {
+            sample1_se_tiny_fq: 'sample1_R1.fastq.gz'
+        }
+    )
+    tmpdir = str(tmpdir_factory.mktemp('fastqc_fixture'))
+    run(dpath('../wrappers/fastqc'), snakefile, None, input_data_func, tmpdir)
+    return os.path.join(tmpdir, 'sample1_R1_fastqc.zip')
+
+
+def test_fastqc(sample1_se_tiny_fq, tmpdir):
     snakefile = '''
     rule fastqc:
         input:
@@ -13,13 +36,13 @@ def test_fastqc(sample1_se_fq, tmpdir):
         wrapper: "file:wrapper"'''
     input_data_func=symlink_in_tempdir(
         {
-            sample1_se_fq: 'sample1_R1.fastq.gz'
+            sample1_se_tiny_fq: 'sample1_R1.fastq.gz'
         }
     )
 
     def check():
         assert '<html>' in open('results/sample1_R1.html').readline()
-        assert zipfile.ZipFile('sample1_R1.zip').namelist() == [
+        contents = [
             'sample1_R1_fastqc/',
             'sample1_R1_fastqc/Icons/',
             'sample1_R1_fastqc/Images/',
@@ -41,5 +64,7 @@ def test_fastqc(sample1_se_fq, tmpdir):
             'sample1_R1_fastqc/fastqc_data.txt',
             'sample1_R1_fastqc/fastqc.fo'
         ]
+        for i in zipfile.ZipFile('sample1_R1.zip').namelist():
+            assert i in contents
 
     run(dpath('../wrappers/fastqc'), snakefile, check, input_data_func, tmpdir)

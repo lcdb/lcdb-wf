@@ -8,6 +8,8 @@ from lcdblib.utils import utils
 from lcdblib.snakemake import aligners, helpers
 from lib.common import download_and_postprocess, references_dict, get_references_dir
 
+shell.executable('/bin/bash')
+
 localrules: symlink_fasta_to_index_dir, chromsizes
 
 HERE = str(srcdir('.'))

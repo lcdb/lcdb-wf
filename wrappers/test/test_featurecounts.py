@@ -24,7 +24,7 @@ def test_featurecounts_se(sample1_se_bam, annotation, tmpdir):
         assert '//===================' in open('featurecounts.log').read()
         assert '# Program:featureCounts' in open('sample1.counts').readline()
         assert open('sample1.counts.summary').readline().startswith('Status')
-        assert sum(1 for _ in open('sample1.counts')) == 14
+        assert sum(1 for _ in open('sample1.counts')) == 169
 
     run(dpath('../wrappers/featurecounts'), snakefile, check, input_data_func, tmpdir)
 
@@ -51,7 +51,7 @@ def test_featurecounts_pe(sample1_pe_bam, annotation, tmpdir):
         assert '//===================' in open('featurecounts.log').read()
         assert '# Program:featureCounts' in open('sample1.counts').readline()
         assert open('sample1.counts.summary').readline().startswith('Status')
-        assert sum(1 for _ in open('sample1.counts')) == 14
+        assert sum(1 for _ in open('sample1.counts')) == 169
 
         # TODO: maybe assert that below a certain level are counted when all
         # those extra arguments are used?

@@ -1,8 +1,9 @@
 import os
 import zipfile
 from utils import run, dpath, rm, symlink_in_tempdir
+from test_bowtie2 import bowtie2_indexes
 
-def test_fastq_screen(sample1_se_fq, bowtie2_indexes, tmpdir):
+def test_fastq_screen(sample1_se_tiny_fq, bowtie2_indexes, tmpdir):
     snakefile = '''
     rule fastq_screen:
         input:
@@ -19,7 +20,7 @@ def test_fastq_screen(sample1_se_fq, bowtie2_indexes, tmpdir):
 
     input_data_func=symlink_in_tempdir(
         {
-            sample1_se_fq: 'sample1_R1.fastq.gz'
+            sample1_se_tiny_fq: 'sample1_R1.fastq.gz'
         }
     )
 

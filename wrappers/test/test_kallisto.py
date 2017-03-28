@@ -29,7 +29,7 @@ def test_kallisto_index(transcriptome, tmpdir):
         snakefile, check, input_data_func, tmpdir)
 
 
-def test_kallisto_quant(tmpdir, sample1_se_fq, kallisto_index):
+def test_kallisto_quant(tmpdir, sample1_se_tiny_fq, kallisto_index):
     snakefile = '''
     rule kallisto_quant:
         input:
@@ -45,13 +45,13 @@ def test_kallisto_quant(tmpdir, sample1_se_fq, kallisto_index):
     '''
     input_data_func = symlink_in_tempdir(
         {
-            sample1_se_fq: 'sample1.fq.gz',
+            sample1_se_tiny_fq: 'sample1.fq.gz',
             kallisto_index: 'out/transcriptome.idx',
         }
     )
 
     def check():
-        assert sum(1 for _ in open('quant/abundance.tsv')) == 35
+        assert sum(1 for _ in open('quant/abundance.tsv')) == 310
         assert open('quant/abundance.tsv').readline() == (
                 'target_id\tlength\teff_length\test_counts\ttpm\n')
         keys = ['call', 'index_version', 'n_bootstraps', 'n_processed', 'n_targets', 'start_time']

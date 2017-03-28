@@ -1,22 +1,21 @@
+import os
 import pytest
-import pysam
 from snakemake.shell import shell
 from lcdblib.snakemake import aligners
-from utils import run, dpath, rm, symlink_in_tempdir
+from utils import run, dpath, symlink_in_tempdir, tmpdir_for_func
 
 
-def test_hisat2_build(dm6_fa, tmpdir):
+@pytest.fixture(scope='session')
+def hisat2_indexes(dm6_fa, tmpdir_factory):
+    d = tmpdir_for_func(tmpdir_factory)
     snakefile = '''
-                rule hisat2_build:
-                    input:
-                        fasta='2L.fa'
-                    output:
-                        index=expand('data/assembly/assembly.{n}.ht2', n=range(1,9))
-                    log: 'hisat.log'
-                    wrapper: "file:wrapper"
-
-                '''
-    input_data_func=symlink_in_tempdir(
+    rule hisat2:
+        input: fasta='2L.fa'
+        output: index=['2L.1.ht2', '2L.2.ht2']
+        log: 'hisat.log'
+        wrapper: 'file:wrapper'
+    '''
+    input_data_func = symlink_in_tempdir(
         {
             dm6_fa: '2L.fa'
         }
@@ -24,9 +23,12 @@ def test_hisat2_build(dm6_fa, tmpdir):
 
     def check():
         assert 'Total time for call to driver' in open('hisat.log').readlines()[-1]
-        assert list(shell('hisat2-inspect data/assembly/assembly -n', iterable=True)) == ['2L']
+        assert list(shell('hisat2-inspect 2L -n', iterable=True)) == ['2L', '2R']
 
-    run(dpath('../wrappers/hisat2/build'), snakefile, check, input_data_func, tmpdir)
+    run(
+        dpath('../wrappers/hisat2/build'),
+        snakefile, check, input_data_func, d)
+    return aligners.hisat2_index_from_prefix(os.path.join(d, '2L'))
 
 
 def _dict_of_hisat2_indexes(hisat2_indexes, prefix):
@@ -39,7 +41,7 @@ def _dict_of_hisat2_indexes(hisat2_indexes, prefix):
     return d
 
 
-def test_hisat2_align_se(hisat2_indexes, sample1_se_fq, tmpdir):
+def test_hisat2_align_se(hisat2_indexes, sample1_se_tiny_fq, tmpdir):
     d = _dict_of_hisat2_indexes(hisat2_indexes, '2L')
     indexes = list(d.values())
     snakefile = '''
@@ -52,7 +54,7 @@ def test_hisat2_align_se(hisat2_indexes, sample1_se_fq, tmpdir):
             log: "hisat2.log"
             wrapper: "file:wrapper"
     '''.format(indexes=indexes)
-    d[sample1_se_fq] = 'sample1_R1.fastq.gz'
+    d[sample1_se_tiny_fq] = 'sample1_R1.fastq.gz'
     input_data_func = symlink_in_tempdir(d)
 
     def check():
@@ -90,7 +92,7 @@ def test_hisat2_align_se_SRA(hisat2_indexes, tmpdir):
     run(dpath('../wrappers/hisat2/align'), snakefile, check, input_data_func, tmpdir)
 
 
-def test_hisat2_align_se_rm_unmapped(hisat2_indexes, sample1_se_fq, tmpdir):
+def test_hisat2_align_se_rm_unmapped(hisat2_indexes, sample1_se_tiny_fq, tmpdir):
     d = _dict_of_hisat2_indexes(hisat2_indexes, '2L')
     indexes = list(d.values())
     snakefile = '''
@@ -105,7 +107,7 @@ def test_hisat2_align_se_rm_unmapped(hisat2_indexes, sample1_se_fq, tmpdir):
             log: "hisat2.log"
             wrapper: "file:wrapper"
     '''.format(indexes=indexes)
-    d[sample1_se_fq] = 'sample1_R1.fastq.gz'
+    d[sample1_se_tiny_fq] = 'sample1_R1.fastq.gz'
     input_data_func = symlink_in_tempdir(d)
 
     def check():
