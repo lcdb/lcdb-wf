@@ -17,26 +17,6 @@ from utils import (
 
 from raw_data_fixtures import *
 
-@pytest.fixture(scope='session')
-def kallisto_index(tmpdir_factory, transcriptome):
-    d = tmpdir_for_func(tmpdir_factory)
-    snakefile = '''
-    rule kallisto:
-        input: fasta='transcriptome.fa'
-        output: index='transcriptome.idx'
-        wrapper: 'file:wrapper'
-    '''
-    input_data_func = symlink_in_tempdir(
-        {
-            transcriptome: 'transcriptome.fa',
-        }
-    )
-
-    run(
-        dpath('../wrappers/kallisto/index'),
-        snakefile, None, input_data_func, d)
-    return os.path.join(d, 'transcriptome.idx')
-
 
 @pytest.fixture(scope='session')
 def sample1_se_dupradar(sample1_se_bam_sorted_markdups, annotation, tmpdir_factory):

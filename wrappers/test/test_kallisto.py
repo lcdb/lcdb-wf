@@ -1,16 +1,19 @@
-import pytest
+import os
 import json
+import pytest
 import pysam
 from snakemake.shell import shell
 from lcdblib.snakemake import aligners
-from utils import run, dpath, rm, symlink_in_tempdir
+from utils import run, dpath, rm, symlink_in_tempdir, tmpdir_for_func
 
 
-def test_kallisto_index(transcriptome, tmpdir):
+@pytest.fixture(scope='session')
+def kallisto_index(tmpdir_factory, transcriptome):
+    d = tmpdir_for_func(tmpdir_factory)
     snakefile = '''
     rule kallisto:
         input: fasta='transcriptome.fa'
-        output: index='out/transcriptome.idx'
+        output: index='transcriptome.idx'
         log: 'log'
         wrapper: 'file:wrapper'
     '''
@@ -26,7 +29,8 @@ def test_kallisto_index(transcriptome, tmpdir):
 
     run(
         dpath('../wrappers/kallisto/index'),
-        snakefile, check, input_data_func, tmpdir)
+        snakefile, check, input_data_func, d)
+    return os.path.join(d, 'transcriptome.idx')
 
 
 def test_kallisto_quant(tmpdir, sample1_se_tiny_fq, kallisto_index):
