@@ -200,16 +200,21 @@ rule libsizes_table:
 
 rule multiqc:
     input:
-        utils.flatten(targets['fastqc']) +
-        utils.flatten(targets['cutadapt']) +
-        utils.flatten(targets['featurecounts']) +
-        utils.flatten(targets['bam']) +
-        utils.flatten(targets['markduplicates']) +
-        utils.flatten(targets['salmon']) +
-        utils.flatten(targets['rseqc'])
+        files=(
+            utils.flatten(targets['fastqc']) +
+            utils.flatten(targets['cutadapt']) +
+            utils.flatten(targets['featurecounts']) +
+            utils.flatten(targets['bam']) +
+            utils.flatten(targets['markduplicates']) +
+            utils.flatten(targets['salmon']) +
+            utils.flatten(targets['rseqc']) +
+            utils.flatten(targets['collectrnaseqmetrics'])
+        ),
+        config='config/multiqc_config.yaml'
     output: list(set(targets['multiqc']))
     params:
         analysis_directory=sample_dir,
+        extra='--config config/multiqc_config.yaml',
     log: list(set(targets['multiqc']))[0] + '.log'
     wrapper:
         wrapper_for('multiqc')
