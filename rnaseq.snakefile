@@ -63,6 +63,10 @@ patterns = {
     'kallisto': {
         'h5': '{sample_dir}/{sample}/{sample}/kallisto/abundance.h5',
     },
+    'salmon': '{sample_dir}/{sample}/salmon/quant.sf',
+    'rseqc': {
+        'bam_stat': '{sample_dir}/{sample}/rseqc/{sample}_bam_stat.txt',
+    },
 }
 fill = dict(sample=samples, sample_dir=sample_dir, agg_dir=agg_dir)
 targets = helpers.fill_patterns(patterns, fill)
@@ -82,7 +86,11 @@ rule targets:
             [targets['multiqc']] +
             utils.flatten(targets['featurecounts']) +
             utils.flatten(targets['markduplicates']) +
-            utils.flatten(targets['dupradar'])
+            utils.flatten(targets['dupradar']) +
+            utils.flatten(targets['salmon']) +
+            utils.flatten(targets['rseqc'])
+
+
         )
 
 
@@ -193,7 +201,9 @@ rule multiqc:
         utils.flatten(targets['cutadapt']) +
         utils.flatten(targets['featurecounts']) +
         utils.flatten(targets['bam']) +
-        utils.flatten(targets['markduplicates'])
+        utils.flatten(targets['markduplicates']) +
+        utils.flatten(targets['salmon']) +
+        utils.flatten(targets['rseqc'])
     output: list(set(targets['multiqc']))
     params:
         analysis_directory=sample_dir,
@@ -240,5 +250,23 @@ rule dupRadar:
     log: '{sample_dir}/{sample}/dupradar/dupradar.log'
     wrapper:
         wrapper_for('dupradar')
+
+
+rule salmon:
+    input:
+        unmatedReads=patterns['cutadapt'],
+        index=refdict[config['salmon']['tag']]['salmon'],
+    output: patterns['salmon']
+    params: extra="--libType=A"
+    log: '{sample_dir}/{sample}/salmon/salmon.quant.log'
+    wrapper: wrapper_for('salmon/quant')
+
+
+rule rseqc_bam_stat:
+    input:
+        bam=patterns['bam']
+    output:
+        txt=patterns['rseqc']['bam_stat']
+    wrapper: wrapper_for('rseqc/bam_stat')
 
 # vim: ft=python
