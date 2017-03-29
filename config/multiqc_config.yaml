@@ -1,0 +1,6 @@
+fn_clean_exts:
+  - '.cutadapt'
+  - '.gz'
+  - '.fastq'
+  - '.salmon'
+  - '_R1'
