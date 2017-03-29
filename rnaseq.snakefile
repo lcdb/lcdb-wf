@@ -50,6 +50,10 @@ patterns = {
         'bam': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam',
         'metrics': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam.metrics',
     },
+    'collectrnaseqmetrics': {
+        'metrics': '{sample_dir}/{sample}/{sample}.collectrnaseqmetrics.metrics',
+        'pdf': '{sample_dir}/{sample}/{sample}.collectrnaseqmetrics.pdf',
+    },
     'dupradar': {
         'density_scatter': '{sample_dir}/{sample}/dupradar/{sample}_density_scatter.png',
         'expression_histogram': '{sample_dir}/{sample}/dupradar/{sample}_expression_histogram.png',
@@ -88,9 +92,8 @@ rule targets:
             utils.flatten(targets['markduplicates']) +
             utils.flatten(targets['dupradar']) +
             utils.flatten(targets['salmon']) +
-            utils.flatten(targets['rseqc'])
-
-
+            utils.flatten(targets['rseqc']) +
+            utils.flatten(targets['collectrnaseqmetrics'])
         )
 
 
@@ -232,6 +235,18 @@ rule markduplicates:
         patterns['markduplicates']['bam'] + '.log'
     wrapper:
         wrapper_for('picard/markduplicates')
+
+
+rule collectrnaseqmetrics:
+    input:
+        bam=patterns['bam'],
+        refflat=refdict[config['gtf']['tag']]['refflat']
+    output:
+        metrics=patterns['collectrnaseqmetrics']['metrics'],
+        pdf=patterns['collectrnaseqmetrics']['pdf']
+    params: extra="STRAND=NONE CHART_OUTPUT={}".format(patterns['collectrnaseqmetrics']['pdf'])
+    log: patterns['collectrnaseqmetrics']['metrics'] + '.log'
+    wrapper: wrapper_for('picard/collectrnaseqmetrics')
 
 
 rule dupRadar:
