@@ -10,4 +10,5 @@ shell(
     'INPUT={snakemake.input.bam} '
     'OUTPUT={snakemake.output.metrics} '
     '{extra} '
+    '{log} '
 )
