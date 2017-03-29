@@ -63,7 +63,7 @@ patterns = {
     'kallisto': {
         'h5': '{sample_dir}/{sample}/{sample}/kallisto/abundance.h5',
     },
-    'salmon': '{sample_dir}/{sample}/salmon/quant.sf',
+    'salmon': '{sample_dir}/{sample}/{sample}.salmon/quant.sf',
     'rseqc': {
         'bam_stat': '{sample_dir}/{sample}/rseqc/{sample}_bam_stat.txt',
     },
