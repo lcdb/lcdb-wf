@@ -66,7 +66,7 @@ rule kallisto_index:
     output: protected('{references_dir}/{assembly}/{tag}/kallisto/{assembly}_{tag}.idx')
     input: '{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
     log: '{references_dir}/logs/{assembly}/{tag}/kallisto/{assembly}_{tag}.log'
-    conda: 'envs/references_env.yml'
+    conda: 'config/envs/references_env.yml'
     shell:
         '''
         kallisto index -i {output} --make-unique {input} > {log} 2> {log}
@@ -86,11 +86,12 @@ rule conversion_refflat:
     input: '{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf'
     output: protected('{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.refflat')
     log: '{references_dir}/logs/{assembly}/{tag}/gtf/{assembly}_{tag}.refflat.log'
-    conda: 'envs/references_env.yml'
+    conda: 'config/envs/references_env.yml'
     shell:
         'gtfToGenePred -ignoreGroupsWithoutExons {input} {output}.tmp '
         '''&& awk '{{print $1"\t"$0}}' {output}.tmp > {output} '''
         '&& rm {output}.tmp '
+
 
 rule conversion_gffutils:
     input: gtf='{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf'
@@ -105,11 +106,12 @@ rule conversion_gffutils:
                 gtf_transcript_key='transcript_id', gtf_gene_key='gene_id',
                 disable_infer_genes=True)
 
+
 rule chromsizes:
     output: protected('{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.chromsizes')
     input: '{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
     log: '{references_dir}/logs/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta.log'
-    conda: 'envs/references_env.yml'
+    conda: 'config/envs/references_env.yml'
     shell:
         'rm -f {output}.tmp '
         '&& picard CreateSequenceDictionary R={input} O={output}.tmp '
