@@ -34,21 +34,27 @@ rule salmon_quant:
 
 ## Input
 
-`index`: One or more files created by `salmon index`. The wrapper will use the dirname of these as the index dir.
+`index`: One or more files created by `salmon index`. The wrapper will use the
+dirname of these as the index dir.
 
 `unmatedReads`: FASTQ file. Only used for single-end reads
 
 `mates1`, `mates2`: FASTQ files. Only used for paried-end reads.
 
 ## Output
-Any files created by `salmon quant`. Salmon creates an output directory with at least `quant.sf` in it; the wrapper will use the dirname of the output file[s] as the `--output` argument to salmon. There are other possibilities depending on the arguments -- see the [output format section](http://salmon.readthedocs.io/en/latest/file_formats.html#fileformats) of the Salmon docs for more info.
+Any files created by `salmon quant`. Salmon creates an output directory with at
+least `quant.sf` in it; the wrapper will use the dirname of the output file[s]
+as the `--output` argument to salmon. There are other possibilities depending
+on the arguments -- see the [output format
+section](http://salmon.readthedocs.io/en/latest/file_formats.html#fileformats)
+of the Salmon docs for more info.
 
 ## Threads
 Salmon by default will detect the number of available threads. The wrapper
-specifically sets `--threads` to `{snakemake.threads}`, so this should allow
-multiple instances to run simultaneously, especially when not supplying
-a nonzero thread count.
+specifically sets `--threads` to `{snakemake.threads}`, which defaults to 1 if
+not specified.
 
 ## Params
-`extra`: passed verbatim to `salmon index`. You'll probably want `--libType A` which auto-detects the library type.
+`extra`: passed verbatim to `salmon index`. You'll probably want `--libType A`
+   which auto-detects the library type.
 

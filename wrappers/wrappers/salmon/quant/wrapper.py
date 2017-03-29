@@ -20,7 +20,6 @@ else:
 if len(set(index_dir)) != 1:
     raise ValueError("Inconsistent index directories: {0}".format(set(index_dir)))
 
-
 cmd = (
     "salmon quant "
     "--index {index_dir} "
