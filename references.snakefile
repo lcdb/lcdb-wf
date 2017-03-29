@@ -72,6 +72,16 @@ rule kallisto_index:
         kallisto index -i {output} --make-unique {input} > {log} 2> {log}
         '''
 
+
+rule salmon_index:
+    output: protected('{references_dir}/{assembly}/{tag}/salmon/{assembly}_{tag}/hash.bin')
+    input:
+        fasta='{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
+    log: '{references_dir}/logs/{assembly}/{tag}/salmon/{assembly}_{tag}.log'
+    conda: 'config/envs/references_env.yml'
+    wrapper: wrapper_for('salmon/index')
+
+
 rule conversion_refflat:
     input: '{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf'
     output: protected('{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.refflat')
