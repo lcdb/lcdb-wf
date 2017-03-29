@@ -45,7 +45,7 @@ patterns = {
     'fastq_screen': '{sample_dir}/{sample}/{sample}.cutadapt.screen.txt',
     'featurecounts': '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.txt',
     'libsizes_table': '{agg_dir}/libsizes_table.tsv',
-    'multiqc': 'multiqc.html',
+    'multiqc': '{agg_dir}/multiqc.html',
     'markduplicates': {
         'bam': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam',
         'metrics': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam.metrics',
@@ -197,7 +197,7 @@ rule multiqc:
     output: list(set(targets['multiqc']))
     params:
         analysis_directory=sample_dir,
-    log: 'multiqc.log'
+    log: list(set(targets['multiqc']))[0] + '.log'
     wrapper:
         wrapper_for('multiqc')
 
