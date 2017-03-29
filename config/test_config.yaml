@@ -48,12 +48,12 @@ references:
   dmel:
     test:
       gtf:
-        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.gtf"
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/add-chipseq/data/annotation/dm6.small.gtf"
         postprocess: 'lib.common.gzipped'
         conversions:
           - 'refflat'
       fasta:
-        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/2L.fa"
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/add-chipseq/data/seq/dm6.small.fa"
         postprocess: 'lib.common.gzipped'
         indexes:
           - 'bowtie2'
@@ -61,7 +61,8 @@ references:
 
     test_transcriptome:
       fasta:
-        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/transcriptome.fa/"
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/add-chipseq/data/seq/dm6.small.transcriptome.fa"
+        postprocess: 'lib.common.gzipped'
         indexes:
           - 'kallisto'
 
