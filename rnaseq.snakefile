@@ -1,4 +1,6 @@
 import os
+from textwrap import dedent
+import yaml
 import tempfile
 import pandas as pd
 from lcdblib.snakemake import helpers, aligners
@@ -45,6 +47,7 @@ patterns = {
     'fastq_screen': '{sample_dir}/{sample}/{sample}.cutadapt.screen.txt',
     'featurecounts': '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.txt',
     'libsizes_table': '{agg_dir}/libsizes_table.tsv',
+    'libsizes_yaml': '{agg_dir}/libsizes_table_mqc.yaml',
     'multiqc': '{agg_dir}/multiqc.html',
     'markduplicates': {
         'bam': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam',
@@ -178,8 +181,11 @@ rule featurecounts:
 
 
 rule libsizes_table:
-    input: utils.flatten(targets['libsizes'])
-    output: patterns['libsizes_table']
+    input:
+        utils.flatten(targets['libsizes'])
+    output:
+        json=patterns['libsizes_yaml'],
+        tsv=patterns['libsizes_table']
     run:
         def sample(f):
             return os.path.basename(os.path.dirname(f))
@@ -195,13 +201,29 @@ rule libsizes_table:
         df['million'] = df.filename.apply(million)
         df['stage'] = df.filename.apply(stage)
         df = df.set_index('filename')
-        df.to_csv(str(output), sep='\t')
+        df = df.pivot('sample', columns='stage', values='million')
+        df.to_csv(output.tsv, sep='\t')
+        y = {
+            'id': 'libsizes_table',
+            'section_name': 'Library sizes',
+            'description': 'Library sizes at various stages of the pipeline',
+            'plot_type': 'table',
+            'pconfig': {
+                'id': 'libsizes_table_table',
+                'title': 'Library size table',
+                'min': 0
+            },
+            'data': yaml.load(df.transpose().to_json()),
+        }
+        with open(output.json, 'w') as fout:
+            yaml.dump(y, fout, default_flow_style=False)
 
 
 rule multiqc:
     input:
         files=(
             utils.flatten(targets['fastqc']) +
+            utils.flatten(targets['libsizes_yaml']) +
             utils.flatten(targets['cutadapt']) +
             utils.flatten(targets['featurecounts']) +
             utils.flatten(targets['bam']) +
@@ -213,7 +235,7 @@ rule multiqc:
         config='config/multiqc_config.yaml'
     output: list(set(targets['multiqc']))
     params:
-        analysis_directory=sample_dir,
+        analysis_directory=" ".join([sample_dir, agg_dir]),
         extra='--config config/multiqc_config.yaml',
     log: list(set(targets['multiqc']))[0] + '.log'
     wrapper:
