@@ -3,7 +3,10 @@ from snakemake.shell import shell
 from lcdblib.snakemake import helpers
 
 extra = snakemake.params.get('extra', '')
-log = snakemake.log_fmt_shell()
+try:
+    log = snakemake.log
+except AttributeError:
+    log = None
 
 stranded = snakemake.params.get('stranded', False)
 try:
@@ -53,6 +56,33 @@ readcountExpBoxplot(dm)
 dev.off()
 
 write.table(dm, file="{snakemake.output.dataframe}", sep="\\t")
+
+# The following is from
+# https://github.com/ewels/NGI-RNAseq/blob/master/bin/dupRadar.r
+
+fit <- duprateExpFit(DupMat=dm)
+df <- data.frame(intercept=as.numeric(fit$intercept), slope=c(fit$slope))
+cat("# dupRadar model params\\n", file="{snakemake.output.model}")
+write.table(df, file="{snakemake.output.model}", sep="\\t", append=TRUE, row.names=FALSE)
+
+# Get numbers from dupRadar GLM
+curve_x <- sort(log10(dm$RPK))
+curve_y = 100*predict(fit$glm, data.frame(x=curve_x), type="response")
+# Remove all of the infinite values
+infs = which(curve_x %in% c(-Inf,Inf))
+curve_x = curve_x[-infs]
+curve_y = curve_y[-infs]
+# Reduce number of data points
+curve_x <- curve_x[seq(1, length(curve_x), 10)]
+curve_y <- curve_y[seq(1, length(curve_y), 10)]
+# Convert x values back to real counts
+curve_x = 10^curve_x
+# Write to file
+write.table(
+  cbind(curve_x, curve_y),
+  file="{snakemake.output.curve}",
+  quote=FALSE, row.names=FALSE
+)
 """.format(**locals())
 
 tmp = tempfile.NamedTemporaryFile(delete=False).name

@@ -50,6 +50,16 @@ patterns = {
         'bam': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam',
         'metrics': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam.metrics',
     },
+    'dupradar': {
+        'density_scatter': '{sample_dir}/{sample}/dupradar/{sample}_density_scatter.png',
+        'expression_histogram': '{sample_dir}/{sample}/dupradar/{sample}_expression_histogram.png',
+        'expression_boxplot': '{sample_dir}/{sample}/dupradar/{sample}_expression_boxplot.png',
+        'expression_barplot': '{sample_dir}/{sample}/dupradar/{sample}_expression_barplot.png',
+        'multimapping_histogram': '{sample_dir}/{sample}/dupradar/{sample}_multimapping_histogram.png',
+        'dataframe': '{sample_dir}/{sample}/dupradar/{sample}_dataframe.tsv',
+        'model': '{sample_dir}/{sample}/dupradar/{sample}_model.txt',
+        'curve': '{sample_dir}/{sample}/dupradar/{sample}_curve.txt',
+    },
     'kallisto': {
         'h5': '{sample_dir}/{sample}/{sample}/kallisto/abundance.h5',
     },
@@ -71,7 +81,8 @@ rule targets:
             [targets['libsizes_table']] +
             [targets['multiqc']] +
             utils.flatten(targets['featurecounts']) +
-            utils.flatten(targets['markduplicates'])
+            utils.flatten(targets['markduplicates']) +
+            utils.flatten(targets['dupradar'])
         )
 
 
@@ -175,6 +186,7 @@ rule libsizes_table:
         df = df.set_index('filename')
         df.to_csv(str(output), sep='\t')
 
+
 rule multiqc:
     input:
         utils.flatten(targets['fastqc']) +
@@ -210,5 +222,23 @@ rule markduplicates:
         patterns['markduplicates']['bam'] + '.log'
     wrapper:
         wrapper_for('picard/markduplicates')
+
+
+rule dupRadar:
+    input:
+        bam=rules.markduplicates.output.bam,
+        annotation=refdict[config['gtf']['tag']]['gtf'],
+    output:
+        density_scatter=patterns['dupradar']['density_scatter'],
+        expression_histogram=patterns['dupradar']['expression_histogram'],
+        expression_boxplot=patterns['dupradar']['expression_boxplot'],
+        expression_barplot=patterns['dupradar']['expression_barplot'],
+        multimapping_histogram=patterns['dupradar']['multimapping_histogram'],
+        dataframe=patterns['dupradar']['dataframe'],
+        model=patterns['dupradar']['model'],
+        curve=patterns['dupradar']['curve'],
+    log: '{sample_dir}/{sample}/dupradar/dupradar.log'
+    wrapper:
+        wrapper_for('dupradar')
 
 # vim: ft=python

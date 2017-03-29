@@ -71,6 +71,8 @@ See that page for descriptions of outputs and how to interpret them.
 * `dataframe`: results from `analyzeDuprates` saved as a TSV for downstream
   analysis. Following the vignette, we also add the fraction of multimappers in
   each gene as the column `mhRate`.
+* `model`: Slope and intercept of the dupsExpFit
+* `curve`: Simplified curve of the GLM for downstream plotting
 
 ## Threads
 Threads are passed to dupRadar and are in turn passed to featureCounts, which

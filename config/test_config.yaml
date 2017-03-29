@@ -8,7 +8,7 @@ sampletable: 'config/sampletable.tsv'
 # directory and fastq file[s]. If `sampletable` lists a sample with samplename
 # SAMPLE1, then at least the file $sample_dir/SAMPLE1/SAMPLE1_R1.fastq.gz is
 # expected.
-sample_dir: 'data/samples'
+sample_dir: 'data/rnaseq_samples'
 
 # Directory to contain reports and other aggregations
 aggregation_dir: 'data/aggregation'
