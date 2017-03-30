@@ -11,3 +11,4 @@ dependencies:
     - picard==2.7.1
     - ucsc-gtftogenepred==332
     - python==3.5
+    - salmon ==0.8.2

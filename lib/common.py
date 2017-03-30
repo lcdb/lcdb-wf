@@ -198,6 +198,7 @@ def references_dict(config):
         'bowtie2': aligners.bowtie2_index_from_prefix('')[0],
         'hisat2': aligners.hisat2_index_from_prefix('')[0],
         'kallisto': '.idx',
+        'salmon': '/hash.bin'
     }
 
 

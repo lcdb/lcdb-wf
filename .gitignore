@@ -1,3 +1,4 @@
 .snakemake
 __pycache__
 data
+references_data

@@ -110,7 +110,7 @@ def test_gB_cov_png(sample1_se_tiny_bam, sample1_se_tiny_bam_bai, annotation_bed
         assert os.path.exists('sample1_R1.geneBodyCoverage.png')
 
 
-#@pytest.mark.xfail
+@pytest.mark.skip
 def test_tin(sample1_se_tiny_bam, sample1_se_tiny_bam_bai, annotation_bed12, tmpdir):
     snakefile = '''
                 rule tin:

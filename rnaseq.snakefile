@@ -1,4 +1,6 @@
 import os
+from textwrap import dedent
+import yaml
 import tempfile
 import pandas as pd
 from lcdblib.snakemake import helpers, aligners
@@ -45,10 +47,15 @@ patterns = {
     'fastq_screen': '{sample_dir}/{sample}/{sample}.cutadapt.screen.txt',
     'featurecounts': '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.txt',
     'libsizes_table': '{agg_dir}/libsizes_table.tsv',
-    'multiqc': 'multiqc.html',
+    'libsizes_yaml': '{agg_dir}/libsizes_table_mqc.yaml',
+    'multiqc': '{agg_dir}/multiqc.html',
     'markduplicates': {
         'bam': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam',
         'metrics': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam.metrics',
+    },
+    'collectrnaseqmetrics': {
+        'metrics': '{sample_dir}/{sample}/{sample}.collectrnaseqmetrics.metrics',
+        'pdf': '{sample_dir}/{sample}/{sample}.collectrnaseqmetrics.pdf',
     },
     'dupradar': {
         'density_scatter': '{sample_dir}/{sample}/dupradar/{sample}_density_scatter.png',
@@ -62,6 +69,10 @@ patterns = {
     },
     'kallisto': {
         'h5': '{sample_dir}/{sample}/{sample}/kallisto/abundance.h5',
+    },
+    'salmon': '{sample_dir}/{sample}/{sample}.salmon/quant.sf',
+    'rseqc': {
+        'bam_stat': '{sample_dir}/{sample}/rseqc/{sample}_bam_stat.txt',
     },
 }
 fill = dict(sample=samples, sample_dir=sample_dir, agg_dir=agg_dir)
@@ -82,7 +93,10 @@ rule targets:
             [targets['multiqc']] +
             utils.flatten(targets['featurecounts']) +
             utils.flatten(targets['markduplicates']) +
-            utils.flatten(targets['dupradar'])
+            utils.flatten(targets['dupradar']) +
+            utils.flatten(targets['salmon']) +
+            utils.flatten(targets['rseqc']) +
+            utils.flatten(targets['collectrnaseqmetrics'])
         )
 
 
@@ -167,8 +181,11 @@ rule featurecounts:
 
 
 rule libsizes_table:
-    input: utils.flatten(targets['libsizes'])
-    output: patterns['libsizes_table']
+    input:
+        utils.flatten(targets['libsizes'])
+    output:
+        json=patterns['libsizes_yaml'],
+        tsv=patterns['libsizes_table']
     run:
         def sample(f):
             return os.path.basename(os.path.dirname(f))
@@ -184,20 +201,43 @@ rule libsizes_table:
         df['million'] = df.filename.apply(million)
         df['stage'] = df.filename.apply(stage)
         df = df.set_index('filename')
-        df.to_csv(str(output), sep='\t')
+        df = df.pivot('sample', columns='stage', values='million')
+        df.to_csv(output.tsv, sep='\t')
+        y = {
+            'id': 'libsizes_table',
+            'section_name': 'Library sizes',
+            'description': 'Library sizes at various stages of the pipeline',
+            'plot_type': 'table',
+            'pconfig': {
+                'id': 'libsizes_table_table',
+                'title': 'Library size table',
+                'min': 0
+            },
+            'data': yaml.load(df.transpose().to_json()),
+        }
+        with open(output.json, 'w') as fout:
+            yaml.dump(y, fout, default_flow_style=False)
 
 
 rule multiqc:
     input:
-        utils.flatten(targets['fastqc']) +
-        utils.flatten(targets['cutadapt']) +
-        utils.flatten(targets['featurecounts']) +
-        utils.flatten(targets['bam']) +
-        utils.flatten(targets['markduplicates'])
+        files=(
+            utils.flatten(targets['fastqc']) +
+            utils.flatten(targets['libsizes_yaml']) +
+            utils.flatten(targets['cutadapt']) +
+            utils.flatten(targets['featurecounts']) +
+            utils.flatten(targets['bam']) +
+            utils.flatten(targets['markduplicates']) +
+            utils.flatten(targets['salmon']) +
+            utils.flatten(targets['rseqc']) +
+            utils.flatten(targets['collectrnaseqmetrics'])
+        ),
+        config='config/multiqc_config.yaml'
     output: list(set(targets['multiqc']))
     params:
-        analysis_directory=sample_dir,
-    log: 'multiqc.log'
+        analysis_directory=" ".join([sample_dir, agg_dir]),
+        extra='--config config/multiqc_config.yaml',
+    log: list(set(targets['multiqc']))[0] + '.log'
     wrapper:
         wrapper_for('multiqc')
 
@@ -224,6 +264,18 @@ rule markduplicates:
         wrapper_for('picard/markduplicates')
 
 
+rule collectrnaseqmetrics:
+    input:
+        bam=patterns['bam'],
+        refflat=refdict[config['gtf']['tag']]['refflat']
+    output:
+        metrics=patterns['collectrnaseqmetrics']['metrics'],
+        pdf=patterns['collectrnaseqmetrics']['pdf']
+    params: extra="STRAND=NONE CHART_OUTPUT={}".format(patterns['collectrnaseqmetrics']['pdf'])
+    log: patterns['collectrnaseqmetrics']['metrics'] + '.log'
+    wrapper: wrapper_for('picard/collectrnaseqmetrics')
+
+
 rule dupRadar:
     input:
         bam=rules.markduplicates.output.bam,
@@ -240,5 +292,23 @@ rule dupRadar:
     log: '{sample_dir}/{sample}/dupradar/dupradar.log'
     wrapper:
         wrapper_for('dupradar')
+
+
+rule salmon:
+    input:
+        unmatedReads=patterns['cutadapt'],
+        index=refdict[config['salmon']['tag']]['salmon'],
+    output: patterns['salmon']
+    params: extra="--libType=A"
+    log: '{sample_dir}/{sample}/salmon/salmon.quant.log'
+    wrapper: wrapper_for('salmon/quant')
+
+
+rule rseqc_bam_stat:
+    input:
+        bam=patterns['bam']
+    output:
+        txt=patterns['rseqc']['bam_stat']
+    wrapper: wrapper_for('rseqc/bam_stat')
 
 # vim: ft=python

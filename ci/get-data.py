@@ -24,3 +24,4 @@ for n in [1, 2]:
         'mv rnaseq_samples/sample{n}/sample{n}.small_R1.fastq.gz '
         'data/rnaseq_samples/sample{n}/sample{n}_R1.fastq.gz'
     )
+shell('rm -r rnaseq_samples')
