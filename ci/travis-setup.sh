@@ -2,7 +2,7 @@
 set -eo pipefail
 set -x
 
-CONDA_DIR=$HOME/anaconda
+CONDA_DIR=/tmp/ci/ana
 ENVNAME=lcdb-wf-test
 
 # buildkite expects this as a build artifact; make sure it exists even if other
@@ -42,4 +42,3 @@ conda create -n $ENVNAME -y python=3.5 --file requirements.txt \
 
 source activate $ENVNAME
 python ci/get-data.py
-
