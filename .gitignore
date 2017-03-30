@@ -2,3 +2,7 @@
 __pycache__
 data
 references_data
+downstream/group.tsv
+downstream/rnaseq.html
+downstream/rnaseq_cache
+downstream/rnaseq_files
