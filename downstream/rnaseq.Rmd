@@ -16,12 +16,12 @@ library(pheatmap)
 library(RColorBrewer)
 library(ggplot2)
 library(genefilter)
-library(org.Hs.eg.db)
-sample.table.filename = '../sampletable.tsv'
+library(org.Dm.eg.db)
+sample.table.filename = '../config/sampletable.tsv'
 colData <- read.table(sample.table.filename, sep='\t', header=TRUE)
 colData$path <- sapply(
     colData$samplename,
-    function (x) file.path('samples', x, paste0(x, '.cutadapt.bam.featurecounts.txt')
+    function (x) file.path('data', 'rnaseq_samples', x, paste0(x, '.cutadapt.bam.featurecounts.txt')
                            )
     )
 
@@ -238,7 +238,7 @@ res.list <- list(group=res)
 for (name in names(res.list)){
     res <- res.list[[name]]
     res$symbol <- mapIds(
-        org.Hs.eg.db,
+        org.Dm.eg.db,
         keys=row.names(res),
         column="SYMBOL",
         keytype="ENSEMBL",

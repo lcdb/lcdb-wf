@@ -74,6 +74,9 @@ patterns = {
     'rseqc': {
         'bam_stat': '{sample_dir}/{sample}/rseqc/{sample}_bam_stat.txt',
     },
+    'downstream': {
+        'rnaseq': 'downstream/rnaseq.html',
+    }
 }
 fill = dict(sample=samples, sample_dir=sample_dir, agg_dir=agg_dir)
 targets = helpers.fill_patterns(patterns, fill)
@@ -96,7 +99,8 @@ rule targets:
             utils.flatten(targets['dupradar']) +
             utils.flatten(targets['salmon']) +
             utils.flatten(targets['rseqc']) +
-            utils.flatten(targets['collectrnaseqmetrics'])
+            utils.flatten(targets['collectrnaseqmetrics']) +
+            utils.flatten(targets['downstream'])
         )
 
 
@@ -310,5 +314,19 @@ rule rseqc_bam_stat:
     output:
         txt=patterns['rseqc']['bam_stat']
     wrapper: wrapper_for('rseqc/bam_stat')
+
+
+rule rnaseq_rmarkdown:
+    input:
+        featurecounts=targets['featurecounts'],
+        rmd='downstream/rnaseq.Rmd',
+        sampletable=config['sampletable']
+    output:
+        'downstream/rnaseq.html'
+    conda:
+        'config/envs/R_rnaseq.yaml'
+    shell:
+        'Rscript -e '
+        '''"rmarkdown::render('{input.rmd}', 'knitrBootstrap::bootstrap_document')"'''
 
 # vim: ft=python
