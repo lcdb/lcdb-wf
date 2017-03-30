@@ -1,3 +1,5 @@
-samplename	treatment
+samplename	group
 sample1	control
 sample2	control
+sample3	treatment
+sample4	treatment
