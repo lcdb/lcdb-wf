@@ -4,10 +4,11 @@ channels:
   - r
 
 dependencies:
+  - bioconductor-deseq2
   - bioconductor-org.hs.eg.db
   - bioconductor-org.dm.eg.db
   - bioconductor-org.mm.eg.db
-  - bioconductor-deseq2
+  - bioconductor-tximport
   - r-rmarkdown
   - pandoc
   - r-knitrbootstrap
