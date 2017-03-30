@@ -1,7 +1,7 @@
 language: python
 install: bash ci/travis-setup.sh
 before_script:
-  - export PATH=$HOME/anaconda/bin:$PATH
+  - export PATH=/tmp/ci/ana/bin:$PATH
   - export JAVA_HOME=
   - export TMPDIR=/tmp
 script:
