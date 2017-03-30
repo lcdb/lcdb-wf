@@ -1,0 +1,16 @@
+channels:
+  - bioconda
+  - conda-forge
+  - r
+
+dependencies:
+  - bioconductor-org.hs.eg.db
+  - bioconductor-org.dm.eg.db
+  - bioconductor-org.mm.eg.db
+  - bioconductor-deseq2
+  - r-rmarkdown
+  - pandoc
+  - r-knitrbootstrap
+  - r-knitr
+  - r-pheatmap
+
