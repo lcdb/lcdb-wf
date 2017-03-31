@@ -9,6 +9,7 @@ dependencies:
   - bioconductor-org.dm.eg.db
   - bioconductor-org.mm.eg.db
   - bioconductor-genomicfeatures
+  - bioconductor-sva
   - bioconductor-tximport
   - r-rmarkdown
   - pandoc
