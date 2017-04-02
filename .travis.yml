@@ -5,5 +5,6 @@ before_script:
   - export JAVA_HOME=
   - export TMPDIR=/tmp
 script:
+  - source activate lcdb-wf-test && snakemake -prs references.snakefile --configfile config/test_config.yaml --use-conda -j1
   - source activate lcdb-wf-test && snakemake -prs rnaseq.snakefile --configfile config/test_config.yaml --use-conda -j1
   - source activate lcdb-wf-test && py.test wrappers/test -v
