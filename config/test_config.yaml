@@ -67,6 +67,11 @@ references:
           - genelist:
               gene_id: 'gene_id'
 
+          - annotation_hub:
+              ahkey: 'AH49581'
+              keytype: 'ENSEMBL'
+
+
       fasta:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/add-chipseq/data/seq/dm6.small.fa"
         postprocess: 'lib.common.gzipped'

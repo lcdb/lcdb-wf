@@ -129,4 +129,26 @@ rule genelist:
             for feature in gffutils.DataIterator(input.gtf):
                 fout.write(feature.attributes[attribute][0] + '\n')
 
+
+rule annotations:
+    input: rules.genelist.output
+    output:
+        protected('{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.{keytype}.csv')
+    params:
+        prefix='{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}',
+        ahkey=lambda wildcards, output: conversion_kwargs[output[0]]['ahkey']
+
+    conda: 'config/envs/R_rnaseq.yaml'
+    shell:
+        '''Rscript -e "'''
+        "library(AnnotationHub); "
+        "ah <- AnnotationHub(); "
+        "db <- ah[['{params.ahkey}']]; "
+        "gene.names <- read.table('{input}', stringsAsFactors=FALSE)[['V1']];"
+        "for (col in columns(db)){{"
+        "    f <- select(db, keys=gene.names, keytype='{wildcards.keytype}', columns=col);"
+        "    write.csv(f, file=paste0('{params.prefix}', '.', col, '.csv'), row.names=FALSE);"
+        '''}}"'''
+
+
 # vim: ft=python
