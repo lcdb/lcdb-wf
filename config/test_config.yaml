@@ -63,6 +63,10 @@ references:
               gtf_gene_key: 'gene_id'
               disable_infer_genes: True
 
+          # the attribute from the GTF to consider gene ID
+          - genelist:
+              gene_id: 'gene_id'
+
       fasta:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/add-chipseq/data/seq/dm6.small.fa"
         postprocess: 'lib.common.gzipped'

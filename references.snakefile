@@ -117,4 +117,16 @@ rule chromsizes:
         '| sed "s/SN://g;s/ LN:/\\t/g" > {output} '
         '&& rm -f {output}.tmp '
 
+
+rule genelist:
+    input: gtf='{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf'
+    output:
+        protected('{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.genelist')
+    run:
+        attribute = conversion_kwargs[output[0]]['gene_id']
+        import gffutils
+        with open(output[0], 'w') as fout:
+            for feature in gffutils.DataIterator(input.gtf):
+                fout.write(feature.attributes[attribute][0] + '\n')
+
 # vim: ft=python
