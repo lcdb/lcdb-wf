@@ -10,6 +10,7 @@ Note: if you're unfamiliar with any of the plots or tables here, see the
 
 
 ```{r setup}
+options(bitmapType='cairo')
 library(DESeq2)
 library(gridExtra)
 library(pheatmap)
