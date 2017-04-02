@@ -20,21 +20,21 @@ assembly: 'dmel'
 references_dir: references_data
 
 aligner:
-    index: 'hisat2'
-    tag: 'test'
+  index: 'hisat2'
+  tag: 'test'
 
 rrna:
-    index: 'bowtie2'
-    tag: 'rRNA'
+  index: 'bowtie2'
+  tag: 'rRNA'
 
 gtf:
-    tag: "test"
+  tag: "test"
 
 kallisto:
-    tag: "test_transcriptome"
+  tag: "test_transcriptome"
 
 salmon:
-    tag: "test_transcriptome"
+  tag: "test_transcriptome"
 
 # references has the structure:
 #
@@ -54,6 +54,15 @@ references:
         postprocess: 'lib.common.gzipped'
         conversions:
           - 'refflat'
+          - gffutils: # kwargs below will be provided to `gffutils.create_db`
+              merge_strategy: 'merge'
+              id_spec:
+                  transcript: ['transcript_id', 'transcript_symbol']
+                  gene: ['gene_id', 'gene_symbol']
+              gtf_transcript_key: 'transcript_id'
+              gtf_gene_key: 'gene_id'
+              disable_infer_genes: True
+
       fasta:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/add-chipseq/data/seq/dm6.small.fa"
         postprocess: 'lib.common.gzipped'
@@ -75,11 +84,11 @@ references:
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
         postprocess:
-            function: 'lib.common.filter_fastas'
-            args: 'Drosophila melanogaster'
+          function: 'lib.common.filter_fastas'
+          args: 'Drosophila melanogaster'
         indexes:
-            - 'hisat2'
-            - 'bowtie2'
+          - 'hisat2'
+          - 'bowtie2'
   phix:
     default:
       fasta:
