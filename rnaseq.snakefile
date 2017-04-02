@@ -25,7 +25,7 @@ sampletable = pd.read_table(config['sampletable'])
 samples = sampletable.ix[:, 0]
 
 assembly = config['assembly']
-refdict = common.references_dict(config)[assembly]
+refdict, conversion_kwargs = common.references_dict(config)
 
 sample_dir = config.get('sample_dir', 'samples')
 agg_dir = config.get('aggregation_dir', 'aggregation')
@@ -129,7 +129,7 @@ rule fastqc:
 rule hisat2:
     input:
         fastq=rules.cutadapt.output.fastq,
-        index=[refdict[config['aligner']['tag']]['hisat2']]
+        index=[refdict[assembly][config['aligner']['tag']]['hisat2']]
     output:
         bam=patterns['bam']
     log:
@@ -160,9 +160,9 @@ rule bam_count:
 rule fastq_screen:
     input:
         fastq=rules.cutadapt.output.fastq,
-        dm6=refdict[config['aligner']['tag']]['bowtie2'],
-        rRNA=refdict[config['rrna']['tag']]['bowtie2'],
-        phix=common.references_dict(config)['phix']['default']['bowtie2']
+        dm6=refdict[assembly][config['aligner']['tag']]['bowtie2'],
+        rRNA=refdict[assembly][config['rrna']['tag']]['bowtie2'],
+        phix=refdict['phix']['default']['bowtie2']
     output:
         txt=patterns['fastq_screen']
     log:
@@ -174,7 +174,7 @@ rule fastq_screen:
 
 rule featurecounts:
     input:
-        annotation=refdict[config['gtf']['tag']]['gtf'],
+        annotation=refdict[assembly][config['gtf']['tag']]['gtf'],
         bam=rules.hisat2.output
     output:
         counts=patterns['featurecounts']
@@ -248,7 +248,7 @@ rule multiqc:
 
 rule kallisto:
     input:
-        index=refdict[config['kallisto']['tag']]['kallisto'],
+        index=refdict[assembly][config['kallisto']['tag']]['kallisto'],
         fastq=patterns['cutadapt']
     output:
         patterns['kallisto']['h5']
@@ -271,7 +271,7 @@ rule markduplicates:
 rule collectrnaseqmetrics:
     input:
         bam=patterns['bam'],
-        refflat=refdict[config['gtf']['tag']]['refflat']
+        refflat=refdict[assembly][config['gtf']['tag']]['refflat']
     output:
         metrics=patterns['collectrnaseqmetrics']['metrics'],
         pdf=patterns['collectrnaseqmetrics']['pdf']
@@ -283,7 +283,7 @@ rule collectrnaseqmetrics:
 rule dupRadar:
     input:
         bam=rules.markduplicates.output.bam,
-        annotation=refdict[config['gtf']['tag']]['gtf'],
+        annotation=refdict[assembly][config['gtf']['tag']]['gtf'],
     output:
         density_scatter=patterns['dupradar']['density_scatter'],
         expression_histogram=patterns['dupradar']['expression_histogram'],
@@ -301,7 +301,7 @@ rule dupRadar:
 rule salmon:
     input:
         unmatedReads=patterns['cutadapt'],
-        index=refdict[config['salmon']['tag']]['salmon'],
+        index=refdict[assembly][config['salmon']['tag']]['salmon'],
     output: patterns['salmon']
     params: extra="--libType=A"
     log: '{sample_dir}/{sample}/salmon/salmon.quant.log'
