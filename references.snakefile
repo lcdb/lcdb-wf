@@ -20,9 +20,10 @@ def wrapper_for(path):
 references_dir = get_references_dir(config)
 makedirs([references_dir, os.path.join(references_dir, 'logs')])
 
+refdict, conversion_kwargs = references_dict(config)
 
 rule all_references:
-    input: utils.flatten(references_dict(config))
+    input: utils.flatten(refdict)
 
 
 # Downloads the configured URL, applies any configured post-processing, and
@@ -99,12 +100,8 @@ rule conversion_gffutils:
     log: '{references_dir}/logs/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf.db.log'
     run:
         import gffutils
-        db = gffutils.create_db(
-                data=input.gtf, dbfn=output.db, merge_strategy='merge',
-                id_spec={'transcript': ['transcript_id', 'transcript_symbol'],
-                         'gene': ['gene_id', 'gene_symbol']},
-                gtf_transcript_key='transcript_id', gtf_gene_key='gene_id',
-                disable_infer_genes=True)
+        kwargs = conversion_kwargs[output[0]]
+        db = gffutils.create_db(data=input.gtf, dbfn=output.db, **kwargs)
 
 
 rule chromsizes:
