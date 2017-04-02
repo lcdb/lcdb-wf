@@ -17,15 +17,22 @@ library(RColorBrewer)
 library(ggplot2)
 library(genefilter)
 library(org.Dm.eg.db)
+library(readr)
+library(tximport)
 sample.table.filename = '../config/sampletable.tsv'
 colData <- read.table(sample.table.filename, sep='\t', header=TRUE)
-colData$path <- sapply(
+colData$featurecounts.path <- sapply(
     colData$samplename,
-    function (x) file.path('data', 'rnaseq_samples', x, paste0(x, '.cutadapt.bam.featurecounts.txt')
+    function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.cutadapt.bam.featurecounts.txt')
                            )
     )
 
-colData <- colData[, c('samplename', 'path', 'group')]
+colData$salmon.path <- sapply(
+    colData$samplename,
+    function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
+)
+
+colData <- colData[, c('samplename', 'featurecounts.path', 'salmon.path', 'group')]
 colData$group <- factor(colData$group)
 knitr::kable(colData[, !grepl('path', colnames(colData))])
 ```
@@ -37,7 +44,7 @@ DESeqDataSetFromFeatureCounts <- function (sampleTable, directory='.', design,
                                            ignoreRank=FALSE,  ...)
 {
   l <- lapply(
-    as.character(sampleTable[, 'path']),
+    as.character(sampleTable[, 'featurecounts.path']),
     function(fn) read.table(file.path(directory, fn), stringsAsFactors=FALSE, skip=2)
   )
   if (!all(sapply(l, function(a) all(a$V1 == l[[1]]$V1))))
@@ -52,10 +59,33 @@ DESeqDataSetFromFeatureCounts <- function (sampleTable, directory='.', design,
 }
 ```
 
+```{r}
+DESeqDataSetFromSalmon <- function (sampleTable, directory='.', design,
+                                           ignoreRank=FALSE,  ...)
+{
+    txi <- tximport(sampleTable[, 'salmon.path'], type='salmon', reader=read_tsv, txOut=TRUE)
+    object <- DESeqDataSetFromTximport(txi, colData=sampleTable[, -grepl('path', colnames(sampleTable)),
+                                       drop=FALSE], design=design, ignoreRank, ...)
+    return(object)
+}
+```
+
+```{r ddstxi, cache=TRUE}
+dds.txi <- DESeqDataSetFromSalmon(
+                                  sampleTable=colData,
+                                  directory='.',
+                                  design=~group)
+```
+
+```{r rldtxi, cache=TRUE, depends='ddstxi'}
+rld.txi <- rlog(dds.txi, blind=FALSE)
+```
+
+
 ```{r dds, cache=TRUE}
 dds <- DESeqDataSetFromFeatureCounts(
                                   sampleTable=colData,
-                                  directory='..',
+                                  directory='.',
                                   design=~group)
 ```
 
@@ -228,6 +258,32 @@ pval.hist(res)
 # plotMA(res.interaction, ylim=c(-2, 2))
 # pval.hist(res.interaction)
 ```
+
+```{r sva, cache=TRUE}
+# example of using SVA to find one surrogate variable
+library(sva)
+ddssva <- DESeqDataSetFromFeatureCounts(
+                                  sampleTable=colData,
+                                  directory='.',
+                                  design=~group)
+ddssva <- DESeq(ddssva)
+dat <- counts(ddssva, normalized=TRUE)
+idx <- rowMeans(dat) > 1
+dat <- dat[idx,]
+mod <- model.matrix(~group, colData(ddssva))
+mod0 <- model.matrix(~1, colData(ddssva))
+svseq <- svaseq(dat, mod, mod0, n.sv=1)
+ddssva$SV1 <- svseq$sv
+design(ddssva) <- ~SV1 + group
+ddssva <- DESeq(ddssva)
+
+df <- data.frame(colData(ddssva))
+df$samplename <- rownames(df)
+df$sv <- svseq$sv
+ggplot(df) + aes(x=samplename, y=sv, color=group) +
+    geom_point(size=5)
+```
+
 
 # Exported results
 
