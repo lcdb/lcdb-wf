@@ -1,5 +1,5 @@
 ```{r, include=FALSE}
-knitr::opts_chunk$set(collapse=TRUE, warning=FALSE, message=FALSE, bootstrap.show.code=FALSE, bootstrap.show.output=FALSE)
+knitr::opts_chunk$set(collapse=TRUE, warning=FALSE, message=FALSE, bootstrap.show.code=FALSE, bootstrap.show.output=FALSE, dev='bitmap', fig.ext='png')
 ```
 # Differential expression 
 
