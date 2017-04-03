@@ -206,9 +206,12 @@ def references_dict(config):
         'intergenic': '.intergenic.gtf',
         'refflat': '.refflat',
         'gffutils': '.gtf.db',
+        'genelist': '.genelist',
+        'annotation_hub': '.{keytype}.csv'
     }
 
     d = {}
+    conversion_kwargs = {}
     for assembly in config['references'].keys():
         d[assembly] = {}
         for tag in config['references'][assembly].keys():
@@ -226,14 +229,34 @@ def references_dict(config):
                 if type_ == 'gtf':
                     conversions = block.get('conversions', [])
                     for conversion in conversions:
-                        ext = conversion_extensions[conversion]
-                        e[conversion] = (
+                        kwargs = {}
+                        if isinstance(conversion, dict):
+                            # we assume that there is only one key, and that
+                            # key is the actual name of the conversion; the
+                            # corresponding value will be kwargs
+                            assert len(list(conversion.keys())) == 1
+                            kwargs = list(conversion.values())[0]
+                            conversion = list(conversion.keys())[0]
+
+                        # While the full set of columns for annotation hub are
+                        # not known in advance, we can assume at least the
+                        # keytype provided will be an output file. Fill that in
+                        # here.
+                        if conversion == 'annotation_hub':
+                            keytype = kwargs['keytype']
+                            ext = conversion_extensions[conversion].format(keytype=keytype)
+                        else:
+                            ext = conversion_extensions[conversion]
+                        output = (
                             '{references_dir}/'
                             '{assembly}/'
                             '{tag}/'
                             '{type_}/'
                             '{assembly}_{tag}{ext}'.format(**locals())
                         )
+                        e[conversion] = output
+
+                        conversion_kwargs[output] = kwargs
 
                 if type_== 'fasta':
                     # Add indexes if specified
@@ -254,4 +277,4 @@ def references_dict(config):
                         '{assembly}_{tag}.chromsizes'.format(**locals())
                     )
                 d[assembly][tag] = e
-    return d
+    return d, conversion_kwargs

@@ -6,3 +6,5 @@ downstream/group.tsv
 downstream/rnaseq.html
 downstream/rnaseq_cache
 downstream/rnaseq_files
+
+\.cache/v/cache/

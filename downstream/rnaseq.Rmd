@@ -1,5 +1,5 @@
 ```{r, include=FALSE}
-knitr::opts_chunk$set(collapse=TRUE, warning=FALSE, message=FALSE, bootstrap.show.code=FALSE, bootstrap.show.output=FALSE)
+knitr::opts_chunk$set(collapse=TRUE, warning=FALSE, message=FALSE, bootstrap.show.code=FALSE, bootstrap.show.output=FALSE, dev='bitmap', fig.ext='png')
 ```
 # Differential expression 
 
@@ -10,6 +10,7 @@ Note: if you're unfamiliar with any of the plots or tables here, see the
 
 
 ```{r setup}
+options(bitmapType='cairo')
 library(DESeq2)
 library(gridExtra)
 library(pheatmap)

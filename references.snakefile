@@ -20,9 +20,10 @@ def wrapper_for(path):
 references_dir = get_references_dir(config)
 makedirs([references_dir, os.path.join(references_dir, 'logs')])
 
+refdict, conversion_kwargs = references_dict(config)
 
 rule all_references:
-    input: utils.flatten(references_dict(config))
+    input: utils.flatten(refdict)
 
 
 # Downloads the configured URL, applies any configured post-processing, and
@@ -99,12 +100,8 @@ rule conversion_gffutils:
     log: '{references_dir}/logs/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf.db.log'
     run:
         import gffutils
-        db = gffutils.create_db(
-                data=input.gtf, dbfn=output.db, merge_strategy='merge',
-                id_spec={'transcript': ['transcript_id', 'transcript_symbol'],
-                         'gene': ['gene_id', 'gene_symbol']},
-                gtf_transcript_key='transcript_id', gtf_gene_key='gene_id',
-                disable_infer_genes=True)
+        kwargs = conversion_kwargs[output[0]]
+        db = gffutils.create_db(data=input.gtf, dbfn=output.db, **kwargs)
 
 
 rule chromsizes:
@@ -119,5 +116,42 @@ rule chromsizes:
         '''| awk '{{print $2, $3}}' '''
         '| sed "s/SN://g;s/ LN:/\\t/g" > {output} '
         '&& rm -f {output}.tmp '
+
+
+rule genelist:
+    input: gtf='{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf'
+    output:
+        protected('{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.genelist')
+    run:
+        attribute = conversion_kwargs[output[0]]['gene_id']
+        import gffutils
+        genes = set()
+        for feature in gffutils.DataIterator(input.gtf):
+            genes.update(feature.attributes[attribute])
+        with open(output[0], 'w') as fout:
+            for feature in sorted(list(set(genes))):
+                fout.write(feature + '\n')
+
+
+rule annotations:
+    input: rules.genelist.output
+    output:
+        protected('{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.{keytype}.csv')
+    params:
+        prefix='{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}',
+        ahkey=lambda wildcards, output: conversion_kwargs[output[0]]['ahkey']
+
+    conda: 'config/envs/annotationdbi.yaml'
+    shell:
+        '''Rscript -e "'''
+        "library(AnnotationHub); "
+        "ah <- AnnotationHub(); "
+        "db <- ah[['{params.ahkey}']]; "
+        "gene.names <- read.table('{input}', stringsAsFactors=FALSE)[['V1']];"
+        "for (col in columns(db)){{"
+        "f <- select(db, keys=gene.names, keytype='{wildcards.keytype}', columns=col);"
+        "write.csv(f, file=paste0('{params.prefix}', '.', col, '.csv'), row.names=FALSE);"
+        '''}}"'''
+
 
 # vim: ft=python
