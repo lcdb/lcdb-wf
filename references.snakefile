@@ -125,9 +125,12 @@ rule genelist:
     run:
         attribute = conversion_kwargs[output[0]]['gene_id']
         import gffutils
+        genes = set()
+        for feature in gffutils.DataIterator(input.gtf):
+            genes.update(feature.attributes[attribute])
         with open(output[0], 'w') as fout:
-            for feature in gffutils.DataIterator(input.gtf):
-                fout.write(feature.attributes[attribute][0] + '\n')
+            for feature in sorted(list(set(genes))):
+                fout.write(feature + '\n')
 
 
 rule annotations:
