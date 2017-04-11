@@ -1,6 +1,5 @@
 import os
 from snakemake.shell import shell
-from lcdblib.snakemake import aligners
 from tempfile import NamedTemporaryFile
 
 # Pull in parameters
