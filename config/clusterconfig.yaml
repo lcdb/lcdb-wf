@@ -18,3 +18,7 @@ kallisto:
 
 markduplicates:
   prefix: "--gres=lscratch=20 --time=4:00:00 --mem=32g"
+
+bowtie2_map_to_reduced_genome:
+    prefix: '--mem=24g'
+

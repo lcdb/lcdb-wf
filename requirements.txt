@@ -1,4 +1,4 @@
-atropos ==1.0.23
+# atropos ==1.0.23
 bioconductor-dupradar ==1.2.2
 biopython ==1.68
 bowtie2 ==2.3.0
@@ -9,7 +9,6 @@ gffutils ==0.8.7.1
 ghostscript ==9.18
 hisat2 ==2.0.5
 kallisto ==0.43.0
-lcdblib ==0.1
 lcdblib ==0.1.1
 multiqc ==0.9
 pandas ==0.19.2
