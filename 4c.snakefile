@@ -107,7 +107,7 @@ for comparison, vals in config['4c']['comparisons'].items():
         'cis_k': config['4c']['baits'][bait]['cis_k'],
         'nearbait_k': config['4c']['baits'][bait]['nearbait_k'],
     }
-    for sample in vals[vals['control']] + vals[vals['treatment']]:
+    for sample in vals['control'] + vals['treatment']:
         d['samplename'] = sample
         fills.append(d.copy())
 
@@ -138,10 +138,10 @@ rule targets:
             utils.flatten(targets['remove_bait_and_adjacent_from_bedgraph']) +
             utils.flatten(targets['bait_coords']) +
             utils.flatten(targets['4cker']) +
-            utils.flatten(targets['cis_bigwigs']) +
-            utils.flatten(targets['cis_adaptive_bigbed']) +
-            utils.flatten(targets['nearbait_bigwigs']) +
-            utils.flatten(targets['nearbait_adaptive_bigbed']) +
+            # utils.flatten(targets['cis_bigwigs']) +
+            # utils.flatten(targets['cis_adaptive_bigbed']) +
+            # utils.flatten(targets['nearbait_bigwigs']) +
+            # utils.flatten(targets['nearbait_adaptive_bigbed']) +
             utils.flatten(targets['multiqc'])
         )
 
