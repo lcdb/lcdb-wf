@@ -433,12 +433,13 @@ rule multiqc:
 rule R4cker:
     input:
         bedgraphs=utils.flatten(targets['remove_bait_and_adjacent_from_bedgraph']),
-        config='config/config.yml',
+        config='config/4c-config.yml',
+        rscript='downstream/4c.R',
     output: touch('4cker-output/{comparison}/sentinel.txt')
     log: '4cker-output/{comparison}/log'
     shell:
         'source activate 4c-wf '
-        '&& Rscript downstream/4c.R --config {input.config} --comparison {wildcards.comparison} &> {log}'
+        '&& Rscript {input.rscript} --config {input.config} --comparison {wildcards.comparison} &> {log}'
 
 
 rule bedgraph_to_bigwig:
