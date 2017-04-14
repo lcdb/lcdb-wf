@@ -33,6 +33,9 @@ assembly: 'dmel'
 # If not specified here, use the environment variable REFERENCES_DIR.
 references_dir: 'references_data'
 
+# 4c-specific data directory
+4c_dir: 'data/4c'
+
 4c:
   # tag indicating which reference fasta to use when creating the reduced
   # genome
@@ -84,6 +87,27 @@ references_dir: 'references_data'
       treatment:
         - mutant_locus2_1
         - mutant_locus2_2
+
+
+# Configuration for the track hub
+trackhub:
+  hub:
+    hub_name: 'my-4c-hub'
+    short_label: '4C track hub'
+    long_label: '4C track hub'
+    genome: 'dm6'
+    email: 'dalerr@niddk.nih.gov'
+
+  upload:
+    remote_fn: '/www/4c/hub.txt'
+    host: 'example.com'
+    user: 'username'
+
+  # If a filename matches the regex, then use that color. First one wins.
+  colors:
+    - wt: "#444444"
+    - mutant: "#007acc"
+
 
 # references has the structure:
 #
