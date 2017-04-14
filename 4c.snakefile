@@ -164,11 +164,22 @@ rule targets:
             utils.flatten(targets['remove_bait_and_adjacent_from_bedgraph']) +
             utils.flatten(targets['bait_coords']) +
             utils.flatten(targets['4cker']) +
-            # utils.flatten(targets['cis_bigwigs']) +
-            # utils.flatten(targets['cis_adaptive_bigbed']) +
-            # utils.flatten(targets['nearbait_bigwigs']) +
-            # utils.flatten(targets['nearbait_adaptive_bigbed']) +
             utils.flatten(targets['multiqc'])
+        )
+
+rule trackhub:
+    input:
+        (
+            utils.flatten(targets['cis_bigwigs']) +
+            utils.flatten(targets['cis_adaptive_bigbed']) +
+            utils.flatten(targets['nearbait_bigwigs']) +
+            utils.flatten(targets['nearbait_adaptive_bigbed']) +
+            utils.flatten(targets['cis_treatment_interacting_bigbed']) +
+            utils.flatten(targets['cis_sample_interacting_bigbed']) +
+            utils.flatten(targets['nearbait_treatment_interacting_bigbed']) +
+            utils.flatten(targets['nearbait_sample_interacting_bigbed']) +
+            utils.flatten(targets['cis_colorized']) +
+            utils.flatten(targets['nearbait_colorized'])
         )
 
 rule all_fastqc:
