@@ -519,16 +519,48 @@ rule colorized:
             '--control {files[control]} '
             '--treatment {files[treatment]} '
         )
-    input:
-        bed='4cker-output/{comparison}/{kind}_k{k}/{bait}_{kind}_adaptive_windows.bed',
-        chromsizes=refdict[assembly][config['4c']['tag']]['chromsizes'],
-    output: '4cker-output/{comparison}/{kind}_k{k}/{bait}_{kind}_k{k}_adaptive_windows.bigbed'
-    shell:
-        'GENOME=$(mktemp); '
-        '''awk '{{OFS="\\t"; print $1, "0", $2}}' {input.chromsizes} > $GENOME '''
-        '&& bedtools intersect -a <(sed "s/ /\\t/g" {input.bed}) -b $GENOME > ${{GENOME}}.tmp'
-        '&& bedToBigBed ${{GENOME}}.tmp {input.chromsizes} {output} '
-        '&& rm $GENOME ${{GENOME}}.tmp '
 
+rule bed_to_bigbed:
+    input:
+        bed='{prefix}.bed',
+        chromsizes=refdict[assembly][config['4c']['tag']]['chromsizes'],
+    output: '{prefix}.bigbed'
+    run:
+        if 'colorized' in output[0]:
+            autosql = dedent("""
+            table lfc
+            "Browser extensible data (9 fields) with float lfc."
+                (
+                string chrom;      "Chromosome (or contig, scaffold, etc.)"
+                uint   chromStart; "Start position in chromosome"
+                uint   chromEnd;   "End position in chromosome"
+                string name;       "Name of item"
+                uint score;        "score"
+                char[1] strand;    "+ or -"
+                uint thickStart;   "Start of where display should be thick (start codon)"
+                uint thickEnd;     "End of where display should be thick (stop codon)"
+                uint reserved;     "Used as itemRgb as of 2004-11-22"
+                string log2foldchange; "Log2 fold change"
+                )
+            """)
+            with open(output[0] + '.as', 'w') as fout:
+                fout.write(autosql)
+            as_arg = '-type=bed9+ -as={}.as '.format(output[0])
+        else:
+            as_arg = ''
+
+        shell(
+            """
+            if [ -s {input.bed} ]; then
+                GENOME=$(mktemp);
+                awk '{{OFS="\\t"; print $1, "0", $2}}' {input.chromsizes} > $GENOME
+                bedtools intersect -a <(sed "s/ /\\t/g" {input.bed}) -b $GENOME > ${{GENOME}}.tmp
+                bedToBigBed {as_arg} ${{GENOME}}.tmp {input.chromsizes} {output}
+                rm $GENOME ${{GENOME}}.tmp
+            else
+                touch {output}
+            fi
+            """
+        )
 
 # vim: ft=python
