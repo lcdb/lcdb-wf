@@ -417,6 +417,7 @@ rule multiqc:
     input:
         files=(
             utils.flatten(targets['fastqc'])
+            + utils.flatten(targets['bam'])
         ),
         config='config/multiqc_config.yaml'
     output: list(set(targets['multiqc']))
