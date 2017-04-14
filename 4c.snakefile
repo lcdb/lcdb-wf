@@ -29,6 +29,7 @@ refdict, conversion_kwargs = common.references_dict(config)
 sample_dir = config.get('sample_dir', 'samples')
 agg_dir = config.get('aggregation_dir', 'aggregation')
 fourc_dir = config.get('4c_dir', '4C')
+
 # add to sampletable so we can use zip
 sampletable['_sample_dir'] = sample_dir
 sampletable['_agg_dir'] = agg_dir
@@ -87,15 +88,34 @@ targets = helpers.fill_patterns(
 # The next set of patterns are defined according to the config.
 #
 patterns_4cker = {
-    '4cker': '4cker-output/{comparison}/sentinel.txt',
-    'cis_bedgraphs': '4cker-output/{comparison}/cis_k{cis_k}/{sample}_cis_norm_counts.bedGraph',
-    'cis_bigwigs': '4cker-output/{comparison}/cis_k{cis_k}/{sample}_cis_norm_counts.bigwig',
-    'nearbait_bedgraphs': '4cker-output/{comparison}/nearbait_k{nearbait_k}/{sample}_nearbait_norm_counts.bedGraph',
-    'nearbait_bigwigs': '4cker-output/{comparison}/nearbait_k{nearbait_k}/{sample}_nearbait_norm_counts.bigwig',
-    'cis_adaptive_bed': '4cker-output/{comparison}/cis_k{cis_k}/{bait}_cis_adaptive_windows.bed',
-    'cis_adaptive_bigbed': '4cker-output/{comparison}/cis_k{cis_k}/{bait}_cis_k{cis_k}_adaptive_windows.bigbed',
-    'nearbait_adaptive_bed': '4cker-output/{comparison}/nearbait_k{nearbait_k}/{bait}_nearbait_adaptive_windows.bed',
-    'nearbait_adaptive_bigbed': '4cker-output/{comparison}/nearbait_k{nearbait_k}/{bait}_nearbait_k{nearbait_k}_adaptive_windows.bigbed',
+    '4cker':
+        '4cker-output/{comparison}/sentinel.txt',
+    'cis_bedgraphs':
+        '4cker-output/{comparison}/cis_k{cis_k}/{sample}_cis_norm_counts.bedGraph',
+    'cis_bigwigs':
+        '4cker-output/{comparison}/cis_k{cis_k}/{sample}_cis_norm_counts.bigwig',
+    'nearbait_bedgraphs':
+        '4cker-output/{comparison}/nearbait_k{nearbait_k}/{sample}_nearbait_norm_counts.bedGraph',
+    'nearbait_bigwigs':
+        '4cker-output/{comparison}/nearbait_k{nearbait_k}/{sample}_nearbait_norm_counts.bigwig',
+    'cis_adaptive_bed':
+        '4cker-output/{comparison}/cis_k{cis_k}/{bait}_cis_adaptive_windows.bed',
+    'cis_adaptive_bigbed':
+        '4cker-output/{comparison}/cis_k{cis_k}/{bait}_cis_k{cis_k}_adaptive_windows.bigbed',
+    'nearbait_adaptive_bed':
+        '4cker-output/{comparison}/nearbait_k{nearbait_k}/{bait}_nearbait_adaptive_windows.bed',
+    'nearbait_adaptive_bigbed':
+        '4cker-output/{comparison}/nearbait_k{nearbait_k}/{bait}_nearbait_adaptive_windows.bigbed',
+    'nearbait_sample_interacting_bigbed':
+        '4cker-output/{comparison}/nearbait_k{nearbait_k}/{sample}_nearbait_{inter}.bigbed',
+    'nearbait_treatment_interacting_bigbed':
+        '4cker-output/{comparison}/nearbait_k{nearbait_k}/{bait}_{treatment}_nearbait_highinter.bigbed',
+    'cis_sample_interacting_bigbed':
+        '4cker-output/{comparison}/cis_k{cis_k}/{sample}_cis_{inter}.bigbed',
+    'cis_treatment_interacting_bigbed':
+        '4cker-output/{comparison}/cis_k{cis_k}/{bait}_{treatment}_cis_highinter.bigbed',
+    'cis_colorized': '4cker-output/{comparison}/cis_k{cis_k}/{bait}_cis_colorized_differential.bigbed',
+    'nearbait_colorized': '4cker-output/{comparison}/nearbait_k{nearbait_k}/{bait}_nearbait_colorized_differential.bigbed',
 }
 
 fills = []
