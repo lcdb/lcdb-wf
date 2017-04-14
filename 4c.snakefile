@@ -127,9 +127,13 @@ for comparison, vals in config['4c']['comparisons'].items():
         'cis_k': config['4c']['baits'][bait]['cis_k'],
         'nearbait_k': config['4c']['baits'][bait]['nearbait_k'],
     }
-    for sample in vals['control'] + vals['treatment']:
-        d['samplename'] = sample
-        fills.append(d.copy())
+    for treatment in ['control', 'treatment']:
+        for sample in vals[treatment]:
+            for inter in ['noninter', 'lowinter', 'highinter']:
+                d['inter'] = inter
+                d['samplename'] = sample
+                d['treatment'] = treatment
+                fills.append(d.copy())
 
 fills = pd.DataFrame(fills)
 
@@ -141,6 +145,8 @@ targets_4cker = helpers.fill_patterns(
         cis_k=fills.cis_k,
         sample=fills.samplename,
         nearbait_k=fills.nearbait_k,
+        treatment=fills.treatment,
+        inter=fills.inter,
     ),
     combination=zip
 )
