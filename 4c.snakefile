@@ -469,7 +469,56 @@ rule bedgraph_to_bigwig:
         )
 
 
-rule adaptive_windows_bigbed:
+def _colorized_input(wildcards):
+    comparison = wildcards.comparison
+    bait = config['4c']['comparisons'][comparison]['bait']
+    kind = wildcards.kind
+    k = config['4c']['baits'][bait][kind + '_k']
+    control_samples = config['4c']['comparisons'][comparison]['control']
+    treatment_samples = config['4c']['comparisons'][comparison]['treatment']
+    return utils.flatten({
+        'control': expand(
+            '4cker-output/{comparison}/{kind}_k{k}/{sample}_{kind}_norm_counts.bedGraph',
+            comparison=comparison, kind=kind, k=k, sample=control_samples, bait=bait),
+        'treatment': expand(
+            '4cker-output/{comparison}/{kind}_k{k}/{sample}_{kind}_norm_counts.bedGraph',
+            comparison=comparison, kind=kind, k=k, sample=treatment_samples, bait=bait),
+        'diff': expand(
+            '4cker-output/{comparison}/{kind}_diff_k{k}/{bait}_control_treatment_{kind}_pval0.05_diff.bed',
+            comparison=comparison, kind=kind, k=k, sample=treatment_samples, bait=bait),
+    })
+
+
+rule colorized:
+    input: _colorized_input
+    output: '4cker-output/{comparison}/{kind}_k{k}/{bait}_{kind}_colorized_differential.bed'
+    run:
+        comparison = wildcards.comparison
+        bait = wildcards.bait
+        kind = wildcards.kind
+        k = wildcards.k
+        control_samples = config['4c']['comparisons'][comparison]['control']
+        treatment_samples = config['4c']['comparisons'][comparison]['treatment']
+        def u(x):
+            return sorted(list(set(x)))
+        files = {
+            'control': ' '.join(u(expand(
+                '4cker-output/{comparison}/{kind}_k{k}/{sample}_{kind}_norm_counts.bedGraph',
+                comparison=comparison, kind=kind, k=k, sample=control_samples, bait=bait))),
+            'treatment': ' '.join(u(expand(
+                '4cker-output/{comparison}/{kind}_k{k}/{sample}_{kind}_norm_counts.bedGraph',
+                comparison=comparison, kind=kind, k=k, sample=treatment_samples, bait=bait))),
+            'diff': ' '.join(u(expand(
+                '4cker-output/{comparison}/{kind}_diff_k{k}/{bait}_control_treatment_{kind}_pval0.05_diff.bed',
+                comparison=comparison, kind=kind, k=k, sample=treatment_samples, bait=bait))),
+        }
+        shell(
+            'python find-up-dn.py '
+            '--bed {files[diff]} '
+            '--output {output} '
+            '--control {files[control]} '
+            '--treatment {files[treatment]} '
+        )
     input:
         bed='4cker-output/{comparison}/{kind}_k{k}/{bait}_{kind}_adaptive_windows.bed',
         chromsizes=refdict[assembly][config['4c']['tag']]['chromsizes'],
