@@ -234,6 +234,7 @@ rule multiqc:
             utils.flatten(targets['markduplicates']) +
             utils.flatten(targets['salmon']) +
             utils.flatten(targets['rseqc']) +
+            utils.flatten(targets['fastq_screen']) +
             utils.flatten(targets['collectrnaseqmetrics'])
         ),
         config='config/multiqc_config.yaml'
