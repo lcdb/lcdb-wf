@@ -29,6 +29,7 @@ refdict, conversion_kwargs = common.references_dict(config)
 sample_dir = config.get('sample_dir', 'samples')
 agg_dir = config.get('aggregation_dir', 'aggregation')
 fourc_dir = config.get('4c_dir', '4C')
+
 # add to sampletable so we can use zip
 sampletable['_sample_dir'] = sample_dir
 sampletable['_agg_dir'] = agg_dir
@@ -87,15 +88,34 @@ targets = helpers.fill_patterns(
 # The next set of patterns are defined according to the config.
 #
 patterns_4cker = {
-    '4cker': '4cker-output/{comparison}/sentinel.txt',
-    'cis_bedgraphs': '4cker-output/{comparison}/cis_k{cis_k}/{sample}_cis_norm_counts.bedGraph',
-    'cis_bigwigs': '4cker-output/{comparison}/cis_k{cis_k}/{sample}_cis_norm_counts.bigwig',
-    'nearbait_bedgraphs': '4cker-output/{comparison}/nearbait_k{nearbait_k}/{sample}_nearbait_norm_counts.bedGraph',
-    'nearbait_bigwigs': '4cker-output/{comparison}/nearbait_k{nearbait_k}/{sample}_nearbait_norm_counts.bigwig',
-    'cis_adaptive_bed': '4cker-output/{comparison}/cis_k{cis_k}/{bait}_cis_adaptive_windows.bed',
-    'cis_adaptive_bigbed': '4cker-output/{comparison}/cis_k{cis_k}/{bait}_cis_k{cis_k}_adaptive_windows.bigbed',
-    'nearbait_adaptive_bed': '4cker-output/{comparison}/nearbait_k{nearbait_k}/{bait}_nearbait_adaptive_windows.bed',
-    'nearbait_adaptive_bigbed': '4cker-output/{comparison}/nearbait_k{nearbait_k}/{bait}_nearbait_k{nearbait_k}_adaptive_windows.bigbed',
+    '4cker':
+        '4cker-output/{comparison}/sentinel.txt',
+    'cis_bedgraphs':
+        '4cker-output/{comparison}/cis_k{cis_k}/{sample}_cis_norm_counts.bedGraph',
+    'cis_bigwigs':
+        '4cker-output/{comparison}/cis_k{cis_k}/{sample}_cis_norm_counts.bigwig',
+    'nearbait_bedgraphs':
+        '4cker-output/{comparison}/nearbait_k{nearbait_k}/{sample}_nearbait_norm_counts.bedGraph',
+    'nearbait_bigwigs':
+        '4cker-output/{comparison}/nearbait_k{nearbait_k}/{sample}_nearbait_norm_counts.bigwig',
+    'cis_adaptive_bed':
+        '4cker-output/{comparison}/cis_k{cis_k}/{bait}_cis_adaptive_windows.bed',
+    'cis_adaptive_bigbed':
+        '4cker-output/{comparison}/cis_k{cis_k}/{bait}_cis_k{cis_k}_adaptive_windows.bigbed',
+    'nearbait_adaptive_bed':
+        '4cker-output/{comparison}/nearbait_k{nearbait_k}/{bait}_nearbait_adaptive_windows.bed',
+    'nearbait_adaptive_bigbed':
+        '4cker-output/{comparison}/nearbait_k{nearbait_k}/{bait}_nearbait_adaptive_windows.bigbed',
+    'nearbait_sample_interacting_bigbed':
+        '4cker-output/{comparison}/nearbait_k{nearbait_k}/{sample}_nearbait_{inter}.bigbed',
+    'nearbait_treatment_interacting_bigbed':
+        '4cker-output/{comparison}/nearbait_k{nearbait_k}/{bait}_{treatment}_nearbait_highinter.bigbed',
+    'cis_sample_interacting_bigbed':
+        '4cker-output/{comparison}/cis_k{cis_k}/{sample}_cis_{inter}.bigbed',
+    'cis_treatment_interacting_bigbed':
+        '4cker-output/{comparison}/cis_k{cis_k}/{bait}_{treatment}_cis_highinter.bigbed',
+    'cis_colorized': '4cker-output/{comparison}/cis_k{cis_k}/{bait}_cis_colorized_differential.bigbed',
+    'nearbait_colorized': '4cker-output/{comparison}/nearbait_k{nearbait_k}/{bait}_nearbait_colorized_differential.bigbed',
 }
 
 fills = []
@@ -107,9 +127,13 @@ for comparison, vals in config['4c']['comparisons'].items():
         'cis_k': config['4c']['baits'][bait]['cis_k'],
         'nearbait_k': config['4c']['baits'][bait]['nearbait_k'],
     }
-    for sample in vals[vals['control']] + vals[vals['treatment']]:
-        d['samplename'] = sample
-        fills.append(d.copy())
+    for treatment in ['control', 'treatment']:
+        for sample in vals[treatment]:
+            for inter in ['noninter', 'lowinter', 'highinter']:
+                d['inter'] = inter
+                d['samplename'] = sample
+                d['treatment'] = treatment
+                fills.append(d.copy())
 
 fills = pd.DataFrame(fills)
 
@@ -121,6 +145,8 @@ targets_4cker = helpers.fill_patterns(
         cis_k=fills.cis_k,
         sample=fills.samplename,
         nearbait_k=fills.nearbait_k,
+        treatment=fills.treatment,
+        inter=fills.inter,
     ),
     combination=zip
 )
@@ -138,11 +164,22 @@ rule targets:
             utils.flatten(targets['remove_bait_and_adjacent_from_bedgraph']) +
             utils.flatten(targets['bait_coords']) +
             utils.flatten(targets['4cker']) +
+            utils.flatten(targets['multiqc'])
+        )
+
+rule trackhub:
+    input:
+        (
             utils.flatten(targets['cis_bigwigs']) +
             utils.flatten(targets['cis_adaptive_bigbed']) +
             utils.flatten(targets['nearbait_bigwigs']) +
             utils.flatten(targets['nearbait_adaptive_bigbed']) +
-            utils.flatten(targets['multiqc'])
+            utils.flatten(targets['cis_treatment_interacting_bigbed']) +
+            utils.flatten(targets['cis_sample_interacting_bigbed']) +
+            utils.flatten(targets['nearbait_treatment_interacting_bigbed']) +
+            utils.flatten(targets['nearbait_sample_interacting_bigbed']) +
+            utils.flatten(targets['cis_colorized']) +
+            utils.flatten(targets['nearbait_colorized'])
         )
 
 rule all_fastqc:
@@ -391,6 +428,7 @@ rule multiqc:
     input:
         files=(
             utils.flatten(targets['fastqc'])
+            + utils.flatten(targets['bam'])
         ),
         config='config/multiqc_config.yaml'
     output: list(set(targets['multiqc']))
@@ -406,12 +444,13 @@ rule multiqc:
 rule R4cker:
     input:
         bedgraphs=utils.flatten(targets['remove_bait_and_adjacent_from_bedgraph']),
-        config='config/config.yml',
+        config='config/4c-config.yml',
+        rscript='downstream/4c.R',
     output: touch('4cker-output/{comparison}/sentinel.txt')
     log: '4cker-output/{comparison}/log'
     shell:
         'source activate 4c-wf '
-        '&& Rscript downstream/4c.R --config {input.config} --comparison {wildcards.comparison} &> {log}'
+        '&& Rscript {input.rscript} --config {input.config} --comparison {wildcards.comparison} &> {log}'
 
 
 rule bedgraph_to_bigwig:
@@ -441,17 +480,98 @@ rule bedgraph_to_bigwig:
         )
 
 
-rule adaptive_windows_bigbed:
-    input:
-        bed='4cker-output/{comparison}/{kind}_k{k}/{bait}_{kind}_adaptive_windows.bed',
-        chromsizes=refdict[assembly][config['4c']['tag']]['chromsizes'],
-    output: '4cker-output/{comparison}/{kind}_k{k}/{bait}_{kind}_k{k}_adaptive_windows.bigbed'
-    shell:
-        'GENOME=$(mktemp); '
-        '''awk '{{OFS="\\t"; print $1, "0", $2}}' {input.chromsizes} > $GENOME '''
-        '&& bedtools intersect -a <(sed "s/ /\\t/g" {input.bed}) -b $GENOME > ${{GENOME}}.tmp'
-        '&& bedToBigBed ${{GENOME}}.tmp {input.chromsizes} {output} '
-        '&& rm $GENOME ${{GENOME}}.tmp '
+def _colorized_input(wildcards):
+    comparison = wildcards.comparison
+    bait = config['4c']['comparisons'][comparison]['bait']
+    kind = wildcards.kind
+    k = config['4c']['baits'][bait][kind + '_k']
+    control_samples = config['4c']['comparisons'][comparison]['control']
+    treatment_samples = config['4c']['comparisons'][comparison]['treatment']
+    return utils.flatten({
+        'control': expand(
+            '4cker-output/{comparison}/{kind}_k{k}/{sample}_{kind}_norm_counts.bedGraph',
+            comparison=comparison, kind=kind, k=k, sample=control_samples, bait=bait),
+        'treatment': expand(
+            '4cker-output/{comparison}/{kind}_k{k}/{sample}_{kind}_norm_counts.bedGraph',
+            comparison=comparison, kind=kind, k=k, sample=treatment_samples, bait=bait),
+        'diff': expand(
+            '4cker-output/{comparison}/{kind}_diff_k{k}/{bait}_control_treatment_{kind}_pval0.05_diff.bed',
+            comparison=comparison, kind=kind, k=k, sample=treatment_samples, bait=bait),
+    })
 
+
+rule colorized:
+    input: _colorized_input
+    output: '4cker-output/{comparison}/{kind}_k{k}/{bait}_{kind}_colorized_differential.bed'
+    run:
+        comparison = wildcards.comparison
+        bait = wildcards.bait
+        kind = wildcards.kind
+        k = wildcards.k
+        control_samples = config['4c']['comparisons'][comparison]['control']
+        treatment_samples = config['4c']['comparisons'][comparison]['treatment']
+        def u(x):
+            return sorted(list(set(x)))
+        files = {
+            'control': ' '.join(u(expand(
+                '4cker-output/{comparison}/{kind}_k{k}/{sample}_{kind}_norm_counts.bedGraph',
+                comparison=comparison, kind=kind, k=k, sample=control_samples, bait=bait))),
+            'treatment': ' '.join(u(expand(
+                '4cker-output/{comparison}/{kind}_k{k}/{sample}_{kind}_norm_counts.bedGraph',
+                comparison=comparison, kind=kind, k=k, sample=treatment_samples, bait=bait))),
+            'diff': ' '.join(u(expand(
+                '4cker-output/{comparison}/{kind}_diff_k{k}/{bait}_control_treatment_{kind}_pval0.05_diff.bed',
+                comparison=comparison, kind=kind, k=k, sample=treatment_samples, bait=bait))),
+        }
+        shell(
+            'python find-up-dn.py '
+            '--bed {files[diff]} '
+            '--output {output} '
+            '--control {files[control]} '
+            '--treatment {files[treatment]} '
+        )
+
+rule bed_to_bigbed:
+    input:
+        bed='{prefix}.bed',
+        chromsizes=refdict[assembly][config['4c']['tag']]['chromsizes'],
+    output: '{prefix}.bigbed'
+    run:
+        if 'colorized' in output[0]:
+            autosql = dedent("""
+            table lfc
+            "Browser extensible data (9 fields) with float lfc."
+                (
+                string chrom;      "Chromosome (or contig, scaffold, etc.)"
+                uint   chromStart; "Start position in chromosome"
+                uint   chromEnd;   "End position in chromosome"
+                string name;       "Name of item"
+                uint score;        "score"
+                char[1] strand;    "+ or -"
+                uint thickStart;   "Start of where display should be thick (start codon)"
+                uint thickEnd;     "End of where display should be thick (stop codon)"
+                uint reserved;     "Used as itemRgb as of 2004-11-22"
+                string log2foldchange; "Log2 fold change"
+                )
+            """)
+            with open(output[0] + '.as', 'w') as fout:
+                fout.write(autosql)
+            as_arg = '-type=bed9+ -as={}.as '.format(output[0])
+        else:
+            as_arg = ''
+
+        shell(
+            """
+            if [ -s {input.bed} ]; then
+                GENOME=$(mktemp);
+                awk '{{OFS="\\t"; print $1, "0", $2}}' {input.chromsizes} > $GENOME
+                bedtools intersect -a <(sed "s/ /\\t/g" {input.bed}) -b $GENOME > ${{GENOME}}.tmp
+                bedToBigBed {as_arg} ${{GENOME}}.tmp {input.chromsizes} {output}
+                rm $GENOME ${{GENOME}}.tmp
+            else
+                touch {output}
+            fi
+            """
+        )
 
 # vim: ft=python

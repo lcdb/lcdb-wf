@@ -2,3 +2,4 @@ channels:
   - lcdb
 dependencies:
   - lcdblib ==0.1.1
+  - python ==3.5

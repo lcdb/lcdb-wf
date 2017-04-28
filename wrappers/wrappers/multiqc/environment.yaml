@@ -4,3 +4,4 @@ channels:
 dependencies:
   - multiqc ==0.9
   - lcdblib ==0.1.1
+  - python ==3.5

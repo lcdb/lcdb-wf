@@ -18,11 +18,11 @@ fi
     --rerun-incomplete \
     --jobname "s.{rulename}.{jobid}.sh" \
     -j 999 \
-    --cluster-config clusterconfig.yaml \
+    --cluster-config config/clusterconfig.yaml \
     --verbose \
     --cluster 'sbatch {cluster.prefix} --cpus-per-task={threads} ' \
     --use-conda \
-    --configfile config.yml \
+    --configfile $CONFIG \
     --latency-wait=60 \
     $EXTRA \
     ) > "${SNAKEFILE}.log" 2>&1
