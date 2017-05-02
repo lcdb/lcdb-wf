@@ -114,8 +114,7 @@ rule chromsizes:
         '&& picard CreateSequenceDictionary R={input} O={output}.tmp '
         '&& grep "^@SQ" {output}.tmp '
         '''| awk '{{print $2, $3}}' '''
-        '| sed "s/SN://g;s/ LN:/\\t/g" '
-        '| sort -k1,1 > {output} '
+        '| sed "s/SN://g;s/ LN:/\\t/g" > {output} '
         '&& rm -f {output}.tmp '
 
 
