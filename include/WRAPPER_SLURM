@@ -4,11 +4,18 @@
 #SBATCH --time=24:00:00
 
 SNAKEFILE=$1
-EXTRA=$2
+
+if [ -z $2 ]; then
+    EXTRA=$2
+else
+    EXTRA=''
+fi
+
 
 # make logdir
 if [[ ! -e logs ]]; then mkdir -p logs; fi
 
+# Run snakemake
 (source activate lcdb-wf; \
     time snakemake \
     -p \
@@ -21,9 +28,9 @@ if [[ ! -e logs ]]; then mkdir -p logs; fi
     -j 999 \
     --cluster-config config/clusterconfig.yaml \
     --verbose \
-    --cluster 'sbatch {cluster.prefix} --cpus-per-task={threads}  --output=logs/{rule}.{jobid}.o.%j --error=logs/{rule}.{jobid}.e.%j' \
+    --cluster 'sbatch {cluster.prefix} --cpus-per-task={threads}  --output=logs/{rule}.o.%j --error=logs/{rule}.e.%j' \
     --use-conda \
-    --configfile config/config.yml \
+    --configfile config/test_config.yaml \
     --latency-wait=60 \
     $EXTRA \
     ) > "${SNAKEFILE}.log" 2>&1
