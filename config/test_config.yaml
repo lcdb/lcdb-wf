@@ -17,7 +17,7 @@ aggregation_dir: 'data/aggregation'
 assembly: 'dmel'
 
 # If not specified here, use the environment variable REFERENCES_DIR.
-references_dir: references_data
+references_dir: 'references_data'
 
 aligner:
   index: 'hisat2'
@@ -98,6 +98,34 @@ references:
         indexes:
           - 'hisat2'
           - 'bowtie2'
+
+    ercc:
+      gtf:
+        url:
+          - 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/gtf/dmel-all-r6.11.gtf.gz'
+          - 'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        postprocess:
+          function: "lib.postprocess.merge.file_merge"
+          args:
+            - "lib.postprocess.dm6.gtf_postprocess"
+            - "lib.postprocess.ercc.gtf_postprocess"
+        conversions:
+          - 'refflat'
+          - 'gffutils'
+
+      fasta:
+        url:
+          - 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/fasta/dmel-all-chromosome-r6.11.fasta.gz'
+          -  'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        postprocess:
+          function: 'lib.postprocess.merge.file_merge'
+          args:
+            - "lib.postprocess.dm6.fasta_postprocess"
+            - "lib.postprocess.ercc.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+
   phix:
     default:
       fasta:
