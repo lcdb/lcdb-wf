@@ -14,7 +14,6 @@ aggregation_dir: 'data/aggregation'
 
 # Which key in the `references` dict below to use
 assembly: 'dmel'
-assembly: 'dm6'
 
 # If not specified here, use the environment variable REFERENCES_DIR.
 # references_dir:
