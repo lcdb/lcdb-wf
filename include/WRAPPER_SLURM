@@ -30,7 +30,7 @@ if [[ ! -e logs ]]; then mkdir -p logs; fi
     --verbose \
     --cluster 'sbatch {cluster.prefix} --cpus-per-task={threads}  --output=logs/{rule}.o.%j --error=logs/{rule}.e.%j' \
     --use-conda \
-    --configfile config/test_config.yaml \
+    --configfile config/config.yml \
     --latency-wait=60 \
     $EXTRA \
     ) > "${SNAKEFILE}.log" 2>&1
