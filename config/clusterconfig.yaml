@@ -1,20 +1,20 @@
 __default__:
-  prefix: "--gres=lscratch=20 --time=4:00:00"
+  prefix: "--gres=lscratch:20 --time=4:00:00"
 
 bowtie2_index:
-  prefix: "--gres=lscratch=20 --time=4:00:00 --mem=32g"
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
 
 hisat2_index:
-  prefix: "--gres=lscratch=20 --time=4:00:00 --mem=32g"
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
 
 hisat2:
-  prefix: "--gres=lscratch=20 --time=4:00:00 --mem=32g"
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
 
 fastq_screen:
-  prefix: "--gres=lscratch=20 --time=4:00:00 --mem=32g"
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
 
 kallisto:
-  prefix: "--gres=lscratch=20 --time=4:00:00 --mem=32g"
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
 
 markduplicates:
-  prefix: "--gres=lscratch=20 --time=4:00:00 --mem=32g"
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
