@@ -88,7 +88,7 @@ references:
             - 'hisat2'
             - 'bowtie2'
 
-    ercc:
+    r6-11_and_ercc:
       gtf:
         url:
           - 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/gtf/dmel-all-r6.11.gtf.gz'
