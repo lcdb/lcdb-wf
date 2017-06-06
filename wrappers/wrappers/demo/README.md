@@ -1,13 +1,14 @@
 # Demo wrapper
 
-*This wrapper demonstrates current best-practices.
+This wrapper demonstrates current best-practices.
 
 The target audience of the wrapper's README should be yourself six months from
 now, under a tight deadline, frantically looking for that rule you wrote so you
 can copy/paste into a custom Snakefile.
 
 Examples should come first. There should be at least a minimal example and
-a reasonably complicated example.*
+a reasonably complicated example. To be complete you can add links to docs,
+a brief description of the tool, and example output.
 
 This demo wrapper simply copies input files to output files.
 
