@@ -468,7 +468,7 @@ rule bedgraph_to_bigwig:
         chrom = config['4c']['baits'][bait]['chrom']
         windowsize = 1000
         shell(
-            'python bedgraph_to_bigwig.py '
+            'python lib/fourc/bedgraph_to_bigwig.py '
             '--chromosome {chrom} '
             '--chromsizes {input.chromsizes} '
             '--windowsize {windowsize} '
@@ -542,7 +542,7 @@ rule colorized:
                 comparison=comparison, kind=kind, k=k, sample=treatment_samples, bait=bait))),
         }
         shell(
-            'python find-up-dn.py '
+            'python lib/fourc/find-up-dn.py '
             '--bed {files[diff]} '
             '--output {output} '
             '--control {files[control]} '
