@@ -453,8 +453,8 @@ rule R4cker:
     log: '4cker-output/{comparison}/log'
     shell:
         'source activate 4c-wf '
-        '&& Rscript {input.rscript} --config {input.config} --comparison {wildcards.comparison} &> {log}'
-
+        '&& Rscript --default-packages=boot,cluster,foreign,lattice,MASS,Matrix,nlme,base,compiler,datasets,graphics,grDevices,grid,methods,parallel,splines,stats,stats4,tcltk,tools,utils '
+        '{input.rscript} --config {input.config} --comparison {wildcards.comparison} &> {log}'
 
 rule bedgraph_to_bigwig:
     input:
