@@ -34,7 +34,7 @@ config['references_dir'] = references_dir
 
 
 sampletable = pd.read_table(config['sampletable'])
-samples = sampletable.loc[:, 0]
+samples = sampletable.iloc[:, 0]
 
 assembly = config['assembly']
 refdict, conversion_kwargs = common.references_dict(config)
