@@ -62,6 +62,7 @@ patterns = {
     'bait_coords': '{fourc_dir}/{enzyme}_{fragLen}mer_{bait}_bait_coords.bed',
     'multiqc': '{agg_dir}/multiqc.html',
     'remove_bait_and_adjacent_from_bedgraph': '{sample_dir}/{sample}/{enzyme}_{fragLen}mer_trim{fragLen2}/{sample}_cleaned.bedgraph',
+    'cleaned_raw_bigwig': '{sample_dir}/{sample}/{enzyme}_{fragLen}mer_trim{fragLen2}/{sample}_cleaned.bigwig',
 }
 
 
@@ -85,7 +86,8 @@ targets = helpers.fill_patterns(
     combination=zip
 )
 
-# The next set of patterns are defined according to the config.
+# The next set of patterns are defined according to the "4c" section of the
+# config.
 #
 patterns_4cker = {
     '4cker':
@@ -161,10 +163,11 @@ def wrapper_for(path):
 rule targets:
     input:
         (
-            utils.flatten(targets['remove_bait_and_adjacent_from_bedgraph']) +
+            utils.flatten(targets['cleaned_raw_bigwig']) +
             utils.flatten(targets['bait_coords']) +
             utils.flatten(targets['4cker']) +
             utils.flatten(targets['multiqc'])
+
         )
 
 rule trackhub:
@@ -478,6 +481,21 @@ rule bedgraph_to_bigwig:
             '{input.chromsizes} '
             '{output.bigwig} '
         )
+
+rule raw_bedgraph_to_bigwig:
+    input:
+        chromsizes=refdict[assembly][config['4c']['tag']]['chromsizes'],
+        bedgraph='{sample_dir}/{sample}/{enzyme}_{fragLen}mer_trim{fragLen2}/{sample}_cleaned.bedgraph',
+    output:
+        '{sample_dir}/{sample}/{enzyme}_{fragLen}mer_trim{fragLen2}/{sample}_cleaned.bigwig',
+    shell:
+        'bedtools sort -i {input.bedgraph} | '
+        'bedtools merge -i - -c 4 -o sum > {input.bedgraph}.sorted '
+        '&& bedGraphToBigWig '
+        '{input.bedgraph}.sorted '
+        '{input.chromsizes} '
+        '{output} '
+        '&& rm {input.bedgraph}.sorted'
 
 
 def _colorized_input(wildcards):
