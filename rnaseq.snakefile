@@ -74,6 +74,10 @@ patterns = {
     'rseqc': {
         'bam_stat': '{sample_dir}/{sample}/rseqc/{sample}_bam_stat.txt',
     },
+    'bigwig': {
+        'pos': '{sample_dir}/{sample}/{sample}.cutadapt.bam.pos.bigwig',
+        'neg': '{sample_dir}/{sample}/{sample}.cutadapt.bam.neg.bigwig',
+    },
     'downstream': {
         'rnaseq': 'downstream/rnaseq.html',
     }
@@ -314,6 +318,32 @@ rule rseqc_bam_stat:
     output:
         txt=patterns['rseqc']['bam_stat']
     wrapper: wrapper_for('rseqc/bam_stat')
+
+
+rule bigwig_neg:
+    """
+    Create a bigwig for negative-strand reads
+    """
+    input:
+        bam=targets['bam'],
+        bai=targets['bam'] + '.bai',
+    output: targets['bigwig']['neg']
+    params:
+        extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand reverse --normalizeUsingRPKM'
+    wrapper: wrapper_for('deeptools/bamCoverage')
+
+
+rule bigwig_neg:
+    """
+    Create a bigwig for postive-strand reads
+    """
+    input:
+        bam=targets['bam'],
+        bai=targets['bam'] + '.bai',
+    output: targets['bigwig']['pos']
+    params:
+        extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand forward --normalizeUsingRPKM'
+    wrapper: wrapper_for('deeptools/bamCoverage')
 
 
 rule rnaseq_rmarkdown:
