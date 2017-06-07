@@ -7,6 +7,14 @@ from lcdblib.snakemake import helpers, aligners
 from lcdblib.utils import utils
 from lib import common
 
+# ----------------------------------------------------------------------------
+# SETUP
+# ----------------------------------------------------------------------------
+#
+# The NIH biowulf cluster allows nodes to have their own /lscratch dirs as
+# local temp storage. However the particular dir depends on the slurm job ID,
+# which is not known in advance. This code block sets the tempdir if it's
+# available; otherwise it effectively does nothing.
 TMPDIR = tempfile.gettempdir()
 JOBID = os.getenv('SLURM_JOBID')
 if JOBID:
@@ -14,15 +22,19 @@ if JOBID:
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(TMPDIR))
 shell.executable('/bin/bash')
 
-include: 'references.snakefile'
 
-references_dir = os.environ.get('REFERENCES_DIR', config.get('references_dir', None))
+# By including the references snakefile we can use the rules defined in it. The
+# references dir must have been specified in the config file or as an env var.
+include: 'references.snakefile'
+references_dir = os.environ.get(
+    'REFERENCES_DIR', config.get('references_dir', None))
 if references_dir is None:
     raise ValueError('No references dir specified')
 config['references_dir'] = references_dir
 
+
 sampletable = pd.read_table(config['sampletable'])
-samples = sampletable.ix[:, 0]
+samples = sampletable.loc[:, 0]
 
 assembly = config['assembly']
 refdict, conversion_kwargs = common.references_dict(config)
@@ -30,6 +42,9 @@ refdict, conversion_kwargs = common.references_dict(config)
 sample_dir = config.get('sample_dir', 'samples')
 agg_dir = config.get('aggregation_dir', 'aggregation')
 
+# ----------------------------------------------------------------------------
+# PATTERNS
+# ----------------------------------------------------------------------------
 patterns = {
     'fastq':   '{sample_dir}/{sample}/{sample}_R1.fastq.gz',
     'cutadapt': '{sample_dir}/{sample}/{sample}_R1.cutadapt.fastq.gz',
@@ -89,7 +104,14 @@ targets = helpers.fill_patterns(patterns, fill)
 def wrapper_for(path):
     return 'file:' + os.path.join('wrappers', 'wrappers', path)
 
+# ----------------------------------------------------------------------------
+# RULES
+# ----------------------------------------------------------------------------
+
 rule targets:
+    """
+    Final targets to create
+    """
     input:
         (
             targets['bam'] +
@@ -104,11 +126,15 @@ rule targets:
             utils.flatten(targets['salmon']) +
             utils.flatten(targets['rseqc']) +
             utils.flatten(targets['collectrnaseqmetrics']) +
+            utils.flatten(targets['bigwig']) +
             utils.flatten(targets['downstream'])
         )
 
 
 rule cutadapt:
+    """
+    Run cutadapt
+    """
     input:
         fastq=patterns['fastq']
     output:
@@ -122,6 +148,9 @@ rule cutadapt:
 
 
 rule fastqc:
+    """
+    Run FastQC
+    """
     input: '{sample_dir}/{sample}/{sample}{suffix}'
     output:
         html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
@@ -131,6 +160,9 @@ rule fastqc:
 
 
 rule hisat2:
+    """
+    Map reads with HISAT2
+    """
     input:
         fastq=rules.cutadapt.output.fastq,
         index=[refdict[assembly][config['aligner']['tag']]['hisat2']]
@@ -144,6 +176,9 @@ rule hisat2:
 
 
 rule fastq_count:
+    """
+    Count reads in a FASTQ file
+    """
     input:
         fastq='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz'
     output:
@@ -153,6 +188,9 @@ rule fastq_count:
 
 
 rule bam_count:
+    """
+    Count reads in a BAM file
+    """
     input:
         bam='{sample_dir}/{sample}/{sample}{suffix}.bam'
     output:
@@ -162,6 +200,9 @@ rule bam_count:
 
 
 rule fastq_screen:
+    """
+    Run fastq_screen to look for contamination from other genomes
+    """
     input:
         fastq=rules.cutadapt.output.fastq,
         dm6=refdict[assembly][config['aligner']['tag']]['bowtie2'],
@@ -177,6 +218,9 @@ rule fastq_screen:
 
 
 rule featurecounts:
+    """
+    Count reads in annotations with featureCounts from the subread package
+    """
     input:
         annotation=refdict[assembly][config['gtf']['tag']]['gtf'],
         bam=rules.hisat2.output
@@ -189,6 +233,9 @@ rule featurecounts:
 
 
 rule libsizes_table:
+    """
+    Aggregate fastq and bam counts in to a single table
+    """
     input:
         utils.flatten(targets['libsizes'])
     output:
@@ -228,6 +275,9 @@ rule libsizes_table:
 
 
 rule multiqc:
+    """
+    Aggregate various QC stats and logs into a single HTML report with MultiQC
+    """
     input:
         files=(
             utils.flatten(targets['fastqc']) +
@@ -251,6 +301,9 @@ rule multiqc:
 
 
 rule kallisto:
+    """
+    Quantify reads coming from transcripts with Kallisto
+    """
     input:
         index=refdict[assembly][config['kallisto']['tag']]['kallisto'],
         fastq=patterns['cutadapt']
@@ -261,6 +314,9 @@ rule kallisto:
 
 
 rule markduplicates:
+    """
+    Mark or remove PCR duplicates with Picard MarkDuplicates
+    """
     input:
         bam=rules.hisat2.output
     output:
@@ -273,6 +329,9 @@ rule markduplicates:
 
 
 rule collectrnaseqmetrics:
+    """
+    Calculate various RNA-seq QC metrics with Picarc CollectRnaSeqMetrics
+    """
     input:
         bam=patterns['bam'],
         refflat=refdict[assembly][config['gtf']['tag']]['refflat']
@@ -285,6 +344,9 @@ rule collectrnaseqmetrics:
 
 
 rule dupRadar:
+    """
+    Assess the library complexity with dupRadar
+    """
     input:
         bam=rules.markduplicates.output.bam,
         annotation=refdict[assembly][config['gtf']['tag']]['gtf'],
@@ -303,6 +365,9 @@ rule dupRadar:
 
 
 rule salmon:
+    """
+    Quantify reads coming from transcripts with Salmon
+    """
     input:
         unmatedReads=patterns['cutadapt'],
         index=refdict[assembly][config['salmon']['tag']]['salmon'],
@@ -313,6 +378,9 @@ rule salmon:
 
 
 rule rseqc_bam_stat:
+    """
+    Calculate various BAM stats with RSeQC
+    """
     input:
         bam=patterns['bam']
     output:
@@ -347,6 +415,9 @@ rule bigwig_neg:
 
 
 rule rnaseq_rmarkdown:
+    """
+    Run and render the RMarkdown file that performs differential expression
+    """
     input:
         featurecounts=targets['featurecounts'],
         rmd='downstream/rnaseq.Rmd',
