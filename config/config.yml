@@ -1,5 +1,19 @@
-sampletable: 'sampletable.tsv'
-assembly: 'dm6'
+# sampletable: TSV file defining sample metadata.
+#
+# First column must have header name "samplename".
+sampletable: 'config/sampletable.tsv'
+
+# sample_dir: directory in which each sample is expected to have its own
+# directory and fastq file[s]. If `sampletable` lists a sample with samplename
+# SAMPLE1, then at least the file $sample_dir/SAMPLE1/SAMPLE1_R1.fastq.gz is
+# expected.
+sample_dir: 'data/rnaseq_samples'
+
+# Directory to contain reports and other aggregations
+aggregation_dir: 'data/aggregation'
+
+# Which key in the `references` dict below to use
+assembly: 'dmel'
 
 # If not specified here, use the environment variable REFERENCES_DIR.
 # references_dir:
@@ -73,6 +87,33 @@ references:
         indexes:
             - 'hisat2'
             - 'bowtie2'
+
+    r6-11_and_ercc:
+      gtf:
+        url:
+          - 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/gtf/dmel-all-r6.11.gtf.gz'
+          - 'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        postprocess:
+          function: "lib.postprocess.merge.file_merge"
+          args:
+            - "lib.postprocess.dm6.gtf_postprocess"
+            - "lib.postprocess.ercc.gtf_postprocess"
+        conversions:
+          - 'refflat'
+          - 'gffutils'
+
+      fasta:
+        url:
+          - 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/fasta/dmel-all-chromosome-r6.11.fasta.gz'
+          -  'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        postprocess:
+          function: "lib.postprocess.merge.file_merge"
+          args:
+            - "lib.postprocess.dm6.fasta_postprocess"
+            - "lib.postprocess.ercc.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
 
   human:
     gencode-v25:

@@ -110,11 +110,13 @@ rule chromsizes:
     log: '{references_dir}/logs/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta.log'
     conda: 'config/envs/references_env.yml'
     shell:
+        'export LC_COLLATE=C; '
         'rm -f {output}.tmp '
         '&& picard CreateSequenceDictionary R={input} O={output}.tmp '
         '&& grep "^@SQ" {output}.tmp '
         '''| awk '{{print $2, $3}}' '''
-        '| sed "s/SN://g;s/ LN:/\\t/g" > {output} '
+        '| sed "s/SN://g;s/ LN:/\\t/g" '
+        '| sort -k1,1 > {output} '
         '&& rm -f {output}.tmp '
 
 

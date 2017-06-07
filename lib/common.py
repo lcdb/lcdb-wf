@@ -16,6 +16,7 @@ def gzipped(tmpfiles, outfile):
             for line in open(f):
                 fout.write(line)
 
+
 def cat(tmpfiles, outfile):
     shell('cat {tmpfiles} > {outfile}')
 
