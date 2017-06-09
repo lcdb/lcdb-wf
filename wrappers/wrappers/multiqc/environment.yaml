@@ -2,6 +2,6 @@ channels:
   - bioconda
   - lcdb
 dependencies:
-  - multiqc ==0.9
-  - lcdblib ==0.1.2
+  - multiqc ==1.0
+  - lcdblib ==0.1.2.post
   - python ==3.5

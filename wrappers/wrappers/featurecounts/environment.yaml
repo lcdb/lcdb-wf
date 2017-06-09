@@ -1,4 +1,4 @@
 channels:
   - bioconda
 dependencies:
-  - subread ==1.5.0.post3
+  - subread ==1.5.2
