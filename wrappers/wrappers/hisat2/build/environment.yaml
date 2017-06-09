@@ -3,5 +3,5 @@ channels:
   - lcdb
 dependencies:
   - hisat2 ==2.0.5
-  - lcdblib ==0.1.1
+  - lcdblib ==0.1.2
   - python ==3.5
