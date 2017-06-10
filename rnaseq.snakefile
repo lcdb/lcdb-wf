@@ -395,7 +395,7 @@ rule bigwig_neg:
     """
     input:
         bam=targets['bam'],
-        bai=targets['bam'] + '.bai',
+        bai=targets['bam'][0] + '.bai',
     output: targets['bigwig']['neg']
     params:
         extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand reverse --normalizeUsingRPKM'
@@ -408,7 +408,7 @@ rule bigwig_neg:
     """
     input:
         bam=targets['bam'],
-        bai=targets['bam'] + '.bai',
+        bai=targets['bam'][0] + '.bai',
     output: targets['bigwig']['pos']
     params:
         extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand forward --normalizeUsingRPKM'
