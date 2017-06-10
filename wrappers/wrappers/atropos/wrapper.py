@@ -24,7 +24,7 @@ if isinstance(inputs, dict) and isinstance(outputs, dict):
 
     # Get outputs
     out_R1 = outputs.get('R1', None)
-    out_R2 = outputs.get('R2', None)
+    out_R2 = outputs.get('R2', snakemake.params.get('R2', None))
     out_FASTQ = outputs.get('fastq', None)
 
     if (out_R1 is None) and (out_FASTQ is not None):
@@ -47,7 +47,7 @@ elif isinstance(inputs, list) and isinstance(outputs, list):
     # Get outputs
     if len(outputs) == 1:
         out_R1 = outputs[0]
-        out_R2 = None
+        out_R2 = snakemake.params.get('R2', None)
     elif len(outputs) == 2:
         out_R1 = sorted(outputs)[0]
         out_R2 = sorted(outputs)[1]
