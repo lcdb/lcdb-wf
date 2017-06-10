@@ -402,7 +402,7 @@ rule bigwig_neg:
     wrapper: wrapper_for('deeptools/bamCoverage')
 
 
-rule bigwig_neg:
+rule bigwig_pos:
     """
     Create a bigwig for postive-strand reads
     """
