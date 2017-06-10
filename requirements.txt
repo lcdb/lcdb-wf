@@ -21,7 +21,7 @@ pytest-xdist ==1.14
 python ==3.5
 r ==3.3.2
 r-essentials ==1.5.1
-rseqc ==2.6.4
+# rseqc ==2.6.4
 salmon ==0.8.2
 samtools ==1.4.1
 snakemake ==3.12.0
