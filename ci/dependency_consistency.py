@@ -12,6 +12,19 @@
     Optionally writes a bash script with echo and sed commands that can be used to
     update everything to the latest version found collectively among requirements
     and wrappers.
+
+    If a wrapper should be isolated from the top-level environment because its
+    dependencies conflict (RSeQC I'm looking at you), then comment out those
+    dependencies in requirements.txt rather than deleting them. The commands
+    written the end will detect this, and will not try to add it to the list.
+
+    However, if you bump a version in a commented-out line in requirements.txt,
+    commands will be generated to bump those same versions in the wrappers.
+
+    USE WITH CAUTION! This is trying to make your life easier by not having to
+    dig through wrappers and update everything by hand, but definitely read
+    through the proposed changes in the bash script to see what it wants to do
+    and delete any offending lines.
 """
 
 import yaml
@@ -26,9 +39,7 @@ def toplevel_reqs(fn):
     """
     reqs = {}
     for r in open('requirements.txt'):
-        if r.startswith('#'):
-            continue
-        toks = r.strip().split(' ')
+        toks = r.lstrip('#').strip().split(' ')
         name = toks[0]
         if len(toks) == 1:
             version = 'undefined'
