@@ -4,7 +4,7 @@ bioconductor-dupradar ==1.2.2
 biopython ==1.69
 bowtie2 ==2.3.2
 cutadapt ==1.13
-deeptools ==2.5.0
+deeptools ==2.5.1
 fastqc ==0.11.5
 fastq-screen ==0.11.1
 gffutils ==0.8.7.1
