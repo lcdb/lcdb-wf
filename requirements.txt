@@ -15,7 +15,7 @@ lcdblib ==0.1.2.post
 multiqc ==1.0
 pandas ==0.20.2
 picard ==2.9.2
-pysam ==0.11.1.2.2
+pysam == 0.11.2.2
 pytest ==3.1.1
 pytest-xdist ==1.14
 python ==3.5
