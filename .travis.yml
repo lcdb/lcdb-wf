@@ -8,9 +8,12 @@ script:
   - ci/travis-run.sh
   - ci/build-docs.sh
 env:
-  - TYPE=rnaseq.snakefile
-  - TYPE=references.snakefile
-  - TYPE=pytest
-  - global:
-      - ENCRYPTION_LABEL: "27b4c1eaf7da"
+  global:
+    - ENCRYPTION_LABEL: "27b4c1eaf7da"
 
+matrix:
+  include:
+    - env: TYPE=rnaseq.snakefile
+    - env: TYPE=references.snakefile
+    - env: TYPE=pytest
+    - env: TYPE=docs
