@@ -17,7 +17,7 @@ case $TYPE in
       && snakemake -s references.snakefile \
       --configfile config/test_config.yaml \
       --use-conda \
-      -j2 -T -k- p -r
+      -j2 -T -k -p -r
     ;;
   rnaseq.snakefile)
     source activate lcdb-wf-test && \
