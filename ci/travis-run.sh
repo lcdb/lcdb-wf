@@ -21,4 +21,7 @@ case $TYPE in
   pytest)
     source activate lcdb-wf-test && py.test wrappers/test -n2 -v
     ;;
+  docs)
+    (cd .. && ci/build-docs.sh)
+    ;;
 esac

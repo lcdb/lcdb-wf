@@ -6,7 +6,6 @@ before_script:
   - export TMPDIR=/tmp
 script:
   - ci/travis-run.sh
-  - ci/build-docs.sh
 env:
   global:
     - ENCRYPTION_LABEL: "27b4c1eaf7da"
