@@ -37,7 +37,7 @@ def test_featurecounts_pe(sample1_pe_bam, annotation, tmpdir):
                     output:
                         counts='sample1.counts',
                     log: 'featurecounts.log'
-                    params: extra='-p -P -s 1 -B --countSplitAlignmentsOnly'
+                    params: extra='-p -P -s 1 -B --splitOnly'
                     wrapper: "file:wrapper"
                 '''
     input_data_func=symlink_in_tempdir(
