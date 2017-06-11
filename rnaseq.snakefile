@@ -405,9 +405,9 @@ rule bigwig_neg:
     Create a bigwig for negative-strand reads
     """
     input:
-        bam=targets['bam'],
-        bai=targets['bam'][0] + '.bai',
-    output: targets['bigwig']['neg']
+        bam=patterns['bam'],
+        bai=patterns['bam'] + '.bai',
+    output: patterns['bigwig']['neg']
     params:
         extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand reverse --normalizeUsingRPKM'
     wrapper: wrapper_for('deeptools/bamCoverage')
@@ -418,9 +418,9 @@ rule bigwig_pos:
     Create a bigwig for postive-strand reads
     """
     input:
-        bam=targets['bam'],
-        bai=targets['bam'][0] + '.bai',
-    output: targets['bigwig']['pos']
+        bam=patterns['bam'],
+        bai=patterns['bam'] + '.bai',
+    output: patterns['bigwig']['pos']
     params:
         extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand forward --normalizeUsingRPKM'
     wrapper: wrapper_for('deeptools/bamCoverage')
