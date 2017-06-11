@@ -199,6 +199,17 @@ rule bam_count:
         'samtools view -c {input} > {output}'
 
 
+rule bam_index:
+    """
+    Index a BAM
+    """
+    input:
+        bam='{prefix}.bam'
+    output:
+        bai='{prefix}.bam.bai'
+    wrapper: wrapper_for('samtools/index')
+
+
 rule fastq_screen:
     """
     Run fastq_screen to look for contamination from other genomes
