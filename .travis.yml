@@ -11,6 +11,6 @@ env:
   - TYPE=rnaseq.snakefile
   - TYPE=references.snakefile
   - TYPE=pytest
-  global:
-    - ENCRYPTION_LABEL: "27b4c1eaf7da"
+  - global:
+      - ENCRYPTION_LABEL: "27b4c1eaf7da"
 
