@@ -6,5 +6,6 @@ shell(
     "oligoMatch "
     "{snakemake.input.oligos} "
     "{snakemake.input.sequence} "
-    "{snakemake.output}"
+    "{snakemake.output} "
+    "{log}"
 )
