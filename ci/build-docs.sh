@@ -3,7 +3,7 @@
 set -eou pipefail
 
 # docs-specific deps here
-conda install sphinx
+conda install -y sphinx
 
 # References:
 #  - https://docs.travis-ci.com/user/encrypting-files
