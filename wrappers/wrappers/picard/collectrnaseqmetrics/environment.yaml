@@ -2,5 +2,5 @@ channels:
   - bioconda
   - r
 dependencies:
-  - picard ==2.7.1
+  - picard ==2.9.2
   - r ==3.3.2

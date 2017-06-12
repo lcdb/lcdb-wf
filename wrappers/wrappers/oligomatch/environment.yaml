@@ -1,4 +1,4 @@
 channels:
   - bioconda
 dependencies:
-  - cutadapt ==1.13
+  - ucsc-oligomatch ==332

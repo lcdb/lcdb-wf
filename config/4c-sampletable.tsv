@@ -1,0 +1,9 @@
+samplename	bait	restriction_site	enzyme	primer	fragLen	fragLen2
+wt_locus1_1	locus1	GATC	DpnII	AGATTGAAACTTCTCC	20	30
+wt_locus1_2	locus1	GATC	DpnII	AGATTGAAACTTCTCC	20	30
+wt_locus2_1	locus2	GATC	DpnII	CGATCCGGTAAATGGG	20	30
+wt_locus2_2	locus2	GATC	DpnII	CGATCCGGTAAATGGG	20	30
+mutant_locus1_1	locus1	GATC	DpnII	AGATTGAAACTTCTCC	20	30
+mutant_locus1_2	locus1	GATC	DpnII	AGATTGAAACTTCTCC	20	30
+mutant_locus2_1	locus2	GATC	DpnII	CGATCCGGTAAATGGG	20	30
+mutant_locus2_2	locus2	GATC	DpnII	CGATCCGGTAAATGGG	20	30

@@ -11,6 +11,25 @@ then
     exit 0
 fi
 
-source activate lcdb-wf-test && snakemake -prs references.snakefile --configfile config/test_config.yaml --use-conda -j2
-source activate lcdb-wf-test && snakemake -prs rnaseq.snakefile --configfile config/test_config.yaml --use-conda -j2
-source activate lcdb-wf-test && py.test wrappers/test -n2 -v
+case $TYPE in
+  references.snakefile)
+    source activate lcdb-wf-test \
+      && snakemake -s references.snakefile \
+      --configfile config/test_config.yaml \
+      --use-conda \
+      -j2 -T -k -p -r
+    ;;
+  rnaseq.snakefile)
+    source activate lcdb-wf-test && \
+      snakemake -s rnaseq.snakefile \
+      --configfile config/test_config.yaml \
+      --use-conda \
+      -j2 -T -k -p -r
+    ;;
+  pytest)
+    source activate lcdb-wf-test && py.test wrappers/test -n2 -v
+    ;;
+  docs)
+    ci/build-docs.sh
+    ;;
+esac
