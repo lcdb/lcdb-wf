@@ -1,0 +1,17 @@
+language: python
+install: bash ci/travis-setup.sh
+before_script:
+  - export PATH=/tmp/ci/ana/bin:$PATH
+  - export JAVA_HOME=
+  - export TMPDIR=/tmp
+script:
+  - ci/travis-run.sh
+env:
+  global:
+    - ENCRYPTION_LABEL: "7472da9c29f2"
+
+  matrix:
+    - TYPE=rnaseq.snakefile
+    - TYPE=references.snakefile
+    - TYPE=pytest
+    - TYPE=docs

@@ -1,0 +1,306 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>References workflow &#8212; lcdb-wf 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Wrappers" href="wrappers.html" />
+    <link rel="prev" title="Features common to all workflows" href="workflows.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="references-workflow">
+<span id="references"></span><h1>References workflow<a class="headerlink" href="#references-workflow" title="Permalink to this headline">¶</a></h1>
+<p>This workflow is intended to be <cite>include:</cite>-ed into other workflows that depend
+on reference fastas, indexes, and annotations. In that case, rules in this
+references workflow will only be run for those files asked for in the parent
+workflow.</p>
+<p>This workflow can also be called on its own, in which case it will build
+<strong>all</strong> of the references and indexes specified in the config. This can be
+helpful when setting up the workflows for the first time on a new machine. Run
+it like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">-</span><span class="n">s</span> <span class="n">references</span><span class="o">.</span><span class="n">snakefile</span> <span class="o">--</span><span class="n">configfile</span> <span class="n">config</span><span class="o">/</span><span class="n">config</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+<p>In both cases, it depends on the <cite>references</cite> section being in the global
+config dictionary. See below for details.</p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The references workflow is based on the idea that while each genome’s source
+files (FASTA, GTF) may come from different places and have slightly different
+formatting, once they are well-formatted they can be used to create a hisat2
+index, a list of genes, intergenic regions, and so on without any further
+customization.</p>
+<p>The challenging part is the “well-formatted” part. The config file allows very
+flexible specification of how to create the files by providing a sort of plugin
+architecture.</p>
+<p>It’s probably easiest to show an example config and then describe what’s
+happening. This example downloads a tarball of fasta files for the yeast
+genome, concatenates them into a single and builds a bowtie2 index for it.
+A chromsizes file is also built.</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">references_dir</span><span class="p p-Indicator">:</span> <span class="s">&#39;data/references&#39;</span>
+
+<span class="c1"># top-level section for references</span>
+<span class="l l-Scalar l-Scalar-Plain">references</span><span class="p p-Indicator">:</span>
+
+  <span class="c1"># label for the assembly or species</span>
+  <span class="l l-Scalar l-Scalar-Plain">sacCer3</span><span class="p p-Indicator">:</span>
+
+    <span class="c1"># &quot;tag&quot; to differentiate between different versions.</span>
+    <span class="l l-Scalar l-Scalar-Plain">default</span><span class="p p-Indicator">:</span>
+
+      <span class="c1"># this block will define how to get and postprocess a FASTA file</span>
+      <span class="l l-Scalar l-Scalar-Plain">fasta</span><span class="p p-Indicator">:</span>
+
+        <span class="c1"># URL to download</span>
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="s">&#39;http://hgdownload.cse.ucsc.edu/goldenPath/sacCer3/bigZips/chromFa.tar.gz&#39;</span>
+
+        <span class="c1"># The yeast genome from UCSC comes as a tarball of fastas. We can</span>
+        <span class="c1"># specify a function to apply to the downloaded tarball to get</span>
+        <span class="c1"># a single fasta file. See below for details.</span>
+        <span class="l l-Scalar l-Scalar-Plain">postprocess</span><span class="p p-Indicator">:</span> <span class="s">&#39;lib.postprocess.sacCer3.fasta_lib.postprocess&#39;</span>
+
+        <span class="c1"># We can optionally build indexes for various aligners.</span>
+        <span class="l l-Scalar l-Scalar-Plain">indexes</span><span class="p p-Indicator">:</span>
+            <span class="p p-Indicator">-</span> <span class="s">&#39;bowtie2&#39;</span>
+            <span class="p p-Indicator">-</span> <span class="s">&#39;hisat2&#39;</span>
+</pre></div>
+</div>
+<p>Each block in the YAML file describes either a <cite>fasta</cite> or <cite>gtf</cite> file. Each
+block has at least the assembly, type, and a URL.  A block can optionally have
+a <cite>postprocess</cite>, which is an arbitrary function (described below) that converts
+the downloaded URL to something that conforms to the standards of the workflow
+(also described below). By supplying a tag, we can differentiate between
+different versions (e.g., FlyBase r6.04 vs r6.11) or different kinds of
+postprocessing (e.g, “chr” preprended to chrom names or not).</p>
+<p>Blocks with a type of <cite>fasta</cite> can have an optional  <cite>indexes</cite> entry which will
+build the specified indexes. Blocks with a type of <cite>gtf</cite> can have an optional
+<cite>conversions</cite> entry which will perform the specified conversion. Available
+indexes and conversions are described below.</p>
+<p>Running the references workflow using this config will result in the following
+files in <code class="docutils literal"><span class="pre">data/references</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>sacCer3/
+└── default
+    ├── bowtie2
+    │   ├── sacCer3_default.1.bt2   # bowtie2 index files
+    │   ├── sacCer3_default.2.bt2
+    │   ├── sacCer3_default.3.bt2
+    │   ├── sacCer3_default.4.bt2
+    │   ├── sacCer3_default.rev.1.bt2
+    │   └── sacCer3_default.rev.2.bt2
+    └── fasta
+        ├── sacCer3_default.chromsizes
+        ├── sacCer3_default.fasta
+        └── sacCer3_default.fasta.gz.log
+</pre></div>
+</div>
+</div>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p><strong>All files created by a block are required to be gzipped.</strong></p>
+<p>If a URL points to an uncompressed GTF file, a post-processing function must
+gzip it. Any post-processing functions must write gzipped output files.</p>
+<p>Other than that, it’s up to the user to decide what transformations (if any)
+are required. Examples might include:</p>
+<ul class="simple">
+<li>exluding particular contigs</li>
+<li>removing or editing problematic genes that have transcripts on both strands
+– mod(mdg4) I’m looking at you</li>
+<li>renaming chromosomes (e.g., prepend “chr”)</li>
+<li>remove unnecessary annotations (e.g., keep only cds/exon/transcript/gene features)</li>
+</ul>
+</div>
+<div class="section" id="post-processing">
+<h2>Post processing<a class="headerlink" href="#post-processing" title="Permalink to this headline">¶</a></h2>
+<p>Sometimes the file at a URL is not in exactly the right format. In the example
+above, the yeast genome is available as a tarball of separate fasta files, but
+we’d like to get it into a single fasta file for downstream tools to work with.</p>
+<p>The configuration block can define an optional <cite>postprocess</cite> string which
+contains a dotted name referring to Python function that is importable by the
+<cite>reference.snakefile</cite> workflow.  For example, if a <cite>postprocess</cite> string is
+<cite>“hg19.fix_fasta”</cite>, then there should be a file <cite>hg19.py</cite> that has within it
+a function called <cite>fix_fasta()</cite> in the same directory as the references
+Snakefile. The dotted name should refer to a function that has this function
+signature:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">temp_downloaded_filenames</span><span class="p">,</span> <span class="n">final_postprocessed_filename</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first argument is a list corresponding to the tempfiles downloaded for each
+provided url; the second is the final filename to create. These two arguments
+are automatically provided by the references workflow – you don’t have to know
+or care exactly what the filenames are, just what has to be done to their
+contents.</p>
+<p>See the files in <code class="docutils literal"><span class="pre">lib/postprocess</span></code> for inspiration if you need to write your
+own post-processing functions.</p>
+<p>The job of a postprocessing function is to ensure that the
+fastq/gtf/transcriptome fasta meets the requirements described above and is
+ready for any intended downstream tasks. For example if we download the fasta
+file from FlyBase for dm6 but want “chr” prepended to chromosome names, we can
+create a function in the file <code class="docutils literal"><span class="pre">dm6.py</span></code> called <code class="docutils literal"><span class="pre">add_chr</span></code> that does
+this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># This is dm6.py</span>
+
+<span class="kn">from</span> <span class="nn">snakemake.shell</span> <span class="kn">import</span> <span class="n">shell</span>  <span class="c1"># a very convenient function</span>
+
+<span class="k">def</span> <span class="nf">add_chr</span><span class="p">(</span><span class="n">origfn</span><span class="p">,</span> <span class="n">newfn</span><span class="p">):</span>
+    <span class="n">shell</span><span class="p">(</span>
+        <span class="s1">&#39;zcat {origfn} &#39;</span>       <span class="c1"># input is always gzipped</span>
+        <span class="s1">&#39;| sed &quot;s/&gt;/&gt;chr/g&quot; &#39;</span>  <span class="c1"># add chr to names</span>
+        <span class="s1">&#39;| gzip -c &gt; {newfn} &#39;</span> <span class="c1"># re-zip</span>
+        <span class="s1">&#39;&amp;&amp; rm {origfn}&#39;</span>       <span class="c1"># clean up</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>We specify this function to be called in the fasta config block like this (note
+that the module doesn’t have to be the same name as the assembly, but it is
+here for clarity):</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">dm6</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">fasta</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">...</span>
+    <span class="l l-Scalar l-Scalar-Plain">postprocess</span><span class="p p-Indicator">:</span> <span class="s">&quot;dm6.add_chr&quot;</span>
+</pre></div>
+</div>
+<p>This expects a file <code class="docutils literal"><span class="pre">dm6.py</span></code> in the same directory as the
+<cite>references.snakefile</cite> workflow, and expects a function <code class="docutils literal"><span class="pre">add_chr</span></code> to
+be defined in that module.</p>
+<p>Any downstream rules that operate on the genome FASTA file (like hisat2 index,
+bowtie2 index, etc) will now use this fixed version with “chr” prepended to
+chromosome names.  In this way, we can apply arbitrary code to modify
+references to get them into a uniform format.</p>
+<p>TODO: document the conversions for GTF, specifically the <cite>genelist</cite> and
+<cite>annotation_hub</cite> conversions and how the kwargs can be specified.</p>
+</div>
+<div class="section" id="available-indexes-and-conversions">
+<h2>Available indexes and conversions<a class="headerlink" href="#available-indexes-and-conversions" title="Permalink to this headline">¶</a></h2>
+<p>Current indexes:</p>
+<blockquote>
+<div><ul class="simple">
+<li>hisat2</li>
+<li>bowtie2</li>
+<li>kallisto</li>
+<li>salmon</li>
+</ul>
+</div></blockquote>
+<p>Planned indexes:</p>
+<blockquote>
+<div><ul class="simple">
+<li>STAR</li>
+<li>bwa</li>
+</ul>
+</div></blockquote>
+<p>Current conversions:</p>
+<blockquote>
+<div><ul class="simple">
+<li>refflat (converts GTF to refFlat format)</li>
+<li>gffutils (converts GTF to gffutils database)</li>
+<li>genelist</li>
+<li>annotation_hub</li>
+</ul>
+</div></blockquote>
+<p>Planned:</p>
+<blockquote>
+<div><ul class="simple">
+<li>intergenic (needs chromsizes; therefore need to link a GTF tag to a FASTA
+tag but not quite sure how best to do this)</li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">References workflow</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#post-processing">Post processing</a></li>
+<li><a class="reference internal" href="#available-indexes-and-conversions">Available indexes and conversions</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="workflows.html" title="previous chapter">Features common to all workflows</a></li>
+      <li>Next: <a href="wrappers.html" title="next chapter">Wrappers</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/references.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/references.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

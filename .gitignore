@@ -1,0 +1,11 @@
+.snakemake
+__pycache__
+data
+references_data
+downstream/group.tsv
+downstream/rnaseq.html
+downstream/rnaseq_cache
+downstream/rnaseq_files
+docs/_build
+\.cache/v/cache/
+.*

@@ -1,0 +1,16 @@
+steps:
+  -
+    label: setup
+    command: bash ci/travis-setup.sh
+    artifact_paths:
+      - setup.log
+
+  -
+    label: wrappers
+    command: source /tmp/ci/ana/bin/activate lcdb-wf-test && pytest wrappers/test -v -n6
+
+  -
+    label: workflows
+    command: 
+      - source /tmp/ci/ana/bin/activate lcdb-wf-test && snakemake -prs references.snakefile --configfile config/test_config.yaml --use-conda -j6
+      - source /tmp/ci/ana/bin/activate lcdb-wf-test && python ci/get-data.py && snakemake -prs rnaseq.snakefile --configfile config/test_config.yaml --use-conda -j6

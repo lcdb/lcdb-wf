@@ -1,0 +1,170 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>lcdb-wf &#8212; lcdb-wf 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting started" href="getting-started.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="lcdb-wf">
+<h1>lcdb-wf<a class="headerlink" href="#lcdb-wf" title="Permalink to this headline">¶</a></h1>
+<p><cite>lcdb-wf</cite> is a collection of Snakemake workflows for common high-throughput
+sequencing analysis, along with associated infrastructure.</p>
+<p>We recognize that every experiment has its own unique idiosyncracies. Rather
+than provide a one-size-fits-all solution, we aim to provide a reasonable
+starting point that users can modify for their own use.</p>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#bioconda-one-time-setup">bioconda (one-time setup)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#add-the-lcdb-channel-one-time-setup">Add the <cite>lcdb</cite> channel (one-time setup)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#create-a-new-conda-environment-one-time-setup">Create a new conda environment (one-time setup)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#download-example-data-one-time-setup">Download example data (one-time setup)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#run-the-references-workflow">Run the references workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#run-the-rnaeq-workflow">Run the rnaeq workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#next-steps">Next steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Features common to all workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#patterns-and-targets"><cite>patterns</cite> and <cite>targets</cite></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="references.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="references.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="references.html#post-processing">Post processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="references.html#available-indexes-and-conversions">Available indexes and conversions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="wrappers.html#writing-wrappers">Writing wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrappers.html#running-tests">Running tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrappers.html#writing-tests">Writing tests</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="guiding-principles">
+<h2>Guiding principles<a class="headerlink" href="#guiding-principles" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Expect users to know Snakemake</li>
+<li>Expect users will edit and customize the workflows accordingly</li>
+<li>Rely in wrappers where possible</li>
+<li>Test wrappers individually</li>
+<li>Test workflows to ensure end-to-end functionality</li>
+<li>Add complexity to wrappers rather than snakefile</li>
+<li>Wrappers should expose relatively simple APIs.</li>
+<li>Run references workflow once per site; other workflows either point directly
+to the created files or <cite>include:</cite> the references workflow to trigger updates</li>
+<li>Rely on tab-delimited sampletables as much as possible</li>
+<li>It’s easier to delete than to create: each workflow will have “the works” and
+can be trimmed down according to the particular experiment’s needs.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">lcdb-wf</a><ul>
+<li><a class="reference internal" href="#guiding-principles">Guiding principles</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="getting-started.html" title="next chapter">Getting started</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

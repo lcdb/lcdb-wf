@@ -1,0 +1,126 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Features common to all workflows &#8212; lcdb-wf 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="References workflow" href="references.html" />
+    <link rel="prev" title="Getting started" href="getting-started.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="features-common-to-all-workflows">
+<h1>Features common to all workflows<a class="headerlink" href="#features-common-to-all-workflows" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="patterns-and-targets">
+<h2><cite>patterns</cite> and <cite>targets</cite><a class="headerlink" href="#patterns-and-targets" title="Permalink to this headline">¶</a></h2>
+<p>Workflows have a <cite>patterns</cite> dict at the top that lays out, in one place, the
+output file patterns. Rules can optionally use values from this dict to define
+output patterns. Using the <cite>lcdblib.snakemake.fill_patterns</cite> function, these
+patterns are “rendered” into a <cite>targets</cite> dictionary (this is basically
+a recursive <cite>expand()</cite>). Selected contents of the <cite>targets</cite> directory are then
+used for the <cite>all</cite> rule.</p>
+<p>This provides, all in one section of the Snakefile, a fair amount of
+customization options. Patterns can be commented out, or targets can be excluded
+from the <cite>all</cite> rule to fine-tune which rules will be run.</p>
+<p>A nice side-effect of the <cite>patterns</cite> and <cite>targets</cite> design is that aggregation
+rules become much easier to write. If all FastQC runs are under a <cite>fastqc</cite> key
+in <cite>targets</cite>, they can all be used as input to a rule using
+<cite>lcdblib.utils.flatten(targets[‘fastqc’])</cite>. This is in contrast to, say, writing
+input functions.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Features common to all workflows</a><ul>
+<li><a class="reference internal" href="#patterns-and-targets"><cite>patterns</cite> and <cite>targets</cite></a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="getting-started.html" title="previous chapter">Getting started</a></li>
+      <li>Next: <a href="references.html" title="next chapter">References workflow</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/workflows.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/workflows.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

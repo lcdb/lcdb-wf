@@ -1,0 +1,199 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Getting started &#8212; lcdb-wf 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Features common to all workflows" href="workflows.html" />
+    <link rel="prev" title="lcdb-wf" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>The following steps will run the example workflows on a relatively small test
+data set to ensure that everything runs correctly. On 2 cores it takes about 15
+minutes; use more cores to speed it up.</p>
+<p>Once everything runs correctly, you can modify the files for your own
+experiment.</p>
+<div class="section" id="bioconda-one-time-setup">
+<h2>bioconda (one-time setup)<a class="headerlink" href="#bioconda-one-time-setup" title="Permalink to this headline">¶</a></h2>
+<p>Follow the instructions for setting up <a class="reference external" href="https://bioconda.github.io">bioconda</a>.
+This includes installing <cite>conda</cite> and setting up the channels.</p>
+</div>
+<div class="section" id="add-the-lcdb-channel-one-time-setup">
+<h2>Add the <cite>lcdb</cite> channel (one-time setup)<a class="headerlink" href="#add-the-lcdb-channel-one-time-setup" title="Permalink to this headline">¶</a></h2>
+<p>This enables the <cite>lcdb</cite> conda channel so that additional dependencies not
+included in bioconda can be installed:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">config</span> <span class="o">--</span><span class="n">add</span> <span class="n">channels</span> <span class="n">lcdb</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="create-a-new-conda-environment-one-time-setup">
+<h2>Create a new conda environment (one-time setup)<a class="headerlink" href="#create-a-new-conda-environment-one-time-setup" title="Permalink to this headline">¶</a></h2>
+<p>This creates a top-level environment with Snakemake and other requirements. It
+should be activated any time you’ll be working with <cite>lcdb-wf</cite>. Here we’re using
+the name “lcdb-wf”, but you can use anything:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">lcdb</span><span class="o">-</span><span class="n">wf</span> <span class="o">-</span><span class="n">y</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.5</span> <span class="o">--</span><span class="n">file</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>Then activate the environment:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">activate</span> <span class="n">lcdb</span><span class="o">-</span><span class="n">wf</span>
+</pre></div>
+</div>
+<p>Or deactivate:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">deactivate</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="download-example-data-one-time-setup">
+<h2>Download example data (one-time setup)<a class="headerlink" href="#download-example-data-one-time-setup" title="Permalink to this headline">¶</a></h2>
+<p>This will download the example data to the directory <code class="docutils literal"><span class="pre">data/</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">ci</span><span class="o">/</span><span class="n">get</span><span class="o">-</span><span class="n">data</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="run-the-references-workflow">
+<h2>Run the references workflow<a class="headerlink" href="#run-the-references-workflow" title="Permalink to this headline">¶</a></h2>
+<p>With the <cite>lcdb-wf</cite> environment activated:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">-</span><span class="n">prs</span> <span class="n">references</span><span class="o">.</span><span class="n">snakefile</span> <span class="o">--</span><span class="n">configfile</span> <span class="n">config</span><span class="o">/</span><span class="n">test_config</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">conda</span> <span class="o">-</span><span class="n">j1</span>
+</pre></div>
+</div>
+<p>Adjust the <code class="docutils literal"><span class="pre">-j</span></code> argument to match the number of CPUs to run jobs in parallel and speed up the workflow.</p>
+<p>The references are configured in <cite>config/test_config.yaml</cite> and that file
+indicates the output will be in <cite>references_data</cite>, so you can inspect that
+folder.</p>
+<img alt="_images/references.png" src="_images/references.png" />
+</div>
+<div class="section" id="run-the-rnaeq-workflow">
+<h2>Run the rnaeq workflow<a class="headerlink" href="#run-the-rnaeq-workflow" title="Permalink to this headline">¶</a></h2>
+<p>Similarly:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">-</span><span class="n">prs</span> <span class="n">rnaseq</span><span class="o">.</span><span class="n">snakefile</span> <span class="o">--</span><span class="n">configfile</span> <span class="n">config</span><span class="o">/</span><span class="n">test_config</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">conda</span> <span class="o">-</span><span class="n">j1</span>
+</pre></div>
+</div>
+<img alt="_images/rnaseq.png" src="_images/rnaseq.png" />
+<p>Points of interest:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">data/rnaseq_samples/*</span></code>: sample-specific output</li>
+<li><code class="docutils literal"><span class="pre">data/aggregation/multiqc.html</span></code>:  MultiQC report</li>
+<li><code class="docutils literal"><span class="pre">downstream/rnaseq.html</span></code>: Differential expression results</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="next-steps">
+<h2>Next steps<a class="headerlink" href="#next-steps" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Add your original FASTQ files to <code class="docutils literal"><span class="pre">data/rnaseq_samples/</span></code> directories, likely
+using symlinks</li>
+<li>Edit <code class="docutils literal"><span class="pre">config/sampletable.tsv</span></code> and <code class="docutils literal"><span class="pre">config/config.yml</span></code> to reflect your
+experimental design</li>
+<li>Edit <code class="docutils literal"><span class="pre">rnaseq.snakefile</span></code> to disable any steps you don’t need</li>
+<li>After running the workflow, you can customize <code class="docutils literal"><span class="pre">downstream/rnaseq.Rmd</span></code> for
+your particular analysis.</li>
+</ul>
+<p>The authoritative source on the config file is <code class="docutils literal"><span class="pre">config/test_config.yaml</span></code>. This
+YAML-formatted file contains comments on what each item is used for.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Getting started</a><ul>
+<li><a class="reference internal" href="#bioconda-one-time-setup">bioconda (one-time setup)</a></li>
+<li><a class="reference internal" href="#add-the-lcdb-channel-one-time-setup">Add the <cite>lcdb</cite> channel (one-time setup)</a></li>
+<li><a class="reference internal" href="#create-a-new-conda-environment-one-time-setup">Create a new conda environment (one-time setup)</a></li>
+<li><a class="reference internal" href="#download-example-data-one-time-setup">Download example data (one-time setup)</a></li>
+<li><a class="reference internal" href="#run-the-references-workflow">Run the references workflow</a></li>
+<li><a class="reference internal" href="#run-the-rnaeq-workflow">Run the rnaeq workflow</a></li>
+<li><a class="reference internal" href="#next-steps">Next steps</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">lcdb-wf</a></li>
+      <li>Next: <a href="workflows.html" title="next chapter">Features common to all workflows</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/getting-started.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/getting-started.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
