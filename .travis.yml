@@ -8,7 +8,7 @@ script:
   - ci/travis-run.sh
 env:
   global:
-    - ENCRYPTION_LABEL: "27b4c1eaf7da"
+    - ENCRYPTION_LABEL: "7472da9c29f2"
 
   matrix:
     - TYPE=rnaseq.snakefile
