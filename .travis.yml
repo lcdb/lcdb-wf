@@ -10,9 +10,8 @@ env:
   global:
     - ENCRYPTION_LABEL: "27b4c1eaf7da"
 
-matrix:
-  include:
-    - env: TYPE=rnaseq.snakefile
-    - env: TYPE=references.snakefile
-    - env: TYPE=pytest
-    - env: TYPE=docs
+  matrix:
+    - TYPE=rnaseq.snakefile
+    - TYPE=references.snakefile
+    - TYPE=pytest
+    - TYPE=docs
