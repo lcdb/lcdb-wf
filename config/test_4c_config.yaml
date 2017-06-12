@@ -87,7 +87,7 @@ references_dir: 'references_data'
       bait: locus_2
       control:
         - wt_locus2_1
-        - wt_locus_1_2
+        - wt_locus_2_2
       treatment:
         - mutant_locus2_1
         - mutant_locus2_2
