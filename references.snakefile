@@ -25,15 +25,19 @@ rule all_references:
     input: utils.flatten(refdict)
 
 
-# Downloads the configured URL, applies any configured post-processing, and
-# saves the resulting gzipped file to *.fasta.gz or *.gtf.gz.
 rule download_and_process:
+    """Downloads the configured URL, applies any configured post-processing, and
+    saves the resulting gzipped file to *.fasta.gz or *.gtf.gz.
+    """
     output: temporary('{references_dir}/{assembly}/{tag}/{_type}/{assembly}_{tag}.{_type}.gz')
     run:
         common.download_and_postprocess(output[0], config, wildcards.assembly, wildcards.tag, wildcards._type)
 
 
 rule unzip:
+    """Generic rule to unzip files as needed, for example when building
+    indexes.
+    """
     input: rules.download_and_process.output
     output: protected('{references_dir}/{assembly}/{tag}/{_type}/{assembly}_{tag}.{_type}')
     log: '{references_dir}/logs/{assembly}/{tag}/{_type}/{assembly}_{tag}.{_type}.log'
@@ -41,6 +45,7 @@ rule unzip:
 
 
 rule bowtie2_index:
+    "Build bowtie2 index"
     output: index=protected(aligners.bowtie2_index_from_prefix('{references_dir}/{assembly}/{tag}/bowtie2/{assembly}_{tag}'))
     input: fasta='{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
     log: '{references_dir}/logs/{assembly}/{tag}/bowtie2/{assembly}_{tag}.log'
@@ -48,6 +53,7 @@ rule bowtie2_index:
 
 
 rule hisat2_index:
+    "Build HISAT2 index"
     output: index=protected(aligners.hisat2_index_from_prefix('{references_dir}/{assembly}/{tag}/hisat2/{assembly}_{tag}'))
     input: fasta='{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
     log: '{references_dir}/logs/{assembly}/{tag}/hisat2/{assembly}_{tag}.log'
@@ -55,6 +61,9 @@ rule hisat2_index:
 
 
 rule symlink_fasta_to_index_dir:
+    """Aligners often want the reference fasta in the same dir as the index, so
+    this makes the appropriate symlink
+    """
     input: fasta='{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
     output: '{references_dir}/{assembly}/{tag}/{index}/{assembly}_{tag}.fasta'
     log: '{references_dir}/logs/{assembly}/{tag}/{index}/{assembly}_{tag}.fasta.log'
@@ -63,6 +72,7 @@ rule symlink_fasta_to_index_dir:
 
 
 rule kallisto_index:
+    "Build kallisto index"
     output: protected('{references_dir}/{assembly}/{tag}/kallisto/{assembly}_{tag}.idx')
     input: '{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
     log: '{references_dir}/logs/{assembly}/{tag}/kallisto/{assembly}_{tag}.log'
@@ -74,6 +84,7 @@ rule kallisto_index:
 
 
 rule salmon_index:
+    "Build salmon index"
     output: protected('{references_dir}/{assembly}/{tag}/salmon/{assembly}_{tag}/hash.bin')
     input:
         fasta='{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
@@ -83,6 +94,8 @@ rule salmon_index:
 
 
 rule conversion_refflat:
+    """Converts a GTF into refFlat format
+    """
     input: '{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf'
     output: protected('{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.refflat')
     log: '{references_dir}/logs/{assembly}/{tag}/gtf/{assembly}_{tag}.refflat.log'
@@ -94,6 +107,8 @@ rule conversion_refflat:
 
 
 rule conversion_gffutils:
+    """Converts a GTF into a gffutils sqlite3 database
+    """
     input: gtf='{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf'
     output: db=protected('{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf.db')
     log: '{references_dir}/logs/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf.db.log'
@@ -104,6 +119,8 @@ rule conversion_gffutils:
 
 
 rule chromsizes:
+    """Creates a chromsizes table from fasta
+    """
     output: protected('{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.chromsizes')
     input: '{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
     log: '{references_dir}/logs/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta.log'
@@ -120,6 +137,8 @@ rule chromsizes:
 
 
 rule genelist:
+    """Creates a list of unique gene names in the GTF
+    """
     input: gtf='{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf'
     output:
         protected('{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.genelist')
@@ -135,6 +154,10 @@ rule genelist:
 
 
 rule annotations:
+    """Creates TSVs mappings between gene names (created in the `genelist` rule
+    above) and all of the columns in the configured AnnotationHub accession
+    (https://bioconductor.org/packages/release/bioc/html/AnnotationHub.html)
+    """
     input: rules.genelist.output
     output:
         protected('{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.{keytype}.csv')
