@@ -10,34 +10,16 @@ from lib import common
 # ----------------------------------------------------------------------------
 # SETUP
 # ----------------------------------------------------------------------------
-#
-# The NIH biowulf cluster allows nodes to have their own /lscratch dirs as
-# local temp storage. However the particular dir depends on the slurm job ID,
-# which is not known in advance. This code block sets the tempdir if it's
-# available; otherwise it effectively does nothing.
-TMPDIR = tempfile.gettempdir()
-JOBID = os.getenv('SLURM_JOBID')
-if JOBID:
-    TMPDIR = os.path.join('/lscratch', JOBID)
-shell.prefix('set -euo pipefail; export TMPDIR={};'.format(TMPDIR))
-shell.executable('/bin/bash')
 
-
-# By including the references snakefile we can use the rules defined in it. The
-# references dir must have been specified in the config file or as an env var.
 include: 'references.snakefile'
-references_dir = os.environ.get(
-    'REFERENCES_DIR', config.get('references_dir', None))
-if references_dir is None:
-    raise ValueError('No references dir specified')
-config['references_dir'] = references_dir
 
+common.setup_shell_for_biowulf(shell)
+common.get_references_dir(config)
 
-sampletable = pd.read_table(config['sampletable'])
-samples = sampletable.iloc[:, 0]
+sampletable, samples = common.get_sampletable(config)
+refdict, conversion_kwargs = common.references_dict(config)
 
 assembly = config['assembly']
-refdict, conversion_kwargs = common.references_dict(config)
 
 sample_dir = config.get('sample_dir', 'samples')
 agg_dir = config.get('aggregation_dir', 'aggregation')

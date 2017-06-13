@@ -6,21 +6,19 @@ from snakemake.utils import makedirs
 from lcdblib.utils.imports import resolve_name
 from lcdblib.utils import utils
 from lcdblib.snakemake import aligners, helpers
-from lib.common import download_and_postprocess, references_dict, get_references_dir
+from lib import common
 
-shell.executable('/bin/bash')
+common.setup_shell_for_biowulf(shell)
+references_dir = common.get_references_dir(config)
+refdict, conversion_kwargs = common.references_dict(config)
 
-localrules: symlink_fasta_to_index_dir, chromsizes
+makedirs([references_dir, os.path.join(references_dir, 'logs')])
 
-HERE = str(srcdir('.'))
 
 def wrapper_for(path):
     return 'file:' + os.path.join('wrappers', 'wrappers', path)
 
-references_dir = get_references_dir(config)
-makedirs([references_dir, os.path.join(references_dir, 'logs')])
-
-refdict, conversion_kwargs = references_dict(config)
+localrules: symlink_fasta_to_index_dir, chromsizes
 
 rule all_references:
     input: utils.flatten(refdict)
@@ -31,7 +29,7 @@ rule all_references:
 rule download_and_process:
     output: temporary('{references_dir}/{assembly}/{tag}/{_type}/{assembly}_{tag}.{_type}.gz')
     run:
-        download_and_postprocess(output[0], config, wildcards.assembly, wildcards.tag, wildcards._type)
+        common.download_and_postprocess(output[0], config, wildcards.assembly, wildcards.tag, wildcards._type)
 
 
 rule unzip:

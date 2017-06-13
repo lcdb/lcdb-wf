@@ -279,3 +279,52 @@ def references_dict(config):
                     )
                 d[assembly][tag] = e
     return d, conversion_kwargs
+
+
+def setup_shell_for_biowulf(shell):
+    """
+    Sets up the snakemake.shell object for biowulf.
+
+    The NIH biowulf cluster allows nodes to have their own /lscratch dirs as
+    local temp storage. However the particular dir depends on the slurm job ID,
+    which is not known in advance. This function sets the shell.prefix to use
+    such a tempdir if it's available; otherwise it leaves TMPDIR unchanged.
+    This makes it suitable for running locally or on other clusters, however if
+    you need different behavior then a different function will need to be
+    written.
+
+    Also explicitly sets the shell executable.
+
+    Parameters
+    ----------
+    shell : snakemake.shell object
+    """
+    TMPDIR = tempfile.gettempdir()
+    JOBID = os.getenv('SLURM_JOBID')
+    if JOBID:
+        TMPDIR = os.path.join('/lscratch', JOBID)
+    shell.prefix('set -euo pipefail; export TMPDIR={};'.format(TMPDIR))
+    shell.executable('/bin/bash')
+
+
+def get_references_dir(config):
+    """
+    Returns the references dir, preferring the value of an existing environment
+    variable `REFERENCES_DIR` over the config entry "references_dir". Raise an
+    error if either can't be found.
+
+    Parameters
+    ----------
+    config : dict
+    """
+    references_dir = os.environ.get(
+        'REFERENCES_DIR', config.get('references_dir', None))
+    if references_dir is None:
+        raise ValueError('No references dir specified')
+    config['references_dir'] = references_dir
+
+
+def get_sampletable(config):
+    sampletable = pandas.read_table(config['sampletable'])
+    samples = sampletable.iloc[:, 0]
+    return samples, sampletable
