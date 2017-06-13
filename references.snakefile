@@ -8,7 +8,8 @@ from lcdblib.utils import utils
 from lcdblib.snakemake import aligners, helpers
 from lib import common
 
-common.setup_shell_for_biowulf(shell)
+shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
+shell.executable('/bin/bash')
 references_dir = common.get_references_dir(config)
 refdict, conversion_kwargs = common.references_dict(config)
 

@@ -13,7 +13,8 @@ from lib import common
 
 include: 'references.snakefile'
 
-common.setup_shell_for_biowulf(shell)
+shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
+shell.executable('/bin/bash')
 common.get_references_dir(config)
 
 sampletable, samples = common.get_sampletable(config)

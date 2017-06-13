@@ -281,9 +281,9 @@ def references_dict(config):
     return d, conversion_kwargs
 
 
-def setup_shell_for_biowulf(shell):
+def tempdir_for_biowulf():
     """
-    Sets up the snakemake.shell object for biowulf.
+    Get an appropriate tempdir.
 
     The NIH biowulf cluster allows nodes to have their own /lscratch dirs as
     local temp storage. However the particular dir depends on the slurm job ID,
@@ -292,19 +292,12 @@ def setup_shell_for_biowulf(shell):
     This makes it suitable for running locally or on other clusters, however if
     you need different behavior then a different function will need to be
     written.
-
-    Also explicitly sets the shell executable.
-
-    Parameters
-    ----------
-    shell : snakemake.shell object
     """
-    TMPDIR = tempfile.gettempdir()
-    JOBID = os.getenv('SLURM_JOBID')
-    if JOBID:
-        TMPDIR = os.path.join('/lscratch', JOBID)
-    shell.prefix('set -euo pipefail; export TMPDIR={};'.format(TMPDIR))
-    shell.executable('/bin/bash')
+    tmpdir = tempfile.gettempdir()
+    jobid = os.getenv('SLURM_JOBID')
+    if jobid:
+        tmpdir = os.path.join('/lscratch', jobid)
+    return tmpdir
 
 
 def get_references_dir(config):
