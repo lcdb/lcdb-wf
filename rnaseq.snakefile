@@ -17,7 +17,7 @@ shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_bi
 shell.executable('/bin/bash')
 common.get_references_dir(config)
 
-sampletable, samples = common.get_sampletable(config)
+samples, sampletable = common.get_sampletable(config)
 refdict, conversion_kwargs = common.references_dict(config)
 
 assembly = config['assembly']

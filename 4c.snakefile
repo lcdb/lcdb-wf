@@ -17,8 +17,7 @@ if references_dir is None:
     raise ValueError('No references dir specified')
 config['references_dir'] = references_dir
 
-sampletable = pd.read_table(config['sampletable'])
-samples = sampletable.ix[:, 0]
+samples, sampletable = common.get_sampletable(config)
 assembly = config['assembly']
 refdict, conversion_kwargs = common.references_dict(config)
 
