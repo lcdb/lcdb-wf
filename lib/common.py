@@ -362,6 +362,7 @@ def get_references_dir(config):
     if references_dir is None:
         raise ValueError('No references dir specified')
     config['references_dir'] = references_dir
+    return references_dir
 
 
 def get_sampletable(config):
