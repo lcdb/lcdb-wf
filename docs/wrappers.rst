@@ -3,16 +3,21 @@ Wrappers
 One of the guiding principles of `lcdb-wf` is to put the complexity into
 wrappers.  A `snakemake wrapper
 <http://snakemake.readthedocs.io/en/latest/snakefiles/modularization.html#wrappers>`_
-is a directory containing a script and a conda environment YAML.
+is a directory containing a script called ``wrapper.py``, a conda environment
+YAML called ``environment.yaml``, and documentation in ``README.md``.
 
 The `wrappers/wrappers` directory contains a collection of wrappers that are
-used in the workflows, or can be used in other workflows.
+used in the workflows, or can be used in other workflows unrelated to this
+repo.
 
-Writing wrappers
-----------------
+
+Writing a new wrapper
+---------------------
 See the `demo wrapper
 <https://github.com/lcdb/lcdb-wf/tree/master/wrappers/wrappers/demo>`_ for
-a template to use when creating your own wrappers.
+a template to use when creating your own wrappers. This includes a README with
+what kind of information should be included as well as a ``wrapper.py`` with
+pointers and best-practices in the comments.
 
 Running tests
 -------------
