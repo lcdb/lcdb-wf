@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>wasabi.js demo</title>
+  <meta name="description" content="wasabi.js demo">
+</head>
+  <body>
+    <style>
+      html,body,.wrapper{ width: 100%; height: 100%; margin: 0; padding: 0;}
+      .view-source{ position: fixed; top: 0; right: 0; margin: 10px; }
+    </style>
+<span class="view-source">
+ demo for wasabi [ <a title="or ctrl-u" href="view-source:/">page source</a>  ]
+</span>
+<div class="wrapper">
+
+
+
+
+<!-- start of wasabi stuff
+                 |
+                 |
+                 |
+                \|/
+                 v
+-->
+<link href="https://s3.amazonaws.com/wasabi.js/wasabi.css" rel="stylesheet">          <!-- INCLUDE wasabi.css -->
+<div class="wasabi-original" id="simple-project">
+wasabi/
+  this is a comment on the directory "wasabi/"
+  when listing the full path for each item,
+  comments are indented 2 spaces after their entry.
+
+  <br/>empty lines are OK!
+
+wasabi/index.html
+wasabi/welcome.html
+wasabi/_includes/
+wasabi/_includes/foot.html
+wasabi/_includes/head.html
+wasabi/_includes/header.html
+wasabi/_includes/footer.html
+wasabi/_includes/demo-header.html
+wasabi/detailed.sh
+wasabi/js/
+wasabi/js/wasabi.core.js
+wasabi/js/wasabi.min.js
+wasabi/js/repl-demo.js
+wasabi/js/prism.js
+wasabi/js/wasabi.js
+wasabi/js/wasabi.basic.js
+wasabi/js/get-wasabi.js
+wasabi/js/site.js
+wasabi/js/welcome-demo.js
+wasabi/img/
+wasabi/img/browser-demo.png
+wasabi/img/bg-indicator.svg
+wasabi/img/logo.svg
+wasabi/img/banner.png
+wasabi/img/icon.svg
+wasabi/img/bg-indicator.png
+wasabi/img/demo.gif
+wasabi/img/browser-demo-source.png
+wasabi/_config.yml
+wasabi/demos.html
+wasabi/examples/
+wasabi/examples/simple-indented.wasabi
+wasabi/examples/simple-detailed.wasabi
+wasabi/examples/wasabi-detailed.wasabi
+wasabi/examples/wasabi-indented.wasabi
+wasabi/.gitignore
+wasabi/favicon.ico
+wasabi/_demos/
+wasabi/_demos/wasabi-detailed.html
+wasabi/_demos/bigtree-cms.html
+wasabi/_demos/simple-indented.html
+wasabi/_demos/wordpress.html
+wasabi/_demos/linux.html
+wasabi/_demos/wasabi-indented.html
+wasabi/_demos/simple-detailed.html
+wasabi/_layouts/
+wasabi/_layouts/iframe.html
+wasabi/_layouts/basic.html
+wasabi/_layouts/blank.html
+wasabi/_layouts/html.html
+wasabi/_layouts/demo.html
+wasabi/minimal.html
+wasabi/wasabi-demo/
+wasabi/wasabi-demo/index.html
+wasabi/wasabi-demo/wasabi.wasabi.txt
+wasabi/demo-page.sh
+wasabi/boilerplate.sh
+wasabi/bin/
+wasabi/bin/wasabi-demo/
+wasabi/bin/wasabi-demo/index.html
+wasabi/bin/wasabi-demo/bin.wasabi.txt
+wasabi/indented.sh
+wasabi/css/
+wasabi/css/wasabi.css
+wasabi/css/repl-demo.css
+wasabi/css/base.css
+wasabi/css/wasabi.core.css
+wasabi/css/normalize.css
+wasabi/css/prism.css
+wasabi/css/wasabi.basic.css
+wasabi/css/demo.css
+
+</div>
+<script src="https://s3.amazonaws.com/wasabi.js/wasabi.js"></script>                   <!-- INCLUDE wasabi.js -->
+
+<script>
+  var myProject = new Wasabi.Project('#simple-project'); // INIT YOUR PROJECT WITH ITS ID
+  myProject.replace();
+</script>
+<!--
+      that's the end of wasabi stuff
+
+               \   /
+                \ /
+                 X
+                / \
+               /   \
+-->
+
+
+
+    </div>
+  </body>
+</html>
