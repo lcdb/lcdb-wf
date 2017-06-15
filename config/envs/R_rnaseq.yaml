@@ -1,7 +1,6 @@
 channels:
   - bioconda
   - conda-forge
-  - r
 
 dependencies:
   - bioconductor-deseq2

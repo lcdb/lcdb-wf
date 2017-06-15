@@ -19,10 +19,18 @@ bash Miniconda3-latest-Linux-x86_64.sh -f -b -p $CONDA_DIR
 
 export PATH="$CONDA_DIR/bin:$PATH"
 
+# See https://github.com/conda/conda/issues/5536
+conda install "conda<4.3"
+
 # Add channels in the specified order.
 conda config --add channels conda-forge
 conda config --add channels defaults
-conda config --add channels r
+
+# Recently bioconda helped migrate a ton of R packages from the `r` channel to
+# the `conda-forge` channel. See https://github.com/conda/conda/issues/5536 for
+# why the r channel needs to be removed...
+
+# conda config --add channels r
 conda config --add channels bioconda
 conda config --add channels lcdb
 
