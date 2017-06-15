@@ -30,5 +30,12 @@ echo "Building environment $ENVNAME"
 conda create -n $ENVNAME -y python=3.5 --file requirements.txt \
     | grep -v " Time: "
 
+# We were getting timeouts when building the RNA-seq environment in the context
+# of a snakefile's environment building step, since there was no output for
+# a long time. To try to help alleviate this, we try pre-caching the
+# environment here:
+conda env create --file config/envs/R_rnaseq.yaml -n tmp
+
 source activate $ENVNAME
+
 python ci/get-data.py
