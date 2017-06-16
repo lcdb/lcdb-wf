@@ -1,5 +1,4 @@
 # atropos ==1.0.23
-atropos ==1.0.23
 bioconductor-dupradar ==1.2.2
 biopython ==1.69
 bowtie2 ==2.3.2
