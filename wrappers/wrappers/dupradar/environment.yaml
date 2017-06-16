@@ -5,4 +5,3 @@ dependencies:
   - bioconductor-dupradar ==1.2.2
   - lcdblib ==0.1.2.post
   - ghostscript ==9.18
-  - python ==3.5
