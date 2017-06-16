@@ -35,7 +35,7 @@ conda config --add channels bioconda
 conda config --add channels lcdb
 
 echo "Building environment $ENVNAME"
-conda create -n $ENVNAME -y python=3.5 --file requirements.txt \
+conda create -n $ENVNAME -y --file requirements.txt \
     | grep -v " Time: "
 
 source activate $ENVNAME
