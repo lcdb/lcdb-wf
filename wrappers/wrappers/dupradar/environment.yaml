@@ -1,6 +1,5 @@
 channels:
   - bioconda
-  - r
   - lcdb
 dependencies:
   - bioconductor-dupradar ==1.2.2
