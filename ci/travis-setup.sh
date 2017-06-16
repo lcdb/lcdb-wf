@@ -19,10 +19,18 @@ bash Miniconda3-latest-Linux-x86_64.sh -f -b -p $CONDA_DIR
 
 export PATH="$CONDA_DIR/bin:$PATH"
 
+# See https://github.com/conda/conda/issues/5536
+conda install "conda<4.3"
+
 # Add channels in the specified order.
 conda config --add channels conda-forge
 conda config --add channels defaults
-conda config --add channels r
+
+# Recently bioconda helped migrate a ton of R packages from the `r` channel to
+# the `conda-forge` channel. See https://github.com/conda/conda/issues/5536 for
+# why the r channel needs to be removed...
+
+# conda config --add channels r
 conda config --add channels bioconda
 conda config --add channels lcdb
 
@@ -30,12 +38,5 @@ echo "Building environment $ENVNAME"
 conda create -n $ENVNAME -y python=3.5 --file requirements.txt \
     | grep -v " Time: "
 
-# We were getting timeouts when building the RNA-seq environment in the context
-# of a snakefile's environment building step, since there was no output for
-# a long time. To try to help alleviate this, we try pre-caching the
-# environment here:
-conda env create --file config/envs/R_rnaseq.yaml -n tmp
-
 source activate $ENVNAME
-
 python ci/get-data.py
