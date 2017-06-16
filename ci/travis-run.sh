@@ -21,6 +21,7 @@ case $TYPE in
     ;;
   rnaseq.snakefile)
     source activate lcdb-wf-test && \
+      conda --version && \
       snakemake -s rnaseq.snakefile \
       --configfile config/test_config.yaml \
       --use-conda \

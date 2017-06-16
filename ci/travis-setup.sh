@@ -29,14 +29,18 @@ conda config --add channels defaults
 # Recently bioconda helped migrate a ton of R packages from the `r` channel to
 # the `conda-forge` channel. See https://github.com/conda/conda/issues/5536 for
 # why the r channel needs to be removed...
-
 # conda config --add channels r
 conda config --add channels bioconda
 conda config --add channels lcdb
 
+conda --version
+
 echo "Building environment $ENVNAME"
 conda create -n $ENVNAME -y --file requirements.txt \
     | grep -v " Time: "
+
+# try pre-caching rnaseq
+conda env create -n tmp --file config/envs/R_rnaseq.yaml
 
 source activate $ENVNAME
 python ci/get-data.py
