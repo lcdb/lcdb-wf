@@ -20,7 +20,7 @@ bash Miniconda3-latest-Linux-x86_64.sh -f -b -p $CONDA_DIR
 export PATH="$CONDA_DIR/bin:$PATH"
 
 # See https://github.com/conda/conda/issues/5536
-conda install -y "conda<4.3" "python=3.5"
+conda install -y "conda<4.3"
 
 # Add channels in the specified order.
 conda config --add channels conda-forge
