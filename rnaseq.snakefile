@@ -393,6 +393,8 @@ rule bigwig_neg:
     output: patterns['bigwig']['neg']
     params:
         extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand reverse --normalizeUsingRPKM'
+    log:
+        patterns['bigwig']['neg'] + '.log'
     wrapper: wrapper_for('deeptools/bamCoverage')
 
 
@@ -406,6 +408,8 @@ rule bigwig_pos:
     output: patterns['bigwig']['pos']
     params:
         extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand forward --normalizeUsingRPKM'
+    log:
+        patterns['bigwig']['pos'] + '.log'
     wrapper: wrapper_for('deeptools/bamCoverage')
 
 
