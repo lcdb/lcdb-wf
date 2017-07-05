@@ -28,7 +28,7 @@ case $TYPE in
       -j2 -T -k -p -r
     ;;
   pytest)
-    source activate lcdb-wf-test && py.test wrappers/test -n2 -v
+    source activate lcdb-wf-test && py.test wrappers/test -v
     ;;
   docs)
     ci/build-docs.sh
