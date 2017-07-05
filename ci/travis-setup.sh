@@ -23,8 +23,8 @@ export PATH="$CONDA_DIR/bin:$PATH"
 conda install -y "conda<4.3"
 
 # Add channels in the specified order.
-conda config --add channels conda-forge
 conda config --add channels defaults
+conda config --add channels conda-forge
 
 # Recently bioconda helped migrate a ton of R packages from the `r` channel to
 # the `conda-forge` channel. See https://github.com/conda/conda/issues/5536 for
