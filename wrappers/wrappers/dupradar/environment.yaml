@@ -3,7 +3,7 @@ channels:
   - lcdb
 dependencies:
   - bioconductor-dupradar ==1.2.2
-  - r-kernsmooth
-  - r-base==3.3.2
+  - r-kernsmooth ==2.23
+  - r ==3.3.2
   - lcdblib ==0.1.2.post
   - ghostscript ==9.18
