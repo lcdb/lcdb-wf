@@ -1,5 +1,5 @@
 atropos ==1.1.5
-# bioconductor-dupradar ==1.2.2
+bioconductor-dupradar ==1.2.2
 biopython ==1.69
 bowtie2 ==2.3.2
 cutadapt ==1.13
@@ -16,9 +16,10 @@ pandas ==0.20.2
 picard ==2.9.2
 pysam == 0.11.2.2
 pytest ==3.1.1
-pytest-xdist ==1.14
-# python ==3.5
-# r ==3.3.2
+pytest-xdist ==1.18
+python ==3.6
+r ==3.3.2
+# r-kernsmooth ==2.23
 # r-essentials ==1.5.2
 # rseqc ==2.6.4
 salmon ==0.8.2
