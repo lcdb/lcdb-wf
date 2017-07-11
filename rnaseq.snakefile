@@ -46,6 +46,8 @@ patterns = {
     'featurecounts': '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.txt',
     'libsizes_table': '{agg_dir}/libsizes_table.tsv',
     'libsizes_yaml': '{agg_dir}/libsizes_table_mqc.yaml',
+    'rrna_percentages_table': '{agg_dir}/rrna_percentages_table.tsv',
+    'rrna_percentages_yaml': '{agg_dir}/rrna_percentages_table_mqc.yaml',
     'rrna': {
         'bam': '{sample_dir}/{sample}/rRNA/{sample}.cutadapt.rrna.bam',
         'libsize': '{sample_dir}/{sample}/rRNA/{sample}.cutadapt.rrna.bam.libsize',
@@ -106,6 +108,7 @@ rule targets:
             utils.flatten(targets['libsizes']) +
             [targets['fastq_screen']] +
             [targets['libsizes_table']] +
+            [targets['rrna_percentages_table']] +
             [targets['multiqc']] +
             utils.flatten(targets['featurecounts']) +
             utils.flatten(targets['rrna']) +
@@ -250,6 +253,56 @@ rule featurecounts:
         wrapper_for('featurecounts')
 
 
+rule rrna_libsizes_table:
+    """
+    Aggregate rRNA counts into a table
+    """
+    input:
+        rrna=targets['rrna']['libsize'],
+        fastq=targets['libsizes']['cutadapt']
+    output:
+        json=patterns['rrna_percentages_yaml'],
+        tsv=patterns['rrna_percentages_table']
+    run:
+        def rrna_sample(f):
+            return helpers.extract_wildcards(patterns['rrna']['libsize'], f)['sample']
+
+        def sample(f):
+            return helpers.extract_wildcards(patterns['libsizes']['cutadapt'], f)['sample']
+
+        def million(f):
+            return float(open(f).read()) / 1e6
+
+        rrna = sorted(input.rrna, key=rrna_sample)
+        fastq = sorted(input.fastq, key=sample)
+        samples = list(map(rrna_sample, rrna))
+        rrna_m = list(map(million, rrna))
+        fastq_m = list(map(million, fastq))
+
+        df = pd.DataFrame(dict(
+            sample=samples,
+            million_reads_rRNA=rrna_m,
+            million_reads_fastq=fastq_m,
+        ))
+        df = df.set_index('sample')
+        df['rRNA_percentage'] = df.million_reads_rRNA / df.million_reads_fastq * 100
+
+        df[['million_reads_fastq', 'million_reads_rRNA', 'rRNA_percentage']].to_csv(output.tsv, sep='\t')
+        y = {
+            'id': 'rrna_percentages_table',
+            'section_name': 'rRNA content',
+            'description': 'Amount of reads mapping to rRNA sequence',
+            'plot_type': 'table',
+            'pconfig': {
+                'id': 'rrna_percentages_table_table',
+                'title': 'rRNA content table',
+                'min': 0
+            },
+            'data': yaml.load(df.transpose().to_json()),
+        }
+        with open(output.json, 'w') as fout:
+            yaml.dump(y, fout, default_flow_style=False)
+
 rule libsizes_table:
     """
     Aggregate fastq and bam counts in to a single table
@@ -292,6 +345,8 @@ rule libsizes_table:
             yaml.dump(y, fout, default_flow_style=False)
 
 
+
+
 rule multiqc:
     """
     Aggregate various QC stats and logs into a single HTML report with MultiQC
@@ -300,6 +355,7 @@ rule multiqc:
         files=(
             utils.flatten(targets['fastqc']) +
             utils.flatten(targets['libsizes_yaml']) +
+            utils.flatten(targets['rrna_percentages_yaml']) +
             utils.flatten(targets['cutadapt']) +
             utils.flatten(targets['featurecounts']) +
             utils.flatten(targets['bam']) +
