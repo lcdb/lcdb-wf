@@ -105,8 +105,8 @@ rule targets:
             [targets['multiqc']] +
             utils.flatten(targets['featurecounts']) +
             utils.flatten(targets['markduplicates']) +
-            utils.flatten(targets['dupradar']) +
             utils.flatten(targets['salmon']) +
+            #utils.flatten(targets['dupradar']) +
             utils.flatten(targets['rseqc']) +
             utils.flatten(targets['collectrnaseqmetrics']) +
             utils.flatten(targets['bigwig']) +
