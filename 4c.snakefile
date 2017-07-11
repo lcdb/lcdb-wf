@@ -7,11 +7,7 @@ from lcdblib.snakemake import helpers, aligners
 from lcdblib.utils import utils
 from lib import common
 
-TMPDIR = tempfile.gettempdir()
-JOBID = os.getenv('SLURM_JOBID')
-if JOBID:
-    TMPDIR = os.path.join('/lscratch', JOBID)
-shell.prefix('set -euo pipefail; export TMPDIR={};'.format(TMPDIR))
+shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
 
 include: 'references.snakefile'
@@ -21,8 +17,7 @@ if references_dir is None:
     raise ValueError('No references dir specified')
 config['references_dir'] = references_dir
 
-sampletable = pd.read_table(config['sampletable'])
-samples = sampletable.ix[:, 0]
+samples, sampletable = common.get_sampletable(config)
 assembly = config['assembly']
 refdict, conversion_kwargs = common.references_dict(config)
 

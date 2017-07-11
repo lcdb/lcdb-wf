@@ -1,7 +1,6 @@
 channels:
   - bioconda
   - conda-forge
-  - r
 
 dependencies:
   - bioconductor-deseq2
@@ -12,10 +11,11 @@ dependencies:
   - bioconductor-genomicfeatures
   - bioconductor-sva
   - bioconductor-tximport
-  - r-rmarkdown
   - pandoc
+  - r-codetools
+  - r-dt
   - r-knitrbootstrap
   - r-knitr
   - r-pheatmap
   - r-readr
-  - r-dt
+  - r-rmarkdown

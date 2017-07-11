@@ -30,7 +30,7 @@ def sample1_se_dupradar(sample1_se_bam_markdups, annotation, tmpdir_factory):
         }
     )
     tmpdir = str(tmpdir_factory.mktemp('dupradar_fixture'))
-    run(dpath('../wrappers/dupradar'), snakefile, None, input_data_func, tmpdir)
+    run(dpath('../wrappers/dupradar'), snakefile, None, input_data_func, tmpdir, use_conda=False)
     mapping = dict(
         density_scatter='sample1.density_scatter.png',
         expression_histogram='sample1.expression_histogram.png',

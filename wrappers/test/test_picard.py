@@ -22,7 +22,7 @@ def sample1_se_bam_markdups(sample1_se_bam, tmpdir_factory):
         }
     )
     tmpdir = str(tmpdir_factory.mktemp('markduplicates_fixture'))
-    run(dpath('../wrappers/picard/markduplicates'), snakefile, None, input_data_func, tmpdir)
+    run(dpath('../wrappers/picard/markduplicates'), snakefile, None, input_data_func, tmpdir, use_conda=True)
     return {
             'bam': os.path.join(tmpdir, 'sample1.dupsmarked.bam'),
             'metrics': os.path.join(tmpdir, 'sample1.dupmetrics.txt')
@@ -57,7 +57,7 @@ def test_picard_collectrnaseqmetrics_se(sample1_se_tiny_bam, annotation_refflat,
     def check():
         assert '## METRICS CLASS' in open('sample1.metrics').read()
 
-    run(dpath('../wrappers/picard/collectrnaseqmetrics'), snakefile, check, input_data_func, tmpdir)
+    run(dpath('../wrappers/picard/collectrnaseqmetrics'), snakefile, check, input_data_func, tmpdir, use_conda=True)
 
 
 def test_picard_collectrnaseqmetrics_se_plot(sample1_se_tiny_bam, annotation_refflat, tmpdir):
@@ -83,7 +83,7 @@ def test_picard_collectrnaseqmetrics_se_plot(sample1_se_tiny_bam, annotation_ref
     def check():
         assert '## METRICS CLASS' in open('sample1.metrics').read()
 
-    run(dpath('../wrappers/picard/collectrnaseqmetrics'), snakefile, check, input_data_func, tmpdir)
+    run(dpath('../wrappers/picard/collectrnaseqmetrics'), snakefile, check, input_data_func, tmpdir, use_conda=True)
 
 
 @pytest.mark.xfail
@@ -113,4 +113,4 @@ def test_picard_collectrnaseqmetrics_too_small_heap(sample1_se_tiny_bam, annotat
     def check():
         assert '## METRICS CLASS' in open('sample1.metrics').read()
 
-    run(dpath('../wrappers/picard/collectrnaseqmetrics'), snakefile, check, input_data_func, tmpdir)
+    run(dpath('../wrappers/picard/collectrnaseqmetrics'), snakefile, check, input_data_func, tmpdir, use_conda=True)
