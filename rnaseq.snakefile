@@ -122,6 +122,20 @@ rule targets:
         )
 
 
+
+rule symlinks:
+    """
+    Symlinks files over from original filename
+    """
+    input: lambda wc: sampletable.set_index(sampletable.columns[0])['orig_filename'].to_dict()[wc.sample]
+    output: patterns['fastq']
+    run:
+        common.relative_symlink(input[0], output[0])
+
+
+rule symlink_targets:
+    input: targets['fastq']
+
 rule cutadapt:
     """
     Run cutadapt
