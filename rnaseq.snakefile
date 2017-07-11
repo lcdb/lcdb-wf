@@ -197,9 +197,9 @@ rule bam_count:
     Count reads in a BAM file
     """
     input:
-        bam='{sample_dir}/{sample}/{sample}{suffix}.bam'
+        bam='{sample_dir}/{sample}/{suffix}.bam'
     output:
-        count='{sample_dir}/{sample}/{sample}{suffix}.bam.libsize'
+        count='{sample_dir}/{sample}/{suffix}.bam.libsize'
     shell:
         'samtools view -c {input} > {output}'
 
