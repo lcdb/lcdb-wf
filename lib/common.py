@@ -1,9 +1,11 @@
 import os
+import tempfile
 import yaml
+import pandas
 from Bio import SeqIO
 import gzip
 from lcdblib.utils.imports import resolve_name
-from lcdblib.snakemake import aligners, helpers
+from lcdblib.snakemake import aligners
 from snakemake.shell import shell
 
 
@@ -18,6 +20,12 @@ def gzipped(tmpfiles, outfile):
 
 
 def cat(tmpfiles, outfile):
+    """
+    Simple concatenation of files.
+
+    Note that gzipped files can be concatenated as-is without un- and re-
+    compressing.
+    """
     shell('cat {tmpfiles} > {outfile}')
 
 
@@ -57,9 +65,29 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
     """
     Given an output file, figure out what to do based on the config.
 
+    Parameters
+    ----------
+    outfile : str
+
+    config : dict
+
+    assembly : str
+        Which assembly to use. Must be a key in the "references" section of the
+        config.
+
+    tag : str
+        Which tag for the assembly to use. Must be a tag for the assembly in the config
+
+    type_ : str
+        A supported references type (gtf, fasta) to use.
+
+    Notes
+    -----
+
     This function:
 
-     - uses assembly, tag, type_ as a key into the config dict to figure out:
+     - uses `assembly`, `tag`, `type_` as a key into the config dict to figure
+       out:
          - what postprocessing function (if any) was specified along with
            its optional args
          - the URL[s] to download
@@ -68,10 +96,32 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
      - calls the imported function using the tempfile[s] and outfile plus
        any additional specified arguments.
 
-    If defined, the function must assume a list of input gzipped files and must
-    create the gzipped output file (whose name is given as its 2nd input arg).
+
+    The function must have one of the following two signatures::
+
+        def func(infiles, outfile):
+            pass
+
+    or::
+
+        def func(infiles, outfile, *args):
+            pass
+
+
+    `infiles` contains the list of temporary files downloaded from the URL or
+    URLs specified.
+
+    `outfile` is a gzipped file expected to be created by the function.
+
+    The function is specified as a string that resolves to an importable
+    function, e.g., `lib.postprocess.dm6.fix` is a function called `fix` in the
+    file `lib/postprocess/dm6.py`.
+
+    If specified in the config as a dict, it must have `function` and `args`
+    keys. The `function` key indicates the importable path to the function, and
+    `args` can be a string or list of arguments that will be provided as
+    additional args to a function with the second kind of signature above.
     """
-    references_dir = get_references_dir(config)
 
     def default_postprocess(origfn, newfn):
         """
@@ -79,9 +129,6 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
         to the new.
         """
         shell("mv {origfn} {newfn}")
-
-    base = os.path.relpath(outfile, references_dir)
-    basename = os.path.basename(outfile)
 
     block = config['references'][assembly][tag][type_]
 
@@ -126,15 +173,18 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
                 shell('rm {i}')
 
 
-def get_references_dir(config):
-    references_dir = os.environ.get('REFERENCES_DIR', config.get('references_dir', None))
-    if references_dir is None:
-        raise ValueError('References dir not set')
-    return references_dir
-
-
 def references_dict(config):
     """
+    Reformats the config file's reference section into a more practical form.
+
+    Files can be referenced as `d[assembly][tag][type]`.
+
+    Parameters
+    ----------
+    config : dict
+
+    Notes
+    -----
     The config file is designed to be easy to edit and use from the user's
     standpoint. But it's not so great for practical usage. Here we convert the
     config file which has the format::
@@ -186,8 +236,6 @@ def references_dict(config):
     ... }), d
     >>> os.unlink('tmp')
 
-    With this new dictionary, other parts of the config or snakemake rules can
-    access the files by d[assembly][tag][type].
     """
     if isinstance(config, str):
         config = yaml.load(open(config))
@@ -201,7 +249,6 @@ def references_dict(config):
         'kallisto': '.idx',
         'salmon': '/hash.bin'
     }
-
 
     conversion_extensions = {
         'intergenic': '.intergenic.gtf',
@@ -259,7 +306,7 @@ def references_dict(config):
 
                         conversion_kwargs[output] = kwargs
 
-                if type_== 'fasta':
+                if type_ == 'fasta':
                     # Add indexes if specified
                     indexes = block.get('indexes', [])
                     for index in indexes:
@@ -279,3 +326,55 @@ def references_dict(config):
                     )
                 d[assembly][tag] = e
     return d, conversion_kwargs
+
+
+def tempdir_for_biowulf():
+    """
+    Get an appropriate tempdir.
+
+    The NIH biowulf cluster allows nodes to have their own /lscratch dirs as
+    local temp storage. However the particular dir depends on the slurm job ID,
+    which is not known in advance. This function sets the shell.prefix to use
+    such a tempdir if it's available; otherwise it leaves TMPDIR unchanged.
+    This makes it suitable for running locally or on other clusters, however if
+    you need different behavior then a different function will need to be
+    written.
+    """
+    tmpdir = tempfile.gettempdir()
+    jobid = os.getenv('SLURM_JOBID')
+    if jobid:
+        tmpdir = os.path.join('/lscratch', jobid)
+    return tmpdir
+
+
+def get_references_dir(config):
+    """
+    Returns the references dir, preferring the value of an existing environment
+    variable `REFERENCES_DIR` over the config entry "references_dir". Raise an
+    error if either can't be found.
+
+    Parameters
+    ----------
+    config : dict
+    """
+    references_dir = os.environ.get(
+        'REFERENCES_DIR', config.get('references_dir', None))
+    if references_dir is None:
+        raise ValueError('No references dir specified')
+    config['references_dir'] = references_dir
+    return references_dir
+
+
+def get_sampletable(config):
+    """
+    Returns the sample IDs and the parsed sampletable.
+
+    The sample IDs are assumed to be the first column of the sampletable.
+
+    Parameters
+    ----------
+    config : dict
+    """
+    sampletable = pandas.read_table(config['sampletable'])
+    samples = sampletable.iloc[:, 0]
+    return samples, sampletable

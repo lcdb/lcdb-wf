@@ -5,4 +5,3 @@ dependencies:
   - fastq-screen ==0.11.1
   - bowtie2 ==2.3.2
   - lcdblib ==0.1.2.post
-  - python ==3.5
