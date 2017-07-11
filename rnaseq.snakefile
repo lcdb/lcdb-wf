@@ -46,6 +46,10 @@ patterns = {
     'featurecounts': '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.txt',
     'libsizes_table': '{agg_dir}/libsizes_table.tsv',
     'libsizes_yaml': '{agg_dir}/libsizes_table_mqc.yaml',
+    'rrna': {
+        'bam': '{sample_dir}/{sample}/rRNA/{sample}.cutadapt.rrna.bam',
+        'libsize': '{sample_dir}/{sample}/rRNA/{sample}.cutadapt.rrna.bam.libsize',
+    },
     'multiqc': '{agg_dir}/multiqc.html',
     'markduplicates': {
         'bam': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam',
@@ -104,6 +108,7 @@ rule targets:
             [targets['libsizes_table']] +
             [targets['multiqc']] +
             utils.flatten(targets['featurecounts']) +
+            utils.flatten(targets['rrna']) +
             utils.flatten(targets['markduplicates']) +
             utils.flatten(targets['salmon']) +
             #utils.flatten(targets['dupradar']) +
@@ -157,6 +162,23 @@ rule hisat2:
     wrapper:
         wrapper_for('hisat2/align')
 
+
+rule rRNA:
+    """
+    Map reads with bowtie2 to the rRNA reference
+    """
+    input:
+        fastq=rules.cutadapt.output.fastq,
+        index=[refdict[assembly][config['rrna']['tag']]['bowtie2']]
+    output:
+        bam=patterns['rrna']['bam']
+    log:
+        patterns['rrna']['bam'] + '.log'
+    params:
+        samtools_view_extra='-F 0x04'
+    threads: 6
+    wrapper:
+        wrapper_for('bowtie2/align')
 
 rule fastq_count:
     """
