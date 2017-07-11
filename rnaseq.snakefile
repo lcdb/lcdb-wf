@@ -158,6 +158,8 @@ rule hisat2:
         bam=patterns['bam']
     log:
         patterns['bam'] + '.log'
+    params:
+        samtools_view_extra='-F 0x04'
     threads: 6
     wrapper:
         wrapper_for('hisat2/align')
