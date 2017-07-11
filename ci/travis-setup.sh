@@ -19,24 +19,27 @@ bash Miniconda3-latest-Linux-x86_64.sh -f -b -p $CONDA_DIR
 
 export PATH="$CONDA_DIR/bin:$PATH"
 
+cat > ~/.condarc <<EOF
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+  - lcdb
+default_channels:
+  - https://repo.continuum.io/pkgs/free
+EOF
+
 # See https://github.com/conda/conda/issues/5536
-conda install "conda<4.3"
+conda install -y "conda<4.3"
 
-# Add channels in the specified order.
-conda config --add channels conda-forge
-conda config --add channels defaults
-
-# Recently bioconda helped migrate a ton of R packages from the `r` channel to
-# the `conda-forge` channel. See https://github.com/conda/conda/issues/5536 for
-# why the r channel needs to be removed...
-
-# conda config --add channels r
-conda config --add channels bioconda
-conda config --add channels lcdb
+conda --version
 
 echo "Building environment $ENVNAME"
-conda create -n $ENVNAME -y python=3.5 --file requirements.txt \
+conda create -n $ENVNAME -y --file requirements.txt \
     | grep -v " Time: "
+
+# try pre-caching rnaseq
+conda env create -n tmp --file config/envs/R_rnaseq.yaml
 
 source activate $ENVNAME
 python ci/get-data.py

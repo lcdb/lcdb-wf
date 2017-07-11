@@ -5,7 +5,7 @@ before_script:
   - export JAVA_HOME=
   - export TMPDIR=/tmp
 script:
-  - ci/travis-run.sh
+  - travis_wait 30 ci/travis-run.sh
 env:
   global:
     - ENCRYPTION_LABEL: "7472da9c29f2"
