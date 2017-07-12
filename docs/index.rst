@@ -13,9 +13,11 @@ starting point that users can modify for their own use.
    :caption: Contents:
 
    getting-started
+   guide
    workflows
    references
    wrappers
+   tests
 
 
 Guiding principles
