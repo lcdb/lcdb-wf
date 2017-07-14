@@ -70,6 +70,13 @@ def sample1_se_tiny_bam(tmpdir_factory):
 
 
 @pytest.fixture(scope='session')
+def sample1_pe_tiny_bam(tmpdir_factory):
+    d = tmpdir_for_func(tmpdir_factory)
+    fn = 'rnaseq_samples/sample1/sample1.tiny.paired.sorted.bam'
+    return _download_file(fn, d)
+
+
+@pytest.fixture(scope='session')
 def sample1_se_bam_bai(sample1_se_bam, tmpdir_factory):
     """
     Returns both the bam and the bam.bai

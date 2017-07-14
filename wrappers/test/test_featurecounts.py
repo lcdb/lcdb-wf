@@ -2,7 +2,7 @@ import os
 import gzip
 from utils import run, dpath, rm, symlink_in_tempdir
 
-def test_featurecounts_se(sample1_se_bam, annotation, tmpdir):
+def test_featurecounts_se(sample1_se_tiny_bam, annotation, tmpdir):
     snakefile = '''
                 rule featurecounts:
                     input:
@@ -15,7 +15,7 @@ def test_featurecounts_se(sample1_se_bam, annotation, tmpdir):
                 '''
     input_data_func=symlink_in_tempdir(
         {
-            sample1_se_bam: 'sample1.bam',
+            sample1_se_tiny_bam: 'sample1.bam',
             annotation: 'dm6.gtf',
         }
     )
@@ -28,7 +28,7 @@ def test_featurecounts_se(sample1_se_bam, annotation, tmpdir):
 
     run(dpath('../wrappers/featurecounts'), snakefile, check, input_data_func, tmpdir)
 
-def test_featurecounts_pe(sample1_pe_bam, annotation, tmpdir):
+def test_featurecounts_pe(sample1_pe_tiny_bam, annotation, tmpdir):
     snakefile = '''
                 rule featurecounts:
                     input:
@@ -42,7 +42,7 @@ def test_featurecounts_pe(sample1_pe_bam, annotation, tmpdir):
                 '''
     input_data_func=symlink_in_tempdir(
         {
-            sample1_pe_bam: 'sample1.bam',
+            sample1_pe_tiny_bam: 'sample1.bam',
             annotation: 'dm6.gtf',
         }
     )
