@@ -1,4 +1,5 @@
 language: python
+filter secrets: false
 install: bash ci/travis-setup.sh
 before_script:
   - export PATH=/tmp/ci/ana/bin:$PATH
