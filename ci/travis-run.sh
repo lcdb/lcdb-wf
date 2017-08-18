@@ -31,7 +31,7 @@ case $TYPE in
     source activate lcdb-wf-test && \
       conda --version && \
       snakemake -s chipseq.snakefile \
-      --configfile config/test_config_chipseq.yaml \
+      --configfile config/test_chipseq_config.yaml \
       --use-conda \
       -j2 -T -k -p -r
     ;;
