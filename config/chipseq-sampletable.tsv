@@ -1,0 +1,5 @@
+samplename	antibody	input	replicate	techrep
+input_1	input	NA	1	1
+input_2	input	NA	2	1
+ip_1	antibody1	input1	1	1
+ip_2	antibody2	input2	2	1
