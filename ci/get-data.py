@@ -19,6 +19,10 @@ _download_file('rnaseq_samples/sample1/sample1.small_R1.fastq.gz')
 _download_file('rnaseq_samples/sample2/sample2.small_R1.fastq.gz')
 _download_file('rnaseq_samples/sample3/sample3.small_R1.fastq.gz')
 _download_file('rnaseq_samples/sample4/sample4.small_R1.fastq.gz')
+_download_file('chipseq_samples/input_1/input_1.tiny_R1.fastq.gz')
+_download_file('chipseq_samples/ip_1/ip_1.tiny_R1.fastq.gz')
+_download_file('chipseq_samples/input_2/input_2.tiny_R1.fastq.gz')
+_download_file('chipseq_samples/ip_2/ip_2.tiny_R1.fastq.gz')
 
 shell('mkdir -p data/rnaseq_samples/sample{{1,2,3,4}}')
 for n in [1, 2, 3, 4]:
@@ -27,3 +31,11 @@ for n in [1, 2, 3, 4]:
         'data/rnaseq_samples/sample{n}/sample{n}_R1.fastq.gz'
     )
 shell('rm -r rnaseq_samples')
+
+shell('mkdir -p data/chipseq_samples/{{ip,input}}_{{1,2}}')
+for i in ['ip', 'input']:
+    for n in [1, 2]:
+        shell(
+            'mv chipseq_samples/{i}_{n}/{i}_{n}.tiny_R1.fastq.gz '
+            'data/chipseq_samples/{i}_{n}/{i}_{n}_R1.fastq.gz'
+        )

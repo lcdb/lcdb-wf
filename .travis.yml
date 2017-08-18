@@ -13,6 +13,7 @@ env:
 
   matrix:
     - TYPE=rnaseq.snakefile
+    - TYPE=chipseq.snakefile
     - TYPE=references.snakefile
     - TYPE=pytest
     - TYPE=docs
