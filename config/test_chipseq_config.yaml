@@ -1,0 +1,64 @@
+
+# sampletable: TSV file defining sample metadata.
+#
+# First column must have header name "samplename".
+sampletable: 'config/chipseq-sampletable.tsv'
+
+# sample_dir: directory in which each sample is expected to have its own
+# directory and fastq file[s]. If `sampletable` lists a sample with samplename
+# SAMPLE1, then at least the file $sample_dir/SAMPLE1/SAMPLE1_R1.fastq.gz is
+# expected.
+sample_dir: 'data/chipseq_samples'
+
+# Directory to contain reports and other aggregations
+aggregation_dir: 'data/chipseq_aggregation'
+
+# Which key in the `references` dict below to use
+assembly: 'dmel'
+
+# If not specified here, use the environment variable REFERENCES_DIR.
+references_dir: 'references_data'
+
+peaks_dir: 'data/chipseq_peaks'
+
+
+chipseq:
+  peak_calling:
+    - label: ip1-peaks
+      algorithm: macs2
+      ip:
+        - ip_1
+      control:
+        - input_1
+      extra: '--nomodel --extsize 147'
+
+
+aligner:
+  index: 'bowtie2'
+  tag: 'test'
+
+# references has the structure:
+#
+#   assembly:           [ used as top-level dir for references ]
+#     tag:              [ user-defined; often indicates version or release ]
+#       type:           [ must be either "gtf" or "fasta" ]
+#         url:          [ string or list of urls ]
+#         postprocess:  [ string of importable function or dict of function and args ]
+#         conversions:  [ list of gtf conversions; only if type == gtf ]
+#         indexes:      [ list of indexes to build; only if type == fasta ]
+
+references:
+  dmel:
+    test:
+      fasta:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/add-chipseq/data/seq/dm6.small.fa"
+        postprocess: 'lib.common.gzipped'
+        indexes:
+          - 'bowtie2'
+  phix:
+    default:
+      fasta:
+        url: 'ftp://igenome:G3nom3s4u@ussd-ftp.illumina.com/PhiX/Illumina/RTA/PhiX_Illumina_RTA.tar.gz'
+        postprocess: "lib.postprocess.phix.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
