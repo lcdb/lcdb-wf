@@ -23,6 +23,7 @@ shell(
     '-o {tmp_out} '
     '-p {snakemake.threads} '
     '{extra} '
+    '{log} '
     '&& mv {tmp_out} {snakemake.output[0]} '
     '&& rm {tmp_in}'
 )
