@@ -52,15 +52,19 @@ patterns = {
     'bigwig': '{sample_dir}/{sample}/{sample}.cutadapt.bam.bigwig',
     'peaks': {
         'macs2': '{peak_calling}/macs2/{macs2_run}/peaks.bed',
+        'spp': '{peak_calling}/spp/{spp_run}/peaks.bed',
     },
     'bigbed': {
         'macs2': '{peak_calling}/macs2/{macs2_run}/peaks.bigbed',
+        'spp': '{peak_calling}/spp/{spp_run}/peaks.bigbed',
     },
 
 }
 fill = dict(sample=samples, sample_dir=sample_dir, agg_dir=agg_dir,
             peak_calling=peak_calling,
-            macs2_run=chipseq.peak_calling_dict(dict(config), algorithm='macs2'))
+            macs2_run=chipseq.peak_calling_dict(dict(config), algorithm='macs2'),
+            spp_run=chipseq.peak_calling_dict(dict(config), algorithm='spp'),
+           )
 targets = helpers.fill_patterns(patterns, fill)
 
 
@@ -342,80 +346,26 @@ rule macs2:
     wrapper: wrapper_for('macs2/callpeak')
 
 
-#rule spp:
-#    input:
-#        treatment=_bam_files('data/chipseq/samples/{sample}/{sample}.trim.fastq.bowtie2.unique.nodups.bam', 'spp', 'treatment'),
-#        control=_bam_files('data/chipseq/samples/{sample}/{sample}.trim.fastq.bowtie2.unique.nodups.bam', 'spp', 'control'),
-#        script='spp.template.R'
-#    output: 'data/chipseq/peakcalling/spp/{run}/peaks.bed'
-#    log: 'data/chipseq/peakcalling/spp/{run}/script.log'
-#    params: run='{run}', prefix='data/chipseq/peakcalling/spp/{run}/'
-#    run:
-#        if 'pooled' not in wildcards.run:
-#            trt = input.treatment
-#            ctl = input.control
-#
-#        else:
-#            # SPP only takes one BAM at a time, and duplicates must be removed.
-#            # Here we merge and again remove duplidates into tempfiles before
-#            # sending to SPP.
-#            #
-#            # This does a little more work at the expense of simplifying the
-#            # workflow: controls are merged in every rule, no matter if they
-#            # are used in other rules. It's around an extra 5 mins per job.
-#            try:
-#                tmpdir = os.path.join('/lscratch', os.environ['SLURM_JOBID'])
-#            except KeyError:
-#                tmpdir = tempfile.gettempdir()
-#
-#            to_delete = []
-#
-#            def tmp():
-#                fn = tempfile.NamedTemporaryFile(delete=False, dir=tmpdir, suffix='.bam').name
-#                to_delete.append(fn)
-#                return fn
-#
-#            merged_treatment = tmp()
-#            merged_control = tmp()
-#
-#            shell('samtools merge -f {merged_treatment} {input.treatment}')
-#            shell('samtools merge -f {merged_control} {input.control}')
-#
-#            trt = tmp()
-#            ctl = tmp()
-#
-#            trt_metrics = tmp()
-#            ctl_metrics = tmp()
-#
-#            shell('cat /dev/null > {log}')
-#
-#            shell(
-#                "picard MarkDuplicates "
-#                "INPUT={merged_treatment} "
-#                "OUTPUT={trt} "
-#                "METRICS_FILE={trt_metrics} "
-#                "REMOVE_DUPLICATES=true "
-#                "ASSUME_SORTED=true &>> {log}"
-#            )
-#
-#            shell(
-#                "picard MarkDuplicates "
-#                "INPUT={merged_control} "
-#                "OUTPUT={ctl} "
-#                "METRICS_FILE={ctl_metrics} "
-#                "REMOVE_DUPLICATES=true "
-#                "ASSUME_SORTED=true &>> {log}"
-#            )
-#
-#
-#        shell(
-#            "module load R; Rscript {input.script} "
-#            "--input {ctl} "
-#            "--ip {trt} "
-#            "--prefix {params.prefix} "
-#            "&>> {log}"
-#        )
-#        for fn in to_delete:
-#            shell('rm {fn}')
+rule spp:
+    """
+    Run the SPP peak caller
+    """
+    input:
+        ip=lambda wc:
+            expand(
+                patterns['bam'],
+                sample=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'ip'),
+                sample_dir=sample_dir
+            ),
+        control=lambda wc:
+            expand(
+                patterns['bam'],
+                sample=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'control'),
+                sample_dir=sample_dir
+            ),
+    output: bed=patterns['peaks']['spp']
+    log: patterns['peaks']['spp'] + '.log'
+    params: block=lambda wc: chipseq.block_for_run(config, wc.spp_run, 'spp')
+    wrapper: wrapper_for('spp')
 
 # vim: ft=python
