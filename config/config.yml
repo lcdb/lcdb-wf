@@ -20,17 +20,17 @@ assembly: 'dmel'
 
 aligner:
     index: 'hisat2'
-    tag: 'r6-11'
+    tag: 'r6-16'
 
 rrna:
     index: 'bowtie2'
     tag: 'rRNA'
 
 gtf:
-    tag: "r6-11"
+    tag: "r6-16"
 
 kallisto:
-    tag: "r6-11_transcriptome"
+    tag: "r6-16_transcriptome"
 
 
 # references has the structure:
@@ -105,6 +105,54 @@ references:
       fasta:
         url:
           - 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/fasta/dmel-all-chromosome-r6.11.fasta.gz'
+          -  'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        postprocess:
+          function: "lib.postprocess.merge.file_merge"
+          args:
+            - "lib.postprocess.dm6.fasta_postprocess"
+            - "lib.postprocess.ercc.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+
+    r6-16:
+      gtf:
+        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.16_FB2017_03/gtf/dmel-all-r6.16.gtf.gz'
+        postprocess: "lib.postprocess.dm6.gtf_lib.postprocess"
+        conversions:
+          - 'refflat'
+          - 'gffutils'
+
+      fasta:
+        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.16_FB2017_03/fasta/dmel-all-chromosome-r6.16.fasta.gz'
+        postprocess: "lib.postprocess.dm6.fasta_lib.postprocess"
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+
+    r6-16_transcriptome:
+      fasta:
+        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.16_FB2017_03/fasta/dmel-all-transcript-r6.16.fasta.gz'
+        indexes:
+          - 'kallisto'
+
+    r6-16_and_ercc:
+      gtf:
+        url:
+          - 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.16_FB2017_03/gtf/dmel-all-r6.16.gtf.gz'
+          - 'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        postprocess:
+          function: "lib.postprocess.merge.file_merge"
+          args:
+            - "lib.postprocess.dm6.gtf_postprocess"
+            - "lib.postprocess.ercc.gtf_postprocess"
+        conversions:
+          - 'refflat'
+          - 'gffutils'
+
+      fasta:
+        url:
+          - 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.16_FB2017_03/fasta/dmel-all-chromosome-r6.16.fasta.gz'
           -  'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
         postprocess:
           function: "lib.postprocess.merge.file_merge"
