@@ -324,7 +324,7 @@ rule macs2:
     Run the macs2 peak caller
     """
     input:
-        treatment=lambda wc:
+        ip=lambda wc:
             expand(
                 patterns['bam'],
                 sample=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'ip'),

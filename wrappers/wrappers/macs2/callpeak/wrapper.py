@@ -13,7 +13,7 @@ cmds = (
     'macs2 '
     'callpeak '
     '-c {snakemake.input.control} '
-    '-t {snakemake.input.treatment} '
+    '-t {snakemake.input.ip} '
     '-f BAM '
     '--outdir {outdir} '
     '--name {label} '
