@@ -61,7 +61,22 @@ references:
         postprocess: "lib.postprocess.dm6.gtf_postprocess"
         conversions:
           - 'refflat'
-          - 'gffutils'
+          - gffutils: # kwargs below will be provided to `gffutils.create_db`
+              merge_strategy: 'merge'
+              id_spec:
+                  transcript: ['transcript_id', 'transcript_symbol']
+                  gene: ['gene_id', 'gene_symbol']
+              gtf_transcript_key: 'transcript_id'
+              gtf_gene_key: 'gene_id'
+              disable_infer_genes: True
+
+          # the attribute from the GTF to consider gene ID
+          - genelist:
+              gene_id: 'gene_id'
+
+          - annotation_hub:
+              ahkey: 'AH49581'
+              keytype: 'ENSEMBL'
 
       fasta:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/fasta/dmel-all-chromosome-r6.11.fasta.gz'
