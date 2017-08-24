@@ -363,7 +363,11 @@ rule spp:
                 sample=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'control'),
                 sample_dir=sample_dir
             ),
-    output: bed=patterns['peaks']['spp']
+    output:
+        bed=patterns['peaks']['spp'],
+        enrichment_estimates=patterns['peaks']['spp'] + '.est.wig',
+        smoothed_enrichment_mle=patterns['peaks']['spp'] + '.mle.wig',
+        rdata=patterns['peaks']['spp'] + '.RData'
     log: patterns['peaks']['spp'] + '.log'
     params: block=lambda wc: chipseq.block_for_run(config, wc.spp_run, 'spp')
     wrapper: wrapper_for('spp')
