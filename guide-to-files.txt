@@ -3,6 +3,8 @@
     The main workflow to generate references***
 /rnaseq.snakefile
     The main workflow for performing RNA-seq analysis***
+/chipseq.snakefile
+    The main workflow for performing ChIP-seq analysis***
 /4c.snakefile
     Worflow for 4C analysis using 4C-ker***
 /requirements.txt
