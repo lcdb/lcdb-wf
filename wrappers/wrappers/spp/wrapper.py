@@ -1,4 +1,5 @@
 import os
+from textwrap import dedent
 from snakemake.shell import shell
 log = snakemake.log_fmt_shell()
 
@@ -16,29 +17,33 @@ def Rbool(x):
 #
 extra = snakemake.params.block.get('extra', {})
 
-# srange controls the range of lags over which to calculate cross-correlation
-srange = extra.get('srange', (50, 500))
+DEFAULTS = {
+    # srange controls the range of lags over which to calculate cross-correlation
+    'srange': (50, 500),
+    # bins controls how the binding characteristics will be binned
+    'bins': 5,
+    # enable/disable the remove.tag.anomalies step
+    'remove_anomalies': False,
+    # false discovery rate when calling peaks
+    'fdr': 0.05,
+    # window half-size. Used if binding.characteristics is NA.
+    'whs': 500,
+    # Z threshold used when adding broad regions.
+    'zthr': 3,
+    # bandwith for smoothing WIG file
+    'bandwidth': 200,
+    # step for smoothing WIG file
+    'step': 100,
+    # Set to False to disable the filtering of large regions with high input signal
+    'tecfilter': True,
+}
 
-# bins controls how the binding characteristics will be binned
-bins = extra.get('bins', 5)
-
-# enable/disable the remove.tag.anomalies step
-remove_anomalies = Rbool(extra.get('remove_anomalies', True))
-
-# false discovery rate when calling peaks
-fdr = extra.get('fdr', 0.05)
-
-# window half-size. Used if binding.characteristics is NA.
-whs = extra.get('whs', 500)
-
-# Z threshold used when adding broad regions.
-zthr = extra.get('zthr', 3)
-
-# bandwith for smoothing WIG file
-bandwidth = extra.get('bandwidth', 200)
-
-# step for smoothing WIG file
-step = extra.get('step', 100)
+params = {}
+for k, v in DEFAULTS.items():
+    v = extra.get(k, v)
+    if isinstance(v, bool):
+        v = Rbool(v)
+    params[k] = v
 
 # ----------------------------------------------------------------------------
 
@@ -56,38 +61,25 @@ input.data <- read.bam.tags("{snakemake.input.control}")
 R_template += """
 binding.characteristics <- get.binding.characteristics(
   chip.data,
-  srange=c({srange[0]}, {srange[1]}),
-  bin={bins},
+  srange=c({params[srange][0]}, {params[srange][1]}),
+  bin={params[bins]},
   accept.all.tags=TRUE,
-  remove.tag.anomalies={remove_anomalies}
+  remove.tag.anomalies={params[remove_anomalies]}
 )
 """
-
-if 'smoothed_enrichment' in snakemake.output:
-    R_template += """
-    smoothed.enrichment.estimate <- get.smoothed.enrichment.mle(
-      chip.data,
-      input.data,
-      bandwidth={bandwidth},
-      step={step},
-      tag.shift=tag.shift)
-    writewig(
-      smoothed.enrichment.estimate,
-      "{snakemake.output.smoothed_enrichment}"
-    )
-    """
 
 R_template += """
 # Extract info from binding characteristics
 tag.shift <- round(binding.characteristics$peak$x/2)
 detection.window.halfsize <- binding.characteristics$whs
 if (!is.finite(detection.window.halfsize)){{
-  detection.window.halfsize <- {whs}
+  detection.window.halfsize <- {params[whs]}
 }}
 """
 
 R_template += """
-# Reset data to tags, and remove any chromosomes with no data
+# Reset data to tags, and remove any chromosomes with no data.
+# (tags is a list, names are chromosomes and values are integer vectors)
 
 chip.data <- chip.data$tags
 input.data <- input.data$tags
@@ -96,39 +88,76 @@ chip.data[sapply(chip.data, is.null)] <- NULL
 input.data[sapply(input.data, is.null)] <- NULL
 """
 
+
+if 'smoothed_enrichment_mle' in snakemake.output.keys():
+    R_template += dedent("""
+    smoothed.enrichment.estimate <- get.smoothed.enrichment.mle(
+      chip.data,
+      input.data,
+      bandwidth={params[bandwidth]},
+      step={params[step]},
+      tag.shift=tag.shift)
+    writewig(
+      smoothed.enrichment.estimate,
+      "{snakemake.output.smoothed_enrichment_mle}",
+      feature=""
+    )
+    """)
+
+if 'enrichment_estimates' in snakemake.output.keys():
+    R_template += dedent("""
+    enrichment.estimates <- get.conservative.fold.enrichment.profile(chip.data, input.data, fws=500, step=100, alpha=0.01)
+    writewig(enrichment.estimates, "{snakemake.output.enrichment_estimates}", feature="")
+    rm(enrichment.estimates)
+    """)
+
 R_template += """
 # Get peaks
 bp <- find.binding.positions(
   signal.data=chip.data,
   control.data=input.data,
-  fdr={fdr},
-  whs=detection.window.halfsize
+  fdr={params[fdr]},
+  whs=detection.window.halfsize,
+  tec.filter={params[tecfilter]}
 )
 """
 
-# peaks
 R_template += """
-write.narrowpeak.binding(bp, "{snakemake.output.bed}")
+# Add broad regions to peaks
 bp <- add.broad.peak.regions(
   chip.data,
   input.data,
   bp,
   window.size=detection.window.halfsize,
-  z.thr={zthr}
+  z.thr={params[zthr]}
 )
-write.narrowpeak.binding(bp, paste0("{snakemake.output.bed}", ".broadPeak"))
+write.narrowpeak.binding(bp, "{snakemake.output.bed}")
 """
 
 # Save image for later introspection or debugging
-image_filename = os.path.join(os.path.dirname(snakemake.output.bed), 'image.RData')
-R_template += """
-save.image("{image_filename}")
-"""
+if 'rdata' in snakemake.output.keys():
+    R_template += dedent("""
+    save.image("{snakemake.output.rdata}")
+    """)
 
 # write the filled-in template to the output directory for later debugging
-script_filename = os.path.join(os.path.dirname(snakemake.output.bed), 'script.R')
+script_filename = snakemake.output.bed + '.R'
 with open(script_filename, 'w') as fout:
     fout.write(R_template.format(**locals()))
 
 # Run it
 shell('Rscript {script_filename} {log}')
+
+# SPP's writewig() adds a header and is space-separated, so this turns it into
+# a proper bedGraph file ready for conversion to bigwig.
+if 'enrichment_estimates' in snakemake.output.keys():
+    shell('grep -v "track" {snakemake.output.enrichment_estimates} '
+          '| sed "s/ /\\t/g" > {snakemake.output.enrichment_estimates}.tmp '
+          '&& mv {snakemake.output.enrichment_estimates}.tmp '
+          '{snakemake.output.enrichment_estimates}')
+
+if 'smoothed_enrichment_mle' in snakemake.output.keys():
+    shell('grep -v "track" {snakemake.output.smoothed_enrichment_mle} '
+          '| sed "s/ /\\t/g" > {snakemake.output.smoothed_enrichment_mle}.tmp '
+          '&& mv {snakemake.output.smoothed_enrichment_mle}.tmp '
+          '{snakemake.output.smoothed_enrichment_mle}')
