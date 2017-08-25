@@ -39,7 +39,7 @@ chipseq:
       control:
         - input_1
       extra:
-        fdr: 0.05
+        fdr: 0.3
         zthr: 4
 
 aligner:
