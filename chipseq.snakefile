@@ -34,24 +34,25 @@ patterns = {
     'fastqc': {
         'raw': '{sample_dir}/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.zip',
         'cutadapt': '{sample_dir}/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip',
-        'bam': '{sample_dir}/{sample}/fastqc/{sample}.cutadapt.bam_fastqc.zip',
+        'bam': '{sample_dir}/{sample}/fastqc/{sample}.cutadapt.unique.nodups.bam_fastqc.zip',
     },
     'libsizes': {
         'fastq':   '{sample_dir}/{sample}/{sample}_R1.fastq.gz.libsize',
         'cutadapt': '{sample_dir}/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize',
         'bam':     '{sample_dir}/{sample}/{sample}.cutadapt.bam.libsize',
         'unique':     '{sample_dir}/{sample}/{sample}.cutadapt.unique.bam.libsize',
+        'nodups': '{sample_dir}/{sample}/{sample}.cutadapt.unique.nodups.bam.libsize',
     },
     'fastq_screen': '{sample_dir}/{sample}/{sample}.cutadapt.screen.txt',
     'libsizes_table': '{agg_dir}/libsizes_table.tsv',
     'libsizes_yaml': '{agg_dir}/libsizes_table_mqc.yaml',
     'multiqc': '{agg_dir}/multiqc.html',
     'markduplicates': {
-        'bam': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam',
-        'metrics': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam.metrics',
+        'bam': '{sample_dir}/{sample}/{sample}.cutadapt.unique.nodups.bam',
+        'metrics': '{sample_dir}/{sample}/{sample}.cutadapt.unique.nodups.bam.metrics',
     },
-    'bigwig': '{sample_dir}/{sample}/{sample}.cutadapt.bam.bigwig',
     'unique': '{sample_dir}/{sample}/{sample}.cutadapt.unique.bam',
+    'bigwig': '{sample_dir}/{sample}/{sample}.cutadapt.unique.nodups.bam.bigwig',
     'peaks': {
         'macs2': '{peak_calling}/macs2/{macs2_run}/peaks.bed',
         'spp': '{peak_calling}/spp/{spp_run}/peaks.bed',
@@ -281,6 +282,8 @@ rule markduplicates:
     output:
         bam=patterns['markduplicates']['bam'],
         metrics=patterns['markduplicates']['metrics']
+    params:
+        extra="REMOVE_DUPLICATES=true"
     log:
         patterns['markduplicates']['bam'] + '.log'
     wrapper:
@@ -346,13 +349,13 @@ rule macs2:
     input:
         ip=lambda wc:
             expand(
-                patterns['bam'],
+                patterns['markduplicates']['bam'],
                 sample=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'ip'),
                 sample_dir=sample_dir
             ),
         control=lambda wc:
             expand(
-                patterns['bam'],
+                patterns['markduplicates']['bam'],
                 sample=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'control'),
                 sample_dir=sample_dir
             ),
@@ -369,13 +372,13 @@ rule spp:
     input:
         ip=lambda wc:
             expand(
-                patterns['bam'],
+                patterns['markduplicates']['bam'],
                 sample=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'ip'),
                 sample_dir=sample_dir
             ),
         control=lambda wc:
             expand(
-                patterns['bam'],
+                patterns['markduplicates']['bam'],
                 sample=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'control'),
                 sample_dir=sample_dir
             ),
