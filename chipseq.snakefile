@@ -40,6 +40,7 @@ patterns = {
         'fastq':   '{sample_dir}/{sample}/{sample}_R1.fastq.gz.libsize',
         'cutadapt': '{sample_dir}/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize',
         'bam':     '{sample_dir}/{sample}/{sample}.cutadapt.bam.libsize',
+        'unique':     '{sample_dir}/{sample}/{sample}.cutadapt.unique.bam.libsize',
     },
     'fastq_screen': '{sample_dir}/{sample}/{sample}.cutadapt.screen.txt',
     'libsizes_table': '{agg_dir}/libsizes_table.tsv',
@@ -50,6 +51,7 @@ patterns = {
         'metrics': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam.metrics',
     },
     'bigwig': '{sample_dir}/{sample}/{sample}.cutadapt.bam.bigwig',
+    'unique': '{sample_dir}/{sample}/{sample}.cutadapt.unique.bam',
     'peaks': {
         'macs2': '{peak_calling}/macs2/{macs2_run}/peaks.bed',
         'spp': '{peak_calling}/spp/{spp_run}/peaks.bed',
@@ -137,6 +139,20 @@ rule bowtie2:
     threads: 6
     wrapper:
         wrapper_for('bowtie2/align')
+
+
+rule unique:
+    """
+    Remove multimappers
+    """
+    input:
+        patterns['bam']
+    output:
+        patterns['unique']
+    params:
+        extra="-q 20"
+    wrapper:
+        wrapper_for('samtools/view')
 
 
 rule fastq_count:
