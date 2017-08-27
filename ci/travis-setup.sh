@@ -38,8 +38,5 @@ echo "Building environment $ENVNAME"
 conda create -n $ENVNAME -y --file requirements.txt \
     | grep -v " Time: "
 
-# try pre-caching rnaseq
-conda env create -n tmp --file config/envs/R_rnaseq.yaml
-
 source activate $ENVNAME
 python ci/get-data.py
