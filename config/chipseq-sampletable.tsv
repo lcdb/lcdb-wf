@@ -1,5 +1,11 @@
-samplename	antibody	input	replicate	techrep
-input_1	input	NA	1	1
-input_2	input	NA	2	1
-ip_1	antibody1	input1	1	1
-ip_2	antibody2	input2	2	1
+# Samplenames with the same "label" will be considered technical replicates
+samplename	antibody	biological_material	replicate	label
+input_1	input	wingdisc-1	1	input-wingdisc-1
+input_2	input	wingdisc-2	2	input-wingdisc-2
+ip_1	antibody1	wingdisc-1	1	antibody1-wingdisc-1
+ip_2	antibody1	wingdisc-2	2	antibody1-wingdisc-2
+
+# Note here we are treating ip_3 and ip_4 as technical replicates for the sake of testing
+ip_3	antibody1	embryo-1	1	antibody1-embryo-1
+ip_4	antibody1	embryo-1	1	antibody1-embryo-1
+input_3	input	embryo-1	1	input-embryo-1
