@@ -375,6 +375,6 @@ def get_sampletable(config):
     ----------
     config : dict
     """
-    sampletable = pandas.read_table(config['sampletable'])
+    sampletable = pandas.read_table(config['sampletable'], comment="#")
     samples = sampletable.iloc[:, 0]
     return samples, sampletable
