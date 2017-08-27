@@ -4,4 +4,6 @@ channels:
   - defaults
 
 dependencies:
+  - picard
+  - samtools
   - r-spp

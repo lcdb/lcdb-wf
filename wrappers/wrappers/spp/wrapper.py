@@ -1,8 +1,59 @@
 import os
 from textwrap import dedent
+import tempfile
 from snakemake.shell import shell
-log = snakemake.log_fmt_shell()
+log = snakemake.log_fmt_shell(append=True)
 
+# Since we'll be appending the output from multiple commands to the same log,
+# we want to ensure that the provided log file is empty to start
+if snakemake.log:
+    shell('cat /dev/null > {snakemake.log}')
+
+java_args = snakemake.params.get('java_args', '')
+keep_tempfiles = snakemake.params.get('keep_tempfiles', False)
+
+registered_for_deletion = []
+
+def merge_and_dedup(bams):
+    """
+    spp only handles one replicate at a time. To support pooled samples, we
+    merge and remove duplicates, storing the result in a tempfile.
+
+    If only one item is provided, return it immediately
+    """
+
+    if len(bams) == 1:
+        return bams
+
+    merged = tempfile.NamedTemporaryFile(delete=False, prefix='merged', suffix='.bam').name
+    merged_and_deduped = tempfile.NamedTemporaryFile(delete=False, prefix='merged_and_duped', suffix='.bam').name
+    metrics = tempfile.NamedTemporaryFile(delete=False, prefix='metrics', suffix='.txt').name
+
+    shell('echo "tempfiles created by merge_and_dedup: {merged} {merged_and_deduped} {metrics}" {log}')
+
+    if not keep_tempfiles:
+        registered_for_deletion.extend([merged, merged_and_deduped, metrics])
+
+    bams = ' '.join(bams)
+    shell(
+        'samtools merge '
+        '-f '
+        '-@ {snakemake.threads} '
+        '{merged} '
+        '{bams} '
+        '{log} '
+    )
+    shell(
+        'picard '
+        '{java_args} '
+        'MarkDuplicates '
+        'INPUT={merged} '
+        'OUTPUT={merged_and_deduped} '
+        'METRICS_FILE={metrics} '
+        'REMOVE_DUPLICATES=true '
+        '{log} '
+    )
+    return merged_and_deduped
 
 def Rbool(x):
     """
@@ -50,10 +101,15 @@ for k, v in DEFAULTS.items():
 # R_template is incrementally built up so that we can intersperse comments and
 # to keep things better organized. It will be filled in with `**locals()` at
 # the end.
+
+ip = merge_and_dedup(snakemake.input.ip)
+control = merge_and_dedup(snakemake.input.control)
+
+
 R_template = """
 library(spp)
-chip.data <- read.bam.tags("{snakemake.input.ip}")
-input.data <- read.bam.tags("{snakemake.input.control}")
+chip.data <- read.bam.tags("{ip}")
+input.data <- read.bam.tags("{control}")
 """
 
 # Use configured srange and bins, if provided. `accept.all.tags=TRUE` is
@@ -161,3 +217,6 @@ if 'smoothed_enrichment_mle' in snakemake.output.keys():
           '| sed "s/ /\\t/g" > {snakemake.output.smoothed_enrichment_mle}.tmp '
           '&& mv {snakemake.output.smoothed_enrichment_mle}.tmp '
           '{snakemake.output.smoothed_enrichment_mle}')
+
+for fn in registered_for_deletion:
+    shell('rm -v {fn} {log}')
