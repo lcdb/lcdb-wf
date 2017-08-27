@@ -13,6 +13,9 @@ sample_dir: 'data/chipseq_samples'
 # Directory to contain reports and other aggregations
 aggregation_dir: 'data/chipseq_aggregation'
 
+# Directory in which merged technical replicates will be stored
+merged_dir: 'data/chipseq_merged'
+
 # Which key in the `references` dict below to use
 assembly: 'dmel'
 
@@ -24,23 +27,46 @@ peaks_dir: 'data/chipseq_peaks'
 
 chipseq:
   peak_calling:
-    - label: ip1-peaks
+    - label: antibody1-embryo-1
       algorithm: macs2
       ip:
-        - ip_1
+        - antibody1-embryo-1
       control:
-        - input_1
+        - input-embryo-1
       extra: '--nomodel --extsize 147'
 
-    - label: ip1-peaks
+    - label: antibody1-embryo-1
       algorithm: spp
       ip:
-        - ip_1
+        - antibody1-embryo-1
       control:
-        - input_1
+        - input-embryo-1
       extra:
         fdr: 0.3
         zthr: 4
+
+    - label: antibody1-wingdisc-pooled
+      algorithm: macs2
+      ip:
+        - antibody1-wingdisc-1
+        - antibody1-wingdisc-2
+      control:
+        - input-wingdisc-1
+        - input-wingdisc-2
+      extra: '--nomodel --extsize 147'
+
+    - label: antibody1-wingdisc-pooled
+      algorithm: spp
+      ip:
+        - antibody1-wingdisc-1
+        - antibody1-wingdisc-2
+      control:
+        - input-wingdisc-1
+        # - input-wingdisc-2
+      extra:
+        fdr: 0.5
+        zthr: 4
+
 
 aligner:
   index: 'bowtie2'
