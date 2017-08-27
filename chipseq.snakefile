@@ -22,6 +22,7 @@ assembly = config['assembly']
 
 sample_dir = config.get('sample_dir', 'samples')
 agg_dir = config.get('aggregation_dir', 'aggregation')
+merged_dir = config.get('merged_dir', 'merged')
 peak_calling = config.get('peaks_dir', 'chipseq')
 
 # ----------------------------------------------------------------------------
@@ -61,12 +62,14 @@ patterns = {
         'macs2': '{peak_calling}/macs2/{macs2_run}/peaks.bigbed',
         'spp': '{peak_calling}/spp/{spp_run}/peaks.bigbed',
     },
+    'merged_techreps': '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.merged.bam',
 
 }
-fill = dict(sample=samples, sample_dir=sample_dir, agg_dir=agg_dir,
+fill = dict(sample=samples, sample_dir=sample_dir, agg_dir=agg_dir, merged_dir=merged_dir,
             peak_calling=peak_calling,
             macs2_run=chipseq.peak_calling_dict(dict(config), algorithm='macs2'),
             spp_run=chipseq.peak_calling_dict(dict(config), algorithm='spp'),
+            label=sampletable.label,
            )
 targets = helpers.fill_patterns(patterns, fill)
 
@@ -92,8 +95,22 @@ rule targets:
             [targets['multiqc']] +
             utils.flatten(targets['markduplicates']) +
             utils.flatten(targets['bigwig']) +
-            utils.flatten(targets['peaks'])
+            utils.flatten(targets['peaks']) +
+            utils.flatten(targets['merged_techreps'])
         )
+
+
+rule merge_techreps:
+    input:
+        lambda wc: expand(
+            patterns['markduplicates']['bam'],
+            sample=common.get_techreps(sampletable, wc.label),
+            sample_dir=sample_dir
+        )
+    output:
+        patterns['merged_techreps']
+    wrapper:
+        wrapper_for('samtools/merge')
 
 
 rule cutadapt:
@@ -349,15 +366,15 @@ rule macs2:
     input:
         ip=lambda wc:
             expand(
-                patterns['markduplicates']['bam'],
-                sample=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'ip'),
-                sample_dir=sample_dir
+                patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'ip'),
+                merged_dir=merged_dir,
             ),
         control=lambda wc:
             expand(
-                patterns['markduplicates']['bam'],
-                sample=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'control'),
-                sample_dir=sample_dir
+                patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'control'),
+                merged_dir=merged_dir,
             ),
     output: bed=patterns['peaks']['macs2']
     log: patterns['peaks']['macs2'] + '.log'
@@ -372,15 +389,15 @@ rule spp:
     input:
         ip=lambda wc:
             expand(
-                patterns['markduplicates']['bam'],
-                sample=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'ip'),
-                sample_dir=sample_dir
+                patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'ip'),
+                merged_dir=merged_dir,
             ),
         control=lambda wc:
             expand(
-                patterns['markduplicates']['bam'],
-                sample=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'control'),
-                sample_dir=sample_dir
+                patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'control'),
+                merged_dir=merged_dir,
             ),
     output:
         bed=patterns['peaks']['spp'],
@@ -388,7 +405,11 @@ rule spp:
         smoothed_enrichment_mle=patterns['peaks']['spp'] + '.mle.wig',
         rdata=patterns['peaks']['spp'] + '.RData'
     log: patterns['peaks']['spp'] + '.log'
-    params: block=lambda wc: chipseq.block_for_run(config, wc.spp_run, 'spp')
+    params:
+        block=lambda wc: chipseq.block_for_run(config, wc.spp_run, 'spp'),
+        java_args='-Xmx8g',
+        keep_tempfiles=False
+    threads: 2
     wrapper: wrapper_for('spp')
 
 # vim: ft=python
