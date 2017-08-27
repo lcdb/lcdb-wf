@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 from snakemake.shell import shell
 from snakemake.utils import makedirs
