@@ -1,6 +1,5 @@
 channels:
   - bioconda
   - conda-forge
-  - defaults
 dependencies:
   - deeptools ==2.5.1

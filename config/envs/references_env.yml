@@ -1,7 +1,5 @@
 channels:
     - bioconda
-    - r
-    - defaults
     - conda-forge
 dependencies:
     - kallisto==0.43.0
