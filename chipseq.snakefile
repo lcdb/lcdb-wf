@@ -337,18 +337,20 @@ rule merge_techreps:
 
 rule bigwig:
     """
-    Create a bigwig for negative-strand reads
+    Create a bigwig.
+
+    See note below about normalizing!
     """
     input:
-        bam=patterns['bam'],
-        bai=patterns['bam'] + '.bai',
+        bam=patterns['merged_techreps'],
+        bai=patterns['merged_techreps'] + '.bai',
     output: patterns['bigwig']
 
     # NOTE: for testing, we remove --normalizeUsingRPKM since it results in
     # a ZeroDivisionError (there are less than 1000 reads total). However it is
     # probably a good idea to use that argument with real-world data.
     params:
-        extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10'
+        extra='--minMappingQuality 20 --ignoreDuplicates --smoothLength 10'
     log:
         patterns['bigwig'] + '.log'
 
