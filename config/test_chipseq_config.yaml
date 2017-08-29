@@ -27,39 +27,39 @@ peaks_dir: 'data/chipseq_peaks'
 
 chipseq:
   peak_calling:
-    - label: antibody1-embryo-1
+    - label: gaf-embryo-1
       algorithm: macs2
       ip:
-        - antibody1-embryo-1
+        - gaf-embryo-1
       control:
         - input-embryo-1
       extra: '--nomodel --extsize 147'
 
-    - label: antibody1-embryo-1
+    - label: gaf-embryo-1
       algorithm: spp
       ip:
-        - antibody1-embryo-1
+        - gaf-embryo-1
       control:
         - input-embryo-1
       extra:
         fdr: 0.3
         zthr: 4
 
-    - label: antibody1-wingdisc-pooled
+    - label: gaf-wingdisc-pooled
       algorithm: macs2
       ip:
-        - antibody1-wingdisc-1
-        - antibody1-wingdisc-2
+        - gaf-wingdisc-1
+        - gaf-wingdisc-2
       control:
         - input-wingdisc-1
         - input-wingdisc-2
       extra: '--nomodel --extsize 147'
 
-    - label: antibody1-wingdisc-pooled
+    - label: gaf-wingdisc-pooled
       algorithm: spp
       ip:
-        - antibody1-wingdisc-1
-        - antibody1-wingdisc-2
+        - gaf-wingdisc-1
+        - gaf-wingdisc-2
       control:
         - input-wingdisc-1
         # - input-wingdisc-2
