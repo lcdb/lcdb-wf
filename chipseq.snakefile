@@ -412,4 +412,41 @@ rule spp:
     threads: 2
     wrapper: wrapper_for('spp')
 
+
+# rule bed_to_bigbed:
+#     """
+#     Convert BED to bigBed
+#     """
+#     input: "data/chipseq/peakcalling/{algorithm}/{label}/{prefix}.bed"
+#     output: "data/chipseq/peakcalling/{algorithm}/{label}/{prefix}.bigbed"
+#     log: "data/chipseq/peakcalling/{algorithm}/{label}/{prefix}.bigbed.log"
+#     run:
+#         p = {
+#             'macs2': ('assets/narrowPeak.as', '4+6', _narrowpeak),
+#             'macs2_lenient': ('assets/narrowPeak.as', '4+6', _narrowpeak),
+#             'macs2_broad': ('assets/broadPeak.as', '4+6', _broadpeak),
+#             'spp': ('assets/narrowPeak.as', '6+4', _narrowpeak),
+#         }
+#         _as, bedplus, conversion = p[wildcards.algorithm]
+#
+#         if conversion is not None:
+#             conversion(input[0], input[0] + '.tmp')
+#         else:
+#             shell('cp {input} {input}.tmp')
+#
+#         if len(pybedtools.BedTool(input[0])) == 0:
+#             shell("touch {output}")
+#         else:
+#             shell(
+#                 """sort -k1,1 -k2,2n {input}.tmp | awk -F "\\t" '{{OFS="\\t"; if (($2>0) && ($3>0)) print $0}}' > {input}.tmp.sorted """
+#                 "&& bedToBigBed "
+#                 "-type=bed{bedplus} "
+#                 "-as={_as} "
+#                 "{input}.tmp.sorted "
+#                 "dm6.chromsizes "
+#                 "{output} &> {log} "
+#                 "&& rm {input}.tmp && rm {input}.tmp.sorted")
+
+
+
 # vim: ft=python
