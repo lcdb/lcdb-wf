@@ -96,8 +96,8 @@ indicates the output will be in <cite>references_data</cite>, so you can inspect
 folder.</p>
 <img alt="_images/references.png" src="_images/references.png" />
 </div>
-<div class="section" id="run-the-rnaeq-workflow">
-<h2>Run the rnaeq workflow<a class="headerlink" href="#run-the-rnaeq-workflow" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="run-the-rnaseq-workflow">
+<h2>Run the rnaseq workflow<a class="headerlink" href="#run-the-rnaseq-workflow" title="Permalink to this headline">¶</a></h2>
 <p>Similarly:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">-</span><span class="n">prs</span> <span class="n">rnaseq</span><span class="o">.</span><span class="n">snakefile</span> <span class="o">--</span><span class="n">configfile</span> <span class="n">config</span><span class="o">/</span><span class="n">test_config</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">conda</span> <span class="o">-</span><span class="n">j1</span>
 </pre></div>
@@ -109,6 +109,22 @@ folder.</p>
 <li><code class="docutils literal"><span class="pre">data/rnaseq_samples/*</span></code>: sample-specific output</li>
 <li><code class="docutils literal"><span class="pre">data/aggregation/multiqc.html</span></code>:  MultiQC report</li>
 <li><code class="docutils literal"><span class="pre">downstream/rnaseq.html</span></code>: Differential expression results</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="run-the-chipseq-workflow">
+<h2>Run the chipseq workflow<a class="headerlink" href="#run-the-chipseq-workflow" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">-</span><span class="n">prs</span> <span class="n">chipseq</span><span class="o">.</span><span class="n">snakefile</span> <span class="o">--</span><span class="n">configfile</span> <span class="n">config</span><span class="o">/</span><span class="n">test_chipseq</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">conda</span> <span class="o">-</span><span class="n">j1</span>
+</pre></div>
+</div>
+<p>Points of interest:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">data/chipseq_samples/*</span></code>: sample-specific output</li>
+<li><code class="docutils literal"><span class="pre">data/chipseq_merged/*</span></code>: technical replicates merged, or if only one tech rep, symlinked</li>
+<li><code class="docutils literal"><span class="pre">data/chipseq_peaks/*</span></code>: peak-caller output, including BED files of
+called peaks and bedGraph files of signal as output by each algorithm</li>
+<li><code class="docutils literal"><span class="pre">data/chipseq_aggregation/multiqc.html</span></code>: MultiQC report</li>
 </ul>
 </div></blockquote>
 </div>
@@ -142,7 +158,8 @@ YAML-formatted file contains comments on what each item is used for.</p>
 <li><a class="reference internal" href="#create-a-new-conda-environment-one-time-setup">Create a new conda environment (one-time setup)</a></li>
 <li><a class="reference internal" href="#download-example-data-one-time-setup">Download example data (one-time setup)</a></li>
 <li><a class="reference internal" href="#run-the-references-workflow">Run the references workflow</a></li>
-<li><a class="reference internal" href="#run-the-rnaeq-workflow">Run the rnaeq workflow</a></li>
+<li><a class="reference internal" href="#run-the-rnaseq-workflow">Run the rnaseq workflow</a></li>
+<li><a class="reference internal" href="#run-the-chipseq-workflow">Run the chipseq workflow</a></li>
 <li><a class="reference internal" href="#next-steps">Next steps</a></li>
 </ul>
 </li>

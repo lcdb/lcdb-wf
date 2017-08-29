@@ -37,6 +37,8 @@ Files in bold are the most important.
     
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//rnaseq.snakefile" data-balloon=" The main workflow for performing RNA-seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">rnaseq.snakefile</span></a></p>
     
+    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//chipseq.snakefile" data-balloon=" The main workflow for performing ChIP-seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">chipseq.snakefile</span></a></p>
+    
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//4c.snakefile" data-balloon=" Worflow for 4C analysis using 4C-ker" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">4c.snakefile</span></a></p>
     
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//requirements.txt" data-balloon=" Dependencies required for running lcdb-wf" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">requirements.txt</span></a></p>

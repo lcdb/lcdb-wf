@@ -61,8 +61,8 @@ folder.
 .. image:: references.png
 
 
-Run the rnaeq workflow
-----------------------
+Run the rnaseq workflow
+-----------------------
 
 Similarly::
 
@@ -76,6 +76,20 @@ Points of interest:
     - ``data/aggregation/multiqc.html``:  MultiQC report
     - ``downstream/rnaseq.html``: Differential expression results
 
+Run the chipseq workflow
+------------------------
+
+::
+
+    snakemake -prs chipseq.snakefile --configfile config/test_chipseq.yaml --use-conda -j1
+
+Points of interest:
+
+    - ``data/chipseq_samples/*``: sample-specific output
+    - ``data/chipseq_merged/*``: technical replicates merged, or if only one tech rep, symlinked
+    - ``data/chipseq_peaks/*``: peak-caller output, including BED files of
+      called peaks and bedGraph files of signal as output by each algorithm
+    - ``data/chipseq_aggregation/multiqc.html``: MultiQC report
 
 Next steps
 ----------
