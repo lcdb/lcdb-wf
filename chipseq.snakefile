@@ -63,13 +63,18 @@ patterns = {
         'macs2': '{peak_calling}/macs2/{macs2_run}/peaks.bigbed',
         'spp': '{peak_calling}/spp/{spp_run}/peaks.bigbed',
     },
+    'fingerprint': {
+        'plot': '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.png',
+        'raw_counts': '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.tab',
+        'metrics': '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.metrics',
+    }
 
 }
 fill = dict(sample=samples, sample_dir=sample_dir, agg_dir=agg_dir, merged_dir=merged_dir,
             peak_calling=peak_calling,
             macs2_run=chipseq.peak_calling_dict(dict(config), algorithm='macs2'),
             spp_run=chipseq.peak_calling_dict(dict(config), algorithm='spp'),
-            label=sampletable.label,
+            label=sampletable.label, ip_label=sampletable.label[sampletable.antibody != 'input'],
            )
 targets = helpers.fill_patterns(patterns, fill)
 
@@ -327,24 +332,32 @@ rule bigwig:
     wrapper: wrapper_for('deeptools/bamCoverage')
 
 
+rule fingerprint:
+    """
+    Runs deepTools plotFingerprint to assess how well the ChIP experiment
+    worked.
 
-        if conversion is not None:
-            conversion(input[0], input[0] + '.tmp')
-        else:
-            shell('cp {input} {input}.tmp')
-
-        if len(pybedtools.BedTool(input[0])) == 0:
-            shell("touch {output}")
-        else:
-            shell(
-                """sort -k1,1 -k2,2n {input}.tmp | awk -F "\\t" '{{OFS="\\t"; if (($2>0) && ($3>0)) print $0}}' > {input}.tmp.sorted """
-                "&& bedToBigBed "
-                "-type=bed{bedplus} "
-                "-as={_as} "
-                "{input}.tmp.sorted "
-                "dm6.chromsizes "
-                "{output} &> {log} "
-                "&& rm {input}.tmp && rm {input}.tmp.sorted")
+    Note: uses the merged techreps.
+    """
+    input:
+        bams=lambda wc: expand(patterns['merged_techreps'], merged_dir=merged_dir, label=wc.ip_label),
+        control=lambda wc: expand(patterns['merged_techreps'], merged_dir=merged_dir, label=chipseq.merged_input_for_ip(sampletable, wc.ip_label))
+    output:
+        plot=patterns['fingerprint']['plot'],
+        raw_counts=patterns['fingerprint']['raw_counts'],
+        metrics=patterns['fingerprint']['metrics']
+    threads: 4
+    params:
+        # Note 1: You'll probably want to change numberOfSamples to something
+        # higher (default is 500k) when running on real data
+        #
+        # Note 2: I think the extra complexity of the function is worth the
+        # nicely-labeled plots.
+        extra=lambda wc: '--labels {0} {1} --extendReads=300 --skipZeros --numberOfSamples 5000 '.format(
+            wc.ip_label, chipseq.merged_input_for_ip(sampletable, wc.ip_label)
+        )
+    wrapper:
+        wrapper_for('deeptools/plotFingerprint')
 
 
 rule macs2:
