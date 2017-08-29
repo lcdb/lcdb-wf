@@ -1,7 +1,7 @@
 channels:
   - bioconda
   - conda-forge
+
 dependencies:
-  - r
-  - rseqc ==2.6.4
-  - pysam == 0.11.2.2
+  - picard
+  - samtools

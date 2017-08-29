@@ -27,6 +27,14 @@ case $TYPE in
       --use-conda \
       -j2 -T -k -p -r
     ;;
+  chipseq.snakefile)
+    source activate lcdb-wf-test && \
+      conda --version && \
+      snakemake -s chipseq.snakefile \
+      --configfile config/test_chipseq_config.yaml \
+      --use-conda \
+      -j2 -T -k -p -r
+    ;;
   pytest)
     source activate lcdb-wf-test && py.test wrappers/test -v
     ;;

@@ -1,0 +1,121 @@
+
+# sampletable: TSV file defining sample metadata.
+#
+# First column must have header name "samplename".
+sampletable: 'config/chipseq-sampletable.tsv'
+
+# sample_dir: directory in which each sample is expected to have its own
+# directory and fastq file[s]. If `sampletable` lists a sample with samplename
+# SAMPLE1, then at least the file $sample_dir/SAMPLE1/SAMPLE1_R1.fastq.gz is
+# expected.
+sample_dir: 'data/chipseq_samples'
+
+# Directory to contain reports and other aggregations
+aggregation_dir: 'data/chipseq_aggregation'
+
+# Directory in which merged technical replicates will be stored
+merged_dir: 'data/chipseq_merged'
+
+# Which key in the `references` dict below to use
+assembly: 'dmel'
+
+# If not specified here, use the environment variable REFERENCES_DIR.
+references_dir: 'references_data'
+
+peaks_dir: 'data/chipseq_peaks'
+
+
+chipseq:
+  # The peak_calling section is a list of dicts, each one defining a single
+  # chipseq peak-calling run. The output will be created according to `label`
+  # and `algorithm`. There will be at least a file
+  # `<peaks_dir>/<algorithm>/<label>/peaks.bed`; other files may be created
+  # depending on the algorithm.
+  #
+  # Note that this directory structure means you can have the same label for
+  # different peak-callers to more easily compare them.
+  #
+  # The `ip` and `control` sections expect names found in the "label" column of
+  # the sampletable. This column describes the technical replicates, and the
+  # merging step of the workflow merges and de-dupes appropriately so that the
+  # peak callers only see BAMs with all duplicates removed.
+  #
+  # The "extra" block is used to pass extra information to the peak-caller in
+  # a run-specific manner. Check the wrapper README for details on this. For
+  # example, the macs2 wrapper passes `extra` verbatim to the command line, but
+  # the spp wrapper handles things differently.
+  #
+  # Each wrapper is built to accept either single or multiple BAMs and output
+  # at least a BED file of peaks.
+  #
+  peak_calling:
+    - label: gaf-embryo-1
+      algorithm: macs2
+      ip:
+        - gaf-embryo-1
+      control:
+        - input-embryo-1
+      extra: '--nomodel --extsize 147'
+
+    - label: gaf-embryo-1
+      algorithm: spp
+      ip:
+        - gaf-embryo-1
+      control:
+        - input-embryo-1
+      extra:
+        fdr: 0.3
+        zthr: 4
+
+    - label: gaf-wingdisc-pooled
+      algorithm: macs2
+      ip:
+        - gaf-wingdisc-1
+        - gaf-wingdisc-2
+      control:
+        - input-wingdisc-1
+        - input-wingdisc-2
+      extra: '--nomodel --extsize 147'
+
+    - label: gaf-wingdisc-pooled
+      algorithm: spp
+      ip:
+        - gaf-wingdisc-1
+        - gaf-wingdisc-2
+      control:
+        - input-wingdisc-1
+        # - input-wingdisc-2
+      extra:
+        fdr: 0.5
+        zthr: 4
+
+
+aligner:
+  index: 'bowtie2'
+  tag: 'test'
+
+# references has the structure:
+#
+#   assembly:           [ used as top-level dir for references ]
+#     tag:              [ user-defined; often indicates version or release ]
+#       type:           [ must be either "gtf" or "fasta" ]
+#         url:          [ string or list of urls ]
+#         postprocess:  [ string of importable function or dict of function and args ]
+#         conversions:  [ list of gtf conversions; only if type == gtf ]
+#         indexes:      [ list of indexes to build; only if type == fasta ]
+
+references:
+  dmel:
+    test:
+      fasta:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/add-chipseq/data/seq/dm6.small.fa"
+        postprocess: 'lib.common.gzipped'
+        indexes:
+          - 'bowtie2'
+  phix:
+    default:
+      fasta:
+        url: 'ftp://igenome:G3nom3s4u@ussd-ftp.illumina.com/PhiX/Illumina/RTA/PhiX_Illumina_RTA.tar.gz'
+        postprocess: "lib.postprocess.phix.fasta_postprocess"
+        indexes:
+          - 'bowtie2'

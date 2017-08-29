@@ -30,16 +30,13 @@ default_channels:
 EOF
 
 # See https://github.com/conda/conda/issues/5536
-conda install -y "conda<4.3"
+# conda install -y "conda<4.3"
 
 conda --version
 
 echo "Building environment $ENVNAME"
 conda create -n $ENVNAME -y --file requirements.txt \
     | grep -v " Time: "
-
-# try pre-caching rnaseq
-conda env create -n tmp --file config/envs/R_rnaseq.yaml
 
 source activate $ENVNAME
 python ci/get-data.py

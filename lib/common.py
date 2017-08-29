@@ -375,6 +375,15 @@ def get_sampletable(config):
     ----------
     config : dict
     """
-    sampletable = pandas.read_table(config['sampletable'])
+    sampletable = pandas.read_table(config['sampletable'], comment="#")
     samples = sampletable.iloc[:, 0]
     return samples, sampletable
+
+
+def get_techreps(sampletable, label):
+    """
+    Return all sample IDs for which the "label" column is `label`.
+    """
+    # since we're not requiring a name but we want to use `loc`
+    first_col = sampletable.columns[0]
+    return list(sampletable.loc[sampletable['label'] == label, first_col])

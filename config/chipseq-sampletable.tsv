@@ -1,0 +1,11 @@
+# Samplenames with the same "label" will be considered technical replicates
+samplename	antibody	biological_material	replicate	label
+input_1	input	wingdisc-1	1	input-wingdisc-1
+input_2	input	wingdisc-2	2	input-wingdisc-2
+ip_1	gaf	wingdisc-1	1	gaf-wingdisc-1
+ip_2	gaf	wingdisc-2	2	gaf-wingdisc-2
+
+# Note here we are treating ip_3 and ip_4 as technical replicates for the sake of testing
+ip_3	gaf	embryo-1	1	gaf-embryo-1
+ip_4	gaf	embryo-1	1	gaf-embryo-1
+input_3	input	embryo-1	1	input-embryo-1

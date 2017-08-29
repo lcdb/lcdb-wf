@@ -6,13 +6,14 @@ before_script:
   - export JAVA_HOME=
   - export TMPDIR=/tmp
 script:
-  - travis_wait 30 ci/travis-run.sh
+  - travis_wait 40 ci/travis-run.sh
 env:
   global:
     - ENCRYPTION_LABEL: "7472da9c29f2"
 
   matrix:
     - TYPE=rnaseq.snakefile
+    - TYPE=chipseq.snakefile
     - TYPE=references.snakefile
     - TYPE=pytest
     - TYPE=docs

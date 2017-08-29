@@ -14,7 +14,7 @@ rule markduplicates:
     wrapper: 'file://wrapper'
 ```
 
-Allocate 64GB of memory for Java:
+Allocate 64GB of memory for Java and remove duplicates instead of just marking them:
 
 ```python
 rule markduplicates:
@@ -25,7 +25,8 @@ rule markduplicates:
         metrics='{sample}.dupmetrics'
     wrapper: 'file://wrapper'
     params:
-        java_args="-Xmx64g
+        java_args="-Xmx64g,
+        extra: "REMOVE_DUPLICATES=true"
     wrapper: 'file://wrapper'
 ```
 
