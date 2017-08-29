@@ -48,12 +48,13 @@ patterns = {
     'libsizes_table': '{agg_dir}/libsizes_table.tsv',
     'libsizes_yaml': '{agg_dir}/libsizes_table_mqc.yaml',
     'multiqc': '{agg_dir}/multiqc.html',
+    'unique': '{sample_dir}/{sample}/{sample}.cutadapt.unique.bam',
     'markduplicates': {
         'bam': '{sample_dir}/{sample}/{sample}.cutadapt.unique.nodups.bam',
         'metrics': '{sample_dir}/{sample}/{sample}.cutadapt.unique.nodups.bam.metrics',
     },
-    'unique': '{sample_dir}/{sample}/{sample}.cutadapt.unique.bam',
-    'bigwig': '{sample_dir}/{sample}/{sample}.cutadapt.unique.nodups.bam.bigwig',
+    'merged_techreps': '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.merged.bam',
+    'bigwig': '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.bam.bigwig',
     'peaks': {
         'macs2': '{peak_calling}/macs2/{macs2_run}/peaks.bed',
         'spp': '{peak_calling}/spp/{spp_run}/peaks.bed',
@@ -62,7 +63,6 @@ patterns = {
         'macs2': '{peak_calling}/macs2/{macs2_run}/peaks.bigbed',
         'spp': '{peak_calling}/spp/{spp_run}/peaks.bigbed',
     },
-    'merged_techreps': '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.merged.bam',
 
 }
 fill = dict(sample=samples, sample_dir=sample_dir, agg_dir=agg_dir, merged_dir=merged_dir,
@@ -327,18 +327,6 @@ rule bigwig:
     wrapper: wrapper_for('deeptools/bamCoverage')
 
 
-rule bed_to_bigbed:
-    input: "data/chipseq/peakcalling/{algorithm}/{label}/{prefix}.bed"
-    output: "data/chipseq/peakcalling/{algorithm}/{label}/{prefix}.bigbed"
-    log: "data/chipseq/peakcalling/{algorithm}/{label}/{prefix}.bigbed.log"
-    run:
-        p = {
-            'macs2': ('assets/narrowPeak.as', '4+6', _narrowpeak),
-            'macs2_lenient': ('assets/narrowPeak.as', '4+6', _narrowpeak),
-            'macs2_broad': ('assets/broadPeak.as', '4+6', _broadpeak),
-            'spp': ('assets/narrowPeak.as', '6+4', _narrowpeak),
-        }
-        _as, bedplus, conversion = p[wildcards.algorithm]
 
         if conversion is not None:
             conversion(input[0], input[0] + '.tmp')
