@@ -101,21 +101,11 @@ rule targets:
             utils.flatten(targets['markduplicates']) +
             utils.flatten(targets['bigwig']) +
             utils.flatten(targets['peaks']) +
-            utils.flatten(targets['merged_techreps'])
+            utils.flatten(targets['merged_techreps']) +
+            utils.flatten(targets['fingerprint'])
         )
 
 
-rule merge_techreps:
-    input:
-        lambda wc: expand(
-            patterns['markduplicates']['bam'],
-            sample=common.get_techreps(sampletable, wc.label),
-            sample_dir=sample_dir
-        )
-    output:
-        patterns['merged_techreps']
-    wrapper:
-        wrapper_for('samtools/merge')
 if 'orig_filename' in sampletable.columns:
     rule symlinks:
         """
@@ -322,6 +312,27 @@ rule markduplicates:
         patterns['markduplicates']['bam'] + '.log'
     wrapper:
         wrapper_for('picard/markduplicates')
+
+
+rule merge_techreps:
+    """
+    Technical replicates are merged and then re-deduped.
+
+    If there's only one technical replicate, its unique, nodups bam is simply
+    symlinked.
+    """
+    input:
+        lambda wc: expand(
+            patterns['markduplicates']['bam'],
+            sample=common.get_techreps(sampletable, wc.label),
+            sample_dir=sample_dir
+        )
+    output:
+        bam=patterns['merged_techreps'],
+        metrics=patterns['merged_techreps'] + '.metrics'
+    log: patterns['merged_techreps'] + '.log'
+    wrapper:
+        wrapper_for('combos/merge_and_dedup')
 
 
 rule bigwig:
