@@ -26,6 +26,28 @@ peaks_dir: 'data/chipseq_peaks'
 
 
 chipseq:
+  # The peak_calling section is a list of dicts, each one defining a single
+  # chipseq peak-calling run. The output will be created according to `label`
+  # and `algorithm`. There will be at least a file
+  # `<peaks_dir>/<algorithm>/<label>/peaks.bed`; other files may be created
+  # depending on the algorithm.
+  #
+  # Note that this directory structure means you can have the same label for
+  # different peak-callers to more easily compare them.
+  #
+  # The `ip` and `control` sections expect names found in the "label" column of
+  # the sampletable. This column describes the technical replicates, and the
+  # merging step of the workflow merges and de-dupes appropriately so that the
+  # peak callers only see BAMs with all duplicates removed.
+  #
+  # The "extra" block is used to pass extra information to the peak-caller in
+  # a run-specific manner. Check the wrapper README for details on this. For
+  # example, the macs2 wrapper passes `extra` verbatim to the command line, but
+  # the spp wrapper handles things differently.
+  #
+  # Each wrapper is built to accept either single or multiple BAMs and output
+  # at least a BED file of peaks.
+  #
   peak_calling:
     - label: gaf-embryo-1
       algorithm: macs2
