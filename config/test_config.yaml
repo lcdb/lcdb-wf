@@ -4,6 +4,8 @@
 # First column must have header name "samplename".
 sampletable: 'config/sampletable.tsv'
 
+hub_config: 'config/hub_config.yml'
+
 # sample_dir: directory in which each sample is expected to have its own
 # directory and fastq file[s]. If `sampletable` lists a sample with samplename
 # SAMPLE1, then at least the file $sample_dir/SAMPLE1/SAMPLE1_R1.fastq.gz is
