@@ -27,3 +27,12 @@ def fb_annotation_postprocess(origfn, newfn):
             "| gzip -c > {newfn} "
             "&& rm {origfn}"
         )
+
+def fb_synonym_postprocess(origfn, newfn):
+        shell(
+            "gunzip -c {origfn} "
+            "| awk '{{if ($1 ~ /^FBgn/ || $1 ~ /^##primary/){{print $0}}}}'"
+            "| sed 's/##//g'"
+            "| gzip -c > {newfn} "
+            "&& rm {origfn}"
+        )
