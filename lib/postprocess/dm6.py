@@ -20,7 +20,7 @@ def precompute_postprocess(origfn, newfn):
         shell(
             "gunzip -c {origfn} "
             "| grep -v '## '"
-            "| grep -v '\\'"
+            r"| grep -v '\\'"
             "| tail -n +2"
             "| gzip -c > {newfn} "
             "&& rm {origfn}")
