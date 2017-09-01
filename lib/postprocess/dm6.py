@@ -16,7 +16,7 @@ def gtf_postprocess(origfn, newfn):
             "| gzip -c > {newfn} "
             "&& rm {origfn}")
 
-def precompute_postprocess(origfn, newfn):
+def fb_annotation_postprocess(origfn, newfn):
         shell(
             "gunzip -c {origfn} "
             "| grep -v '## '"
