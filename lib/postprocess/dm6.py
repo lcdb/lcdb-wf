@@ -22,5 +22,8 @@ def precompute_postprocess(origfn, newfn):
             "| grep -v '## '"
             r"| grep -v '\\'"
             "| tail -n +2"
+            "| sed 's/#//g'"
+            r"| sed 's/(s)//g'"
             "| gzip -c > {newfn} "
-            "&& rm {origfn}")
+            "&& rm {origfn}"
+        )
