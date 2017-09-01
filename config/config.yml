@@ -93,6 +93,10 @@ references:
         url: 'ftp://ftp.flybase.net/releases/FB2016_03/precomputed_files/genes/fbgn_annotation_ID.tsv.gz'
         postprocess: "lib.postprocess.dm6.fb_annotation_postprocess"
 
+      fb_synonym:
+        url: 'ftp://ftp.flybase.net/releases/FB2016_03/precomputed_files/synonyms/fb_synonym_fb_2016_03.tsv.gz'
+        postprocess: "lib.postprocess.dm6.fb_synonym_postprocess"
+
       fasta:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/fasta/dmel-all-chromosome-r6.11.fasta.gz'
         postprocess: "lib.postprocess.dm6.fasta_postprocess"
@@ -159,6 +163,10 @@ references:
       fb_annotation:
         url: 'ftp://ftp.flybase.net/releases/FB2017_03/precomputed_files/genes/fbgn_annotation_ID.tsv.gz'
         postprocess: "lib.postprocess.dm6.fb_annotation_postprocess"
+
+      fb_synonym:
+        url: 'ftp://ftp.flybase.net/releases/FB2017_03/precomputed_files/synonyms/fb_synonym_fb_2017_03.tsv.gz'
+        postprocess: "lib.postprocess.dm6.fb_synonym_postprocess"
 
       fasta:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.16_FB2017_03/fasta/dmel-all-chromosome-r6.16.fasta.gz'

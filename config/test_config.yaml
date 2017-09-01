@@ -77,6 +77,10 @@ references:
         url: 'ftp://ftp.flybase.net/releases/FB2016_03/precomputed_files/genes/fbgn_annotation_ID.tsv.gz'
         postprocess: "lib.postprocess.dm6.fb_annotation_postprocess"
 
+      fb_synonym:
+        url: 'ftp://ftp.flybase.net/releases/FB2016_03/precomputed_files/synonyms/fb_synonym_fb_2016_03.tsv.gz'
+        postprocess: "lib.postprocess.dm6.fb_synonym_postprocess"
+
       fasta:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/add-chipseq/data/seq/dm6.small.fa"
         postprocess: 'lib.common.gzipped'
