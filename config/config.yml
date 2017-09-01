@@ -54,6 +54,18 @@ references:
             - 'bowtie2'
 
   dmel:
+    rRNA:
+      fasta:
+        url:
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+        postprocess:
+            function: 'lib.common.filter_fastas'
+            args: 'Drosophila melanogaster'
+        indexes:
+            - 'hisat2'
+            - 'bowtie2'
+
     r6-11:
       gtf:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/gtf/dmel-all-r6.11.gtf.gz'
@@ -89,18 +101,6 @@ references:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/fasta/dmel-all-transcript-r6.11.fasta.gz'
         indexes:
           - 'kallisto'
-
-    rRNA:
-      fasta:
-        url:
-          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
-          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
-        postprocess:
-            function: 'lib.common.filter_fastas'
-            args: 'Drosophila melanogaster'
-        indexes:
-            - 'hisat2'
-            - 'bowtie2'
 
     r6-11_and_ercc:
       gtf:
