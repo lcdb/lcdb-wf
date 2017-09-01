@@ -15,3 +15,15 @@ def gtf_postprocess(origfn, newfn):
             "| chrom_convert -i - --from FlyBase --to UCSC --fileType GTF"
             "| gzip -c > {newfn} "
             "&& rm {origfn}")
+
+def fb_annotation_postprocess(origfn, newfn):
+        shell(
+            "gunzip -c {origfn} "
+            "| grep -v '## '"
+            r"| grep -v '\\'"
+            "| tail -n +2"
+            "| sed 's/#//g'"
+            r"| sed 's/(s)//g'"
+            "| gzip -c > {newfn} "
+            "&& rm {origfn}"
+        )

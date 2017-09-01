@@ -73,6 +73,9 @@ references:
               ahkey: 'AH49581'
               keytype: 'ENSEMBL'
 
+      fb_annotation:
+        url: 'ftp://ftp.flybase.net/releases/FB2016_03/precomputed_files/genes/fbgn_annotation_ID.tsv.gz'
+        postprocess: "lib.postprocess.dm6.fb_annotation_postprocess"
 
       fasta:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/add-chipseq/data/seq/dm6.small.fa"

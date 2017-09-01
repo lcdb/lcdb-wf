@@ -54,8 +54,19 @@ references:
             - 'bowtie2'
 
   dmel:
-    r6-11:
+    rRNA:
+      fasta:
+        url:
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+        postprocess:
+            function: 'lib.common.filter_fastas'
+            args: 'Drosophila melanogaster'
+        indexes:
+            - 'hisat2'
+            - 'bowtie2'
 
+    r6-11:
       gtf:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/gtf/dmel-all-r6.11.gtf.gz'
         postprocess: "lib.postprocess.dm6.gtf_postprocess"
@@ -78,6 +89,10 @@ references:
               ahkey: 'AH49581'
               keytype: 'ENSEMBL'
 
+      fb_annotation:
+        url: 'ftp://ftp.flybase.net/releases/FB2016_03/precomputed_files/genes/fbgn_annotation_ID.tsv.gz'
+        postprocess: "lib.postprocess.dm6.fb_annotation_postprocess"
+
       fasta:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/fasta/dmel-all-chromosome-r6.11.fasta.gz'
         postprocess: "lib.postprocess.dm6.fasta_postprocess"
@@ -90,18 +105,6 @@ references:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/fasta/dmel-all-transcript-r6.11.fasta.gz'
         indexes:
           - 'kallisto'
-
-    rRNA:
-      fasta:
-        url:
-          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
-          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
-        postprocess:
-            function: 'lib.common.filter_fastas'
-            args: 'Drosophila melanogaster'
-        indexes:
-            - 'hisat2'
-            - 'bowtie2'
 
     r6-11_and_ercc:
       gtf:
@@ -152,6 +155,10 @@ references:
           - annotation_hub:
               ahkey: 'AH49581'
               keytype: 'ENSEMBL'
+
+      fb_annotation:
+        url: 'ftp://ftp.flybase.net/releases/FB2017_03/precomputed_files/genes/fbgn_annotation_ID.tsv.gz'
+        postprocess: "lib.postprocess.dm6.fb_annotation_postprocess"
 
       fasta:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.16_FB2017_03/fasta/dmel-all-chromosome-r6.16.fasta.gz'
