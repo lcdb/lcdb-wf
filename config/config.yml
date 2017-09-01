@@ -55,7 +55,6 @@ references:
 
   dmel:
     r6-11:
-
       gtf:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/gtf/dmel-all-r6.11.gtf.gz'
         postprocess: "lib.postprocess.dm6.gtf_postprocess"
