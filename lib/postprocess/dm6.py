@@ -15,3 +15,12 @@ def gtf_postprocess(origfn, newfn):
             "| chrom_convert -i - --from FlyBase --to UCSC --fileType GTF"
             "| gzip -c > {newfn} "
             "&& rm {origfn}")
+
+def precompute_postprocess(origfn, newfn):
+        shell(
+            "gunzip -c {origfn} "
+            "| grep -v '## '"
+            "| grep -v '\\'"
+            "| tail -n +2"
+            "| gzip -c > {newfn} "
+            "&& rm {origfn}")
