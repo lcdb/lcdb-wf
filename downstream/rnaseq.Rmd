@@ -64,7 +64,7 @@ DESeqDataSetFromFeatureCounts <- function (sampleTable, directory='.', design,
 DESeqDataSetFromSalmon <- function (sampleTable, directory='.', design,
                                            ignoreRank=FALSE,  ...)
 {
-    txi <- tximport(sampleTable[, 'salmon.path'], type='salmon', reader=read_tsv, txOut=TRUE)
+    txi <- tximport(sampleTable[, 'salmon.path'], type='salmon', txOut=TRUE)
     object <- DESeqDataSetFromTximport(txi, colData=sampleTable[, -grepl('path', colnames(sampleTable)),
                                        drop=FALSE], design=design, ignoreRank, ...)
     return(object)
