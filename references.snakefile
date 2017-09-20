@@ -169,7 +169,7 @@ rule annotations:
     shell:
         '''Rscript -e "'''
         "library(AnnotationHub); "
-        "ah <- AnnotationHub(); "
+        "ah <- AnnotationHub(cache=$TMPDIR); "
         "db <- ah[['{params.ahkey}']]; "
         "gene.names <- read.table('{input}', stringsAsFactors=FALSE)[['V1']];"
         "for (col in columns(db)){{"
