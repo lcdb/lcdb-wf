@@ -2,6 +2,7 @@ channels:
   - bioconda
   - lcdb
 dependencies:
+  - python=3
   - bioconductor-dupradar ==1.2.2
   - r-kernsmooth ==2.23
   - r ==3.3.2

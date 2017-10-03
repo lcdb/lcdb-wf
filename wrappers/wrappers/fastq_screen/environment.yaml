@@ -2,6 +2,7 @@ channels:
   - bioconda
   - lcdb
 dependencies:
+  - python=3
   - fastq-screen ==0.11.1
   - bowtie2 ==2.3.2
   - lcdblib ==0.1.2.post
