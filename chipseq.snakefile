@@ -175,7 +175,7 @@ rule unique:
     output:
         patterns['unique']
     params:
-        extra="-q 20"
+        extra="-b -q 20"
     wrapper:
         wrapper_for('samtools/view')
 
