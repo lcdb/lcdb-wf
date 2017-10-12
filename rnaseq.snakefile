@@ -239,7 +239,8 @@ rule fastq_screen:
     """
     input:
         fastq=rules.cutadapt.output.fastq,
-        dm6=refdict[assembly][config['aligner']['tag']]['bowtie2'],
+        dm6=refdict['dmel'][config['aligner']['tag']]['bowtie2'],
+        human=refdict['human'][config['aligner']['tag']]['bowtie2'],
         rRNA=refdict[assembly][config['rrna']['tag']]['bowtie2'],
         phix=refdict['phix']['default']['bowtie2']
     output:
