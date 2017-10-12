@@ -218,6 +218,8 @@ references:
       gtf:
         url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz'
         postprocess: 'lib.postprocess.hg38.strip_ensembl_version'
+        conversions:
+          - 'refflat'
 
     gencode-v25-transcriptome:
       fasta:
@@ -234,6 +236,8 @@ references:
       gtf:
         url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/gencode.v19.annotation.gtf.gz'
         postprocess: 'lib.postprocess.hg38.strip_ensembl_version'
+        conversions:
+          - 'refflat'
 
     gencode_v19_plus_lncRNA_transcriptome:
       fasta:
