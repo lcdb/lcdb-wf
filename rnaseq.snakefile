@@ -412,6 +412,8 @@ rule markduplicates:
         metrics=patterns['markduplicates']['metrics']
     log:
         patterns['markduplicates']['bam'] + '.log'
+    params:
+        java_args='-Xmx32g'
     wrapper:
         wrapper_for('picard/markduplicates')
 
@@ -426,7 +428,9 @@ rule collectrnaseqmetrics:
     output:
         metrics=patterns['collectrnaseqmetrics']['metrics'],
         pdf=patterns['collectrnaseqmetrics']['pdf']
-    params: extra="STRAND=NONE CHART_OUTPUT={}".format(patterns['collectrnaseqmetrics']['pdf'])
+    params:
+        extra="STRAND=NONE CHART_OUTPUT={}".format(patterns['collectrnaseqmetrics']['pdf']),
+        java_args='-Xmx32g'
     log: patterns['collectrnaseqmetrics']['metrics'] + '.log'
     wrapper: wrapper_for('picard/collectrnaseqmetrics')
 
