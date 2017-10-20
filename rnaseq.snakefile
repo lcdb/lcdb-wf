@@ -488,8 +488,9 @@ rule bigwig_neg:
         bam=patterns['bam'],
         bai=patterns['bam'] + '.bai',
     output: patterns['bigwig']['neg']
+    threads: 8
     params:
-        extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand reverse --normalizeUsingRPKM'
+        extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand forward --normalizeUsingRPKM'
     log:
         patterns['bigwig']['neg'] + '.log'
     wrapper: wrapper_for('deeptools/bamCoverage')
@@ -503,8 +504,9 @@ rule bigwig_pos:
         bam=patterns['bam'],
         bai=patterns['bam'] + '.bai',
     output: patterns['bigwig']['pos']
+    threads: 8
     params:
-        extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand forward --normalizeUsingRPKM'
+        extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand reverse --normalizeUsingRPKM'
     log:
         patterns['bigwig']['pos'] + '.log'
     wrapper: wrapper_for('deeptools/bamCoverage')
