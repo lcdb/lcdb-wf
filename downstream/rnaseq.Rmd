@@ -1,7 +1,41 @@
+
 ```{r, include=FALSE}
-knitr::opts_chunk$set(collapse=TRUE, warning=FALSE, message=FALSE, bootstrap.show.code=FALSE, bootstrap.show.output=FALSE, dev='bitmap', fig.ext='png')
+#-----------------------------------------------------------------------------
+# NOTES:
+#
+# This Rmd file aims to include "the works", with some preliminary exploratory
+# visualizations, followed by differential expression using both gene models
+# and transcript models (with examples of interaction) SVA, and some downstream
+# GO analysis.
+#
+# Assumptions are indicated where they are made, so look for those comments
+# starting with "Assumptions:" identify places that may need some editing.
+# Notably, the only model run by default is `~group`, which will only be
+# appropriate for the simplest experiments.
+
+# There are a fair amount of helper functions. In order to keep this file
+# self-contained and easier to edit on a case-by-case basis, they are included
+# inline here.
+
+#-----------------------------------------------------------------------------
 ```
-# Differential expression 
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(collapse=TRUE, warning=FALSE, message=FALSE,
+                      bootstrap.show.code=FALSE, bootstrap.show.output=FALSE,
+
+                      # try disabling this when running locally for nicer figures
+                      #dev='bitmap',
+
+                      fig.ext='png')
+```
+# Track hub
+
+Click the following link to load the track hub (and prepared session) on the UCSC genome browser:
+
+[Load hub and prepared session on UCSC Genome Browser](http://genome.ucsc.edu/cgi-bin/hgTracks?db=ASSEMBLY&hubUrl=https://HOST/PATH/hub.txt&hgS_loadUrlName=https://HOST/PATH/session.txt&hgS_doLoadUrl=submit&position=chr1:1-100)
+
+# Differential expression
 
 Note: if you're unfamiliar with any of the plots or tables here, see the
 [Background and help](#background) section for details.
@@ -10,37 +44,76 @@ Note: if you're unfamiliar with any of the plots or tables here, see the
 
 
 ```{r setup}
-options(bitmapType='cairo')
+
+# Try disabling this when running locally to get nicer figures
+# options(bitmapType='cairo')
+
+# Assumption: change to reflect the appropriate organism
+orgdb.name <- 'org.Dm.eg.db'
+library(orgdb.name, character.only=TRUE)
+orgdb <- get(orgdb.name)
+
+# Assumption: change to reflect KEGG ID of organism
+kegg.org <- 'dme'
+
 library(DESeq2)
 library(gridExtra)
 library(pheatmap)
 library(RColorBrewer)
 library(ggplot2)
 library(genefilter)
-library(org.Dm.eg.db)
 library(readr)
 library(tximport)
+library(clusterProfiler)
+
+# Assumption: path name to sampletable
 sample.table.filename = '../config/sampletable.tsv'
+
 colData <- read.table(sample.table.filename, sep='\t', header=TRUE)
+
+# Assumption: data directory and extension to featurecounts output
 colData$featurecounts.path <- sapply(
     colData$samplename,
     function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.cutadapt.bam.featurecounts.txt')
                            )
     )
 
+# Assumption: data directory and salmon filenames
 colData$salmon.path <- sapply(
     colData$samplename,
     function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
 )
 
+# Assumption: which columns in sampletable, and that "group" should be factor
 colData <- colData[, c('samplename', 'featurecounts.path', 'salmon.path', 'group')]
 colData$group <- factor(colData$group)
 knitr::kable(colData[, !grepl('path', colnames(colData))])
 ```
 
 ```{r}
-# revised version of DESeq2::DESeqDataSetFromHTSeqCount to handle the
-# featureCounts default output format, which contains many more columns
+
+#' Simple wrapper of cat() that makes markdown text easier to print
+#'
+#' @param ... Arguments to print
+#'
+#' Make sure you're in an R code chunk with `results="asis"` set.
+mdcat <- function(...){
+  cat(..., sep='', fill=1500)
+}
+
+
+#' Load featureCounts output into a DESeq object.
+#'
+#' Revised version of DESeq2::DESeqDataSetFromHTSeqCount to handle the
+#' featureCounts default output format, which contains many more columns.
+#'
+#' @param sampleTable data.frame containing at least "featurecounts.path" column
+#' @param directory Paths to featureCounts output are relative to this dir
+#' @param design Model used for creating DESeq object
+#'
+#' @return DESeq object
+#'
+#' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
 DESeqDataSetFromFeatureCounts <- function (sampleTable, directory='.', design,
                                            ignoreRank=FALSE,  ...)
 {
@@ -58,9 +131,15 @@ DESeqDataSetFromFeatureCounts <- function (sampleTable, directory='.', design,
                                    drop=FALSE], design=design, ignoreRank, ...)
   return(object)
 }
-```
 
-```{r}
+#' Load Salmon quantification data into a DESeq object
+#'
+#' @param sampleTable data.frame containing at least "salmon.path" column
+#' @param design Model used for creating DESeq object
+#'
+#' @return DESeq object with transcript-level counts
+#'
+#' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
 DESeqDataSetFromSalmon <- function (sampleTable, directory='.', design,
                                            ignoreRank=FALSE,  ...)
 {
@@ -72,6 +151,7 @@ DESeqDataSetFromSalmon <- function (sampleTable, directory='.', design,
 ```
 
 ```{r ddstxi, cache=TRUE}
+# Load transcript-level counts
 dds.txi <- DESeqDataSetFromSalmon(
                                   sampleTable=colData,
                                   directory='.',
@@ -79,18 +159,23 @@ dds.txi <- DESeqDataSetFromSalmon(
 ```
 
 ```{r rldtxi, cache=TRUE, depends='ddstxi'}
+# rlog normalize transcript counts
 rld.txi <- rlog(dds.txi, blind=FALSE)
 ```
 
 
 ```{r dds, cache=TRUE}
+# Load gene-level counts
 dds <- DESeqDataSetFromFeatureCounts(
                                   sampleTable=colData,
                                   directory='.',
                                   design=~group)
+
+rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
 ```
 
 ```{r rld, cache=TRUE, depends='dds'}
+# rlog normalize gene-level counts
 rld <- rlog(dds, blind=FALSE)
 ```
 
@@ -103,6 +188,8 @@ we expect to see replicates clustering together and separation of treatments.
 ## Clustered heatmap
 
 ```{r}
+# Assumption: gene-level counts
+# Assumption: use "group" as colored sidebars
 sampleDists <- dist(t(assay(rld)))
 sampleDistMatrix <- as.matrix(sampleDists)
 rownames(sampleDistMatrix) <- colnames(dds)
@@ -127,6 +214,8 @@ explained by each principal component is indicated in the axes label.
 
 
 ```{r}
+# Assumption: gene-level counts
+# Assumption: color by 'group' factor
 plotPCA(rld, intgroup='group')
 ```
 
@@ -139,7 +228,10 @@ the row mean.
 
 
 ```{r, fig.height=12}
-vargenes.heatmap <- function(n=50){
+#' Plot heatmap of most varying genes
+#'
+#' @param n Number of genes to include
+vargenes.heatmap <- function(rld, n=50){
   topVarGenes <- head(order(rowVars(assay(rld)), decreasing=TRUE), n)
   mat <- assay(rld)[topVarGenes,]
   mat <- mat - rowMeans(mat)
@@ -149,31 +241,55 @@ vargenes.heatmap <- function(n=50){
   pheatmap(mat, annotation_col=df, cluster_cols=FALSE)
 }
 
-vargenes.heatmap(50)
+# Assumption: gene-level counts
+vargenes.heatmap(rld, 50)
 ```
 
 
 ```{r deseq, cache=TRUE, depends='dds'}
+# Create DESeq object.
+# Assumption: gene-level counts
+# Assumption: this uses the default ~group design. To use other designs, create
+#             a new dds object, or reset the design with, e.g.,
+#             `design(dds) <- ~group + batch`
 dds <- DESeq(dds)
 ```
 
-
 ```{r results, cache=TRUE}
-res <- results(dds)
+# Results are put in a list here so we can iterate over them later. Names here
+# will be used to create output files.
+res.list <- list(
+                 experiment1=results(dds)
+                 )
+res.list.lookup <- list(experiment1="Experiment One")
 ```
 
 ```{r}
-my.counts <- function(gene, dds){
+#' Plot a gene's normalized counts across samples
+#'
+#' @param gene Gene ID
+#' @param dds DESeq object from which to extract counts
+#'
+my.counts <- function(gene, dds, label=NULL){
+
+  # Assumption: color genes by group
   geneCounts <- plotCounts(dds, gene=gene, intgroup=c('group'), returnData=TRUE)
   p <- ggplot(geneCounts, aes(x=group, y=count, color=group, group=group)) +
     scale_y_log10() +
     geom_point(position=position_jitter(width=.1, height=0),  size=3) +
-    geom_line(color='#000000') + 
+    geom_line(color='#000000') +
     ggtitle(gene)
+
+  if (!is.null(label)){
+    p <- p + ggtitle(label)
+  }
   return(p)
 }
 
-
+#' Re-order results by log2FoldChange
+#'
+#' @param res DESeq2 results object
+#' @param reverse If TRUE then sort high-to-low
 lfc.order <- function(res, reverse=FALSE){
     res.na <- res[!is.na(res$log2FoldChange),]
     if (!reverse){
@@ -183,31 +299,65 @@ lfc.order <- function(res, reverse=FALSE){
         return(res.na[rev(order(res.na$log2FoldChange)),])
     }
 }
-p.order <- function(res){
-    return(res[order(res.ko.p7res$padj),])
+
+#' Re-order results by adjusted pval
+#'
+#' @param res DESeq2 results object
+#' @param reverse If TRUE then sort high-to-low
+padj.order <- function(res, reverse=FALSE){
+    res.na <- res[!is.na(res$log2FoldChange) & !is.na(res$log2FoldChange),]
+    if (!reverse){
+        res.na <- res.na[res.na$log2FoldChange > 0,]
+    } else {
+        res.na <- res.na[res.na$log2FoldChange < 0,]
+    }
+    return(res.na[order(res.na$padj),])
 }
 
 
-
-top.plots <- function(res, n, func, dds){
+#' Plot normalized gene counts for the top N genes
+#'
+#' @param sorted DESeq2 results object
+#' @param n Number of top genes to plot
+#' @param func Plotting function to call on each gene
+#' @param dds DESeq2 object
+#' @param label Vector of column names in `res` from which to add a label to
+#'   the gene (e.g., c('symbol', 'alias'))
+top.plots <- function(res, n, func, dds, add_cols=NULL){
     ps <- list()
     for (i in seq(n)){
-        name <- rownames(res)[i]
-        ps[[name]] <- func(name, dds)
+        gene <- rownames(res)[i]
+        add_label <- as.character(as.data.frame(res)[i, add_cols])
+        add_label <- add_label[!is.na(add_label)]
+        label <- paste(gene, add_label, sep=' | ')
+        if (length(label) == 0){
+          label <- NULL
+        }
+        ps[[gene]] <- func(gene, dds, label=label)
     }
     grid.arrange(grobs=ps)
 }
 
+#' Plot a histogram of raw pvals
+#'
+#' @param res DESeq2 results object
 pval.hist <- function(res){
-    hist(res$pvalue[res$baseMean>1], breaks=0:20/20, col='grey50', border='white')
+    hist(res$pvalue[res$baseMean>1], breaks=0:20/20, col='grey50', border='white', xlab='P-value', main='Distribution of p-values')
 }
 
+#' Summarize DESeq2 results into a dataframe
+#'
+#' summary(res) prints out info; this function captures it into a dataframe
+#'
+#' @param res DESeq2 results object
+#' @param dds DEseq2 object
+#' @param alpha Alpha level at which to call significantly changing genes
 my.summary <- function(res, dds, alpha, ...){
    if (missing(alpha)){
        alpha <- if (is.null(metadata(res)$alpha)){ 0.1 } else { metadata(res)$alpha }
         notallzero <- sum(res$baseMean > 0)
    }
-    up <- sum(res$padj < alpha & res$log2FoldChange > 0, na.rm=TRUE)
+   up <- sum(res$padj < alpha & res$log2FoldChange > 0, na.rm=TRUE)
    down <- sum(res$padj < alpha & res$log2FoldChange < 0, na.rm=TRUE)
    filt <- sum(!is.na(res$pvalue) & is.na(res$padj))
    outlier <- sum(res$baseMean > 0 & is.na(res$pvalue))
@@ -225,193 +375,296 @@ my.summary <- function(res, dds, alpha, ...){
    return(df)
 }
 
-
-
 ```
-## Differential expression
-
-See the [Help on plots](#plotshelp) section for more information on the plots and tables.
-
-
-### Effect of group
-
 ```{r}
-knitr::kable(my.summary(res, dds))
-top.plots(lfc.order(res, reverse=TRUE), 3, my.counts, dds)
-top.plots(lfc.order(res), 3, my.counts, dds)
-plotMA(res, ylim=c(-2, 2))
-pval.hist(res)
-```
+# Attach other info to results
 
-```{r interaction, cache=TRUE}
-# example of interaction
-# dds.interaction <- DESeqDataSetFromHTSeqCount(
-#     sampleTable=colData,
-#     directory='.',
-#     design=~condition + stage + condition:stage
-# )
-# 
-# dds.interaction <- DESeq(dds.interaction)
-# res.interaction <- results(dds.interaction)
-# knitr::kable(my.summary(res.interaction, dds.interaction))
-# top.plots(lfc.order(res.interaction, reverse=TRUE), 3, my.counts, dds.interaction)
-# top.plots(lfc.order(res.interaction), 3, my.counts, dds.interaction)
-# plotMA(res.interaction, ylim=c(-2, 2))
-# pval.hist(res.interaction)
-```
-
-```{r sva, cache=TRUE}
-# example of using SVA to find one surrogate variable
-library(sva)
-ddssva <- DESeqDataSetFromFeatureCounts(
-                                  sampleTable=colData,
-                                  directory='.',
-                                  design=~group)
-ddssva <- DESeq(ddssva)
-dat <- counts(ddssva, normalized=TRUE)
-idx <- rowMeans(dat) > 1
-dat <- dat[idx,]
-mod <- model.matrix(~group, colData(ddssva))
-mod0 <- model.matrix(~1, colData(ddssva))
-svseq <- svaseq(dat, mod, mod0, n.sv=1)
-ddssva$SV1 <- svseq$sv
-design(ddssva) <- ~SV1 + group
-ddssva <- DESeq(ddssva)
-
-df <- data.frame(colData(ddssva))
-df$samplename <- rownames(df)
-df$sv <- svseq$sv
-ggplot(df) + aes(x=samplename, y=sv, color=group) +
-    geom_point(size=5)
-```
-
-
-# Exported results
-
-See the [Help on results tables](#resultshelp) section for more information about these tables.
-
-```{r}
-res.list <- list(group=res)
 for (name in names(res.list)){
-    res <- res.list[[name]]
-    res$symbol <- mapIds(
-        org.Dm.eg.db,
-        keys=row.names(res),
-        column="SYMBOL",
-        keytype="ENSEMBL",
-        multiVals="first"
-    )
-    cn <- colnames(res)
-    res$gene <- rownames(res)
-    res <- res[, c('gene', cn)]
-    write.table(res, file=paste0(name, '.tsv'), row.names=FALSE, sep='\t')
+  res <- res.list[[name]]
+  keys <- sapply(strsplit(rownames(res), '.', fixed=TRUE), function (x) x[1])
+
+  # Assumption: Original annotations use Ensembl IDs
+  keytype <- 'ENSEMBL'
+
+  # Assumption: Uniprot and Alias columns are available in the OrgDb
+  columns <- c('SYMBOL', 'UNIPROT', 'ALIAS')
+
+  for (column in columns){
+    label <- tolower(column)
+    res[label] <- mapIds(orgdb, keys=keys, column=column, keytype=keytype, multiVal='first')
+  }
+
+  # Put "gene" column as the first
+  cn <- colnames(res)
+  res$gene <- rownames(res)
+  res <- res[, c('gene', cn)]
+  res.list[[name]] <- res
 }
 ```
 
-- [`group.tsv`](group.tsv), the results for comparing across group
+# Differential expression
 
-<a id="background"></a>
+```{r, results='asis'}
+# Assumption: which columns to add to the top plots' titles
+add_cols <- c('symbol', 'alias')
+for (name in names(res.list)){
+  mdcat('## ', res.list.lookup[[name]])
+  mdcat('### Summary of results')
+  res <- res.list[[name]]
+  print(knitr::kable(my.summary(res, dds)))
+  mdcat('### Normalized counts of top 3 upregulated genes')
+  top.plots(padj.order(res), 3, my.counts, dds, add_cols)
+  mdcat('### Normalized counts of top 3 downregulated genes')
+  top.plots(padj.order(res, reverse=TRUE), 3, my.counts, dds, add_cols)
+  mdcat('### M-A plot')
+  plotMA(res)
+  mdcat('### P-value distribution')
+  pval.hist(res)
+}
+```
 
-# Background and help
+# Exported results
 
-If this is your first RNA-seq experiment or you're looking for a refresher,
-this section will guide you through the output.
+```{r}
+# Subset out up/down regulated. Other selections can be added, and
+# corresponding output files will be created and GO analysis will be performed
+# on them below.
+#
+# sel.list will be a list of lists of subsets of the original results in
+# res.list; access selections with, e.g., sel.list[['experiment1]'][['up']]
+sel.list <- list()
+for (name in names(res.list)){
+  res <- res.list[[name]]
 
-## Preface
-This analysis uses DESeq2
-([1](http://genomebiology.biomedcentral.com/articles/10.1186/s13059-014-0550-8))
-to identify differentially expressed genes. It generally follows the
-Bioconductor RNA-seq workflow
-([1](http://www.bioconductor.org/help/workflows/rnaseqGene/)) with some
-experiment-specific modifications.
+  # Assumption: significance level
+  alpha <- 0.1
+  sel.list[[name]] <- list(
+    up=res[(res$padj < alpha) & (res$log2FoldChange > 0) & !is.na(res$padj) & !is.na(res$log2FoldChange),],
+    dn=res[(res$padj < alpha) & (res$log2FoldChange < 0) & !is.na(res$padj) & !is.na(res$log2FoldChange),]
+  )
+}
+```
 
-This document uses RMarkdown
-([1](http://kbroman.org/knitr_knutshell/pages/Rmarkdown.html),
-[2](http://rmarkdown.rstudio.com/)), which documents the exact code to run the
-analysis to improve reproducibility. If you're interested, you can click on the
-"R Source" buttons to see the underlying R code. However to actually run the
-code you need the original data, which is generally too large to distribute
-easily.
+```{r, results='asis'}
+# Write out files for full and each selection
+for (name in names(res.list)){
+  mdcat('## ', res.list.lookup[[name]])
+  fn <- paste0(name, '.tsv')
+  write.table(res.list[[name]], file=fn, row.names=FALSE, sep='\t')
+  mdcat('- [', fn, '](', fn, '), results for ', res.list.lookup[[name]])
+  for (sel in names(sel.list[[name]])){
+    fn <- paste0(name, '.', sel, '.tsv')
+    write.table(sel.list[[name]][[sel]], file=fn, row.names=FALSE, sep='\t')
+    mdcat('- [', fn, '](', fn, '), just the "', sel, '" genes for ', res.list.lookup[[name]])
+  }
+}
+```
 
-<a id="plotshelp"></a>
+# Gene ontology and KEGG pathway enrichment
 
-## Help on plots
+Here we perform gene ontology enrichment and KEGG pathway enrichment using the
+[clusterProfiler](https://bioconductor.org/packages/release/bioc/vignettes/clusterProfiler/inst/doc/clusterProfiler.html)
+package with some custom plotting functions.
 
-For each comparison, we first look at a summary table showing up/down genes. The table has the following columns:
+```{r}
+# These are some helper functions for working with clusterProfiler results.
+# While clusterProfiler does a great job of unifying the output of different
+# enrichment metrics into a single data structure, we need a couple more things
+# for very flexibly plotting with ggplot2. These functions handle the enrichment
+# and summary of results.
 
-|column|description                                                                |
-|------|---------------------------------------------------------------------------|
-|*total.annotated.genes*|the number of genes examined for differential expression|
-|*total.nonzero.read.count*|the number of genes that had zero reads in any replicate|
-|*alpha*|The threshold for adjusted p-value. Genes with `padj < alpha` are considered differentially expressed|
-|*up, down*|the number of genes going up (`(padj < alpha) & (log2FoldChange> 0)`) and down ((`padj < alpha) & (log2FoldChange < 0)`)
-|*outliers*|the number of genes with a too-high [Cook's distance](https://en.wikipedia.org/wiki/Cook's_distance). Not used when only2 replicates. See the [documentation](https://rdrr.io/bioc/DESeq2/man/results.html) for more details.|
-|*low.counts*| DESeq2 performs an independent filtering step, removing genes with low counts before performing p-value adjustments. The definition of "low counts" varies by dataset and the chosen alpha. This column shows the number of genes filtered out. See the [documentation](https://rdrr.io/bioc/DESeq2/man/results.html) for more details.|
-|*model*|The linear model used to perform the differential expression.|
+#' Run enrichGO on each of the three top-level ontologies
+#'
+#' @param genes Gene IDs with format matching `keytype`
+#' @param univers Universe of genes assayed
+#' @param orgdb String or OrgDb object
+#' @param keytype ID type of genes
+#"
+#' @return  List of clusterProfiler output objects, length 3 where names are
+#' ontologies (BP, MF, CC)
+clusterprofiler.enrichgo <- function(genes, universe, orgdb, keytype='ENSEMBL'){
+    lst <- list()
+    if (length(genes) > 0 ){
+        for (ont in c('BP', 'MF', 'CC')){
+            ggo <- enrichGO(gene=genes, ont=ont, universe=universe,
+                            OrgDb=orgdb, keytype=keytype, pAdjustMethod='BH',
+                            pvalueCutoff=0.01, qvalueCutoff=0.05,
+                            readable=TRUE)
+            lst[[ont]] <- ggo
+        }
+    }
+    return(lst)
+}
 
-After the summary table are plots showing the top 3 upregulated and top
-3 downregulated genes. These show normalized counts on a log scale (y-axis) and
-categories of interest on the x-axis.
+#' Run KEGG enrichment
+#'
+#' @param genes Gene IDs typically in UniProt format
+#' @param org 3-character KEGG species ID (dme, hsa, mmu)
+#' @param keytype ID type of genes
+#'
+#' @return clusterProfiler output object
+clusterprofiler.enrichkegg <- function(genes, org, keyType='uniprot'){
+    x <- enrichKEGG(gene=genes, organism=org, keyType='uniprot',
+                    pvalueCutoff=0.05)
+    return(x)
+}
 
-Here's an example plot, showing different cell lines as different colors, and
-treatments along the x-axis. These plots are highly dependent on the
-experiment, so this is just an example.
+#' Convert "1/100" to 0.01.
+#'
+#' clusterProfiler report columns that are strings of numbers; this converts to
+#' a fraction
+#'
+#' @param x Character vector to convert
+get.frac <- function(x){
+    y <- as.numeric(strsplit(x, '/')[[1]])
+    return(y[[1]] / y[[2]])
+}
 
-![img](http://www.bioconductor.org/help/workflows/rnaseqGene/rnaseqGene_files/figure-markdown_strict/ggplotcountsjitter-1.png)
+#' Summarize and aggregate multiple GO results
+#'
+#' Convert a list of GO analysis results (one per ontology) to a single
+#' dataframe, with additional label column filled in with `label` and with
+#' a fraction column.
+#'
+#' @param ego List of clusterProfiler results objects
+#' @param labels List of labels. For each name, a new column will be added and
+#"        its contents will be the value
+#'
+#' @return dataframe
+summarize.go <- function(ego, labels){
+  lst <- list()
+  for (name in names(ego)){
+    d <- summary(ego[[name]])
+    if (nrow(d) > 0){
+      d$ontology <- name
+      for (label in names(labels)){
+        d[label] <- labels[[label]]
+      }
+      d$frac <- sapply(d$GeneRatio, get.frac)
+    }
+    lst[[name]] <- d
+  }
+  df <- do.call(rbind, lst)
+  return(df)
+}
 
-Finally there is a histogram of p-values. A successful differential expression
-experiment will look like this, with a peak near zero and otherwise uniform
-distribution:
 
-![img](http://www.bioconductor.org/help/workflows/rnaseqGene/rnaseqGene_files/figure-markdown_strict/histpvalue2-1.png)
+#' Summarize KEGG results
+#'
+#' Summarize KEGG results and add `frac` and `label` columns
+#'
+#' @param ekg Results from clusterProfiler KEGG enrichment
+#' @param label Attach this label to the "label" column
+#'
+#' @return Dataframe
+summarize.kegg <- function(ekg, labels){
+  d <- summary(ekg)
+  if (nrow(d) > 0){
+    d$ontology <- 'kegg'
+    for (label in names(labels)){
+      d[label] <- labels[[label]]
+    }
+    d$frac <- sapply(d$GeneRatio, get.frac)
+  }
+  return(d)
+}
+```
 
-[This blog
-post](http://varianceexplained.org/statistics/interpreting-pvalue-histogram/)
-has a great discussion on the different histogram shapes and what they might
-mean.
+```{r, cache=TRUE}
+# Here we summarize the results into dataframes and attach additional
+# information to them such that they can be concatenated together into a large
+# tidy dataframe.
+universe <- names(dds)
+enrich.list <- list()
+for (name in names(sel.list)){
+  for (sel in names(sel.list[[name]])){
+    sel.res <- sel.list[[name]][[sel]]
 
-Another useful plot we show is an MA plot. Here is an example of an experiment
-with strong effects:
+    # GO enrichment
+    go.label <- paste(name, sel, 'go', sep='.')
+    message(paste(go.label, '...'))
+    enrich.list[[go.label]] <- summarize.go(
+      clusterprofiler.enrichgo(sel.res$gene, universe, orgdb),
+      list(label=go.label, sel=sel, experiment=name))
 
-![img](http://www.bioconductor.org/help/workflows/rnaseqGene/rnaseqGene_files/figure-markdown_strict/plotma-1.png)
+    # KEGG enrichment
+    kegg.label <- paste(name, sel, 'kegg', sep='.')
+    message(paste(kegg.label, '...'))
+    enrich.list[[kegg.label]] <- summarize.kegg(
+      clusterprofiler.enrichkegg(sel.res$uniprot, kegg.org),
+      list(label=kegg.label, sel=sel, experiment=name))
+  }
+}
+```
 
-The x-axis is the mean number of normalized counts across all samples (on
-a log10 scale) and the y-axis is log2 fold change. Note that the x-axis is NOT
-"expression". Since we are comparing each gene in one condition to the same
-gene in another condition, we don't need to normalized for gene length for
-differential expression. But since we don't normalize to gene length, the
-x-axis cannot be interpreted as expression. In this plot, a 10kb gene with 100
-reads and a 100-bp gene with 100 reads will appear identical. But if we were to
-normalize to gene length, the smaller gene would have 100x higher expression.
+These plots show:
 
-<a id="resultshelp"></a>
+- enriched category (y-axis)
+- magnitude of enrichment (x-axis; plotted as -10 log10 (FDR) or "phred" scale)
+- fraction of regulated genes falling within a particular category (size)
+- experiment (color)
+- ontology (sub-panels; BP=biological process, MF=molecular function,
+  CC=cellular component, kegg=KEGG pathway)
+- direction of regulation (up- or downregulated; separate figures; labeled at the top)
 
-## Help on results tables
+The plots show the top 50 terms, and are sorted by the max enrichment across
+experiments.
 
-The results tables are TSV files (tab-separated values). Some people's
-computers are set up to open these directly in Excel. If this doesn't work for
-you, then first open Excel and then, from within Excel, open the saved TSV
-file.
+```{r}
+full.enrich.table <- do.call(rbind, enrich.list)
+write.table(full.enrich.table, file='functional_enrichment.tsv', row.names=FALSE, sep='\t')
+```
 
-You can use Excel's sorting and filtering tools to find genes of interest (see
-[here](https://support.office.com/en-us/article/Sort-data-in-a-range-or-table-62d0b95d-2a90-4610-a6ae-2e545c4a4654)
-and
-[here](https://support.office.com/en-us/article/Filter-data-in-a-range-or-table-01832226-31b5-4568-8806-38c37dcc180e)
-if you're not familiar with this).
+The full analysis table can be viewed here:
 
-Column descriptions:
+- [functional_enrichment.tsv](functional_enrichment.tsv)
 
-|column     |description                                                     |
-|-----------|----------------------------------------------------------------|
-|*gene*| Gene ID. Many times this will be an Ensembl accession or some other unique identifier. These kinds of IDs are not as ambiguous as more human-readable gene symbols.|
-|*baseMean*|The average normalized read counts across all samples. This is used as the x-axis in an MA plot|
-|*log2FoldChange*|Log2 fold change for the comparison. This is an important column because it shows the *magnitude* of the effect. If baseMean was zero, this will be `NA`|
-|*lfcSE*|Standard error of the log2 fold change column. This gives an indication of the variability across replicates. If there's a strong log2 fold change but a high pvalue, this column should be high, indicating uncertainty due to variable replicates.|
-|*stat*|The test statistic. Most of the time you can ignore this|
-|*pvalue*|The raw pvalue. Most of the time you can ignore this. If this is `NA`, it means the gene was an outlier and was filtered out.|
-|*padj*|The adjusted pvalue, or FDR. This indicates statistical significance of the log2 fold change. Unless otherwise noted, we use a cutoff of 0.1. If this is `NA`, it means the gene had too-low counts and was filtered out.|
+```{r, go, fig.height=15, dev=c('pdf', 'png')}
+# While clusterProfiler has canned figures, it's difficult to customize them.
+# Instead, here we create a tidy dataframe of all experiments, directions, and
+# enrichment analyses so that we can plot them with ggplot2 however the
+# experiment dictates
 
-Any extra columns have been added after running DESeq2. Gene symbol is a common
-one that we add. In any of these cases, if a value is `NA` it means a missing
-value. For example, many Ensembl IDs do not have a corresponding human-readable
-gene symbol. In this case the gene symbol column will have `NA`.
+
+lim <- 50
+nchunks <- 1
+
+# Assumption: all experiments have the same selections
+for (sel in names(sel.list[[1]])){
+  mdcat('## ', sel)
+  m <- do.call(rbind, enrich.list)
+
+  # convert to phred score, and flip the "downregulated"
+  m$phred <- -10 * log10(m$p.adjust)
+  idx <- m$sel == sel
+
+  m <- m[idx,]
+
+  # Grap the top (ordered by phred)
+  m$Description <- factor(m$Description)
+  max.per.term <- aggregate(phred~Description, m, FUN=max)
+  o <- rev(order(max.per.term$phred))
+  m$Description <- factor(m$Description, levels=rev(max.per.term$Description[o]))
+  top.terms <- (max.per.term$Description[o][seq(lim)])
+  m.sub <- m[m$Description %in% top.terms,]
+  m.sub$Description <- droplevels(m.sub$Description)
+  m.sub <- m.sub[order(m.sub$Description),]
+
+  chunksize <- ceiling(lim / nchunks)
+  lookup <- rep(1:nchunks, each=chunksize)
+  m.sub$chunk <- 0
+  for (i in seq(length(lookup))){
+    term <- as.character(top.terms[i])
+    lab <- lookup[i]
+    m.sub$chunk[m.sub$Description == term] = lab
+  }
+
+print(ggplot(m.sub) +
+    geom_point(alpha=0.6) +
+    aes(y=Description, x=phred, size=frac, color=experiment) +
+    theme(text=element_text(size=12)) +
+    facet_grid(ontology~sel, scales='free_y', space='free_y')
+  )
+}
+```
+
