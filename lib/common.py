@@ -162,7 +162,11 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
     tmpfiles = ['{0}.{1}.tmp'.format(outfile, i) for i in range(len(urls))]
     try:
         for url, tmpfile in zip(urls, tmpfiles):
-            shell("wget {url} -O- > {tmpfile} 2> {outfile}.log")
+            if url.startswith('file:'):
+                url = url.replace('file://', '')
+                shell('cp {url} {tmpfile} 2> {outfile}.log')
+            else:
+                shell("wget {url} -O- > {tmpfile} 2> {outfile}.log")
 
         func(tmpfiles, outfile, *args)
     except Exception as e:
