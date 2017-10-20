@@ -49,9 +49,10 @@ Note: if you're unfamiliar with any of the plots or tables here, see the
 # options(bitmapType='cairo')
 
 # Assumption: change to reflect the appropriate organism
-orgdb.name <- 'org.Dm.eg.db'
-library(orgdb.name, character.only=TRUE)
-orgdb <- get(orgdb.name)
+library(AnnotationHub)
+annotation_key <- 'AH53765'
+ah <- AnnotationHub()
+orgdb <- ah[[annotation_key]]
 
 # Assumption: change to reflect KEGG ID of organism
 kegg.org <- 'dme'
