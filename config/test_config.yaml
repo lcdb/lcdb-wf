@@ -69,8 +69,10 @@ references:
           - genelist:
               gene_id: 'gene_id'
 
+          # a <- AnnotationHub()
+          # a[(a$rdataclass == 'OrgDb') & grepl('melanogaster', a$species),]
           - annotation_hub:
-              ahkey: 'AH49581'
+              ahkey: 'AH53765'
               keytype: 'ENSEMBL'
 
       fb_annotation:
