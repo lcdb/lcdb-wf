@@ -647,6 +647,8 @@ for (sel in names(sel.list[[1]])){
 
   m <- m[idx,]
 
+  if (nrow(m) == 0){next}
+
   # Grap the top (ordered by phred)
   m$Description <- factor(m$Description)
   max.per.term <- aggregate(phred~Description, m, FUN=max)
