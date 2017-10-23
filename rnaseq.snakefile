@@ -71,9 +71,6 @@ patterns = {
         'model': '{sample_dir}/{sample}/dupradar/{sample}_model.txt',
         'curve': '{sample_dir}/{sample}/dupradar/{sample}_curve.txt',
     },
-    'kallisto': {
-        'h5': '{sample_dir}/{sample}/{sample}/kallisto/abundance.h5',
-    },
     'salmon': '{sample_dir}/{sample}/{sample}.salmon/quant.sf',
     'rseqc': {
         'bam_stat': '{sample_dir}/{sample}/rseqc/{sample}_bam_stat.txt',
@@ -386,19 +383,6 @@ rule multiqc:
     log: list(set(targets['multiqc']))[0] + '.log'
     wrapper:
         wrapper_for('multiqc')
-
-
-rule kallisto:
-    """
-    Quantify reads coming from transcripts with Kallisto
-    """
-    input:
-        index=refdict[assembly][config['kallisto']['tag']]['kallisto'],
-        fastq=patterns['cutadapt']
-    output:
-        patterns['kallisto']['h5']
-    wrapper:
-        wrapper_for('kallisto/quant')
 
 
 rule markduplicates:
