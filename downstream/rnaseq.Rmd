@@ -535,7 +535,7 @@ get.frac <- function(x){
 summarize.go <- function(ego, labels){
   lst <- list()
   for (name in names(ego)){
-    d <- summary(ego[[name]])
+    d <- as.data.frame(ego[[name]])
     if (nrow(d) > 0){
       d$ontology <- name
       for (label in names(labels)){
@@ -559,7 +559,7 @@ summarize.go <- function(ego, labels){
 #'
 #' @return Dataframe
 summarize.kegg <- function(ekg, labels){
-  d <- summary(ekg)
+  d <- as.data.frame(ekg)
   if (nrow(d) > 0){
     d$ontology <- 'kegg'
     for (label in names(labels)){
@@ -584,16 +584,22 @@ for (name in names(sel.list)){
     # GO enrichment
     go.label <- paste(name, sel, 'go', sep='.')
     message(paste(go.label, '...'))
-    enrich.list[[go.label]] <- summarize.go(
+    sg <- summarize.go(
       clusterprofiler.enrichgo(sel.res$gene, universe, orgdb),
       list(label=go.label, sel=sel, experiment=name))
+    if (!is.null(sg)){
+      enrich.list[[go.label]] <- sg
+    }
 
     # KEGG enrichment
     kegg.label <- paste(name, sel, 'kegg', sep='.')
     message(paste(kegg.label, '...'))
-    enrich.list[[kegg.label]] <- summarize.kegg(
+    sk <- summarize.kegg(
       clusterprofiler.enrichkegg(sel.res$uniprot, kegg.org),
       list(label=kegg.label, sel=sel, experiment=name))
+    if (!is.null(sk)){
+      enrich.list[[kegg.label]] <- sk
+    }
   }
 }
 ```
