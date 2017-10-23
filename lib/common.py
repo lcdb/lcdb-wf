@@ -61,6 +61,32 @@ def filter_fastas(tmpfiles, outfile, pattern):
         SeqIO.write(gen(), fout, 'fasta')
 
 
+def twobit_to_fasta(tmpfiles, outfile):
+    """
+    Converts .2bit files to fasta.
+
+    Parameters
+    ----------
+    tmpfiles : list
+        2bit files to convert
+
+    outfile : str
+        gzipped output fastq file
+    """
+    # Note that twoBitToFa doesn't support multiple input files, but we want to
+    # support them with this function
+    lookup = {i: i + '.fa' for i in tmpfiles}
+    for i in tmpfiles:
+        fn = lookup[i]
+        shell('twoBitToFa {i} {fn}')
+
+    # Make sure we retain the order of the originally-provided files from the
+    # config when concatenating.
+    fastas = [lookup[i] for i in tmpfiles]
+    shell('cat {fastas} | gzip -c > {outfile}')
+    shell('rm {fastas}')
+
+
 def download_and_postprocess(outfile, config, assembly, tag, type_):
     """
     Given an output file, figure out what to do based on the config.
@@ -162,7 +188,11 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
     tmpfiles = ['{0}.{1}.tmp'.format(outfile, i) for i in range(len(urls))]
     try:
         for url, tmpfile in zip(urls, tmpfiles):
-            shell("wget {url} -O- > {tmpfile} 2> {outfile}.log")
+            if url.startswith('file:'):
+                url = url.replace('file://', '')
+                shell('cp {url} {tmpfile} 2> {outfile}.log')
+            else:
+                shell("wget {url} -O- > {tmpfile} 2> {outfile}.log")
 
         func(tmpfiles, outfile, *args)
     except Exception as e:

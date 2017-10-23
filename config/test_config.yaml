@@ -4,7 +4,7 @@
 # First column must have header name "samplename".
 sampletable: 'config/sampletable.tsv'
 
-hub_config: 'config/hub_config.yml'
+hub_config: 'config/test_hub_config.yml'
 
 # sample_dir: directory in which each sample is expected to have its own
 # directory and fastq file[s]. If `sampletable` lists a sample with samplename
@@ -69,8 +69,10 @@ references:
           - genelist:
               gene_id: 'gene_id'
 
+          # a <- AnnotationHub()
+          # a[(a$rdataclass == 'OrgDb') & grepl('melanogaster', a$species),]
           - annotation_hub:
-              ahkey: 'AH49581'
+              ahkey: 'AH53765'
               keytype: 'ENSEMBL'
 
       fb_annotation:

@@ -71,9 +71,6 @@ patterns = {
         'model': '{sample_dir}/{sample}/dupradar/{sample}_model.txt',
         'curve': '{sample_dir}/{sample}/dupradar/{sample}_curve.txt',
     },
-    'kallisto': {
-        'h5': '{sample_dir}/{sample}/{sample}/kallisto/abundance.h5',
-    },
     'salmon': '{sample_dir}/{sample}/{sample}.salmon/quant.sf',
     'rseqc': {
         'bam_stat': '{sample_dir}/{sample}/rseqc/{sample}_bam_stat.txt',
@@ -388,19 +385,6 @@ rule multiqc:
         wrapper_for('multiqc')
 
 
-rule kallisto:
-    """
-    Quantify reads coming from transcripts with Kallisto
-    """
-    input:
-        index=refdict[assembly][config['kallisto']['tag']]['kallisto'],
-        fastq=patterns['cutadapt']
-    output:
-        patterns['kallisto']['h5']
-    wrapper:
-        wrapper_for('kallisto/quant')
-
-
 rule markduplicates:
     """
     Mark or remove PCR duplicates with Picard MarkDuplicates
@@ -488,8 +472,9 @@ rule bigwig_neg:
         bam=patterns['bam'],
         bai=patterns['bam'] + '.bai',
     output: patterns['bigwig']['neg']
+    threads: 8
     params:
-        extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand reverse --normalizeUsingRPKM'
+        extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand forward --normalizeUsingRPKM'
     log:
         patterns['bigwig']['neg'] + '.log'
     wrapper: wrapper_for('deeptools/bamCoverage')
@@ -503,8 +488,9 @@ rule bigwig_pos:
         bam=patterns['bam'],
         bai=patterns['bam'] + '.bai',
     output: patterns['bigwig']['pos']
+    threads: 8
     params:
-        extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand forward --normalizeUsingRPKM'
+        extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand reverse --normalizeUsingRPKM'
     log:
         patterns['bigwig']['pos'] + '.log'
     wrapper: wrapper_for('deeptools/bamCoverage')
