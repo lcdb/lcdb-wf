@@ -102,4 +102,6 @@ Next steps
   your particular analysis.
 
 The authoritative source on the config file is ``config/test_config.yaml``. This
-YAML-formatted file contains comments on what each item is used for.
+YAML-formatted file contains comments on what each item is used for. For
+a "production" config file, with references set up for multiple genomes, see
+``config/config.yml``.
