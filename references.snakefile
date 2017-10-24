@@ -2,11 +2,14 @@ import os
 import sys
 import yaml
 import importlib
+import tempfile
 from snakemake.utils import makedirs
 from lcdblib.utils.imports import resolve_name
 from lcdblib.utils import utils
 from lcdblib.snakemake import aligners, helpers
 from lib import common
+
+tempfile.tempdir = common.tempdir_for_biowulf()
 
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
@@ -115,7 +118,9 @@ rule conversion_gffutils:
     run:
         import gffutils
         kwargs = conversion_kwargs[output[0]]
-        db = gffutils.create_db(data=input.gtf, dbfn=output.db, **kwargs)
+        fd, tmpdb = tempfile.mkstemp(suffix='.db', prefix='gffutils_')
+        db = gffutils.create_db(data=input.gtf, dbfn=tmpdb, **kwargs)
+        shell('mv {tmpdb} {output.db}')
 
 
 rule chromsizes:
