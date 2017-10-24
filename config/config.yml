@@ -220,6 +220,17 @@ references:
         postprocess: 'lib.postprocess.hg38.strip_ensembl_version'
         conversions:
           - 'refflat'
+          - gffutils:
+              merge_strategy: 'merge'
+              id_spec:
+                  transcript: 'transcript_id'
+                  gene: 'gene_id'
+                  exon: 'exon_id'
+              gtf_transcript_key: 'transcript_id'
+              gtf_gene_key: 'gene_id'
+              disable_infer_genes: True
+              disable_infer_transcripts: True
+
 
     gencode-v25-transcriptome:
       fasta:
