@@ -8,6 +8,16 @@ from lcdblib.utils import utils
 from lib import common
 
 # ----------------------------------------------------------------------------
+# Note:
+#
+# In order for automated tests to run, we need to make some settings that are
+# not optimal for practical usage. Search this file for the string 
+# "# TEST SETTINGS" to find those instances and to learn what changes you might
+# want to make.
+# ----------------------------------------------------------------------------
+
+
+# ----------------------------------------------------------------------------
 # SETUP
 # ----------------------------------------------------------------------------
 
@@ -132,6 +142,7 @@ if 'orig_filename' in sampletable.columns:
     rule symlink_targets:
         input: targets['fastq']
 
+
 rule cutadapt:
     """
     Run cutadapt
@@ -194,6 +205,7 @@ rule rRNA:
     threads: 6
     wrapper:
         wrapper_for('bowtie2/align')
+
 
 rule fastq_count:
     """
@@ -313,6 +325,7 @@ rule rrna_libsizes_table:
         with open(output.json, 'w') as fout:
             yaml.dump(y, fout, default_flow_style=False)
 
+
 rule libsizes_table:
     """
     Aggregate fastq and bam counts in to a single table
@@ -355,8 +368,6 @@ rule libsizes_table:
             yaml.dump(y, fout, default_flow_style=False)
 
 
-
-
 rule multiqc:
     """
     Aggregate various QC stats and logs into a single HTML report with MultiQC
@@ -397,7 +408,10 @@ rule markduplicates:
     log:
         patterns['markduplicates']['bam'] + '.log'
     params:
-        java_args='-Xmx32g'
+        # TEST SETTINGS:
+        # You may want to use something larger, like "-Xmx32g" for real-world
+        # usage.
+        java_args='-Xmx2g'
     wrapper:
         wrapper_for('picard/markduplicates')
 
@@ -413,8 +427,11 @@ rule collectrnaseqmetrics:
         metrics=patterns['collectrnaseqmetrics']['metrics'],
         pdf=patterns['collectrnaseqmetrics']['pdf']
     params:
-        extra="STRAND=NONE CHART_OUTPUT={}".format(patterns['collectrnaseqmetrics']['pdf']),
-        java_args='-Xmx32g'
+        # TEST SETTINGS:
+        # You may want to use something larger, like "-Xmx32g" for real-world
+        # usage.
+        java_args='-Xmx32g',
+        extra="STRAND=NONE CHART_OUTPUT={}".format(patterns['collectrnaseqmetrics']['pdf'])
     log: patterns['collectrnaseqmetrics']['metrics'] + '.log'
     wrapper: wrapper_for('picard/collectrnaseqmetrics')
 
