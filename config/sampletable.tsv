@@ -1,5 +1,5 @@
-samplename	group
-sample1	control
-sample2	control
-sample3	treatment
-sample4	treatment
+samplename	group	orig_filename
+sample1	control	data/example_data/rnaseq_sample1.fq.gz
+sample2	control	data/example_data/rnaseq_sample2.fq.gz
+sample3	treatment	data/example_data/rnaseq_sample3.fq.gz
+sample4	treatment	data/example_data/rnaseq_sample4.fq.gz
