@@ -1,8 +1,0 @@
-channels:
-  - bioconda
-  - lcdb
-dependencies:
-  - python=3
-  - samtools ==1.4.1
-  - lcdblib
-

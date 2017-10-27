@@ -176,8 +176,8 @@ rule unique:
         patterns['unique']
     params:
         extra="-b -q 20"
-    wrapper:
-        wrapper_for('samtools/view')
+    shell:
+        'samtools view -b -q 20 {input} > {output}'
 
 
 rule fastq_count:
@@ -212,7 +212,8 @@ rule bam_index:
         bam='{prefix}.bam'
     output:
         bai='{prefix}.bam.bai'
-    wrapper: wrapper_for('samtools/index')
+    shell:
+        'samtools index {input} {output}'
 
 
 rule fastq_screen:

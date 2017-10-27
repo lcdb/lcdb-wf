@@ -239,7 +239,9 @@ rule bam_index:
         bam='{prefix}.bam'
     output:
         bai='{prefix}.bam.bai'
-    wrapper: wrapper_for('samtools/index')
+    shell:
+        'samtools index {input} {output}'
+
 
 
 rule fastq_screen:
