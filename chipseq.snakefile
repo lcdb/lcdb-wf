@@ -28,7 +28,7 @@ peak_calling = config.get('peaks_dir', 'chipseq')
 # ----------------------------------------------------------------------------
 # PATTERNS
 # ----------------------------------------------------------------------------
-patterns = {
+patterns_by_sample = {
     'fastq':   '{sample_dir}/{sample}/{sample}_R1.fastq.gz',
     'cutadapt': '{sample_dir}/{sample}/{sample}_R1.cutadapt.fastq.gz',
     'bam':     '{sample_dir}/{sample}/{sample}.cutadapt.bam',
@@ -55,6 +55,22 @@ patterns = {
     },
     'merged_techreps': '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.merged.bam',
     'bigwig': '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.bam.bigwig',
+    'fingerprint': {
+        'plot': '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.png',
+        'raw_counts': '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.tab',
+        'metrics': '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.metrics',
+    },
+}
+
+fill_by_sample = dict(
+    sample=samples.values, sample_dir=sample_dir, agg_dir=agg_dir,
+    merged_dir=merged_dir, peak_calling=peak_calling,
+    label=sampletable.label.values,
+    ip_label=sampletable.label[sampletable.antibody != 'input'].values)
+
+targets_by_sample = helpers.fill_patterns(patterns_by_sample, fill_by_sample)
+
+patterns_by_peaks = {
     'peaks': {
         'macs2': '{peak_calling}/macs2/{macs2_run}/peaks.bed',
         'spp': '{peak_calling}/spp/{spp_run}/peaks.bed',
@@ -63,21 +79,42 @@ patterns = {
         'macs2': '{peak_calling}/macs2/{macs2_run}/peaks.bigbed',
         'spp': '{peak_calling}/spp/{spp_run}/peaks.bigbed',
     },
-    'fingerprint': {
-        'plot': '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.png',
-        'raw_counts': '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.tab',
-        'metrics': '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.metrics',
-    }
-
 }
-fill = dict(sample=samples, sample_dir=sample_dir, agg_dir=agg_dir, merged_dir=merged_dir,
-            peak_calling=peak_calling,
-            macs2_run=chipseq.peak_calling_dict(dict(config), algorithm='macs2'),
-            spp_run=chipseq.peak_calling_dict(dict(config), algorithm='spp'),
-            label=sampletable.label, ip_label=sampletable.label[sampletable.antibody != 'input'],
-           )
-targets = helpers.fill_patterns(patterns, fill)
 
+import collections
+
+def update_recursive(d, u):
+    for k, v in u.items():
+        if isinstance(v, collections.Mapping):
+            d[k] = update_recursive(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
+
+fill_by_peaks = dict(
+    peak_calling=peak_calling,
+    macs2_run=list(chipseq.peak_calling_dict(dict(config), algorithm='macs2').keys()),
+    spp_run=list(chipseq.peak_calling_dict(dict(config), algorithm='spp').keys()),
+    combination='zip',
+)
+targets_for_peaks = {}
+for pc in ['macs2', 'spp']:
+    _peak_patterns = {}
+    for k, v in patterns_by_peaks.items():
+        _peak_patterns[k] = {pc: patterns_by_peaks[k][pc]}
+    print(_peak_patterns)
+    _fill = {
+        'peak_calling': peak_calling,
+        pc + '_run': list(chipseq.peak_calling_dict(dict(config), algorithm=pc).keys())}
+    update_recursive(targets_for_peaks, helpers.fill_patterns(_peak_patterns, _fill))
+
+
+targets = {}
+targets.update(targets_by_sample)
+targets.update(targets_for_peaks)
+patterns = {}
+patterns.update(patterns_by_sample)
+patterns.update(patterns_by_peaks)
 
 def wrapper_for(path):
     return 'file:' + os.path.join('wrappers', 'wrappers', path)
@@ -114,7 +151,7 @@ if 'orig_filename' in sampletable.columns:
         input: lambda wc: sampletable.set_index(sampletable.columns[0])['orig_filename'].to_dict()[wc.sample]
         output: patterns['fastq']
         run:
-            utils.make_relative_symlink(input[0], output[0])
+            common.relative_symlink(input[0], output[0])
 
     rule symlink_targets:
         input: targets['fastq']
@@ -400,7 +437,9 @@ rule fingerprint:
     """
     input:
         bams=lambda wc: expand(patterns['merged_techreps'], merged_dir=merged_dir, label=wc.ip_label),
-        control=lambda wc: expand(patterns['merged_techreps'], merged_dir=merged_dir, label=chipseq.merged_input_for_ip(sampletable, wc.ip_label))
+        control=lambda wc: expand(patterns['merged_techreps'], merged_dir=merged_dir, label=chipseq.merged_input_for_ip(sampletable, wc.ip_label)),
+        bais=lambda wc: expand(patterns['merged_techreps'] + '.bai', merged_dir=merged_dir, label=wc.ip_label),
+        control_bais=lambda wc: expand(patterns['merged_techreps'] + '.bai', merged_dir=merged_dir, label=chipseq.merged_input_for_ip(sampletable, wc.ip_label)),
     output:
         plot=patterns['fingerprint']['plot'],
         raw_counts=patterns['fingerprint']['raw_counts'],
