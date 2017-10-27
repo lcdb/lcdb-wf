@@ -58,7 +58,7 @@ rule bowtie2_index:
     log:
         '{references_dir}/logs/{assembly}/{tag}/bowtie2/{assembly}_{tag}.log'
     run:
-        aligners.prefix_from_bowtie2_index(output.index)
+        prefix = aligners.prefix_from_bowtie2_index(output)
         shell(
             'bowtie2-build '
             '{input} '
@@ -67,11 +67,22 @@ rule bowtie2_index:
 
 
 rule hisat2_index:
-    "Build HISAT2 index"
-    output: index=protected(aligners.hisat2_index_from_prefix('{references_dir}/{assembly}/{tag}/hisat2/{assembly}_{tag}'))
-    input: fasta='{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
-    log: '{references_dir}/logs/{assembly}/{tag}/hisat2/{assembly}_{tag}.log'
-    wrapper: wrapper_for('hisat2/build')
+    """
+    Build HISAT2 index
+    """
+    input:
+        '{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
+    output:
+        protected(aligners.hisat2_index_from_prefix('{references_dir}/{assembly}/{tag}/hisat2/{assembly}_{tag}'))
+    log:
+        '{references_dir}/logs/{assembly}/{tag}/hisat2/{assembly}_{tag}.log'
+    run:
+        prefix = aligners.prefix_from_hisat2_index(output)
+        shell(
+            'hisat2-build '
+            '{input} '
+            '{prefix} '
+            '&> {log}'
 
 
 rule symlink_fasta_to_index_dir:

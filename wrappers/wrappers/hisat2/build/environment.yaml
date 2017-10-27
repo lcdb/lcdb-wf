@@ -1,7 +1,0 @@
-channels:
-  - bioconda
-  - lcdb
-dependencies:
-  - python=3
-  - hisat2 ==2.0.5
-  - lcdblib ==0.1.2.post
