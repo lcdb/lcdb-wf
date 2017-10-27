@@ -32,9 +32,6 @@ rrna:
 gtf:
   tag: "test"
 
-kallisto:
-  tag: "test_transcriptome"
-
 salmon:
   tag: "test_transcriptome"
 
@@ -95,7 +92,6 @@ references:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/add-chipseq/data/seq/dm6.small.transcriptome.fa"
         postprocess: 'lib.common.gzipped'
         indexes:
-          - 'kallisto'
           - 'salmon'
 
     rRNA:

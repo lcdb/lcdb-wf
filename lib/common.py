@@ -239,7 +239,7 @@ def references_dict(config):
     ...       fasta:
     ...         url: ""
     ...         indexes:
-    ...           - kallisto
+    ...           - salmon
     ... '''))
     >>> fout.close()
 
@@ -260,7 +260,7 @@ def references_dict(config):
     ...      'r6-11_transcriptome': {
     ...          'fasta': '/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.fasta',
     ...          'chromsizes': '/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.chromsizes',
-    ...          'kallisto': '/data/dm6/r6-11_transcriptome/kallisto/dm6_r6-11_transcriptome.idx',
+    ...          'salmon': '/data/dm6/r6-11_transcriptome/salmon/dm6_r6-11_transcriptome/hash.bin,
     ...          },
     ...     },
     ... }), d
@@ -276,7 +276,6 @@ def references_dict(config):
     index_extensions = {
         'bowtie2': aligners.bowtie2_index_from_prefix('')[0],
         'hisat2': aligners.hisat2_index_from_prefix('')[0],
-        'kallisto': '.idx',
         'salmon': '/hash.bin'
     }
 
