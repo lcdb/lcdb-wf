@@ -273,9 +273,13 @@ rule featurecounts:
         counts=patterns['featurecounts']
     log:
         patterns['featurecounts'] + '.log'
-    wrapper:
-        wrapper_for('featurecounts')
-
+    shell:
+        'featureCounts '
+        '-T {threads} '
+        '-a {input.annotation} '
+        '-o {output.counts} '
+        '{input.bam} '
+        '&> {log}'
 
 rule rrna_libsizes_table:
     """
