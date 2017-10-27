@@ -317,12 +317,22 @@ rule markduplicates:
     output:
         bam=patterns['markduplicates']['bam'],
         metrics=patterns['markduplicates']['metrics']
-    params:
-        extra="REMOVE_DUPLICATES=true"
     log:
         patterns['markduplicates']['bam'] + '.log'
-    wrapper:
-        wrapper_for('picard/markduplicates')
+    params:
+        # TEST SETTINGS:
+        # You may want to use something larger, like "-Xmx32g" for real-world
+        # usage.
+        java_args='-Xmx2g'
+    shell:
+        'picard '
+        '{params.java_args} '
+        'MarkDuplicates '
+        'INPUT={input.bam} '
+        'OUTPUT={output.bam} '
+        'REMOVE_DUPLICATES=true '
+        'METRICS_FILE={output.metrics} '
+        '&> {log}'
 
 
 rule merge_techreps:
