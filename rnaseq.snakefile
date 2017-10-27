@@ -464,9 +464,21 @@ rule salmon:
     input:
         unmatedReads=patterns['cutadapt'],
         index=refdict[assembly][config['salmon']['tag']]['salmon'],
-    output: patterns['salmon']
-    params: extra="--libType=A"
-    log: '{sample_dir}/{sample}/salmon/salmon.quant.log'
+    output:
+        patterns['salmon']
+    params:
+        index_dir=os.path.dirname(refdict[assembly][config['salmon']['tag']]['salmon']),
+        outdir=os.path.dirname(patterns['salmon'])
+    log:
+        patterns['salmon'] + '.log'
+    shell:
+        'salmon quant '
+        '--index {params.index_dir} '
+        '--output {params.outdir} '
+        '--threads {threads} '
+        '--libType=A '
+        '&> {log}'
+
     wrapper: wrapper_for('salmon/quant')
 
 
