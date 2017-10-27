@@ -414,7 +414,7 @@ rule markduplicates:
         java_args='-Xmx2g'
     shell:
         'picard '
-        '{java_args} '
+        '{params.java_args} '
         'MarkDuplicates '
         'INPUT={input.bam} '
         'OUTPUT={output.bam} '
@@ -457,8 +457,6 @@ rule collectrnaseqmetrics:
         '&> {log}'
 
 
-
-
 rule dupRadar:
     """
     Assess the library complexity with dupRadar
@@ -485,7 +483,7 @@ rule salmon:
     Quantify reads coming from transcripts with Salmon
     """
     input:
-        unmatedReads=patterns['cutadapt'],
+        fastq=patterns['cutadapt'],
         index=refdict[assembly][config['salmon']['tag']]['salmon'],
     output:
         patterns['salmon']
@@ -500,9 +498,8 @@ rule salmon:
         '--output {params.outdir} '
         '--threads {threads} '
         '--libType=A '
+        '-r {input.fastq} '
         '&> {log}'
-
-    wrapper: wrapper_for('salmon/quant')
 
 
 rule rseqc_bam_stat:

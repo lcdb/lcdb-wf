@@ -82,7 +82,7 @@ rule hisat2_index:
             'hisat2-build '
             '{input} '
             '{prefix} '
-            '&> {log}'
+            '&> {log}')
 
 
 rule symlink_fasta_to_index_dir:
