@@ -228,7 +228,8 @@ rule fastq_screen:
         txt=patterns['fastq_screen']
     log:
         patterns['fastq_screen'] + '.log'
-    params: subset=100000
+    params:
+        subset=100000
     wrapper:
         wrapper_for('fastq_screen')
 
@@ -289,13 +290,15 @@ rule multiqc:
             utils.flatten(targets['fastq_screen'])
         ),
         config='config/multiqc_config.yaml'
-    output: targets['multiqc']
+    output:
+        targets['multiqc']
     params:
         analysis_directory=" ".join([sample_dir, agg_dir]),
         extra='--config config/multiqc_config.yaml',
         outdir=os.path.dirname(targets['multiqc'][0]),
         basename=os.path.basename(targets['multiqc'][0])
-    log: targets['multiqc'][0] + '.log'
+    log:
+        targets['multiqc'][0] + '.log'
     shell:
         'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
         'multiqc '
@@ -351,7 +354,8 @@ rule merge_techreps:
     output:
         bam=patterns['merged_techreps'],
         metrics=patterns['merged_techreps'] + '.metrics'
-    log: patterns['merged_techreps'] + '.log'
+    log:
+        patterns['merged_techreps'] + '.log'
     wrapper:
         wrapper_for('combos/merge_and_dedup')
 
@@ -365,13 +369,12 @@ rule bigwig:
     input:
         bam=patterns['merged_techreps'],
         bai=patterns['merged_techreps'] + '.bai',
-    output: patterns['bigwig']
-
+    output:
+        patterns['bigwig']
     params:
         extra='--minMappingQuality 20 --ignoreDuplicates --smoothLength 10'
     log:
         patterns['bigwig'] + '.log'
-
     shell:
         'bamCoverage '
         '--bam {input.bam} '
@@ -409,6 +412,7 @@ rule fingerprint:
         labels_arg=lambda wc: '--labels {0} {1}'.format(
             wc.ip_label, chipseq.merged_input_for_ip(sampletable, wc.ip_label)
         )
+    log: patterns['fingerprint']['metrics'] + '.log'
     shell:
         'plotFingerprint '
         '--bamfile {input.bams} '
@@ -420,7 +424,7 @@ rule fingerprint:
         '--outQualityMetrics {output.metrics} '
         '--outRawCounts {output.raw_counts} '
         '--plotFile {output.plot} '
-        # TEST SETTINGS:You'll probably want to change numberOfSamples to
+        # TEST SETTINGS:You'll probably want to change --numberOfSamples to
         # something higher (default is 500k) when running on real data
         '--numberOfSamples 5000 '
         '&> {log}'
@@ -443,10 +447,14 @@ rule macs2:
                 label=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'control'),
                 merged_dir=merged_dir,
             ),
-    output: bed=patterns['peaks']['macs2']
-    log: patterns['peaks']['macs2'] + '.log'
-    params: block=lambda wc: chipseq.block_for_run(config, wc.macs2_run, 'macs2')
-    wrapper: wrapper_for('macs2/callpeak')
+    output:
+        bed=patterns['peaks']['macs2']
+    log:
+        patterns['peaks']['macs2'] + '.log'
+    params:
+        block=lambda wc: chipseq.block_for_run(config, wc.macs2_run, 'macs2')
+    wrapper:
+        wrapper_for('macs2/callpeak')
 
 
 rule spp:
@@ -471,13 +479,15 @@ rule spp:
         enrichment_estimates=patterns['peaks']['spp'] + '.est.wig',
         smoothed_enrichment_mle=patterns['peaks']['spp'] + '.mle.wig',
         rdata=patterns['peaks']['spp'] + '.RData'
-    log: patterns['peaks']['spp'] + '.log'
+    log:
+        patterns['peaks']['spp'] + '.log'
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.spp_run, 'spp'),
         java_args='-Xmx8g',
         keep_tempfiles=False
     threads: 2
-    wrapper: wrapper_for('spp')
+    wrapper:
+        wrapper_for('spp')
 
 
 # rule bed_to_bigbed:
