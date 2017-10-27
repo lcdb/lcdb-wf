@@ -216,7 +216,11 @@ rule restriction_sites:
         patterns['restriction_sites']
     params:
         enzyme='{enzyme}'
-    wrapper: wrapper_for('oligomatch')
+    shell:
+        'oligoMatch '
+        '{input.oligos} '
+        '{input.sequence} '
+        '{output} '
 
 
 # ----------------------------------------------------------------------------
