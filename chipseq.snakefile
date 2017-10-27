@@ -289,13 +289,23 @@ rule multiqc:
             utils.flatten(targets['fastq_screen'])
         ),
         config='config/multiqc_config.yaml'
-    output: list(set(targets['multiqc']))
+    output: targets['multiqc']
     params:
         analysis_directory=" ".join([sample_dir, agg_dir]),
         extra='--config config/multiqc_config.yaml',
-    log: list(set(targets['multiqc']))[0] + '.log'
-    wrapper:
-        wrapper_for('multiqc')
+        outdir=os.path.dirname(targets['multiqc'][0]),
+        basename=os.path.basename(targets['multiqc'][0])
+    log: targets['multiqc'][0] + '.log'
+    shell:
+        'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
+        'multiqc '
+        '--quiet '
+        '--outdir '
+        '--force '
+        '--filename {basename} '
+        '--config config/multiqc_config.yaml '
+        '{params.analysis_directory} '
+        '&> {log} '
 
 
 rule markduplicates:

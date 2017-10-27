@@ -1,5 +1,0 @@
-channels:
-  - bioconda
-dependencies:
-  - networkx <2
-  - multiqc ==1.2
