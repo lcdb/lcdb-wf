@@ -48,11 +48,22 @@ rule unzip:
 
 
 rule bowtie2_index:
-    "Build bowtie2 index"
-    output: index=protected(aligners.bowtie2_index_from_prefix('{references_dir}/{assembly}/{tag}/bowtie2/{assembly}_{tag}'))
-    input: fasta='{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
-    log: '{references_dir}/logs/{assembly}/{tag}/bowtie2/{assembly}_{tag}.log'
-    wrapper: wrapper_for('bowtie2/build')
+    """
+    Build bowtie2 index
+    """
+    input:
+        '{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
+    output:
+        protected(aligners.bowtie2_index_from_prefix('{references_dir}/{assembly}/{tag}/bowtie2/{assembly}_{tag}'))
+    log:
+        '{references_dir}/logs/{assembly}/{tag}/bowtie2/{assembly}_{tag}.log'
+    run:
+        aligners.prefix_from_bowtie2_index(output.index)
+        shell(
+            'bowtie2-build '
+            '{input} '
+            '{prefix} '
+            '&> {log}')
 
 
 rule hisat2_index:
@@ -88,12 +99,19 @@ rule kallisto_index:
 
 rule salmon_index:
     "Build salmon index"
-    output: protected('{references_dir}/{assembly}/{tag}/salmon/{assembly}_{tag}/hash.bin')
+    output:
+        protected('{references_dir}/{assembly}/{tag}/salmon/{assembly}_{tag}/hash.bin')
     input:
         fasta='{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
-    log: '{references_dir}/logs/{assembly}/{tag}/salmon/{assembly}_{tag}.log'
-    conda: 'config/envs/references_env.yml'
-    wrapper: wrapper_for('salmon/index')
+    log:
+        '{references_dir}/logs/{assembly}/{tag}/salmon/{assembly}_{tag}.log'
+    params:
+        outdir='{references_dir}/{assembly}/{tag}/salmon/{assembly}_{tag}'
+    shell:
+        'salmon index '
+        '--transcripts {input.fasta} '
+        '--index {params.outdir} '
+        '&> {log}'
 
 
 rule conversion_refflat:
