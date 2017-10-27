@@ -412,8 +412,14 @@ rule markduplicates:
         # You may want to use something larger, like "-Xmx32g" for real-world
         # usage.
         java_args='-Xmx2g'
-    wrapper:
-        wrapper_for('picard/markduplicates')
+    shell:
+        'picard '
+        '{java_args} '
+        'MarkDuplicates '
+        'INPUT={input.bam} '
+        'OUTPUT={output.bam} '
+        'METRICS_FILE={output.metrics} '
+        '&> {log}'
 
 
 rule collectrnaseqmetrics:
@@ -430,10 +436,27 @@ rule collectrnaseqmetrics:
         # TEST SETTINGS:
         # You may want to use something larger, like "-Xmx32g" for real-world
         # usage.
-        java_args='-Xmx32g',
-        extra="STRAND=NONE CHART_OUTPUT={}".format(patterns['collectrnaseqmetrics']['pdf'])
-    log: patterns['collectrnaseqmetrics']['metrics'] + '.log'
-    wrapper: wrapper_for('picard/collectrnaseqmetrics')
+        java_args='-Xmx2g',
+    log:
+        patterns['collectrnaseqmetrics']['metrics'] + '.log'
+    shell:
+        'picard '
+        '{params.java_args} '
+        'CollectRnaSeqMetrics '
+        # From the Picard docs:
+        #
+        # STRAND=StrandSpecificity
+        #     For strand-specific library prep. For unpaired reads, use
+        #     FIRST_READ_TRANSCRIPTION_STRAND if the reads are expected to be on the
+        #     transcription strand.  Required. Possible values: {NONE,
+        #     FIRST_READ_TRANSCRIPTION_STRAND, SECOND_READ_TRANSCRIPTION_STRAND}
+        'STRAND=NONE CHART_OUTPUT={output.pdf} '
+        'REF_FLAT={input.refflat} '
+        'INPUT={input.bam} '
+        'OUTPUT={output.metrics} '
+        '&> {log}'
+
+
 
 
 rule dupRadar:
