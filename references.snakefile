@@ -96,18 +96,6 @@ rule symlink_fasta_to_index_dir:
         'ln -sf {input} {output}'
 
 
-rule kallisto_index:
-    "Build kallisto index"
-    output: protected('{references_dir}/{assembly}/{tag}/kallisto/{assembly}_{tag}.idx')
-    input: '{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
-    log: '{references_dir}/logs/{assembly}/{tag}/kallisto/{assembly}_{tag}.log'
-    conda: 'config/envs/references_env.yml'
-    shell:
-        '''
-        kallisto index -i {output} --make-unique {input} > {log} 2> {log}
-        '''
-
-
 rule salmon_index:
     "Build salmon index"
     output:
