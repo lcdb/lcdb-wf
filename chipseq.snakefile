@@ -346,15 +346,25 @@ rule bigwig:
         bai=patterns['merged_techreps'] + '.bai',
     output: patterns['bigwig']
 
-    # NOTE: for testing, we remove --normalizeUsingRPKM since it results in
-    # a ZeroDivisionError (there are less than 1000 reads total). However it is
-    # probably a good idea to use that argument with real-world data.
     params:
         extra='--minMappingQuality 20 --ignoreDuplicates --smoothLength 10'
     log:
         patterns['bigwig'] + '.log'
 
-    wrapper: wrapper_for('deeptools/bamCoverage')
+    shell:
+        'bamCoverage '
+        '--bam {input.bam} '
+        '-o {output} '
+        '-p {threads} '
+        '--minMappingQuality 20 '
+        '--ignoreDuplicates '
+        '--smoothLength 10 '
+        # TEST SETTINGS: for testing, we remove --normalizeUsingRPKM since it
+        # results in a ZeroDivisionError (there are less than 1000 reads total).
+        # However it is probably a good idea to use that argument with real-world
+        # data.
+        #'--normalizeUsingRPKM '
+        '&> {log}'
 
 
 rule fingerprint:
@@ -373,16 +383,26 @@ rule fingerprint:
         metrics=patterns['fingerprint']['metrics']
     threads: 4
     params:
-        # Note 1: You'll probably want to change numberOfSamples to something
-        # higher (default is 500k) when running on real data
-        #
-        # Note 2: I think the extra complexity of the function is worth the
+        # Note: I think the extra complexity of the function is worth the
         # nicely-labeled plots.
-        extra=lambda wc: '--labels {0} {1} --extendReads=300 --skipZeros --numberOfSamples 5000 '.format(
+        labels_arg=lambda wc: '--labels {0} {1}'.format(
             wc.ip_label, chipseq.merged_input_for_ip(sampletable, wc.ip_label)
         )
-    wrapper:
-        wrapper_for('deeptools/plotFingerprint')
+    shell:
+        'plotFingerprint '
+        '--bamfile {input.bams} '
+        '--JSDsample {input.control} '
+        '-p {threads} '
+        '{params.labels_arg} '
+        '--extendReads=300 '
+        '--skipZeros '
+        '--outQualityMetrics {output.metrics} '
+        '--outRawCounts {output.raw_counts} '
+        '--plotFile {output.plot} '
+        # TEST SETTINGS:You'll probably want to change numberOfSamples to
+        # something higher (default is 500k) when running on real data
+        '--numberOfSamples 5000 '
+        '&> {log}'
 
 
 rule macs2:
