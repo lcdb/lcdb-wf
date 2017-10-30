@@ -35,9 +35,9 @@ case $TYPE in
       --use-conda \
       -j2 -T -k -p -r
     ;;
-  pytest)
-    source activate lcdb-wf-test && py.test wrappers/test -v
-    ;;
+  #pytest)
+  #  source activate lcdb-wf-test && py.test wrappers/test -v
+  #  ;;
   docs)
     ci/build-docs.sh
     ;;
