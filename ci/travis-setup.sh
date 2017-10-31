@@ -33,6 +33,7 @@ EOF
 # conda install -y "conda<4.3"
 
 conda --version
+cat ~/.condarc
 
 echo "Building environment $ENVNAME"
 conda create -n $ENVNAME -y --file requirements.txt \
