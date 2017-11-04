@@ -587,8 +587,6 @@ rule rnaseq_rmarkdown:
         sampletable=config['sampletable']
     output:
         'downstream/rnaseq.html'
-    conda:
-        'config/envs/R_rnaseq.yaml'
     shell:
         'Rscript -e '
         '''"rmarkdown::render('{input.rmd}', 'knitrBootstrap::bootstrap_document')"'''
