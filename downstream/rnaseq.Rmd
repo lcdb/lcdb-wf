@@ -488,7 +488,7 @@ clusterprofiler.enrichgo <- function(genes, universe, orgdb, keytype='ENSEMBL'){
     if (length(genes) > 0 ){
         for (ont in c('BP', 'MF', 'CC')){
             ggo <- enrichGO(gene=genes, ont=ont, universe=universe,
-                            OrgDb=orgdb, keytype=keytype, pAdjustMethod='BH',
+                            OrgDb=orgdb, keyType=keytype, pAdjustMethod='BH',
                             pvalueCutoff=0.01, qvalueCutoff=0.05,
                             readable=TRUE)
             lst[[ont]] <- ggo
