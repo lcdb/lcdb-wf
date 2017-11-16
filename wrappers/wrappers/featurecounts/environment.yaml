@@ -1,4 +1,0 @@
-channels:
-  - bioconda
-dependencies:
-  - subread ==1.5.2

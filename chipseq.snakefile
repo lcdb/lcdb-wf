@@ -28,7 +28,7 @@ peak_calling = config.get('peaks_dir', 'chipseq')
 # ----------------------------------------------------------------------------
 # PATTERNS
 # ----------------------------------------------------------------------------
-patterns = {
+patterns_by_sample = {
     'fastq':   '{sample_dir}/{sample}/{sample}_R1.fastq.gz',
     'cutadapt': '{sample_dir}/{sample}/{sample}_R1.cutadapt.fastq.gz',
     'bam':     '{sample_dir}/{sample}/{sample}.cutadapt.bam',
@@ -55,6 +55,22 @@ patterns = {
     },
     'merged_techreps': '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.merged.bam',
     'bigwig': '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.bam.bigwig',
+    'fingerprint': {
+        'plot': '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.png',
+        'raw_counts': '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.tab',
+        'metrics': '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.metrics',
+    },
+}
+
+fill_by_sample = dict(
+    sample=samples.values, sample_dir=sample_dir, agg_dir=agg_dir,
+    merged_dir=merged_dir, peak_calling=peak_calling,
+    label=sampletable.label.values,
+    ip_label=sampletable.label[sampletable.antibody != 'input'].values)
+
+targets_by_sample = helpers.fill_patterns(patterns_by_sample, fill_by_sample)
+
+patterns_by_peaks = {
     'peaks': {
         'macs2': '{peak_calling}/macs2/{macs2_run}/peaks.bed',
         'spp': '{peak_calling}/spp/{spp_run}/peaks.bed',
@@ -63,21 +79,42 @@ patterns = {
         'macs2': '{peak_calling}/macs2/{macs2_run}/peaks.bigbed',
         'spp': '{peak_calling}/spp/{spp_run}/peaks.bigbed',
     },
-    'fingerprint': {
-        'plot': '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.png',
-        'raw_counts': '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.tab',
-        'metrics': '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.metrics',
-    }
-
 }
-fill = dict(sample=samples, sample_dir=sample_dir, agg_dir=agg_dir, merged_dir=merged_dir,
-            peak_calling=peak_calling,
-            macs2_run=chipseq.peak_calling_dict(dict(config), algorithm='macs2'),
-            spp_run=chipseq.peak_calling_dict(dict(config), algorithm='spp'),
-            label=sampletable.label, ip_label=sampletable.label[sampletable.antibody != 'input'],
-           )
-targets = helpers.fill_patterns(patterns, fill)
 
+import collections
+
+def update_recursive(d, u):
+    for k, v in u.items():
+        if isinstance(v, collections.Mapping):
+            d[k] = update_recursive(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
+
+fill_by_peaks = dict(
+    peak_calling=peak_calling,
+    macs2_run=list(chipseq.peak_calling_dict(dict(config), algorithm='macs2').keys()),
+    spp_run=list(chipseq.peak_calling_dict(dict(config), algorithm='spp').keys()),
+    combination='zip',
+)
+targets_for_peaks = {}
+for pc in ['macs2', 'spp']:
+    _peak_patterns = {}
+    for k, v in patterns_by_peaks.items():
+        _peak_patterns[k] = {pc: patterns_by_peaks[k][pc]}
+    print(_peak_patterns)
+    _fill = {
+        'peak_calling': peak_calling,
+        pc + '_run': list(chipseq.peak_calling_dict(dict(config), algorithm=pc).keys())}
+    update_recursive(targets_for_peaks, helpers.fill_patterns(_peak_patterns, _fill))
+
+
+targets = {}
+targets.update(targets_by_sample)
+targets.update(targets_for_peaks)
+patterns = {}
+patterns.update(patterns_by_sample)
+patterns.update(patterns_by_peaks)
 
 def wrapper_for(path):
     return 'file:' + os.path.join('wrappers', 'wrappers', path)
@@ -176,8 +213,8 @@ rule unique:
         patterns['unique']
     params:
         extra="-b -q 20"
-    wrapper:
-        wrapper_for('samtools/view')
+    shell:
+        'samtools view -b -q 20 {input} > {output}'
 
 
 rule fastq_count:
@@ -212,7 +249,8 @@ rule bam_index:
         bam='{prefix}.bam'
     output:
         bai='{prefix}.bam.bai'
-    wrapper: wrapper_for('samtools/index')
+    shell:
+        'samtools index {input} {output}'
 
 
 rule fastq_screen:
@@ -227,7 +265,8 @@ rule fastq_screen:
         txt=patterns['fastq_screen']
     log:
         patterns['fastq_screen'] + '.log'
-    params: subset=100000
+    params:
+        subset=100000
     wrapper:
         wrapper_for('fastq_screen')
 
@@ -288,13 +327,25 @@ rule multiqc:
             utils.flatten(targets['fastq_screen'])
         ),
         config='config/multiqc_config.yaml'
-    output: list(set(targets['multiqc']))
+    output:
+        targets['multiqc']
     params:
         analysis_directory=" ".join([sample_dir, agg_dir]),
         extra='--config config/multiqc_config.yaml',
-    log: list(set(targets['multiqc']))[0] + '.log'
-    wrapper:
-        wrapper_for('multiqc')
+        outdir=os.path.dirname(targets['multiqc'][0]),
+        basename=os.path.basename(targets['multiqc'][0])
+    log:
+        targets['multiqc'][0] + '.log'
+    shell:
+        'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
+        'multiqc '
+        '--quiet '
+        '--outdir {params.outdir} '
+        '--force '
+        '--filename {params.basename} '
+        '--config config/multiqc_config.yaml '
+        '{params.analysis_directory} '
+        '&> {log} '
 
 
 rule markduplicates:
@@ -306,12 +357,22 @@ rule markduplicates:
     output:
         bam=patterns['markduplicates']['bam'],
         metrics=patterns['markduplicates']['metrics']
-    params:
-        extra="REMOVE_DUPLICATES=true"
     log:
         patterns['markduplicates']['bam'] + '.log'
-    wrapper:
-        wrapper_for('picard/markduplicates')
+    params:
+        # TEST SETTINGS:
+        # You may want to use something larger, like "-Xmx32g" for real-world
+        # usage.
+        java_args='-Xmx2g'
+    shell:
+        'picard '
+        '{params.java_args} '
+        'MarkDuplicates '
+        'INPUT={input.bam} '
+        'OUTPUT={output.bam} '
+        'REMOVE_DUPLICATES=true '
+        'METRICS_FILE={output.metrics} '
+        '&> {log}'
 
 
 rule merge_techreps:
@@ -330,7 +391,8 @@ rule merge_techreps:
     output:
         bam=patterns['merged_techreps'],
         metrics=patterns['merged_techreps'] + '.metrics'
-    log: patterns['merged_techreps'] + '.log'
+    log:
+        patterns['merged_techreps'] + '.log'
     wrapper:
         wrapper_for('combos/merge_and_dedup')
 
@@ -344,17 +406,26 @@ rule bigwig:
     input:
         bam=patterns['merged_techreps'],
         bai=patterns['merged_techreps'] + '.bai',
-    output: patterns['bigwig']
-
-    # NOTE: for testing, we remove --normalizeUsingRPKM since it results in
-    # a ZeroDivisionError (there are less than 1000 reads total). However it is
-    # probably a good idea to use that argument with real-world data.
+    output:
+        patterns['bigwig']
     params:
         extra='--minMappingQuality 20 --ignoreDuplicates --smoothLength 10'
     log:
         patterns['bigwig'] + '.log'
-
-    wrapper: wrapper_for('deeptools/bamCoverage')
+    shell:
+        'bamCoverage '
+        '--bam {input.bam} '
+        '-o {output} '
+        '-p {threads} '
+        '--minMappingQuality 20 '
+        '--ignoreDuplicates '
+        '--smoothLength 10 '
+        # TEST SETTINGS: for testing, we remove --normalizeUsingRPKM since it
+        # results in a ZeroDivisionError (there are less than 1000 reads total).
+        # However it is probably a good idea to use that argument with real-world
+        # data.
+        #'--normalizeUsingRPKM '
+        '&> {log}'
 
 
 rule fingerprint:
@@ -366,23 +437,36 @@ rule fingerprint:
     """
     input:
         bams=lambda wc: expand(patterns['merged_techreps'], merged_dir=merged_dir, label=wc.ip_label),
-        control=lambda wc: expand(patterns['merged_techreps'], merged_dir=merged_dir, label=chipseq.merged_input_for_ip(sampletable, wc.ip_label))
+        control=lambda wc: expand(patterns['merged_techreps'], merged_dir=merged_dir, label=chipseq.merged_input_for_ip(sampletable, wc.ip_label)),
+        bais=lambda wc: expand(patterns['merged_techreps'] + '.bai', merged_dir=merged_dir, label=wc.ip_label),
+        control_bais=lambda wc: expand(patterns['merged_techreps'] + '.bai', merged_dir=merged_dir, label=chipseq.merged_input_for_ip(sampletable, wc.ip_label)),
     output:
         plot=patterns['fingerprint']['plot'],
         raw_counts=patterns['fingerprint']['raw_counts'],
         metrics=patterns['fingerprint']['metrics']
     threads: 4
     params:
-        # Note 1: You'll probably want to change numberOfSamples to something
-        # higher (default is 500k) when running on real data
-        #
-        # Note 2: I think the extra complexity of the function is worth the
+        # Note: I think the extra complexity of the function is worth the
         # nicely-labeled plots.
-        extra=lambda wc: '--labels {0} {1} --extendReads=300 --skipZeros --numberOfSamples 5000 '.format(
+        labels_arg=lambda wc: '--labels {0} {1}'.format(
             wc.ip_label, chipseq.merged_input_for_ip(sampletable, wc.ip_label)
         )
-    wrapper:
-        wrapper_for('deeptools/plotFingerprint')
+    log: patterns['fingerprint']['metrics'] + '.log'
+    shell:
+        'plotFingerprint '
+        '--bamfile {input.bams} '
+        '--JSDsample {input.control} '
+        '-p {threads} '
+        '{params.labels_arg} '
+        '--extendReads=300 '
+        '--skipZeros '
+        '--outQualityMetrics {output.metrics} '
+        '--outRawCounts {output.raw_counts} '
+        '--plotFile {output.plot} '
+        # TEST SETTINGS:You'll probably want to change --numberOfSamples to
+        # something higher (default is 500k) when running on real data
+        '--numberOfSamples 5000 '
+        '&> {log}'
 
 
 rule macs2:
@@ -402,10 +486,14 @@ rule macs2:
                 label=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'control'),
                 merged_dir=merged_dir,
             ),
-    output: bed=patterns['peaks']['macs2']
-    log: patterns['peaks']['macs2'] + '.log'
-    params: block=lambda wc: chipseq.block_for_run(config, wc.macs2_run, 'macs2')
-    wrapper: wrapper_for('macs2/callpeak')
+    output:
+        bed=patterns['peaks']['macs2']
+    log:
+        patterns['peaks']['macs2'] + '.log'
+    params:
+        block=lambda wc: chipseq.block_for_run(config, wc.macs2_run, 'macs2')
+    wrapper:
+        wrapper_for('macs2/callpeak')
 
 
 rule spp:
@@ -430,13 +518,15 @@ rule spp:
         enrichment_estimates=patterns['peaks']['spp'] + '.est.wig',
         smoothed_enrichment_mle=patterns['peaks']['spp'] + '.mle.wig',
         rdata=patterns['peaks']['spp'] + '.RData'
-    log: patterns['peaks']['spp'] + '.log'
+    log:
+        patterns['peaks']['spp'] + '.log'
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.spp_run, 'spp'),
         java_args='-Xmx8g',
         keep_tempfiles=False
     threads: 2
-    wrapper: wrapper_for('spp')
+    wrapper:
+        wrapper_for('spp')
 
 
 # rule bed_to_bigbed:

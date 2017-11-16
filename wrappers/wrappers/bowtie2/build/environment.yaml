@@ -1,7 +1,0 @@
-channels:
-  - bioconda
-  - lcdb
-dependencies:
-  - python=3
-  - bowtie2 ==2.3.2
-  - lcdblib ==0.1.2.post

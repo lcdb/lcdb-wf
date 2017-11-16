@@ -50,7 +50,7 @@ Note: if you're unfamiliar with any of the plots or tables here, see the
 
 # Assumption: change to reflect the appropriate organism
 library(AnnotationHub)
-annotation_key <- 'AH49581'  # note: will need updating in newer AnnotationHub versions
+annotation_key <- 'AH57972'  # note: will need updating in newer AnnotationHub versions
 ah <- AnnotationHub()
 orgdb <- ah[[annotation_key]]
 
@@ -488,7 +488,7 @@ clusterprofiler.enrichgo <- function(genes, universe, orgdb, keytype='ENSEMBL'){
     if (length(genes) > 0 ){
         for (ont in c('BP', 'MF', 'CC')){
             ggo <- enrichGO(gene=genes, ont=ont, universe=universe,
-                            OrgDb=orgdb, keytype=keytype, pAdjustMethod='BH',
+                            OrgDb=orgdb, keyType=keytype, pAdjustMethod='BH',
                             pvalueCutoff=0.01, qvalueCutoff=0.05,
                             readable=TRUE)
             lst[[ont]] <- ggo

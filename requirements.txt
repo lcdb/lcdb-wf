@@ -1,32 +1,46 @@
-atropos ==1.1.5
-bioconductor-dupradar ==1.2.2
-biopython ==1.69
-bowtie2 ==2.3.2
-cutadapt ==1.13
-deeptools ==2.5.1
-fastqc ==0.11.5
-fastq-screen ==0.11.1
-gffutils ==0.8.7.1
-ghostscript ==9.18
-hisat2 ==2.0.5
-kallisto ==0.43.0
-lcdblib ==0.1.2.post
-multiqc ==1.0
-pandas ==0.20.2
-picard ==2.9.2
-pysam == 0.11.2.2
-pytest ==3.1.1
-pytest-xdist ==1.18
-python ==3.6
-r ==3.3.2
-# r-kernsmooth ==2.23
-# r-essentials ==1.5.2
-# rseqc ==2.6.4
-salmon ==0.8.2
-samtools ==1.4.1
-snakemake ==3.12.0
-subread ==1.5.2
-ucsc-gtftogenepred ==332
-ucsc-oligomatch ==332
-ucsc-twobittofa ==332
-bioconductor-annotationhub ==2.6.0
+r-base >=3.4
+python >=3.6
+atropos
+bedtools
+bioconductor-annotationhub
+bioconductor-annotationhub
+bioconductor-clusterprofiler
+bioconductor-deseq2
+bioconductor-dupradar
+bioconductor-genomicfeatures
+bioconductor-sva
+bioconductor-tximport
+biopython
+bowtie2
+cutadapt
+deeptools
+fastqc
+fastq-screen
+gffutils
+ghostscript
+ghostscript
+hisat2
+kallisto
+lcdblib
+multiqc
+pandas
+pandoc
+picard
+pybedtools
+pysam
+pytest
+pytest-xdist
+r-codetools
+r-dt
+r-knitr
+r-knitrbootstrap
+r-pheatmap
+r-readr
+r-rmarkdown
+salmon
+samtools
+snakemake
+subread
+ucsc-gtftogenepred
+ucsc-oligomatch
+ucsc-twobittofa

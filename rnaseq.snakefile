@@ -239,7 +239,9 @@ rule bam_index:
         bam='{prefix}.bam'
     output:
         bai='{prefix}.bam.bai'
-    wrapper: wrapper_for('samtools/index')
+    shell:
+        'samtools index {input} {output}'
+
 
 
 rule fastq_screen:
@@ -271,9 +273,13 @@ rule featurecounts:
         counts=patterns['featurecounts']
     log:
         patterns['featurecounts'] + '.log'
-    wrapper:
-        wrapper_for('featurecounts')
-
+    shell:
+        'featureCounts '
+        '-T {threads} '
+        '-a {input.annotation} '
+        '-o {output.counts} '
+        '{input.bam} '
+        '&> {log}'
 
 rule rrna_libsizes_table:
     """
@@ -387,13 +393,23 @@ rule multiqc:
             utils.flatten(targets['collectrnaseqmetrics'])
         ),
         config='config/multiqc_config.yaml'
-    output: list(set(targets['multiqc']))
+    output: targets['multiqc']
     params:
         analysis_directory=" ".join([sample_dir, agg_dir]),
         extra='--config config/multiqc_config.yaml',
-    log: list(set(targets['multiqc']))[0] + '.log'
-    wrapper:
-        wrapper_for('multiqc')
+        outdir=os.path.dirname(targets['multiqc'][0]),
+        basename=os.path.basename(targets['multiqc'][0])
+    log: targets['multiqc'][0] + '.log'
+    shell:
+        'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
+        'multiqc '
+        '--quiet '
+        '--outdir {params.outdir} '
+        '--force '
+        '--filename {params.basename} '
+        '--config config/multiqc_config.yaml '
+        '{params.analysis_directory} '
+        '&> {log} '
 
 
 rule markduplicates:
@@ -412,8 +428,14 @@ rule markduplicates:
         # You may want to use something larger, like "-Xmx32g" for real-world
         # usage.
         java_args='-Xmx2g'
-    wrapper:
-        wrapper_for('picard/markduplicates')
+    shell:
+        'picard '
+        '{params.java_args} '
+        'MarkDuplicates '
+        'INPUT={input.bam} '
+        'OUTPUT={output.bam} '
+        'METRICS_FILE={output.metrics} '
+        '&> {log}'
 
 
 rule collectrnaseqmetrics:
@@ -430,10 +452,25 @@ rule collectrnaseqmetrics:
         # TEST SETTINGS:
         # You may want to use something larger, like "-Xmx32g" for real-world
         # usage.
-        java_args='-Xmx32g',
-        extra="STRAND=NONE CHART_OUTPUT={}".format(patterns['collectrnaseqmetrics']['pdf'])
-    log: patterns['collectrnaseqmetrics']['metrics'] + '.log'
-    wrapper: wrapper_for('picard/collectrnaseqmetrics')
+        java_args='-Xmx2g',
+    log:
+        patterns['collectrnaseqmetrics']['metrics'] + '.log'
+    shell:
+        'picard '
+        '{params.java_args} '
+        'CollectRnaSeqMetrics '
+        # From the Picard docs:
+        #
+        # STRAND=StrandSpecificity
+        #     For strand-specific library prep. For unpaired reads, use
+        #     FIRST_READ_TRANSCRIPTION_STRAND if the reads are expected to be on the
+        #     transcription strand.  Required. Possible values: {NONE,
+        #     FIRST_READ_TRANSCRIPTION_STRAND, SECOND_READ_TRANSCRIPTION_STRAND}
+        'STRAND=NONE CHART_OUTPUT={output.pdf} '
+        'REF_FLAT={input.refflat} '
+        'INPUT={input.bam} '
+        'OUTPUT={output.metrics} '
+        '&> {log}'
 
 
 rule dupRadar:
@@ -462,12 +499,23 @@ rule salmon:
     Quantify reads coming from transcripts with Salmon
     """
     input:
-        unmatedReads=patterns['cutadapt'],
+        fastq=patterns['cutadapt'],
         index=refdict[assembly][config['salmon']['tag']]['salmon'],
-    output: patterns['salmon']
-    params: extra="--libType=A"
-    log: '{sample_dir}/{sample}/salmon/salmon.quant.log'
-    wrapper: wrapper_for('salmon/quant')
+    output:
+        patterns['salmon']
+    params:
+        index_dir=os.path.dirname(refdict[assembly][config['salmon']['tag']]['salmon']),
+        outdir=os.path.dirname(patterns['salmon'])
+    log:
+        patterns['salmon'] + '.log'
+    shell:
+        'salmon quant '
+        '--index {params.index_dir} '
+        '--output {params.outdir} '
+        '--threads {threads} '
+        '--libType=A '
+        '-r {input.fastq} '
+        '&> {log}'
 
 
 rule rseqc_bam_stat:
@@ -490,11 +538,19 @@ rule bigwig_neg:
         bai=patterns['bam'] + '.bai',
     output: patterns['bigwig']['neg']
     threads: 8
-    params:
-        extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand forward --normalizeUsingRPKM'
     log:
         patterns['bigwig']['neg'] + '.log'
-    wrapper: wrapper_for('deeptools/bamCoverage')
+    shell:
+        'bamCoverage '
+        '--bam {input.bam} '
+        '-o {output} '
+        '-p {threads} '
+        '--minMappingQuality 20 '
+        '--ignoreDuplicates '
+        '--smoothLength 10 '
+        '--filterRNAstrand forward '
+        '--normalizeUsingRPKM '
+        '&> {log}'
 
 
 rule bigwig_pos:
@@ -506,11 +562,19 @@ rule bigwig_pos:
         bai=patterns['bam'] + '.bai',
     output: patterns['bigwig']['pos']
     threads: 8
-    params:
-        extra = '--minMappingQuality 20 --ignoreDuplicates --smoothLength 10 --filterRNAstrand reverse --normalizeUsingRPKM'
     log:
         patterns['bigwig']['pos'] + '.log'
-    wrapper: wrapper_for('deeptools/bamCoverage')
+    shell:
+        'bamCoverage '
+        '--bam {input.bam} '
+        '-o {output} '
+        '-p {threads} '
+        '--minMappingQuality 20 '
+        '--ignoreDuplicates '
+        '--smoothLength 10 '
+        '--filterRNAstrand reverse '
+        '--normalizeUsingRPKM '
+        '&> {log}'
 
 
 rule rnaseq_rmarkdown:
@@ -523,8 +587,6 @@ rule rnaseq_rmarkdown:
         sampletable=config['sampletable']
     output:
         'downstream/rnaseq.html'
-    conda:
-        'config/envs/R_rnaseq.yaml'
     shell:
         'Rscript -e '
         '''"rmarkdown::render('{input.rmd}', 'knitrBootstrap::bootstrap_document')"'''
