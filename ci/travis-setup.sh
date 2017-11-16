@@ -30,7 +30,7 @@ default_channels:
 EOF
 
 # See https://github.com/conda/conda/issues/5536
-conda install -y "conda<4.3"
+# conda install -y "conda<4.3"
 
 conda --version
 cat ~/.condarc
@@ -40,4 +40,5 @@ conda create -n $ENVNAME -y --file requirements.txt \
     | grep -v " Time: "
 
 source activate $ENVNAME
+echo $PATH
 python ci/get-data.py
