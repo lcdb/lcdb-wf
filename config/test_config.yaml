@@ -69,7 +69,7 @@ references:
           # a <- AnnotationHub()
           # a[(a$rdataclass == 'OrgDb') & grepl('melanogaster', a$species),]
           - annotation_hub:
-              ahkey: 'AH49581'
+              ahkey: 'AH57972'
               keytype: 'ENSEMBL'
 
       fb_annotation:
