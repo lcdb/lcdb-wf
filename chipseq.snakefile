@@ -151,7 +151,7 @@ if 'orig_filename' in sampletable.columns:
         input: lambda wc: sampletable.set_index(sampletable.columns[0])['orig_filename'].to_dict()[wc.sample]
         output: patterns['fastq']
         run:
-            common.relative_symlink(input[0], output[0])
+            utils.make_relative_symlink(input[0], output[0])
 
     rule symlink_targets:
         input: targets['fastq']
