@@ -18,9 +18,7 @@ def update_recursive(d, u):
 
 
 class SeqConfig(object):
-    def __init__(self, config, patterns=None):
-        if patterns is None:
-            patterns_yaml = os.path.join(HERE, 'rnaseq_patterns.yaml')
+    def __init__(self, config, patterns):
 
         self.path = None
         if isinstance(config, str):
@@ -35,11 +33,13 @@ class SeqConfig(object):
 
         self.assembly = configdict['assembly']
 
-        self.patterns_yaml = patterns_yaml
+        self.patterns_yaml = patterns
 
 
 class RNASeqConfig(SeqConfig):
     def __init__(self, config, patterns=None):
+        if patterns is None:
+            patterns = os.path.join(HERE, 'rnaseq_patterns.yaml')
         SeqConfig.__init__(self, config, patterns)
 
         self.sample_dir = self.configdict.get('sample_dir', 'samples')
@@ -50,8 +50,10 @@ class RNASeqConfig(SeqConfig):
         self.patterns = yaml.load(open(self.patterns_yaml))
 
 
-class ChIPSeqConfig(object):
+class ChIPSeqConfig(SeqConfig):
     def __init__(self, config, patterns=None):
+        if patterns is None:
+            patterns = os.path.join(HERE, 'chipseq_patterns.yaml')
         SeqConfig.__init__(self, config, patterns)
 
         self.sample_dir = self.configdict.get('sample_dir', 'samples')
