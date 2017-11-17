@@ -3,8 +3,7 @@ import collections
 import yaml
 from . import common
 from . import chipseq
-from lcdblib.snakemake import helpers, aligners
-from lcdblib.utils import utils
+from lcdblib.snakemake import helpers
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
@@ -18,54 +17,49 @@ def update_recursive(d, u):
     return d
 
 
-class RNASeqConfig(object):
-    def __init__(self, config):
+class SeqConfig(object):
+    def __init__(self, config, patterns=None):
+        if patterns is None:
+            patterns_yaml = os.path.join(HERE, 'rnaseq_patterns.yaml')
 
         self.path = None
         if isinstance(config, str):
             self.path = config
 
         configdict, pth = common.resolve_config(config)
+        self.configdict = configdict
 
-        # Called for its side-effect of checking that a references dir is specified
         common.get_references_dir(config)
-
         self.samples, self.sampletable = common.get_sampletable(config)
         self.refdict, self.conversion_kwargs = common.references_dict(config)
 
         self.assembly = configdict['assembly']
 
-        self.sample_dir = configdict.get('sample_dir', 'samples')
-        self.agg_dir = configdict.get('aggregation_dir', 'aggregation')
+        self.patterns_yaml = patterns_yaml
 
-        self.patterns = yaml.load(open(os.path.join(HERE, 'rnaseq_patterns.yaml')))
+
+class RNASeqConfig(SeqConfig):
+    def __init__(self, config, patterns=None):
+        SeqConfig.__init__(self, config, patterns)
+
+        self.sample_dir = self.configdict.get('sample_dir', 'samples')
+        self.agg_dir = self.configdict.get('aggregation_dir', 'aggregation')
+
         self.fill = dict(sample=self.samples, sample_dir=self.sample_dir, agg_dir=self.agg_dir)
         self.targets = helpers.fill_patterns(self.patterns, self.fill)
+        self.patterns = yaml.load(open(self.patterns_yaml))
 
 
 class ChIPSeqConfig(object):
-    def __init__(self, config):
+    def __init__(self, config, patterns=None):
+        SeqConfig.__init__(self, config, patterns)
 
-        self.path = None
-        if isinstance(config, str):
-            self.path = config
+        self.sample_dir = self.configdict.get('sample_dir', 'samples')
+        self.agg_dir = self.configdict.get('aggregation_dir', 'aggregation')
+        self.merged_dir = self.configdict.get('merged_dir', 'merged')
+        self.peak_calling = self.configdict.get('peaks_dir', 'chipseq')
 
-        configdict, pth = common.resolve_config(config)
-
-        # Called for its side-effect of checking that a references dir is specified
-        common.get_references_dir(config)
-
-        self.samples, self.sampletable = common.get_sampletable(config)
-        self.refdict, self.conversion_kwargs = common.references_dict(config)
-
-        self.assembly = configdict['assembly']
-
-        self.sample_dir = configdict.get('sample_dir', 'samples')
-        self.agg_dir = configdict.get('aggregation_dir', 'aggregation')
-        self.merged_dir = configdict.get('merged_dir', 'merged')
-        self.peak_calling = configdict.get('peaks_dir', 'chipseq')
-
-        _patterns = yaml.load(open(os.path.join(HERE, 'chipseq_patterns.yaml')))
+        _patterns = yaml.load(open(self.patterns_yaml))
 
         self.patterns_by_sample = _patterns['patterns_by_sample']
         self.fill_by_sample = dict(sample=self.samples, sample_dir=self.sample_dir, agg_dir=self.agg_dir)
@@ -80,8 +74,8 @@ class ChIPSeqConfig(object):
 
         self.fill_by_peaks = dict(
             peak_calling=self.peak_calling,
-            macs2_run=list(chipseq.peak_calling_dict(dict(configdict), algorithm='macs2').keys()),
-            spp_run=list(chipseq.peak_calling_dict(dict(configdict), algorithm='spp').keys()),
+            macs2_run=list(chipseq.peak_calling_dict(dict(self.configdict), algorithm='macs2').keys()),
+            spp_run=list(chipseq.peak_calling_dict(dict(self.configdict), algorithm='spp').keys()),
             combination='zip',
         )
 
@@ -92,7 +86,7 @@ class ChIPSeqConfig(object):
                 _peak_patterns[k] = {pc: self.patterns_by_peaks[k][pc]}
             _fill = {
                 'peak_calling': self.peak_calling,
-                pc + '_run': list(chipseq.peak_calling_dict(dict(configdict), algorithm=pc).keys())}
+                pc + '_run': list(chipseq.peak_calling_dict(dict(self.configdict), algorithm=pc).keys())}
             update_recursive(self.targets_for_peaks, helpers.fill_patterns(_peak_patterns, _fill))
 
         self.targets = {}
@@ -101,4 +95,3 @@ class ChIPSeqConfig(object):
         self.patterns = {}
         self.patterns.update(self.patterns_by_sample)
         self.patterns.update(self.patterns_by_peaks)
-
