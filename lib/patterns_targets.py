@@ -59,7 +59,7 @@ class ChIPSeqConfig(SeqConfig):
         self.merged_dir = self.configdict.get('merged_dir', 'merged')
         self.peak_calling = self.configdict.get('peaks_dir', 'chipseq')
 
-        _patterns = yaml.load(open(self.patterns_yaml))
+        _patterns = self.patterns.copy()
 
         self.patterns_by_sample = _patterns['patterns_by_sample']
         self.fill_by_sample = dict(sample=self.samples, sample_dir=self.sample_dir, agg_dir=self.agg_dir)
