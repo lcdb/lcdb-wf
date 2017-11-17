@@ -17,3 +17,9 @@ DAG for references workflow:
 DAG for RNA-seq workflow:
 
 ![rnaseq dag](docs/rnaseq.png)
+
+## ChIP-seq workflow
+
+DAG for ChIP-seq workflow:
+
+![chipseq dag](docs/chipseq.png)
