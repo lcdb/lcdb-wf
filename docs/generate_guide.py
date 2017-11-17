@@ -1,7 +1,7 @@
 import os
 from jinja2 import Template
 HERE = os.path.abspath(os.path.dirname(__file__))
-FILES = os.path.join(HERE, '..', 'guide-to-files.txt')
+FILES = os.path.join(HERE, 'guide-to-files.txt')
 
 class File(object):
     def __init__(self, fn):

@@ -1,3 +1,5 @@
+.. _wrappers:
+
 Wrappers
 ========
 One of the guiding principles of `lcdb-wf` is to put the complexity into
