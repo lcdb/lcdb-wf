@@ -1,0 +1,17 @@
+__default__:
+  prefix: "--gres=lscratch:20 --time=4:00:00"
+
+bowtie2_index:
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
+
+fastq_screen:
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
+
+markduplicates:
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
+
+bigwig_neg:
+  prefix: "--gres=lscratch:20 --mem=16g"
+
+bigwig_pos:
+  prefix: "--gres=lscratch:20 --mem=16g"

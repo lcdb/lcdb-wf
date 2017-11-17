@@ -36,5 +36,4 @@ rule peak_count:
         pd.DataFrame(df)[['peakcaller', 'label', 'count']].to_csv(output[0], sep='\t', index=False)
 
 
-
 # vim: ft=python
