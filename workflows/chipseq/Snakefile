@@ -17,7 +17,7 @@ from lib.patterns_targets import ChIPSeqConfig
 #  before running this on real data.
 # ----------------------------------------------------------------------------
 
-include: '../references/references.snakefile'
+include: '../references/Snakefile'
 
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
 shell.executable('/bin/bash')

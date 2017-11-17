@@ -10,13 +10,11 @@ chipseq_config = ChIPSeqConfig('../chipseq/config/test_chipseq_config.yaml')
 
 
 subworkflow rnaseq:
-    snakefile: '../rnaseq/rnaseq.snakefile'
     configfile: rnaseq_config.path
     workdir: '../rnaseq'
 
 
 subworkflow chipseq:
-    snakefile: '../chipseq/chipseq.snakefile'
     configfile: chipseq_config.path
     workdir: '../chipseq'
 
