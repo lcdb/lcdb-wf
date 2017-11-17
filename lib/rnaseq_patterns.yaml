@@ -1,0 +1,56 @@
+fastq: '{sample_dir}/{sample}/{sample}_R1.fastq.gz'
+cutadapt: '{sample_dir}/{sample}/{sample}_R1.cutadapt.fastq.gz'
+bam: '{sample_dir}/{sample}/{sample}.cutadapt.bam'
+
+fastqc:
+  raw: '{sample_dir}/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.zip'
+  cutadapt: '{sample_dir}/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip'
+  bam: '{sample_dir}/{sample}/fastqc/{sample}.cutadapt.bam_fastqc.zip'
+
+libsizes:
+        fastq:   '{sample_dir}/{sample}/{sample}_R1.fastq.gz.libsize'
+        cutadapt: '{sample_dir}/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize'
+        bam:     '{sample_dir}/{sample}/{sample}.cutadapt.bam.libsize'
+
+fastq_screen: '{sample_dir}/{sample}/{sample}.cutadapt.screen.txt'
+featurecounts: '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.txt'
+libsizes_table: '{agg_dir}/libsizes_table.tsv'
+libsizes_yaml: '{agg_dir}/libsizes_table_mqc.yaml'
+rrna_percentages_table: '{agg_dir}/rrna_percentages_table.tsv'
+rrna_percentages_yaml: '{agg_dir}/rrna_percentages_table_mqc.yaml'
+
+rrna:
+   bam: '{sample_dir}/{sample}/rRNA/{sample}.cutadapt.rrna.bam'
+   libsize: '{sample_dir}/{sample}/rRNA/{sample}.cutadapt.rrna.bam.libsize'
+
+multiqc: '{agg_dir}/multiqc.html'
+
+markduplicates:
+   bam: '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam'
+   metrics: '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam.metrics'
+
+collectrnaseqmetrics:
+   metrics: '{sample_dir}/{sample}/{sample}.collectrnaseqmetrics.metrics'
+   pdf: '{sample_dir}/{sample}/{sample}.collectrnaseqmetrics.pdf'
+
+dupradar:
+   density_scatter: '{sample_dir}/{sample}/dupradar/{sample}_density_scatter.png'
+   expression_histogram: '{sample_dir}/{sample}/dupradar/{sample}_expression_histogram.png'
+   expression_boxplot: '{sample_dir}/{sample}/dupradar/{sample}_expression_boxplot.png'
+   expression_barplot: '{sample_dir}/{sample}/dupradar/{sample}_expression_barplot.png'
+   multimapping_histogram: '{sample_dir}/{sample}/dupradar/{sample}_multimapping_histogram.png'
+   dataframe: '{sample_dir}/{sample}/dupradar/{sample}_dataframe.tsv'
+   model: '{sample_dir}/{sample}/dupradar/{sample}_model.txt'
+   curve: '{sample_dir}/{sample}/dupradar/{sample}_curve.txt'
+
+salmon: '{sample_dir}/{sample}/{sample}.salmon/quant.sf'
+
+rseqc:
+   bam_stat: '{sample_dir}/{sample}/rseqc/{sample}_bam_stat.txt'
+
+bigwig:
+   pos: '{sample_dir}/{sample}/{sample}.cutadapt.bam.pos.bigwig'
+   neg: '{sample_dir}/{sample}/{sample}.cutadapt.bam.neg.bigwig'
+
+downstream:
+   rnaseq: 'downstream/rnaseq.html'
