@@ -15,16 +15,16 @@ case $TYPE in
   references.snakefile)
     cd workflows/references \
     && source activate lcdb-wf-test \
-    && snakemake -s references.snakefile \
-    --configfile config/test_config.yaml \
+    && snakemake \
+    --configfile config/config.yaml \
     --use-conda \
     -j2 -T -k -p -r
     ;;
   rnaseq.snakefile)
     cd workflows/rnaseq \
     && source activate lcdb-wf-test \
-    && snakemake -s rnaseq.snakefile \
-    --configfile config/test_config.yaml \
+    && snakemake \
+    --configfile config/config.yaml \
     --use-conda \
     -j2 -T -k -p -r
     ;;
@@ -32,8 +32,8 @@ case $TYPE in
     cd workflows/chipseq \
     && source activate lcdb-wf-test && \
     conda --version && \
-    snakemake -s chipseq.snakefile \
-    --configfile config/test_chipseq_config.yaml \
+    snakemake \
+    --configfile config/config.yaml \
     --use-conda \
     -j2 -T -k -p -r
     ;;

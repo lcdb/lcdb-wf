@@ -2,7 +2,7 @@
 # sampletable: TSV file defining sample metadata.
 #
 # First column must have header name "samplename".
-sampletable: 'config/chipseq-sampletable.tsv'
+sampletable: 'config/sampletable.tsv'
 
 # sample_dir: directory in which each sample is expected to have its own
 # directory and fastq file[s]. If `sampletable` lists a sample with samplename
