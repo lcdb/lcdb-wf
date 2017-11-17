@@ -13,27 +13,29 @@ fi
 
 case $TYPE in
   references.snakefile)
-    source activate lcdb-wf-test \
-      && snakemake -s references.snakefile \
-      --configfile config/test_config.yaml \
-      --use-conda \
-      -j2 -T -k -p -r
+    cd workflows/references \
+    && source activate lcdb-wf-test \
+    && snakemake -s references.snakefile \
+    --configfile config/test_config.yaml \
+    --use-conda \
+    -j2 -T -k -p -r
     ;;
   rnaseq.snakefile)
-    source activate lcdb-wf-test && \
-      conda --version && \
-      snakemake -s rnaseq.snakefile \
-      --configfile config/test_config.yaml \
-      --use-conda \
-      -j2 -T -k -p -r
+    cd workflows/rnaseq \
+    && source activate lcdb-wf-test \
+    && snakemake -s rnaseq.snakefile \
+    --configfile config/test_config.yaml \
+    --use-conda \
+    -j2 -T -k -p -r
     ;;
   chipseq.snakefile)
-    source activate lcdb-wf-test && \
-      conda --version && \
-      snakemake -s chipseq.snakefile \
-      --configfile config/test_chipseq_config.yaml \
-      --use-conda \
-      -j2 -T -k -p -r
+    cd workflows/chipseq \
+    && source activate lcdb-wf-test && \
+    conda --version && \
+    snakemake -s chipseq.snakefile \
+    --configfile config/test_chipseq_config.yaml \
+    --use-conda \
+    -j2 -T -k -p -r
     ;;
   #pytest)
   #  source activate lcdb-wf-test && py.test wrappers/test -v
