@@ -32,8 +32,7 @@ class SeqConfig(object):
         self.refdict, self.conversion_kwargs = common.references_dict(config)
 
         self.assembly = configdict['assembly']
-
-        self.patterns_yaml = patterns
+        self.patterns = yaml.load(open(patterns))
 
 
 class RNASeqConfig(SeqConfig):
@@ -47,7 +46,6 @@ class RNASeqConfig(SeqConfig):
 
         self.fill = dict(sample=self.samples, sample_dir=self.sample_dir, agg_dir=self.agg_dir)
         self.targets = helpers.fill_patterns(self.patterns, self.fill)
-        self.patterns = yaml.load(open(self.patterns_yaml))
 
 
 class ChIPSeqConfig(SeqConfig):
