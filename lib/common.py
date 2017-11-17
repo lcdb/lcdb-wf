@@ -8,6 +8,15 @@ from lcdblib.utils.imports import resolve_name
 from lcdblib.snakemake import aligners
 from snakemake.shell import shell
 
+def resolve_config(config):
+    if isinstance(config, str):
+        absdir = os.path.dirname(os.path.abspath(config))
+        pth = os.path.dirname(absdir)
+        config = yaml.load(open(config))
+    else:
+        pth = ''
+    return config, pth
+
 
 def gzipped(tmpfiles, outfile):
     """
@@ -386,12 +395,13 @@ def get_references_dir(config):
     ----------
     config : dict
     """
+    config, pth = resolve_config(config)
     references_dir = os.environ.get(
         'REFERENCES_DIR', config.get('references_dir', None))
     if references_dir is None:
         raise ValueError('No references dir specified')
-    config['references_dir'] = references_dir
-    return references_dir
+    config['references_dir'] = os.path.join(pth, references_dir)
+    return os.path.join(pth, references_dir)
 
 
 def get_sampletable(config):
@@ -404,7 +414,8 @@ def get_sampletable(config):
     ----------
     config : dict
     """
-    sampletable = pandas.read_table(config['sampletable'], comment="#")
+    config, pth = resolve_config(config)
+    sampletable = pandas.read_table(os.path.join(pth, config['sampletable']), comment="#")
     samples = sampletable.iloc[:, 0]
     return samples, sampletable
 
