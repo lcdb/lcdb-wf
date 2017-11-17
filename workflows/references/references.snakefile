@@ -1,5 +1,6 @@
 import os
 import sys
+sys.path.insert(0, srcdir('../..'))
 import yaml
 import importlib
 import tempfile
@@ -20,7 +21,8 @@ makedirs([references_dir, os.path.join(references_dir, 'logs')])
 
 
 def wrapper_for(path):
-    return 'file:' + os.path.join('wrappers', 'wrappers', path)
+    return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
+
 
 localrules: symlink_fasta_to_index_dir, chromsizes
 
