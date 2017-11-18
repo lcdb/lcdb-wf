@@ -16,7 +16,7 @@ from lib.patterns_targets import RNASeqConfig
 #  Search this file for the string "# TEST SETTINGS" and make necessary edits
 #  before running this on real data.
 # ----------------------------------------------------------------------------
-
+configfile: 'config/config.yaml'
 include: '../references/Snakefile'
 
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))

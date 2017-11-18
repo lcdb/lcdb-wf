@@ -17,17 +17,18 @@ from lib.patterns_targets import ChIPSeqConfig
 #  before running this on real data.
 # ----------------------------------------------------------------------------
 
+configfile: 'config/config.yaml'
 include: '../references/Snakefile'
 
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
+
 
 c = ChIPSeqConfig(config)
 
 
 def wrapper_for(path):
     return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
-
 
 # ----------------------------------------------------------------------------
 # RULES

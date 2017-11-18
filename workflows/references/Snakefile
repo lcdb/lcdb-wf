@@ -10,6 +10,8 @@ from lcdblib.utils import utils
 from lcdblib.snakemake import aligners, helpers
 from lib import common
 
+configfile: 'config/config.yaml'
+
 tempfile.tempdir = common.tempdir_for_biowulf()
 
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
