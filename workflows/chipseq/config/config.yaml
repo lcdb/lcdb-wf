@@ -67,6 +67,13 @@ chipseq:
         fdr: 0.3
         zthr: 4
 
+    - label: gaf-embryo-1-defaults
+      algorithm: spp
+      ip:
+        - gaf-embryo-1
+      control:
+        - input-embryo-1
+
     - label: gaf-wingdisc-pooled
       algorithm: macs2
       ip:
