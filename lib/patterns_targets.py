@@ -24,8 +24,8 @@ several advantages of this over writing the patterns directly in each rule:
 - The organization allows us to more easily find what files are stored where.
   Rather than scroll through the entire workflow trying to find where the
   postitive-strand bigwigs are, we can either access the pattern with
-  `patterns['bigwig']['pos']` or all unique BAMs across all samples
-  `targets['bigwig']['pos']`.
+  `patterns['bigwig']['pos']` or get the list of all plus-strand bigwigs across
+  all samples with `targets['bigwig']['pos']`.
 
 - Keeping the patterns outside the Snakefile allows us to re-use the patterns
   and their organization for downstream work (like figure-making).
