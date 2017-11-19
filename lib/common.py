@@ -9,18 +9,21 @@ from lcdblib.snakemake import aligners
 from snakemake.shell import shell
 
 def resolve_config(config):
+    """
+    Parameters
+    ----------
+    config : str, dict
+        If str, assume it's a YAML file and parse it; otherwise pass through
+    """
     if isinstance(config, str):
-        absdir = os.path.dirname(os.path.abspath(config))
-        pth = os.path.dirname(absdir)
         config = yaml.load(open(config))
-    else:
-        pth = ''
-    return config, pth
+    return config
 
 
 def gzipped(tmpfiles, outfile):
     """
-    Cat-and-gzip input files into a single output file.
+    Cat-and-gzip a list of uncompressed input files into a single compressed
+    output file.
     """
     with gzip.open(outfile, 'wt') as fout:
         for f in tmpfiles:
@@ -40,8 +43,8 @@ def cat(tmpfiles, outfile):
 
 def filter_fastas(tmpfiles, outfile, pattern):
     """
-    Given input FASTAs, create a new one containing only records whose
-    description matches `pattern`.
+    Given input gzipped FASTAs, create a new gzipped fasta containing only
+    records whose description matches `pattern`.
 
     Parameters
     ----------
@@ -100,6 +103,8 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
     """
     Given an output file, figure out what to do based on the config.
 
+    See notes below for details.
+
     Parameters
     ----------
     outfile : str
@@ -111,7 +116,8 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
         config.
 
     tag : str
-        Which tag for the assembly to use. Must be a tag for the assembly in the config
+        Which tag for the assembly to use. Must be a tag for the assembly in
+        the config
 
     type_ : str
         A supported references type (gtf, fasta) to use.
@@ -126,13 +132,17 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
          - what postprocessing function (if any) was specified along with
            its optional args
          - the URL[s] to download
-     - resolves the name of that function and imports it
+     - resolves the name of the postprocessing function (if provided) and
+       imports it
      - downloads the URL[s] to tempfile[s]
-     - calls the imported function using the tempfile[s] and outfile plus
-       any additional specified arguments.
+     - calls the imported postprocessing function using the tempfile[s] and
+       outfile plus any additional specified arguments.
 
 
-    The function must have one of the following two signatures::
+    The postprocessing function must have one of the following two signatures,
+    where `infiles` contains the list of temporary files downloaded from the
+    URL or URLs specified, and `outfile` is a gzipped file expected to be
+    created by the function::
 
         def func(infiles, outfile):
             pass
@@ -143,19 +153,22 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
             pass
 
 
-    `infiles` contains the list of temporary files downloaded from the URL or
-    URLs specified.
-
-    `outfile` is a gzipped file expected to be created by the function.
-
     The function is specified as a string that resolves to an importable
-    function, e.g., `lib.postprocess.dm6.fix` is a function called `fix` in the
-    file `lib/postprocess/dm6.py`.
+    function, e.g., `postprocess: lib.postprocess.dm6.fix` will call a function
+    called `fix` in the file `lib/postprocess/dm6.py`.
 
     If specified in the config as a dict, it must have `function` and `args`
     keys. The `function` key indicates the importable path to the function, and
     `args` can be a string or list of arguments that will be provided as
-    additional args to a function with the second kind of signature above.
+    additional args to a function with the second kind of signature above.  For
+    example::
+
+        postprocess:
+            function: lib.postprocess.dm6.fix
+            args:
+                - True
+                - 3
+
     """
 
     def default_postprocess(origfn, newfn):
@@ -189,11 +202,13 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
         # import the function
         func = resolve_name(name)
 
-    # functions assume a list of urls
+    # as described in the docstring above, functions are to assume a list of
+    # urls
     urls = block['url']
     if isinstance(urls, str):
         urls = [urls]
 
+    # Download tempfiles into reasonably-named filenames
     tmpfiles = ['{0}.{1}.tmp'.format(outfile, i) for i in range(len(urls))]
     try:
         for url, tmpfile in zip(urls, tmpfiles):
@@ -317,9 +332,12 @@ def references_dict(config):
                     for conversion in conversions:
                         kwargs = {}
                         if isinstance(conversion, dict):
-                            # we assume that there is only one key, and that
-                            # key is the actual name of the conversion; the
-                            # corresponding value will be kwargs
+                            # if conversion is specified as dict, we assume
+                            # that there is only one key, and that key is the
+                            # actual name of the conversion; the corresponding
+                            # value will be kwargs. This is used e.g. for
+                            # gffutils conversion which often need some
+                            # tweaking of args depending on the gtf format.
                             assert len(list(conversion.keys())) == 1
                             kwargs = list(conversion.values())[0]
                             conversion = list(conversion.keys())[0]
@@ -375,8 +393,8 @@ def tempdir_for_biowulf():
     which is not known in advance. This function sets the shell.prefix to use
     such a tempdir if it's available; otherwise it leaves TMPDIR unchanged.
     This makes it suitable for running locally or on other clusters, however if
-    you need different behavior then a different function will need to be
-    written.
+    you need different behavior for a different cluster, then a different
+    function will need to be written.
     """
     tmpdir = tempfile.gettempdir()
     jobid = os.getenv('SLURM_JOBID')
@@ -395,18 +413,18 @@ def get_references_dir(config):
     ----------
     config : dict
     """
-    config, pth = resolve_config(config)
+    config = resolve_config(config)
     references_dir = os.environ.get(
         'REFERENCES_DIR', config.get('references_dir', None))
     if references_dir is None:
         raise ValueError('No references dir specified')
-    config['references_dir'] = os.path.join(pth, references_dir)
-    return os.path.join(pth, references_dir)
+    return references_dir
 
 
 def get_sampletable(config):
     """
-    Returns the sample IDs and the parsed sampletable.
+    Returns the sample IDs and the parsed sampletable from the file specified
+    in the config.
 
     The sample IDs are assumed to be the first column of the sampletable.
 
@@ -414,8 +432,8 @@ def get_sampletable(config):
     ----------
     config : dict
     """
-    config, pth = resolve_config(config)
-    sampletable = pandas.read_table(os.path.join(pth, config['sampletable']), comment="#")
+    config = resolve_config(config)
+    sampletable = pandas.read_table(config['sampletable'], comment="#")
     samples = sampletable.iloc[:, 0]
     return samples, sampletable
 
