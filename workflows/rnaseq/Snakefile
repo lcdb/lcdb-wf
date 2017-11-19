@@ -22,7 +22,7 @@ include: '../references/Snakefile'
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
 
-c = RNASeqConfig(config)
+c = RNASeqConfig(config, 'config/rnaseq_patterns.yaml')
 
 
 def wrapper_for(path):

@@ -24,7 +24,7 @@ shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_bi
 shell.executable('/bin/bash')
 
 
-c = ChIPSeqConfig(config)
+c = ChIPSeqConfig(config, 'config/chipseq_patterns.yaml')
 
 
 def wrapper_for(path):
@@ -36,7 +36,7 @@ def wrapper_for(path):
 
 rule targets:
     """
-    Final c.targets to create
+    Final targets to create
     """
     input:
         (
