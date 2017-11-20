@@ -75,9 +75,9 @@ class SeqConfig(object):
 
         # Read the config file and extract all sort of useful bits. This mostly
         # uses the `common` module to handle the details.
-        config['references_dir'] = common.get_references_dir(config)
-        self.samples, self.sampletable = common.get_sampletable(config)
-        self.refdict, self.conversion_kwargs = common.references_dict(config)
+        self.config['references_dir'] = common.get_references_dir(self.config)
+        self.samples, self.sampletable = common.get_sampletable(self.config)
+        self.refdict, self.conversion_kwargs = common.references_dict(self.config)
         self.assembly = self.config['assembly']
         self.patterns = yaml.load(open(patterns))
 
