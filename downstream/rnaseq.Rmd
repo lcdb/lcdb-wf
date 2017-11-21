@@ -697,13 +697,6 @@ for (sel in names(sel.list[[1]])){
     m.sub$chunk[m.sub$Description == term] = lab
   }
 
-  # replace automatic experiment labels with user-defined tags
-  m.sub$experiment <- as.vector(m.sub$experiment, mode="character")
-  for (i in 1:length(names(res.list))) {
-    m.sub$experiment[m.sub$experiment == paste("experiment", i, sep="")] <- names(res.list)[i]
-  }
-  m.sub$experiment <- factor(m.sub$experiment, levels=names(res.list))
-
   #replace ontology descriptions with truncations to make plot prettier
   temp.desc <- as.vector(m.sub$Description, mode="character")
   needs.replacement <- which(nchar(temp.desc) > length.quantile)
