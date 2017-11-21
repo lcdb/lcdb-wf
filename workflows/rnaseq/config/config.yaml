@@ -60,7 +60,6 @@ references:
                   gene: ['gene_id', 'gene_symbol']
               gtf_transcript_key: 'transcript_id'
               gtf_gene_key: 'gene_id'
-              disable_infer_genes: True
 
           # the attribute from the GTF to consider gene ID
           - genelist:
