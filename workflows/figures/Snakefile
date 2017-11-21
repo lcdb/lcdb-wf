@@ -27,6 +27,8 @@ rule all:
 
 
 rule peak_count:
+    # This rule depends on *all* the peaks called by the chipseq workflow,
+    # which we can get by accessing the targets of that workflow, like this:
     input: chipseq(utils.flatten(chipseq_config.targets['peaks']))
     output: 'figures/peak_count/peak_count.tsv'
     run:
@@ -42,7 +44,13 @@ rule peak_count:
 
 
 rule peaks_at_promoters:
+    """
+    Reports a summary of how many peaks in each peak-calling run were found in
+    a promoter, as well as BED files of the subsets of peaks falling in
+    promoters.
+    """
     input:
+        # This is how we can access the references from the rnaseq workflow:
         db=rnaseq(rnaseq_refdict['dmel']['test']['gtf'] + '.db'),
         peaks=chipseq(utils.flatten(chipseq_config.targets['peaks']))
     output:
