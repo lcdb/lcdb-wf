@@ -48,11 +48,36 @@ Note: if you're unfamiliar with any of the plots or tables here, see the
 # Try disabling this when running locally to get nicer figures
 # options(bitmapType='cairo')
 
+
+
 # Assumption: change to reflect the appropriate organism
 library(AnnotationHub)
-annotation_key <- 'AH57972'  # note: will need updating in newer AnnotationHub versions
+annotation_genus_species <- 'Drosophila melanogaster' # first pass: provide full, case-sensitive genus/species here
+annotation_key_override <- NA # if the species search doesn't work for some reason, provide key manually here, for example: 'AH53765'
+
+find.annotationhub.name <- function(species.name, override.code) { #autodetect ah names based on loaded database
+    if (is.na(override.code)) {
+    require(AnnotationHub)
+    ah <- AnnotationHub()
+    ah.query <- query(ah, "OrgDb")
+    ah.query.speciesmatch <- grepl(paste("^", species.name, "$", sep=""), ah.query$species)
+    ah.query.which <- which(ah.query.speciesmatch)
+    stopifnot(length(ah.query.which) > 0) #require at least one match
+    if (length(ah.query.which) > 1) { #warn of duplicate matches
+       print("WARNING: found multiple candidate species in AnnotationHub: ");
+       print(ah.query.speciesmatch)
+    }
+    names(ah.query)[ah.query.which[1]]
+    } else {
+    override.code
+    }
+}
+
+annotation_key <- find.annotationhub.name(annotation_genus_species, annotation_key_override)
 ah <- AnnotationHub()
 orgdb <- ah[[annotation_key]]
+
+
 
 # Assumption: change to reflect KEGG ID of organism
 kegg.org <- 'dme'
@@ -641,6 +666,10 @@ for (sel in names(sel.list[[1]])){
   mdcat('## ', sel)
   m <- do.call(rbind, enrich.list)
 
+  ###compute description length distribution for entire ontology
+  length.quantile <- quantile(nchar(as.vector(m$Description, mode="character")), 0.75)
+
+
   # convert to phred score, and flip the "downregulated"
   m$phred <- -10 * log10(m$p.adjust)
   idx <- m$sel == sel
@@ -649,7 +678,7 @@ for (sel in names(sel.list[[1]])){
 
   if (nrow(m) == 0){next}
 
-  # Grap the top (ordered by phred)
+  # Grab the top (ordered by phred)
   m$Description <- factor(m$Description)
   max.per.term <- aggregate(phred~Description, m, FUN=max)
   o <- rev(order(max.per.term$phred))
@@ -667,6 +696,13 @@ for (sel in names(sel.list[[1]])){
     lab <- lookup[i]
     m.sub$chunk[m.sub$Description == term] = lab
   }
+
+  #replace ontology descriptions with truncations to make plot prettier
+  temp.desc <- as.vector(m.sub$Description, mode="character")
+  needs.replacement <- which(nchar(temp.desc) > length.quantile)
+  temp.desc <- strtrim(temp.desc, length.quantile)
+  temp.desc[needs.replacement] <- paste(temp.desc[needs.replacement], "...", sep="")
+  m.sub$Description <- factor(temp.desc)
 
 print(ggplot(m.sub) +
     geom_point(alpha=0.6) +
