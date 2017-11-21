@@ -42,18 +42,25 @@
             
   <div class="section" id="getting-started">
 <h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
-<p>The following steps will run the example workflows on a relatively small test
-data set to ensure that everything runs correctly. On 2 cores it takes about 15
-minutes; use more cores to speed it up.</p>
-<p>Once everything runs correctly, you can modify the files for your own
-experiment.</p>
+<p>The following steps will install all necessary software and run the example
+workflows on a relatively small test data set to ensure that everything runs
+correctly. These exampls are run as the automated tests on Travis-CI
+(<a class="reference external" href="https://travis-ci.org/lcdb/lcdb-wf">https://travis-ci.org/lcdb/lcdb-wf</a>) to ensure that they are correct.</p>
+<p>The example run takes up about 360 MB of space and runs in about 15 mins on
+2 cores.</p>
+<div class="section" id="one-time-setup">
+<h2>One-time setup<a class="headerlink" href="#one-time-setup" title="Permalink to this headline">¶</a></h2>
+<p>The following needs to be performed on each system on which you will be running
+the workflows.</p>
 <div class="section" id="bioconda-one-time-setup">
-<h2>bioconda (one-time setup)<a class="headerlink" href="#bioconda-one-time-setup" title="Permalink to this headline">¶</a></h2>
-<p>Follow the instructions for setting up <a class="reference external" href="https://bioconda.github.io">bioconda</a>.
-This includes installing <cite>conda</cite> and setting up the channels.</p>
+<h3>bioconda (one-time setup)<a class="headerlink" href="#bioconda-one-time-setup" title="Permalink to this headline">¶</a></h3>
+<p>Follow the instructions for setting up <a class="reference external" href="https://bioconda.github.io">bioconda</a>.  This includes installing <cite>conda</cite> and setting
+up the channels in the correct order.</p>
+<p>This is required to be able to have all software automatically installed into
+the working directory without needeing admin rights on the machine.</p>
 </div>
 <div class="section" id="add-the-lcdb-channel-one-time-setup">
-<h2>Add the <cite>lcdb</cite> channel (one-time setup)<a class="headerlink" href="#add-the-lcdb-channel-one-time-setup" title="Permalink to this headline">¶</a></h2>
+<h3>Add the <cite>lcdb</cite> channel (one-time setup)<a class="headerlink" href="#add-the-lcdb-channel-one-time-setup" title="Permalink to this headline">¶</a></h3>
 <p>This enables the <cite>lcdb</cite> conda channel so that additional dependencies not
 included in bioconda can be installed:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">config</span> <span class="o">--</span><span class="n">add</span> <span class="n">channels</span> <span class="n">lcdb</span>
@@ -61,47 +68,39 @@ included in bioconda can be installed:</p>
 </div>
 </div>
 <div class="section" id="create-a-new-conda-environment-one-time-setup">
-<h2>Create a new conda environment (one-time setup)<a class="headerlink" href="#create-a-new-conda-environment-one-time-setup" title="Permalink to this headline">¶</a></h2>
+<h3>Create a new conda environment (one-time setup)<a class="headerlink" href="#create-a-new-conda-environment-one-time-setup" title="Permalink to this headline">¶</a></h3>
 <p>This creates a top-level environment with Snakemake and other requirements. It
 should be activated any time you’ll be working with <cite>lcdb-wf</cite>. Here we’re using
 the name “lcdb-wf”, but you can use anything:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">lcdb</span><span class="o">-</span><span class="n">wf</span> <span class="o">-</span><span class="n">y</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.5</span> <span class="o">--</span><span class="n">file</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">lcdb</span><span class="o">-</span><span class="n">wf</span> <span class="o">-</span><span class="n">y</span> <span class="n">python</span><span class="o">=</span><span class="mi">3</span> <span class="o">--</span><span class="n">file</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 <p>Then activate the environment:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">activate</span> <span class="n">lcdb</span><span class="o">-</span><span class="n">wf</span>
 </pre></div>
 </div>
-<p>Or deactivate:</p>
+<p>When you’re done you can deactivate, though you might want to hold off on this
+for now:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">deactivate</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="download-example-data-one-time-setup">
-<h2>Download example data (one-time setup)<a class="headerlink" href="#download-example-data-one-time-setup" title="Permalink to this headline">¶</a></h2>
+<h3>Download example data (one-time setup)<a class="headerlink" href="#download-example-data-one-time-setup" title="Permalink to this headline">¶</a></h3>
 <p>This will download the example data to the directory <code class="docutils literal"><span class="pre">data/</span></code>:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">ci</span><span class="o">/</span><span class="n">get</span><span class="o">-</span><span class="n">data</span><span class="o">.</span><span class="n">py</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="run-the-references-workflow">
-<h2>Run the references workflow<a class="headerlink" href="#run-the-references-workflow" title="Permalink to this headline">¶</a></h2>
-<p>With the <cite>lcdb-wf</cite> environment activated:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">-</span><span class="n">prs</span> <span class="n">references</span><span class="o">.</span><span class="n">snakefile</span> <span class="o">--</span><span class="n">configfile</span> <span class="n">config</span><span class="o">/</span><span class="n">test_config</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">conda</span> <span class="o">-</span><span class="n">j1</span>
+</div>
+<div class="section" id="run-the-rna-seq-workflow-with-example-data">
+<h2>Run the RNA-seq workflow with example data<a class="headerlink" href="#run-the-rna-seq-workflow-with-example-data" title="Permalink to this headline">¶</a></h2>
+<p>With the <cite>lcdb-wf</cite> environment activated, change to the <code class="docutils literal"><span class="pre">workflows/rnaseq</span></code>
+directory, and run:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">conda</span>
 </pre></div>
 </div>
-<p>Adjust the <code class="docutils literal"><span class="pre">-j</span></code> argument to match the number of CPUs to run jobs in parallel and speed up the workflow.</p>
-<p>The references are configured in <cite>config/test_config.yaml</cite> and that file
-indicates the output will be in <cite>references_data</cite>, so you can inspect that
-folder.</p>
-<img alt="_images/references.png" src="_images/references.png" />
-</div>
-<div class="section" id="run-the-rnaseq-workflow">
-<h2>Run the rnaseq workflow<a class="headerlink" href="#run-the-rnaseq-workflow" title="Permalink to this headline">¶</a></h2>
-<p>Similarly:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">-</span><span class="n">prs</span> <span class="n">rnaseq</span><span class="o">.</span><span class="n">snakefile</span> <span class="o">--</span><span class="n">configfile</span> <span class="n">config</span><span class="o">/</span><span class="n">test_config</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">conda</span> <span class="o">-</span><span class="n">j1</span>
-</pre></div>
-</div>
+<p>Specify more than one core with <code class="docutils literal"><span class="pre">-j</span></code>, e.g., <code class="docutils literal"><span class="pre">-j</span> <span class="pre">8</span></code> to use more cores.</p>
 <img alt="_images/rnaseq.png" src="_images/rnaseq.png" />
 <p>Points of interest:</p>
 <blockquote>
@@ -112,11 +111,15 @@ folder.</p>
 </ul>
 </div></blockquote>
 </div>
-<div class="section" id="run-the-chipseq-workflow">
-<h2>Run the chipseq workflow<a class="headerlink" href="#run-the-chipseq-workflow" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">-</span><span class="n">prs</span> <span class="n">chipseq</span><span class="o">.</span><span class="n">snakefile</span> <span class="o">--</span><span class="n">configfile</span> <span class="n">config</span><span class="o">/</span><span class="n">test_chipseq</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">conda</span> <span class="o">-</span><span class="n">j1</span>
+<div class="section" id="run-the-chip-seq-workflow-with-example-data">
+<h2>Run the ChIP-seq workflow with example data<a class="headerlink" href="#run-the-chip-seq-workflow-with-example-data" title="Permalink to this headline">¶</a></h2>
+<p>With the <cite>lcdb-wf</cite> environment activated, change to the <code class="docutils literal"><span class="pre">workflows/chipseq</span></code>
+directory, and run:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">conda</span>
 </pre></div>
 </div>
+<p>Specify more than one core with <code class="docutils literal"><span class="pre">-j</span></code>, e.g., <code class="docutils literal"><span class="pre">-j</span> <span class="pre">8</span></code> to use more cores.</p>
+<img alt="_images/chipseq.png" src="_images/chipseq.png" />
 <p>Points of interest:</p>
 <blockquote>
 <div><ul class="simple">
@@ -128,21 +131,30 @@ called peaks and bedGraph files of signal as output by each algorithm</li>
 </ul>
 </div></blockquote>
 </div>
+<div class="section" id="run-the-references-workflow-with-example-data">
+<h2>Run the references workflow with example data<a class="headerlink" href="#run-the-references-workflow-with-example-data" title="Permalink to this headline">¶</a></h2>
+<p>This is optional; parts of this workflow were actually run automatically as
+needed for the RNA-seq and ChIP-seq workflows. With the <cite>lcdb-wf</cite> environment
+activated, change to the <code class="docutils literal"><span class="pre">workflows/references</span></code> directory and run:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">conda</span>
+</pre></div>
+</div>
+<p>Adjust the <code class="docutils literal"><span class="pre">-j</span></code> argument to match the number of CPUs to run jobs in parallel
+and speed up the workflow.</p>
+<img alt="_images/references.png" src="_images/references.png" />
+</div>
 <div class="section" id="next-steps">
 <h2>Next steps<a class="headerlink" href="#next-steps" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
+<li>Edit <code class="docutils literal"><span class="pre">config/sampletable.tsv</span></code> and <code class="docutils literal"><span class="pre">config/config.yml</span></code> to reflect your
+experimental design and desired references</li>
 <li>Add your original FASTQ files to <code class="docutils literal"><span class="pre">data/rnaseq_samples/</span></code> directories, likely
 using symlinks</li>
-<li>Edit <code class="docutils literal"><span class="pre">config/sampletable.tsv</span></code> and <code class="docutils literal"><span class="pre">config/config.yml</span></code> to reflect your
-experimental design</li>
-<li>Edit <code class="docutils literal"><span class="pre">rnaseq.snakefile</span></code> to disable any steps you don’t need</li>
+<li>Edit the Snakefile for the workflow you’re running to disable any steps you
+don’t need</li>
 <li>After running the workflow, you can customize <code class="docutils literal"><span class="pre">downstream/rnaseq.Rmd</span></code> for
 your particular analysis.</li>
 </ul>
-<p>The authoritative source on the config file is <code class="docutils literal"><span class="pre">config/test_config.yaml</span></code>. This
-YAML-formatted file contains comments on what each item is used for. For
-a “production” config file, with references set up for multiple genomes, see
-<code class="docutils literal"><span class="pre">config/config.yml</span></code>.</p>
 </div>
 </div>
 
@@ -155,13 +167,16 @@ a “production” config file, with references set up for multiple genomes, see
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Getting started</a><ul>
+<li><a class="reference internal" href="#one-time-setup">One-time setup</a><ul>
 <li><a class="reference internal" href="#bioconda-one-time-setup">bioconda (one-time setup)</a></li>
 <li><a class="reference internal" href="#add-the-lcdb-channel-one-time-setup">Add the <cite>lcdb</cite> channel (one-time setup)</a></li>
 <li><a class="reference internal" href="#create-a-new-conda-environment-one-time-setup">Create a new conda environment (one-time setup)</a></li>
 <li><a class="reference internal" href="#download-example-data-one-time-setup">Download example data (one-time setup)</a></li>
-<li><a class="reference internal" href="#run-the-references-workflow">Run the references workflow</a></li>
-<li><a class="reference internal" href="#run-the-rnaseq-workflow">Run the rnaseq workflow</a></li>
-<li><a class="reference internal" href="#run-the-chipseq-workflow">Run the chipseq workflow</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#run-the-rna-seq-workflow-with-example-data">Run the RNA-seq workflow with example data</a></li>
+<li><a class="reference internal" href="#run-the-chip-seq-workflow-with-example-data">Run the ChIP-seq workflow with example data</a></li>
+<li><a class="reference internal" href="#run-the-references-workflow-with-example-data">Run the references workflow with example data</a></li>
 <li><a class="reference internal" href="#next-steps">Next steps</a></li>
 </ul>
 </li>

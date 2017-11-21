@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Features common to all workflows &#8212; lcdb-wf 0.1 documentation</title>
+    <title>references.snakefile &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -40,16 +40,42 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="features-common-to-all-workflows">
+  <div class="section" id="references-snakefile">
+<h1><code class="docutils literal"><span class="pre">references.snakefile</span></code><a class="headerlink" href="#references-snakefile" title="Permalink to this headline">¶</a></h1>
+<p>When run on its own, this builds all references specified in the config file.
+This is typically done when initially setting up a system that will run
+workflows on many different references. For smaller-scale use-cases (e.g.,
+you’ll only be running data from a single organism), you might be better off
+not running the workflow directly. This workflow is also included (with the
+<code class="docutils literal"><span class="pre">include:</span></code> directive) into the other workflows. This way, any reference files
+that are needed by, say, the RNA-seq workflow will be created automatically.</p>
+<p>See <a class="reference internal" href="references.html#references"><span class="std std-ref">References workflow</span></a> for more details.</p>
+<p><code class="xref py py-func docutils literal"><span class="pre">lib.common.reference_dict()</span></code></p>
+<p>TODO:</p>
+<ul class="simple">
+<li>references dict and how to access</li>
+<li>wrappers</li>
+<li>orig_filename</li>
+<li>R_rnaseq vs top-level env</li>
+<li>rnaseq.Rmd</li>
+<li>test-settings</li>
+<li>trackhub</li>
+</ul>
+</div>
+<div class="section" id="features-common-to-all-workflows">
 <h1>Features common to all workflows<a class="headerlink" href="#features-common-to-all-workflows" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="patterns-and-targets">
 <h2><cite>patterns</cite> and <cite>targets</cite><a class="headerlink" href="#patterns-and-targets" title="Permalink to this headline">¶</a></h2>
-<p>Workflows have a <cite>patterns</cite> dict at the top that lays out, in one place, the
-output file patterns. Rules can optionally use values from this dict to define
-output patterns. Using the <cite>lcdblib.snakemake.fill_patterns</cite> function, these
-patterns are “rendered” into a <cite>targets</cite> dictionary (this is basically
-a recursive <cite>expand()</cite>). Selected contents of the <cite>targets</cite> directory are then
-used for the <cite>all</cite> rule.</p>
+<p>At the top of each workflow (snakefile), there is a <cite>patterns</cite> dict that lays
+out, all in one place, the output file patterns used throughout the workflow.
+Subdictionaries are used for better organization.  Rules can optionally use
+values from this dict to use as their input and output patterns. Using the
+<cite>lcdblib.snakemake.fill_patterns</cite> function, these patterns are also “rendered”
+into a <cite>targets</cite> dictionary (this is basically a recursive <cite>expand()</cite>). So the
+<cite>patterns</cite> dictionary has the patterns with wildcards, and <cite>targets</cite> has the
+patterns with the wildcards filled in. The <cite>all</cite> rule uses the contents of the
+<cite>targets</cite> dict to populate its input, and therefore control what rules make it
+into the DAG</p>
 <p>This provides, all in one section of the Snakefile, a fair amount of
 customization options. Patterns can be commented out, or targets can be excluded
 from the <cite>all</cite> rule to fine-tune which rules will be run.</p>
@@ -58,6 +84,87 @@ rules become much easier to write. If all FastQC runs are under a <cite>fastqc</
 in <cite>targets</cite>, they can all be used as input to a rule using
 <cite>lcdblib.utils.flatten(targets[‘fastqc’])</cite>. This is in contrast to, say, writing
 input functions.</p>
+<p>Here is a small example, first without the patterns and targets:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">rule</span> <span class="nb">all</span><span class="p">:</span>
+    <span class="nb">input</span><span class="p">:</span>
+        <span class="s1">&#39;data/fastqs/{sample}.fastq.fastqc.html&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;data/multiqc.html&#39;</span>
+
+<span class="n">rule</span> <span class="n">align</span><span class="p">:</span>
+    <span class="nb">input</span><span class="p">:</span> <span class="s1">&#39;data/fastqs/{sample}.fastq.gz&#39;</span>
+    <span class="n">output</span><span class="p">:</span> <span class="s1">&#39;data/bams/{sample}.bam&#39;</span>
+    <span class="n">shell</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+<span class="n">rule</span> <span class="n">fastqc</span><span class="p">:</span>
+    <span class="nb">input</span><span class="p">:</span> <span class="s1">&#39;{prefix}&#39;</span>
+    <span class="n">output</span><span class="p">:</span> <span class="s1">&#39;{prefix}.html&#39;</span>
+    <span class="n">shell</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+<span class="n">rule</span> <span class="n">multiqc</span><span class="p">:</span>
+    <span class="nb">input</span><span class="p">:</span>
+        <span class="n">expand</span><span class="p">(</span><span class="s1">&#39;data/fastqs/{sample}.fastq.fastqc.html&#39;</span><span class="p">,</span> <span class="n">sample</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">]),</span>
+        <span class="n">expand</span><span class="p">(</span><span class="s1">&#39;data/bams/{sample}.bam.fastqc.html&#39;</span><span class="p">,</span> <span class="n">sample</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">]),</span>
+    <span class="n">output</span><span class="p">:</span> <span class="s1">&#39;data/multiqc.html&#39;</span>
+</pre></div>
+</div>
+<p>With the files hard-coded throughout the snakefile, modifying the locations of
+files becomes harder the more complex the file. For example, if we wanted to
+change the fastqs location from <code class="docutils literal"><span class="pre">data/fastqs</span></code> to <code class="docutils literal"><span class="pre">data/samples</span></code>, we would
+have to edit all the rules individually. Furthermore, it’s not so easy to get
+a high-level picture of the files created by the workflow.</p>
+<p>In contrast, here is the same workflow using the patterns and targets. The big
+difference is that the filename patterns are set up all in one block at the
+beginning so it’s easier to see what is created. To change the fastqs location,
+we would simply change the pattern for <code class="docutils literal"><span class="pre">fastq:</span></code> and <code class="docutils literal"><span class="pre">fastqc:fastq:</span></code>, and
+this would propagate to the rules. Last, it is easier to enable/disable
+portions of the DAG in the <code class="docutils literal"><span class="pre">all</span></code> rule because the targets are named.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lcdblib.snakemake.utils</span> <span class="kn">import</span> <span class="n">fill_patterns</span>
+
+<span class="c1"># Dictionary of patterns. Keys and sub-dictionaries are up to the user; the</span>
+<span class="c1"># idea is to help with organization.</span>
+<span class="n">patterns</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;fastq&#39;</span><span class="p">:</span> <span class="s1">&#39;data/fastqs/{sample}.fastq.gz&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;mapped&#39;</span><span class="p">:</span> <span class="s1">&#39;data/bams/{sample}.bam&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;fastqc&#39;</span><span class="p">:</span>
+        <span class="s1">&#39;fastq&#39;</span><span class="p">:</span> <span class="s1">&#39;data/fastqs/{sample}.fastq.fastqc.html&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;bam&#39;</span><span class="p">:</span> <span class="s1">&#39;data/bams/{sample}.bam.fastqc.html&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;multiqc&#39;</span><span class="p">:</span> <span class="s1">&#39;data/multiqc.html&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;markdups&#39;</span><span class="p">:</span> <span class="s1">&#39;data/bams/{sample}.nodups.bam&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># Recursively fills out patterns.</span>
+<span class="n">targets</span> <span class="o">=</span> <span class="n">fill_patterns</span><span class="p">(</span><span class="n">patterns</span><span class="p">,</span> <span class="n">sample</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">])</span>
+
+<span class="c1"># Comment out the &quot;markdups&quot; line to remove that rule from the DAG</span>
+<span class="n">rule</span> <span class="nb">all</span><span class="p">:</span>
+    <span class="nb">input</span><span class="p">:</span>
+        <span class="n">targets</span><span class="p">[</span><span class="s1">&#39;fastqc&#39;</span><span class="p">]</span> <span class="o">+</span>
+        <span class="c1"># targets[&#39;markdups&#39;] +</span>
+        <span class="n">targets</span><span class="p">[</span><span class="s1">&#39;multiqc&#39;</span><span class="p">]</span>
+
+
+<span class="c1"># Patterns can be used as input/output</span>
+<span class="n">rule</span> <span class="n">align</span><span class="p">:</span>
+    <span class="nb">input</span><span class="p">:</span> <span class="n">patterns</span><span class="p">[</span><span class="s1">&#39;fastq&#39;</span><span class="p">]</span>
+    <span class="n">output</span><span class="p">:</span> <span class="n">patterns</span><span class="p">[</span><span class="s1">&#39;mapped&#39;</span><span class="p">]</span>
+    <span class="n">shell</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+<span class="c1"># In some cases, it makes sense to NOT use the patterns</span>
+<span class="n">rule</span> <span class="n">fastqc</span><span class="p">:</span>
+    <span class="nb">input</span><span class="p">:</span> <span class="s1">&#39;{prefix}&#39;</span>
+    <span class="n">output</span><span class="p">:</span> <span class="s1">&#39;{prefix}.html&#39;</span>
+    <span class="n">shell</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+<span class="c1"># Aggregation rules can use the already-filled-in `targets`</span>
+<span class="n">rule</span> <span class="n">multiqc</span><span class="p">:</span>
+    <span class="nb">input</span><span class="p">:</span> <span class="n">targets</span><span class="p">[</span><span class="s1">&#39;fastqc&#39;</span><span class="p">]</span>
+    <span class="n">output</span><span class="p">:</span> <span class="n">patterns</span><span class="p">[</span><span class="s1">&#39;multiqc&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
 </div>
 </div>
 
@@ -69,7 +176,8 @@ input functions.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Features common to all workflows</a><ul>
+<li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">references.snakefile</span></code></a></li>
+<li><a class="reference internal" href="#features-common-to-all-workflows">Features common to all workflows</a><ul>
 <li><a class="reference internal" href="#patterns-and-targets"><cite>patterns</cite> and <cite>targets</cite></a></li>
 </ul>
 </li>

@@ -46,22 +46,25 @@ sequencing analysis, along with associated infrastructure.</p>
 <p>We recognize that every experiment has its own unique idiosyncracies. Rather
 than provide a one-size-fits-all solution, we aim to provide a reasonable
 starting point that users can modify for their own use.</p>
+<p>An important part of keeping these workflows high-quality is that every change
+to the code on GitHub triggers an automated test, the results of which you can
+find at <a class="reference external" href="https://travis-ci.org/lcdb/lcdb-wf">https://travis-ci.org/lcdb/lcdb-wf</a>. Each test sets the system up from
+scratch, including installing all software, downloading example data, and
+running everything up through the final results.</p>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#bioconda-one-time-setup">bioconda (one-time setup)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#add-the-lcdb-channel-one-time-setup">Add the <cite>lcdb</cite> channel (one-time setup)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#create-a-new-conda-environment-one-time-setup">Create a new conda environment (one-time setup)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#download-example-data-one-time-setup">Download example data (one-time setup)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#run-the-references-workflow">Run the references workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#run-the-rnaseq-workflow">Run the rnaseq workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#run-the-chipseq-workflow">Run the chipseq workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#one-time-setup">One-time setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#run-the-rna-seq-workflow-with-example-data">Run the RNA-seq workflow with example data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#run-the-chip-seq-workflow-with-example-data">Run the ChIP-seq workflow with example data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#run-the-references-workflow-with-example-data">Run the references workflow with example data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="getting-started.html#next-steps">Next steps</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="workflows.html">Features common to all workflows</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html"><code class="docutils literal"><span class="pre">references.snakefile</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html#features-common-to-all-workflows">Features common to all workflows</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="workflows.html#patterns-and-targets"><cite>patterns</cite> and <cite>targets</cite></a></li>
 </ul>
 </li>
@@ -79,6 +82,7 @@ starting point that users can modify for their own use.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tests.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
 </ul>
 </div>
 <div class="section" id="guiding-principles">

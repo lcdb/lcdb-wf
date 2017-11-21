@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Features common to all workflows" href="workflows.html" />
+    <link rel="next" title="references.snakefile" href="workflows.html" />
     <link rel="prev" title="Getting started" href="getting-started.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -68,13 +68,29 @@ view the most recent version on GitHub.</p>
 
 <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//README.md" style="text-decoration:none;"><span class="file undoc">README.md</span></a></p>
 
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//references.snakefile" data-balloon=" The main workflow to generate references" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">references.snakefile</span></a></p>
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/references/Snakefile" data-balloon=" The main workflow to generate references" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snakefile</span></a></p>
 
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//rnaseq.snakefile" data-balloon=" The main workflow for performing RNA-seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">rnaseq.snakefile</span></a></p>
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/Snakefile" data-balloon=" The main workflow for performing RNA-seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snakefile</span></a></p>
 
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//chipseq.snakefile" data-balloon=" The main workflow for performing ChIP-seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">chipseq.snakefile</span></a></p>
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/config/" data-balloon=" Configuration for the RNA-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;config/</span></a></p>
 
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//4c.snakefile" data-balloon=" Worflow for 4C analysis using 4C-ker" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">4c.snakefile</span></a></p>
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/config/sampletable.tsv" data-balloon=" Sample metadata for the RNA-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sampletable.tsv</span></a></p>
+
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/config/rnaseq_patterns.yaml" data-balloon=" Output filename patterns used by the RNA-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rnaseq_patterns.yaml</span></a></p>
+
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/config/clusterconfig.yaml" data-balloon=" Cluster-specific parameters for the RNA-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clusterconfig.yaml</span></a></p>
+
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/downstream/rnaseq.Rmd" data-balloon=" Rmd file called by rnaseq.snakefile" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rnaseq.Rmd</span></a></p>
+
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/Snakefile" data-balloon=" The main workflow for performing ChIP-seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snakefile</span></a></p>
+
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/config/" data-balloon=" Configuration for the ChIP-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;config/</span></a></p>
+
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/config/sampletable.tsv" data-balloon=" Sample metadata for the ChIP-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sampletable.tsv</span></a></p>
+
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/config/chipseq_patterns.yaml" data-balloon=" Output filename patterns used by the ChIP-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;chipseq_patterns.yaml</span></a></p>
+
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/config/clusterconfig.yaml" data-balloon=" Cluster-specific parameters for the ChIP-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clusterconfig.yaml</span></a></p>
 
 <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//requirements.txt" data-balloon=" Dependencies required for running lcdb-wf" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">requirements.txt</span></a></p>
 
@@ -110,25 +126,11 @@ view the most recent version on GitHub.</p>
 
 <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//config/envs/" data-balloon=" Conda environment definitions for per-rule environments that are not already a wrapper" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir">&nbsp;&nbsp;&nbsp;envs/</span></a></p>
 
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//config/envs/4c.yaml" data-balloon=" 4C workflow environment" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4c.yaml</span></a></p>
-
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//config/envs/annotationdbi.yaml" data-balloon=" Environment for building TSCs from AnnotationDbi tables" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;annotationdbi.yaml</span></a></p>
-
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//config/envs/references_env.yml" data-balloon=" Global environment for the references workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;references_env.yml</span></a></p>
-
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//config/envs/R_rnaseq.yaml" data-balloon=" Environment for running RNA-seq differential expression" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;R_rnaseq.yaml</span></a></p>
-
 <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//config/multiqc_config.yaml" data-balloon=" Config file with additional settings for running MultiQC" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;multiqc_config.yaml</span></a></p>
 
 <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//config/test_4c_config.yaml" data-balloon=" Test config for 4C" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;test_4c_config.yaml</span></a></p>
 
 <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//config/test_config.yaml" data-balloon=" Test config for rnaseq" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;test_config.yaml</span></a></p>
-
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//downstream/" style="text-decoration:none;"><span class="dir undoc">downstream/</span></a></p>
-
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//downstream/4c.R" data-balloon=" R script called by 4c.snakefile" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;4c.R</span></a></p>
-
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//downstream/rnaseq.Rmd" data-balloon=" Rmd file called by rnaseq.snakefile" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;rnaseq.Rmd</span></a></p>
 
 <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//downstream/rnaseq-requirements.txt" style="text-decoration:none;"><span class="file undoc">&nbsp;&nbsp;&nbsp;rnaseq-requirements.txt</span></a></p>
 
@@ -141,12 +143,6 @@ view the most recent version on GitHub.</p>
 <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//lib/" data-balloon=" Directory of utilities used by the workflows" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir">lib/</span></a></p>
 
 <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//lib/common.py" data-balloon=" The main module of utilities" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;common.py</span></a></p>
-
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//lib/fourc/" data-balloon=" 4C-specific utilities and scripts" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir">&nbsp;&nbsp;&nbsp;fourc/</span></a></p>
-
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//lib/fourc/bedgraph_to_bigwig.py" style="text-decoration:none;"><span class="file undoc">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bedgraph_to_bigwig.py</span></a></p>
-
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//lib/fourc/find-up-dn.py" style="text-decoration:none;"><span class="file undoc">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;find-up-dn.py</span></a></p>
 
 <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//lib/postprocess/" data-balloon=" A package for post-processing references after they are downloaded." data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir important">&nbsp;&nbsp;&nbsp;postprocess/</span></a></p>
 
@@ -236,7 +232,7 @@ view the most recent version on GitHub.</p>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="getting-started.html" title="previous chapter">Getting started</a></li>
-      <li>Next: <a href="workflows.html" title="next chapter">Features common to all workflows</a></li>
+      <li>Next: <a href="workflows.html" title="next chapter"><code class="docutils literal"><span class="pre">references.snakefile</span></code></a></li>
   </ul></li>
 </ul>
 </div>
