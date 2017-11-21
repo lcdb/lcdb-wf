@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, srcdir('../..'))
 import os
 from textwrap import dedent
 import yaml
@@ -6,99 +8,25 @@ import pandas as pd
 from lcdblib.snakemake import helpers, aligners
 from lcdblib.utils import utils
 from lib import common
+from lib.patterns_targets import RNASeqConfig
 
 # ----------------------------------------------------------------------------
 # Note:
 #
-# In order for automated tests to run, we need to make some settings that are
-# not optimal for practical usage. Search this file for the string 
-# "# TEST SETTINGS" to find those instances and to learn what changes you might
-# want to make.
+#  Search this file for the string "# TEST SETTINGS" and make necessary edits
+#  before running this on real data.
 # ----------------------------------------------------------------------------
-
-
-# ----------------------------------------------------------------------------
-# SETUP
-# ----------------------------------------------------------------------------
-
-include: 'references.snakefile'
+configfile: 'config/config.yaml'
+include: '../references/Snakefile'
 
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
-common.get_references_dir(config)
 
-samples, sampletable = common.get_sampletable(config)
-refdict, conversion_kwargs = common.references_dict(config)
-
-assembly = config['assembly']
-
-sample_dir = config.get('sample_dir', 'samples')
-agg_dir = config.get('aggregation_dir', 'aggregation')
-
-# ----------------------------------------------------------------------------
-# PATTERNS
-# ----------------------------------------------------------------------------
-patterns = {
-    'fastq':   '{sample_dir}/{sample}/{sample}_R1.fastq.gz',
-    'cutadapt': '{sample_dir}/{sample}/{sample}_R1.cutadapt.fastq.gz',
-    'bam':     '{sample_dir}/{sample}/{sample}.cutadapt.bam',
-    'fastqc': {
-        'raw': '{sample_dir}/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.zip',
-        'cutadapt': '{sample_dir}/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip',
-        'bam': '{sample_dir}/{sample}/fastqc/{sample}.cutadapt.bam_fastqc.zip',
-    },
-    'libsizes': {
-        'fastq':   '{sample_dir}/{sample}/{sample}_R1.fastq.gz.libsize',
-        'cutadapt': '{sample_dir}/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize',
-        'bam':     '{sample_dir}/{sample}/{sample}.cutadapt.bam.libsize',
-    },
-    'fastq_screen': '{sample_dir}/{sample}/{sample}.cutadapt.screen.txt',
-    'featurecounts': '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.txt',
-    'libsizes_table': '{agg_dir}/libsizes_table.tsv',
-    'libsizes_yaml': '{agg_dir}/libsizes_table_mqc.yaml',
-    'rrna_percentages_table': '{agg_dir}/rrna_percentages_table.tsv',
-    'rrna_percentages_yaml': '{agg_dir}/rrna_percentages_table_mqc.yaml',
-    'rrna': {
-        'bam': '{sample_dir}/{sample}/rRNA/{sample}.cutadapt.rrna.bam',
-        'libsize': '{sample_dir}/{sample}/rRNA/{sample}.cutadapt.rrna.bam.libsize',
-    },
-    'multiqc': '{agg_dir}/multiqc.html',
-    'markduplicates': {
-        'bam': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam',
-        'metrics': '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam.metrics',
-    },
-    'collectrnaseqmetrics': {
-        'metrics': '{sample_dir}/{sample}/{sample}.collectrnaseqmetrics.metrics',
-        'pdf': '{sample_dir}/{sample}/{sample}.collectrnaseqmetrics.pdf',
-    },
-    'dupradar': {
-        'density_scatter': '{sample_dir}/{sample}/dupradar/{sample}_density_scatter.png',
-        'expression_histogram': '{sample_dir}/{sample}/dupradar/{sample}_expression_histogram.png',
-        'expression_boxplot': '{sample_dir}/{sample}/dupradar/{sample}_expression_boxplot.png',
-        'expression_barplot': '{sample_dir}/{sample}/dupradar/{sample}_expression_barplot.png',
-        'multimapping_histogram': '{sample_dir}/{sample}/dupradar/{sample}_multimapping_histogram.png',
-        'dataframe': '{sample_dir}/{sample}/dupradar/{sample}_dataframe.tsv',
-        'model': '{sample_dir}/{sample}/dupradar/{sample}_model.txt',
-        'curve': '{sample_dir}/{sample}/dupradar/{sample}_curve.txt',
-    },
-    'salmon': '{sample_dir}/{sample}/{sample}.salmon/quant.sf',
-    'rseqc': {
-        'bam_stat': '{sample_dir}/{sample}/rseqc/{sample}_bam_stat.txt',
-    },
-    'bigwig': {
-        'pos': '{sample_dir}/{sample}/{sample}.cutadapt.bam.pos.bigwig',
-        'neg': '{sample_dir}/{sample}/{sample}.cutadapt.bam.neg.bigwig',
-    },
-    'downstream': {
-        'rnaseq': 'downstream/rnaseq.html',
-    }
-}
-fill = dict(sample=samples, sample_dir=sample_dir, agg_dir=agg_dir)
-targets = helpers.fill_patterns(patterns, fill)
+c = RNASeqConfig(config, 'config/rnaseq_patterns.yaml')
 
 
 def wrapper_for(path):
-    return 'file:' + os.path.join('wrappers', 'wrappers', path)
+    return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
 
 # ----------------------------------------------------------------------------
 # RULES
@@ -110,37 +38,37 @@ rule targets:
     """
     input:
         (
-            targets['bam'] +
-            utils.flatten(targets['fastqc']) +
-            utils.flatten(targets['libsizes']) +
-            [targets['fastq_screen']] +
-            [targets['libsizes_table']] +
-            [targets['rrna_percentages_table']] +
-            [targets['multiqc']] +
-            utils.flatten(targets['featurecounts']) +
-            utils.flatten(targets['rrna']) +
-            utils.flatten(targets['markduplicates']) +
-            utils.flatten(targets['salmon']) +
-            #utils.flatten(targets['dupradar']) +
-            utils.flatten(targets['rseqc']) +
-            utils.flatten(targets['collectrnaseqmetrics']) +
-            utils.flatten(targets['bigwig']) +
-            utils.flatten(targets['downstream'])
+            c.targets['bam'] +
+            utils.flatten(c.targets['fastqc']) +
+            utils.flatten(c.targets['libsizes']) +
+            [c.targets['fastq_screen']] +
+            [c.targets['libsizes_table']] +
+            [c.targets['rrna_percentages_table']] +
+            [c.targets['multiqc']] +
+            utils.flatten(c.targets['featurecounts']) +
+            utils.flatten(c.targets['rrna']) +
+            utils.flatten(c.targets['markduplicates']) +
+            utils.flatten(c.targets['salmon']) +
+            #utils.flatten(c.targets['dupradar']) +
+            utils.flatten(c.targets['rseqc']) +
+            utils.flatten(c.targets['collectrnaseqmetrics']) +
+            utils.flatten(c.targets['bigwig']) +
+            utils.flatten(c.targets['downstream'])
         )
 
 
-if 'orig_filename' in sampletable.columns:
+if 'orig_filename' in c.sampletable.columns:
     rule symlinks:
         """
         Symlinks files over from original filename
         """
-        input: lambda wc: sampletable.set_index(sampletable.columns[0])['orig_filename'].to_dict()[wc.sample]
-        output: patterns['fastq']
+        input: lambda wc: c.sampletable.set_index(c.sampletable.columns[0])['orig_filename'].to_dict()[wc.sample]
+        output: c.patterns['fastq']
         run:
             utils.make_relative_symlink(input[0], output[0])
 
     rule symlink_targets:
-        input: targets['fastq']
+        input: c.targets['fastq']
 
 
 rule cutadapt:
@@ -148,13 +76,13 @@ rule cutadapt:
     Run cutadapt
     """
     input:
-        fastq=patterns['fastq']
+        fastq=c.patterns['fastq']
     output:
-        fastq=patterns['cutadapt']
+        fastq=c.patterns['cutadapt']
     log:
-        patterns['cutadapt'] + '.log'
+        c.patterns['cutadapt'] + '.log'
     params:
-        extra='-a file:include/adapters.fa -q 20 --minimum-length=25'
+        extra='-a file:../../include/adapters.fa -q 20 --minimum-length=25'
     wrapper:
         wrapper_for('cutadapt')
 
@@ -177,11 +105,11 @@ rule hisat2:
     """
     input:
         fastq=rules.cutadapt.output.fastq,
-        index=[refdict[assembly][config['aligner']['tag']]['hisat2']]
+        index=[c.refdict[c.assembly][config['aligner']['tag']]['hisat2']]
     output:
-        bam=patterns['bam']
+        bam=c.patterns['bam']
     log:
-        patterns['bam'] + '.log'
+        c.patterns['bam'] + '.log'
     params:
         samtools_view_extra='-F 0x04'
     threads: 6
@@ -195,11 +123,11 @@ rule rRNA:
     """
     input:
         fastq=rules.cutadapt.output.fastq,
-        index=[refdict[assembly][config['rrna']['tag']]['bowtie2']]
+        index=[c.refdict[c.assembly][config['rrna']['tag']]['bowtie2']]
     output:
-        bam=patterns['rrna']['bam']
+        bam=c.patterns['rrna']['bam']
     log:
-        patterns['rrna']['bam'] + '.log'
+        c.patterns['rrna']['bam'] + '.log'
     params:
         samtools_view_extra='-F 0x04'
     threads: 6
@@ -250,13 +178,13 @@ rule fastq_screen:
     """
     input:
         fastq=rules.cutadapt.output.fastq,
-        dm6=refdict['dmel'][config['aligner']['tag']]['bowtie2'],
-        rRNA=refdict[assembly][config['rrna']['tag']]['bowtie2'],
-        phix=refdict['phix']['default']['bowtie2']
+        dm6=c.refdict['dmel'][config['aligner']['tag']]['bowtie2'],
+        rRNA=c.refdict[c.assembly][config['rrna']['tag']]['bowtie2'],
+        phix=c.refdict['phix']['default']['bowtie2']
     output:
-        txt=patterns['fastq_screen']
+        txt=c.patterns['fastq_screen']
     log:
-        patterns['fastq_screen'] + '.log'
+        c.patterns['fastq_screen'] + '.log'
     params: subset=100000
     wrapper:
         wrapper_for('fastq_screen')
@@ -267,12 +195,12 @@ rule featurecounts:
     Count reads in annotations with featureCounts from the subread package
     """
     input:
-        annotation=refdict[assembly][config['gtf']['tag']]['gtf'],
+        annotation=c.refdict[c.assembly][config['gtf']['tag']]['gtf'],
         bam=rules.hisat2.output
     output:
-        counts=patterns['featurecounts']
+        counts=c.patterns['featurecounts']
     log:
-        patterns['featurecounts'] + '.log'
+        c.patterns['featurecounts'] + '.log'
     shell:
         'featureCounts '
         '-T {threads} '
@@ -286,17 +214,17 @@ rule rrna_libsizes_table:
     Aggregate rRNA counts into a table
     """
     input:
-        rrna=targets['rrna']['libsize'],
-        fastq=targets['libsizes']['cutadapt']
+        rrna=c.targets['rrna']['libsize'],
+        fastq=c.targets['libsizes']['cutadapt']
     output:
-        json=patterns['rrna_percentages_yaml'],
-        tsv=patterns['rrna_percentages_table']
+        json=c.patterns['rrna_percentages_yaml'],
+        tsv=c.patterns['rrna_percentages_table']
     run:
         def rrna_sample(f):
-            return helpers.extract_wildcards(patterns['rrna']['libsize'], f)['sample']
+            return helpers.extract_wildcards(c.patterns['rrna']['libsize'], f)['sample']
 
         def sample(f):
-            return helpers.extract_wildcards(patterns['libsizes']['cutadapt'], f)['sample']
+            return helpers.extract_wildcards(c.patterns['libsizes']['cutadapt'], f)['sample']
 
         def million(f):
             return float(open(f).read()) / 1e6
@@ -337,10 +265,10 @@ rule libsizes_table:
     Aggregate fastq and bam counts in to a single table
     """
     input:
-        utils.flatten(targets['libsizes'])
+        utils.flatten(c.targets['libsizes'])
     output:
-        json=patterns['libsizes_yaml'],
-        tsv=patterns['libsizes_table']
+        json=c.patterns['libsizes_yaml'],
+        tsv=c.patterns['libsizes_table']
     run:
         def sample(f):
             return os.path.basename(os.path.dirname(f))
@@ -380,26 +308,26 @@ rule multiqc:
     """
     input:
         files=(
-            utils.flatten(targets['fastqc']) +
-            utils.flatten(targets['libsizes_yaml']) +
-            utils.flatten(targets['rrna_percentages_yaml']) +
-            utils.flatten(targets['cutadapt']) +
-            utils.flatten(targets['featurecounts']) +
-            utils.flatten(targets['bam']) +
-            utils.flatten(targets['markduplicates']) +
-            utils.flatten(targets['salmon']) +
-            utils.flatten(targets['rseqc']) +
-            utils.flatten(targets['fastq_screen']) +
-            utils.flatten(targets['collectrnaseqmetrics'])
+            utils.flatten(c.targets['fastqc']) +
+            utils.flatten(c.targets['libsizes_yaml']) +
+            utils.flatten(c.targets['rrna_percentages_yaml']) +
+            utils.flatten(c.targets['cutadapt']) +
+            utils.flatten(c.targets['featurecounts']) +
+            utils.flatten(c.targets['bam']) +
+            utils.flatten(c.targets['markduplicates']) +
+            utils.flatten(c.targets['salmon']) +
+            utils.flatten(c.targets['rseqc']) +
+            utils.flatten(c.targets['fastq_screen']) +
+            utils.flatten(c.targets['collectrnaseqmetrics'])
         ),
         config='config/multiqc_config.yaml'
-    output: targets['multiqc']
+    output: c.targets['multiqc']
     params:
-        analysis_directory=" ".join([sample_dir, agg_dir]),
+        analysis_directory=" ".join([c.sample_dir, c.agg_dir]),
         extra='--config config/multiqc_config.yaml',
-        outdir=os.path.dirname(targets['multiqc'][0]),
-        basename=os.path.basename(targets['multiqc'][0])
-    log: targets['multiqc'][0] + '.log'
+        outdir=os.path.dirname(c.targets['multiqc'][0]),
+        basename=os.path.basename(c.targets['multiqc'][0])
+    log: c.targets['multiqc'][0] + '.log'
     shell:
         'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
         'multiqc '
@@ -419,10 +347,10 @@ rule markduplicates:
     input:
         bam=rules.hisat2.output
     output:
-        bam=patterns['markduplicates']['bam'],
-        metrics=patterns['markduplicates']['metrics']
+        bam=c.patterns['markduplicates']['bam'],
+        metrics=c.patterns['markduplicates']['metrics']
     log:
-        patterns['markduplicates']['bam'] + '.log'
+        c.patterns['markduplicates']['bam'] + '.log'
     params:
         # TEST SETTINGS:
         # You may want to use something larger, like "-Xmx32g" for real-world
@@ -443,18 +371,18 @@ rule collectrnaseqmetrics:
     Calculate various RNA-seq QC metrics with Picarc CollectRnaSeqMetrics
     """
     input:
-        bam=patterns['bam'],
-        refflat=refdict[assembly][config['gtf']['tag']]['refflat']
+        bam=c.patterns['bam'],
+        refflat=c.refdict[c.assembly][config['gtf']['tag']]['refflat']
     output:
-        metrics=patterns['collectrnaseqmetrics']['metrics'],
-        pdf=patterns['collectrnaseqmetrics']['pdf']
+        metrics=c.patterns['collectrnaseqmetrics']['metrics'],
+        pdf=c.patterns['collectrnaseqmetrics']['pdf']
     params:
         # TEST SETTINGS:
         # You may want to use something larger, like "-Xmx32g" for real-world
         # usage.
         java_args='-Xmx2g',
     log:
-        patterns['collectrnaseqmetrics']['metrics'] + '.log'
+        c.patterns['collectrnaseqmetrics']['metrics'] + '.log'
     shell:
         'picard '
         '{params.java_args} '
@@ -479,16 +407,16 @@ rule dupRadar:
     """
     input:
         bam=rules.markduplicates.output.bam,
-        annotation=refdict[assembly][config['gtf']['tag']]['gtf'],
+        annotation=c.refdict[c.assembly][config['gtf']['tag']]['gtf'],
     output:
-        density_scatter=patterns['dupradar']['density_scatter'],
-        expression_histogram=patterns['dupradar']['expression_histogram'],
-        expression_boxplot=patterns['dupradar']['expression_boxplot'],
-        expression_barplot=patterns['dupradar']['expression_barplot'],
-        multimapping_histogram=patterns['dupradar']['multimapping_histogram'],
-        dataframe=patterns['dupradar']['dataframe'],
-        model=patterns['dupradar']['model'],
-        curve=patterns['dupradar']['curve'],
+        density_scatter=c.patterns['dupradar']['density_scatter'],
+        expression_histogram=c.patterns['dupradar']['expression_histogram'],
+        expression_boxplot=c.patterns['dupradar']['expression_boxplot'],
+        expression_barplot=c.patterns['dupradar']['expression_barplot'],
+        multimapping_histogram=c.patterns['dupradar']['multimapping_histogram'],
+        dataframe=c.patterns['dupradar']['dataframe'],
+        model=c.patterns['dupradar']['model'],
+        curve=c.patterns['dupradar']['curve'],
     log: '{sample_dir}/{sample}/dupradar/dupradar.log'
     wrapper:
         wrapper_for('dupradar')
@@ -499,15 +427,15 @@ rule salmon:
     Quantify reads coming from transcripts with Salmon
     """
     input:
-        fastq=patterns['cutadapt'],
-        index=refdict[assembly][config['salmon']['tag']]['salmon'],
+        fastq=c.patterns['cutadapt'],
+        index=c.refdict[c.assembly][config['salmon']['tag']]['salmon'],
     output:
-        patterns['salmon']
+        c.patterns['salmon']
     params:
-        index_dir=os.path.dirname(refdict[assembly][config['salmon']['tag']]['salmon']),
-        outdir=os.path.dirname(patterns['salmon'])
+        index_dir=os.path.dirname(c.refdict[c.assembly][config['salmon']['tag']]['salmon']),
+        outdir=os.path.dirname(c.patterns['salmon'])
     log:
-        patterns['salmon'] + '.log'
+        c.patterns['salmon'] + '.log'
     shell:
         'salmon quant '
         '--index {params.index_dir} '
@@ -523,9 +451,9 @@ rule rseqc_bam_stat:
     Calculate various BAM stats with RSeQC
     """
     input:
-        bam=patterns['bam']
+        bam=c.patterns['bam']
     output:
-        txt=patterns['rseqc']['bam_stat']
+        txt=c.patterns['rseqc']['bam_stat']
     wrapper: wrapper_for('rseqc/bam_stat')
 
 
@@ -534,12 +462,12 @@ rule bigwig_neg:
     Create a bigwig for negative-strand reads
     """
     input:
-        bam=patterns['bam'],
-        bai=patterns['bam'] + '.bai',
-    output: patterns['bigwig']['neg']
+        bam=c.patterns['bam'],
+        bai=c.patterns['bam'] + '.bai',
+    output: c.patterns['bigwig']['neg']
     threads: 8
     log:
-        patterns['bigwig']['neg'] + '.log'
+        c.patterns['bigwig']['neg'] + '.log'
     shell:
         'bamCoverage '
         '--bam {input.bam} '
@@ -558,12 +486,12 @@ rule bigwig_pos:
     Create a bigwig for postive-strand reads
     """
     input:
-        bam=patterns['bam'],
-        bai=patterns['bam'] + '.bai',
-    output: patterns['bigwig']['pos']
+        bam=c.patterns['bam'],
+        bai=c.patterns['bam'] + '.bai',
+    output: c.patterns['bigwig']['pos']
     threads: 8
     log:
-        patterns['bigwig']['pos'] + '.log'
+        c.patterns['bigwig']['pos'] + '.log'
     shell:
         'bamCoverage '
         '--bam {input.bam} '
@@ -582,7 +510,7 @@ rule rnaseq_rmarkdown:
     Run and render the RMarkdown file that performs differential expression
     """
     input:
-        featurecounts=targets['featurecounts'],
+        featurecounts=c.targets['featurecounts'],
         rmd='downstream/rnaseq.Rmd',
         sampletable=config['sampletable']
     output:

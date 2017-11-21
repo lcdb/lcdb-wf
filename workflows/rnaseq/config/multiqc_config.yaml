@@ -1,0 +1,9 @@
+fn_clean_exts:
+  #- '.cutadapt'
+  - ']'
+  - '.log'
+  - '.bam.bowtie2'
+  - '.gz'
+  - '.fastq'
+  - '.salmon'
+  - '_R1'

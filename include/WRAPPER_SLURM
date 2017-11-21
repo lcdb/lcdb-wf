@@ -3,15 +3,6 @@
 #SBATCH --partition="niddk,norm"
 #SBATCH --time=24:00:00
 
-SNAKEFILE=$1
-
-if [ -z $2 ]; then
-    EXTRA=$2
-else
-    EXTRA=''
-fi
-
-
 # make logdir
 if [[ ! -e logs ]]; then mkdir -p logs; fi
 
@@ -19,7 +10,6 @@ if [[ ! -e logs ]]; then mkdir -p logs; fi
 (source activate lcdb-wf; \
     time snakemake \
     -p \
-    -s $SNAKEFILE \
     --directory $PWD \
     -T \
     -k \
@@ -30,10 +20,9 @@ if [[ ! -e logs ]]; then mkdir -p logs; fi
     --verbose \
     --cluster 'sbatch {cluster.prefix} --cpus-per-task={threads}  --output=logs/{rule}.o.%j --error=logs/{rule}.e.%j' \
     --use-conda \
-    --configfile config/config.yml \
+    --configfile config/config.yaml \
     --latency-wait=60 \
-    $EXTRA \
-    ) > "${SNAKEFILE}.log" 2>&1
+    ) > "Snakefile.log" 2>&1
 
 SNAKE_PID=$!
 

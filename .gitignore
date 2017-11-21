@@ -2,9 +2,10 @@
 __pycache__
 data
 references_data
-downstream/group.tsv
-downstream/rnaseq.html
-downstream/rnaseq_cache
-downstream/rnaseq_files
+workflows/rnaseq/downstream/group.tsv
+workflows/rnaseq/downstream/rnaseq.html
+workflows/rnaseq/downstream/rnaseq_cache
+workflows/rnaseq/downstream/rnaseq_files
+workflows/rnaseq/downstream/*tsv
 docs/_build
 \.cache/v/cache/

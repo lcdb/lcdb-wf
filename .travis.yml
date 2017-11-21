@@ -15,5 +15,6 @@ env:
     - TYPE=rnaseq.snakefile
     - TYPE=chipseq.snakefile
     - TYPE=references.snakefile
+    - TYPE=figures.snakefile
     - TYPE=pytest
     - TYPE=docs

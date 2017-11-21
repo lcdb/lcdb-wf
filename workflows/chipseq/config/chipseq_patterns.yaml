@@ -1,0 +1,43 @@
+patterns_by_sample:
+
+  fastq: '{sample_dir}/{sample}/{sample}_R1.fastq.gz'
+  cutadapt: '{sample_dir}/{sample}/{sample}_R1.cutadapt.fastq.gz'
+  bam: '{sample_dir}/{sample}/{sample}.cutadapt.bam'
+
+  fastqc:
+    raw: '{sample_dir}/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.zip'
+    cutadapt: '{sample_dir}/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip'
+    bam: '{sample_dir}/{sample}/fastqc/{sample}.cutadapt.unique.nodups.bam_fastqc.zip'
+
+  libsizes:
+    fastq:   '{sample_dir}/{sample}/{sample}_R1.fastq.gz.libsize'
+    cutadapt: '{sample_dir}/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize'
+    bam:     '{sample_dir}/{sample}/{sample}.cutadapt.bam.libsize'
+    unique:     '{sample_dir}/{sample}/{sample}.cutadapt.unique.bam.libsize'
+    nodups: '{sample_dir}/{sample}/{sample}.cutadapt.unique.nodups.bam.libsize'
+
+  fastq_screen: '{sample_dir}/{sample}/{sample}.cutadapt.screen.txt'
+  libsizes_table: '{agg_dir}/libsizes_table.tsv'
+  libsizes_yaml: '{agg_dir}/libsizes_table_mqc.yaml'
+  multiqc: '{agg_dir}/multiqc.html'
+  unique: '{sample_dir}/{sample}/{sample}.cutadapt.unique.bam'
+
+  markduplicates:
+    bam: '{sample_dir}/{sample}/{sample}.cutadapt.unique.nodups.bam'
+    metrics: '{sample_dir}/{sample}/{sample}.cutadapt.unique.nodups.bam.metrics'
+
+  merged_techreps: '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.merged.bam'
+  bigwig: '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.bam.bigwig'
+
+  fingerprint:
+    plot: '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.png'
+    raw_counts: '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.tab'
+    metrics: '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.metrics'
+
+patterns_by_peaks:
+    peaks:
+       macs2: '{peak_calling}/macs2/{macs2_run}/peaks.bed'
+       spp: '{peak_calling}/spp/{spp_run}/peaks.bed'
+    bigbed:
+        macs2: '{peak_calling}/macs2/{macs2_run}/peaks.bigbed'
+        spp: '{peak_calling}/spp/{spp_run}/peaks.bigbed'

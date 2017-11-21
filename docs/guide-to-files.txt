@@ -1,12 +1,28 @@
 /README.md
-/references.snakefile
+/workflows/references/Snakefile
     The main workflow to generate references***
-/rnaseq.snakefile
+/workflows/rnaseq/Snakefile
     The main workflow for performing RNA-seq analysis***
-/chipseq.snakefile
+/workflows/rnaseq/config/
+    Configuration for the RNA-seq workflow***
+/workflows/rnaseq/config/sampletable.tsv
+    Sample metadata for the RNA-seq workflow
+/workflows/rnaseq/config/rnaseq_patterns.yaml
+    Output filename patterns used by the RNA-seq workflow
+/workflows/rnaseq/config/clusterconfig.yaml
+    Cluster-specific parameters for the RNA-seq workflow
+/workflows/rnaseq/downstream/rnaseq.Rmd
+    Rmd file called by rnaseq.snakefile***
+/workflows/chipseq/Snakefile
     The main workflow for performing ChIP-seq analysis***
-/4c.snakefile
-    Worflow for 4C analysis using 4C-ker***
+/workflows/chipseq/config/
+    Configuration for the ChIP-seq workflow***
+/workflows/chipseq/config/sampletable.tsv
+    Sample metadata for the ChIP-seq workflow
+/workflows/chipseq/config/chipseq_patterns.yaml
+    Output filename patterns used by the ChIP-seq workflow
+/workflows/chipseq/config/clusterconfig.yaml
+    Cluster-specific parameters for the ChIP-seq workflow
 /requirements.txt
     Dependencies required for running lcdb-wf
 /.travis.yml
@@ -41,25 +57,12 @@
 /config/envs/
     Conda environment definitions for per-rule environments that are not
     already a wrapper
-/config/envs/4c.yaml
-    4C workflow environment
-/config/envs/annotationdbi.yaml
-    Environment for building TSCs from AnnotationDbi tables
-/config/envs/references_env.yml
-    Global environment for the references workflow
-/config/envs/R_rnaseq.yaml
-    Environment for running RNA-seq differential expression
 /config/multiqc_config.yaml
     Config file with additional settings for running MultiQC
 /config/test_4c_config.yaml
     Test config for 4C
 /config/test_config.yaml
     Test config for rnaseq
-/downstream/
-/downstream/4c.R
-    R script called by 4c.snakefile***
-/downstream/rnaseq.Rmd
-    Rmd file called by rnaseq.snakefile***
 /downstream/rnaseq-requirements.txt
 /include/
 /include/adapters.fa
@@ -70,10 +73,6 @@
     Directory of utilities used by the workflows
 /lib/common.py
     The main module of utilities
-/lib/fourc/
-    4C-specific utilities and scripts
-/lib/fourc/bedgraph_to_bigwig.py
-/lib/fourc/find-up-dn.py
 /lib/postprocess/
     A package for post-processing references after they are downloaded.***
 /lib/postprocess/adapters.py
