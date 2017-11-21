@@ -31,7 +31,6 @@ case $TYPE in
   chipseq.snakefile)
     cd workflows/chipseq \
     && source activate lcdb-wf-test && \
-    conda --version && \
     snakemake \
     --configfile config/config.yaml \
     --use-conda \
@@ -42,5 +41,12 @@ case $TYPE in
   #  ;;
   docs)
     ci/build-docs.sh
+    ;;
+  figures.snakefile)
+    cd workflows/figures \
+    && source activate lcdb-wf-test && \
+    snakemake \
+    --use-conda \
+    -j2 -T -k -p -r
     ;;
 esac

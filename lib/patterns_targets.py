@@ -55,10 +55,10 @@ def update_recursive(d, u):
 
 
 class SeqConfig(object):
-    def __init__(self, config, patterns):
+    def __init__(self, config, patterns, workdir=None):
         """
-         This class takes care of common tasks related to config and patterns
-         files (reading the sampletable, etc) but is intended to be subclassed.
+        This class takes care of common tasks related to config and patterns
+        files (reading the sampletable, etc) but is intended to be subclassed.
 
         Parameters
         ----------
@@ -66,12 +66,20 @@ class SeqConfig(object):
 
         patterns : str
             Path to patterns YAML file
+
+        workdir : str
+            Config, patterns, and all paths in `config` should be interpreted
+            as relative to `workdir`
         """
         self.path = None
+        if workdir is not None:
+            config = os.path.join(workdir, config)
+            patterns = os.path.join(workdir, patterns)
+
         if isinstance(config, str):
             self.path = config
 
-        self.config = common.resolve_config(config)
+        self.config = common.resolve_config(config, workdir)
 
         # Read the config file and extract all sort of useful bits. This mostly
         # uses the `common` module to handle the details.
@@ -83,11 +91,11 @@ class SeqConfig(object):
 
 
 class RNASeqConfig(SeqConfig):
-    def __init__(self, config, patterns):
+    def __init__(self, config, patterns, workdir=None):
         """
         Config object specific to RNA-seq workflows.
         """
-        SeqConfig.__init__(self, config, patterns)
+        SeqConfig.__init__(self, config, patterns, workdir)
         self.sample_dir = self.config.get('sample_dir', 'samples')
         self.agg_dir = self.config.get('aggregation_dir', 'aggregation')
         self.fill = dict(sample=self.samples, sample_dir=self.sample_dir,
@@ -96,11 +104,11 @@ class RNASeqConfig(SeqConfig):
 
 
 class ChIPSeqConfig(SeqConfig):
-    def __init__(self, config, patterns):
+    def __init__(self, config, patterns, workdir=None):
         """
         Config object specific to ChIP-seq workflows.
         """
-        SeqConfig.__init__(self, config, patterns)
+        SeqConfig.__init__(self, config, patterns, workdir)
         self.sample_dir = self.config.get('sample_dir', 'samples')
         self.agg_dir = self.config.get('aggregation_dir', 'aggregation')
         self.merged_dir = self.config.get('merged_dir', 'merged')

@@ -8,15 +8,38 @@ from lcdblib.utils.imports import resolve_name
 from lcdblib.snakemake import aligners
 from snakemake.shell import shell
 
-def resolve_config(config):
+# List of possible keys in config that are to be interpreted as paths
+PATH_KEYS = [
+    'references_dir',
+    'sampletable',
+    'sample_dir',
+    'aggregation_dir',
+    'merged_dir',
+    'peaks_dir',
+    'hub_config',
+]
+
+
+def resolve_config(config, workdir=None):
     """
     Parameters
     ----------
     config : str, dict
         If str, assume it's a YAML file and parse it; otherwise pass through
+
+    workdir : str
+        Optional location to specify relative location of all paths in `config`
     """
     if isinstance(config, str):
         config = yaml.load(open(config))
+
+    def rel(pth):
+        if workdir is None or os.path.isabs(pth):
+            return pth
+        return os.path.join(workdir, pth)
+    for key in PATH_KEYS:
+        if key in config:
+            config[key] = rel(config[key])
     return config
 
 

@@ -5,8 +5,8 @@ from lcdblib.utils import utils
 from lib import common
 from lib.patterns_targets import RNASeqConfig, ChIPSeqConfig
 
-rnaseq_config = RNASeqConfig('../rnaseq/config/test_config.yaml')
-chipseq_config = ChIPSeqConfig('../chipseq/config/test_chipseq_config.yaml')
+rnaseq_config = RNASeqConfig('config/config.yaml', 'config/rnaseq_patterns.yaml', workdir='../rnaseq')
+chipseq_config = ChIPSeqConfig('config/config.yaml', 'config/chipseq_patterns.yaml', workdir='../chipseq')
 
 
 subworkflow rnaseq:
