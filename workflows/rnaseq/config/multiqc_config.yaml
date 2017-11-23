@@ -13,3 +13,6 @@ sp:
   picard/rnaseqmetrics:
     contents_re: '.*picard\.analysis\.[Rr]na[Ss]eq[Mm]etrics.*'
     shared: true
+  picard/markdups:
+    contents_re: '.*picard\.sam\.[Dd]uplication[Mm]etrics.*'
+    shared: true
