@@ -10,3 +10,6 @@ fn_clean_exts:
 sp:
   fastq_screen:
     fn: '*.screen.txt'
+  picard/rnaseqmetrics:
+    contents_re: '.*picard\.analysis\.[Rr]na[Ss]eq[Mm]etrics.*'
+    shared: true
