@@ -7,3 +7,6 @@ fn_clean_exts:
   - '.fastq'
   - '.salmon'
   - '_R1'
+sp:
+  fastq_screen:
+    fn: '*.screen.txt'
