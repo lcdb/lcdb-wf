@@ -36,9 +36,19 @@ case $TYPE in
     --use-conda \
     -j2 -T -k -p -r
     ;;
+
+  external.snakefile)
+    cd workflows/external \
+    && source activate lcdb-wf-test && \
+    snakemake \
+    --use-conda \
+    -j2 -T -k -p -r
+    ;;
+
   #pytest)
   #  source activate lcdb-wf-test && py.test wrappers/test -v
   #  ;;
+
   docs)
     ci/build-docs.sh
     ;;

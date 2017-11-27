@@ -1,0 +1,66 @@
+import sys
+sys.path.insert(0, srcdir('../..'))
+from lib import common
+import pybedtools
+
+
+shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
+shell.executable('/bin/bash')
+
+modencode = {
+    'data/modencode_gaf_kc.bed': 'ftp://data.modencode.org/all_files/dmel-interpreted-1/3245_Kc_Trl-D2_peaks.bed.gff3.gz',
+    'data/modencode_gaf_pupa.bed': 'ftp://data.modencode.org/all_files/dmel-interpreted-1/3830_WPP_Trl-D2_peaks.bed.gff.gz',
+}
+
+
+rule targets:
+    input: list(modencode.keys())
+
+
+rule download_chainfile:
+    output: 'data/dm3ToDm6.over.chain.gz'
+    shell:
+        'wget -O- http://hgdownload.cse.ucsc.edu/goldenPath/dm3/liftOver/dm3ToDm6.over.chain.gz > {output}'
+
+
+rule modencode:
+    output: temporary('data/modencode_{factor}.bed.dm3')
+    run:
+        key = str(output[0]).replace('.dm3', '')
+        url = modencode[key]
+        shell(
+            'wget -O- {url} | zcat > {output}.tmp')
+
+        def generator():
+            """
+            modENCODE "GFF" files sometimes have negative coordinates and do
+            not have 'chr' chromosome prefixes. Fix those here, and output
+            a BED line rather than GFF.
+            """
+            for line in open(output[0] + '.tmp'):
+                if line.startswith('#'):
+                    continue
+                toks = line.strip().split('\t')
+                chrom = 'chr' + toks[0]
+                start = toks[3]
+                stop = toks[4]
+                start = str(max(0, int(start)))
+                yield pybedtools.create_interval_from_list([
+                    chrom,
+                    start,
+                    stop,
+                ])
+
+        fixed = pybedtools.BedTool(generator()).saveas(str(output[0]))
+        shell('rm {output}.tmp')
+
+
+rule liftover:
+    input:
+        bed='{prefix}.dm3',
+        chainfile=rules.download_chainfile.output
+    output: '{prefix}'
+    shell:
+        'liftOver {input.bed} {input.chainfile} {output} {output}.unmapped'
+
+# vim: ft=python

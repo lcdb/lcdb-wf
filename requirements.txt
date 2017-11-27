@@ -16,10 +16,12 @@ cutadapt
 deeptools
 fastqc
 fastq-screen
+gat
 gffutils
 ghostscript
-ghostscript
+graphviz
 hisat2
+intervalstats
 kallisto
 lcdblib
 multiqc
@@ -41,6 +43,8 @@ salmon
 samtools
 snakemake
 subread
+ucsc-fetchchromsizes
 ucsc-gtftogenepred
+ucsc-liftover
 ucsc-oligomatch
 ucsc-twobittofa
