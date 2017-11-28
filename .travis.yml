@@ -17,6 +17,7 @@ env:
     - TYPE=references.snakefile
     - TYPE=figures.snakefile
     - TYPE=external.snakefile
+    - TYPE=colocalization.snakefile
     - TYPE=pytest
     - TYPE=docs
 

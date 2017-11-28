@@ -1,0 +1,245 @@
+import sys
+sys.path.insert(0, srcdir('../..'))
+import os
+from textwrap import dedent
+import yaml
+import tempfile
+import pandas as pd
+from lcdblib.snakemake import helpers, aligners
+from lcdblib.utils import utils
+from lib import common
+from lib.patterns_targets import RNASeqConfig, ChIPSeqConfig
+import os
+from snakemake.utils import makedirs
+import pandas
+import yaml
+import numpy as np
+
+configfile: 'config/config.yaml'
+shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
+shell.executable('/bin/bash')
+
+chipseq_config = ChIPSeqConfig('config/config.yaml', 'config/chipseq_patterns.yaml', workdir='../chipseq')
+
+subworkflow chipseq:
+    configfile: chipseq_config.path
+    workdir: '../chipseq'
+
+subworkflow references:
+    configfile: chipseq_config.path
+    workdir: '../chipseq'
+
+chipseq_refdict, chipseq_args = common.references_dict(chipseq_config.config)
+
+# The rule to create the chromsizes file is in the references workflow; the
+# path to it can be determined from the config file (though it is awkwardly
+# nested)
+chromsizes = references(
+    chipseq_refdict[
+        chipseq_config.config['assembly']
+    ][
+        chipseq_config.config['aligner']['tag']
+    ]['chromsizes']
+)
+
+# Here we are adding all the called peaks to the bed files to check for
+# colocalization
+peaks = chipseq(utils.flatten(chipseq_config.targets['peaks']))
+for fn in peaks:
+    toks = fn.split('/')
+    peakcaller = toks[-3]
+    label = toks[-2]
+    key = peakcaller + '_' + label
+    config['beds'][key] = fn
+
+
+# Number of shufflings for GAT
+# TEST_SETTINGS: change this to something like 1000 or more
+N = 100
+
+targets = expand(
+    '{outdir}/{algorithm}/{domain}/{query}/{query}_vs_{reference}.txt',
+    outdir=config['output'],
+    domain=config['domains'].keys(),
+    query=config['beds'].keys(),
+    reference=config['beds'].keys(),
+    algorithm=['IntervalStats', 'GAT', 'jaccard', 'fisher'],
+)
+
+# Currently-supported options {algorithm: (possible values)}
+# IntervalStats: (f_05, f_01, f_001)
+# GAT: (l2fold, fractions)
+# jaccard: (jaccard)
+# fisher: (pval)
+pattern = '{outdir}/{algorithm}/{domain}/{value}_heatmap.pdf'
+targets += expand(pattern, outdir=config['output'], domain=config['domains'],
+                  algorithm='IntervalStats', value=['f_01'])
+targets += expand(pattern, outdir=config['output'], domain=config['domains'],
+                  algorithm='GAT', value=['l2fold', 'fractions'])
+targets += expand(pattern, outdir=config['output'], domain=config['domains'],
+                  algorithm='jaccard', value=['jaccard'])
+targets += expand(pattern, outdir=config['output'], domain=config['domains'],
+                  algorithm='fisher', value=['pval'])
+
+rule target:
+    input: targets
+
+
+rule chromsizes_bed:
+    input: chromsizes
+    output: os.path.join(config['output'], config['assembly'] + '.bed')
+    shell:
+        """awk '{{OFS="\\t"; print $1,"0",$2}}' {input} > {output}"""
+
+
+rule jaccard:
+    input:
+        domain=lambda wc: config['domains'][getattr(wc, 'domain')],
+        query=lambda wc: config['beds'][getattr(wc, 'query')],
+        reference=lambda wc: config['beds'][getattr(wc, 'reference')],
+        chromsizes=chromsizes
+    output: '{outdir}/jaccard/{domain}/{query}/{query}_vs_{reference}.txt'
+    shell:
+        """
+        bedtools intersect -a {input.query} -b {input.domain} | sort -k1,1 -k2n  > {output}.query.jaccard
+        bedtools intersect -a {input.reference} -b {input.domain} | sort -k1,1 -k2n  > {output}.reference.jaccard
+        bedtools jaccard -a {output}.query.jaccard -b {output}.reference.jaccard > {output}
+        rm {output}.query.jaccard {output}.reference.jaccard
+        """
+
+
+rule fisher:
+    input:
+        domain=lambda wc: config['domains'][getattr(wc, 'domain')],
+        query=lambda wc: config['beds'][getattr(wc, 'query')],
+        reference=lambda wc: config['beds'][getattr(wc, 'reference')],
+        chromsizes=chromsizes,
+    output: '{outdir}/fisher/{domain}/{query}/{query}_vs_{reference}.txt'
+    shell:
+        """
+        bedtools intersect -a {input.query} -b {input.domain} | sort -k1,1 -k2n > {output}.query.fisher
+        bedtools intersect -a {input.reference} -b {input.domain} | sort -k1,1 -k2n > {output}.reference.fisher
+        bedtools fisher -a {output}.query.fisher -b {output}.reference.fisher -g {input.chromsizes} > {output}
+        rm {output}.query.fisher {output}.reference.fisher
+        """
+
+
+rule intervalstats:
+    input:
+        domain=lambda wc: config['domains'][getattr(wc, 'domain')],
+        query=lambda wc: config['beds'][getattr(wc, 'query')],
+        reference=lambda wc: config['beds'][getattr(wc, 'reference')],
+    output: '{outdir}/IntervalStats/{domain}/{query}/{query}_vs_{reference}.txt'
+    run:
+        if input.query == input.reference:
+            run_self = '--self'
+        else:
+            run_self = ''
+        shell(
+            'IntervalStats '
+            '--query {input.query} '
+            '--reference {input.reference} '
+            '--output {output}.full '
+            '--domain {input.domain} '
+            '{run_self}'
+        )
+
+        # Summarize the output into a faster-to-parse file used by downstream
+        # analysis code.
+        #
+        # Output has columns:
+        #
+        # - n_{05,01,001}: number of significant associations at {0.05, 0.01,
+        #   0.001} respectively
+        #
+        # - f_{05,01,001}: fraction of total that are signficant
+        #
+        # - n: number of features
+        #
+        # - query, reference: labels
+        #
+        # - filename: "all" filename containing the details in case anything
+        #   needs re-calculation.
+        _df = pandas.read_table(
+            str(output[0]) + '.full',
+            names=['query', 'closest_ref', 'length', 'distance',
+                   'numerator', 'denominator', 'pval'])
+
+        n = float(len(_df))
+
+        def frac(x):
+            if n == 0:
+                return np.nan
+            return x / n
+
+        n_05 = sum(_df.pval < 0.05)
+        n_01 = sum(_df.pval < 0.01)
+        n_001 = sum(_df.pval < 0.001)
+        f_05 = frac(n_05)
+        f_01 = frac(n_01)
+        f_001 = frac(n_001)
+
+        df = pandas.DataFrame(
+            [
+                dict(
+                    query=wildcards.query,
+                    filename=str(output[0]) + '.full',
+                    reference=wildcards.reference,
+                    n=float(n),
+                    n_05=n_05,
+                    n_01=n_01,
+                    n_001=n_001,
+                    f_05=f_05,
+                    f_01=f_01,
+                    f_001=f_001,
+                )
+            ]
+        )
+        df.to_csv(str(output[0]), sep='\t', index=False)
+
+
+rule gat:
+    input:
+        domain=lambda wc: config['domains'][getattr(wc, 'domain')],
+        query=lambda wc: config['beds'][getattr(wc, 'query')],
+        reference=lambda wc: config['beds'][getattr(wc, 'reference')],
+    output: '{outdir}/GAT/{domain}/{query}/{query}_vs_{reference}.txt'
+    run:
+        shell('cut -f1,2,3 {input.query} > {output}.query.tmp')
+        shell('cut -f1,2,3 {input.reference} > {output}.reference.tmp')
+        if os.stat(output[0] + '.query.tmp').st_size == 0:
+            shell('touch {output}')
+        else:
+            shell(
+                'gat-run.py '
+                '--ignore-segment-tracks '
+                '--annotations {output}.reference.tmp '
+                '--segments {output}.query.tmp '
+                '--workspace {input.domain} '
+                '--counter nucleotide-overlap '
+                '--num-samples {N} '
+                '--output-counts-pattern {output}.%s.counts '
+                '--log {output}.log '
+                '--stdout {output} '
+            )
+        shell('rm {output}.query.tmp {output}.reference.tmp')
+
+
+rule heatmap:
+    input:
+        expand(
+            '{{outdir}}/{{algorithm}}/{{domain}}/{query}/{query}_vs_{reference}.txt',
+            query=list(config['beds'].keys()),
+            reference=list(config['beds'].keys())
+        )
+    output:
+        '{outdir}/{algorithm}/{domain}/{value}_heatmap.pdf'
+    shell:
+        'python scripts/colocalization_heatmap.py '
+        '--domain {wildcards.domain} '
+        '--algorithm {wildcards.algorithm} '
+        '--value {wildcards.value} '
+        '--outdir {config[output]} '
+        '--output {output}'
+
+# vim: ft=python
