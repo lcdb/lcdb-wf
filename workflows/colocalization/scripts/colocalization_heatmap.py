@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('agg')
 import os
 import glob
 import pandas as pd
