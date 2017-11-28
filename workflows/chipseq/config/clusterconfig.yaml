@@ -15,3 +15,6 @@ bigwig_neg:
 
 bigwig_pos:
   prefix: "--gres=lscratch:20 --mem=16g"
+
+macs2:
+  prefix: "--gres=lscratch:2- --mem=16g"
