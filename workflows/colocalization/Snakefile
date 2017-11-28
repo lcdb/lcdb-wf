@@ -29,6 +29,9 @@ subworkflow references:
     configfile: chipseq_config.path
     workdir: '../chipseq'
 
+subworkflow external:
+    workdir: '../external'
+
 chipseq_refdict, chipseq_args = common.references_dict(chipseq_config.config)
 
 # The rule to create the chromsizes file is in the references workflow; the
@@ -41,6 +44,12 @@ chromsizes = references(
         chipseq_config.config['aligner']['tag']
     ]['chromsizes']
 )
+
+# In the existing config file, we assume that all BED files are from the
+# `external` workflow.
+
+for k, v in config['beds'].items():
+    config['beds'][k] = external(v)
 
 # Here we are adding all the called peaks to the bed files to check for
 # colocalization
