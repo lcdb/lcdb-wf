@@ -94,8 +94,14 @@ rule target:
     input: targets
 
 
-rule chromsizes_bed:
+rule sorted_chromsizes:
     input: chromsizes
+    output: os.path.join(config['output'], config['assembly'] + '.sorted.chromsizes')
+    shell:
+        'sort -k1,1 {input} > {output}'
+
+rule chromsizes_bed:
+    input: rules.sorted_chromsizes.output
     output: os.path.join(config['output'], config['assembly'] + '.bed')
     shell:
         """awk '{{OFS="\\t"; print $1,"0",$2}}' {input} > {output}"""
@@ -106,13 +112,13 @@ rule jaccard:
         domain=lambda wc: config['domains'][getattr(wc, 'domain')],
         query=lambda wc: config['beds'][getattr(wc, 'query')],
         reference=lambda wc: config['beds'][getattr(wc, 'reference')],
-        chromsizes=chromsizes
+        chromsizes=rules.sorted_chromsizes.output
     output: '{outdir}/jaccard/{domain}/{query}/{query}_vs_{reference}.txt'
     shell:
         """
         bedtools intersect -a {input.query} -b {input.domain} | sort -k1,1 -k2n  > {output}.query.jaccard
         bedtools intersect -a {input.reference} -b {input.domain} | sort -k1,1 -k2n  > {output}.reference.jaccard
-        bedtools jaccard -a {output}.query.jaccard -b {output}.reference.jaccard > {output}
+        bedtools jaccard -a {output}.query.jaccard -b {output}.reference.jaccard -g {input.chromsizes} > {output}
         rm {output}.query.jaccard {output}.reference.jaccard
         """
 
@@ -122,7 +128,7 @@ rule fisher:
         domain=lambda wc: config['domains'][getattr(wc, 'domain')],
         query=lambda wc: config['beds'][getattr(wc, 'query')],
         reference=lambda wc: config['beds'][getattr(wc, 'reference')],
-        chromsizes=chromsizes,
+        chromsizes=rules.sorted_chromsizes.output
     output: '{outdir}/fisher/{domain}/{query}/{query}_vs_{reference}.txt'
     shell:
         """
