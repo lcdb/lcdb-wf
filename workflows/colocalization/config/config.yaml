@@ -1,0 +1,8 @@
+beds:
+  # from the external workflow
+  GAF_pupa: data/modencode_gaf_pupa.bed
+  GAF_kc: data/modencode_gaf_kc.bed
+domains:
+  dm6: results/dm6.bed
+output: results
+assembly: dm6
