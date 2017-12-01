@@ -7,3 +7,12 @@ fn_clean_exts:
   - '.fastq'
   - '.salmon'
   - '_R1'
+sp:
+  fastq_screen:
+    fn: '*.screen.txt'
+  picard/rnaseqmetrics:
+    contents_re: '.*picard\.analysis\.[Rr]na[Ss]eq[Mm]etrics.*'
+    shared: true
+  picard/markdups:
+    contents_re: '.*picard\.sam\.[Dd]uplication[Mm]etrics.*'
+    shared: true
