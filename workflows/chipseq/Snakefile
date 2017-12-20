@@ -272,7 +272,7 @@ rule markduplicates:
         c.patterns['markduplicates']['bam'] + '.log'
     params:
         # TEST SETTINGS:
-        # You may want to use something larger, like "-Xmx32g" for real-world
+        # You may want to use something larger, like "-Xmx24g" for real-world
         # usage.
         java_args='-Xmx2g'
     shell:
@@ -304,6 +304,11 @@ rule merge_techreps:
         metrics=c.patterns['merged_techreps'] + '.metrics'
     log:
         c.patterns['merged_techreps'] + '.log'
+    params:
+        # TEST SETTINGS:
+        # You may want to use something larger, like "-Xmx24g" for real-world
+        # usage.
+        java_args='-Xmx2g'
     wrapper:
         wrapper_for('combos/merge_and_dedup')
 
@@ -355,7 +360,7 @@ rule fingerprint:
         plot=c.patterns['fingerprint']['plot'],
         raw_counts=c.patterns['fingerprint']['raw_counts'],
         metrics=c.patterns['fingerprint']['metrics']
-    threads: 4
+    threads: 8
     params:
         # Note: I think the extra complexity of the function is worth the
         # nicely-labeled plots.
@@ -374,7 +379,7 @@ rule fingerprint:
         '--outQualityMetrics {output.metrics} '
         '--outRawCounts {output.raw_counts} '
         '--plotFile {output.plot} '
-        # TEST SETTINGS:You'll probably want to change --numberOfSamples to
+        # TEST SETTINGS: You'll probably want to change --numberOfSamples to
         # something higher (default is 500k) when running on real data
         '--numberOfSamples 5000 '
         '&> {log}'
@@ -433,7 +438,8 @@ rule spp:
         c.patterns['peaks']['spp'] + '.log'
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.spp_run, 'spp'),
-        java_args='-Xmx8g',
+        # TEST SETTINGS: probably want to uncomment this:
+        # java_args='-Xmx24g',
         keep_tempfiles=False
     threads: 2
     wrapper:
