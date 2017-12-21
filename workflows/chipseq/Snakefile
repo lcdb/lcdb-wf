@@ -382,7 +382,8 @@ rule fingerprint:
         # TEST SETTINGS: You'll probably want to change --numberOfSamples to
         # something higher (default is 500k) when running on real data
         '--numberOfSamples 5000 '
-        '&> {log}'
+        '&> {log} '
+        '&& sed -i "s/NA/0.0/g" {output.metrics} '
 
 
 rule macs2:
