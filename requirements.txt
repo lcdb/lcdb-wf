@@ -43,6 +43,7 @@ salmon
 samtools
 snakemake
 subread
+trackhub
 ucsc-fetchchromsizes
 ucsc-gtftogenepred
 ucsc-liftover
