@@ -285,6 +285,16 @@ rule libsizes_table:
         df['stage'] = df.filename.apply(stage)
         df = df.set_index('filename')
         df = df.pivot('sample', columns='stage', values='million')
+
+        # make nicer column names
+        convert = {
+            'fastq.libsize': 'stage1_raw',
+            'cutadapt.fastq.libsize' : 'stage2_trimmed',
+            'cutadapt.bam.libsize': 'stage3_aligned',
+        }
+
+        df.columns = [convert[i] for i in df.columns]
+
         df.to_csv(output.tsv, sep='\t')
         y = {
             'id': 'libsizes_table',

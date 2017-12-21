@@ -207,6 +207,18 @@ rule libsizes_table:
         df['stage'] = df.filename.apply(stage)
         df = df.set_index('filename')
         df = df.pivot('sample', columns='stage', values='million')
+
+        # make nicer column names
+        convert = {
+            'fastq.libsize': 'stage1_raw',
+            'cutadapt.fastq.libsize' : 'stage2_trimmed',
+            'cutadapt.bam.libsize': 'stage3_aligned',
+            'cutadapt.unique.bam.libsize': 'stage4_unique',
+            'cutadapt.unique.nodups.bam.libsize': 'stage5_nodups',
+        }
+
+        df.columns = [convert[i] for i in df.columns]
+
         df.to_csv(output.tsv, sep='\t')
         y = {
             'id': 'libsizes_table',
@@ -241,7 +253,7 @@ rule multiqc:
     output:
         c.targets['multiqc']
     params:
-        analysis_directory=" ".join([c.sample_dir, c.agg_dir]),
+        analysis_directory=" ".join([c.sample_dir, c.agg_dir, c.peak_calling]),
         extra='--config config/multiqc_config.yaml',
         outdir=os.path.dirname(c.targets['multiqc'][0]),
         basename=os.path.basename(c.targets['multiqc'][0])
@@ -256,6 +268,7 @@ rule multiqc:
         '--filename {params.basename} '
         '--config config/multiqc_config.yaml '
         '{params.analysis_directory} '
+
         '&> {log} '
 
 
@@ -382,7 +395,8 @@ rule fingerprint:
         # TEST SETTINGS: You'll probably want to change --numberOfSamples to
         # something higher (default is 500k) when running on real data
         '--numberOfSamples 5000 '
-        '&> {log}'
+        '&> {log} '
+        '&& sed -i "s/NA/0.0/g" {output.metrics} '
 
 
 rule macs2:
