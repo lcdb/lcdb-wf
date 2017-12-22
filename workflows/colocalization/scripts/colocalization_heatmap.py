@@ -240,8 +240,15 @@ def plot_heatmap(fill_piv, vmin, vmax, title, units, metric='euclidean',
     return a
 
 
-
 v = dataframe_for_value(domain, algorithm, value)
+
+if (v['fill_piv'] < 0).values.any() & (v['fill_piv'] > 0).values.any():
+    center = 0
+    cmap = sns.color_palette('RdBu_r', as_cmap=True)
+else:
+    center = None
+    cmap = sns.cubehelix_palette(as_cmap=True)
+
 
 fig = plot_heatmap(
   fill_piv=v['fill_piv'],
@@ -252,7 +259,7 @@ fig = plot_heatmap(
   metric='euclidean',
   method='average',
   idx=None,
-  clustermap_kwargs=dict()
+  clustermap_kwargs=dict(center=center, cmap=cmap)
 )
 
 fig.savefig(args.output)
