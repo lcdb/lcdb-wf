@@ -4,8 +4,13 @@ import pybedtools
 import gffutils
 from gffutils import pybedtools_integration
 
+
+SLOP = 1000
 README = """
-"""
+Identifies peaks at TSSs, +/- {0}bp. Each peak-calling run has a corresponding
+BED file containing the subset of peaks that overlap these TSS regions.  The
+file "summary.tsv" summarizes the number of peaks at promoters at each TSS.
+""".format(SLOP)
 
 outdir = os.path.dirname(snakemake.output[0])
 if not os.path.exists(outdir):
@@ -15,7 +20,7 @@ if not os.path.exists(outdir):
 db = gffutils.FeatureDB(snakemake.input.db)
 tsses = (
     pybedtools_integration.tsses(db, as_bed6=True)
-    .slop(l=1000, r=1000, s=True, genome='dm6')
+    .slop(l=SLOP, r=SLOP, s=True, genome='dm6')
     .saveas(os.path.join(outdir, 'tsses-slop.bed'))
 )
 
