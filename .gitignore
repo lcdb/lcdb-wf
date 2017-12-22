@@ -10,6 +10,8 @@ workflows/rnaseq/downstream/*tsv
 workflows/chipseq/data
 workflows/rnaseq/data
 workflows/colocalization/results
+logs
+slurm*out
 workflows/figures/figures
 docs/_build
 \.cache/v/cache/

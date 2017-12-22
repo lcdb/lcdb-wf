@@ -13,7 +13,7 @@ import os
 import pandas
 import yaml
 import matplotlib
-from trackhub.helpers import sanitize
+from trackhub.helpers import sanitize, hex2rgb, dimensions_from_subgroups, filter_composite_from_subgroups
 from trackhub import CompositeTrack, ViewTrack, SubGroupDefinition, Track, default_hub
 from trackhub.upload import upload_hub
 
@@ -64,26 +64,6 @@ subgroups.append(
         mapping={'pos': 'pos', 'neg': 'neg'}))
 
 
-def dimensions_from_subgroups(s):
-    """
-    Given a sorted list of subgroups, return a string appropriate to provide as
-    a composite track's `dimensions` arg
-    """
-    letters = 'XYABCDEFGHIJKLMNOPQRSTUVWZ'
-    return ' '.join(['dim{0}={1}'.format(dim, sg.name) for dim, sg in zip(letters, s)])
-
-
-def filter_composite_from_subgroups(s):
-    """
-    Given a sorted list of subgroups, return a string appropriate to provide as
-    the a composite track's `filterComposite` argumen argumen
-    """
-    dims = []
-    for letter, sg in zip('ABCDEFGHIJKLMNOPQRSTUVWZ', s[2:]):
-        dims.append('dim{0}'.format(letter))
-    if dims:
-        return ' '.join(dims)
-
 # Identify the sort order based on the config, and create a string appropriate
 # for use as the `sortOrder` argument of a composite track.
 to_sort = hub_config['subgroups'].get('sort_order', [])
@@ -116,14 +96,6 @@ supplemental_view = ViewTrack(
     tracktype='bigBed', short_label='Supplemental', long_label='Supplemental')
 
 colors = hub_config.get('colors', [])
-
-
-def hex2rgb(h):
-    """
-    Given a hex color code, return a 0-255 RGB tuple as a CSV string, e.g.,
-    "#ff0000" -> "255,0,0"
-    """
-    return ','.join(map(lambda x: str(int(x * 255)), matplotlib.colors.hex2color(h)))
 
 
 def decide_color(samplename):

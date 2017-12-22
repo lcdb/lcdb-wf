@@ -110,7 +110,9 @@ def merged_input_for_ip(sampletable, merged_ip):
     ]
 
     if input_label.nunique() != 1:
-        print("Expected a single input label, found: {0}".format(input_label))
+        raise ValueError(
+            "Expected a single input label for biological_material='{1}', "
+            "found {0}. ".format(input_label.tolist(), biomaterial))
 
     return input_label.values[0]
 
