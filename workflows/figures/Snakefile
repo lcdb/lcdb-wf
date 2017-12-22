@@ -56,10 +56,14 @@ def readme_for(scriptname):
 
 
 READMES = [readme_for(i) for i in SCRIPTS]
-READMES += [
-    'figures/rnaseq/README.txt',
-    'figures/chipseq/README.txt',
-]
+
+# TEST SETTINGS: here we're avoiding adding the full RNA-seq and ChIP-seq
+# outputs to the DAG, because it will trigger the other workflows in their
+# entirety and we don't have that much time on Travis-CI.
+# READMES += [
+#     'figures/rnaseq/README.txt',
+#     'figures/chipseq/README.txt',
+# ]
 
 rule all:
     input:
@@ -70,9 +74,12 @@ rule all:
 
 rule peak_count:
     # This rule depends on *all* the peaks called by the chipseq workflow,
-    # which we can get by accessing the targets of that workflow, like this:
+    # which we can get by accessing the targets of that workflow, like this.
+
+    # TEST SETTINGS: Note that we're only grabbing the first one, to avoid
+    # doing lots of work during the testing of this workflow.
     input:
-        chipseq(utils.flatten(chipseq_config.targets['peaks']))
+        chipseq(utils.flatten(chipseq_config.targets['peaks']))[0]
     output:
         readme_for('peak_count.py')
     script:
