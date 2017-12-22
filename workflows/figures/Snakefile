@@ -72,12 +72,12 @@ rule all:
         [os.path.join('figures/rnaseq', os.path.basename(i)) for i in utils.flatten(rnaseq_config.targets['downstream'])]
 
 
-rule peak_count:
-    # This rule depends on *all* the peaks called by the chipseq workflow,
-    # which we can get by accessing the targets of that workflow, like this.
+# This rule depends on *all* the peaks called by the chipseq workflow,
+# which we can get by accessing the targets of that workflow, like this.
 
-    # TEST SETTINGS: Note that we're only grabbing the first one, to avoid
-    # doing lots of work during the testing of this workflow.
+# TEST SETTINGS: Note that we're only grabbing the first one, to avoid
+# doing lots of work during the testing of this workflow.
+rule peak_count:
     input:
         chipseq(utils.flatten(chipseq_config.targets['peaks']))[0]
     output:
