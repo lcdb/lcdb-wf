@@ -467,4 +467,21 @@ def get_techreps(sampletable, label):
     """
     # since we're not requiring a name but we want to use `loc`
     first_col = sampletable.columns[0]
-    return list(sampletable.loc[sampletable['label'] == label, first_col])
+    result = list(sampletable.loc[sampletable['label'] == label, first_col])
+
+    # If we're using a ChIP-seq-like sampletable we can provide a more
+    # informative error message.
+
+    is_chipseq = 'antibody' in sampletable.columns
+    if is_chipseq:
+        err = ("No technical replicates found for label '{}'. This looks to "
+               "be a ChIP-seq experiment; check the peak-calling section of"
+               "the config.".format(label)
+              )
+    else:
+        err = "No technical replicates found for label '{}'.".format(label)
+
+    if len(result) == 0:
+        raise ValueError(err)
+
+    return result
