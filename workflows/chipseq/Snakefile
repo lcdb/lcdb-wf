@@ -23,7 +23,6 @@ include: '../references/Snakefile'
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
 
-
 c = ChIPSeqConfig(config, 'config/chipseq_patterns.yaml')
 
 
@@ -247,6 +246,8 @@ rule multiqc:
             utils.flatten(c.targets['cutadapt']) +
             utils.flatten(c.targets['bam']) +
             utils.flatten(c.targets['markduplicates']) +
+            utils.flatten(c.targets['fingerprint']) +
+            utils.flatten(c.targets['peaks']) +
             utils.flatten(c.targets['fastq_screen'])
         ),
         config='config/multiqc_config.yaml'
@@ -268,7 +269,6 @@ rule multiqc:
         '--filename {params.basename} '
         '--config config/multiqc_config.yaml '
         '{params.analysis_directory} '
-
         '&> {log} '
 
 
