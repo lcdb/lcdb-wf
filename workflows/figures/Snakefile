@@ -1,3 +1,23 @@
+"""
+This workflow is used to drive downstream analysis scripts.
+
+Scripts live in the `scripts` subdirectory. For each script `scriptname.py`,
+the script is expected to create a README.txt file in ReStructured Text format
+in the `figures/scriptname/README.txt`. Of course it will likely do all sorts
+of other things, but this is the only output fil that is expected. It's best to
+write this file at the very end of the script so that it only is created after
+everything else successfully completes.
+
+Use the rule's inputs to set dependencies. The examples below show how to get
+these dependencies from the other workflows.
+
+Re-run rules where the script changeed with::
+
+    snakemake -R `snakemake --list-code-changes`
+
+"""
+
+
 import sys
 sys.path.insert(0, srcdir('../..'))
 import os
@@ -10,6 +30,7 @@ chipseq_config = ChIPSeqConfig('config/config.yaml', 'config/chipseq_patterns.ya
 
 rnaseq_refdict, rnaseq_args = common.references_dict(rnaseq_config.config)
 
+
 subworkflow rnaseq:
     configfile: rnaseq_config.path
     workdir: '../rnaseq'
@@ -20,27 +41,42 @@ subworkflow chipseq:
     workdir: '../chipseq'
 
 
+# "Register" the various scripts here. Their expected READMEs will be added to
+# the `all` rule. Each script's rule still needs to be created though, along
+# with whatever upstream dependencies it might have.
+SCRIPTS = [
+    'scripts/peak_count.py',
+    'scripts/peaks_at_promoters.py',
+]
+
+
+def readme_for(scriptname):
+    scriptname = os.path.basename(scriptname)
+    return os.path.join('figures', scriptname.replace('.py', ''), 'README.txt')
+
+
+READMES = [readme_for(i) for i in SCRIPTS]
+READMES += [
+    'figures/rnaseq/README.txt',
+    'figures/chipseq/README.txt',
+]
+
 rule all:
     input:
-        'figures/peak_count/peak_count.tsv',
-        'figures/peaks_at_promoters/summary.txt'
+        READMES,
+        'guide.html',
+        [os.path.join('figures/rnaseq', os.path.basename(i)) for i in utils.flatten(rnaseq_config.targets['downstream'])]
 
 
 rule peak_count:
     # This rule depends on *all* the peaks called by the chipseq workflow,
     # which we can get by accessing the targets of that workflow, like this:
-    input: chipseq(utils.flatten(chipseq_config.targets['peaks']))
-    output: 'figures/peak_count/peak_count.tsv'
-    run:
-        import pandas as pd
-        import pybedtools
-        df = []
-        for i in input:
-            toks = i.split('/')
-            peakcaller = toks[-3]
-            label = toks[-2]
-            df.append(dict(peakcaller=peakcaller, label=label, count=len(pybedtools.BedTool(i))))
-        pd.DataFrame(df)[['peakcaller', 'label', 'count']].to_csv(output[0], sep='\t', index=False)
+    input:
+        chipseq(utils.flatten(chipseq_config.targets['peaks']))
+    output:
+        readme_for('peak_count.py')
+    script:
+        'scripts/peak_count.py'
 
 
 rule peaks_at_promoters:
@@ -54,8 +90,120 @@ rule peaks_at_promoters:
         db=rnaseq(rnaseq_refdict['dmel']['test']['gtf'] + '.db'),
         peaks=chipseq(utils.flatten(chipseq_config.targets['peaks']))
     output:
-        'figures/peaks_at_promoters/summary.txt'
+        readme_for('peaks_at_promoters.py')
     script:
         'scripts/peaks_at_promoters.py'
+
+
+rule rnaseq_dag:
+    """
+    Plots the DAG of the RNA-seq workflow.
+    """
+    input: '../rnaseq/Snakefile'
+    output: 'rnaseq_dag.png'
+    shell:
+        'snakemake --nolock -nprs {input} -d $(dirname {input}) --rulegraph | dot -Tpng > {output}'
+
+
+rule chipseq_dag:
+    """
+    Plots the DAG of the ChIP-seq workflow.
+    """
+    input: '../chipseq/Snakefile'
+    output: 'chipseq_dag.png'
+    shell:
+        'snakemake --nolock -nprs {input} -d $(dirname {input}) --rulegraph | dot -Tpng > {output}'
+
+
+rule figures_dag:
+    """
+    Plots the DAG of the figures workflow.
+    """
+    input: 'Snakefile'
+    output: 'figures_dag.png'
+    shell:
+        'snakemake --nolock -nprs {input} -d $(dirname {input}) --rulegraph | dot -Tpng > {output}'
+
+
+rule report:
+    """
+    Gathers together all the READMEs, as well as an "updates.rst" file and any
+    DAGs to create, and builds an HTML report tying everything together.
+    """
+    input:
+        readmes=READMES,
+        updates='updates.rst',
+        rnaseq_dag=rules.rnaseq_dag.output,
+        chipseq_dag=rules.chipseq_dag.output,
+        figures_dag=rules.figures_dag.output,
+
+    output: 'guide.html'
+    run:
+        s = []
+        s.append(open('updates.rst').read())
+        for r in sorted(input.readmes):
+
+            # add titles named after the figure directory
+            name = os.path.basename(os.path.dirname(r))
+            s.append('``' + name + '``')
+            s.append('=' * (len(name) + 4))
+            d = os.path.dirname(r)
+
+            # Add a link to that figure directory, so that when viewing in
+            # a browser you can view the file contents.
+            s.append('`{name} analysis directory <{d}>`_'.format(**locals()))
+            s.append(open(r).read())
+            s.append('')
+
+        with open('guide.rst', 'w') as fout:
+            fout.write('\n'.join(s))
+
+        shell('rst2html.py --stylesheet style.css guide.rst > guide.html && rm guide.rst')
+
+
+rule rnaseq_symlinks:
+    """
+    Symlinks just the results from the RNA-seq analysis into a figures
+    subdirectory, so that it gets picked up by the report and packaging.
+    """
+    input:
+        [
+            rnaseq(i) for i in utils.flatten(rnaseq_config.targets['downstream'])
+            + utils.flatten(rnaseq_config.targets['multiqc'])
+        ]
+    output:
+        [os.path.join('figures/rnaseq', os.path.basename(i)) for i in utils.flatten(rnaseq_config.targets['downstream'])],
+        'figures/rnaseq/README.txt',
+    run:
+        for i in input:
+            utils.make_relative_symlink(i, os.path.join('figures/rnaseq', os.path.basename(i)))
+        with open('figures/rnaseq/README.txt', 'w') as fout:
+            fout.write(dedent(
+                """
+                RNA-seq analysis -- see ``rnaseq.html`` and ``multiqc.html`` for details.
+                """))
+
+rule chipseq_symlinks:
+    """
+    Symlinks just the results from the ChIP-seq analysis into a figures
+    subdirectory, so that it gets picked up by the report and packaging.
+    """
+    input:
+        [chipseq(i) for i in utils.flatten(chipseq_config.targets['fingerprint']) + chipseq_config.targets['multiqc']]
+    output:
+        'figures/chipseq/README.txt',
+    run:
+        for i in input:
+            utils.make_relative_symlink(i, os.path.join('figures/chipseq', os.path.basename(i)))
+        with open(output[0], 'w') as fout:
+            fout.write(dedent(
+                """
+                ChIP-seq analysis -- see ``multiqc.html`` for details on QC,
+
+                The "fingerprint" PNGs show the IP vs input fingerprint plots.
+                See `plotFingerprint docs
+                <http://deeptools.readthedocs.io/en/latest/content/tools/plotFingerprint.html>`_
+                for details.
+                """))
 
 # vim: ft=python

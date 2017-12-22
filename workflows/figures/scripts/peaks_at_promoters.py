@@ -4,6 +4,9 @@ import pybedtools
 import gffutils
 from gffutils import pybedtools_integration
 
+README = """
+"""
+
 outdir = os.path.dirname(snakemake.output[0])
 if not os.path.exists(outdir):
     os.makedirs(outdir)
@@ -31,4 +34,7 @@ for pk in snakemake.input.peaks:
     # Keep track of how many there were; this will be exported in the summary
     df.append(dict(label=label, npks=len(peaks_near_tsses)))
 
-pandas.DataFrame(df)[['label', 'npks']].to_csv(snakemake.output[0], sep='\t', index=False)
+pandas.DataFrame(df)[['label', 'npks']].to_csv(os.path.join(outdir, 'summary.tsv'), sep='\t', index=False)
+
+with open(snakemake.output[0], 'w') as fout:
+    fout.write(README)
