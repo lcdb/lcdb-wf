@@ -117,32 +117,6 @@ def merged_input_for_ip(sampletable, merged_ip):
     return input_label.values[0]
 
 
-def inputs_for_ip(sampletable, ip):
-    """
-    Returns all inputs with the same biological material as the provided IP
-    sample.
-
-    This can be useful for creating the "chipseq:peak_calling" section of the
-    config.yaml.
-
-    Differs from `merged_input_for_ip` in that here we return *all* inputs on
-    a sample level (first column of the sampletable) while that function
-    expects a 1:1 mapping between *merged* samples (the "label" column of the
-    sampletable).
-    """
-    biomaterial = sampletable.loc[sampletable[sampletable.columns[0]] == ip, 'biomaterial']
-    if biomaterial.nunique() != 1:
-        print('Expected a single biomaterial, found: {0}'.format(biomaterial))
-        raise ValueError
-    biomaterial = biomaterial.values[0]
-    inputs = sampletable.loc[
-        (sampletable['biological_material'] == biomaterial) &
-        (sampletable['antibody'] == 'input'),
-        sampletable.columns[0]
-    ]
-    return list(inputs)
-
-
 def detect_peak_format(fn):
     """
     Figure out if a BED file is narrowPeak or broadPeak.
