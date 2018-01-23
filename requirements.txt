@@ -44,6 +44,7 @@ samtools
 snakemake
 subread
 trackhub
+ucsc-bedtobigbed
 ucsc-fetchchromsizes
 ucsc-gtftogenepred
 ucsc-liftover
