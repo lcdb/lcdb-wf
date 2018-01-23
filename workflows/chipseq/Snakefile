@@ -108,7 +108,7 @@ rule bowtie2:
         c.patterns['bam'] + '.log'
     params:
         samtools_view_extra='-F 0x04'
-    threads: 6
+    threads: 8
     wrapper:
         wrapper_for('bowtie2/align')
 
