@@ -5,11 +5,13 @@ from textwrap import dedent
 import yaml
 import tempfile
 import pandas as pd
+import numpy as np
 import pybedtools
 from lcdblib.snakemake import helpers, aligners
 from lcdblib.utils import utils
 from lib import common, chipseq
 from lib.patterns_targets import ChIPSeqConfig
+
 
 # ----------------------------------------------------------------------------
 # Note:
@@ -513,6 +515,7 @@ rule bed_to_bigbed:
             df = pd.read_table(output[0] + '.tmp', index_col=False, names=names)
             df['score'] = df['score'] - df['score'].min()
             df['score'] = (df['score'] / df['score'].max()) * 1000
+            df['score'] = df['score'].replace([np.inf, -np.inf], np.nan).fillna(0)
             df['score'] = df['score'].astype(int)
             df.to_csv(output[0] + '.tmp', sep='\t', index=False, header=False)
 
