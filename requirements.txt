@@ -39,6 +39,7 @@ r-knitrbootstrap
 r-pheatmap
 r-readr
 r-rmarkdown
+r-spp
 salmon
 samtools
 snakemake
