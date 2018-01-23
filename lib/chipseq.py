@@ -141,3 +141,20 @@ def inputs_for_ip(sampletable, ip):
         sampletable.columns[0]
     ]
     return list(inputs)
+
+
+def detect_peak_format(fn):
+    """
+    Figure out if a BED file is narrowPeak or broadPeak.
+
+    Returns None if undetermined.
+
+    This is useful for figuring out which autoSql file we should use or which
+    bigBed 6+4 or bigBed 6+3 format to use.
+    """
+    line = open(fn).readline().strip()
+    toks = line.split('\t')
+    if len(toks) == 10:
+        return 'narrowPeak'
+    if len(toks) == 9:
+        return 'broadPeak'
