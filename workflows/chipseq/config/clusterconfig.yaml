@@ -24,3 +24,6 @@ macs2:
 
 fingerprint:
   prefix: "--gres=lscratch:20 --mem=32g"
+
+spp:
+  prefix: "--gres=lscratch:20 --mem=16g --time=4:00:00"
