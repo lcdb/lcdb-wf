@@ -39,11 +39,13 @@ r-knitrbootstrap
 r-pheatmap
 r-readr
 r-rmarkdown
+r-spp
 salmon
 samtools
 snakemake
 subread
 trackhub
+ucsc-bedtobigbed
 ucsc-fetchchromsizes
 ucsc-gtftogenepred
 ucsc-liftover

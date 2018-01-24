@@ -5,10 +5,13 @@ from textwrap import dedent
 import yaml
 import tempfile
 import pandas as pd
+import numpy as np
+import pybedtools
 from lcdblib.snakemake import helpers, aligners
 from lcdblib.utils import utils
 from lib import common, chipseq
 from lib.patterns_targets import ChIPSeqConfig
+
 
 # ----------------------------------------------------------------------------
 # Note:
@@ -49,7 +52,8 @@ rule targets:
             utils.flatten(c.targets['bigwig']) +
             utils.flatten(c.targets['peaks']) +
             utils.flatten(c.targets['merged_techreps']) +
-            utils.flatten(c.targets['fingerprint'])
+            utils.flatten(c.targets['fingerprint']) +
+            utils.flatten(c.targets['bigbed'])
         )
 
 
@@ -108,7 +112,7 @@ rule bowtie2:
         c.patterns['bam'] + '.log'
     params:
         samtools_view_extra='-F 0x04'
-    threads: 6
+    threads: 8
     wrapper:
         wrapper_for('bowtie2/align')
 
@@ -460,40 +464,63 @@ rule spp:
         wrapper_for('spp')
 
 
-# rule bed_to_bigbed:
-#     """
-#     Convert BED to bigBed
-#     """
-#     input: "data/chipseq/peakcalling/{algorithm}/{label}/{prefix}.bed"
-#     output: "data/chipseq/peakcalling/{algorithm}/{label}/{prefix}.bigbed"
-#     log: "data/chipseq/peakcalling/{algorithm}/{label}/{prefix}.bigbed.log"
-#     run:
-#         p = {
-#             'macs2': ('assets/narrowPeak.as', '4+6', _narrowpeak),
-#             'macs2_lenient': ('assets/narrowPeak.as', '4+6', _narrowpeak),
-#             'macs2_broad': ('assets/broadPeak.as', '4+6', _broadpeak),
-#             'spp': ('assets/narrowPeak.as', '6+4', _narrowpeak),
-#         }
-#         _as, bedplus, conversion = p[wildcards.algorithm]
-#
-#         if conversion is not None:
-#             conversion(input[0], input[0] + '.tmp')
-#         else:
-#             shell('cp {input} {input}.tmp')
-#
-#         if len(pybedtools.BedTool(input[0])) == 0:
-#             shell("touch {output}")
-#         else:
-#             shell(
-#                 """sort -k1,1 -k2,2n {input}.tmp | awk -F "\\t" '{{OFS="\\t"; if (($2>0) && ($3>0)) print $0}}' > {input}.tmp.sorted """
-#                 "&& bedToBigBed "
-#                 "-type=bed{bedplus} "
-#                 "-as={_as} "
-#                 "{input}.tmp.sorted "
-#                 "dm6.chromsizes "
-#                 "{output} &> {log} "
-#                 "&& rm {input}.tmp && rm {input}.tmp.sorted")
+rule bed_to_bigbed:
+    """
+    Convert BED to bigBed
+    """
+    input:
+        bed='{prefix}.bed',
+        chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes']
+    output: '{prefix}.bigbed'
+    run:
+        # Based on the filename, identify the algorithm. Based on the contents,
+        # identify the format.
+        algorithm = os.path.basename(os.path.dirname(input.bed))
+        kind = chipseq.detect_peak_format(input.bed)
 
+
+        # bedToBigBed doesn't handle ze
+        if len(pybedtools.BedTool(input.bed)) == 0:
+            shell("touch {output}")
+        else:
+
+            # Sometimes macs2 or spp will stretch outside chromsome boundaries;
+            # negative values will cause BEDTools to complain. So we have to do
+            # a 2-pass fix.
+            #
+            # And we need a genome file for BEDTools for the intersect, which
+            # we create from the input chromsizes file.
+            shell("""awk -F "\\t" '{{OFS="\\t"; print $1, "0", $2}}' {input.chromsizes} > {output}.tmp.genome""")
+
+            shell(
+                "sort -k1,1 -k2,2n {input.bed} | "
+                """awk -F "\\t" '{{OFS="\\t"; if (($2>0) && ($3>0)) print $0}}' | """
+                "bedtools intersect -a - -b {output}.tmp.genome > {output}.tmp"
+            )
+            if kind == 'narrowPeak':
+                _as = '../../include/bigNarrowPeak.as'
+                _type = 'bed6+4'
+                names=[
+                    'chrom', 'chromStart', 'chromEnd', 'name', 'score',
+                    'strand', 'signalValue', 'pValue', 'qValue', 'peak']
+            elif kind == 'broadPeak':
+                _as = '../../include/bigBroadPeak.as'
+                _type = 'bed6+3'
+                names=[
+                    'chrom', 'chromStart', 'chromEnd', 'name', 'score',
+                    'strand', 'signalValue', 'pValue', 'qValue']
+            else:
+                raise ValueError("Unhandled format for {0}".format(input.bed))
+
+            df = pd.read_table(output[0] + '.tmp', index_col=False, names=names)
+            df['score'] = df['score'] - df['score'].min()
+            df['score'] = (df['score'] / df['score'].max()) * 1000
+            df['score'] = df['score'].replace([np.inf, -np.inf], np.nan).fillna(0)
+            df['score'] = df['score'].astype(int)
+            df.to_csv(output[0] + '.tmp', sep='\t', index=False, header=False)
+
+            shell('bedToBigBed -as={_as} -type={_type} {output}.tmp {input.chromsizes} {output}')
+            shell('rm {output}.tmp {output}.tmp.genome')
 
 
 # vim: ft=python
