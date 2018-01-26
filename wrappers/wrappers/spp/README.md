@@ -14,7 +14,8 @@ Minimal usage:
 rule spp:
     input:
       ip="ip.bam",
-      control="control.bam"
+      control="control.bam",
+      chromsizes='dm6.chromsizes'
     output: "peaks.bed"
     wrapper:
         'file://path/to/wrapper'
@@ -27,7 +28,8 @@ Specify parameters (see below for options):
 rule spp:
     input:
       ip="ip.bam",
-      control="control.bam"
+      control="control.bam",
+      chromsizes='dm6.chromsizes'
     output: "peaks.bed"
     params: block={'fdr': 0.1}
 
@@ -41,7 +43,8 @@ Specify additional output files:
 rule spp:
     input:
         ip="ip.bam",
-        control="control.bam"
+        control="control.bam",
+        chromsizes='dm6.chromsizes'
     output:
         bed="peaks.bed"
         enrichment_estimates="enrichment_est.bedgraph",
@@ -60,7 +63,8 @@ adjusting spp params, and using 8 threads for merging and duplicates removal:
 rule spp:
     input:
         ip=["ip.bam", "ip2.bam"],
-        control=["control.bam", "control2.bam", "control3.bam"]
+        control=["control.bam", "control2.bam", "control3.bam"],
+        chromsizes='dm6.chromsizes'
     output:
         bed="peaks.bed"
         enrichment_estimates="enrichment_est.bedgraph",
@@ -78,6 +82,9 @@ rule spp:
 ## Input
 
 `ip`, `control`: BAM files. Duplicates should already be removed.
+
+`chromsizes`: Chromsizes table, used to ensure peak boundaries do not extend
+outside of chromosome limits.
 
 SPP itself only supports a single BAM file for IP and a single BAM file for
 control.  However, to support the common case of pooling replicates to gain

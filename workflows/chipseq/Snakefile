@@ -12,7 +12,6 @@ from lcdblib.utils import utils
 from lib import common, chipseq
 from lib.patterns_targets import ChIPSeqConfig
 
-
 # ----------------------------------------------------------------------------
 # Note:
 #
@@ -420,6 +419,7 @@ rule macs2:
                 label=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'control'),
                 merged_dir=c.merged_dir,
             ),
+        chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
     output:
         bed=c.patterns['peaks']['macs2']
     log:
@@ -447,6 +447,7 @@ rule spp:
                 label=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'control'),
                 merged_dir=c.merged_dir,
             ),
+        chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
     output:
         bed=c.patterns['peaks']['spp'],
         enrichment_estimates=c.patterns['peaks']['spp'] + '.est.wig',
@@ -479,24 +480,10 @@ rule bed_to_bigbed:
         kind = chipseq.detect_peak_format(input.bed)
 
 
-        # bedToBigBed doesn't handle ze
-        if len(pybedtools.BedTool(input.bed)) == 0:
+        # bedToBigBed doesn't handle zero-size files
+        if os.stat(input.bed).st_size == 0:
             shell("touch {output}")
         else:
-
-            # Sometimes macs2 or spp will stretch outside chromsome boundaries;
-            # negative values will cause BEDTools to complain. So we have to do
-            # a 2-pass fix.
-            #
-            # And we need a genome file for BEDTools for the intersect, which
-            # we create from the input chromsizes file.
-            shell("""awk -F "\\t" '{{OFS="\\t"; print $1, "0", $2}}' {input.chromsizes} > {output}.tmp.genome""")
-
-            shell(
-                "sort -k1,1 -k2,2n {input.bed} | "
-                """awk -F "\\t" '{{OFS="\\t"; if (($2>0) && ($3>0)) print $0}}' | """
-                "bedtools intersect -a - -b {output}.tmp.genome > {output}.tmp"
-            )
             if kind == 'narrowPeak':
                 _as = '../../include/bigNarrowPeak.as'
                 _type = 'bed6+4'
@@ -512,7 +499,7 @@ rule bed_to_bigbed:
             else:
                 raise ValueError("Unhandled format for {0}".format(input.bed))
 
-            df = pd.read_table(output[0] + '.tmp', index_col=False, names=names)
+            df = pd.read_table(input.bed, index_col=False, names=names)
             df['score'] = df['score'] - df['score'].min()
             df['score'] = (df['score'] / df['score'].max()) * 1000
             df['score'] = df['score'].replace([np.inf, -np.inf], np.nan).fillna(0)
@@ -520,7 +507,6 @@ rule bed_to_bigbed:
             df.to_csv(output[0] + '.tmp', sep='\t', index=False, header=False)
 
             shell('bedToBigBed -as={_as} -type={_type} {output}.tmp {input.chromsizes} {output}')
-            shell('rm {output}.tmp {output}.tmp.genome')
 
 
 # vim: ft=python

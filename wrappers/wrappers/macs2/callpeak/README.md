@@ -12,7 +12,8 @@ of `output.bed`. Note the specification of the genome size in `params.extra`.
 rule macs2:
     input:
         treatment='ip.bam',
-        control='input.bam'
+        control='input.bam',
+        chromsizes='dm6.chromsizes'
     output:
         bed='out/peaks.bed'
     extra: '-g dm'
@@ -28,7 +29,8 @@ output files so downstream rules can use them:
 rule macs2:
     input:
         treatment=['ip1.bam', 'ip2.bam'],
-        control=['input1.bam', 'input2.bam']
+        control=['input1.bam', 'input2.bam'],
+        chromsizes='dm6.chromsizes'
     output:
         bed='out/peaks.bed'
     params: extra='-g dm --bdg --SPMR --broad'
@@ -42,6 +44,8 @@ rule macs2:
 
 `control`: single BAM or list of BAMs for input
 
+`chromsizes`: Chromsizes table, used to ensure peak boundaries do not extend
+outside of chromosome limits.
 
 ## Output
 
