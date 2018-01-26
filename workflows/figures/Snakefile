@@ -202,16 +202,21 @@ rule chipseq_symlinks:
         'figures/chipseq/README.txt',
     run:
         for i in input:
-            utils.make_relative_symlink(i, os.path.join('figures/chipseq', os.path.basename(i)))
+            # Exclude .tab and .metrics files from
+            if i.endswith('.tab') or i.endswith('.metrics'):
+                continue
+
+            rel = os.path.relpath(i, '../chipseq')
+            utils.make_relative_symlink(i, os.path.join('figures/chipseq', rel))
         with open(output[0], 'w') as fout:
             fout.write(dedent(
                 """
-                ChIP-seq analysis -- see ``multiqc.html`` for details on QC,
-
-                The "fingerprint" PNGs show the IP vs input fingerprint plots.
-                See `plotFingerprint docs
-                <http://deeptools.readthedocs.io/en/latest/content/tools/plotFingerprint.html>`_
-                for details.
+                ChIP-seq analysis output. ``multiqc.html`` is probably the most
+                interesting, as it has details on QC. There are also
+                "fingerprint" plots which show the IP vs input relative
+                coverage. For more information on how to interpret these, see
+                the `plotFingerprint docs
+                <http://deeptools.readthedocs.io/en/latest/content/tools/plotFingerprint.html>`_.
                 """))
 
 # vim: ft=python
