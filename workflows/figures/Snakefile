@@ -60,10 +60,12 @@ READMES = [readme_for(i) for i in SCRIPTS]
 # TEST SETTINGS: here we're avoiding adding the full RNA-seq and ChIP-seq
 # outputs to the DAG, because it will trigger the other workflows in their
 # entirety and we don't have that much time on Travis-CI.
-# READMES += [
+READMES += [
+
 #     'figures/rnaseq/README.txt',
 #     'figures/chipseq/README.txt',
-# ]
+      'figures/chipseq/peaks/README.txt'
+]
 
 rule all:
     input:
@@ -218,5 +220,30 @@ rule chipseq_symlinks:
                 the `plotFingerprint docs
                 <http://deeptools.readthedocs.io/en/latest/content/tools/plotFingerprint.html>`_.
                 """))
+
+
+# This rule depends on *all* the peaks called by the chipseq workflow,
+# which we can get by accessing the targets of that workflow, like this.
+
+# TEST SETTINGS: Note that we're only grabbing the first one, to avoid
+# doing lots of work during the testing of this workflow.
+rule chipseq_peaks:
+    input:
+        [chipseq(i) for i in utils.flatten(chipseq_config.targets['peaks'])][0]
+    output:
+        'figures/chipseq/peaks/README.txt'
+    run:
+        for i in input:
+            i = str(i)
+            last = '/'.join(i.split('/')[-3:])
+            outdir = os.path.dirname(last)
+            shell('mkdir -p figures/chipseq/peaks/{outdir} && cp {i} figures/chipseq/peaks/{last}')
+        with open(output[0], 'w') as fout:
+            fout.write(dedent(
+                '''
+                This directory contains the ChIP-seq peak calls used to
+                generate bigBed files for the track hub.  BED files are
+                separated by peak-caller and then by peak-calling run.
+                '''))
 
 # vim: ft=python
