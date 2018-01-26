@@ -42,7 +42,7 @@ r-rmarkdown
 r-spp
 salmon
 samtools
-snakemake
+snakemake <4.5.0
 subread
 trackhub
 ucsc-bedtobigbed
