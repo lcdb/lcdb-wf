@@ -60,10 +60,12 @@ READMES = [readme_for(i) for i in SCRIPTS]
 # TEST SETTINGS: here we're avoiding adding the full RNA-seq and ChIP-seq
 # outputs to the DAG, because it will trigger the other workflows in their
 # entirety and we don't have that much time on Travis-CI.
-# READMES += [
+READMES += [
+
 #     'figures/rnaseq/README.txt',
 #     'figures/chipseq/README.txt',
-# ]
+      'figures/chipseq/peaks/README.txt'
+]
 
 rule all:
     input:
@@ -147,7 +149,7 @@ rule report:
     output: 'guide.html'
     run:
         s = []
-        s.append(open('updates.rst').read())
+        updates = open('updates.rst').read()
         for r in sorted(input.readmes):
 
             # add titles named after the figure directory
@@ -161,9 +163,10 @@ rule report:
             s.append('`{name} analysis directory <{d}>`_'.format(**locals()))
             s.append(open(r).read())
             s.append('')
+        s = '\n'.join(s)
 
         with open('guide.rst', 'w') as fout:
-            fout.write('\n'.join(s))
+            fout.write(updates.replace('PLACEHOLDERPLACEHOLDERPLACEHOLDER', s))
 
         shell('rst2html.py --stylesheet style.css guide.rst > guide.html && rm guide.rst')
 
@@ -201,16 +204,48 @@ rule chipseq_symlinks:
         'figures/chipseq/README.txt',
     run:
         for i in input:
-            utils.make_relative_symlink(i, os.path.join('figures/chipseq', os.path.basename(i)))
+            # Exclude .tab and .metrics files from
+            if i.endswith('.tab') or i.endswith('.metrics'):
+                continue
+
+            rel = os.path.relpath(i, '../chipseq')
+            utils.make_relative_symlink(i, os.path.join('figures/chipseq', rel))
         with open(output[0], 'w') as fout:
             fout.write(dedent(
                 """
-                ChIP-seq analysis -- see ``multiqc.html`` for details on QC,
-
-                The "fingerprint" PNGs show the IP vs input fingerprint plots.
-                See `plotFingerprint docs
-                <http://deeptools.readthedocs.io/en/latest/content/tools/plotFingerprint.html>`_
-                for details.
+                ChIP-seq analysis output. ``multiqc.html`` is probably the most
+                interesting, as it has details on QC. There are also
+                "fingerprint" plots which show the IP vs input relative
+                coverage. For more information on how to interpret these, see
+                the `plotFingerprint docs
+                <http://deeptools.readthedocs.io/en/latest/content/tools/plotFingerprint.html>`_.
                 """))
 
+
+# This rule depends on *all* the peaks called by the chipseq workflow,
+# which we can get by accessing the targets of that workflow, like this.
+
+# TEST SETTINGS: Note that we're only grabbing the first one, to avoid
+# doing lots of work during the testing of this workflow.
+rule chipseq_peaks:
+    input:
+        [chipseq(i) for i in utils.flatten(chipseq_config.targets['peaks'])][0]
+    output:
+        'figures/chipseq/peaks/README.txt'
+    run:
+        for i in input:
+            i = str(i)
+            last = '/'.join(i.split('/')[-3:])
+            outdir = os.path.dirname(last)
+            shell('mkdir -p figures/chipseq/peaks/{outdir} && cp {i} figures/chipseq/peaks/{last}')
+        with open(output[0], 'w') as fout:
+            fout.write(dedent(
+                '''
+                This directory contains the ChIP-seq peak calls used to
+                generate bigBed files for the track hub.  BED files are
+                separated by peak-caller and then by peak-calling run.
+                '''))
+
+onsuccess:
+    shell('zip -r $(date +%Y%m%d_%H%M)_package.zip guide.html figures/')
 # vim: ft=python

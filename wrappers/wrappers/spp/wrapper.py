@@ -1,4 +1,3 @@
-import os
 from textwrap import dedent
 import tempfile
 from snakemake.shell import shell
@@ -12,7 +11,11 @@ if snakemake.log:
 java_args = snakemake.params.get('java_args', '')
 keep_tempfiles = snakemake.params.get('keep_tempfiles', False)
 
-registered_for_deletion = []
+registered_for_deletion = [
+    snakemake.output.bed + '.tmp',
+    snakemake.output.bed + '.tmp.genome',
+]
+
 
 def merge_and_dedup(bams):
     """
@@ -55,6 +58,7 @@ def merge_and_dedup(bams):
     )
     return merged_and_deduped
 
+
 def Rbool(x):
     """
     Convert to R boolean string used to fill in a template
@@ -62,6 +66,7 @@ def Rbool(x):
     if x:
         return 'TRUE'
     return 'FALSE'
+
 
 # ----------------------------------------------------------------------------
 # DEFAULTS
@@ -162,7 +167,9 @@ if 'smoothed_enrichment_mle' in snakemake.output.keys():
 
 if 'enrichment_estimates' in snakemake.output.keys():
     R_template += dedent("""
-    enrichment.estimates <- get.conservative.fold.enrichment.profile(chip.data, input.data, fws=500, step=100, alpha=0.01)
+    enrichment.estimates <- get.conservative.fold.enrichment.profile(
+        chip.data, input.data, fws=500, step=100, alpha=0.01
+    )
     writewig(enrichment.estimates, "{snakemake.output.enrichment_estimates}", feature="")
     rm(enrichment.estimates)
     """)
@@ -187,7 +194,7 @@ bp <- add.broad.peak.regions(
   window.size=detection.window.halfsize,
   z.thr={params[zthr]}
 )
-write.narrowpeak.binding(bp, "{snakemake.output.bed}")
+write.narrowpeak.binding(bp, "{snakemake.output.bed}.tmp")
 """
 
 # Save image for later introspection or debugging
@@ -203,6 +210,19 @@ with open(script_filename, 'w') as fout:
 
 # Run it
 shell('Rscript {script_filename} {log}')
+
+# Fix the output file so that it doesn't have negative numbers and so it fits
+# inside the genome
+shell(
+    """awk -F "\\t" '{{OFS="\\t"; print $1, "0", $2}}' """
+    "{snakemake.input.chromsizes} "
+    "> {snakemake.output.bed}.tmp.genome"
+)
+shell(
+    "sort -k1,1 -k2,2n {snakemake.output.bed}.tmp | "
+    """awk -F "\\t" '{{OFS="\\t"; if (($2>0) && ($3>0)) print $0}}' | """
+    "bedtools intersect -a - -b {snakemake.output.bed}.tmp.genome > {snakemake.output.bed}"
+)
 
 # SPP's writewig() adds a header and is space-separated, so this turns it into
 # a proper bedGraph file ready for conversion to bigwig.
