@@ -147,7 +147,7 @@ rule report:
     output: 'guide.html'
     run:
         s = []
-        s.append(open('updates.rst').read())
+        updates = open('updates.rst').read()
         for r in sorted(input.readmes):
 
             # add titles named after the figure directory
@@ -161,9 +161,10 @@ rule report:
             s.append('`{name} analysis directory <{d}>`_'.format(**locals()))
             s.append(open(r).read())
             s.append('')
+        s = '\n'.join(s)
 
         with open('guide.rst', 'w') as fout:
-            fout.write('\n'.join(s))
+            fout.write(updates.replace('PLACEHOLDERPLACEHOLDERPLACEHOLDER', s))
 
         shell('rst2html.py --stylesheet style.css guide.rst > guide.html && rm guide.rst')
 
