@@ -246,4 +246,6 @@ rule chipseq_peaks:
                 separated by peak-caller and then by peak-calling run.
                 '''))
 
+onsuccess:
+    shell('zip -r $(date +%Y%m%d_%H%M)_package.zip guide.html figures/')
 # vim: ft=python
