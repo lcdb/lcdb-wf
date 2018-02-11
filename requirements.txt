@@ -46,6 +46,7 @@ snakemake <4.5.0
 subread
 trackhub
 ucsc-bedtobigbed
+ucsc-bedsort
 ucsc-fetchchromsizes
 ucsc-gtftogenepred
 ucsc-liftover
