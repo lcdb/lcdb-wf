@@ -33,12 +33,12 @@ rnaseq_refdict, rnaseq_args = common.references_dict(rnaseq_config.config)
 
 subworkflow rnaseq:
     configfile: rnaseq_config.path
-    workdir: '../rnaseq'
+    workdir: rnaseq_config.workdir
 
 
 subworkflow chipseq:
     configfile: chipseq_config.path
-    workdir: '../chipseq'
+    workdir: chipseq_config.workdir
 
 
 # "Register" the various scripts here. Their expected READMEs will be added to

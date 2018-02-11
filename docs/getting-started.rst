@@ -1,3 +1,5 @@
+.. _getting-started:
+
 Getting started
 ===============
 The following steps will install all necessary software and run the example
@@ -76,25 +78,7 @@ These references are configured in the ``config/config.yaml`` file, which is
 heavily commented to guide you on how to modify it for your own needs.
 
 The RNA-seq workflow includes the standard mapping, counting, and differential
-expression stages, as well as many quality-control steps including:
-
-    - trimming with cutadapt
-    - aligning with HISAT2
-    - FastQC on raw, trimmed, and aligned reads
-    - dupRadar and preseq to assess library complexity
-    - fastq_screen on multiple configured genomes to look for evidence of
-      cross-contamination
-    - Picard CollectRnaSeqMetrics to assess transcript coverage
-    - QC aggregation using MultiQC, along with custom tables for library sizes
-      and rRNA contamination (by aligning reads to rRNA with Bowtie2)
-    - counting reads in features with featureCounts
-    - An RMarkdown file that runs a standard DESeq2 differential expression
-      analysis along with diagnostic plots, exported tables of differentially
-      expressed genes for each contras, and downstream GO analysis using
-      clusterProfiler. This file is run and rendered into an output HTML file.
-    - bigWigs (optionally strand-specific) created from BAM files
-    - A track hub of bigWigs for each sample that can be viewed in UCSC Genome
-      Browser
+expression stages, as well as many quality-control steps. See :ref:`rnaseq` for more details.
 
 The DAG of jobs looks like this:
 

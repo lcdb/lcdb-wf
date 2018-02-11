@@ -72,9 +72,11 @@ class SeqConfig(object):
             as relative to `workdir`
         """
         self.path = None
+        self.workdir = '.'
         if workdir is not None:
             config = os.path.join(workdir, config)
             patterns = os.path.join(workdir, patterns)
+            self.workdir = workdir
 
         if isinstance(config, str):
             self.path = config

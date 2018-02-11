@@ -507,6 +507,7 @@ rule bed_to_bigbed:
             df.to_csv(output[0] + '.tmp', sep='\t', index=False, header=False)
 
             shell('bedToBigBed -as={_as} -type={_type} {output}.tmp {input.chromsizes} {output}')
+            shell('rm {output}.tmp')
 
 
 # vim: ft=python
