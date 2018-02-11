@@ -176,6 +176,8 @@ rule fastq_screen:
     """
     Run fastq_screen to look for contamination from other genomes
     """
+    # TEST SETTINGS:
+    # May want to add other genomes as appropriate for your experiment
     input:
         fastq=rules.cutadapt.output.fastq,
         dm6=c.refdict['dmel'][config['aligner']['tag']]['bowtie2'],
@@ -202,6 +204,11 @@ rule featurecounts:
     log:
         c.patterns['featurecounts'] + '.log'
     shell:
+        # TEST SETTINGS:
+        # For reference:
+        # '-s 1 ' # for stranded data
+        # '-s 2 ' # for TruSeq kits where strand is flipped
+        # '-t gene -g gene_id -f ' # for nascent RNA-seq
         'featureCounts '
         '-T {threads} '
         '-a {input.annotation} '
@@ -404,6 +411,9 @@ rule collectrnaseqmetrics:
         #     FIRST_READ_TRANSCRIPTION_STRAND if the reads are expected to be on the
         #     transcription strand.  Required. Possible values: {NONE,
         #     FIRST_READ_TRANSCRIPTION_STRAND, SECOND_READ_TRANSCRIPTION_STRAND}
+        #
+        # TEST SETTINGS:
+        #   Adjust strandedness appropriately.
         'STRAND=NONE CHART_OUTPUT={output.pdf} '
         'REF_FLAT={input.refflat} '
         'INPUT={input.bam} '
