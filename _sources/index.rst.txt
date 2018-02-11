@@ -22,6 +22,7 @@ running everything up through the final results.
    guide
    workflows
    references
+   rnaseq
    wrappers
    tests
    autodoc

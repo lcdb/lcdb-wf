@@ -1,0 +1,199 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>RNA-seq workflow &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Wrappers" href="wrappers.html" />
+    <link rel="prev" title="References workflow" href="references.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="rna-seq-workflow">
+<span id="rnaseq"></span><h1>RNA-seq workflow<a class="headerlink" href="#rna-seq-workflow" title="Permalink to this headline">¶</a></h1>
+<p>This workflow is used for RNA-seq and RNA-seq-like analysis (like euRNA-seq,
+RIP-seq or small RNA-seq).</p>
+<p>This workflow can use references created by the references workflow with no
+need to run the references separately. This workflow includes:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Build a HISAT2 index</li>
+<li>Build a salmon transcriptome index</li>
+<li>Download a GTF annotation</li>
+<li>Convert the GTF to refflat format</li>
+<li>Trim reads with cutadapt</li>
+<li>Align with HISAT2</li>
+<li>Run FastQC on raw, trimmed, and aligned reads</li>
+<li>Align reads to rRNA using bowtie2 to evaluate rRNA contamination</li>
+<li>Count reads in genes with featureCounts</li>
+<li>Run dupRadar and preseq to assess library complexity</li>
+<li>Check for evidence of cross-contamination using fastq_screen on multiple
+configured genomes</li>
+<li>Assess transcript coverage with Picard CollectRnaSeqMetrics</li>
+<li>Build bigWigs (optionally strand-specific) created from BAM files</li>
+<li>Aggregate QC results using MultiQC. Includes custom tables for library
+sizes and rRNA contamination</li>
+<li>Run various QC and differential expression. This is performed in an
+RMarkdown file that runs a standard DESeq2 differential expression
+analysis along with diagnostic plots, exported tables of differentially
+expressed genes for each contrast, and downstream GO analysis using
+clusterProfiler. This file is run and rendered into an output HTML file.</li>
+<li>Construct and upload a track hub of scaled coverage bigWigs for each
+sample that can be viewed in UCSC Genome Browser</li>
+</ul>
+</div></blockquote>
+<p>The DAG of jobs looks like this:</p>
+<img alt="_images/rnaseq.png" src="_images/rnaseq.png" />
+<div class="section" id="preliminary-setup-annotationhub">
+<h2>Preliminary setup: AnnotationHub<a class="headerlink" href="#preliminary-setup-annotationhub" title="Permalink to this headline">¶</a></h2>
+<p>In order to support multiple genomes, we use the AnnotationHub package from
+Bioconductor as a uniform API to access annotation information for GO analysis
+and mapping gene ID to gene name and symbol. This uniformity and flexibility is
+offset by the need to do some preliminary setup to work around 1) running the
+analysis on nodes with no internet acess and 2) AnnotationHub caching issues.</p>
+<p>To run the analysis on a node with no internet access, we need to pre-download
+the annotation information. It’s best to do this in a directory-specific
+manner, since Bioconductor updates their annotations frequently. You don’t want
+to use the default cache location of <code class="docutils literal"><span class="pre">~/.AnnotationHub</span></code>, because that could
+collide with other experiments that you don’t want to update yet.</p>
+<p>The solution is to:
+1. activate the environment on a machine with internet access
+2. change to the top level directory of the repo
+3. start R
+4. run the following code:</p>
+<div class="highlight-r"><div class="highlight"><pre><span></span><span class="kn">library</span><span class="p">(</span>AnnotationHub<span class="p">)</span>
+ah <span class="o">&lt;-</span> AnnotationHub<span class="p">(</span>cache<span class="o">=</span><span class="s">&#39;include/AnnotationHubCache&#39;</span><span class="p">)</span>
+idx <span class="o">&lt;-</span> <span class="kp">grepl</span><span class="p">(</span><span class="s">&#39;Homo sapiens&#39;</span><span class="p">,</span> ah<span class="o">$</span>species<span class="p">)</span> <span class="o">&amp;</span> ah<span class="o">$</span>rdataclass <span class="o">==</span> <span class="s">&#39;OrgDb&#39;</span>
+
+<span class="c1"># This may give multiple results. In order to choose, you can view more</span>
+<span class="c1"># information on the options:</span>
+mcols<span class="p">(</span>ah<span class="p">[</span>idx<span class="p">])</span>
+
+<span class="c1"># Choose the annotation key you want to use. Accessing the OrgDb object</span>
+<span class="c1"># triggers a download, and the download will go to the cache directory</span>
+<span class="c1"># specified above.</span>
+orgdb <span class="o">&lt;-</span> ah<span class="p">[[</span>annotation_key<span class="p">]]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="parameters-and-settings">
+<h2>Parameters and settings<a class="headerlink" href="#parameters-and-settings" title="Permalink to this headline">¶</a></h2>
+<p>See <a class="reference internal" href="workflows.html#config"><span class="std std-ref">Configuration</span></a> for configuring in general; here we describe the
+RNA-seq-specific configuration.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2"><code class="docutils literal"><span class="pre">config/sampletable.tsv</span></code>:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">This TSV is loaded into the RMarkdown file, so any information you add here
+will be available in R and can therefore be used in linear models with
+DESeq2 or can be used to otherwise annotate samples.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2"><code class="docutils literal"><span class="pre">downstream/rnaseq.Rmd</span></code>:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body">This file runs the differential expression analysis and other downstream
+work. Search for the string <code class="docutils literal"><span class="pre">Assumption</span></code>. This indicates places where
+assumptions have been made about the experiment (what columns to use as
+factors, how to group samples, etc).</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2"><code class="docutils literal"><span class="pre">rnaseq_trackhub.py</span></code>:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">This script builds the track hub for RNA-seq. Look for the string
+<code class="docutils literal"><span class="pre">ASSUMPTION</span></code> and follow the instructions there for how to customize for
+your particular experiment.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">RNA-seq workflow</a><ul>
+<li><a class="reference internal" href="#preliminary-setup-annotationhub">Preliminary setup: AnnotationHub</a></li>
+<li><a class="reference internal" href="#parameters-and-settings">Parameters and settings</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="references.html" title="previous chapter">References workflow</a></li>
+      <li>Next: <a href="wrappers.html" title="next chapter">Wrappers</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rnaseq.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/rnaseq.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

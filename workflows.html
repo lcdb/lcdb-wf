@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>references.snakefile &#8212; lcdb-wf 0.1 documentation</title>
+    <title>Features common to all workflows &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -40,131 +40,238 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="references-snakefile">
-<h1><code class="docutils literal"><span class="pre">references.snakefile</span></code><a class="headerlink" href="#references-snakefile" title="Permalink to this headline">¶</a></h1>
-<p>When run on its own, this builds all references specified in the config file.
-This is typically done when initially setting up a system that will run
-workflows on many different references. For smaller-scale use-cases (e.g.,
-you’ll only be running data from a single organism), you might be better off
-not running the workflow directly. This workflow is also included (with the
-<code class="docutils literal"><span class="pre">include:</span></code> directive) into the other workflows. This way, any reference files
-that are needed by, say, the RNA-seq workflow will be created automatically.</p>
-<p>See <a class="reference internal" href="references.html#references"><span class="std std-ref">References workflow</span></a> for more details.</p>
-<p><code class="xref py py-func docutils literal"><span class="pre">lib.common.reference_dict()</span></code></p>
-<p>TODO:</p>
-<ul class="simple">
-<li>references dict and how to access</li>
-<li>wrappers</li>
-<li>orig_filename</li>
-<li>R_rnaseq vs top-level env</li>
-<li>rnaseq.Rmd</li>
-<li>test-settings</li>
-<li>trackhub</li>
-</ul>
-</div>
-<div class="section" id="features-common-to-all-workflows">
+  <div class="section" id="features-common-to-all-workflows">
 <h1>Features common to all workflows<a class="headerlink" href="#features-common-to-all-workflows" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="configuration">
+<span id="config"></span><h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>In the top-level directory, you may want to edit <code class="docutils literal"><span class="pre">include/WRAPPER_SLURM</span></code> to
+activate the environment you’re using.</p>
+<p>Within each workflow are the following files to check:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2"><code class="docutils literal"><span class="pre">config/config.yaml</span></code>:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><p class="first">This file contains information on what assembly to use, and configures the
+directories where output will go.</p>
+<p>Be sure to check:
+- assembly
+- references_dir
+- tags (for aligner, rrna, gtf, and salmon).</p>
+<p>You will probably want to copy-paste the references section from the
+top-level <code class="docutils literal"><span class="pre">config/config.yaml</span></code>, since that has config information for
+many model organisms already.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name"><code class="docutils literal"><span class="pre">Snakefile</span></code>:</th><td class="field-body"><p class="first">In the <code class="docutils literal"><span class="pre">Snakefile</span></code>, search for the string <code class="docutils literal"><span class="pre">TEST</span> <span class="pre">SETTINGS</span></code>.  This is used to
+indicate where settings can and should be customized, but are set by default to
+whatever makes sense for our test data. The comments often give alternative
+suggestions.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2"><code class="docutils literal"><span class="pre">config/*_patterns.yaml</span></code>:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><p class="first">The ChIP-seq and RNA-seq workflows have a “patterns” file. See below for
+more details on this, but generally unless you have strong opinions about
+output directory organization, you don’t need to change this.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2"><code class="docutils literal"><span class="pre">config/sampletable.tsv</span></code>:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first">A tab-separated file containing metadata for the experiment. The first
+column is the sample name. The <code class="docutils literal"><span class="pre">orig_filename</span></code> is optional. By default,</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2"><code class="docutils literal"><span class="pre">config/clusterconfig.yaml</span></code>:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><p class="first">Per-rule settings. Modify these settings according to your cluster. The
+existing settings are for NIH’s Biowulf cluster, which runs the SLURM
+scheduler.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2"><code class="docutils literal"><span class="pre">config/hub_config.yaml</span></code>:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first last">This file configures information about the track hub – which colors to use
+for which samples, and user/hostname information for uploading the hub.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="running-on-a-cluster">
+<h2>Running on a cluster<a class="headerlink" href="#running-on-a-cluster" title="Permalink to this headline">¶</a></h2>
+<p>The example commands in <a class="reference internal" href="getting-started.html#getting-started"><span class="std std-ref">Getting started</span></a> describe running Snakemake
+locally. For larger data sets, you’ll want to run them on an HPC cluster.
+Snakemake <a class="reference external" href="http://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html">supports arbitrary cluster commands</a>,
+making it easy to run these workflows on many different cluster environments.</p>
+<p>The default configuration we provide is specific to the NIH Biowulf cluster.
+To run a workflow on Biowulf, from the workflow directory (e.g.,
+<code class="docutils literal"><span class="pre">workflows/rnaseq</span></code>, run the following command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sbatch</span> <span class="o">../../</span><span class="n">include</span><span class="o">/</span><span class="n">WRAPPER_SLURM</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">WRAPPER_SLURM</span></code> script submits the main Snakemake process on a separate node to avoid any
+restrictions from running on the head node. That main snakemake process then
+submits each rule separately to the cluster scheduler. As configured in that
+script, we specify <code class="docutils literal"><span class="pre">config/clusterconfig.yaml</span></code> as containing the
+rule-specific cluster arguments.</p>
+<p>That script also contains this Snakemake arguments:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">--</span><span class="n">jobname</span> <span class="s2">&quot;s.</span><span class="si">{rulename}</span><span class="s2">.</span><span class="si">{jobid}</span><span class="s2">.sh&quot;</span> \
+<span class="o">--</span><span class="n">cluster</span> <span class="s1">&#39;sbatch </span><span class="si">{cluster.prefix}</span><span class="s1"> --cpus-per-task=</span><span class="si">{threads}</span><span class="s1">  --output=logs/</span><span class="si">{rule}</span><span class="s1">.o.%j --error=logs/</span><span class="si">{rule}</span><span class="s1">.e.%j&#39;</span> \
+</pre></div>
+</div>
+<p>This means that each job is named after the rule and job id (the <code class="docutils literal"><span class="pre">--jobname</span></code>
+arg) and the stdout and stderr go to files in <code class="docutils literal"><span class="pre">logs</span></code> and are named after the
+rule, followed by a <code class="docutils literal"><span class="pre">.o</span></code> or <code class="docutils literal"><span class="pre">.e</span></code>, followed by the cluster job ID (the
+<code class="docutils literal"><span class="pre">--cluster</span></code> arg).</p>
+</div>
+<div class="section" id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<p>Many rules have an explicit <code class="docutils literal"><span class="pre">log:</span></code> directive that defines where the log is
+written. These are typically in the same directory as the output files the rule
+creates, and this is the first place to check if something goes wrong.</p>
+<p>Some rules do not explicitly redirect to <code class="docutils literal"><span class="pre">log:</span></code> or may only redirect either
+stdout or stderr. Where this output ends up depends on if you’re running
+locally or on a cluster. When running locally, stdout and stderr will be
+included in the output from Snakemake, so check there.</p>
+<p>If running on a cluster, the default behavior is to send the main Snakemake
+output to <code class="docutils literal"><span class="pre">Snakefile.log</span></code>.  The per-rule output depends on how it was sent to
+the cluster.  As described in the above section, by default stdout and stderr
+are sent to the <code class="docutils literal"><span class="pre">logs</span></code> directory, named after rule and job ID.</p>
+<p><strong>If a job fails on a cluster</strong>:</p>
+<ul class="simple">
+<li>Open <code class="docutils literal"><span class="pre">Snakefile.log</span></code> and search for <code class="docutils literal"><span class="pre">Error</span></code></li>
+<li>Recent versions of Snakemake report the <code class="docutils literal"><span class="pre">log:</span></code> file (if any) and the
+<code class="docutils literal"><span class="pre">cluster_jobid:</span></code>. Keep track of these.</li>
+<li>If <code class="docutils literal"><span class="pre">log:</span></code> was defined, check there first for info</li>
+<li>If not, or if more information is needed, check
+<code class="docutils literal"><span class="pre">logs/&lt;rulename&gt;.{e,o}.&lt;jobid&gt;</span></code>.</li>
+</ul>
+<p>For example, if we find the following error in <code class="docutils literal"><span class="pre">Snakefile.log</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Tue</span> <span class="n">Feb</span>  <span class="mi">6</span> <span class="mi">20</span><span class="p">:</span><span class="mi">06</span><span class="p">:</span><span class="mi">30</span> <span class="mi">2018</span><span class="p">]</span> <span class="n">Error</span> <span class="ow">in</span> <span class="n">rule</span> <span class="n">rnaseq_rmarkdown</span><span class="p">:</span>
+<span class="p">[</span><span class="n">Tue</span> <span class="n">Feb</span>  <span class="mi">6</span> <span class="mi">20</span><span class="p">:</span><span class="mi">06</span><span class="p">:</span><span class="mi">30</span> <span class="mi">2018</span><span class="p">]</span>     <span class="n">jobid</span><span class="p">:</span> <span class="mi">156</span>
+<span class="p">[</span><span class="n">Tue</span> <span class="n">Feb</span>  <span class="mi">6</span> <span class="mi">20</span><span class="p">:</span><span class="mi">06</span><span class="p">:</span><span class="mi">30</span> <span class="mi">2018</span><span class="p">]</span>     <span class="n">output</span><span class="p">:</span> <span class="n">downstream</span><span class="o">/</span><span class="n">rnaseq</span><span class="o">.</span><span class="n">html</span>
+<span class="p">[</span><span class="n">Tue</span> <span class="n">Feb</span>  <span class="mi">6</span> <span class="mi">20</span><span class="p">:</span><span class="mi">06</span><span class="p">:</span><span class="mi">30</span> <span class="mi">2018</span><span class="p">]</span>     <span class="n">cluster_jobid</span><span class="p">:</span> <span class="mi">60894387</span>
+</pre></div>
+</div>
+<p>Then we would check <code class="docutils literal"><span class="pre">logs/rnaseq_markdown.e.60894387</span></code> and
+<code class="docutils literal"><span class="pre">logs/rnaseq_markdown.o.60894387</span></code> for more information.</p>
+</div>
 <div class="section" id="patterns-and-targets">
 <h2><cite>patterns</cite> and <cite>targets</cite><a class="headerlink" href="#patterns-and-targets" title="Permalink to this headline">¶</a></h2>
-<p>At the top of each workflow (snakefile), there is a <cite>patterns</cite> dict that lays
-out, all in one place, the output file patterns used throughout the workflow.
-Subdictionaries are used for better organization.  Rules can optionally use
-values from this dict to use as their input and output patterns. Using the
-<cite>lcdblib.snakemake.fill_patterns</cite> function, these patterns are also “rendered”
-into a <cite>targets</cite> dictionary (this is basically a recursive <cite>expand()</cite>). So the
-<cite>patterns</cite> dictionary has the patterns with wildcards, and <cite>targets</cite> has the
-patterns with the wildcards filled in. The <cite>all</cite> rule uses the contents of the
-<cite>targets</cite> dict to populate its input, and therefore control what rules make it
-into the DAG</p>
-<p>This provides, all in one section of the Snakefile, a fair amount of
-customization options. Patterns can be commented out, or targets can be excluded
-from the <cite>all</cite> rule to fine-tune which rules will be run.</p>
-<p>A nice side-effect of the <cite>patterns</cite> and <cite>targets</cite> design is that aggregation
-rules become much easier to write. If all FastQC runs are under a <cite>fastqc</cite> key
-in <cite>targets</cite>, they can all be used as input to a rule using
-<cite>lcdblib.utils.flatten(targets[‘fastqc’])</cite>. This is in contrast to, say, writing
-input functions.</p>
-<p>Here is a small example, first without the patterns and targets:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">rule</span> <span class="nb">all</span><span class="p">:</span>
-    <span class="nb">input</span><span class="p">:</span>
-        <span class="s1">&#39;data/fastqs/{sample}.fastq.fastqc.html&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;data/multiqc.html&#39;</span>
-
-<span class="n">rule</span> <span class="n">align</span><span class="p">:</span>
-    <span class="nb">input</span><span class="p">:</span> <span class="s1">&#39;data/fastqs/{sample}.fastq.gz&#39;</span>
-    <span class="n">output</span><span class="p">:</span> <span class="s1">&#39;data/bams/{sample}.bam&#39;</span>
-    <span class="n">shell</span><span class="p">:</span>
-        <span class="k">pass</span>
-
-<span class="n">rule</span> <span class="n">fastqc</span><span class="p">:</span>
-    <span class="nb">input</span><span class="p">:</span> <span class="s1">&#39;{prefix}&#39;</span>
-    <span class="n">output</span><span class="p">:</span> <span class="s1">&#39;{prefix}.html&#39;</span>
-    <span class="n">shell</span><span class="p">:</span>
-        <span class="k">pass</span>
-
-<span class="n">rule</span> <span class="n">multiqc</span><span class="p">:</span>
-    <span class="nb">input</span><span class="p">:</span>
-        <span class="n">expand</span><span class="p">(</span><span class="s1">&#39;data/fastqs/{sample}.fastq.fastqc.html&#39;</span><span class="p">,</span> <span class="n">sample</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">]),</span>
-        <span class="n">expand</span><span class="p">(</span><span class="s1">&#39;data/bams/{sample}.bam.fastqc.html&#39;</span><span class="p">,</span> <span class="n">sample</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">]),</span>
-    <span class="n">output</span><span class="p">:</span> <span class="s1">&#39;data/multiqc.html&#39;</span>
-</pre></div>
-</div>
-<p>With the files hard-coded throughout the snakefile, modifying the locations of
-files becomes harder the more complex the file. For example, if we wanted to
-change the fastqs location from <code class="docutils literal"><span class="pre">data/fastqs</span></code> to <code class="docutils literal"><span class="pre">data/samples</span></code>, we would
-have to edit all the rules individually. Furthermore, it’s not so easy to get
-a high-level picture of the files created by the workflow.</p>
-<p>In contrast, here is the same workflow using the patterns and targets. The big
-difference is that the filename patterns are set up all in one block at the
-beginning so it’s easier to see what is created. To change the fastqs location,
-we would simply change the pattern for <code class="docutils literal"><span class="pre">fastq:</span></code> and <code class="docutils literal"><span class="pre">fastqc:fastq:</span></code>, and
-this would propagate to the rules. Last, it is easier to enable/disable
-portions of the DAG in the <code class="docutils literal"><span class="pre">all</span></code> rule because the targets are named.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lcdblib.snakemake.utils</span> <span class="kn">import</span> <span class="n">fill_patterns</span>
-
-<span class="c1"># Dictionary of patterns. Keys and sub-dictionaries are up to the user; the</span>
-<span class="c1"># idea is to help with organization.</span>
-<span class="n">patterns</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;fastq&#39;</span><span class="p">:</span> <span class="s1">&#39;data/fastqs/{sample}.fastq.gz&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;mapped&#39;</span><span class="p">:</span> <span class="s1">&#39;data/bams/{sample}.bam&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;fastqc&#39;</span><span class="p">:</span>
-        <span class="s1">&#39;fastq&#39;</span><span class="p">:</span> <span class="s1">&#39;data/fastqs/{sample}.fastq.fastqc.html&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;bam&#39;</span><span class="p">:</span> <span class="s1">&#39;data/bams/{sample}.bam.fastqc.html&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;multiqc&#39;</span><span class="p">:</span> <span class="s1">&#39;data/multiqc.html&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;markdups&#39;</span><span class="p">:</span> <span class="s1">&#39;data/bams/{sample}.nodups.bam&#39;</span><span class="p">,</span>
-<span class="p">}</span>
-
-<span class="c1"># Recursively fills out patterns.</span>
-<span class="n">targets</span> <span class="o">=</span> <span class="n">fill_patterns</span><span class="p">(</span><span class="n">patterns</span><span class="p">,</span> <span class="n">sample</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">])</span>
-
-<span class="c1"># Comment out the &quot;markdups&quot; line to remove that rule from the DAG</span>
+<p>The input and output patterns are configured in a <code class="docutils literal"><span class="pre">config/*_patterns.yaml</span></code>
+file. This file provides a convenient way to organize the many files that are
+created by a workflow. In general you can ignore this when using the workflows.
+But if you want to create your own rules or otherwise do development work, it
+may be helpful to understand this mechanism for the convenience it offers.</p>
+<p>In each workflow, it is loaded into a <code class="docutils literal"><span class="pre">SeqConfig</span></code>
+object, which gives access to the patterns as well as the targets generated by
+filling in those patterns with config information. For example in the RNA-seq
+workflow, these patterns are in <code class="docutils literal"><span class="pre">config/rnaseq_patterns.yaml</span></code>. They are
+loaded into the RNASeqConfig object <code class="docutils literal"><span class="pre">c</span></code>, and targets are filled in according
+to the config (which includes all the sample names in the sampletable).
+Patterns and targets for rules are accessed from this object.</p>
+<p>To make it easier to access large lists of items, we can use the
+<code class="docutils literal"><span class="pre">lcdblib.utils.flatten</span></code> function to get a flat list of files starting from
+any key in the patterns YAML file.</p>
+<p>This has several advantages:</p>
+<ul class="simple">
+<li>Writing aggregation rules is much easier. For example, instead of lots of
+<code class="docutils literal"><span class="pre">expand()</span></code> calls, we can get all the FastQC output with
+<code class="docutils literal"><span class="pre">flatten(c.targets[&quot;fastqc&quot;])</span></code>.</li>
+<li>Toggling entire sections of the workflow can be performed by changing
+a single line in the first “all” rule. For example:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># include the dupradar files in the DAG</span>
 <span class="n">rule</span> <span class="nb">all</span><span class="p">:</span>
     <span class="nb">input</span><span class="p">:</span>
-        <span class="n">targets</span><span class="p">[</span><span class="s1">&#39;fastqc&#39;</span><span class="p">]</span> <span class="o">+</span>
-        <span class="c1"># targets[&#39;markdups&#39;] +</span>
-        <span class="n">targets</span><span class="p">[</span><span class="s1">&#39;multiqc&#39;</span><span class="p">]</span>
+        <span class="n">flatten</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">targets</span><span class="p">[</span><span class="s1">&#39;downstream&#39;</span><span class="p">]),</span>
+        <span class="n">flatten</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">targets</span><span class="p">[</span><span class="s1">&#39;dupradar&#39;</span><span class="p">])</span>
 
 
-<span class="c1"># Patterns can be used as input/output</span>
-<span class="n">rule</span> <span class="n">align</span><span class="p">:</span>
-    <span class="nb">input</span><span class="p">:</span> <span class="n">patterns</span><span class="p">[</span><span class="s1">&#39;fastq&#39;</span><span class="p">]</span>
-    <span class="n">output</span><span class="p">:</span> <span class="n">patterns</span><span class="p">[</span><span class="s1">&#39;mapped&#39;</span><span class="p">]</span>
-    <span class="n">shell</span><span class="p">:</span>
-        <span class="k">pass</span>
-
-<span class="c1"># In some cases, it makes sense to NOT use the patterns</span>
-<span class="n">rule</span> <span class="n">fastqc</span><span class="p">:</span>
-    <span class="nb">input</span><span class="p">:</span> <span class="s1">&#39;{prefix}&#39;</span>
-    <span class="n">output</span><span class="p">:</span> <span class="s1">&#39;{prefix}.html&#39;</span>
-    <span class="n">shell</span><span class="p">:</span>
-        <span class="k">pass</span>
-
-<span class="c1"># Aggregation rules can use the already-filled-in `targets`</span>
-<span class="n">rule</span> <span class="n">multiqc</span><span class="p">:</span>
-    <span class="nb">input</span><span class="p">:</span> <span class="n">targets</span><span class="p">[</span><span class="s1">&#39;fastqc&#39;</span><span class="p">]</span>
-    <span class="n">output</span><span class="p">:</span> <span class="n">patterns</span><span class="p">[</span><span class="s1">&#39;multiqc&#39;</span><span class="p">]</span>
+<span class="c1"># exclude them</span>
+<span class="n">rule</span> <span class="nb">all</span><span class="p">:</span>
+    <span class="nb">input</span><span class="p">:</span>
+        <span class="n">flatten</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">targets</span><span class="p">[</span><span class="s1">&#39;downstream&#39;</span><span class="p">]),</span>
+        <span class="c1"># flatten(c.targets[&#39;dupradar&#39;])</span>
 </pre></div>
 </div>
+<ul class="simple">
+<li>You can re-organize the output directories by editing the patterns file
+without having to touch the Snakefile</li>
+<li>Downstream tasks can access these patterns and targets as well, avoiding the
+need to retype filename patterns and maintain them across multiple workflows.</li>
+</ul>
+<p>To illustrate this last case, imagine we have the following analyses:</p>
+<ul class="simple">
+<li>RNA-seq data for a knockdown and control (in the <code class="docutils literal"><span class="pre">rnaseq</span></code> workflow)</li>
+<li>ChIP-seq data from some factors (analyzed with the <code class="docutils literal"><span class="pre">chipseq</span></code> workflow)</li>
+<li>some BED files of called peaks downloaded and lifted over from published data
+(<code class="docutils literal"><span class="pre">external</span></code> workflow).</li>
+</ul>
+<p>Now we want to make a figure: an M-A plot of RNA-seq differential expression
+with points colored by whether they have a ChIP-seq peak at their promoter. The
+input for this figure comes from different workflows. It should be re-generated
+if the differential expression changes, or if any of the peak calls change.</p>
+<p>The way this is tyically handled is with Snakemake <a class="reference external" href="http://snakemake.readthedocs.io/en/stable/snakefiles/modularization.html#sub-workflows">subworkflows</a>,
+and that’s what we use here. However we can take advantage of the patterns and
+targets to conveniently access any of the files created by any of the other
+workflows. Here’s an example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># Create config objects. They need the config yaml, the patterns yaml, and</span>
+<span class="c1"># the working directory for the corresponding workflow.</span>
+<span class="n">rnaseq_config</span> <span class="o">=</span> <span class="n">RNASeqConfig</span><span class="p">(</span><span class="s1">&#39;config/config.yaml&#39;</span><span class="p">,</span> <span class="s1">&#39;config/rnaseq_patterns.yaml&#39;</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="s1">&#39;../rnaseq&#39;</span><span class="p">)</span>
+<span class="n">chipseq_config</span> <span class="o">=</span> <span class="n">ChIPSeqConfig</span><span class="p">(</span><span class="s1">&#39;config/config.yaml&#39;</span><span class="p">,</span> <span class="s1">&#39;config/chipseq_patterns.yaml&#39;</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="s1">&#39;../chipseq&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create Snakemake subworkflows</span>
+<span class="n">subworkflow</span> <span class="n">rnaseq</span><span class="p">:</span>
+    <span class="n">configfile</span><span class="p">:</span> <span class="n">rnaseq_config</span><span class="o">.</span><span class="n">path</span>
+    <span class="n">workdir</span><span class="p">:</span> <span class="n">rnaseq_config</span><span class="o">.</span><span class="n">workdir</span>
+
+<span class="n">subworkflow</span> <span class="n">chipseq</span><span class="p">:</span>
+    <span class="n">configfile</span><span class="p">:</span> <span class="n">chipseq_config</span><span class="o">.</span><span class="n">path</span>
+    <span class="n">workdir</span><span class="p">:</span> <span class="n">chipseq_config</span><span class="o">.</span><span class="n">workdir</span>
+
+<span class="c1"># Here&#39;s how to use files created from each workflow:</span>
+<span class="n">rule</span> <span class="n">peaks_at_promoters</span><span class="p">:</span>
+    <span class="nb">input</span><span class="p">:</span>
+        <span class="n">de_results</span><span class="o">=</span><span class="n">rnaseq</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">rnaseq_config</span><span class="o">.</span><span class="n">targets</span><span class="p">[</span><span class="s1">&#39;downstream&#39;</span><span class="p">])),</span>
+        <span class="n">peaks</span><span class="o">=</span><span class="n">chipseq</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">chipseq_config</span><span class="o">.</span><span class="n">targets</span><span class="p">[</span><span class="s1">&#39;peaks&#39;</span><span class="p">]))</span>
+    <span class="n">output</span><span class="p">:</span>
+        <span class="s1">&#39;ma_plot.png&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="references-workflow-and-the-reference-dict">
+<h2>References workflow and the reference dict<a class="headerlink" href="#references-workflow-and-the-reference-dict" title="Permalink to this headline">¶</a></h2>
+<p>the references workflow in
+<code class="docutils literal"><span class="pre">workflows/references/Snakefile</span></code>, when run on its own, builds all references
+specified in the config file. This is typically done only when initially
+setting up a system that will run workflows on many different references.</p>
+<p>Most of the time, this workflow is included (with the <code class="docutils literal"><span class="pre">include:</span></code> directive)
+into the other workflows. This way, any reference files that are needed by,
+say, the RNA-seq workflow will be created automatically.</p>
+<p>The format of the config YAML is designed to be convenient to edit and
+maintain, but ends up being awkward to use in practice. So in the <code class="docutils literal"><span class="pre">SeqConfig</span></code>
+object (see description of this above), we store a more convenient
+representation of it that only contains the generated reference files. It is
+available as the <code class="docutils literal"><span class="pre">refdict</span></code> attribute.  It converts this, as entered into the
+config yaml (and which includes URLs and other info):</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">references</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">dm6</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">r6-11</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">fasta</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="s">&quot;https://url/to/dm6.fasta&quot;</span>
+        <span class="l l-Scalar l-Scalar-Plain">indexes</span><span class="p p-Indicator">:</span>
+          <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">bowtie2</span>
+          <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">hisat2</span>
+      <span class="l l-Scalar l-Scalar-Plain">gtf</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="s">&quot;https://url/to/gm6.gtf&quot;</span>
+        <span class="l l-Scalar l-Scalar-Plain">conversions</span><span class="p p-Indicator">:</span>
+          <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">refflat</span>
+    <span class="l l-Scalar l-Scalar-Plain">r6-11_transcriptome</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">fasta</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="s">&quot;https://url/to/transcriptome.fa&quot;</span>
+        <span class="l l-Scalar l-Scalar-Plain">indexes</span><span class="p p-Indicator">:</span>
+          <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">salmon</span>
+</pre></div>
+</div>
+<p>to this simplified version where values are filenames:</p>
 </div>
 </div>
 
@@ -176,9 +283,12 @@ portions of the DAG in the <code class="docutils literal"><span class="pre">all<
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">references.snakefile</span></code></a></li>
-<li><a class="reference internal" href="#features-common-to-all-workflows">Features common to all workflows</a><ul>
+<li><a class="reference internal" href="#">Features common to all workflows</a><ul>
+<li><a class="reference internal" href="#configuration">Configuration</a></li>
+<li><a class="reference internal" href="#running-on-a-cluster">Running on a cluster</a></li>
+<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
 <li><a class="reference internal" href="#patterns-and-targets"><cite>patterns</cite> and <cite>targets</cite></a></li>
+<li><a class="reference internal" href="#references-workflow-and-the-reference-dict">References workflow and the reference dict</a></li>
 </ul>
 </li>
 </ul>
@@ -216,7 +326,7 @@ portions of the DAG in the <code class="docutils literal"><span class="pre">all<
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.6</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

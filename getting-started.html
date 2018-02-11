@@ -41,7 +41,7 @@
           <div class="body" role="main">
             
   <div class="section" id="getting-started">
-<h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<span id="id1"></span><h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
 <p>The following steps will install all necessary software and run the example
 workflows on a relatively small test data set to ensure that everything runs
 correctly. These exampls are run as the automated tests on Travis-CI
@@ -108,28 +108,7 @@ file of gene annotations) and then carries on with the RNA-seq workflow.</p>
 <p>These references are configured in the <code class="docutils literal"><span class="pre">config/config.yaml</span></code> file, which is
 heavily commented to guide you on how to modify it for your own needs.</p>
 <p>The RNA-seq workflow includes the standard mapping, counting, and differential
-expression stages, as well as many quality-control steps including:</p>
-<blockquote>
-<div><ul class="simple">
-<li>trimming with cutadapt</li>
-<li>aligning with HISAT2</li>
-<li>FastQC on raw, trimmed, and aligned reads</li>
-<li>dupRadar and preseq to assess library complexity</li>
-<li>fastq_screen on multiple configured genomes to look for evidence of
-cross-contamination</li>
-<li>Picard CollectRnaSeqMetrics to assess transcript coverage</li>
-<li>QC aggregation using MultiQC, along with custom tables for library sizes
-and rRNA contamination (by aligning reads to rRNA with Bowtie2)</li>
-<li>counting reads in features with featureCounts</li>
-<li>An RMarkdown file that runs a standard DESeq2 differential expression
-analysis along with diagnostic plots, exported tables of differentially
-expressed genes for each contras, and downstream GO analysis using
-clusterProfiler. This file is run and rendered into an output HTML file.</li>
-<li>bigWigs (optionally strand-specific) created from BAM files</li>
-<li>A track hub of bigWigs for each sample that can be viewed in UCSC Genome
-Browser</li>
-</ul>
-</div></blockquote>
+expression stages, as well as many quality-control steps. See <a class="reference internal" href="rnaseq.html#rnaseq"><span class="std std-ref">RNA-seq workflow</span></a> for more details.</p>
 <p>The DAG of jobs looks like this:</p>
 <img alt="_images/rnaseq.png" src="_images/rnaseq.png" />
 <p>After the workflow runs, here are some useful Points of interest in the output:</p>
@@ -330,7 +309,7 @@ your particular analysis.</li>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.6</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
