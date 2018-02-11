@@ -49,7 +49,9 @@ shell(
     "> {hit}.tmp.genome"
 )
 shell(
-    "sort -k1,1 -k2,2n {hit} | "
-    """awk -F "\\t" '{{OFS="\\t"; if (($2>0) && ($3>0)) print $0}}' | """
-    "bedtools intersect -a - -b {hit}.tmp.genome > {snakemake.output.bed}"
+    "export LC_COLLATE=C; "
+    """awk -F "\\t" '{{OFS="\\t"; if (($2>0) && ($3>0)) print $0}}' {hit} | """
+    "bedtools intersect -a - -b {hit}.tmp.genome > {snakemake.output.bed}.tmp "
+    "&& bedSort {snakemake.output.bed}.tmp {snakemake.output.bed}"
+    "&& rm {snakemake.output.bed}.tmp"
 )
