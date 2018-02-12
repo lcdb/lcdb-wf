@@ -1,0 +1,386 @@
+```{r}
+library(DESeq2)
+library(pheatmap)
+library(RColorBrewer)
+
+#' Get the OrgDb for the specified organism, using the cached AnnotationHub.
+#'
+#' @param species Case-sensitive genus and species
+#' @param cache Directory in which the AnnotationHub cache is stored
+#' @param annotation_key_override If not NA, forces the hub to use this
+#'        accession. Use this when you know exactly which OrgDb to use.
+#'
+#' @return OrgDb object
+get.orgdb <- function(species, cache, annotation_key_override=NA){
+    ah <- AnnotationHub(cache='../../../include/AnnotationHubCache')
+
+    find.annotationhub.name <- function(species.name, override.code) { #autodetect ah names based on loaded database
+        if (is.na(override.code)) {
+        ah.query <- query(ah, "OrgDb")
+        ah.query.speciesmatch <- grepl(paste("^", species.name, "$", sep=""), ah.query$species)
+        ah.query.which <- which(ah.query.speciesmatch)
+        stopifnot(length(ah.query.which) > 0) #require at least one match
+        if (length(ah.query.which) > 1) { #warn of duplicate matches
+           print("WARNING: found multiple candidate species in AnnotationHub: ");
+           print(ah.query.speciesmatch)
+        }
+        names(ah.query)[ah.query.which[1]]
+        } else {
+        override.code
+        }
+    }
+    annotation_key <- find.annotationhub.name(annotation_genus_species, annotation_key_override)
+    orgdb <- ah[[annotation_key]]
+    return(orgdb)
+}
+
+
+#' Plot a clustered heatmap of samples
+#'
+#' @param rld DESeqTransform object, typically output from running rlog()
+#' @param colData Dataframe of metadata, used for annotating heatmap
+#' @param cols.for.grouping Columns in colData to annotate heatmap with
+#'
+#' @return Side effect is to plot the heatmap
+plot.heatmap <- function(rld, colData, cols.for.grouping){
+    sampleDists <- dist(t(assay(rld)))
+    sampleDistMatrix <- as.matrix(sampleDists)
+    rownames(sampleDistMatrix) <- colnames(rld)
+    colnames(sampleDistMatrix) <- NULL
+    colors <- colorRampPalette(rev(brewer.pal(9, 'Blues')))(255)
+    df <- as.data.frame(colData(rld)[, cols.for.grouping])
+    colnames(df) <- cols.for.grouping
+    rownames(df) <- colnames(rld)
+    pheatmap(sampleDistMatrix,
+             cluster_distance_rows=sampleDists,
+             cluster_distance_cols=sampleDists,
+             annotation_row=df,
+             col=colors)
+}
+
+
+#' Plot heatmap of most varying genes
+#'
+#' @param rld DESeqTransform object, typically output from running rlog()
+#' @param colData Dataframe of metadata, used for annotating heatmap
+#' @param n Number of genes to include
+#'
+#' @return Side effect is to plot the heatmap
+vargenes.heatmap <- function(rld, cols.for.grouping, n=50){
+  topVarGenes <- head(order(rowVars(assay(rld)), decreasing=TRUE), n)
+  mat <- assay(rld)[topVarGenes,]
+  mat <- mat - rowMeans(mat)
+  df <- as.data.frame(colData(rld)[, cols.for.grouping])
+  rownames(df) <- colnames(rld)
+  colnames(df) <- cols.for.grouping
+  pheatmap(mat, annotation_col=df, cluster_cols=TRUE)
+}
+
+
+#' Simple wrapper of cat() that makes markdown text easier to print
+#'
+#' @param ... Arguments to print
+#'
+#' Make sure you're in an R code chunk with `results="asis"` set.
+mdcat <- function(...){
+  cat('\n', ..., '\n', sep='', fill=1500)
+}
+
+
+#' Load featureCounts output into a DESeq object.
+#'
+#' Revised version of DESeq2::DESeqDataSetFromHTSeqCount to handle the
+#' featureCounts default output format, which contains many more columns.
+#'
+#' @param sampleTable data.frame containing at least "featurecounts.path" column
+#' @param directory Paths to featureCounts output are relative to this dir
+#' @param design Model used for creating DESeq object
+#'
+#' @return DESeq object
+#'
+#' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
+DESeqDataSetFromFeatureCounts <- function (sampleTable, directory='.', design,
+                                           ignoreRank=FALSE,  ...)
+{
+  l <- lapply(
+    as.character(sampleTable[, 'featurecounts.path']),
+    function(fn) read.table(file.path(directory, fn), stringsAsFactors=FALSE, skip=2)
+  )
+  if (!all(sapply(l, function(a) all(a$V1 == l[[1]]$V1))))
+    stop("Gene IDs in first column differ between files")
+  tbl <- sapply(l, function(a) a$V7)
+  colnames(tbl) <- sampleTable[, 1]
+  rownames(tbl) <- l[[1]]$V1
+  rownames(sampleTable) <- sampleTable[, 1]
+  object <- DESeqDataSetFromMatrix(countData=tbl, colData=sampleTable[, -grepl('path', colnames(sampleTable)),
+                                   drop=FALSE], design=design, ignoreRank, ...)
+  return(object)
+}
+
+#' Load Salmon quantification data into a DESeq object
+#'
+#' @param sampleTable data.frame containing at least "salmon.path" column
+#' @param design Model used for creating DESeq object
+#'
+#' @return DESeq object with transcript-level counts
+#'
+#' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
+DESeqDataSetFromSalmon <- function (sampleTable, directory='.', design,
+                                           ignoreRank=FALSE,  ...)
+{
+    txi <- tximport(sampleTable[, 'salmon.path'], type='salmon', txOut=TRUE)
+    object <- DESeqDataSetFromTximport(txi, colData=sampleTable[, -grepl('path', colnames(sampleTable)),
+                                       drop=FALSE], design=design, ignoreRank, ...)
+    return(object)
+}
+
+#' Plot a gene's normalized counts across samples
+#'
+#' @param gene Gene ID
+#' @param dds DESeq object from which to extract counts
+#'
+#' @return ggplot object
+my.counts <- function(gene, dds, label=NULL){
+
+  # Assumption: color genes by group
+  colorby <- c('condition')
+  geneCounts <- plotCounts(dds, gene=gene, intgroup=colorby, returnData=TRUE)
+  p <- ggplot(geneCounts, aes(x=condition, y=count, color=condition, group=condition)) +
+    scale_y_log10() +
+    geom_point(position=position_jitter(width=.1, height=0),  size=3) +
+    geom_line(color='#000000') +
+    ggtitle(gene)
+
+  if (!is.null(label)){
+    p <- p + ggtitle(label)
+  }
+  return(p)
+}
+
+#' Re-order results by log2FoldChange
+#'
+#' @param res DESeq2 results object
+#' @param reverse If TRUE then sort high-to-low
+#'
+#' @return Re-ordered results object
+lfc.order <- function(res, reverse=FALSE){
+    res.na <- res[!is.na(res$log2FoldChange),]
+    if (!reverse){
+        return(res.na[order(res.na$log2FoldChange),])
+    }
+    if (reverse){
+        return(res.na[rev(order(res.na$log2FoldChange)),])
+    }
+}
+
+#' Re-order results by adjusted pval
+#'
+#' @param res DESeq2 results object
+#' @param reverse If TRUE then sort high-to-low
+#'
+#' @return Re-ordered results object
+padj.order <- function(res, reverse=FALSE){
+    res.na <- res[!is.na(res$log2FoldChange) & !is.na(res$log2FoldChange),]
+    if (!reverse){
+        res.na <- res.na[res.na$log2FoldChange > 0,]
+    } else {
+        res.na <- res.na[res.na$log2FoldChange < 0,]
+    }
+    return(res.na[order(res.na$padj),])
+}
+
+
+#' Plot normalized gene counts for the top N genes
+#'
+#' @param sorted DESeq2 results object
+#' @param n Number of top genes to plot
+#' @param func Plotting function to call on each gene
+#' @param dds DESeq2 object
+#' @param label Vector of column names in `res` from which to add a label to
+#'   the gene (e.g., c('symbol', 'alias'))
+#'
+#' @return Side effect is to create plot
+top.plots <- function(res, n, func, dds, add_cols=NULL){
+    ps <- list()
+    for (i in seq(n)){
+        gene <- rownames(res)[i]
+        add_label <- as.character(as.data.frame(res)[i, add_cols])
+        add_label <- add_label[!is.na(add_label)]
+        label <- paste(gene, add_label, sep=' | ')
+        if (length(label) == 0){
+          label <- NULL
+        }
+        ps[[gene]] <- func(gene, dds, label=label)
+    }
+    grid.arrange(grobs=ps)
+}
+
+#' Plot a histogram of raw pvals
+#'
+#' @param res DESeq2 results object
+#'
+#' @return Side effect is to create plot
+pval.hist <- function(res){
+    hist(res$pvalue[res$baseMean>1], breaks=0:20/20, col='grey50', border='white', xlab='P-value', main='Distribution of p-values')
+}
+
+#' Summarize DESeq2 results into a dataframe
+#'
+#' summary(res) prints out info; this function captures it into a dataframe
+#'
+#' @param res DESeq2 results object
+#' @param dds DEseq2 object
+#' @param alpha Alpha level at which to call significantly changing genes
+#'
+#' @return Dataframe of summarized results
+my.summary <- function(res, dds, alpha, ...){
+   if (missing(alpha)){
+       alpha <- if (is.null(metadata(res)$alpha)){ 0.1 } else { metadata(res)$alpha }
+        notallzero <- sum(res$baseMean > 0)
+   }
+   up <- sum(res$padj < alpha & res$log2FoldChange > 0, na.rm=TRUE)
+   down <- sum(res$padj < alpha & res$log2FoldChange < 0, na.rm=TRUE)
+   filt <- sum(!is.na(res$pvalue) & is.na(res$padj))
+   outlier <- sum(res$baseMean > 0 & is.na(res$pvalue))
+   ft <- if(is.null(metadata(res)$filterThreshold)){ 0 } else { round(metadata(res)$filterThreshold) }
+   df <- data.frame(
+                    total.annotated.genes=nrow(res),
+                    total.nonzero.read.count=notallzero,
+                    alpha=alpha,
+                    up=up,
+                    down=down,
+                    outliers=outlier,
+                    low.counts=filt,
+                    design=deparse(design(dds))
+                    )
+   return(df)
+}
+
+#-----------------------------------------------------------------------------
+# The following are some helper functions for working with clusterProfiler results.
+# While clusterProfiler does a great job of unifying the output of different
+# enrichment metrics into a single data structure, we need a couple more things
+# for very flexibly plotting with ggplot2. These functions handle the enrichment
+# and summary of results.
+
+#' Run enrichGO on each of the three top-level ontologies
+#'
+#' @param genes Gene IDs with format matching `keytype`
+#' @param univers Universe of genes assayed
+#' @param orgdb String or OrgDb object
+#' @param keytype ID type of genes
+#"
+#' @return  List of clusterProfiler output objects, length 3 where names are
+#' ontologies (BP, MF, CC)
+clusterprofiler.enrichgo <- function(genes, universe, orgdb, keytype='ENSEMBL'){
+    lst <- list()
+    if (length(genes) > 0 ){
+        for (ont in c('BP', 'MF', 'CC')){
+            ggo <- enrichGO(gene=genes, ont=ont, universe=universe,
+                            OrgDb=orgdb, keyType=keytype, pAdjustMethod='BH',
+                            pvalueCutoff=0.01, qvalueCutoff=0.05,
+                            readable=TRUE)
+            lst[[ont]] <- ggo
+        }
+    }
+    return(lst)
+}
+
+#' Run KEGG enrichment
+#'
+#' @param genes Gene IDs typically in UniProt format
+#' @param org 3-character KEGG species ID (dme, hsa, mmu)
+#' @param keytype ID type of genes
+#'
+#' @return clusterProfiler output object
+clusterprofiler.enrichkegg <- function(genes, org, keyType='uniprot'){
+    x <- enrichKEGG(gene=genes, organism=org, keyType='uniprot',
+                    pvalueCutoff=0.05)
+    return(x)
+}
+
+#' Convert "1/100" to 0.01.
+#'
+#' clusterProfiler report columns that are strings of numbers; this converts to
+#' a fraction
+#'
+#' @param x Character vector to convert
+get.frac <- function(x){
+    y <- as.numeric(strsplit(x, '/')[[1]])
+    return(y[[1]] / y[[2]])
+}
+
+#' Summarize and aggregate multiple GO results
+#'
+#' Convert a list of GO analysis results (one per ontology) to a single
+#' dataframe, with additional label column filled in with `label` and with
+#' a fraction column.
+#'
+#' @param ego List of clusterProfiler results objects
+#' @param labels List of labels. For each name, a new column will be added and
+#"        its contents will be the value
+#'
+#' @return dataframe
+summarize.go <- function(ego, labels){
+  lst <- list()
+  for (name in names(ego)){
+    d <- as.data.frame(ego[[name]])
+    if (nrow(d) > 0){
+      d$ontology <- name
+      for (label in names(labels)){
+        d[label] <- labels[[label]]
+      }
+      d$frac <- sapply(d$GeneRatio, get.frac)
+    }
+    lst[[name]] <- d
+  }
+  df <- do.call(rbind, lst)
+  return(df)
+}
+
+
+#' Summarize KEGG results
+#'
+#' Summarize KEGG results and add `frac` and `label` columns
+#'
+#' @param ekg Results from clusterProfiler KEGG enrichment
+#' @param label Attach this label to the "label" column
+#'
+#' @return Dataframe
+summarize.kegg <- function(ekg, labels){
+  d <- as.data.frame(ekg)
+  if (nrow(d) > 0){
+    d$ontology <- 'kegg'
+    for (label in names(labels)){
+      d[label] <- labels[[label]]
+    }
+    d$frac <- sapply(d$GeneRatio, get.frac)
+  }
+  return(d)
+}
+
+#' Attach additional information from an OrgDb to a results dataframe
+#'
+#' @param res DESeq2 results object
+#' @param keytype Key type for rownames(res)
+#' @param columns Character vector of columns to add from OrgDb to results
+attach.info <- function(res, keytype='ENSEMBL', columns=c('SYMBOL', 'UNIPROT', 'ALIAS')){
+
+    if (split) {
+        keys <- sapply(strsplit(rownames(res), '.', fixed=TRUE), function (x) x[1])
+    } else {
+        keys <- rownames(res)
+    }
+
+    for (column in columns){
+      label <- tolower(column)
+      res[label] <- mapIds(orgdb, keys=keys, column=column, keytype=keytype, multiVal='first')
+    }
+
+    # Put "gene" column as the first
+    cn <- colnames(res)
+    res$gene <- rownames(res)
+    res <- res[, c('gene', cn)]
+    return(res)
+}
+```
