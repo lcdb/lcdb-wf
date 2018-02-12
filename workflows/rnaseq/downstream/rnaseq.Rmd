@@ -238,18 +238,19 @@ for (name in names(res.list)){
 # Assumption: which columns to add to the top plots' titles
 add_cols <- c('symbol', 'alias')
 for (name in names(res.list)){
+  dds.i <- dds.list[[name]]
+  res.i <- res.list[[name]]
   mdcat('## ', res.list.lookup[[name]])
   mdcat('### Summary of results')
-  res <- res.list[[name]]
-  print(knitr::kable(my.summary(res, dds)))
+  print(knitr::kable(my.summary(res.i, dds.i)))
   mdcat('### Normalized counts of top 3 upregulated genes')
-  top.plots(padj.order(res), 3, my.counts, dds, add_cols)
+  top.plots(padj.order(res), 3, my.counts, dds.i, add_cols)
   mdcat('### Normalized counts of top 3 downregulated genes')
-  top.plots(padj.order(res, reverse=TRUE), 3, my.counts, dds, add_cols)
+  top.plots(padj.order(res.i, reverse=TRUE), 3, my.counts, dds.i, add_cols)
   mdcat('### M-A plot')
-  plotMA(res)
+  plotMA(res.i)
   mdcat('### P-value distribution')
-  pval.hist(res)
+  pval.hist(res.i)
 }
 ```
 
