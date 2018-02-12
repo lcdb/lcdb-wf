@@ -129,17 +129,20 @@ rld.txi <- rlog(dds.txi, blind=FALSE)
 ```
 
 
-```{r dds, cache=TRUE}
+```{r dds_initial, cache=TRUE}
 # Load gene-level counts
 dds <- DESeqDataSetFromFeatureCounts(
-                                  sampleTable=colData,
-                                  directory='.',
-                                  design=~group)
+    sampleTable=colData,
+    directory='.',
+    # Assumption: what to model.
+    # Used for EDA, so it's recommended to use a single factor that describes
+    #condition
+    design=~group)
 
+# Assumption: If gene names came in as Ensembl "gene.version" IDs, here we
+# split them to only give the gene ID.
 rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
-```
 
-```{r rld, cache=TRUE, depends='dds'}
 # rlog normalize gene-level counts
 rld <- rlog(dds, blind=FALSE)
 ```
