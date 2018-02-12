@@ -42,56 +42,48 @@ Note: if you're unfamiliar with any of the plots or tables here, see the
 
 ## Experiment overview
 
-
-```{r setup}
-
-# Try disabling this when running locally to get nicer figures
-# options(bitmapType='cairo')
-
-
-
-# Assumption: change to reflect the appropriate organism
-library(AnnotationHub)
-annotation_genus_species <- 'Drosophila melanogaster' # first pass: provide full, case-sensitive genus/species here
-annotation_key_override <- NA # if the species search doesn't work for some reason, provide key manually here, for example: 'AH53765'
-
-find.annotationhub.name <- function(species.name, override.code) { #autodetect ah names based on loaded database
-    if (is.na(override.code)) {
-    require(AnnotationHub)
-    ah <- AnnotationHub()
-    ah.query <- query(ah, "OrgDb")
-    ah.query.speciesmatch <- grepl(paste("^", species.name, "$", sep=""), ah.query$species)
-    ah.query.which <- which(ah.query.speciesmatch)
-    stopifnot(length(ah.query.which) > 0) #require at least one match
-    if (length(ah.query.which) > 1) { #warn of duplicate matches
-       print("WARNING: found multiple candidate species in AnnotationHub: ");
-       print(ah.query.speciesmatch)
-    }
-    names(ah.query)[ah.query.which[1]]
-    } else {
-    override.code
-    }
-}
-
-annotation_key <- find.annotationhub.name(annotation_genus_species, annotation_key_override)
-ah <- AnnotationHub()
-orgdb <- ah[[annotation_key]]
-
-
-
-# Assumption: change to reflect KEGG ID of organism
-kegg.org <- 'dme'
-
+```{r imports}
 library(DESeq2)
 library(gridExtra)
-library(pheatmap)
-library(RColorBrewer)
 library(ggplot2)
 library(genefilter)
 library(readr)
 library(tximport)
 library(clusterProfiler)
+library(AnnotationHub)
+```
 
+```{r child='helpers.Rmd'}
+# When running interactively, use the following to load helper functions.
+# When rendering this file, the contents of this code block will be skipped.
+rmarkdown::render('helpers.Rmd')
+```
+
+```{r annotationhub_setup}
+# Try disabling this when running locally to get nicer figures:
+# options(bitmapType='cairo')
+
+# Assumption: change these to reflect organism you're working with.
+# e.g., 'Mus musculus', 'mmu'; 'Homo sapiens', 'hsa'. Provide an annotation key
+# to override if you know the one to use, otherwise leave NA.
+annotation_genus_species <- 'Drosophila melanogaster'
+kegg.org <- 'dme'
+hub.cache <- '../../../include/AnnotationHubCache'
+annotation_key_override <- NA
+
+# For running on the cluster, we copy to faster tmp storage to avoid poor
+# sqlite performance on shared filesystems.
+file.copy(hub.cache, tempdir(), recursive=TRUE)
+new.cache <- file.path(tempdir(), 'AnnotationHubCache')
+
+orgdb <- get.orgdb(
+    annotation_genus_species,
+    cache=new.cache,
+    annotation_key_override=annotation_key_override
+)
+```
+
+```{r coldata_setup}
 # Assumption: path name to sampletable
 sample.table.filename = '../config/sampletable.tsv'
 
@@ -111,69 +103,16 @@ colData$salmon.path <- sapply(
 )
 
 # Assumption: which columns in sampletable, and that "group" should be factor
-colData <- colData[, c('samplename', 'featurecounts.path', 'salmon.path', 'group')]
-colData$group <- factor(colData$group)
-knitr::kable(colData[, !grepl('path', colnames(colData))])
-```
-
-```{r}
-
-#' Simple wrapper of cat() that makes markdown text easier to print
-#'
-#' @param ... Arguments to print
-#'
-#' Make sure you're in an R code chunk with `results="asis"` set.
-mdcat <- function(...){
-  cat(..., sep='', fill=1500)
+factor.columns <- c('group')
+exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'orig_filename')
+colData$group <- paste(colData$condition)
+for (col in factor.columns){
+    colData[[col]] <- as.factor(colData[[col]])
 }
 
-
-#' Load featureCounts output into a DESeq object.
-#'
-#' Revised version of DESeq2::DESeqDataSetFromHTSeqCount to handle the
-#' featureCounts default output format, which contains many more columns.
-#'
-#' @param sampleTable data.frame containing at least "featurecounts.path" column
-#' @param directory Paths to featureCounts output are relative to this dir
-#' @param design Model used for creating DESeq object
-#'
-#' @return DESeq object
-#'
-#' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
-DESeqDataSetFromFeatureCounts <- function (sampleTable, directory='.', design,
-                                           ignoreRank=FALSE,  ...)
-{
-  l <- lapply(
-    as.character(sampleTable[, 'featurecounts.path']),
-    function(fn) read.table(file.path(directory, fn), stringsAsFactors=FALSE, skip=2)
-  )
-  if (!all(sapply(l, function(a) all(a$V1 == l[[1]]$V1))))
-    stop("Gene IDs in first column differ between files")
-  tbl <- sapply(l, function(a) a$V7)
-  colnames(tbl) <- sampleTable[, 1]
-  rownames(tbl) <- l[[1]]$V1
-  rownames(sampleTable) <- sampleTable[, 1]
-  object <- DESeqDataSetFromMatrix(countData=tbl, colData=sampleTable[, -grepl('path', colnames(sampleTable)),
-                                   drop=FALSE], design=design, ignoreRank, ...)
-  return(object)
-}
-
-#' Load Salmon quantification data into a DESeq object
-#'
-#' @param sampleTable data.frame containing at least "salmon.path" column
-#' @param design Model used for creating DESeq object
-#'
-#' @return DESeq object with transcript-level counts
-#'
-#' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
-DESeqDataSetFromSalmon <- function (sampleTable, directory='.', design,
-                                           ignoreRank=FALSE,  ...)
-{
-    txi <- tximport(sampleTable[, 'salmon.path'], type='salmon', txOut=TRUE)
-    object <- DESeqDataSetFromTximport(txi, colData=sampleTable[, -grepl('path', colnames(sampleTable)),
-                                       drop=FALSE], design=design, ignoreRank, ...)
-    return(object)
-}
+# Assumption: "control" is the base level for the group factor
+colData$group <- relevel(colData$group, ref='control')
+knitr::kable(colData[, colnames(colData)[!colnames(colData) %in% exclude.for.printing]])
 ```
 
 ```{r ddstxi, cache=TRUE}
