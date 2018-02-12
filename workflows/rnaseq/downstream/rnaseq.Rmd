@@ -156,21 +156,7 @@ we expect to see replicates clustering together and separation of treatments.
 ## Clustered heatmap
 
 ```{r}
-# Assumption: gene-level counts
-# Assumption: use "group" as colored sidebars
-sampleDists <- dist(t(assay(rld)))
-sampleDistMatrix <- as.matrix(sampleDists)
-rownames(sampleDistMatrix) <- colnames(dds)
-colnames(sampleDistMatrix) <- NULL
-colors <- colorRampPalette(rev(brewer.pal(9, 'Blues')))(255)
-df <- as.data.frame(colData(rld)[, c('group')])
-rownames(df) <- colnames(rld)
-colnames(df) <- c('group')
-pheatmap(sampleDistMatrix,
-         cluster_distance_rows=sampleDists,
-         cluster_distance_cols=sampleDists,
-         annotation_row=df,
-         col=colors)
+plot.heatmap(rld, colData, c('group'))
 ```
 
 ## PCA
@@ -184,7 +170,7 @@ explained by each principal component is indicated in the axes label.
 ```{r}
 # Assumption: gene-level counts
 # Assumption: color by 'group' factor
-plotPCA(rld, intgroup='group')
+plotPCA(rld, intgroup=c('group'))
 ```
 
 
@@ -196,21 +182,7 @@ the row mean.
 
 
 ```{r, fig.height=12}
-#' Plot heatmap of most varying genes
-#'
-#' @param n Number of genes to include
-vargenes.heatmap <- function(rld, n=50){
-  topVarGenes <- head(order(rowVars(assay(rld)), decreasing=TRUE), n)
-  mat <- assay(rld)[topVarGenes,]
-  mat <- mat - rowMeans(mat)
-  df <- as.data.frame(colData(rld)[, c('group')])
-  rownames(df) <- colnames(rld)
-  colnames(df) <- c('group')
-  pheatmap(mat, annotation_col=df, cluster_cols=FALSE)
-}
-
-# Assumption: gene-level counts
-vargenes.heatmap(rld, 50)
+vargenes.heatmap(rld, c('group'))
 ```
 
 
