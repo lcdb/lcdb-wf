@@ -218,31 +218,17 @@ res.list.lookup <- list(
 ```
 
 ```{r}
+# Assumption: Original annotations use Ensembl IDs
+keytype <- 'ENSEMBL'
 
-```
-```{r}
-# Attach other info to results
+# Assumption: Symbol, Uniprot and alias columns are available in the OrgDb
+columns <- c('SYMBOL', 'UNIPROT', 'ALIAS')
 
 for (name in names(res.list)){
-  res <- res.list[[name]]
-  keys <- sapply(strsplit(rownames(res), '.', fixed=TRUE), function (x) x[1])
-
-  # Assumption: Original annotations use Ensembl IDs
-  keytype <- 'ENSEMBL'
-
-  # Assumption: Uniprot and Alias columns are available in the OrgDb
-  columns <- c('SYMBOL', 'UNIPROT', 'ALIAS')
-
-  for (column in columns){
-    label <- tolower(column)
-    res[label] <- mapIds(orgdb, keys=keys, column=column, keytype=keytype, multiVal='first')
-  }
-
-  # Put "gene" column as the first
-  cn <- colnames(res)
-  res$gene <- rownames(res)
-  res <- res[, c('gene', cn)]
-  res.list[[name]] <- res
+    res.list[[name]] <- attach.info(
+        res.list[[name]],
+        keytype=keytype,
+        columns=columns)
 }
 ```
 
