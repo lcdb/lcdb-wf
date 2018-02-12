@@ -144,7 +144,7 @@ my.counts <- function(gene, dds, label=NULL, intgroup='group'){
 
   # Assumption: color genes by group
   geneCounts <- plotCounts(dds, gene=gene, intgroup=intgroup, returnData=TRUE)
-  p <- ggplot(geneCounts, aes(x=intgroup, y=count, color=intgroup, group=intgroup)) +
+  p <- ggplot(geneCounts, aes_string(x=intgroup, y='count', color=intgroup, group=intgroup)) +
     scale_y_log10() +
     geom_point(position=position_jitter(width=.1, height=0),  size=3) +
     geom_line(color='#000000') +
