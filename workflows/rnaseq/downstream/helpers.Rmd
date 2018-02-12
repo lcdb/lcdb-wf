@@ -140,12 +140,11 @@ DESeqDataSetFromSalmon <- function (sampleTable, directory='.', design,
 #' @param dds DESeq object from which to extract counts
 #'
 #' @return ggplot object
-my.counts <- function(gene, dds, label=NULL){
+my.counts <- function(gene, dds, label=NULL, intgroup='group'){
 
   # Assumption: color genes by group
-  colorby <- c('condition')
-  geneCounts <- plotCounts(dds, gene=gene, intgroup=colorby, returnData=TRUE)
-  p <- ggplot(geneCounts, aes(x=condition, y=count, color=condition, group=condition)) +
+  geneCounts <- plotCounts(dds, gene=gene, intgroup=intgroup, returnData=TRUE)
+  p <- ggplot(geneCounts, aes(x=intgroup, y=count, color=intgroup, group=intgroup)) +
     scale_y_log10() +
     geom_point(position=position_jitter(width=.1, height=0),  size=3) +
     geom_line(color='#000000') +
@@ -365,18 +364,11 @@ summarize.kegg <- function(ekg, labels){
 #' @param keytype Key type for rownames(res)
 #' @param columns Character vector of columns to add from OrgDb to results
 attach.info <- function(res, keytype='ENSEMBL', columns=c('SYMBOL', 'UNIPROT', 'ALIAS')){
-
-    if (split) {
-        keys <- sapply(strsplit(rownames(res), '.', fixed=TRUE), function (x) x[1])
-    } else {
-        keys <- rownames(res)
-    }
-
+    keys <- rownames(res)
     for (column in columns){
       label <- tolower(column)
       res[label] <- mapIds(orgdb, keys=keys, column=column, keytype=keytype, multiVal='first')
     }
-
     # Put "gene" column as the first
     cn <- colnames(res)
     res$gene <- rownames(res)
