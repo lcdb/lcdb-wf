@@ -207,9 +207,14 @@ dds <- DESeq(dds)
 # Results are put in a list here so we can iterate over them later. Names here
 # will be used to create output files.
 res.list <- list(
-                 experiment1=results(dds)
+                 all=lfcShrink(dds, contrast=c('group', 'treatment', 'control')),
                  )
-res.list.lookup <- list(experiment1="Experiment One")
+dds.list <- list(
+                 all=dds
+                 )
+res.list.lookup <- list(
+                        all="All replicates"
+                        )
 ```
 
 ```{r}
