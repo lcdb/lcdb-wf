@@ -185,13 +185,21 @@ the row mean.
 vargenes.heatmap(rld, c('group'))
 ```
 
+```{r dds_models, cache=TRUE}
+dds <- DESeqDataSetFromFeatureCounts(
+    sampleTable=colData,
+    directory='.',
+    # Assumption: model to use
+    design=~group,
 
-```{r deseq, cache=TRUE, depends='dds'}
-# Create DESeq object.
-# Assumption: gene-level counts
-# Assumption: this uses the default ~group design. To use other designs, create
-#             a new dds object, or reset the design with, e.g.,
-#             `design(dds) <- ~group + batch`
+    # Assumption: this the default for versions of DESeq2 > 1.16. We set it
+    # explicitly here for consistency.
+    betaPrior=FALSE
+    )
+
+# Assumption: If gene names came in as Ensembl "gene.version" IDs, here we
+# split them to only give the gene ID.
+rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
 dds <- DESeq(dds)
 ```
 
