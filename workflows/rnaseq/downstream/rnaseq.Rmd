@@ -115,15 +115,15 @@ colData$group <- relevel(colData$group, ref='control')
 knitr::kable(colData[, colnames(colData)[!colnames(colData) %in% exclude.for.printing]])
 ```
 
-```{r ddstxi, cache=TRUE}
+```{r ddstxi, cache=TRUE, eval=FALSE}
+# Assumption: eval=FALSE by default. Change to eval to TRUE to run this.
+
 # Load transcript-level counts
 dds.txi <- DESeqDataSetFromSalmon(
                                   sampleTable=colData,
                                   directory='.',
-                                  design=~group)
-```
-
-```{r rldtxi, cache=TRUE, depends='ddstxi'}
+                                  # Assumption: what to model
+                                  design=~condition)
 # rlog normalize transcript counts
 rld.txi <- rlog(dds.txi, blind=FALSE)
 ```
