@@ -351,12 +351,11 @@ rule bigwig:
         '-p {threads} '
         '--minMappingQuality 20 '
         '--ignoreDuplicates '
-        '--smoothLength 10 '
-        # TEST SETTINGS: for testing, we remove --normalizeUsingRPKM since it
-        # results in a ZeroDivisionError (there are less than 1000 reads total).
-        # However it is probably a good idea to use that argument with real-world
-        # data.
-        #'--normalizeUsingRPKM '
+        # TEST SETTINGS:
+        # Uncomment the next line in practice; can't use for testing due to
+        # <1000 reads total.
+        # '--normalizeUsing CPM '
+        '--extendReads 300 '
         '&> {log}'
 
 
