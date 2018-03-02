@@ -13,7 +13,7 @@ bioconductor-tximport
 biopython
 bowtie2
 cutadapt
-deeptools
+deeptools >=3.0.1
 fastqc
 fastq-screen
 gat
