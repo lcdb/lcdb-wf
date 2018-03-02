@@ -280,7 +280,7 @@ rule markduplicates:
     Mark or remove PCR duplicates with Picard MarkDuplicates
     """
     input:
-        bam=rules.bowtie2.output
+        bam=c.patterns['unique']
     output:
         bam=c.patterns['markduplicates']['bam'],
         metrics=c.patterns['markduplicates']['metrics']
