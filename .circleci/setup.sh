@@ -4,6 +4,7 @@ set -eu
 WORKSPACE=`pwd`
 MINICONDA_VER=4.3.21
 
+
 # Set path
 echo "export PATH=$WORKSPACE/miniconda/bin:$PATH" >> $BASH_ENV
 source $BASH_ENV
