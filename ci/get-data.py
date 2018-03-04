@@ -4,8 +4,8 @@ from snakemake.shell import shell
 from snakemake.utils import makedirs
 
 shell.executable('/bin/bash')
-
-URL = 'https://github.com/lcdb/lcdb-test-data/blob/add-chipseq/data/{}?raw=true'
+BRANCH = 'fix-multimapping-chipseq'
+URL = 'https://github.com/lcdb/lcdb-test-data/blob/{0}/data/{{}}?raw=true'.format(BRANCH)
 
 def _download_file(fn, dest=None):
     url = URL.format(fn)
