@@ -1,0 +1,106 @@
+version: 2
+
+variables:
+  restore_cache: &restore_cache
+    restore_cache:
+      keys:
+        - miniconda-{{ checksum ".circleci/setup.sh" }}-{{ checksum ".circleci/config.yml" }}
+  save_cache: &save_cache
+    save_cache:
+      key: miniconda-{{ checksum ".circleci/setup.sh" }}-{{ checksum ".circleci/config.yml" }}
+      paths:
+        - miniconda
+  setup: &setup
+    run: 
+      name: Setup conda
+      command: .circleci/setup.sh
+
+  setup-ssh: &setup-ssh
+    run:
+      name: Setup ssh
+      command: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
+  setup-base: &setup-base
+    run: 
+      name: Setup base system
+      command: |
+        cat >> $BASH_ENV <<EOF
+        if [[ \$- == *u* ]] ; then
+            set +u ; . /tmp/repo/docker-entrypoint-source ; set -u
+        else
+            . /tmp/repo/docker-entrypoint-source
+        fi
+        EOF
+  linux: &linux
+    machine: true
+  skip_fork: &skip_fork
+    run:
+      name: Check for fork
+      command: |
+        [[ $CIRCLE_PROJECT_USERNAME == lcdb ]] || (
+            echo "Skipping build for fork '$CIRCLE_PROJECT_USERNAME'"
+            circleci step halt
+        )
+  fail_fork: &fail_fork
+    run:
+      name: Check for fork
+      command: |
+        [[ $CIRCLE_PROJECT_USERNAME == lcdb ]] || (
+            echo "Aborting build for fork '$CIRCLE_PROJECT_USERNAME'"
+            echo "Please use a branch other than 'master' or 'bulk' on your fork"
+            exit 1
+        )
+
+jobs:
+  # When running CircleCI locally, we put everything in one job.
+  build:
+    docker:
+      - image: bioconda/bioconda-utils-build-env
+    steps:
+      - checkout
+      - *setup
+
+      - run:
+          name: example
+          command: echo "example"
+
+  local-chipseq:
+    docker:
+      - image: bioconda/bioconda-utils-build-env
+    steps:
+      - checkout
+      - *setup
+      - *setup-ssh
+      - *setup-base
+      - run:
+          name: chipseq workflow
+          command: |
+            cd workflows/chipseq
+            snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+
+  chipseq:
+    <<: *linux
+    steps:
+      - checkout
+      - *restore_cache
+      - *setup
+      - *save_cache
+      - run:
+          name: chipseq workflow
+          command: |
+            cd workflows/chipseq
+            snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+
+workflows:
+  version: 2
+  # workflow for testing pushes and PRs
+  test-suite:
+    jobs:
+      - chipseq:
+          filters:
+            branches:
+              ignore:
+                - master
+                - bulk
