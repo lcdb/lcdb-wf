@@ -385,10 +385,13 @@ rule fingerprint:
     log: c.patterns['fingerprint']['metrics'] + '.log'
     shell:
         'plotFingerprint '
-        '--bamfile {input.bams} '
-        '--JSDsample {input.control} '
+        '--bamfiles {input.bams} '
         '-p {threads} '
-        '{params.labels_arg} '
+        # TEST SETTINGS:
+        # This argument is disabled for testing as it dramatically increases
+        # the run time.
+        #'--JSDsample {input.control} '
+        '--smartLabels '
         '--extendReads=300 '
         '--skipZeros '
         '--outQualityMetrics {output.metrics} '
@@ -396,7 +399,7 @@ rule fingerprint:
         '--plotFile {output.plot} '
         # TEST SETTINGS: You'll probably want to change --numberOfSamples to
         # something higher (default is 500k) when running on real data
-        '--numberOfSamples 5000 '
+        '--numberOfSamples 50 '
         '&> {log} '
         '&& sed -i "s/NA/0.0/g" {output.metrics} '
 
