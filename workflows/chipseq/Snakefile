@@ -376,12 +376,6 @@ rule fingerprint:
         raw_counts=c.patterns['fingerprint']['raw_counts'],
         metrics=c.patterns['fingerprint']['metrics']
     threads: 8
-    params:
-        # Note: I think the extra complexity of the function is worth the
-        # nicely-labeled plots.
-        labels_arg=lambda wc: '--labels {0} {1}'.format(
-            wc.ip_label, chipseq.merged_input_for_ip(c.sampletable, wc.ip_label)
-        )
     log: c.patterns['fingerprint']['metrics'] + '.log'
     shell:
         'plotFingerprint '
