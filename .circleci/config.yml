@@ -15,6 +15,12 @@ variables:
       name: Setup conda
       command: .circleci/setup.sh
 
+  example-data: &example-data
+    run:
+      name: Download example data
+      command: python ci/get-data.py
+
+
   setup-ssh: &setup-ssh
     run:
       name: Setup ssh
@@ -87,6 +93,7 @@ jobs:
       - *restore_cache
       - *setup
       - *save_cache
+      - *example-data
       - run:
           name: chipseq workflow
           command: |
