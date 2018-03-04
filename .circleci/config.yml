@@ -100,6 +100,33 @@ jobs:
             cd workflows/chipseq
             snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
 
+  rnaseq:
+    <<: *linux
+    steps:
+      - checkout
+      - *restore_cache
+      - *setup
+      - *save_cache
+      - *example-data
+      - run:
+          name: rnaseq workflow
+          command: |
+            cd workflows/rnaseq
+            snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+  references:
+    <<: *linux
+    steps:
+      - checkout
+      - *restore_cache
+      - *setup
+      - *save_cache
+      - *example-data
+      - run:
+          name: references workflow
+          command: |
+            cd workflows/references
+            snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+
 workflows:
   version: 2
   # workflow for testing pushes and PRs
@@ -110,4 +137,13 @@ workflows:
             branches:
               ignore:
                 - master
-                - bulk
+      - rnaseq:
+          filters:
+            branches:
+              ignore:
+                - master
+      - references:
+          filters:
+            branches:
+              ignore:
+                - master
