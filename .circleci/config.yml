@@ -1,25 +1,27 @@
 version: 2
 
 variables:
+
   restore_cache: &restore_cache
     restore_cache:
       keys:
-        - miniconda-{{ checksum ".circleci/setup.sh" }}-{{ checksum ".circleci/config.yml" }}
+        - v1-{{ checksum "requirements.txt" }}
+
   save_cache: &save_cache
     save_cache:
-      key: miniconda-{{ checksum ".circleci/setup.sh" }}-{{ checksum ".circleci/config.yml" }}
+      key: v1-{{ checksum "requirements.txt" }}
       paths:
         - miniconda
+
   setup: &setup
     run: 
       name: Setup conda
       command: .circleci/setup.sh
 
-  example-data: &example-data
+  get-data: &get-data
     run:
       name: Download example data
       command: python ci/get-data.py
-
 
   setup-ssh: &setup-ssh
     run:
@@ -39,110 +41,95 @@ variables:
             . /tmp/repo/docker-entrypoint-source
         fi
         EOF
-  linux: &linux
-    machine: true
-  skip_fork: &skip_fork
-    run:
-      name: Check for fork
-      command: |
-        [[ $CIRCLE_PROJECT_USERNAME == lcdb ]] || (
-            echo "Skipping build for fork '$CIRCLE_PROJECT_USERNAME'"
-            circleci step halt
-        )
-  fail_fork: &fail_fork
-    run:
-      name: Check for fork
-      command: |
-        [[ $CIRCLE_PROJECT_USERNAME == lcdb ]] || (
-            echo "Aborting build for fork '$CIRCLE_PROJECT_USERNAME'"
-            echo "Please use a branch other than 'master' or 'bulk' on your fork"
-            exit 1
-        )
+
+  chipseq-step: &chipseq-step
+      run:
+        name: chipseq workflow
+        command: |
+          cd workflows/chipseq
+          source activate lcdb-wf-test
+          snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+
+  references-step: &references-step
+      run:
+        name: references workflow
+        command: |
+          cd workflows/references
+          source activate lcdb-wf-test
+          snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+
+  rnaseq-step: &rnaseq-step
+      run:
+        name: rnaseq workflow
+        command: |
+          cd workflows/rnaseq
+          source activate lcdb-wf-test
+          snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
 
 jobs:
-  # When running CircleCI locally, we put everything in one job.
-  build:
+
+  intial-setup:
     docker:
-      - image: bioconda/bioconda-utils-build-env
+      - image: bioconda/bioconda-build-env
     steps:
       - checkout
+      - *restore_cache
       - *setup
-
-      - run:
-          name: example
-          command: echo "example"
-
-  local-chipseq:
-    docker:
-      - image: bioconda/bioconda-utils-build-env
-    steps:
-      - checkout
-      - *setup
-      - *setup-ssh
-      - *setup-base
-      - run:
-          name: chipseq workflow
-          command: |
-            cd workflows/chipseq
-            snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+      - *save_cache
 
   chipseq:
-    <<: *linux
+    docker:
+      - image: bioconda/bioconda-build-env
+    parallelism: 2
     steps:
       - checkout
       - *restore_cache
-      - *setup
-      - *save_cache
-      - *example-data
-      - run:
-          name: chipseq workflow
-          command: |
-            cd workflows/chipseq
-            snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+      - *get-data
+      - *chipseq-step
 
   rnaseq:
-    <<: *linux
+    docker:
+      - image: bioconda/bioconda-build-env
+    parallelism: 2
     steps:
       - checkout
       - *restore_cache
       - *setup
       - *save_cache
-      - *example-data
-      - run:
-          name: rnaseq workflow
-          command: |
-            cd workflows/rnaseq
-            snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+      - *get-data
+      - *rnaseq-step
+
   references:
-    <<: *linux
+    docker:
+      - image: bioconda/bioconda-build-env
+    parallelism: 2
     steps:
       - checkout
       - *restore_cache
       - *setup
       - *save_cache
-      - *example-data
-      - run:
-          name: references workflow
-          command: |
-            cd workflows/references
-            snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+      - *get-data
+      - *references-step
 
 workflows:
   version: 2
-  # workflow for testing pushes and PRs
   test-suite:
     jobs:
+      - initial-setup
       - chipseq:
+          requires: initial-setup
           filters:
             branches:
               ignore:
                 - master
       - rnaseq:
+          requires: initial-setup
           filters:
             branches:
               ignore:
                 - master
       - references:
+          requires: initial-setup
           filters:
             branches:
               ignore:
