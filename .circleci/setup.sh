@@ -42,16 +42,10 @@ if ! type conda > /dev/null; then
     curl -L -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-$MINICONDA_VER-$tag-x86_64.sh
     bash miniconda.sh -b -p $WORKSPACE/miniconda
 
-    # step 2: setup channels
     conda config --system --add channels defaults
     conda config --system --add channels conda-forge
     conda config --system --add channels bioconda
     conda config --system --add channels lcdb
-
-
-    # step 3: install bioconda-utils
-    conda install -y --file requirements.txt
-
-    # step 5: cleanup
-    conda clean -y --all
 fi
+
+conda create -n lcdb-wf-test -y --file requirements.txt
