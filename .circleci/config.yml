@@ -95,8 +95,6 @@ jobs:
     steps:
       - checkout
       - *restore_cache
-      - *setup
-      - *save_cache
       - *get-data
       - *rnaseq-step
 
@@ -106,8 +104,6 @@ jobs:
     steps:
       - checkout
       - *restore_cache
-      - *setup
-      - *save_cache
       - *get-data
       - *references-step
 
