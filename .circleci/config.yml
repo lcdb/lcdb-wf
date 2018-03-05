@@ -117,19 +117,22 @@ workflows:
     jobs:
       - initial-setup
       - chipseq:
-          requires: initial-setup
+          requires:
+            - initial-setup
           filters:
             branches:
               ignore:
                 - master
       - rnaseq:
-          requires: initial-setup
+          requires:
+            - initial-setup
           filters:
             branches:
               ignore:
                 - master
       - references:
-          requires: initial-setup
+          requires:
+            - initial-setup
           filters:
             branches:
               ignore:
