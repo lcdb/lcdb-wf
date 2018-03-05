@@ -2,6 +2,10 @@ version: 2
 
 variables:
 
+  defaults: &defaults
+    docker:
+      - image: bioconda/bioconda-utils-build-env
+
   restore_cache: &restore_cache
     restore_cache:
       keys:
@@ -69,8 +73,7 @@ variables:
 jobs:
 
   initial-setup:
-    docker:
-      - image: bioconda/bioconda-build-env
+    <<: *defaults
     steps:
       - checkout
       - *restore_cache
@@ -78,8 +81,7 @@ jobs:
       - *save_cache
 
   chipseq:
-    docker:
-      - image: bioconda/bioconda-build-env
+    <<: *defaults
     parallelism: 2
     steps:
       - checkout
@@ -88,8 +90,7 @@ jobs:
       - *chipseq-step
 
   rnaseq:
-    docker:
-      - image: bioconda/bioconda-build-env
+    <<: *defaults
     parallelism: 2
     steps:
       - checkout
@@ -100,8 +101,7 @@ jobs:
       - *rnaseq-step
 
   references:
-    docker:
-      - image: bioconda/bioconda-build-env
+    <<: *defaults
     parallelism: 2
     steps:
       - checkout
