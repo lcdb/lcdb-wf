@@ -8,6 +8,7 @@ bioconductor-clusterprofiler
 bioconductor-deseq2
 bioconductor-dupradar
 bioconductor-genomicfeatures
+bioconductor-genomeinfodbdata
 bioconductor-sva
 bioconductor-tximport
 biopython
