@@ -68,7 +68,7 @@ variables:
 
 jobs:
 
-  intial-setup:
+  initial-setup:
     docker:
       - image: bioconda/bioconda-build-env
     steps:
