@@ -1,12 +1,18 @@
 #!/bin/bash
-set -eu
+set -e
 
 WORKSPACE=`pwd`
 MINICONDA_VER=4.3.21
 
 # Set path
-echo "export PATH=$WORKSPACE/miniconda/bin:$PATH" >> $BASH_ENV
-source $BASH_ENV
+set +u
+if [[ ! -z $BASH_ENV ]]; then
+  echo "export PATH=$WORKSPACE/miniconda/bin:$PATH" >> $BASH_ENV
+  source $BASH_ENV
+else
+  export PATH="$WORKSPACE/miniconda/bin:$PATH"
+fi
+set -u
 
 cat > ~/.condarc <<EOF
 channels:
@@ -49,7 +55,3 @@ if ! type conda > /dev/null; then
     # step 5: cleanup
     conda clean -y --all
 fi
-
-# Fetch the master branch for comparison (this can fail locally, if git remote 
-# is configured via ssh and this is executed in a container).
-git fetch origin +master:master || true
