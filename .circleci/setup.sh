@@ -5,14 +5,8 @@ WORKSPACE=`pwd`
 MINICONDA_VER=4.3.21
 
 # Set path
-set +u
-if [[ ! -z $BASH_ENV ]]; then
-  echo "export PATH=$WORKSPACE/miniconda/bin:$PATH" >> $BASH_ENV
-  source $BASH_ENV
-else
-  export PATH="$WORKSPACE/miniconda/bin:$PATH"
-fi
-set -u
+echo "export PATH=$WORKSPACE/miniconda/bin:$PATH" >> $BASH_ENV
+source $BASH_ENV
 
 cat > ~/.condarc <<EOF
 channels:

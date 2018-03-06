@@ -52,6 +52,7 @@ variables:
       run:
         name: chipseq workflow
         command: |
+          export PATH="`pwd`/miniconda/bin:$PATH"
           cd workflows/chipseq
           source activate lcdb-wf-test
           snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
@@ -60,6 +61,7 @@ variables:
       run:
         name: references workflow
         command: |
+          export PATH="`pwd`/miniconda/bin:$PATH"
           cd workflows/references
           source activate lcdb-wf-test
           snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
@@ -68,6 +70,7 @@ variables:
       run:
         name: rnaseq workflow
         command: |
+          export PATH="`pwd`/miniconda/bin:$PATH"
           cd workflows/rnaseq
           source activate lcdb-wf-test
           snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
