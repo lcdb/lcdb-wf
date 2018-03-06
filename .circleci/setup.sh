@@ -48,4 +48,6 @@ if ! type conda > /dev/null; then
     conda config --system --add channels lcdb
 fi
 
+# After SSHing in, for some reason this seems to fix it?
+conda install -y bioconductor-genomeinfodbdata
 conda create -n lcdb-wf-test -y --file requirements.txt
