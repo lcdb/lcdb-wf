@@ -77,6 +77,9 @@ variables:
         name: Set path
         command: |
           echo 'export PATH=~/miniconda/bin:$PATH' >> $BASH_ENV
+          echo `pwd`
+          echo $PATH
+          which conda
 jobs:
 
   initial-setup:
