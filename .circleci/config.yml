@@ -25,7 +25,9 @@ variables:
   get-data: &get-data
     run:
       name: Download example data
-      command: python ci/get-data.py
+      command: |
+        source activate lcdb-wf-test
+        python ci/get-data.py
 
   setup-ssh: &setup-ssh
     run:
