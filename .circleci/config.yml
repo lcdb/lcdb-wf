@@ -78,7 +78,6 @@ variables:
         command: |
           echo 'export PATH=/root/project/miniconda/bin:$PATH' >> $BASH_ENV
           source $BASH_ENV
-          which conda
 jobs:
 
   initial-setup:
@@ -104,8 +103,8 @@ jobs:
     parallelism: 2
     steps:
       - checkout
-      - *set-path
       - *restore_cache
+      - *set-path
       - *get-data
       - *rnaseq-step
 
@@ -114,8 +113,8 @@ jobs:
     parallelism: 2
     steps:
       - checkout
-      - *set-path
       - *restore_cache
+      - *set-path
       - *get-data
       - *references-step
 
