@@ -52,7 +52,6 @@ variables:
       run:
         name: chipseq workflow
         command: |
-          export PATH="`pwd`/miniconda/bin:$PATH"
           cd workflows/chipseq
           source activate lcdb-wf-test
           snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
@@ -61,7 +60,6 @@ variables:
       run:
         name: references workflow
         command: |
-          export PATH="`pwd`/miniconda/bin:$PATH"
           cd workflows/references
           source activate lcdb-wf-test
           snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
@@ -70,7 +68,6 @@ variables:
       run:
         name: rnaseq workflow
         command: |
-          export PATH="`pwd`/miniconda/bin:$PATH"
           cd workflows/rnaseq
           source activate lcdb-wf-test
           snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
@@ -90,6 +87,7 @@ jobs:
     parallelism: 2
     steps:
       - checkout
+      - echo 'export PATH=~/miniconda/bin:$PATH' >> $BASH_ENV
       - *restore_cache
       - *get-data
       - *chipseq-step
@@ -99,6 +97,7 @@ jobs:
     parallelism: 2
     steps:
       - checkout
+      - echo 'export PATH=~/miniconda/bin:$PATH' >> $BASH_ENV
       - *restore_cache
       - *get-data
       - *rnaseq-step
@@ -108,6 +107,7 @@ jobs:
     parallelism: 2
     steps:
       - checkout
+      - echo 'export PATH=~/miniconda/bin:$PATH' >> $BASH_ENV
       - *restore_cache
       - *get-data
       - *references-step
