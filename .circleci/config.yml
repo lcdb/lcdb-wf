@@ -72,6 +72,11 @@ variables:
           source activate lcdb-wf-test
           snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
 
+  set-path: &set-path
+      run:
+        name: Set path
+        command: |
+          echo 'export PATH=~/miniconda/bin:$PATH' >> $BASH_ENV
 jobs:
 
   initial-setup:
@@ -87,8 +92,8 @@ jobs:
     parallelism: 2
     steps:
       - checkout
-      - echo 'export PATH=~/miniconda/bin:$PATH' >> $BASH_ENV
       - *restore_cache
+      - *set-path
       - *get-data
       - *chipseq-step
 
@@ -97,7 +102,7 @@ jobs:
     parallelism: 2
     steps:
       - checkout
-      - echo 'export PATH=~/miniconda/bin:$PATH' >> $BASH_ENV
+      - *set-path
       - *restore_cache
       - *get-data
       - *rnaseq-step
@@ -107,7 +112,7 @@ jobs:
     parallelism: 2
     steps:
       - checkout
-      - echo 'export PATH=~/miniconda/bin:$PATH' >> $BASH_ENV
+      - *set-path
       - *restore_cache
       - *get-data
       - *references-step
