@@ -44,5 +44,6 @@ if ! type conda > /dev/null; then
     # After SSHing in, for some reason this seems to fix it...
     conda install -y r-base=3.4.1 bioconductor-genomeinfodbdata
     conda create -n lcdb-wf-test -y --file requirements.txt
+    conda remove -y r-base
 fi
 

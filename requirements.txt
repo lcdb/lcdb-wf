@@ -3,7 +3,6 @@ python >=3.6
 atropos
 bedtools
 bioconductor-annotationhub
-bioconductor-annotationhub
 bioconductor-clusterprofiler
 bioconductor-deseq2
 bioconductor-dupradar
