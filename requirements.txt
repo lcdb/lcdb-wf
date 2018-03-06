@@ -1,55 +1,55 @@
-r-base >=3.4
-python >=3.6
-atropos
-bedtools
-bioconductor-annotationhub
-bioconductor-annotationhub
-bioconductor-clusterprofiler
-bioconductor-deseq2
-bioconductor-dupradar
-bioconductor-genomicfeatures
+# r-base >=3.4
+# python >=3.6
+# atropos
+# bedtools
+# bioconductor-annotationhub
+# bioconductor-annotationhub
+# bioconductor-clusterprofiler
+# bioconductor-deseq2
+# bioconductor-dupradar
+# bioconductor-genomicfeatures
 bioconductor-genomeinfodbdata
-bioconductor-sva
-bioconductor-tximport
-biopython
-bowtie2
-cutadapt
-deeptools >=3.0.1
-fastqc
-fastq-screen
-gat
-gffutils
-ghostscript
-graphviz
-hisat2
-intervalstats
-kallisto
-lcdblib
-multiqc
-pandas
-pandoc
-picard
-pybedtools
-pysam
-pytest
-pytest-xdist
-r-codetools
-r-dt
-r-knitr
-r-knitrbootstrap
-r-pheatmap
-r-readr
-r-rmarkdown
-r-spp
-salmon
-samtools
-snakemake <4.5.0
-subread
-trackhub
-ucsc-bedtobigbed
-ucsc-bedsort
-ucsc-fetchchromsizes
-ucsc-gtftogenepred
-ucsc-liftover
-ucsc-oligomatch
-ucsc-twobittofa
+# bioconductor-sva
+# bioconductor-tximport
+# biopython
+# bowtie2
+# cutadapt
+# deeptools >=3.0.1
+# fastqc
+# fastq-screen
+# gat
+# gffutils
+# ghostscript
+# graphviz
+# hisat2
+# intervalstats
+# kallisto
+# lcdblib
+# multiqc
+# pandas
+# pandoc
+# picard
+# pybedtools
+# pysam
+# pytest
+# pytest-xdist
+# r-codetools
+# r-dt
+# r-knitr
+# r-knitrbootstrap
+# r-pheatmap
+# r-readr
+# r-rmarkdown
+# r-spp
+# salmon
+# samtools
+# snakemake <4.5.0
+# subread
+# trackhub
+# ucsc-bedtobigbed
+# ucsc-bedsort
+# ucsc-fetchchromsizes
+# ucsc-gtftogenepred
+# ucsc-liftover
+# ucsc-oligomatch
+# ucsc-twobittofa
