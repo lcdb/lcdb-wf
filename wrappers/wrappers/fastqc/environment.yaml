@@ -1,4 +1,6 @@
 channels:
   - bioconda
 dependencies:
+  # for fastqc running on circleci
+  - font-ttf-dejavu-sans-mono
   - fastqc ==0.11.5
