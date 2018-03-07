@@ -1,5 +1,6 @@
 channels:
   - bioconda
+  - conda-forge
 dependencies:
   # for fastqc running on circleci
   - font-ttf-dejavu-sans-mono
