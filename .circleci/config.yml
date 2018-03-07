@@ -2,14 +2,27 @@ version: 2
 
 variables:
 
+  # default settings for all steps
   defaults: &defaults
     docker:
       - image: bioconda/bioconda-utils-build-env
 
-  restore_cache: &restore_cache
-    restore_cache:
-      keys:
-        - v1-{{ checksum "requirements.txt" }}
+  # --------------------------------------------------------------------------
+  # The caching dramatically speeds up testing time, because we can do the
+  # time-consuming step of conda environment creation once and then use that
+  # for subsequent steps.
+  #
+  # The `initial-setup` job (defined in workflows below) saves the cache when
+  # it's done. Here the cache is the miniconda directory. Later jobs
+  # (chipseq-step, rnaseq-step, etc) restore that cache to dramatically speed
+  # up testing time.
+  #
+  # The cache key is set to only re-make the cache when the relevant files
+  # change. There's also a `v1-` prefix. This should be changed once in a while
+  # just to re-trigger an environment rebuild (say, when some critical updates
+  # hit bioconda).
+  #
+  # See https://circleci.com/docs/2.0/caching for details.
 
   save_cache: &save_cache
     save_cache:
@@ -17,10 +30,19 @@ variables:
       paths:
         - miniconda
 
+  restore_cache: &restore_cache
+    restore_cache:
+      keys:
+        - v1-{{ checksum "requirements.txt" }}
+
+  # --------------------------------------------------------------------------
+  # Run the setup script, which installs miniconda, sets up bioconda, and
+  # installs the global env
   setup: &setup
     run: 
       name: Setup conda
       command: .circleci/setup.sh
+  # --------------------------------------------------------------------------
 
   get-data: &get-data
     run:
@@ -28,25 +50,6 @@ variables:
       command: |
         source activate lcdb-wf-test
         python ci/get-data.py
-
-  setup-ssh: &setup-ssh
-    run:
-      name: Setup ssh
-      command: |
-        mkdir -p ~/.ssh
-        ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-
-  setup-base: &setup-base
-    run: 
-      name: Setup base system
-      command: |
-        cat >> $BASH_ENV <<EOF
-        if [[ \$- == *u* ]] ; then
-            set +u ; . /tmp/repo/docker-entrypoint-source ; set -u
-        else
-            . /tmp/repo/docker-entrypoint-source
-        fi
-        EOF
 
   chipseq-step: &chipseq-step
       run:
@@ -72,6 +75,7 @@ variables:
           source activate lcdb-wf-test
           snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
 
+  # The path needs to be set each time
   set-path: &set-path
       run:
         name: Set path
@@ -80,6 +84,8 @@ variables:
           source $BASH_ENV
 jobs:
 
+  # Builds the global conda environment, lcdb-wf-test, and then saves the
+  # `miniconda` dir to the cache which can be restored in later jobs.
   initial-setup:
     <<: *defaults
     steps:
@@ -123,13 +129,13 @@ workflows:
   test-suite:
     jobs:
       - initial-setup
-     # - chipseq:
-     #     requires:
-     #       - initial-setup
-     #     filters:
-     #       branches:
-     #         ignore:
-     #           - master
+     - chipseq:
+         requires:
+           - initial-setup
+         filters:
+           branches:
+             ignore:
+               - master
       - rnaseq:
           requires:
             - initial-setup
@@ -137,10 +143,10 @@ workflows:
             branches:
               ignore:
                 - master
-      # - references:
-      #     requires:
-      #       - initial-setup
-      #     filters:
-      #       branches:
-      #         ignore:
-      #           - master
+      - references:
+          requires:
+            - initial-setup
+          filters:
+            branches:
+              ignore:
+                - master
