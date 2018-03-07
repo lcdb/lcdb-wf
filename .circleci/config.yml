@@ -129,7 +129,7 @@ workflows:
   test-suite:
     jobs:
       - initial-setup
-     - chipseq:
+      - chipseq:
          requires:
            - initial-setup
          filters:
