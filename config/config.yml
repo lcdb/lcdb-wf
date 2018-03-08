@@ -289,6 +289,18 @@ references:
         url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M12/gencode.vM12.transcripts.fa.gz'
         indexes:
           - 'salmon'
+
+    rRNA:
+      fasta:
+        url:
+            - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+            - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+        indexes:
+            - 'hisat2'
+            - 'bowtie2'
+        postprocess:
+            function: 'lib.common.filter_fastas'
+            args: 'Mus musculus'
   ecoli:
     default:
       fasta:
