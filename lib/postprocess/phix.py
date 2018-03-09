@@ -10,7 +10,7 @@ def fasta_postprocess(origfn, newfn):
     shell(
         "mkdir -p {tmpdir} "
         "&& cd {tmpdir} "
-        "&& tar -xf {rel_orig} "
+        "&& tar -xf {rel_orig} --no-same-owner "
         "&& cat PhiX/Illumina/RTA/Sequence/WholeGenomeFasta/genome.fa | "
         "fold -w 80 | "
         "gzip -c > {rel_new} "

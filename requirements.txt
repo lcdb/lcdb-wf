@@ -3,19 +3,23 @@ python >=3.6
 atropos
 bedtools
 bioconductor-annotationhub
-bioconductor-annotationhub
 bioconductor-clusterprofiler
 bioconductor-deseq2
 bioconductor-dupradar
 bioconductor-genomicfeatures
+bioconductor-genomeinfodbdata
 bioconductor-sva
 bioconductor-tximport
 biopython
 bowtie2
 cutadapt
-deeptools
+deeptools >=3.0.1
 fastqc
 fastq-screen
+
+# for fastqc running on circleci
+font-ttf-dejavu-sans-mono
+
 gat
 gffutils
 ghostscript

@@ -497,7 +497,7 @@ rule bigwig_neg:
         '--ignoreDuplicates '
         '--smoothLength 10 '
         '--filterRNAstrand forward '
-        '--normalizeUsingRPKM '
+        '--normalizeUsing BPM '
         '&> {log}'
 
 
@@ -521,7 +521,7 @@ rule bigwig_pos:
         '--ignoreDuplicates '
         '--smoothLength 10 '
         '--filterRNAstrand reverse '
-        '--normalizeUsingRPKM '
+        '--normalizeUsing BPM '
         '&> {log}'
 
 

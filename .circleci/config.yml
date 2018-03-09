@@ -1,0 +1,152 @@
+version: 2
+
+variables:
+
+  # default settings for all steps
+  defaults: &defaults
+    docker:
+      - image: bioconda/bioconda-utils-build-env
+
+  # --------------------------------------------------------------------------
+  # The caching dramatically speeds up testing time, because we can do the
+  # time-consuming step of conda environment creation once and then use that
+  # for subsequent steps.
+  #
+  # The `initial-setup` job (defined in workflows below) saves the cache when
+  # it's done. Here the cache is the miniconda directory. Later jobs
+  # (chipseq-step, rnaseq-step, etc) restore that cache to dramatically speed
+  # up testing time.
+  #
+  # The cache key is set to only re-make the cache when the relevant files
+  # change. There's also a `v1-` prefix. This should be changed once in a while
+  # just to re-trigger an environment rebuild (say, when some critical updates
+  # hit bioconda).
+  #
+  # See https://circleci.com/docs/2.0/caching for details.
+
+  save_cache: &save_cache
+    save_cache:
+      key: v1-{{ checksum "requirements.txt" }}
+      paths:
+        - miniconda
+
+  restore_cache: &restore_cache
+    restore_cache:
+      keys:
+        - v1-{{ checksum "requirements.txt" }}
+
+  # --------------------------------------------------------------------------
+  # Run the setup script, which installs miniconda, sets up bioconda, and
+  # installs the global env
+  setup: &setup
+    run: 
+      name: Setup conda
+      command: .circleci/setup.sh
+  # --------------------------------------------------------------------------
+
+  get-data: &get-data
+    run:
+      name: Download example data
+      command: |
+        source activate lcdb-wf-test
+        python ci/get-data.py
+
+  chipseq-step: &chipseq-step
+      run:
+        name: chipseq workflow
+        command: |
+          cd workflows/chipseq
+          source activate lcdb-wf-test
+          snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+
+  references-step: &references-step
+      run:
+        name: references workflow
+        command: |
+          cd workflows/references
+          source activate lcdb-wf-test
+          snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+
+  rnaseq-step: &rnaseq-step
+      run:
+        name: rnaseq workflow
+        command: |
+          cd workflows/rnaseq
+          source activate lcdb-wf-test
+          snakemake --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+
+  # The path needs to be set each time
+  set-path: &set-path
+      run:
+        name: Set path
+        command: |
+          echo 'export PATH=/root/project/miniconda/bin:$PATH' >> $BASH_ENV
+          source $BASH_ENV
+jobs:
+
+  # Builds the global conda environment, lcdb-wf-test, and then saves the
+  # `miniconda` dir to the cache which can be restored in later jobs.
+  initial-setup:
+    <<: *defaults
+    steps:
+      - checkout
+      - *restore_cache
+      - *setup
+      - *save_cache
+
+  chipseq:
+    <<: *defaults
+    parallelism: 2
+    steps:
+      - checkout
+      - *restore_cache
+      - *set-path
+      - *get-data
+      - *chipseq-step
+
+  rnaseq:
+    <<: *defaults
+    parallelism: 2
+    steps:
+      - checkout
+      - *restore_cache
+      - *set-path
+      - *get-data
+      - *rnaseq-step
+
+  references:
+    <<: *defaults
+    parallelism: 2
+    steps:
+      - checkout
+      - *restore_cache
+      - *set-path
+      - *get-data
+      - *references-step
+
+workflows:
+  version: 2
+  test-suite:
+    jobs:
+      - initial-setup
+      - chipseq:
+         requires:
+           - initial-setup
+         filters:
+           branches:
+             ignore:
+               - master
+      - rnaseq:
+          requires:
+            - initial-setup
+          filters:
+            branches:
+              ignore:
+                - master
+      - references:
+          requires:
+            - initial-setup
+          filters:
+            branches:
+              ignore:
+                - master

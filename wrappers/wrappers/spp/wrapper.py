@@ -117,6 +117,20 @@ chip.data <- read.bam.tags("{ip}")
 input.data <- read.bam.tags("{control}")
 """
 
+
+#
+R_template += """
+for (chrom in names(chip.data$tags)){{
+    if (length(chip.data$tags[[chrom]]) < 10){{
+        print(paste("Chromosome", chrom, "has <10 reads; removing from analysis"))
+        chip.data$tags[[chrom]] <- NULL
+        chip.data$quality[[chrom]] <- NULL
+        input.data$tags[[chrom]] <- NULL
+        input.data$quality[[chrom]] <- NULL
+    }}
+}}
+"""
+
 # Use configured srange and bins, if provided. `accept.all.tags=TRUE` is
 # hard-coded since we were getting errors if FALSE.
 R_template += """

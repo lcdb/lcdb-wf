@@ -4,8 +4,9 @@ from snakemake.shell import shell
 from snakemake.utils import makedirs
 
 shell.executable('/bin/bash')
+BRANCH = 'fix-multimapping-chipseq'
+URL = 'https://github.com/lcdb/lcdb-test-data/blob/{0}/data/{{}}?raw=true'.format(BRANCH)
 
-URL = 'https://github.com/lcdb/lcdb-test-data/blob/add-chipseq/data/{}?raw=true'
 
 def _download_file(fn, dest=None):
     url = URL.format(fn)
@@ -15,6 +16,7 @@ def _download_file(fn, dest=None):
     basename = os.path.basename(fn)
     shell('wget -q -O- {url} > {dest}')
     return dest
+
 
 _download_file('rnaseq_samples/sample1/sample1.small_R1.fastq.gz', 'workflows/rnaseq/data/example_data/rnaseq_sample1.fq.gz')
 _download_file('rnaseq_samples/sample2/sample2.small_R1.fastq.gz', 'workflows/rnaseq/data/example_data/rnaseq_sample2.fq.gz')
