@@ -126,7 +126,7 @@ dds.txi <- DESeqDataSetFromSalmon(
                                   sampleTable=colData,
                                   directory='.',
                                   # Assumption: what to model
-                                  design=~condition)
+                                  design=~group)
 # rlog normalize transcript counts
 rld.txi <- rlog(dds.txi, blind=FALSE)
 ```
