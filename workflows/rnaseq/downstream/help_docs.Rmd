@@ -1,0 +1,119 @@
+## Differential expression help
+
+This section describes the output generated in this report. You can find much
+more detailed information in the [DESeq2
+vignette](https://bioconductor.org/packages/3.7/bioc/vignettes/DESeq2/inst/doc/DESeq2.html).
+
+### Contrasts
+
+In its simplest form a contrast is a statistical test that compares
+a particular group of replicates with another group of replicates, for example
+"WT vs mutant". More complicated contrasts are possible, depending on the
+experimental design and the model used.
+
+The result of a single contrast is generally a table of results with log2 fold
+change and adjusted p-value columns (see below for more details).
+
+### Summary tables
+
+Summary tables contain the following information for each contrast:
+
+-  **total.annotated.genes**: these are the genes for which we have count data.
+  It's the same for each comparison, reported here as a double-check.
+
+- **total.nonzero.read.count**: If a gene has zero reads in any replicate, it's
+  removed from the analysis. This number shows the remaining number of genes.
+
+- **alpha**: the threshold against which to compare adjusted pvalues to decided
+  whether a gene is significant. 0.1 is typically used for DESeq2: we're OK
+  calling something as differentially expressed (when the truth is that it's
+  not) about 10% of the time. This is the same across contrasts.
+
+- **up, down**: number of genes up or downregulated. For things like a simple
+  control vs treatment, this is straightforward. For interaction terms though,
+  things get complicated (see the interaction section).
+
+- **outliers**: DESeq2 automatically detects outliers and removes them. This column keeps track of that.
+
+- **low.counts**: DESeq2 implements filtering of genes with low counts in order
+  to improve the adjusted pvals. It removes genes with such low counts that
+  they would not ever be detected as significant, and as such that means we
+  don't have to calculate as many pvals, which in turn means a less harsh
+  multiple testing correction.
+
+- **desc, design**: these are details about the underlying model and what
+  contrast is being performed. Mostly for diagnostic purposes. If you see
+  "MAP", it means the fold changes are shrunken. "MLE" means they are not
+  because there was an interaction term.
+
+
+### Exported results files
+
+Each contrast has an exported file containing the DESeq results. It has at
+least the following columns:
+
+- first column (unnamed) is gene ID
+- **baseMean**: the average count across all replicates in all lobules and
+  genotypes being compared
+- **log2FoldChange**: magnitude of differential expression. Interpretation
+  depends on the contrast (see MA plots below). If NA, then it means all
+  samples had zero counts.
+
+- **lfcSE, stat, pvalue**: standard error of the log2 fold change estimate, Wald
+  or LRT test statistic, and raw pvalue. These are all just for diagnostics and
+  you can ignore them. However if `pvalue` is set to NA, it means that the gene
+  as an outlier and was not considered (see DESeq2 documentation for details).
+
+- **padj**: Adjusted p-value, or FDR. If "NA", then it means the gene had too
+  few counts to be useful.
+
+
+Remaining columns may include other gene information (e.g., symbol, name,
+UniProt ID).
+
+Notes on NA values (simplified from
+https://bioconductor.org/packages/3.7/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#pvaluesNA):
+
+- If within a row, all samples have zero counts, the baseMean column will be
+  zero, and the log2 fold change estimates, p value and adjusted p value will
+  all be set to NA.
+- If a row contains a sample with an extreme count outlier then the p value and
+  adjusted p value will be set to NA. These outlier counts are detected by
+  Cook’s distance.
+- If a row is filtered by automatic independent filtering for having a low
+  mean normalized count, then only the adjusted p value will be set to NA.
+
+
+### MA plots
+
+MA plots are a good way of showing the results of differential expression. Each
+point is a gene in which we have counted reads. If a genomic region was not
+included in the annotation, we have no counts for it and it is therefore not in
+this plot. The x-axis is average normalized counts. This is not *quite*
+expression, since the values are uncorrected for gene length and we would
+expect more counts for longer genes. However these normalized counts more
+accurately reflect what data the differential expression algorithm is seeing
+and using. The y-axis is log2 fold change.
+
+DESeq2 has two different ways of calculating log2 fold change. The shrunken
+version will shrink values toward y=0 for those genes with low information
+content (low counts or high variability across replicates) while the MLE
+version will show the unshrunken log2 fold change. Some contrasts, in
+particular those with interaction terms in the model, can't have their values
+shrunken for technical reasons (see the DESeq2 docs for details).
+
+### Interaction
+
+(To be written: what is an interaction, how to interpret them)
+
+### Replicates
+
+(To be written: bwithin-replicate variation vs between conditions)
+
+### Patterns plots
+
+(To be written: clustering, size of clusters, lack of significance, correlation merging)
+
+### GO terms
+
+(To be written: significiance; reflection of known annotations; only coding genes)
