@@ -2,6 +2,7 @@
 library(DESeq2)
 library(pheatmap)
 library(RColorBrewer)
+library(DEGreport)
 
 #' Get the OrgDb for the specified organism, using the cached AnnotationHub.
 #'
