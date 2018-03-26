@@ -384,7 +384,7 @@ The full analysis table can be viewed here:
 
 - [functional_enrichment.tsv](functional_enrichment.tsv)
 
-```{r, go, fig.height=15, dev=c('pdf', 'png')}
+```{r, go, fig.height=15, fig.width=15, dev=c('pdf', 'png')}
 # While clusterProfiler has canned figures, it's difficult to customize them.
 # Instead, here we create a tidy dataframe of all experiments, directions, and
 # enrichment analyses so that we can plot them with ggplot2 however the
@@ -402,7 +402,6 @@ for (sel in names(sel.list[[1]])){
   ###compute description length distribution for entire ontology
   length.quantile <- quantile(nchar(as.vector(m$Description, mode="character")), 0.75)
 
-
   # convert to phred score, and flip the "downregulated"
   m$phred <- -10 * log10(m$p.adjust)
   idx <- m$sel == sel
@@ -411,15 +410,22 @@ for (sel in names(sel.list[[1]])){
 
   if (nrow(m) == 0){next}
 
+  #replace ontology descriptions with truncations to make plot prettier
+  temp.desc <- as.vector(m$Description, mode="character")
+  needs.replacement <- which(nchar(temp.desc) > length.quantile)
+  temp.desc <- strtrim(temp.desc, length.quantile)
+  temp.desc[needs.replacement] <- paste(temp.desc[needs.replacement], "...", sep="")
+  m$Description <- factor(temp.desc)
+
   # Grab the top (ordered by phred)
-  m$Description <- factor(m$Description)
   max.per.term <- aggregate(phred~Description, m, FUN=max)
   o <- rev(order(max.per.term$phred))
   m$Description <- factor(m$Description, levels=rev(max.per.term$Description[o]))
   top.terms <- (max.per.term$Description[o][seq(lim)])
   m.sub <- m[m$Description %in% top.terms,]
   m.sub$Description <- droplevels(m.sub$Description)
-  m.sub <- m.sub[order(m.sub$Description),]
+  levels(m.sub$Description) <- max.per.term$Description[o]
+  #m.sub <- m.sub[order(m.sub$Description),]
 
   chunksize <- ceiling(lim / nchunks)
   lookup <- rep(1:nchunks, each=chunksize)
@@ -430,12 +436,6 @@ for (sel in names(sel.list[[1]])){
     m.sub$chunk[m.sub$Description == term] = lab
   }
 
-  #replace ontology descriptions with truncations to make plot prettier
-  temp.desc <- as.vector(m.sub$Description, mode="character")
-  needs.replacement <- which(nchar(temp.desc) > length.quantile)
-  temp.desc <- strtrim(temp.desc, length.quantile)
-  temp.desc[needs.replacement] <- paste(temp.desc[needs.replacement], "...", sep="")
-  m.sub$Description <- factor(temp.desc)
 
 print(ggplot(m.sub) +
     geom_point(alpha=0.6) +
