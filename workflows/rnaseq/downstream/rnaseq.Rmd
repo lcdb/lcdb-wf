@@ -146,8 +146,13 @@ dds <- DESeqDataSetFromFeatureCounts(
 # split them to only give the gene ID.
 rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
 
-# rlog normalize gene-level counts
-rld <- rlog(dds, blind=FALSE)
+# Variance-stablilized transform to normalize gene-level counts.
+# Alternatively, use `rlog`, but that gives about the same results
+# and is slow for large numbers of samples.
+#
+# Since this is for exploratory data analysis, we use blind=TRUE
+# to ignore the design.
+rld <- varianceStabilizingTransformation(dds, blind=TRUE)
 ```
 
 ## Sample clustering and QC
