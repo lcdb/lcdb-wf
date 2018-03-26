@@ -40,7 +40,7 @@ Click the following link to load the track hub (and prepared session) on the UCS
 # Differential expression
 
 Note: if you're unfamiliar with any of the plots or tables here, see the
-[Background and help](#background) section for details.
+[Background and help](#help) section for details.
 
 ## Experiment overview
 
@@ -75,8 +75,10 @@ kegg.org <- 'dme'
 hub.cache <- '../../../include/AnnotationHubCache'
 annotation_key_override <- NA
 
-# For running on the cluster, we copy to faster tmp storage to avoid poor
-# sqlite performance on shared filesystems.
+# To ensure that we do not clobber any local copies of the annotation, we copy
+# to tmp. This also should increase performance when running on the cluster --
+# we avoid poor sqlite performance on shared filesystems by copying to
+# local scratch space.
 file.copy(hub.cache, tempdir(), recursive=TRUE)
 new.cache <- file.path(tempdir(), 'AnnotationHubCache')
 
@@ -201,6 +203,8 @@ register(MulticoreParam(4))
 ```
 
 ```{r dds_models, cache=TRUE}
+# Assumption: using gene counts.
+
 dds <- DESeqDataSetFromFeatureCounts(
     sampleTable=colData,
     directory='.',
