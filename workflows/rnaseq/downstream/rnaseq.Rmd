@@ -60,7 +60,7 @@ library(AnnotationHub)
 # When rendering this file, the contents of this code block will be skipped
 # since it is a "child" block for which all contents are expected to be
 # in the other file.
-rmarkdown::render('helpers.Rmd')
+rmarkdown::render('helpers.Rmd', run_pandoc=FALSE)
 ```
 
 ```{r annotationhub_setup}
@@ -438,3 +438,7 @@ print(ggplot(m.sub) +
 sessionInfo()
 ```
 
+# Help
+
+```{r, child="help_docs.Rmd", run_pandoc=FALSE}
+```
