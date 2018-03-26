@@ -193,6 +193,13 @@ the row mean.
 vargenes.heatmap(rld, c('group'))
 ```
 
+```{r, eval=FALSE}
+# Assumption: you do not want to use parallel.  If you do, change eval to
+# TRUE and set cores appropriately. Then use the `parallel=TRUE` argument
+# whenever you call the `DESeq()` function.
+register(MulticoreParam(4))
+```
+
 ```{r dds_models, cache=TRUE}
 dds <- DESeqDataSetFromFeatureCounts(
     sampleTable=colData,
