@@ -54,6 +54,7 @@ library(tximport)
 library(clusterProfiler)
 library(AnnotationHub)
 library(BiocParallel)
+library(UpSetR)
 ```
 
 ```{r child='helpers.Rmd'}
