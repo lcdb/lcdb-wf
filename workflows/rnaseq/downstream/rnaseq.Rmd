@@ -301,6 +301,24 @@ for (name in names(res.list)){
 }
 ```
 
+
+```{r, fig.width=12}
+if (length(res.list) > 1){
+    mdcat("Gather together all the interesting gene sets into an ",
+          "['UpSet' plot](http://caleydo.org/tools/upset/).")
+    mdcat("Upregulated UpSet plot:")
+    ll <- lapply(res.list, get.sig, 'up')
+    upset(fromList(ll), order.by='freq', nsets=length(ll))
+
+    mdcat("Downregulated UpSet plot:")
+    ll <- lapply(res.list, get.sig, 'down')
+    upset(fromList(ll), order.by='freq', nsets=length(ll))
+
+    mdcat("Changed genes UpSet plot:")
+    ll <- lapply(res.list, get.sig, 'changed')
+    upset(fromList(ll), order.by='freq', nsets=length(ll))
+}
+```
 # Exported results
 
 ```{r}
