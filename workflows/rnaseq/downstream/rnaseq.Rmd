@@ -325,6 +325,50 @@ if (length(res.list) > 1){
     upset(fromList(ll), order.by='freq', nsets=length(ll))
 }
 ```
+
+# Gene patterns
+
+We can roughly group genes into expression patterns. This uses the [DEGreport
+package](https://www.bioconductor.org/packages/release/bioc/html/DEGreport.html),
+which in turn uses the
+[ConsensusClusterPlus](https://www.bioconductor.org/packages/release/bioc/html/ConsensusClusterPlus.html)
+algorithm to cluster genes into similar expression patterns. The lists of genes
+found in each cluster are reported below the plot.
+
+```{r, fig.width=12, results='asis', cache=TRUE}
+# Assumption: you want the gene patterns to be plotted across "group" on the
+# x-axis (this is the `time` argument to degPatterns). For more complicated
+# designs, try the `col` argument to color by another factor.
+
+# Set a hard limit -- beware plotting more genes than this as it could take a lot of
+# time to perform the clustering.
+lim <- 2000
+
+for (name in names(ll)){
+    genes <- ll[[name]]
+
+    # If there are fewer than the default `minc`, assume we want to plot them
+    # anyway.
+    minc <- min(length(genes) - 1, 15)
+
+    if (length(genes) > lim){
+        genes <- sample(genes, lim)
+    }
+    idx <- rownames(rld) %in% genes
+    ma <- assay(rld)[idx,]
+    mdcat('## ', res.list.lookup[[name]])
+    colData.i <- colData(dds.list[[name]])
+    d <- degPatterns(ma, colData.i, time='group', reduce=TRUE, cutoff=0.5, minc=minc)
+    dir.create('final_clusters')
+
+    for (u in unique(d$df$cluster)){
+        fn <- file.path('final_clusters', paste0('final.', name, '.cluster.', u, '.txt'))
+        write.table(d$df[d$df$cluster==u, 'genes'], file=fn, quote=FALSE, row.names=FALSE, col.names=FALSE)
+        mdcat('- [', fn, '](', fn, '), cluster "', u, '" genes')
+    }
+}
+```
+
 # Exported results
 
 ```{r}
