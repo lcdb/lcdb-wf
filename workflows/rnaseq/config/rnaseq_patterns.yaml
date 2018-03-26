@@ -51,6 +51,8 @@ rseqc:
 bigwig:
    pos: '{sample_dir}/{sample}/{sample}.cutadapt.bam.pos.bigwig'
    neg: '{sample_dir}/{sample}/{sample}.cutadapt.bam.neg.bigwig'
+   sense: '{sample_dir}/{sample}/{sample}.cutadapt.bam.sense.bigwig'
+   antisense: '{sample_dir}/{sample}/{sample}.cutadapt.bam.antisense.bigwig'
 
 downstream:
    rnaseq: 'downstream/rnaseq.html'

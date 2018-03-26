@@ -503,7 +503,7 @@ rule bigwig_neg:
 
 rule bigwig_pos:
     """
-    Create a bigwig for postive-strand reads
+    Create a bigwig for postive-strand reads.
     """
     input:
         bam=c.patterns['bam'],
@@ -523,6 +523,24 @@ rule bigwig_pos:
         '--filterRNAstrand reverse '
         '--normalizeUsing BPM '
         '&> {log}'
+
+
+rule symlink_bigwigs:
+    input:
+        pos=c.patterns['bigwig']['pos'],
+        neg=c.patterns['bigwig']['neg'],
+    output:
+        sense=c.patterns['bigwig']['sense'],
+        antisense=c.patterns['bigwig']['antisense'],
+    run:
+        # TEST SETTINGS:
+        # In our test data, reads mapping to the positive strand correspond to
+        # sense-strand transcripts. If your protocol is reversed, you can map
+        # negative-strand reads to "sense". The track hub creation in
+        # rnaseq_trackhub.py only cares about the `sense` and `antisense`
+        # versions, so you it's cheap to mess around with the symlinking here.
+        utils.make_relative_symlink(input.pos, output.sense)
+        utils.make_relative_symlink(input.neg, output.antisense)
 
 
 rule rnaseq_rmarkdown:
