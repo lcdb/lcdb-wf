@@ -280,6 +280,9 @@ for (name in names(res.list)){
 # come from the `attach.info` call above.
 add_cols <- c('symbol', 'alias')
 
+# Summarize all experiments
+knitr::kable(summarize.res.list(res.list, dds.list, res.list.lookup))
+
 for (name in names(res.list)){
   dds.i <- dds.list[[name]]
   res.i <- res.list[[name]]
