@@ -396,5 +396,28 @@ summarize.res.list <- function(res.list, dds.list, res.list.lookup){
 }
 
 
+#' Return index of up/down/changed genes
+#'
+#' @param x DESeq2 results object, or data.frame created from one
+#' @param direction Direction in 'up', 'dn', 'down', 'ch', 'changed'
+#' @param alpha FDR lower than this will be considered significant
+#' @param thresh Log2 fold change threshold. If e.g. 2, will return < -2 and/or > 2, depending on the value of "direction"
+#' @param return.names If TRUE, returns the rownames of selected genes; if FALSE return boolean index of length(x)
+#'
+#' @return Character vector of rownames (if return.names=TRUE) or boolean vector of genes selected.
+get.sig <- function(x, direction='up', alpha=0.1, thresh=0, return.names=TRUE){
+    if (direction == 'up'){
+        idx <- (x$padj < alpha) & (x$log2FoldChange > thresh) & (!is.na(x$padj))
+    } else if (direction %in% c('down', 'dn')){
+        idx <- (x$padj < alpha) & (x$log2FoldChange < -thresh) & (!is.na(x$padj))
+    } else if (direction %in% c('changed', 'ch')){
+        idx <- (x$padj < alpha) & (!is.na(x$padj))
+    }
+    if (return.names){
+        return(rownames(x)[idx])
+    } else {
+        return(idx)
+}
 ```
+
 
