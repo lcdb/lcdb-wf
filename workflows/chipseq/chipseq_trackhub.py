@@ -255,4 +255,6 @@ composite.add_view(peaks_view)
 # Render and upload using settings from hub config file
 hub.render()
 kwargs = hub_config.get('upload', {})
-upload_hub(hub=hub, **kwargs)
+
+if kwargs.get('remote_dir', False):
+    upload_hub(hub=hub, **kwargs)

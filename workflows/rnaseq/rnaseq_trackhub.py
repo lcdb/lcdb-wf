@@ -174,5 +174,8 @@ composite.add_view(neg_signal_view)
 # Render and upload using settings from hub config file
 hub.render()
 kwargs = hub_config.get('upload', {})
-upload_hub(hub=hub, **kwargs)
-print(hub.url)
+
+# If the hub config specified a remote path, upload there -- otherwise don't do
+# any uploading.
+if kwargs.get('remote_dir', False):
+    upload_hub(hub=hub, **kwargs)

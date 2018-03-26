@@ -1,15 +1,17 @@
 hub:
-  name: 'examplechipseq'
-  short_label: 'Example ChIP-seq'
-  long_label: 'Example ChIP-seq'
+  name: 'examplernaseq'
+  short_label: 'Example RNA-seq'
+  long_label: 'Example RNA-seq'
   email: 'dalerr@niddk.nih.gov'
   genome: 'dm6'
 
 upload:
   host: localhost   # helix.nih.gov
-  user: username
-  rsync_options: '-vprLt --progress'
 
+  # If not specified, defaults to current user
+  user:
+  rsync_options: '-vprLt --progress'
+    #
   # Directory to which track hub will be prepared, by making a bunch of
   # symlinks
   staging: staging
@@ -23,7 +25,7 @@ subgroups:
   # order matters; they will be used to create dimensions for the composite
   # track.
   columns:
-    - antibody
+    - group
 
   # The default sort order can be independent of the columns. Anything missing
   # here will inherit sorting from `columns` above.
@@ -39,9 +41,9 @@ subgroups:
 # a sample wins.
 colors:
   - "#4c9985":
-    - gaf
+    - treatment
   - "#555555":
-    - input
+    - control
 
 # Each dict in the supplemental list will be added to the track hub, under the
 # "supplemental view". The dict for each item in the list will be passed
