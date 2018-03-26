@@ -195,6 +195,17 @@ the row mean.
 vargenes.heatmap(rld, c('group'))
 ```
 
+Size factors: ideally, all libraries were sequenced to identical depth, in
+which case all size factors would be 1.0. This is never the case; these size
+factor estimates show how much sequencing depth varies across libraries.
+
+```{r}
+dds <- estimateSizeFactors(dds)
+sf <- sizeFactors(dds)
+sf <- sf[order(sf)]
+knitr::kable(sf)
+```
+
 ```{r, eval=FALSE}
 # Assumption: you do not want to use parallel.  If you do, change eval to
 # TRUE and set cores appropriately. Then use the `parallel=TRUE` argument
