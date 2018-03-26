@@ -16,9 +16,6 @@ aggregation_dir: 'data/chipseq_aggregation'
 # Directory in which merged technical replicates will be stored
 merged_dir: 'data/chipseq_merged'
 
-# File for configuring the track hub
-hub_config: 'config/hub_config.yaml'
-
 # Which key in the `references` dict below to use
 assembly: 'dmel'
 

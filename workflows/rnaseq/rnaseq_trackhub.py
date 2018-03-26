@@ -20,14 +20,13 @@ from trackhub.upload import upload_hub
 import argparse
 ap = argparse.ArgumentParser()
 ap.add_argument('config', help='Main config.yaml file')
+ap.add_argument('hub_config', help='Track hub config YAML file')
 args = ap.parse_args()
 
 # Access configured options. See comments in example hub_config.yaml for
 # details
 config = yaml.load(open(args.config))
-hub_config_fn = os.path.join(os.path.dirname(args.config), config['hub_config'])
-hub_config = yaml.load(open(hub_config_fn))
-
+hub_config = yaml.load(open(args.hub_config))
 
 hub, genomes_file, genome, trackdb = default_hub(
     hub_name=hub_config['hub']['name'],
