@@ -132,15 +132,11 @@ for sample in df[df.columns[0]]:
         subgroup['strand'] = direction
         view = sense_signal_view
         if direction == 'antisense':
-            # additional_kwargs['negateValues'] = 'on'
-            # additional_kwargs['viewLimits'] = '-25:0'
-            additional_kwargs['viewLimits'] = '15:0'
+            additional_kwargs['negateValues'] = 'on'
+            additional_kwargs['viewLimits'] = '-25:0'
             view = antisense_signal_view
         else:
-            # if strands were switched....
-            additional_kwargs['negateValues'] = 'on'
-            additional_kwargs['viewLimits'] = '-15:0'
-            # additional_kwargs['viewLimits'] = '0:25'
+            additional_kwargs['viewLimits'] = '0:25'
         view.add_tracks(
             Track(
                 name=sanitize(sample + os.path.basename(bigwig), strict=True),
