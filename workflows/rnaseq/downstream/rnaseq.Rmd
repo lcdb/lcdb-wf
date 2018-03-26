@@ -53,6 +53,7 @@ library(readr)
 library(tximport)
 library(clusterProfiler)
 library(AnnotationHub)
+library(BiocParallel)
 ```
 
 ```{r child='helpers.Rmd'}
