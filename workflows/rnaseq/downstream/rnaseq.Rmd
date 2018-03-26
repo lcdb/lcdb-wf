@@ -258,13 +258,18 @@ dds <- DESeq(dds,
 # res.list.lookup maps the list names to nicer labels that will be used in
 # headings.
 res.list <- list(
-                 all=lfcShrink(dds, contrast=c('group', 'treatment', 'control'))
+                 all=lfcShrink(dds, contrast=c('group', 'treatment', 'control')),
+                 lfc2=lfcShrink(dds, contrast=c('group', 'treatment', 'control'), lfcThreshold=2)
+
                  )
 dds.list <- list(
-                 all=dds
+                 all=dds,
+                 lfc2=dds
                  )
+
 res.list.lookup <- list(
-                        all="All replicates"
+                        all='Using a log2 fold change threshold of 0',
+                        lfc2='Using a log2 fold change threshold of 2'
                         )
 ```
 
