@@ -463,7 +463,11 @@ print(ggplot(m.sub) +
 }
 ```
 
-```{r}
+# Session info
+For reproducibility purposes, here is the output of `sessionInfo()` showing the
+versions of all packages used here.
+
+```{r, collapse=FALSE}
 sessionInfo()
 ```
 
