@@ -288,7 +288,7 @@ knitr::kable(summarize.res.list(res.list, dds.list, res.list.lookup))
 for (name in names(res.list)){
 
   # NOTE: You might find it useful to call the `the.works()` function in
-  # helpers.Rmd which does a # lot of this in one shot.
+  # helpers.Rmd which does a lot of this in one shot.
   # the.works(name, res.list, dds.list, res.list.lookup, add_cols=add_cols)
 
   dds.i <- dds.list[[name]]
@@ -343,7 +343,7 @@ found in each cluster are reported below the plot.
 # Set a hard limit -- beware plotting more genes than this as it could take a lot of
 # time to perform the clustering.
 lim <- 2000
-
+ll <- lapply(res.list, get.sig, 'changed')
 for (name in names(ll)){
     genes <- ll[[name]]
 
