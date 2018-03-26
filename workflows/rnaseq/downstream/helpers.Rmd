@@ -417,6 +417,7 @@ get.sig <- function(x, direction='up', alpha=0.1, thresh=0, return.names=TRUE){
         return(rownames(x)[idx])
     } else {
         return(idx)
+    }
 }
 ```
 
