@@ -375,4 +375,25 @@ attach.info <- function(res, keytype='ENSEMBL', columns=c('SYMBOL', 'UNIPROT', '
     res <- res[, c('gene', cn)]
     return(res)
 }
+
+
+#' Combine everything in the results list into a single table
+#'
+#' @param res.list List of DESeq2 results objects
+#' @param dds.list List of DESeq2 objects
+#' @param res.list.lookup List mapping res.list names to nicer-looking ones
+#'
+#' @return Dataframe
+summarize.res.list <- function(res.list, dds.list, res.list.lookup){
+    slist <- list()
+    for (name in names(res.list)){
+        slist[[name]] <- my.summary(res.list[[name]], dds.list[[name]])
+    }
+    slist <- do.call(rbind, slist)
+    rownames(slist) <- as.character(sapply(rownames(slist), function (x) res.list.lookup[x]))
+    return(slist)
+}
+
+
 ```
+
