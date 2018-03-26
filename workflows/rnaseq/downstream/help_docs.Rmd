@@ -1,6 +1,7 @@
 ## Differential expression help
 
-Much more information can be found in the [DESeq2
+This section describes the output generated in this report. You can find much
+more detailed information in the [DESeq2
 vignette](https://bioconductor.org/packages/3.7/bioc/vignettes/DESeq2/inst/doc/DESeq2.html).
 
 ### Contrasts
