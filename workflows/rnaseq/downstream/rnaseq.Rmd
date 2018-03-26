@@ -243,7 +243,7 @@ res.list.lookup <- list(
                         )
 ```
 
-```{r}
+```{r attach, cache=TRUE, depends='results'}
 # Assumption: Original annotations use Ensembl IDs
 keytype <- 'ENSEMBL'
 
