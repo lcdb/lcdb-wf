@@ -216,6 +216,7 @@ rule featurecounts:
 
         # Convert wildcards s0, s1, s2 to an argument
         '-{wildcards.stranded} '
+
         '-T {threads} '
         '-a {input.annotation} '
         '-o {output.counts} '
@@ -554,7 +555,7 @@ rule rnaseq_rmarkdown:
     Run and render the RMarkdown file that performs differential expression
     """
     input:
-        featurecounts=c.targets['featurecounts'],
+        featurecounts=utils.flatten(c.targets['featurecounts']),
         rmd='downstream/rnaseq.Rmd',
         sampletable=config['sampletable']
     output:

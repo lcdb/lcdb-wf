@@ -95,11 +95,21 @@ sample.table.filename = '../config/sampletable.tsv'
 
 colData <- read.table(sample.table.filename, sep='\t', header=TRUE)
 
+# Assumption: which featureCounts strandedness to use. All three are created by
+# default; here is where you specify which one to use for differential
+# expression.
+
+featurecounts.strandedness <- 's0'  # unstranded
+# featurecounts.strandedness <- 's1' # plus-strand reads correspond to sense-strand transcription (e.g., Ovation kits)
+# featurecounts.strandedness <- 's2' # minus-strand reads correspond to sense-strand transcription (e.g., TruSeq kits)
+
 # Assumption: data directory and extension to featurecounts output
 colData$featurecounts.path <- sapply(
     colData$samplename,
-    function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.cutadapt.bam.featurecounts.txt')
-                           )
+    function (x) file.path(
+        '..', 'data', 'rnaseq_samples', x,
+        paste0(x, '.cutadapt.bam.featurecounts.', featurecounts.strandedness, '.txt')
+        )
     )
 
 # Assumption: data directory and salmon filenames
