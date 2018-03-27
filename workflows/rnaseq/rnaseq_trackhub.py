@@ -20,14 +20,13 @@ from trackhub.upload import upload_hub
 import argparse
 ap = argparse.ArgumentParser()
 ap.add_argument('config', help='Main config.yaml file')
+ap.add_argument('hub_config', help='Track hub config YAML file')
 args = ap.parse_args()
 
 # Access configured options. See comments in example hub_config.yaml for
 # details
 config = yaml.load(open(args.config))
-hub_config_fn = os.path.join(os.path.dirname(args.config), config['hub_config'])
-hub_config = yaml.load(open(hub_config_fn))
-
+hub_config = yaml.load(open(args.hub_config))
 
 hub, genomes_file, genome, trackdb = default_hub(
     hub_name=hub_config['hub']['name'],
@@ -37,8 +36,6 @@ hub, genomes_file, genome, trackdb = default_hub(
     genome=hub_config['hub']['genome']
 )
 
-#hub.url = hub_config['hub']['url']
-#hub.remote_fn = hub_config['hub']['remote_fn']
 
 # Set up subgroups based on the configured columns
 df = pandas.read_table(config['sampletable'], comment='#')
@@ -61,7 +58,7 @@ subgroups.append(
     SubGroupDefinition(
         name='strand',
         label='strand',
-        mapping={'pos': 'pos', 'neg': 'neg'}))
+        mapping={'sense': 'sense', 'antisense': 'antisense'}))
 
 
 # Identify the sort order based on the config, and create a string appropriate
@@ -84,15 +81,15 @@ composite = CompositeTrack(
     tracktype='bigWig')
 
 # ASSUMPTION: stranded bigwigs
-pos_signal_view = ViewTrack(
-    name='possignalviewtrack', view='possignal', visibility='full',
-    tracktype='bigWig', short_label='plus strand', long_label='plus strand signal')
-neg_signal_view = ViewTrack(
-    name='negsignalviewtrack', view='negsignal', visibility='full',
-    tracktype='bigWig', short_label='minus strand', long_label='minus strand signal')
+sense_signal_view = ViewTrack(
+    name='sensesignalviewtrack', view='sensesignal', visibility='full',
+    tracktype='bigWig', short_label='sense strand', long_label='sense strand signal')
+antisense_signal_view = ViewTrack(
+    name='antisensesignalviewtrack', view='antisensesignal', visibility='full',
+    tracktype='bigWig', short_label='antisense strand', long_label='antisense strand signal')
 
 supplemental_view = ViewTrack(
-    name='suppviewtrack', view='supplementa', visibility='full',
+    name='suppviewtrack', view='supplementalview', visibility='full',
     tracktype='bigBed', short_label='Supplemental', long_label='Supplemental')
 
 colors = hub_config.get('colors', [])
@@ -117,7 +114,7 @@ def decide_color(samplename):
 
 for sample in df[df.columns[0]]:
     # ASSUMPTION: stranded bigwigs
-    for direction in 'pos', 'neg':
+    for direction in 'sense', 'antisense':
 
         # ASSUMPTION: bigwig filename pattern
         bigwig = os.path.join(
@@ -133,17 +130,13 @@ for sample in df[df.columns[0]]:
         # ASSUMPTION: stranded bigwigs
         additional_kwargs = {}
         subgroup['strand'] = direction
-        view = pos_signal_view
-        if direction == 'neg':
-            # additional_kwargs['negateValues'] = 'on'
-            # additional_kwargs['viewLimits'] = '-25:0'
-            additional_kwargs['viewLimits'] = '15:0'
-            view = neg_signal_view
-        else:
-            # if strands were switched....
+        view = sense_signal_view
+        if direction == 'antisense':
             additional_kwargs['negateValues'] = 'on'
-            additional_kwargs['viewLimits'] = '-15:0'
-            # additional_kwargs['viewLimits'] = '0:25'
+            additional_kwargs['viewLimits'] = '-25:0'
+            view = antisense_signal_view
+        else:
+            additional_kwargs['viewLimits'] = '0:25'
         view.add_tracks(
             Track(
                 name=sanitize(sample + os.path.basename(bigwig), strict=True),
@@ -169,11 +162,14 @@ if supplemental:
 # Tie everything together
 composite.add_subgroups(subgroups)
 trackdb.add_tracks(composite)
-composite.add_view(pos_signal_view)
-composite.add_view(neg_signal_view)
+composite.add_view(sense_signal_view)
+composite.add_view(antisense_signal_view)
 
 # Render and upload using settings from hub config file
 hub.render()
 kwargs = hub_config.get('upload', {})
-upload_hub(hub=hub, **kwargs)
-print(hub.url)
+
+# If the hub config specified a remote path, upload there -- otherwise don't do
+# any uploading.
+if kwargs.get('remote_dir', False):
+    upload_hub(hub=hub, **kwargs)
