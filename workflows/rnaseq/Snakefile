@@ -200,9 +200,9 @@ rule featurecounts:
         annotation=c.refdict[c.assembly][config['gtf']['tag']]['gtf'],
         bam=rules.hisat2.output
     output:
-        counts=c.patterns['featurecounts']
+        counts='{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt'
     log:
-        c.patterns['featurecounts'] + '.log'
+        '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt.log'
     shell:
         # TEST SETTINGS:
         # For reference:
@@ -210,6 +210,7 @@ rule featurecounts:
         # '-s 2 ' # for TruSeq kits where strand is flipped
         # '-t gene -g gene_id -f ' # for nascent RNA-seq
         'featureCounts '
+        '-{wildcards.stranded} '
         '-T {threads} '
         '-a {input.annotation} '
         '-o {output.counts} '
