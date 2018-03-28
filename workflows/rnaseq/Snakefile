@@ -200,16 +200,23 @@ rule featurecounts:
         annotation=c.refdict[c.assembly][config['gtf']['tag']]['gtf'],
         bam=rules.hisat2.output
     output:
-        counts=c.patterns['featurecounts']
+        counts='{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt'
     log:
-        c.patterns['featurecounts'] + '.log'
+        '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt.log'
     shell:
         # TEST SETTINGS:
-        # For reference:
-        # '-s 1 ' # for stranded data
-        # '-s 2 ' # for TruSeq kits where strand is flipped
-        # '-t gene -g gene_id -f ' # for nascent RNA-seq
+        # By default, the strand argument (-s0, -s1, -s2) to featureCounts is
+        # pulled straight from the wildcards, and the filenames have been set
+        # up in rnaseq_patterns.yaml.
+        #
+        # You probably do not want to add your own -s argument below, however
+        # other arguments might be useful, for example, for nascent RNA-seq,
+        # add '-t gene -g gene_id -f '
         'featureCounts '
+
+        # Convert wildcards s0, s1, s2 to an argument
+        '-{wildcards.stranded} '
+
         '-T {threads} '
         '-a {input.annotation} '
         '-o {output.counts} '
@@ -548,7 +555,7 @@ rule rnaseq_rmarkdown:
     Run and render the RMarkdown file that performs differential expression
     """
     input:
-        featurecounts=c.targets['featurecounts'],
+        featurecounts=utils.flatten(c.targets['featurecounts']),
         rmd='downstream/rnaseq.Rmd',
         sampletable=config['sampletable']
     output:
