@@ -52,7 +52,9 @@ rule targets:
             utils.flatten(c.targets['peaks']) +
             utils.flatten(c.targets['merged_techreps']) +
             utils.flatten(c.targets['fingerprint']) +
-            utils.flatten(c.targets['bigbed'])
+            utils.flatten(c.targets['bigbed']) +
+            utils.flatten(c.targets['multibigwigsummary']) +
+            utils.flatten(c.targets['plotcorrelation'])
         )
 
 
@@ -504,6 +506,55 @@ rule bed_to_bigbed:
 
             shell('bedToBigBed -as={_as} -type={_type} {output}.tmp {input.chromsizes} {output}')
             shell('rm {output}.tmp')
+
+
+rule multibigwigsummary:
+    """
+    Summarize the bigWigs across genomic bins
+    """
+    input:
+        c.targets['bigwig']
+    output:
+        npz=c.targets['multibigwigsummary']['npz'],
+        tab=c.targets['multibigwigsummary']['tab']
+    run:
+        # from the input files, figure out the sample name.
+        labels = ' '.join([i.split('/')[-2] for i in input])
+        shell(
+            'multiBigwigSummary '
+            'bins '
+            '-b {input} '
+            '--labels {labels} '
+            '-out {output.npz} '
+            '--outRawCounts {output.tab}'
+        )
+
+
+rule plotcorrelation:
+    """
+    Plot a heatmap of correlations across all samples
+    """
+    input:
+        c.targets['multibigwigsummary']['npz']
+    output:
+        heatmap=c.targets['plotcorrelation']['heatmap'],
+        tab=c.targets['plotcorrelation']['tab']
+    shell:
+        'plotCorrelation '
+        '--corData {input} '
+        '--corMethod spearman '
+        '--whatToPlot heatmap '
+        '--plotFile {output.heatmap} '
+        '--colorMap viridis '
+        '--outFileCorMatrix {output.tab}'
+
+        # TEST SETTINGS:
+        # If you're expecting negative correlation, try a divergent colormap
+        # and setting the min/max to ensure that the colomap is centered on zero
+        # '--colorMap RdBu_r '
+        # '--zMin -1 '
+        # '--zMax 1 '
+
 
 
 # vim: ft=python
