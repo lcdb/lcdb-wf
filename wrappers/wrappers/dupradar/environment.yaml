@@ -2,9 +2,9 @@ channels:
   - bioconda
   - lcdb
 dependencies:
-  - python=3
-  - bioconductor-dupradar ==1.2.2
-  - r-kernsmooth ==2.23
-  - r ==3.3.2
-  - lcdblib ==0.1.2.post
-  - ghostscript ==9.18
+  - python
+  - bioconductor-dupradar
+  - r-kernsmooth
+  - r
+  - lcdblib
+  - ghostscript
