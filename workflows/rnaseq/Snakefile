@@ -49,7 +49,8 @@ rule targets:
             utils.flatten(c.targets['rrna']) +
             utils.flatten(c.targets['markduplicates']) +
             utils.flatten(c.targets['salmon']) +
-            #utils.flatten(c.targets['dupradar']) +
+            utils.flatten(c.targets['dupradar']) +
+            utils.flatten(c.targets['preseq']) +
             utils.flatten(c.targets['rseqc']) +
             utils.flatten(c.targets['collectrnaseqmetrics']) +
             utils.flatten(c.targets['bigwig']) +
@@ -348,6 +349,8 @@ rule multiqc:
             utils.flatten(c.targets['salmon']) +
             utils.flatten(c.targets['rseqc']) +
             utils.flatten(c.targets['fastq_screen']) +
+            utils.flatten(c.targets['dupradar']) +
+            utils.flatten(c.targets['preseq']) +
             utils.flatten(c.targets['collectrnaseqmetrics'])
         ),
         config='config/multiqc_config.yaml'
@@ -432,6 +435,20 @@ rule collectrnaseqmetrics:
         'INPUT={input.bam} '
         'OUTPUT={output.metrics} '
         '&> {log}'
+
+rule preseq:
+    """
+    Compute a library complexity curve with preseq
+    """
+    input:
+        bam=c.patterns['bam']
+    output:
+        c.patterns['preseq']
+    shell:
+        'preseq '
+        'c_curve '
+        '-B {input} '
+        '-o {output} '
 
 
 rule dupRadar:

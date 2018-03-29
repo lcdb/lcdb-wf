@@ -46,6 +46,8 @@ dupradar:
    model: '{sample_dir}/{sample}/dupradar/{sample}_model.txt'
    curve: '{sample_dir}/{sample}/dupradar/{sample}_curve.txt'
 
+preseq: '{sample_dir}/{sample}/{sample}_preseq_c_curve.txt'
+
 salmon: '{sample_dir}/{sample}/{sample}.salmon/quant.sf'
 
 rseqc:

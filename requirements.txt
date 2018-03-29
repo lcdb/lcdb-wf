@@ -34,6 +34,7 @@ multiqc
 pandas
 pandoc
 picard
+preseq
 pybedtools
 pysam
 pytest
