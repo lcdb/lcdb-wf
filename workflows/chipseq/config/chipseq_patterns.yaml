@@ -34,6 +34,13 @@ patterns_by_sample:
     raw_counts: '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.tab'
     metrics: '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.metrics'
 
+  multibigwigsummary:
+    npz: '{agg_dir}/deeptools/multibigwigsummary_matrix.npz'
+    tab: '{agg_dir}/deeptools/multibigwigsummary.tab'
+  plotcorrelation:
+    tab: '{agg_dir}/deeptools/plotcorrelation.tab'
+    heatmap: '{agg_dir}/deeptools/correlation_heatmap.png'
+
 patterns_by_peaks:
     peaks:
        macs2: '{peak_calling}/macs2/{macs2_run}/peaks.bed'
