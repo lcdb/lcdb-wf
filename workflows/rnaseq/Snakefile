@@ -97,8 +97,6 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
             )
 
 
-
-
 rule cutadapt:
     """
     Run cutadapt
