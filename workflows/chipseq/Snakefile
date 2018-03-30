@@ -71,6 +71,26 @@ if 'orig_filename' in c.sampletable.columns:
     rule symlink_targets:
         input: c.targets['fastq']
 
+if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('SRR')) > 1:
+
+    # Convert the sampletable to be indexed by the first column, for
+    # convenience in generating the input/output filenames.
+    _st = c.sampletable.set_index(c.sampletable.columns[0])
+
+    rule fastq_dump:
+        output:
+            c.patterns['fastq']
+        run:
+            srr = _st.loc[wildcards.sample, 'Run']
+            shell(
+                'fastq-dump '
+                '{srr} '
+                '-Z '
+                '| gzip -c > {output}.tmp '
+                '&& mv {output}.tmp {output} '
+            )
+
+
 
 rule cutadapt:
     """
