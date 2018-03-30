@@ -13,11 +13,12 @@ from lib import common, chipseq
 from lib.patterns_targets import ChIPSeqConfig
 
 # ----------------------------------------------------------------------------
-# Note:
 #
-#  Search this file for the string "# TEST SETTINGS" and make necessary edits
-#  before running this on real data.
+# Search for the string "NOTE:" to look for points of configuration that might
+# be helpful for your experiment.
+#
 # ----------------------------------------------------------------------------
+
 
 configfile: 'config/config.yaml'
 include: '../references/Snakefile'
@@ -309,10 +310,8 @@ rule markduplicates:
     log:
         c.patterns['markduplicates']['bam'] + '.log'
     params:
-        # TEST SETTINGS:
-        # You may want to use something larger, like "-Xmx24g" for real-world
-        # usage.
-        java_args='-Xmx2g'
+        java_args='-Xmx32g'
+        # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     shell:
         'picard '
         '{params.java_args} '
@@ -343,10 +342,8 @@ rule merge_techreps:
     log:
         c.patterns['merged_techreps'] + '.log'
     params:
-        # TEST SETTINGS:
-        # You may want to use something larger, like "-Xmx24g" for real-world
-        # usage.
-        java_args='-Xmx2g'
+        java_args='-Xmx32g'
+        # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     wrapper:
         wrapper_for('combos/merge_and_dedup')
 
@@ -373,10 +370,10 @@ rule bigwig:
         '-p {threads} '
         '--minMappingQuality 20 '
         '--ignoreDuplicates '
-        # TEST SETTINGS:
-        # Uncomment the next line in practice; can't use for testing due to
-        # <1000 reads total.
-        # '--normalizeUsing CPM '
+        # Can't use the following normalization for testing due to <1000 reads
+        # total in example data.
+        # [TEST SETTINGS +1]
+        '--normalizeUsing CPM '
         '--extendReads 300 '
         '&> {log}'
 
@@ -403,19 +400,18 @@ rule fingerprint:
         'plotFingerprint '
         '--bamfiles {input.bams} '
         '-p {threads} '
-        # TEST SETTINGS:
-        # This argument is disabled for testing as it dramatically increases
-        # the run time.
-        #'--JSDsample {input.control} '
+        # The JSDsample argument is disabled for testing as it dramatically
+        # increases the run time.
+        # [TEST SETTINGS +1]
+        '--JSDsample {input.control} '
         '--smartLabels '
         '--extendReads=300 '
         '--skipZeros '
         '--outQualityMetrics {output.metrics} '
         '--outRawCounts {output.raw_counts} '
         '--plotFile {output.plot} '
-        # TEST SETTINGS: You'll probably want to change --numberOfSamples to
-        # something higher (default is 500k) when running on real data
-        '--numberOfSamples 50 '
+        # Default is 500k; use fewer to speed up testing:
+        # '--numberOfSamples 50 '  # [TEST SETTINGS ]
         '&> {log} '
         '&& sed -i "s/NA/0.0/g" {output.metrics} '
 
@@ -475,9 +471,9 @@ rule spp:
         c.patterns['peaks']['spp'] + '.log'
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.spp_run, 'spp'),
-        # TEST SETTINGS: probably want to uncomment this:
-        # java_args='-Xmx24g',
-        keep_tempfiles=False
+        keep_tempfiles=False,
+        java_args='-Xmx24g',
+        # java_args='-Xmx2g',  # [TEST SETTINGS -1]
     threads: 2
     wrapper:
         wrapper_for('spp')
@@ -568,9 +564,9 @@ rule plotcorrelation:
         '--colorMap viridis '
         '--outFileCorMatrix {output.tab}'
 
-        # TEST SETTINGS:
-        # If you're expecting negative correlation, try a divergent colormap
-        # and setting the min/max to ensure that the colomap is centered on zero
+        # Note: if you're expecting negative correlation, try a divergent
+        # colormap and setting the min/max to ensure that the colomap is
+        # centered on zero:
         # '--colorMap RdBu_r '
         # '--zMin -1 '
         # '--zMax 1 '
