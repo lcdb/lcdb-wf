@@ -57,7 +57,7 @@ variables:
         command: |
           cd workflows/chipseq
           source activate lcdb-wf-test
-          python ../../ci/preprocessor.py Snakefile > Snakefile.test
+          python -m doctest  preprocessor.py && python ../../ci/preprocessor.py Snakefile > Snakefile.test
           snakemake -s Snakefile.test --configfile config/config.yaml --use-conda -j2 -T -k -p -r
           python chipseq_trackhub.py config/config.yaml config/hub_config.yaml
 
@@ -67,7 +67,7 @@ variables:
         command: |
           cd workflows/references
           source activate lcdb-wf-test
-          python ../../ci/preprocessor.py Snakefile > Snakefile.test
+          python -m doctest  preprocessor.py && python ../../ci/preprocessor.py Snakefile > Snakefile.test
           snakemake -s Snakefile.test --configfile config/config.yaml --use-conda -j2 -T -k -p -r
 
   rnaseq-step: &rnaseq-step
@@ -76,7 +76,7 @@ variables:
         command: |
           cd workflows/rnaseq
           source activate lcdb-wf-test
-          python ../../ci/preprocessor.py Snakefile > Snakefile.test
+          python -m doctest  preprocessor.py && python ../../ci/preprocessor.py Snakefile > Snakefile.test
           snakemake -s Snakefile.test --configfile config/config.yaml --use-conda -j2 -T -k -p -r
           python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
 
