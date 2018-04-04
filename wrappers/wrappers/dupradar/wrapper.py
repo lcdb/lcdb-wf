@@ -20,6 +20,8 @@ try:
 except KeyError:
     raise ValueError('"paired" must be True or False')
 
+tempdir = tempfile.mkdtemp()
+
 # To avoid issues with png() related to X11 and cairo, we can use bitmap() instead.
 # (thanks
 # http://stackoverflow.com/questions/24999983/
@@ -30,7 +32,7 @@ script = """
 library(dupRadar)
 bam <- "{snakemake.input.bam}"
 gtf <- "{snakemake.input.annotation}"
-dm <- analyzeDuprates(bam, gtf, {stranded_int}, {paired_bool}, {snakemake.threads})
+dm <- analyzeDuprates(bam, gtf, {stranded_int}, {paired_bool}, {snakemake.threads}, tmpDir = "{tempdir}")
 
 dm$mhRate <- (dm$allCountsMulti - dm$allCounts) / dm$allCountsMulti
 bitmap(file="{snakemake.output.multimapping_histogram}")
@@ -87,3 +89,4 @@ write.table(
 
 tmp = tempfile.NamedTemporaryFile(delete=False).name
 helpers.rscript(script, tmp, log=log)
+shell("rm -r {tempdir}")
