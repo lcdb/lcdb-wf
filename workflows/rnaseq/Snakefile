@@ -407,7 +407,7 @@ rule markduplicates:
     log:
         c.patterns['markduplicates']['bam'] + '.log'
     params:
-        java_args='-Xmx32g'
+        java_args='-Xmx20g'
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     shell:
         'picard '
@@ -430,7 +430,7 @@ rule collectrnaseqmetrics:
         metrics=c.patterns['collectrnaseqmetrics']['metrics'],
         pdf=c.patterns['collectrnaseqmetrics']['pdf']
     params:
-        java_args='-Xmx32g'
+        java_args='-Xmx20g'
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     log:
         c.patterns['collectrnaseqmetrics']['metrics'] + '.log'
