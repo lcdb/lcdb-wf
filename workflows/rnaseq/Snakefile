@@ -407,7 +407,7 @@ rule markduplicates:
     log:
         c.patterns['markduplicates']['bam'] + '.log'
     params:
-        java_args='Xmx32g'
+        java_args='-Xmx32g'
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     shell:
         'picard '
