@@ -267,10 +267,25 @@ dds <- DESeq(dds,
 # will get DE results sections automatically created for each item. The
 # res.list.lookup maps the list names to nicer labels that will be used in
 # headings.
+
+# As currently implemented (05 apr 2018), lfcShrink checks its arguments for an existing results
+# table. If it exists, it applies shrinkage to the lfc and se in that table. If it ~doesn't~ exist,
+# it calls results on dds with the syntax
+#
+## res <- results(dds, name=coef)
+# or
+## res <- results(dds, contrast=contrast)
+#
+# It does not pass any further arguments to results, and it doesn't warn you that results-style arguments
+# were unrecognized and ignored. Therefore, lfcShrink does not directly support
+# lfcThreshold, or other alternative hypotheses, or any of the custom analysis methods you can access
+# through results. To get those, you have to call results first, without shrinkage, and then apply lfcShrink.
+
+res.lfcthresh.2 <- results(dds, contrast=c('group', 'treatment', 'control'), lfcThreshold=2)
+
 res.list <- list(
                  all=lfcShrink(dds, contrast=c('group', 'treatment', 'control')),
-                 lfc2=lfcShrink(dds, contrast=c('group', 'treatment', 'control'), lfcThreshold=2)
-
+                 lfc2=lfcShrink(dds, contrast=c('group', 'treatment', 'control'), res=res.lfcthresh.2)
                  )
 dds.list <- list(
                  all=dds,
@@ -352,17 +367,27 @@ if (length(res.list) > 1){
           "['UpSet' plot](http://caleydo.org/tools/upset/). These plots show ",
           "the combinatorial overlaps of genes found to be up, down, and any ",
           "changed across the different contrasts performed.")
-    mdcat("### Upregulated UpSet plot:")
+
     ll <- lapply(res.list, get.sig, 'up')
-    upset(fromList(ll), order.by='freq', nsets=length(ll))
+    ll <- ll[lapply(ll, length) > 0]
+    if (length(ll) > 1) {
+        mdcat("### Upregulated UpSet plot:")
+        upset(fromList(ll), order.by='freq', nsets=length(ll))
+    }
 
-    mdcat("### Downregulated UpSet plot:")
     ll <- lapply(res.list, get.sig, 'down')
-    upset(fromList(ll), order.by='freq', nsets=length(ll))
+    ll <- ll[lapply(ll, length) > 0]
+    if (length(ll) > 1) {
+        mdcat("### Downregulated UpSet plot:")
+        upset(fromList(ll), order.by='freq', nsets=length(ll))
+    }
 
-    mdcat("### Changed genes UpSet plot:")
     ll <- lapply(res.list, get.sig, 'changed')
-    upset(fromList(ll), order.by='freq', nsets=length(ll))
+    ll <- ll[lapply(ll, length) > 0]
+    if (length(ll) > 1) {
+        mdcat("### Changed genes UpSet plot:")
+        upset(fromList(ll), order.by='freq', nsets=length(ll))
+    }
 }
 ```
 
@@ -378,6 +403,7 @@ found in each cluster are reported below the plot.
 ```{r, fig.width=12, results='asis', cache=TRUE}
 
 ll <- lapply(res.list, get.sig, 'changed')
+ll <- ll[lapply(ll, length) > 0]
 for (name in names(ll)){
     genes <- ll[[name]]
 
