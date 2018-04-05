@@ -281,11 +281,11 @@ dds <- DESeq(dds,
 # lfcThreshold, or other alternative hypotheses, or any of the custom analysis methods you can access
 # through results. To get those, you have to call results first, without shrinkage, and then apply lfcShrink.
 
-res.lfcthresh.2 <- results(dds, contrast=c('group', 'Shep', 'GFP'), lfcThreshold=2)
+res.lfcthresh.2 <- results(dds, contrast=c('group', 'treatment', 'control'), lfcThreshold=2)
 
 res.list <- list(
-                 all=lfcShrink(dds, contrast=c('group', 'Shep', 'GFP')),
-                 lfc2=lfcShrink(dds, contrast=c('group', 'Shep', 'GFP'), res=res.lfcthresh.2)
+                 all=lfcShrink(dds, contrast=c('group', 'treatment', 'control')),
+                 lfc2=lfcShrink(dds, contrast=c('group', 'treatment', 'control'), res=res.lfcthresh.2)
                  )
 dds.list <- list(
                  all=dds,
