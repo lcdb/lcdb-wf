@@ -48,6 +48,9 @@ def peak_calling_dict(config, algorithm=None):
             key = key[0]
         if key in d:
             raise ValueError("peak calling run '{0}' already defined".format(key))
+#spike in the genome build listed for a particular annotation in the config file, as default
+#will be overridden by anything specified by the user in the peak caller run
+        block['reference_genome_build'] = config['references'][config['assembly']][config['aligner']['tag']]['genome_build']
         d[key] = block
     return d
 
