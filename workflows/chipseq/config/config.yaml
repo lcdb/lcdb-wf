@@ -55,11 +55,11 @@ chipseq:
         - gaf-embryo-1
       control:
         - input-embryo-1
-      redundancy-threshold: 1
-      window-size: 200
-      fragment-size: 150
-#      effective-genome-fraction: 0.75
-      gap-size: 600
+      redundancy_threshold: 1
+      window_size: 200
+      fragment_size: 150
+#      effective_genome_fraction: 0.75
+      gap_size: 600
       fdr: 0.01
       
 
@@ -131,7 +131,7 @@ references:
     test:
       fasta:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/add-chipseq/data/seq/dm6.small.fa"
-        postprocess: 'lib.common.gzipped'
+        postprocess: 'lib.postprocess.dm6.fasta_postprocess_nogzip'
         indexes:
           - 'bowtie2'
       genome_build: dm6

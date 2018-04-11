@@ -436,7 +436,7 @@ rule sicer:
     output:
         bed=c.patterns['peaks']['sicer']
     log:
-        c.patterns['peaks']['sicer']
+        c.patterns['peaks']['sicer'] + '.log'
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.sicer_run, 'sicer')
     wrapper:

@@ -8,10 +8,10 @@ logfile = None
 redundancy_threshold = snakemake.params.block.get('redundancy_threshold', snakemake.params.get('redundancy_threshold', ''))
 window_size = snakemake.params.block.get('window_size', snakemake.params.get('redundancy_threshold', ''))
 fragment_size = snakemake.params.block.get('fragment_size', snakemake.params.get('fragment_size', ''))
-effective_genome_fraction = snakemake.params.block.get('effective_genome_fraction', snakemake.params.get('effective_genome_fraction', ''))
+effective_genome_fraction = snakemake.params.block.get('effective_genome_fraction', snakemake.params.block.get('reference_effective_genome_fraction', ''))
 gap_size = snakemake.params.block.get('gap_size', snakemake.params.get('gap_size', ''))
 fdr = snakemake.params.block.get('fdr', snakemake.params.get('fdr', ''))
-genome_build = snakemake.params.block.get('genome_build', snakemake.params.get('reference_genome_build', ''))
+genome_build = snakemake.params.block.get('genome_build', snakemake.params.block.get('reference_genome_build', ''))
 
 if redundancy_threshold == '':
     raise ValueError("SICER requires the specification of a 'redundancy_threshold'")
@@ -53,8 +53,8 @@ else:
 # Fix the output file so that it conforms to UCSC guidelines
 shell(
     "export LC_COLLATE=C; "
-    """awk -F"\\t" '{{printf("%s\t%d\t%d\t%s_peak_%d\t%d\t.\t%g\t%g\t%g\n", $1, $2, $3-1, {label}, NR, -10*log($6)/log(10), $7, -log($6)/log(10), -log($8)/log(10))}' """
-    "{{hit}} > {snakemake.output.bed}.tmp "
+    """awk -F"\\t" '{{printf("%s\\t%d\\t%d\\t%s_peak_%d\\t%d\\t.\\t%g\\t%g\\t%g\\n", $1, $2, $3-1, {label}, NR, -10*log($6)/log(10), $7, -log($6)/log(10), -log($8)/log(10))}}' """
+    "{hit} > {snakemake.output.bed}.tmp "
     "&& bedSort {snakemake.output.bed}.tmp {snakemake.output.bed}"
     "&& rm {snakemake.output.bed}.tmp && rm -Rf {tmpdir}"
 )
