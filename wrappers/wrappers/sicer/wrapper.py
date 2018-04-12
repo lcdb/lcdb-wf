@@ -56,9 +56,9 @@ if len(resultsfile) == 1:
     hit = resultsfile[0]
     basehit = os.path.basename(resultsfile[0])
 elif len(resultsfile) > 1:
-    raise ValueError("Multiple islands-summary-FDR files found in temporary working directory: " + os.listdir(tmpdir))
+    raise ValueError("Multiple islands-summary-FDR files found in temporary working directory: " + str(os.listdir(tmpdir)))
 else:
-    raise ValueError("No islands-summary-FDR file found: " + os.listdir(tmpdir))
+    raise ValueError("No islands-summary-FDR file found: " + str(os.listdir(tmpdir)))
 
 # Fix the output file so that it conforms to UCSC guidelines
 shell("mv {tmpdir}/tmp.sicer.output {snakemake.output.bed}.sicer.output")
