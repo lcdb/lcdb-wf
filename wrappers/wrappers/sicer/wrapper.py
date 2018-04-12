@@ -41,6 +41,10 @@ shell(
 shell(
     'cd {tmpdir} && '
 
+    # locally this seems fine; circleci somehow is getting py3?
+    'which python && '
+    'python -c "import sys; print(sys.version)" && '
+
     'SICER.sh {tmpdir} ip.bed in.bed '
     '{tmpdir} {genome_build} {redundancy_threshold} {window_size} '
     '{fragment_size} {effective_genome_fraction} {gap_size} {fdr} '
