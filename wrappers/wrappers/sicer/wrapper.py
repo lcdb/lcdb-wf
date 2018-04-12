@@ -32,6 +32,9 @@ outdir, basebed = os.path.split(snakemake.output.bed)
 label = snakemake.params.block['label']
 
 tmpdir = tempfile.mkdtemp()
+cwd = os.getcwd()
+
+os.chdir(tmpdir)
 
 cmds = (
     'bamToBed -i {snakemake.input.ip} > {tmpdir}/ip.bed ; '
@@ -49,6 +52,7 @@ if len(resultsfile) == 1:
 else:
     raise ValueError("No islands-summary-FDR file found!")
 
+os.chdir(cwd)
 
 # Fix the output file so that it conforms to UCSC guidelines
 shell(
