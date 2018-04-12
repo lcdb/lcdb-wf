@@ -147,7 +147,7 @@ workflows:
           filters:
             branches:
               ignore:
-	        - sicer-integration
+                - sicer-integration
                 - master
       - references:
           requires:
