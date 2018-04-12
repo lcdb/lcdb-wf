@@ -249,6 +249,7 @@ config yaml (and which includes URLs and other info):
 to this simplified version where values are filenames:
 
 .. code-block:: python
+
     {
       'dm6': {
          'r6-11': {
