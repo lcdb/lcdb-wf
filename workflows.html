@@ -272,6 +272,25 @@ config yaml (and which includes URLs and other info):</p>
 </pre></div>
 </div>
 <p>to this simplified version where values are filenames:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s1">&#39;dm6&#39;</span><span class="p">:</span> <span class="p">{</span>
+     <span class="s1">&#39;r6-11&#39;</span><span class="p">:</span> <span class="p">{</span>
+         <span class="s1">&#39;fasta&#39;</span><span class="p">:</span> <span class="s1">&#39;/data/dm6/r6-11/fasta/dm6_r6-11.fasta&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;refflat&#39;</span><span class="p">:</span> <span class="s1">&#39;/data/dm6/r6-11/gtf/dm6_r6-11.refflat&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;gtf&#39;</span><span class="p">:</span> <span class="s1">&#39;/data/dm6/r6-11/gtf/dm6_r6-11.gtf&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;chromsizes&#39;</span><span class="p">:</span> <span class="s1">&#39;/data/dm6/r6-11/fasta/dm6_r6-11.chromsizes&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;bowtie2&#39;</span><span class="p">:</span> <span class="s1">&#39;/data/dm6/r6-11/bowtie2/dm6_r6-11.1.bt2&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;hisat2&#39;</span><span class="p">:</span> <span class="s1">&#39;/data/dm6/r6-11/hisat2/dm6_r6-11.1.ht2&#39;</span><span class="p">,</span>
+         <span class="p">},</span>
+     <span class="s1">&#39;r6-11_transcriptome&#39;</span><span class="p">:</span> <span class="p">{</span>
+         <span class="s1">&#39;fasta&#39;</span><span class="p">:</span> <span class="s1">&#39;/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.fasta&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;chromsizes&#39;</span><span class="p">:</span> <span class="s1">&#39;/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.chromsizes&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;salmon&#39;</span><span class="p">:</span> <span class="s1">&#39;/data/dm6/r6-11_transcriptome/salmon/dm6_r6-11_transcriptome/hash.bin,</span>
+         <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </div>
 </div>
 
@@ -326,7 +345,7 @@ config yaml (and which includes URLs and other info):</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

@@ -93,11 +93,46 @@ for now:</p>
 </div>
 </div>
 </div>
-<div class="section" id="run-the-rna-seq-workflow-with-example-data">
-<h2>Run the RNA-seq workflow with example data<a class="headerlink" href="#run-the-rna-seq-workflow-with-example-data" title="Permalink to this headline">¶</a></h2>
-<p>With the <cite>lcdb-wf</cite> environment activated, change to the <code class="docutils literal"><span class="pre">workflows/rnaseq</span></code>
-directory, and run:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">conda</span>
+<div class="section" id="a-note-about-test-settings">
+<h2>A note about test settings<a class="headerlink" href="#a-note-about-test-settings" title="Permalink to this headline">¶</a></h2>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Running the workflows as-is on a single machine with limited RAM may cause
+all RAM to be consumed! Use <code class="docutils literal"><span class="pre">ci/preprocessor.py</span></code> as described below to
+solve this.</p>
+</div>
+<p>A major benefit of <code class="docutils literal"><span class="pre">lcdb-wf</span></code> is that the code undergoes automated testing
+(currently on <a class="reference external" href="https://circleci.com/gh/lcdb">CircleCI</a>). However our only has 2 cores and
+2GB RAM. We developed a small representative <a class="reference external" href="https://github.com/lcdb/lcdb-test-data">test dataset</a> from real-world data. We also need
+to make settings to the workflows, for example to set the Java VM memory to
+only 2GB.</p>
+<p>This does not work in real-world analysis situations, where we likely need much
+more memory. We had to make a design decision: should the “default” state of
+the workflows reflect production-ready settings, or reflect test-ready
+settings? We chose the former, because we want to minimize the editing (and
+therefore possibility of introducing errors) in production.</p>
+<p>To accomodate this, we have a script <code class="docutils literal"><span class="pre">ci/preprocessor.py</span></code>. This script looks
+for specially-formatted comments in the workflows, swaps out production
+settings for test settings, and writes the results to stdout. <strong>To run the test
+data, we recommend running the preprocessor to toggle on the test settings and
+run the resulting automatically-edited workflow.</strong> In production, especially
+when running on a cluster, there’s no need to do this.</p>
+</div>
+<div class="section" id="try-the-rna-seq-workflow-with-example-data">
+<h2>Try the RNA-seq workflow with example data<a class="headerlink" href="#try-the-rna-seq-workflow-with-example-data" title="Permalink to this headline">¶</a></h2>
+<p>With the <cite>lcdb-wf</cite> environment activated:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">source</span> activate lcdb-wf
+</pre></div>
+</div>
+<p>Change to the <code class="docutils literal"><span class="pre">workflows/rnaseq</span></code> directory, and run the preprocessor to
+convert all the settings to minimal test settings and save the results in a new
+Snakefile:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">cd</span> workflows/rnaseq
+python ../../ci/preprocessor.py Snakefile &gt; Snakefile.test
+</pre></div>
+</div>
+<p>Then run the new workflow:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>snakemake -s Snakefile.test --configfile config/config.yaml --use-conda
 </pre></div>
 </div>
 <p>Specify more than one core with <code class="docutils literal"><span class="pre">-j</span></code>, e.g., <code class="docutils literal"><span class="pre">-j</span> <span class="pre">8</span></code> to use more cores.</p>
@@ -123,9 +158,19 @@ individual BAMs can be found here</li>
 </div>
 <div class="section" id="run-the-chip-seq-workflow-with-example-data">
 <h2>Run the ChIP-seq workflow with example data<a class="headerlink" href="#run-the-chip-seq-workflow-with-example-data" title="Permalink to this headline">¶</a></h2>
-<p>With the <cite>lcdb-wf</cite> environment activated, change to the <code class="docutils literal"><span class="pre">workflows/chipseq</span></code>
-directory, and run:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">conda</span>
+<p>With the <cite>lcdb-wf</cite> environment activated:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">source</span> activate lcdb-wf
+</pre></div>
+</div>
+<p>Change to the <code class="docutils literal"><span class="pre">workflows/chipseq</span></code> directory, and run the preprocessor to
+convert all the settings to minimal test settings and save the results in a new
+Snakefile:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">cd</span> workflows/chipseq
+python ../../ci/preprocessor.py Snakefile &gt; Snakefile.test
+</pre></div>
+</div>
+<p>Then run the new workflow:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>snakemake -s Snakefile.test --configfile config/config.yaml --use-conda
 </pre></div>
 </div>
 <p>Specify more than one core with <code class="docutils literal"><span class="pre">-j</span></code>, e.g., <code class="docutils literal"><span class="pre">-j</span> <span class="pre">8</span></code> to use more cores.</p>
@@ -168,13 +213,23 @@ called peaks and bedGraph files of signal as output by each algorithm</li>
 <div class="section" id="run-the-references-workflow-with-example-data">
 <h2>Run the references workflow with example data<a class="headerlink" href="#run-the-references-workflow-with-example-data" title="Permalink to this headline">¶</a></h2>
 <p>This is optional; parts of this workflow were actually run automatically as
-needed for the RNA-seq and ChIP-seq workflows. With the <cite>lcdb-wf</cite> environment
-activated, change to the <code class="docutils literal"><span class="pre">workflows/references</span></code> directory and run:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">conda</span>
+needed for the RNA-seq and ChIP-seq workflows.</p>
+<p>With the <cite>lcdb-wf</cite> environment activated:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">source</span> activate lcdb-wf
 </pre></div>
 </div>
-<p>Adjust the <code class="docutils literal"><span class="pre">-j</span></code> argument to match the number of CPUs to run jobs in parallel
-and speed up the workflow.</p>
+<p>Change to the <code class="docutils literal"><span class="pre">workflows/references</span></code> directory, and run the preprocessor to
+convert all the settings to minimal test settings and save the results in a new
+Snakefile:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">cd</span> workflows/references
+python ../../ci/preprocessor.py Snakefile &gt; Snakefile.test
+</pre></div>
+</div>
+<p>Then run the new workflow:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>snakemake -s Snakefile.test --configfile config/config.yaml --use-conda
+</pre></div>
+</div>
+<p>Specify more than one core with <code class="docutils literal"><span class="pre">-j</span></code>, e.g., <code class="docutils literal"><span class="pre">-j</span> <span class="pre">8</span></code> to use more cores.</p>
 <img alt="_images/references.png" src="_images/references.png" />
 </div>
 <div class="section" id="external-workflow">
@@ -265,7 +320,8 @@ your particular analysis.</li>
 <li><a class="reference internal" href="#download-example-data-one-time-setup">Download example data (one-time setup)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#run-the-rna-seq-workflow-with-example-data">Run the RNA-seq workflow with example data</a></li>
+<li><a class="reference internal" href="#a-note-about-test-settings">A note about test settings</a></li>
+<li><a class="reference internal" href="#try-the-rna-seq-workflow-with-example-data">Try the RNA-seq workflow with example data</a></li>
 <li><a class="reference internal" href="#run-the-chip-seq-workflow-with-example-data">Run the ChIP-seq workflow with example data</a></li>
 <li><a class="reference internal" href="#run-the-references-workflow-with-example-data">Run the references workflow with example data</a></li>
 <li><a class="reference internal" href="#external-workflow">“External” workflow</a></li>
@@ -309,7 +365,7 @@ your particular analysis.</li>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
