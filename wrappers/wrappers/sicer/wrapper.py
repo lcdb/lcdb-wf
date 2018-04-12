@@ -32,23 +32,19 @@ outdir, basebed = os.path.split(snakemake.output.bed)
 label = snakemake.params.block['label']
 
 tmpdir = tempfile.mkdtemp()
-cwd = os.getcwd()
 
-cmds = (
+shell(
     'bamToBed -i {snakemake.input.ip} > {tmpdir}/ip.bed ; '
     'bamToBed -i {snakemake.input.control} > {tmpdir}/in.bed '
 )
 
-shell(cmds)
-
-cmds = (
+shell(
     'cd {tmpdir} && '
-    'SICER.sh {tmpdir} ip.bed in.bed {tmpdir} {genome_build} {redundancy_threshold} {window_size} {fragment_size} {effective_genome_fraction} {gap_size} {fdr} '
-#    ' > tmp.sicer.output 2> tmp.sicer.error '
-    '&& cd {cwd}'
-)
 
-shell(cmds)
+    'SICER.sh {tmpdir} ip.bed in.bed '
+    '{tmpdir} {genome_build} {redundancy_threshold} {window_size} '
+    '{fragment_size} {effective_genome_fraction} {gap_size} {fdr} '
+)
 
 resultsfile = glob.glob(os.path.join(tmpdir, '*-islands-summary-FDR*'))
 
@@ -66,7 +62,9 @@ else:
 
 shell(
     "export LC_COLLATE=C; "
-    """awk -F"\\t" -v lab={label} '{{printf("%s\\t%d\\t%d\\t%s_peak_%d\\t%d\\t.\\t%g\\t%g\\t%g\\n", $1, $2, $3-1, lab, NR, -10*log($6)/log(10), $7, -log($6)/log(10), -log($8)/log(10))}}' """
+    """awk -F"\\t" -v lab={label} """
+    """'{{printf("%s\\t%d\\t%d\\t%s_peak_%d\\t%d\\t.\\t%g\\t%g\\t%g\\n", $1, """
+    """$2, $3-1, lab, NR, -10*log($6)/log(10), $7, -log($6)/log(10), -log($8)/log(10))}}' """
     "{hit} > {snakemake.output.bed}.tmp "
     "&& bedSort {snakemake.output.bed}.tmp {snakemake.output.bed}"
     "&& rm {snakemake.output.bed}.tmp && rm -Rf {tmpdir}"
