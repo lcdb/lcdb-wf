@@ -58,10 +58,10 @@ chipseq:
       redundancy_threshold: 1
       window_size: 200
       fragment_size: 150
-###optional user-specified override mappable genome proportion
-###if specified here, SICER will use this value instead of the value specific to the genome build
-###if NOT specified here, SICER will use the mappability value for your genome build
-#     effective_genome_fraction: 0.75
+  # optional user-specified override mappable genome proportion
+  # if specified here, SICER will use this value instead of the value specific to the genome build
+  # if NOT specified here, SICER will use the mappability value for your genome build
+  #   effective_genome_fraction: 0.75
       gap_size: 600
       fdr: 0.01
       
@@ -73,9 +73,9 @@ chipseq:
         - gaf-embryo-1
       control:
         - input-embryo-1
-###optional user-specified override mappable genome size
-###if specified here, MACS will use this value instead of the value specific to the genome build
-###if NOT specified here, MACS will use the mappability value for your genome build
+  # optional user-specified override mappable genome size
+  # if specified here, MACS will use this value instead of the value specific to the genome build
+  # if NOT specified here, MACS will use the mappability value for your genome build
       effective_genome_count: 7e7
       extra: '--nomodel --extsize 147'
 
@@ -138,7 +138,7 @@ references:
     test:
       fasta:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/add-chipseq/data/seq/dm6.small.fa"
-        postprocess: 'lib.postprocess.dm6.fasta_postprocess_nogzip'
+        postprocess: 'lib.postprocess.dm6.fasta_postprocess'
         indexes:
           - 'bowtie2'
       genome_build: dm6
@@ -151,9 +151,10 @@ references:
         indexes:
           - 'bowtie2'
 
-#these are pulled from various sources, most notably https://github.com/biocore-ntnu/epic/tree/master/epic/scripts/effective_sizes
-#these should only be considered approximate. more precise estimates can be generated with specific parameters from
-#individual experiments.
+# these are pulled from various sources, most notably
+#   https://github.com/biocore-ntnu/epic/tree/master/epic/scripts/effective_sizes
+# these should only be considered approximate. more precise estimates can be generated
+# with specific parameters from individual experiments.
 mappability:
   dm2:
     count: 1.2e8
