@@ -35,6 +35,7 @@ variables:
       keys:
         - v1-{{ checksum "requirements.txt" }}
 
+
   # --------------------------------------------------------------------------
   # Run the setup script, which installs miniconda, sets up bioconda, and
   # installs the global env
@@ -138,6 +139,9 @@ jobs:
       - checkout
       - *restore_cache
       - *set-path
+      - run:
+          name: Install git
+          command: apt-get install git
       - run:
           name: Build and upload docs
           command: ci/build-docs.sh
