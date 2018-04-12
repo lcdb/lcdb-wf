@@ -169,7 +169,7 @@ workflows:
 #            branches:
 #              ignore:
 #                - master
-      - docs:
+      - build-docs:
           requires:
             - initial-setup
         #    filters:
