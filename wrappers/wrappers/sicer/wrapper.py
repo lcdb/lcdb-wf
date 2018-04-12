@@ -34,15 +34,20 @@ label = snakemake.params.block['label']
 tmpdir = tempfile.mkdtemp()
 cwd = os.getcwd()
 
+cmds = (
+    'bamToBed -i {snakemake.input.ip} > {tmpdir}/ip.bed ; '
+    'bamToBed -i {snakemake.input.control} > {tmpdir}/in.bed '
+)
+
+shell(cmds)
+
 os.chdir(tmpdir)
 
 cmds = (
-    'bamToBed -i {snakemake.input.ip} > {tmpdir}/ip.bed ; '
-    'bamToBed -i {snakemake.input.control} > {tmpdir}/in.bed ; '
-    'SICER.sh {tmpdir} ip.bed in.bed {tmpdir} {genome_build} {redundancy_threshold} {window_size} {fragment_size} {effective_genome_fraction} {gap_size} {fdr} ; '
+    'SICER.sh {tmpdir} ip.bed in.bed {tmpdir} {genome_build} {redundancy_threshold} {window_size} {fragment_size} {effective_genome_fraction} {gap_size} {fdr}'
 )
 
-shell(cmds + ' {log}')
+shell(cmds + ' > tmp.sicer.output 2> tmp.sicer.error')
 
 resultsfile = glob.glob(os.path.join(tmpdir, '*-islands-summary-FDR*'))
 
@@ -55,6 +60,9 @@ else:
 os.chdir(cwd)
 
 # Fix the output file so that it conforms to UCSC guidelines
+shell("mv {tmpdir}/tmp.sicer.output {snakemake.output.bed}.sicer.output")
+shell("mv {tmpdir}/tmp.sicer.error {snakemake.output.bed}.sicer.error")
+
 shell(
     "export LC_COLLATE=C; "
     """awk -F"\\t" '{{printf("%s\\t%d\\t%d\\t%s_peak_%d\\t%d\\t.\\t%g\\t%g\\t%g\\n", $1, $2, $3-1, {label}, NR, -10*log($6)/log(10), $7, -log($6)/log(10), -log($8)/log(10))}}' """

@@ -58,7 +58,10 @@ chipseq:
       redundancy_threshold: 1
       window_size: 200
       fragment_size: 150
-#      effective_genome_fraction: 0.75
+###optional user-specified override mappable genome proportion
+###if specified here, SICER will use this value instead of the value specific to the genome build
+###if NOT specified here, SICER will use the mappability value for your genome build
+#     effective_genome_fraction: 0.75
       gap_size: 600
       fdr: 0.01
       
@@ -70,6 +73,10 @@ chipseq:
         - gaf-embryo-1
       control:
         - input-embryo-1
+###optional user-specified override mappable genome size
+###if specified here, MACS will use this value instead of the value specific to the genome build
+###if NOT specified here, MACS will use the mappability value for your genome build
+      effective_genome_count: 7e7
       extra: '--nomodel --extsize 147'
 
     - label: gaf-embryo-1
