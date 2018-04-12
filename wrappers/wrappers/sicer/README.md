@@ -56,4 +56,4 @@ by downstream rules, however the wrapper only pays attention to
 
 
 ## Params
-DO NOT USE `extra` FOR THIS RULE. SICER IS A JERK ABOUT PARAMETERS. USE THE NAMED PARAMETERS ABOVE.
+Do not use `extra` for this rule.

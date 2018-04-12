@@ -5,27 +5,27 @@ from snakemake import shell
 
 log = snakemake.log_fmt_shell()
 logfile = None
-redundancy_threshold = snakemake.params.block.get('redundancy_threshold', snakemake.params.get('redundancy_threshold', ''))
-window_size = snakemake.params.block.get('window_size', snakemake.params.get('redundancy_threshold', ''))
-fragment_size = snakemake.params.block.get('fragment_size', snakemake.params.get('fragment_size', ''))
-effective_genome_fraction = snakemake.params.block.get('effective_genome_fraction', snakemake.params.block.get('reference_effective_genome_fraction', ''))
-gap_size = snakemake.params.block.get('gap_size', snakemake.params.get('gap_size', ''))
-fdr = snakemake.params.block.get('fdr', snakemake.params.get('fdr', ''))
-genome_build = snakemake.params.block.get('genome_build', snakemake.params.block.get('reference_genome_build', ''))
+redundancy_threshold = snakemake.params.block.get('redundancy_threshold', snakemake.params.get('redundancy_threshold'))
+window_size = snakemake.params.block.get('window_size', snakemake.params.get('redundancy_threshold'))
+fragment_size = snakemake.params.block.get('fragment_size', snakemake.params.get('fragment_size'))
+effective_genome_fraction = snakemake.params.block.get('effective_genome_fraction', snakemake.params.block.get('reference_effective_genome_fraction'))
+gap_size = snakemake.params.block.get('gap_size', snakemake.params.get('gap_size'))
+fdr = snakemake.params.block.get('fdr', snakemake.params.get('fdr'))
+genome_build = snakemake.params.block.get('genome_build', snakemake.params.block.get('reference_genome_build'))
 
-if redundancy_threshold == '':
+if redundancy_threshold is None:
     raise ValueError("SICER requires the specification of a 'redundancy_threshold'")
-if window_size == '':
+if window_size is None:
     raise ValueError("SICER requires the specification of a 'window_size'")
-if fragment_size == '':
+if fragment_size is None:
     raise ValueError("SICER requires the specification of a 'fragment_size'")
-if effective_genome_fraction == '':
+if effective_genome_fraction is None:
     raise ValueError("SICER requires the specification of an 'effective_genome_fraction'")
-if gap_size == '':
+if gap_size is None:
     raise ValueError("SICER requires the specification of a 'gap_size'")
-if fdr == '':
+if fdr is None:
     raise ValueError("SICER requires the specification of an 'fdr'")
-if genome_build == '':
+if genome_build is None:
     raise ValueError("SICER requires the specification of a recognized genome build")
 
 outdir, basebed = os.path.split(snakemake.output.bed)
@@ -41,23 +41,24 @@ cmds = (
 
 shell(cmds)
 
-os.chdir(tmpdir)
-
 cmds = (
-    'SICER.sh {tmpdir} ip.bed in.bed {tmpdir} {genome_build} {redundancy_threshold} {window_size} {fragment_size} {effective_genome_fraction} {gap_size} {fdr}'
+    'cd {tmpdir} && '
+    'SICER.sh {tmpdir} ip.bed in.bed {tmpdir} {genome_build} {redundancy_threshold} {window_size} {fragment_size} {effective_genome_fraction} {gap_size} {fdr} '
+    ' > tmp.sicer.output 2> tmp.sicer.error && '
+    'cd {cwd}'
 )
 
-shell(cmds + ' > tmp.sicer.output 2> tmp.sicer.error')
+shell(cmds)
 
 resultsfile = glob.glob(os.path.join(tmpdir, '*-islands-summary-FDR*'))
 
 if len(resultsfile) == 1:
     hit = resultsfile[0]
     basehit = os.path.basename(resultsfile[0])
+elif len(resultsfile) > 1:
+    raise ValueError("Multiple islands-summary-FDR files found in temporary working directory")
 else:
     raise ValueError("No islands-summary-FDR file found!")
-
-os.chdir(cwd)
 
 # Fix the output file so that it conforms to UCSC guidelines
 shell("mv {tmpdir}/tmp.sicer.output {snakemake.output.bed}.sicer.output")
