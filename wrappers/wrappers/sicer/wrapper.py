@@ -56,9 +56,9 @@ if len(resultsfile) == 1:
     hit = resultsfile[0]
     basehit = os.path.basename(resultsfile[0])
 elif len(resultsfile) > 1:
-    raise ValueError("Multiple islands-summary-FDR files found in temporary working directory")
+    raise ValueError("Multiple islands-summary-FDR files found in temporary working directory: " + os.listdir(tmpdir))
 else:
-    raise ValueError("No islands-summary-FDR file found!")
+    raise ValueError("No islands-summary-FDR file found: " + os.listdir(tmpdir))
 
 # Fix the output file so that it conforms to UCSC guidelines
 shell("mv {tmpdir}/tmp.sicer.output {snakemake.output.bed}.sicer.output")
@@ -66,7 +66,7 @@ shell("mv {tmpdir}/tmp.sicer.error {snakemake.output.bed}.sicer.error")
 
 shell(
     "export LC_COLLATE=C; "
-    """awk -F"\\t" '{{printf("%s\\t%d\\t%d\\t%s_peak_%d\\t%d\\t.\\t%g\\t%g\\t%g\\n", $1, $2, $3-1, {label}, NR, -10*log($6)/log(10), $7, -log($6)/log(10), -log($8)/log(10))}}' """
+    """awk -F"\\t" -v lab={label} '{{printf("%s\\t%d\\t%d\\t%s_peak_%d\\t%d\\t.\\t%g\\t%g\\t%g\\n", $1, $2, $3-1, lab, NR, -10*log($6)/log(10), $7, -log($6)/log(10), -log($8)/log(10))}}' """
     "{hit} > {snakemake.output.bed}.tmp "
     "&& bedSort {snakemake.output.bed}.tmp {snakemake.output.bed}"
     "&& rm {snakemake.output.bed}.tmp && rm -Rf {tmpdir}"
