@@ -141,7 +141,7 @@ class ChIPSeqConfig(SeqConfig):
         # Then the peaks
         #
         # Note: when adding support for new peak callers, add them here.
-        PEAK_CALLERS = ['macs2', 'spp', 'sicer']
+        PEAK_CALLERS = ['macs2', 'spp']
 
         self.patterns_by_peaks = self.patterns['patterns_by_peaks']
         self.targets_for_peaks = {}
