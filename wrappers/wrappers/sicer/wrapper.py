@@ -44,8 +44,8 @@ shell(cmds)
 cmds = (
     'cd {tmpdir} && '
     'SICER.sh {tmpdir} ip.bed in.bed {tmpdir} {genome_build} {redundancy_threshold} {window_size} {fragment_size} {effective_genome_fraction} {gap_size} {fdr} '
-    ' > tmp.sicer.output 2> tmp.sicer.error && '
-    'cd {cwd}'
+#    ' > tmp.sicer.output 2> tmp.sicer.error '
+    '&& cd {cwd}'
 )
 
 shell(cmds)
@@ -61,8 +61,8 @@ else:
     raise ValueError("No islands-summary-FDR file found: " + str(os.listdir(tmpdir)))
 
 # Fix the output file so that it conforms to UCSC guidelines
-shell("mv {tmpdir}/tmp.sicer.output {snakemake.output.bed}.sicer.output")
-shell("mv {tmpdir}/tmp.sicer.error {snakemake.output.bed}.sicer.error")
+#shell("mv {tmpdir}/tmp.sicer.output {snakemake.output.bed}.sicer.output")
+#shell("mv {tmpdir}/tmp.sicer.error {snakemake.output.bed}.sicer.error")
 
 shell(
     "export LC_COLLATE=C; "
