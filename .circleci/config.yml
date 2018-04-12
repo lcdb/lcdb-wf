@@ -141,7 +141,7 @@ jobs:
       - *set-path
       - run:
           name: Install git
-          command: apt-get install git
+          command: yum install git -y
       - run:
           name: Build and upload docs
           command: ci/build-docs.sh
