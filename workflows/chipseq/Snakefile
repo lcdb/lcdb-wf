@@ -416,6 +416,32 @@ rule fingerprint:
         '&& sed -i "s/NA/0.0/g" {output.metrics} '
 
 
+rule sicer:
+    """
+    Run the SICER peak caller
+    """
+    input:
+        ip=lambda wc:
+            expand(
+                c.patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.sicer_run, 'sicer', 'ip'),
+                merged_dir=c.merged_dir,
+            ),
+        control=lambda wc:
+            expand(
+                c.patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.sicer_run, 'sicer', 'control'),
+                merged_dir=c.merged_dir,
+            ),
+    output:
+        bed=c.patterns['peaks']['sicer']
+    log:
+        c.patterns['peaks']['sicer'] + '.log'
+    params:
+        block=lambda wc: chipseq.block_for_run(config, wc.sicer_run, 'sicer')
+    wrapper:
+        wrapper_for('sicer')
+
 rule macs2:
     """
     Run the macs2 peak caller
