@@ -34,7 +34,6 @@ label = snakemake.params.block['label']
 tmpdir = tempfile.mkdtemp()
 cwd = os.getcwd()
 
-
 shell(
     'bamToBed -i {snakemake.input.ip} > {tmpdir}/ip.bed ; '
     'bamToBed -i {snakemake.input.control} > {tmpdir}/in.bed '
@@ -42,16 +41,14 @@ shell(
 
 shell(
     """cd {tmpdir} && """
-    """echo "$CONDA_PREFIX/share/sicer*/SICER.sh {tmpdir} ip.bed in.bed {tmpdir} """
+    """function python {{ $CONDA_PREFIX/bin/python2.7 "$@" ; }} && """
+    """SICER.sh {tmpdir} ip.bed in.bed {tmpdir} """
     """{genome_build} {redundancy_threshold} {window_size} """
-    """{fragment_size} {effective_genome_fraction} {gap_size} {fdr}" >> run_command.bash && """
-    """cat run_command.bash && """
-    """bash run_command.bash """
-    """&& cd {cwd}"""
+    """{fragment_size} {effective_genome_fraction} {gap_size} {fdr} && """
+    """cd {cwd}"""
 )
 
 resultsfile = glob.glob(os.path.join(tmpdir, '*-islands-summary-FDR*'))
-
 if len(resultsfile) == 1:
     hit = resultsfile[0]
     basehit = os.path.basename(resultsfile[0])
@@ -59,6 +56,43 @@ elif len(resultsfile) > 1:
     raise ValueError("Multiple islands-summary-FDR files found in temporary working directory: " + str(os.listdir(tmpdir)))
 else:
     raise ValueError("No islands-summary-FDR file found: " + str(os.listdir(tmpdir)))
+
+summary_graph = glob.glob(os.path.join(tmpdir, '*-W{0}.graph*'.format(window_size)))
+if len(summary_graph) == 1:
+    summary_graph = summary_graph[0]
+else:
+    raise ValueError("SICER graph output file not found")
+
+normalized_prefilter_wig = glob.glob(os.path.join(tmpdir, '*-W{0}-normalized.wig'.format(window_size)))
+if len(normalized_prefilter_wig) == 1:
+    normalized_prefilter_wig = normalized_prefilter_wig[0]
+else:
+    raise ValueError("SICER normalized prefilter wig file not found")
+
+candidate_islands = glob.glob(os.path.join(tmpdir, '*-W{0}-G{1}-islands-summary'.format(window_size, gap_size)))
+if len(candidate_islands) == 1:
+    candidate_islands = candidate_islands[0]
+else:
+    raise ValueError("SICER candidate islands file not found")
+
+significant_islands = glob.glob(os.path.join(tmpdir, '*-W{0}-G{1}-FDR*-island.bed'.format(window_size, gap_size)))
+if len(significant_islands) == 1:
+    significant_islands = significant_islands[0]
+else:
+    raise ValueError("SICER significant islands file not found")
+
+redundancy_removed = glob.glob(os.path.join(tmpdir, '*-W{0}-G{1}-FDR*-islandfiltered.bed'.format(window_size, gap_size)))
+if len(redundancy_removed) == 1:
+    redundancy_removed = redundancy_removed[0]
+else:
+    raise ValueError("SICER redundancy removed library file not found")
+
+normalized_postfilter_wig = glob.glob(os.path.join(tmpdir, '*-W{0}-G{1}-FDR*-islandfiltered-normalized.wig'.format(window_size, gap_size)))
+if len(normalized_postfilter_wig) == 1:
+    normalized_postfilter_wig = normalized_postfilter_wig[0]
+else:
+    raise ValueError("SICER normalized postfilter wig file not found")
+
 
 # Fix the output file so that it conforms to UCSC guidelines
 #shell("mv {tmpdir}/tmp.sicer.output {snakemake.output.bed}.sicer.output")
@@ -69,7 +103,14 @@ shell(
     """awk -F"\\t" -v lab={label} """
     """'{{printf("%s\\t%d\\t%d\\t%s_peak_%d\\t%d\\t.\\t%g\\t%g\\t%g\\n", $1, """
     """$2, $3-1, lab, NR, -10*log($6)/log(10), $7, -log($6)/log(10), -log($8)/log(10))}}' """
-    "{hit} > {snakemake.output.bed}.tmp "
-    "&& bedSort {snakemake.output.bed}.tmp {snakemake.output.bed}"
-    "&& rm {snakemake.output.bed}.tmp && rm -Rf {tmpdir}"
+    "{hit} > {snakemake.output.bed}.tmp && "
+    "bedSort {snakemake.output.bed}.tmp {snakemake.output.bed} && "
+    "cp {resultsfile} {snakemake.output.bed}-islands-summary-significant && "
+    "cp {summary_graph} {snakemake.output.bed}.graph && "
+    "cp {normalized_prefilter_wig} {snakemake.output.bed}-normalized-prefilter.wig && "
+    "cp {normalized_postfilter_wig} {snakemake.output.bed}-normalized-postfilter.wig && "
+    "cp {candidate_islands} {snakemake.output.bed}-islands-summary && "
+    "cp {significant_islands} {snakemake.output.bed}-island.bed && "
+    "cp {redundancy_removed} {snakemake.output.bed}-islandfiltered.bed && "
+    "rm {snakemake.output.bed}.tmp && rm -Rf {tmpdir}"
 )
