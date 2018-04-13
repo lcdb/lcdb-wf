@@ -1,4 +1,4 @@
-version: 2
+ version: 2
 
 variables:
 
@@ -155,5 +155,5 @@ workflows:
           filters:
             branches:
               ignore:
-	        - sicer-integration
+                - sicer-integration
                 - master
