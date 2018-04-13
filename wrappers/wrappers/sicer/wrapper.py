@@ -41,7 +41,7 @@ shell(
 
 shell(
     """cd {tmpdir} && """
-    """function python {{ $CONDA_PREFIX/bin/python2.7 "$@" ; }} && """
+    """function fixci {{ if [[ "$CIRCLECI" == true ]] ; then sed -i 's/^python/$CONDA_PREFIX\/bin\/python2.7/' $CONDA_PREFIX/share/sicer*/SICER.sh ; fi ; }} && fixci && """
     """SICER.sh {tmpdir} ip.bed in.bed {tmpdir} """
     """{genome_build} {redundancy_threshold} {window_size} """
     """{fragment_size} {effective_genome_fraction} {gap_size} {fdr} && """
