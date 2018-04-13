@@ -310,7 +310,7 @@ rule markduplicates:
     log:
         c.patterns['markduplicates']['bam'] + '.log'
     params:
-        java_args='-Xmx32g'
+        java_args='-Xmx20g'
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     shell:
         'picard '
@@ -433,6 +433,7 @@ rule sicer:
                 label=chipseq.samples_for_run(config, wc.sicer_run, 'sicer', 'control'),
                 merged_dir=c.merged_dir,
             ),
+            chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
     output:
         bed=c.patterns['peaks']['sicer']
     log:

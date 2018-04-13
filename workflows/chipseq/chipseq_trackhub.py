@@ -16,6 +16,7 @@ import re
 import argparse
 import pandas
 import yaml
+import glob
 from trackhub.helpers import sanitize
 from trackhub import CompositeTrack, ViewTrack, SubGroupDefinition, Track, default_hub
 from trackhub.helpers import filter_composite_from_subgroups, dimensions_from_subgroups, hex2rgb
@@ -73,6 +74,7 @@ subgroups.append(
         name='algorithm', label='algorithm', mapping={
             'macs2': 'macs2',
             'spp': 'spp',
+            'sicer': 'sicer',
             'NA': 'NA',
         }))
 
@@ -144,28 +146,30 @@ for sample in df['label'].unique():
         sample_dir, sample,
         sample + '.cutadapt.unique.nodups.bam.bigwig')
 
-    subgroup = df[df.loc[:, 'label'] == sample].to_dict('records')[0]
-    subgroup = {
-        sanitize(k, strict=True): sanitize(v, strict=True)
-        for k, v in subgroup.items()
-    }
-    subgroup['algorithm'] = 'NA'
-    subgroup['peaks'] = 'no'
-
-    signal_view.add_tracks(
-        Track(
-            name=sanitize(sample + os.path.basename(bigwig), strict=True),
-            short_label=sample,
-            long_label=sample,
-            tracktype='bigWig',
-            subgroups=subgroup,
-            source=bigwig,
-            color=decide_color(sample),
-            altColor=decide_color(sample),
-            maxHeightPixels='8:35:100',
-            viewLimits='0:500',
+    if os.path.isfile(bigwig):
+        subgroup = df[df.loc[:, 'label'] == sample].to_dict('records')[0]
+        subgroup = {
+            sanitize(k, strict=True): sanitize(v, strict=True)
+            for k, v in subgroup.items()
+        }
+        subgroup['algorithm'] = 'NA'
+        subgroup['peaks'] = 'no'
+        
+        signal_view.add_tracks(
+            Track(
+                name=sanitize(sample + os.path.basename(bigwig), strict=True),
+                short_label=sample,
+                long_label=sample,
+                tracktype='bigWig',
+                subgroups=subgroup,
+                source=bigwig,
+                color=decide_color(sample),
+                altColor=decide_color(sample),
+                maxHeightPixels='8:35:100',
+                viewLimits='0:500',
+            )
         )
-    )
+
 
 # The peak-calling runs are effectively keyed by (label, algorithm). There can
 # be multiple samples for each peak-calling run, and there is always at least
@@ -238,6 +242,52 @@ for (label, algorithm), v in pd.items():
             visibility='dense')
     )
 
+    if algorithm == "sicer":
+        subgroup['peaks'] = 'no'
+        prefilter_wig = glob.glob(os.path.join(config['peaks_dir'],
+                                               algorithm,
+                                               label,
+                                               '*prefilter.bigWig'))
+        if len(prefilter_wig) == 1:
+            prefilter_wig = prefilter_wig[0]
+        else:
+            raise ValueError('SICER output for {0} has no prefilter bigWig file'.format(label))
+        postfilter_wig = glob.glob(os.path.join(config['peaks_dir'],
+                                                algorithm,
+                                                label,
+                                                '*postfilter.bigWig'))
+        if len(postfilter_wig) == 1:
+            postfilter_wig = postfilter_wig[0]
+        else:
+            raise ValueError('SICER output for {0} has no postfilter bigWig file'.format(label))
+
+        signal_view.add_tracks(
+            Track(
+                name=sanitize(label + os.path.basename(prefilter_wig), strict=True),
+                short_label='{0} {1} prefilter normalized signal'.format(algorithm, label),
+                long_label='{0} {1} prefilter normalized signal'.format(algorithm, label),
+                tracktype='bigWig',
+                source=prefilter_wig,
+                subgroups=subgroup,
+                color=decide_color(prefilter_wig),
+                altColor=decide_color(prefilter_wig),
+                maxHeightPixels='8:35:100',
+                viewLimits='0:500')
+        )
+
+        signal_view.add_tracks(
+            Track(
+                name=sanitize(label + os.path.basename(postfilter_wig), strict=True),
+                short_label='{0} {1} postfilter normalized signal'.format(algorithm, label),
+                long_label='{0} {1} postfilter normalized signal'.format(algorithm, label),
+                tracktype='bigWig',
+                source=postfilter_wig,
+                subgroups=subgroup,
+                color=decide_color(postfilter_wig),
+                altColor=decide_color(postfilter_wig),
+                maxHeightPixels='8:35:100',
+                viewLimits='0:500')
+        )
 
 supplemental = hub_config.get('supplemental', [])
 if supplemental:
