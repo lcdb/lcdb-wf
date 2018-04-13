@@ -44,16 +44,13 @@ shell("whereis SICER")
 
 shell(cmds)
 
-#sicerexec = glob.glob(os.path.join(shell(whereis SICER | sed 's/\/bin\/SICER.sh/\/share/g' | awk '{print $2}'`, 'sicer*/SICER.sh'))
-#print("the composed sicer executable is at")
-#print(sicerexec)
-
 cmds = (
     """cd {tmpdir} && """
-    """whereis SICER | sed "s/\\/bin\\/SICER.sh/\\/share\\/sicer*\\/SICER.sh/g" | awk '{{printf("%s ", $2)}}' > run_command.bash && """
-    """echo "{tmpdir} ip.bed in.bed {tmpdir} {genome_build} {redundancy_threshold} {window_size} {fragment_size} {effective_genome_fraction} {gap_size} {fdr}" >> run_command.bash && """
+    """whereis SICER | sed "s/\\/bin\\/SICER.sh/\\/share\\/sicer*\\/SICER.sh/g" | """
+    """awk '{{printf("%s ", $2)}}' > run_command.bash && """
+    """echo "{tmpdir} ip.bed in.bed {tmpdir} {genome_build} {redundancy_threshold} {window_size} """
+    """{fragment_size} {effective_genome_fraction} {gap_size} {fdr}" >> run_command.bash && """
     """bash run_command.bash """
-#    ' > tmp.sicer.output 2> tmp.sicer.error '
     """&& cd {cwd}"""
 )
 
@@ -75,7 +72,9 @@ else:
 
 shell(
     "export LC_COLLATE=C; "
-    """awk -F"\\t" -v lab={label} '{{printf("%s\\t%d\\t%d\\t%s_peak_%d\\t%d\\t.\\t%g\\t%g\\t%g\\n", $1, $2, $3-1, lab, NR, -10*log($6)/log(10), $7, -log($6)/log(10), -log($8)/log(10))}}' """
+    """awk -F"\\t" -v lab={label} """
+    """'{{printf("%s\\t%d\\t%d\\t%s_peak_%d\\t%d\\t.\\t%g\\t%g\\t%g\\n", $1, """
+    """$2, $3-1, lab, NR, -10*log($6)/log(10), $7, -log($6)/log(10), -log($8)/log(10))}}' """
     "{hit} > {snakemake.output.bed}.tmp "
     "&& bedSort {snakemake.output.bed}.tmp {snakemake.output.bed}"
     "&& rm {snakemake.output.bed}.tmp && rm -Rf {tmpdir}"
