@@ -42,8 +42,8 @@ shell(
 
 shell(
     """cd {tmpdir} && """
-    """awk '{{printf("$CONDA_PREFIX/share/sicer*/SICER.sh ", $2)}}' > run_command.bash && """
-    """echo "{tmpdir} ip.bed in.bed {tmpdir} {genome_build} {redundancy_threshold} {window_size} """
+    """echo "$CONDA_PREFIX/share/sicer*/SICER.sh {tmpdir} ip.bed in.bed {tmpdir} """
+    """{genome_build} {redundancy_threshold} {window_size} """
     """{fragment_size} {effective_genome_fraction} {gap_size} {fdr}" >> run_command.bash && """
     """cat run_command.bash && """
     """bash run_command.bash """
