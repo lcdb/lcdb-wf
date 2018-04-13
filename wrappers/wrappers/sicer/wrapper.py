@@ -32,19 +32,13 @@ outdir, basebed = os.path.split(snakemake.output.bed)
 label = snakemake.params.block['label']
 
 tmpdir = tempfile.mkdtemp()
-cwd = os.getcwd()
 
-cmds = (
+shell(
     'bamToBed -i {snakemake.input.ip} > {tmpdir}/ip.bed ; '
     'bamToBed -i {snakemake.input.control} > {tmpdir}/in.bed '
 )
 
-shell("which python")
-shell("whereis SICER")
-
-shell(cmds)
-
-cmds = (
+shell(
     """cd {tmpdir} && """
     """whereis SICER | sed "s/\\/bin\\/SICER.sh/\\/share\\/sicer*\\/SICER.sh/g" | """
     """awk '{{printf("%s ", $2)}}' > run_command.bash && """
@@ -53,8 +47,6 @@ cmds = (
     """bash run_command.bash """
     """&& cd {cwd}"""
 )
-
-shell(cmds)
 
 resultsfile = glob.glob(os.path.join(tmpdir, '*-islands-summary-FDR*'))
 
