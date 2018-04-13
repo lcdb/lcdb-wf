@@ -64,7 +64,7 @@ shell(
     # there is a CI-specific bug, in which the python symlink is not correctly resolved to python2.7;
     # so as a really desperate hack, modify SICER's python calls to directly touch 2.7
     # but only on circleci
-    """function fixci {{ if [[ "$CIRCLECI" == true ]] ; then sed -i 's/^python/$CONDA_PREFIX\/bin\/python2.7/'"""
+    """function fixci {{ if [[ "$CIRCLECI" == true ]] ; then sed -i 's/^python/$CONDA_PREFIX\/bin\/python2.7/' """
     """$CONDA_PREFIX/share/sicer*/SICER.sh ; fi ; }} && fixci"""
 )
 shell(
