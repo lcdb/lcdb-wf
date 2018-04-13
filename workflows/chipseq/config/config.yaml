@@ -67,56 +67,56 @@ chipseq:
       
 
 
-    - label: gaf-embryo-1
-      algorithm: macs2
-      ip:
-        - gaf-embryo-1
-      control:
-        - input-embryo-1
+#    - label: gaf-embryo-1
+#      algorithm: macs2
+#      ip:
+#        - gaf-embryo-1
+#      control:
+#        - input-embryo-1
   # optional user-specified override mappable genome size
   # if specified here, MACS will use this value instead of the value specific to the genome build
   # if NOT specified here, MACS will use the mappability value for your genome build
-      effective_genome_count: 7e7
-      extra: '--nomodel --extsize 147'
+#      effective_genome_count: 7e7
+#      extra: '--nomodel --extsize 147'
 
-    - label: gaf-embryo-1
-      algorithm: spp
-      ip:
-        - gaf-embryo-1
-      control:
-        - input-embryo-1
-      extra:
-        fdr: 0.3
-        zthr: 4
+#    - label: gaf-embryo-1
+#      algorithm: spp
+#      ip:
+#        - gaf-embryo-1
+#      control:
+#        - input-embryo-1
+#      extra:
+#        fdr: 0.3
+#        zthr: 4
 
-    - label: gaf-embryo-1-defaults
-      algorithm: spp
-      ip:
-        - gaf-embryo-1
-      control:
-        - input-embryo-1
+#    - label: gaf-embryo-1-defaults
+#      algorithm: spp
+#      ip:
+#        - gaf-embryo-1
+#      control:
+#        - input-embryo-1
+#
+#    - label: gaf-wingdisc-pooled
+#      algorithm: macs2
+#      ip:
+#        - gaf-wingdisc-1
+#        - gaf-wingdisc-2
+#      control:
+#        - input-wingdisc-1
+#        - input-wingdisc-2
+#      extra: '--nomodel --extsize 147'
 
-    - label: gaf-wingdisc-pooled
-      algorithm: macs2
-      ip:
-        - gaf-wingdisc-1
-        - gaf-wingdisc-2
-      control:
-        - input-wingdisc-1
-        - input-wingdisc-2
-      extra: '--nomodel --extsize 147'
-
-    - label: gaf-wingdisc-pooled
-      algorithm: spp
-      ip:
-        - gaf-wingdisc-1
-        - gaf-wingdisc-2
-      control:
-        - input-wingdisc-1
+#    - label: gaf-wingdisc-pooled
+#      algorithm: spp
+#      ip:
+#        - gaf-wingdisc-1
+#        - gaf-wingdisc-2
+#      control:
+#        - input-wingdisc-1
         # - input-wingdisc-2
-      extra:
-        fdr: 0.5
-        zthr: 4
+#      extra:
+#        fdr: 0.5
+#        zthr: 4
 
 
 aligner:
