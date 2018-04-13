@@ -39,17 +39,13 @@ shell(
 )
 
 shell(
-    'cd {tmpdir} && '
-
-    # locally this seems fine; circleci somehow is getting py3?
-    'which python && '
-    'python -c "import sys; print(sys.version)" && '
-
-    'echo $PATH && '
-
-    'SICER.sh {tmpdir} ip.bed in.bed '
-    '{tmpdir} {genome_build} {redundancy_threshold} {window_size} '
-    '{fragment_size} {effective_genome_fraction} {gap_size} {fdr} '
+    """cd {tmpdir} && """
+    """whereis SICER | sed "s/\\/bin\\/SICER.sh/\\/share\\/sicer*\\/SICER.sh/g" | """
+    """awk '{{printf("%s ", $2)}}' > run_command.bash && """
+    """echo "{tmpdir} ip.bed in.bed {tmpdir} {genome_build} {redundancy_threshold} {window_size} """
+    """{fragment_size} {effective_genome_fraction} {gap_size} {fdr}" >> run_command.bash && """
+    """bash run_command.bash """
+    """&& cd {cwd}"""
 )
 
 resultsfile = glob.glob(os.path.join(tmpdir, '*-islands-summary-FDR*'))

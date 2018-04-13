@@ -155,4 +155,5 @@ workflows:
           filters:
             branches:
               ignore:
+	        - sicer-integration
                 - master
