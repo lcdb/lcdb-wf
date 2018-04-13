@@ -131,6 +131,7 @@ else:
 shell(
     "export LC_COLLATE=C; "
     # format the output in broadPeak format
+    # note that SICER can emit p-values of 0 and in that case this file will contain "inf" entries
     """awk -F"\\t" -v lab={label} """
     """'{{printf("%s\\t%d\\t%d\\t%s_peak_%d\\t%d\\t.\\t%g\\t%g\\t%g\\n", $1, """
     """$2, $3-1, lab, NR, -10*log($6)/log(10), $7, -log($6)/log(10), -log($8)/log(10))}}' """
