@@ -39,13 +39,22 @@ cmds = (
     'bamToBed -i {snakemake.input.control} > {tmpdir}/in.bed '
 )
 
+shell("which python")
+shell("whereis SICER")
+
 shell(cmds)
 
+#sicerexec = glob.glob(os.path.join(shell(whereis SICER | sed 's/\/bin\/SICER.sh/\/share/g' | awk '{print $2}'`, 'sicer*/SICER.sh'))
+#print("the composed sicer executable is at")
+#print(sicerexec)
+
 cmds = (
-    'cd {tmpdir} && '
-    'SICER.sh {tmpdir} ip.bed in.bed {tmpdir} {genome_build} {redundancy_threshold} {window_size} {fragment_size} {effective_genome_fraction} {gap_size} {fdr} '
+    """cd {tmpdir} && """
+    """whereis SICER | sed "s/\\/bin\\/SICER.sh/\\/share\\/sicer*\\/SICER.sh/g" | awk '{{printf("%s ", $2)}}' > run_command.bash && """
+    """echo "{tmpdir} ip.bed in.bed {tmpdir} {genome_build} {redundancy_threshold} {window_size} {fragment_size} {effective_genome_fraction} {gap_size} {fdr}" >> run_command.bash && """
+    """bash run_command.bash """
 #    ' > tmp.sicer.output 2> tmp.sicer.error '
-    '&& cd {cwd}'
+    """&& cd {cwd}"""
 )
 
 shell(cmds)
