@@ -32,6 +32,7 @@ outdir, basebed = os.path.split(snakemake.output.bed)
 label = snakemake.params.block['label']
 
 tmpdir = tempfile.mkdtemp()
+cwd = os.getcwd()
 
 shell(
     'bamToBed -i {snakemake.input.ip} > {tmpdir}/ip.bed ; '
