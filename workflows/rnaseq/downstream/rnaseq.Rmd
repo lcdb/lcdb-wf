@@ -365,7 +365,7 @@ for (name in names(res.list)){
   mdcat('### Normalized counts of top 3 downregulated genes')
   top.plots(padj.order(res.i, reverse=TRUE), 3, my.counts, dds.i, add_cols)
   mdcat('### M-A plot')
-  DESeq2::plotMA(res.i)
+  plotMA(res.i)
   mdcat('### P-value distribution')
   pval.hist(res.i)
 }
