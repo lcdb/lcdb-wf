@@ -155,7 +155,7 @@ format.group.name <- function(pattern.mat) {
 	    # if 1, include
 	    if (pattern.mat[i] == 1) my.res <- paste(my.res, names(pattern.mat[i]), sep=".")
 	    # otherwise don't
-	    else my.res <- paste(my.res, "not", names(pattern.mat[i]), sep=".")
+	    else my.res <- paste(my.res, ".not", names(pattern.mat[i]), sep="")
 	}
     }
     my.res
