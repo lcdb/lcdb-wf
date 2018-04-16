@@ -298,32 +298,6 @@ res.list.lookup <- list(
 ```
 
 
-```{r groupcounts, cache=TRUE}
-# Use normalized counts to get per-level mean counts. Attach them to results
-# for each result. This does ~not~ assume any particular model.
-for (name in names(res.list)) {
-    # extract the dds object in use
-    my.dds <- dds.list[[name]]
-    # get the normalized per-gene count data
-    my.counts <- counts(my.dds, TRUE)
-    # extract the design matrix
-    my.model <- model.matrix(design(my.dds), colData(my.dds))
-    # unique rows correspond to groups
-    my.unique.patterns <- unique(my.model)
-    # for each unique pattern
-    for (i in 1:nrow(my.unique.patterns)) {
-    	# determine which samples conform to that pattern
-    	in.pattern <- apply(my.model, 1, function(row) {all(row == my.unique.patterns[i,])})
-	# get counts just in those samples
-	in.counts <- rowSums(my.counts[,in.pattern])
-	res.list[[name]] <- cbind(res.list[[name]], in.counts)
-	colnames(res.list[[name]])[ncol(res.list[[name]])] <- format.group.name(my.unique.patterns[i,])
-    }
-}
-
-```
-
-
 ```{r attach, cache=TRUE, depends='results'}
 # Assumption: Original annotations use Ensembl IDs
 keytype <- 'ENSEMBL'
@@ -379,7 +353,7 @@ for (name in names(res.list)){
   mdcat('### Normalized counts of top 3 downregulated genes')
   top.plots(padj.order(res.i, reverse=TRUE), 3, my.counts, dds.i, add_cols)
   mdcat('### M-A plot')
-  plotMA(res.i)
+  DESeq2::plotMA(res.i)
   mdcat('### P-value distribution')
   pval.hist(res.i)
 }
@@ -463,6 +437,43 @@ for (name in names(ll)){
 }
 ```
 
+```{r groupcounts, cache=TRUE}
+counts.list <- list()
+# Use normalized counts to get per-level mean counts. Attach them to results
+# for each result. This does ~not~ assume any particular model.
+for (name in names(res.list)) {
+    # extract the dds object in use
+    my.dds <- dds.list[[name]]
+    # get the normalized per-gene count data
+    my.normalized.counts <- counts(my.dds, TRUE)
+    # report per-sample counts to output files
+    # this is really a placeholder for better Salmon handling later
+    for (colname in colnames(my.normalized.counts)) {
+        res.list[[name]][,colname] <- my.normalized.counts[,colname]
+	colnames(res.list[[name]])[ncol(res.list[[name]])] <- paste("normcount", colnames(res.list[[name]])[ncol(res.list[[name]])], sep=".")
+    }
+
+    # for debugging purposes, I'll have each analysis emit a single counts file
+    # with group-level counts summaries.
+
+    # extract the design matrix
+    my.model <- model.matrix(design(my.dds), colData(my.dds))
+    # unique rows correspond to groups
+    my.unique.patterns <- unique(my.model)
+    # for each unique pattern
+    for (i in 1:nrow(my.unique.patterns)) {
+    	# determine which samples conform to that pattern
+    	in.pattern <- apply(my.model, 1, function(row) {all(row == my.unique.patterns[i,])})
+	# get counts just in those samples
+	in.counts <- rowMeans(my.normalized.counts[,in.pattern])
+	counts.list[[name]] <- cbind(res.list[[name]][,1:4], in.counts)
+	colnames(counts.list[[name]])[ncol(counts.list[[name]])] <- format.group.name(my.unique.patterns[i,])
+    }
+}
+
+```
+
+
 # Exported results
 
 ```{r}
@@ -492,6 +503,7 @@ for (name in names(res.list)){
   mdcat('## ', res.list.lookup[[name]])
   fn <- paste0(name, '.tsv')
   write.table(res.list[[name]], file=fn, row.names=FALSE, sep='\t')
+  write.table(counts.list[[name]], file=paste(fn, ".counts", sep=""), row.names=FALSE, sep="\t")
   mdcat('- [', fn, '](', fn, '), results for ', res.list.lookup[[name]])
   for (sel in names(sel.list[[name]])){
     fn <- paste0(name, '.', sel, '.tsv')

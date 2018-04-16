@@ -142,25 +142,23 @@ DESeqDataSetFromSalmon <- function (sampleTable, directory='.', design,
 #' @return formatted column name
 
 format.group.name <- function(pattern.mat) {
-    res <- ""
+    my.res <- "counts"
     # enforce input format
     stopifnot(is.vector(pattern.mat))
     # if there's only one element
-    if (length(pattern) == 1) {
+    if (length(pattern.mat) == 1) {
         # it must be the intercept
-	res <- "groupMean"
+	my.res <- paste(my.res, "groupMean", sep=".")
     } else { # more than one element
         # for every non-intercept entry
         for (i in 2:length(pattern.mat)) {
-	    # if it's not the first, add a delimiter
-	    if (i > 2) res <- paste(res, ".", sep="")
 	    # if 1, include
-	    if (pattern.mat[i] == 1) res <- paste(res, names(pattern.mat[i]), sep="")
+	    if (pattern.mat[i] == 1) my.res <- paste(my.res, names(pattern.mat[i]), sep=".")
 	    # otherwise don't
-	    else res <- paste(res, "not", names(pattern.mat[i]), sep="")
+	    else my.res <- paste(my.res, "not", names(pattern.mat[i]), sep=".")
 	}
     }
-    res
+    my.res
 }
 
 #' Plot a gene's normalized counts across samples
