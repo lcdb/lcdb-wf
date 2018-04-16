@@ -148,6 +148,10 @@ dds.txi <- DESeqDataSetFromSalmon(
                                   design=~group)
 # rlog normalize transcript counts
 rld.txi <- varianceStabilizingTransformation(dds.txi, blind=FALSE)
+# extract count frame
+transcript.counts <- assay(rld.txi)
+# correct the sample IDs
+colnames(transcript.counts) <- colData$samplename
 ```
 
 
@@ -311,6 +315,14 @@ for (name in names(res.list)){
         keytype=keytype,
         columns=columns)
 }
+
+# Assumption: using ENSEMBLTRANS transcript IDs with Salmon
+#  honestly if you're using something else, you may just want to skip this step.
+# append gene mappings to transcript counts from Salmon
+transcript.geneids <- mapIds(orgdb,
+		             keys=rownames(transcript.counts),
+		             column=keytype,
+			     keytype='ENSEMBLTRANS')
 ```
 
 # Differential expression
@@ -439,22 +451,27 @@ for (name in names(ll)){
 
 ```{r groupcounts, cache=TRUE}
 counts.list <- list()
-# Use normalized counts to get per-level mean counts. Attach them to results
-# for each result. This does ~not~ assume any particular model.
+
+# compute aggregate (by gene) normalized transcript counts from Salmon
+transcript.counts <- aggregate(transcript.counts, list(transcript.geneids), sum)
+
+# Use normalized counts to get per-level mean counts. Attach Salmon aggregate
+# counts to each output file. This does ~not~ assume any particular model.
 for (name in names(res.list)) {
+    counts.list[[name]] <- res.list[[name]][,c(1:4,7)]
     # extract the dds object in use
     my.dds <- dds.list[[name]]
-    # get the normalized per-gene count data
+
+    # get the DESeq2 normalized per-gene count data
     my.normalized.counts <- counts(my.dds, TRUE)
-    # report per-sample counts to output files
-    # this is really a placeholder for better Salmon handling later
+    colnames(transcript.counts) <- c("Gene", colnames(my.normalized.counts))
+
+    # report per-sample Salmon counts to output files
+    merged.results <- merge(data.frame(res.list[[name]]), transcript.counts, by.x="gene", by.y="Gene", all.x=TRUE)
     for (colname in colnames(my.normalized.counts)) {
-        res.list[[name]][,colname] <- my.normalized.counts[,colname]
+        res.list[[name]][,colname] <- merged.results[,colname]
 	colnames(res.list[[name]])[ncol(res.list[[name]])] <- paste("normcount", colnames(res.list[[name]])[ncol(res.list[[name]])], sep=".")
     }
-
-    # for debugging purposes, I'll have each analysis emit a single counts file
-    # with group-level counts summaries.
 
     # extract the design matrix
     my.model <- model.matrix(design(my.dds), colData(my.dds))
@@ -466,7 +483,7 @@ for (name in names(res.list)) {
     	in.pattern <- apply(my.model, 1, function(row) {all(row == my.unique.patterns[i,])})
 	# get counts just in those samples
 	in.counts <- rowMeans(my.normalized.counts[,in.pattern])
-	counts.list[[name]] <- cbind(res.list[[name]][,1:4], in.counts)
+	counts.list[[name]] <- cbind(counts.list[[name]], in.counts)
 	colnames(counts.list[[name]])[ncol(counts.list[[name]])] <- format.group.name(my.unique.patterns[i,])
     }
 }
