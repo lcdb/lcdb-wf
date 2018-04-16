@@ -141,6 +141,7 @@ workflows:
            branches:
              ignore:
                - master
+	       - sicer-integration
       - rnaseq:
           requires:
             - initial-setup
@@ -148,6 +149,7 @@ workflows:
             branches:
               ignore:
                 - master
+		- sicer-integration
       - references:
           requires:
             - initial-setup
@@ -155,3 +157,4 @@ workflows:
             branches:
               ignore:
                 - master
+		- sicer-integration
