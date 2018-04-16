@@ -134,6 +134,10 @@ workflows:
   test-suite:
     jobs:
       - initial-setup
+         filters:
+	   branches:
+	     ignore:
+	       - sicer-integration
       - chipseq:
          requires:
            - initial-setup
