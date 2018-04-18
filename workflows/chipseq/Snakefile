@@ -377,6 +377,214 @@ rule bigwig:
         '--extendReads 300 '
         '&> {log}'
 
+rule macs2_extended_estimate_d:
+    """
+    Just for IP samples, estimate fragment lengths
+    """
+    input:
+        bam=lambda wc: expand(c.patterns['merged_techreps'],
+                              label=chipseq.samples_for_run(config,
+                                                            wc.macs2_extended_run,
+                                                            'macs2_extended',
+                                                            'ip'),
+                              merged_dir=c.merged_dir)
+    output:
+        d_estimate=lambda wc: expand(c.patterns['macs2_extended']['d_estimate'],
+                                     merged_dir=c.merged_dir, label=wc.ip_label) +
+                        '.' + chipseq.block_for_run(config,
+                                                    wc.macs2_extended_run,
+                                                    'macs2_extended').mfold_lower + '.' +
+                        chipseq.block_for_run(config,
+                                              wc.macs2_extended_run,
+                                              'macs2_extended').mfold_upper,
+        frag_length=lambda wc: expand(c.patterns['macs2_extended']['d_estimate'],
+                                      merged_dir=c.merged_dir,
+                                      label=wc.ip_label) + '.read_length'
+    log:
+        lambda wc: expand(c.patterns['macs2_extended']['d_estimate'],
+                                     merged_dir=c.merged_dir, label=wc.ip_label) +
+           '.' + chipseq.block_for_run(config,
+                                       wc.macs2_extended_run,
+                                       'macs2_extended').mfold_lower + '.' +
+           chipseq.block_for_run(config,
+                                 wc.macs2_extended_run,
+                                 'macs2_extended').mfold_upper + '.log',
+    params:
+        block=lambda wc: chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended')
+    wrapper:
+        wrapper_for('macs2/estimate_d')
+
+
+rule macs2_extend_ip_coverage:
+    """
+    Just for IP samples, extend coverage data
+    """
+    input:
+        bam=lambda wc: expand(c.patterns['merged_techreps'],
+                              label=chipseq.samples_for_run(config, wc.macs2_extended_run, 'macs2_extended', 'ip'),
+                              merged_dir=c.merged_dir)
+    output:
+        bdg=lambda wc: expand(c.patterns['macs2_extended']['ip_bdg'], merged_dir=c.merged_dir, label=wc.ip_label) + '.unscaled'
+    log:
+        c.patterns['macs2_extended']['ip_bdg'] + '.unscaled.log'
+    wrapper:
+        wrapper_for('macs2/pileup')
+
+
+rule macs2_d_background:
+    """
+    Extend background based on macs2 estimated fragment length
+    """
+    input:
+       bam=lambda wc: expand(c.patterns['merged_techreps'],
+                             label=chipseq.samples_for_run(config, wc.macs2_extended_run, 'macs2_extended', 'control'),
+                             merged_dir=c.merged_dir),
+       d_estimate=lambda wc: expand(c.patterns['macs2_extended']['d_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                           chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                           chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper,
+        
+    output:
+       bdg=lambda wc: expand(c.patterns['macs2_extended']['bdg_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper
+    log:
+       lambda wc: expand(c.patterns['macs2_extended']['bdg_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                  chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                  chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper + '.log'
+    wrapper:
+       wrapper_for('macs2/pileup')
+
+
+rule macs2_slocal_background:
+    """
+    Extend background based on macs2 slocal parameter
+    """
+    input:
+       bam=lambda wc: expand(c.patterns['merged_techreps'],
+                             label=chipseq.samples_for_run(config, wc.macs2_extended_run, 'macs2_extended', 'control'),
+                             merged_dir=c.merged_dir),
+       d_estimate=lambda wc: expand(c.patterns['macs2_extended']['d_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                             chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                             chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper,
+       override_size=chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').slocal
+        
+    output:
+       bdg=lambda wc: expand(c.patterns['macs2_extended']['bdg_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').slocal
+    log:
+       lambda wc: expand(c.patterns['macs2_extended']['bdg_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').slocal + '.log'
+    wrapper:
+       wrapper_for('macs2/pileup')
+
+
+
+rule macs2_llocal_background:
+    """
+    Extend background based on macs2 llocal parameter
+    """
+    input:
+       bam=lambda wc: expand(c.patterns['merged_techreps'],
+                               label=chipseq.samples_for_run(config, wc.macs2_extended_run, 'macs2_extended', 'control'),
+                               merged_dir=c.merged_dir),
+       d_estimate=lambda wc: expand(c.patterns['macs2_extended']['d_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                             chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                             chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper,
+       override_size=chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').llocal
+        
+    output:
+       bdg=lambda wc: expand(c.patterns['macs2_extended']['bdg_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').llocal
+    log:
+       lambda wc: expand(c.patterns['macs2_extended']['bdg_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').llocal + '.log'
+    wrapper:
+       wrapper_for('macs2/pileup')
+
+
+rule macs2_combine_backgrounds:
+    """
+    Combine individual background estimates into a single worst case bdg
+    """
+    input:
+       d_bdg = lambda wc: expand(c.patterns['macs2_extended']['bdg_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper,
+       slocal_bdg = lambda wc: expand(c.patterns['macs2_extended']['bdg_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').slocal,
+       llocal_bdg = lambda wc: expand(c.patterns['macs2_extended']['bdg_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').llocal,
+       d_estimate = lambda wc: expand(c.patterns['macs2_extended']['d_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                             chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                             chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper,
+       ctrl_bam = lambda wc:
+            expand(
+                c.patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'control'),
+                merged_dir=c.merged_dir,
+            ),
+       
+    output:
+       bdg=lambda wc: expand(c.patterns['macs2_extended']['bdg_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').slocal + '.' +
+                      chipseq.block_for_run(config, wc.macs2_extended_runm 'macs2_extended').llocal + '.unscaled'
+    log:
+       lambda wc: expand(c.patterns['macs2_extended']['bdg_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                  chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                  chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper + '.' +
+                  chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').slocal + '.' +
+                  chipseq.block_for_run(config, wc.macs2_extended_runm 'macs2_extended').llocal + '.unscaled.log'
+    params:
+       block=lambda wc: chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended')
+    wrapper:
+       wrapper_for('macs2/combine_backgrounds')
+
+
+rule macs2_rescale_files:
+    """
+    Rescale larger of IP bdg and background bdg to the smaller
+    """
+    input:
+        ip_bam=lambda wc:
+           expand(
+                c.patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.macs2_extended_run, 'macs2_extended', 'ip'),
+                merged_dir=c.merged_dir,
+           ),
+        control_bam=lambda wc:
+           expand(
+                c.patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.macs2_extended_run, 'macs2_extended', 'control'),
+                merged_dir=c.merged_dir,
+            ),
+        background_bdg=lambda wc: expand(c.patterns['macs2_extended']['bdg_estimate'],
+                                         merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                                  chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                                  chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper + '.' +
+                                  chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').slocal + '.' +
+                                  chipseq.block_for_run(config, wc.macs2_extended_runm 'macs2_extended').llocal + '.unscaled',
+        ip_bdg=lambda wc: expand(c.patterns['macs2_extended']['ip_bdg'], merged_dir=c.merged_dir, label=wc.ip_label)
+    output:
+       ip_bdg=c.patterns['peaks']['macs2_extended']['ip_bdg'],
+       lambda_bdg=c.patterns['peaks']['macs2_extended']['lambda_bdg'],
+    log:
+       c.patterns['peaks']['macs2_extended']['ip_bdg'] + '.rescaling.log'
+    wrapper:
+       wrapper_for('macs2/rescale_bdg')
 
 rule fingerprint:
     """
@@ -470,6 +678,26 @@ rule macs2:
     wrapper:
         wrapper_for('macs2/callpeak')
 
+rule macs2_extended_bdgpeakcall:
+    """
+    Generate peak calls using macs2 manual subroutines instead of callpeaks
+    """
+    input:
+       ip_bdg=c.patterns['peaks']['macs2_extended']['ip_bdg'],
+       lambda_bdg=c.patterns['peaks']['macs2_extended']['lambda_bdg'],
+       d_estimate=lambda wc: expand(c.patterns['macs2_extended']['d_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.' +
+                   chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_lower + '.' +
+                   chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended').mfold_upper,
+       read_length=lambda wc: expand(c.patterns['macs2_extended']['d_estimate'], merged_dir=c.merged_dir, label=wc.ip_label) + '.read_length',
+       chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
+   output:
+       bed=c.patterns['peaks']['macs2_extended']['peaks']
+   log:
+       c.patterns['peaks']['macs2_extended']['peaks'] + '.log'
+   params:
+       block=lambda wc: chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended')
+   wrapper:
+       wrapper_for('macs2/bdgpeakcall')
 
 rule spp:
     """

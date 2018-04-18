@@ -80,6 +80,23 @@ chipseq:
       extra: '--nomodel --extsize 147'
 
     - label: gaf-embryo-1
+      algorithm: macs2_extended
+      ip:
+        - gaf-embryo-1
+      control:
+        - input-embryo-1
+      slocal:
+        - 1000
+      llocal:
+        - 10000
+      mfold_lower:
+        - 2
+      mfold_upper:
+        - 50
+      qvalue:
+        - 0.05
+
+    - label: gaf-embryo-1
       algorithm: spp
       ip:
         - gaf-embryo-1
