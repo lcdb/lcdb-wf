@@ -36,6 +36,7 @@ patterns_by_sample:
 
   macs2_extended:
     d_estimate: '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.merged.d_estimate.txt'
+    read_length: '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.merged.read_length.txt'
     ip_bdg: '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.merged.ip.bdg'
     bdg_estimate: '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.merged.bdg_estimate'
 
@@ -49,14 +50,11 @@ patterns_by_sample:
 patterns_by_peaks:
     peaks:
        macs2: '{peak_calling}/macs2/{macs2_run}/peaks.bed'
-       macs2_extended:
-          background_bdg: '{peak_calling}/macs2_extended/{macs2_extended_run}/background.bdg'
-          lambda_bdg: '{peak_calling}/macs2_extended/{macs2_extended_run}/lamdba.bdg'
-          ip_bdg: '{peak_calling}/macs2_extended/{macs2_extended_run}/ip.bdg'
-          peaks: '{peak_calling}/macs2_extended/{macs2_extended_run}/peaks.bed'
+       macs2_extended: '{peak_calling}/macs2_extended/{macs2_extended_run}/peaks.bed'
        spp: '{peak_calling}/spp/{spp_run}/peaks.bed'
        sicer: '{peak_calling}/sicer/{sicer_run}/peaks.bed'
     bigbed:
         macs2: '{peak_calling}/macs2/{macs2_run}/peaks.bigbed'
+        macs2_extended: '{peak_calling}/macs2_extended/{macs2_extended_run}/peaks.bigbed'
         spp: '{peak_calling}/spp/{spp_run}/peaks.bigbed'
         sicer: '{peak_calling}/sicer/{sicer_run}/peaks.bigbed'
