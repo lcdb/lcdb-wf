@@ -34,12 +34,6 @@ patterns_by_sample:
     raw_counts: '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.tab'
     metrics: '{agg_dir}/fingerprints/{ip_label}/{ip_label}_fingerprint.metrics'
 
-  macs2_extended:
-    d_estimate: '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.merged.d_estimate.txt'
-    read_length: '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.merged.read_length.txt'
-    ip_bdg: '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.merged.ip.bdg'
-    bdg_estimate: '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.merged.bdg_estimate'
-
   multibigwigsummary:
     npz: '{agg_dir}/deeptools/multibigwigsummary_matrix.npz'
     tab: '{agg_dir}/deeptools/multibigwigsummary.tab'

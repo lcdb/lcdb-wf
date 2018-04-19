@@ -1,6 +1,7 @@
 import os
 from snakemake import shell
 import tempfile
+import subprocess
 
 log = snakemake.log_fmt_shell()
 logfile = None
