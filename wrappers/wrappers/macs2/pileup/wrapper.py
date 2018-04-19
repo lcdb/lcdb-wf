@@ -5,11 +5,6 @@ import tempfile
 
 log = snakemake.log_fmt_shell()
 logfile = None
-extra = snakemake.params.get('extra', '')
-
-label = snakemake.params.block['label']
-extra = snakemake.params.block.get('extra', '')
-
 
 input_bam = snakemake.input.bam
 output_bdg = snakemake.output.bdg

@@ -79,7 +79,8 @@ chipseq:
       effective_genome_count: 7e7
       extra: '--nomodel --extsize 147'
 
-    - label: gaf-embryo-1
+
+    - label: gaf-embryo-macs2_extended
       algorithm: macs2_extended
       ip:
         - gaf-embryo-1
@@ -95,6 +96,7 @@ chipseq:
         - 50
       qvalue:
         - 0.05
+
 
     - label: gaf-embryo-1
       algorithm: spp

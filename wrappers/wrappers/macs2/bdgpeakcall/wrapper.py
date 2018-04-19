@@ -1,4 +1,5 @@
 import os
+import math
 import tempfile
 from snakemake import shell
 
@@ -16,7 +17,13 @@ d_estimate = snakemake.input.d_estimate
 read_length = snakemake.input.read_length
 bed = snakemake.output.bed
 
-qvalue = -log10(float(snakemake.params.block.get('qvalue', '0.05')))
+qvalue = snakemake.params.block.get('qvalue')
+if qvalue is None:
+    qvalue = 0.05
+else:
+    qvalue = float(qvalue[0])
+
+qvalue = -1 * math.log(qvalue, 10)
 
 if ip_bdg is None:
     raise ValueError("macs2/bdgpeakcall requires input.ip_bdg")
@@ -30,12 +37,12 @@ if bed is None:
     raise ValueError("macs2/bdgpeakcall requires output.bed")
 
 with open(d_estimate) as f:
-    d_estimate = f.readline().strip()
+    d_estimate = f.readline().split()[2].strip()
 
 with open(read_length) as f:
     read_length = f.readline().strip()
 
-tmp = tempfile.TemporaryFile()
+tmp = tempfile.NamedTemporaryFile().name
 
 cmds = (
     'macs2 bdgcmp '
@@ -55,7 +62,7 @@ cmds = (
 )
 shell(cmds + '{log}')
 
-tmp2 = tempfile.TemporaryFile()
+tmp2 = tempfile.NamedTemporaryFile().name
 # Fix the output file so that it doesn't have negative numbers and so it fits
 # inside the genome
 shell(
@@ -63,10 +70,11 @@ shell(
     "{snakemake.input.chromsizes} "
     "> {tmp2}"
 )
-tmp3 = tempfile.TemporaryFile()
+tmp3 = tempfile.NamedTemporaryFile().name
 shell(
     "export LC_COLLATE=C; "
     """awk -F "\\t" '{{OFS="\\t"; if (($2>0) && ($3>0)) print $0}}' {bed} | """
     "bedtools intersect -a - -b {tmp2} > {tmp3} "
     "&& bedSort {tmp3} {bed}"
 )
+shell("rm {0} {1} {2}".format(tmp, tmp2, tmp3))

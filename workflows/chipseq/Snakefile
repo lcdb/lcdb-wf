@@ -382,12 +382,17 @@ rule macs2_extended_estimate_d:
     Just for IP samples, estimate fragment lengths
     """
     input:
-        bam=c.patterns['merged_techreps']
+        bam=lambda wc: expand(c.patterns['merged_techreps'],
+                              label=chipseq.samples_for_run(config,
+                                                            wc.macs2_extended_run,
+                                                            'macs2_extended',
+                                                            'ip'),
+                              merged_dir=c.merged_dir)
     output:
-        d_estimate=c.patterns['merged_techreps'] + '.d_estimates.txt',
-        read_length=c.patterns['merged_techreps'] + '.read_length.txt'
+        d_estimate=c.patterns['peaks']['macs2_extended'] + '.d_estimates.txt',
+        read_length=c.patterns['peaks']['macs2_extended'] + '.read_length.txt'
     log:
-         c.patterns['macs2_extended']['d_estimate'] + '.log'
+        c.patterns['peaks']['macs2_extended'] + '.d_estimates.log'
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended')
     wrapper:
@@ -400,7 +405,10 @@ rule macs2_extend_ip_coverage:
     """
     input:
         bam=lambda wc: expand(c.patterns['merged_techreps'],
-                              label=chipseq.samples_for_run(config, wc.macs2_extended_run, 'macs2_extended', 'ip'),
+                              label=chipseq.samples_for_run(config,
+                                                            wc.macs2_extended_run,
+                                                            'macs2_extended',
+                                                            'ip'),
                               merged_dir=c.merged_dir)
     output:
         bdg=c.patterns['peaks']['macs2_extended'] + '.ip.bdg.unscaled'
@@ -416,23 +424,21 @@ rule macs2_backgrounds:
     Combine individual background estimates into a single worst case bdg
     """
     input:
-       d_estimate = lambda wc: expand(c.patterns['merged_techreps'],
-                                      merged_dir=c.merged_dir,
-                                      label=wc.ip_label) + '.d_estimates.txt',
-       ctrl_bam = lambda wc: expand(c.patterns['merged_techreps'],
-                                    label=chipseq.samples_for_run(config,
-                                                                  wc.macs2_extended_run,
-                                                                  'macs2_extended',
-                                                                  'control'),
-                                    merged_dir=c.merged_dir)
+        d_estimate=c.patterns['peaks']['macs2_extended'] + ".d_estimates.txt",
+        ctrl_bam = lambda wc: expand(c.patterns['merged_techreps'],
+                                     label=chipseq.samples_for_run(config,
+                                                                   wc.macs2_extended_run,
+                                                                   'macs2_extended',
+                                                                   'control'),
+                                     merged_dir=c.merged_dir)
     output:
-       bdg=c.patterns['peaks']['macs2_extended'] + '.background.bdg.unscaled'
+        bdg=c.patterns['peaks']['macs2_extended'] + '.background.bdg.unscaled'
     log:
-       c.patterns['peaks']['macs2_extended'] + '.background.bdg.unscaled.log'
+        c.patterns['peaks']['macs2_extended'] + '.background.bdg.unscaled.log'
     params:
-       block=lambda wc: chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended')
+        block=lambda wc: chipseq.block_for_run(config, wc.macs2_extended_run, 'macs2_extended')
     wrapper:
-       wrapper_for('macs2/generate_and_combine_backgrounds')
+        wrapper_for('macs2/generate_and_combine_backgrounds')
 
 
 rule macs2_rescale_files:
@@ -549,12 +555,8 @@ rule macs2_extended_bdgpeakcall:
     input:
        ip_bdg=c.patterns['peaks']['macs2_extended'] + '.ip.bdg',
        lambda_bdg=c.patterns['peaks']['macs2_extended'] + '.lambda.bdg',
-       d_estimate=lambda wc: expand(c.patterns['merged_techreps'],
-                                    merged_dir=c.merged_dir,
-                                    label=wc.ip_label) + '.d_estimates.txt',
-       read_length=lambda wc: expand(c.patterns['merged_techreps'],
-                                     merged_dir=c.merged_dir,
-                                     label=wc.ip_label) + '.read_length.txt',
+       d_estimate=c.patterns['peaks']['macs2_extended'] + '.d_estimates.txt',
+       read_length=c.patterns['peaks']['macs2_extended'] + '.read_length.txt',
        chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
     output:
        bed=c.patterns['peaks']['macs2_extended']

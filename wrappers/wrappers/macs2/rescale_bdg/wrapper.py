@@ -1,17 +1,14 @@
 import os
+import os.path
 from snakemake import shell
 import tempfile
 import subprocess
 
 log = snakemake.log_fmt_shell()
 logfile = None
-extra = snakemake.params.get('extra', '')
-
-label = snakemake.params.block['label']
-extra = snakemake.params.block.get('extra', '')
 
 ip_bam = snakemake.input.ip_bam
-control_bam = snakemake.input.ctrl_bam
+control_bam = snakemake.input.control_bam
 background_bdg = snakemake.input.background_bdg
 ip_bdg = snakemake.input.ip_bdg
 
@@ -31,14 +28,14 @@ if output_ip_bdg is None:
 if output_lambda_bdg is None:
     raise ValueError("macs2/rescale_bdg requires output.lambda_bdg")
 
-control_bam = float(subprocess.run(['samtools', 'view', '-c', control_bam],
+control_bam = float(subprocess.run(['samtools', 'view', '-c', control_bam[0]],
                                    stdout=subprocess.PIPE).stdout.decode('utf-8'))
-ip_bam = float(subprocess.run(['samtools', 'view', '-c', ip_bam],
+ip_bam = float(subprocess.run(['samtools', 'view', '-c', ip_bam[0]],
                               stdout=subprocess.PIPE).stdout.decode('utf-8'))
 
 if control_bam > ip_bam:
     mult_factor = ip_bam / control_bam
-    shell('ln -s {0} {1}'.format(ip_bdg,
+    shell('ln -s {0} {1}'.format(os.path.abspath(ip_bdg),
                                  output_ip_bdg))
     cmds = (
         'macs2 bdgopt '
@@ -48,8 +45,8 @@ if control_bam > ip_bam:
         '-o {output_lambda_bdg} ')
 else:
     mult_factor = control_bam / ip_bam
-    shell('ln -s {0} {1}'.format(background_bdg,
-                                 output_lamdba_bdg))
+    shell('ln -s {0} {1}'.format(os.path.abspath(background_bdg),
+                                 output_lambda_bdg))
 
     cmds = (
         'macs2 bdgopt '
