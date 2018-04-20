@@ -3,22 +3,25 @@ import os.path
 from snakemake import shell
 import tempfile
 import subprocess
+import fcntl
 
 log = snakemake.log_fmt_shell()
 logfile = None
-extra = snakemake.params.get('extra', '')
+
+lock_timeout_interval_seconds = 5
+lock_timeout_max_intervals = 50
 
 def conditionally_generate_files(_local,
-                                 _mfold_lower,
-                                 _mfold_upper,
                                  _d_estimate,
-                                 _ctrl_filename,
+                                 _filename,
                                  _path,
-                                 _out_bdg):
-    # find the appropriate estimate of d
-
+                                 _out_bdg,
+                                 _is_control):
     # check and see if the bdg file already exists
-    bdg_param_filename = _path + "/mfold_lower" + str(_mfold_lower) + "_upper" + str(_mfold_upper) + "_d" + str(_d_estimate)
+    sample_tag = "IP";
+    if _is_control:
+        sample_tag = "input"
+    bdg_param_filename = _path + "/" + sample_tag + "_d" + str(_d_estimate)
     if _local is not None:
         bdg_param_filename = bdg_param_filename + "_local" + str(_local)
     bdg_param_filename = bdg_param_filename + ".bdg"
@@ -26,40 +29,89 @@ def conditionally_generate_files(_local,
     local_est = _local
     if _local is None:
         local_est = _d_estimate
-    # if the file doesn't exist
-    if not os.path.isfile(bdg_param_filename):
-        # make the file
-        tmp = tempfile.NamedTemporaryFile().name
-        shell("macs2 pileup -i {0} -B --extsize {1} -o {2} {3}".format(_ctrl_filename, int(local_est/2), tmp, log))
-        # if d was used, normalization is not required so save time
-        if _local is None:
-            shell("mv {0} {1}".format(tmp, bdg_param_filename))
-        else:
-            shell("macs2 bdgopt -i {0} -m multiply -p {1} -o {2} {3}".format(tmp,
-                                                                             _d_estimate/local_est,
-                                                                             bdg_param_filename,
-                                                                             log))
-            shell("rm {0}".format(tmp))
-    # symlink the output to the correct bdg file
-    shell("ln -s {0} {1}".format(os.path.abspath(bdg_param_filename), _out_bdg))
+
+    # Prevent race conditions by getting a lock on the entire damn directory.
+    # Unfortunately, due to making this exist outside of Snakemake, there is the
+    # very real chance that a failed rule will cause some sort of consistency issue.
+    # I think this solution works... mostly. There might still be a very small chance of collisions.
+    lock_file = open(_path + "/.directory_lock", "a")
+    for timeout in range(lock_timeout_max_intervals):
+        try:
+            #acquire directory lock
+            fcntl.flock(lock_file, fcntl.LOCK_EX)
+            # if the desired bdg file doesn't exist
+            if not os.path.isfile(bdg_param_filename):
+                # make the file
+                local_intermediate_file = tempfile.NamedTemporaryFile().name
+                # if it's a control, extend bidirectionally
+                if _is_control:
+                    shell("macs2 pileup -i {0} -B --extsize {1} -o {2} {3}".format(_filename, int(local_est/2), local_intermediate_file, log))
+                    # if d was used, normalization is not required so save time
+                    if _local is None:
+                        shell("mv {0} {1}".format(local_intermediate_file, bdg_param_filename))
+                    else:
+                        shell("macs2 bdgopt -i {0} -m multiply -p {1} -o {2} {3}".format(local_intermediate_file,
+                                                                                         _d_estimate/local_est,
+                                                                                         bdg_param_filename,
+                                                                                         log))
+                        shell("rm {0}".format(local_intermediate_file))
+                else:
+                    shell("macs2 pileup -i {0} --extsize {1} -o {2} {3}".format(_filename, int(local_est), bdg_param_filename, log))
+                # symlink the output to the correct bdg file
+                shell("ln -s {0} {1}".format(os.path.abspath(bdg_param_filename), _out_bdg))
+            # release directory lock
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
+            lock_file.close()
+            break
+        except IOError:
+            # in this case, the directory is in use already. Chill out for a reasonable amount of time.
+            time.sleep(lock_timeout_interval_seconds)
+        except Exception as e:
+            # something unrelated failed. Clean up after yourself and then cry for help.
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
+            lock_file.close()
+            raise e
+    # assuming everything's coded correctly, this catches when the mutex acquisition times out.
+    if not lock_file.closed:
+        fcntl.flock(lock_file, fcntl.LOCK_UN)
+        lock_file.close()
+        raise ValueError("macs2/background unable to generate {0} in reasonable time frame".format(bdg_param_filename))
 
 
-label = snakemake.params.block['label']
-extra = snakemake.params.block.get('extra', '')
 
-d_estimate_filename = snakemake.input.d_estimate
+
+d_estimate_file = snakemake.params.d_estimate
+d_estimate_default_value = snakemake.params.d_estimate_default_value
+read_length_file = snakemake.params.read_length
+ip_bam = snakemake.input.ip_bam
 control_bam = snakemake.input.ctrl_bam
 control_bam_length = None
-output_bdg = snakemake.output.bdg
 
-if d_estimate_filename is None:
-    raise ValueError("macs2/combine_backgrounds requires input.d_estimate")
+output_background_bdg_unscaled = snakemake.output.background_bdg_unscaled
+output_ip_bdg_unscaled = snakemake.output.ip_bdg_unscaled
+output_background_bdg_scaled = snakemake.output.background_bdg_scaled
+output_ip_bdg_scaled = snakemake.output.ip_bdg_scaled
+
+if d_estimate_file is None:
+    raise ValueError("macs2/combine_backgrounds requires params.d_estimate")
+if read_length_file is None:
+    raise ValueError("macs2/combine_backgrounds requires params.read_length")
+if ip_bam is None:
+    raise ValueError("macs2/combine_backgrounds requires input.ip_bam")
+else:
+    ip_bam_length = int(subprocess.check_output(["samtools", "view", "-c", ip_bam[0]]).decode('utf-8'))
 if control_bam is None:
     raise ValueError("macs2/combine_backgrounds requires input.ctrl_bam")
 else:
-    control_bam_length = subprocess.check_output(["samtools", "view", "-c", control_bam[0]]).decode('utf-8')
-if output_bdg is None:
-    raise ValueError("macs2/combine_backgrounds requires output.bdg")
+    control_bam_length = int(subprocess.check_output(["samtools", "view", "-c", control_bam[0]]).decode('utf-8'))
+if output_background_bdg_unscaled is None:
+    raise ValueError("macs2/combine_backgrounds requires output.background_bdg_unscaled")
+if output_ip_bdg_unscaled is None:
+    raise ValueError("macs2/combine_backgrounds requires output.ip_bdg_unscaled")
+if output_background_bdg_scaled is None:
+    raise ValueError("macs2/combine_backgrounds requires output.background_bdg_scaled")
+if output_ip_bdg_scaled is None:
+    raise ValueError("macs2/combine_backgrounds requires output.ip_bdg_scaled")
 
 # this wrapper requires control extensions for both slocal and llocal. These can be cached.
 slocal = snakemake.params.block.get('slocal')[0]
@@ -75,10 +127,100 @@ if slocal is None or \
 effective_genome_count = snakemake.params.block.get('effective_genome_count',
                          snakemake.params.block.get('reference_effective_genome_count', ''))
 
+genome_count_flag = ''
+if effective_genome_count != '':
+    genome_count_flag = ' -g ' + effective_genome_count + ' '
 
+# Multiple processes may try to write d estimates simultaneously.
+# In this case, there's no control for if the d estimates are being made for the same set of parameters
+# by multiple processes at the same time. In this case, the file may end up littered with repeat entries
+# generated the very first time that the set of parameters is used. But that's not really so bad a thing,
+# as the estimates will be identical and the first seen can be used in the future. Just make sure the file
+# doesn't get corrupted.
+
+# determine if this parameter set has already been estimated for this file
+
+def try_to_find_d(_dfilename, _mfoldlower, _mfoldupper):
+    if os.path.isfile(_dfilename):
+        with open(_dfilename, "r") as f:
+            for line in f:
+                parsed = line.split()
+                if len(parsed) == 3 and \
+                   int(parsed[0]) == int(_mfoldlower) and \
+                   int(parsed[1]) == int(_mfoldupper):
+                    return True
+    return False
+
+value_available = try_to_find_d(d_estimate_file, mfold_lower, mfold_upper)
+
+if not value_available:
+    # Acquire the lock very, very early.
+    lock_file = open(d_estimate_file + ".lock", "a")
+    # give this process a reasonable number of attempts
+    for timeout in range(lock_timeout_max_intervals):
+        try:
+            # attempt to acquire a lock.
+            fcntl.flock(lock_file, fcntl.LOCK_EX)
+            # this lock process could catch numerous processes the first time around.
+            # you don't want to then have each and every one of the buggers compute their
+            # own d estimates if you can avoid it.
+            # so immediately check if d has appeared in the interim
+            value_available = try_to_find_d(d_estimate_file, mfold_lower, mfold_upper)
+            if value_available:
+                fcntl.flock(lock_file, fcntl.LOCK_UN)
+                lock_file.close()
+                break
+            
+            cmds = (
+                'macs2 predictd '
+                '-i {ip_bam} '
+                '{genome_count_flag} '
+                '-m {mfold_lower} {mfold_upper} '
+                '-f BAM '
+            )
+            shell(cmds + ' {log}')
+            inlog = log.split(' ')[-2]
+            d_estimate_temporary_file = tempfile.NamedTemporaryFile().name
+            cmds = ('awk \'/predicted fragment length is/ {{print "{mfold_lower} {mfold_upper} "$(NF-1)}}\' '
+                    '< {inlog} > {d_estimate_temporary_file}')
+            shell(cmds)
+            with open(d_estimate_temporary_file, "r") as f:
+                lines = f.readlines()
+                # try to get access to d estimate file
+                with open(d_estimate_file, "a") as d_file:
+                    # if there was less than one matching line from the awk extraction,
+                    # it's because there was an MFOLD failure. Fall back to default extsize.
+                    if len(lines) < 1:
+                        d_file.write("{0} {1} {2}\n".format(mfold_lower, mfold_upper, d_estimate_default_value))
+                    else:
+                        d_file.write("{0} {1} {2}\n".format(mfold_lower, mfold_upper, lines[0].strip()))
+            cmds = ('awk \'/tag size is determined as/ {{print $(NF-1)}}\' < {inlog} > {read_length_file}')
+            shell(cmds)
+            shell("rm {0}".format(d_estimate_temporary_file))
+
+            # release the d estimate lock
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
+            lock_file.close()
+            break
+        except IOError:
+            # in this case, the lock file is in use already. Chill out for a reasonable amount of time.
+            time.sleep(lock_timeout_interval_seconds)
+        except Exception as e:
+            # something unrelated failed. Clean up after yourself and then cry for help.
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
+            lock_file.close()
+            raise e
+    # assuming everything's coded correctly, this catches when the mutex acquisition times out.
+    if not lock_file.closed:
+        fcntl.flock(lock_file, fcntl.LOCK_UN)
+        lock_file.close()
+        raise ValueError("macs2/background unable to access d estimate file in reasonable time frame")
+
+
+                
 
 d_estimate = None
-with open(d_estimate_filename) as f:
+with open(d_estimate_file, "r") as f:
     for line in f:
         tokens = line.strip().split()
         if len(tokens) == 3 and \
@@ -99,32 +241,38 @@ tmp3 = tempfile.NamedTemporaryFile().name
 tmp4 = tempfile.NamedTemporaryFile().name
 tmp5 = tempfile.NamedTemporaryFile().name
 
+macs2_ip_repo = os.path.split(ip_bam[0])[0] + "/macs2_bdgs/"
+macs2_control_repo = os.path.split(control_bam[0])[0] + "/macs2_bdgs/"
+shell("mkdir -p {0}".format(macs2_ip_repo))
+shell("mkdir -p {0}".format(macs2_control_repo))
 
-macs2_repo = os.path.split(control_bam[0])[0] + "/macs2_bdgs/"
-shell("mkdir -p {0}".format(macs2_repo))
 conditionally_generate_files(None,
-                             mfold_lower,
-                             mfold_upper,
+                             d_estimate,
+                             ip_bam,
+                             macs2_ip_repo,
+                             output_ip_bdg_unscaled,
+                             False)
+
+conditionally_generate_files(None,
                              d_estimate,
                              control_bam,
-                             macs2_repo,
-                             tmp5)
+                             macs2_control_repo,
+                             tmp5,
+                             True)
 
 conditionally_generate_files(slocal,
-                             mfold_lower,
-                             mfold_upper,
                              d_estimate,
                              control_bam,
-                             macs2_repo,
-                             tmp3)
+                             macs2_control_repo,
+                             tmp3,
+                             True)
 
 conditionally_generate_files(llocal,
-                             mfold_lower,
-                             mfold_upper,
                              d_estimate,
                              control_bam,
-                             macs2_repo,
-                             tmp4)
+                             macs2_control_repo,
+                             tmp4,
+                             True)
 
 cmds = (
     'macs2 bdgcmp -m max '
@@ -139,7 +287,30 @@ cmds = (
     '-i {tmp2} '
     '-m max '
     '-p {genome_background} '
-    '-o {output_bdg} '
+    '-o {output_background_bdg_unscaled} '
 )
+
 shell(cmds + '{log}')
 shell("rm {0} {1} {2} {3} {4}".format(tmp1, tmp2, tmp3, tmp4, tmp5))
+
+if control_bam_length > ip_bam_length:
+    mult_factor = ip_bam_length / control_bam_length
+    shell('ln -s {0} {1}'.format(os.path.abspath(output_ip_bdg_unscaled),
+                                 output_ip_bdg_scaled))
+    cmds = (
+        'macs2 bdgopt '
+        '-i {output_background_bdg_unscaled} '
+        '-m multiply '
+        '-p {mult_factor} '
+        '-o {output_background_bdg_scaled} ')
+else:
+    mult_factor = control_bam_length / ip_bam_length
+    shell('ln -s {0} {1}'.format(os.path.abspath(output_background_bdg_unscaled),
+                                 output_background_bdg_scaled))
+    cmds = (
+        'macs2 bdgopt '
+        '-i {output_ip_bdg_unscaled} '
+        '-m multiply '
+        '-p {mult_factor} '
+        '-o {output_ip_bdg_scaled} ')
+shell(cmds + '{log}')

@@ -13,8 +13,8 @@ extra = snakemake.params.block.get('extra', '')
 
 ip_bdg = snakemake.input.ip_bdg
 lambda_bdg = snakemake.input.lambda_bdg
-d_estimate = snakemake.input.d_estimate
-read_length = snakemake.input.read_length
+d_estimate = snakemake.params.d_estimate
+read_length = snakemake.params.read_length
 bed = snakemake.output.bed
 
 qvalue = snakemake.params.block.get('qvalue')
