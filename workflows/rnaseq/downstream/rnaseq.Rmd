@@ -458,7 +458,7 @@ transcript.counts <- aggregate(transcript.counts, list(transcript.geneids), sum)
 # Use normalized counts to get per-level mean counts. Attach Salmon aggregate
 # counts to each output file. This does ~not~ assume any particular model.
 for (name in names(res.list)) {
-    counts.list[[name]] <- res.list[[name]][,c(1:4,7)]
+    counts.list[[name]] <- res.list[[name]][,c("gene", "baseMean", "log2FoldChange", "lfcSE", "padj")]
     # extract the dds object in use
     my.dds <- dds.list[[name]]
 

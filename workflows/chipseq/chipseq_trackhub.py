@@ -145,30 +145,29 @@ for sample in df['label'].unique():
     bigwig = os.path.join(
         sample_dir, sample,
         sample + '.cutadapt.unique.nodups.bam.bigwig')
-
-    if os.path.isfile(bigwig):
-        subgroup = df[df.loc[:, 'label'] == sample].to_dict('records')[0]
-        subgroup = {
-            sanitize(k, strict=True): sanitize(v, strict=True)
-            for k, v in subgroup.items()
-        }
-        subgroup['algorithm'] = 'NA'
-        subgroup['peaks'] = 'no'
-        
-        signal_view.add_tracks(
-            Track(
-                name=sanitize(sample + os.path.basename(bigwig), strict=True),
-                short_label=sample,
-                long_label=sample,
-                tracktype='bigWig',
-                subgroups=subgroup,
-                source=bigwig,
-                color=decide_color(sample),
-                altColor=decide_color(sample),
-                maxHeightPixels='8:35:100',
-                viewLimits='0:500',
-            )
+    
+    subgroup = df[df.loc[:, 'label'] == sample].to_dict('records')[0]
+    subgroup = {
+        sanitize(k, strict=True): sanitize(v, strict=True)
+        for k, v in subgroup.items()
+    }
+    subgroup['algorithm'] = 'NA'
+    subgroup['peaks'] = 'no'
+    
+    signal_view.add_tracks(
+        Track(
+            name=sanitize(sample + os.path.basename(bigwig), strict=True),
+            short_label=sample,
+            long_label=sample,
+            tracktype='bigWig',
+            subgroups=subgroup,
+            source=bigwig,
+            color=decide_color(sample),
+            altColor=decide_color(sample),
+            maxHeightPixels='8:35:100',
+            viewLimits='0:500',
         )
+    )
 
 
 # The peak-calling runs are effectively keyed by (label, algorithm). There can
