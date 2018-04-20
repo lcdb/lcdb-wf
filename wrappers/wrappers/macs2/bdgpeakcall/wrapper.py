@@ -5,17 +5,17 @@ from snakemake import shell
 
 log = snakemake.log_fmt_shell()
 logfile = None
-extra = snakemake.params.get('extra', '')
+#extra = snakemake.params.get('extra', '')
 
 outdir, basebed = os.path.split(snakemake.output.bed)
 label = snakemake.params.block['label']
-extra = snakemake.params.block.get('extra', '')
+#extra = snakemake.params.block.get('extra', '')
 
-ip_bdg = snakemake.input.ip_bdg
-lambda_bdg = snakemake.input.lambda_bdg
-d_estimate = snakemake.params.d_estimate
-read_length = snakemake.params.read_length
-bed = snakemake.output.bed
+ip_bdg = snakemake.input.get("ip_bdg")
+lambda_bdg = snakemake.input.get("lambda_bdg")
+d_estimate = snakemake.params.get("d_estimate")
+read_length = snakemake.params.get("read_length")
+bed = snakemake.output.get("bed")
 
 qvalue = snakemake.params.block.get('qvalue')
 if qvalue is None:
@@ -42,19 +42,19 @@ with open(d_estimate) as f:
 with open(read_length) as f:
     read_length = f.readline().strip()
 
-tmp = tempfile.NamedTemporaryFile().name
+qvalue_intermediate = tempfile.NamedTemporaryFile().name
 
 cmds = (
     'macs2 bdgcmp '
     '-t {ip_bdg} '
     '-c {lambda_bdg} '
-    '-m qpois -o {tmp} '
+    '-m qpois -o {qvalue_intermediate} '
 )
 shell(cmds + '{log}')
 
 cmds = (
     'macs2 bdgpeakcall '
-    '-i {tmp} '
+    '-i {qvalue_intermediate} '
     '-c {qvalue} '
     '-l {d_estimate} '
     '-g {read_length} '
@@ -62,19 +62,21 @@ cmds = (
 )
 shell(cmds + '{log}')
 
-tmp2 = tempfile.NamedTemporaryFile().name
+bed_cleaning_intermediate = tempfile.NamedTemporaryFile().name
 # Fix the output file so that it doesn't have negative numbers and so it fits
 # inside the genome
 shell(
     """awk -F "\\t" '{{OFS="\\t"; print $1, "0", $2}}' """
     "{snakemake.input.chromsizes} "
-    "> {tmp2}"
+    "> {bed_cleaning_intermediate}"
 )
-tmp3 = tempfile.NamedTemporaryFile().name
+unsorted_bed_intermediate = tempfile.NamedTemporaryFile().name
 shell(
     "export LC_COLLATE=C; "
     """awk -F "\\t" '{{OFS="\\t"; if (($2>0) && ($3>0)) print $0}}' {bed} | """
-    "bedtools intersect -a - -b {tmp2} > {tmp3} "
-    "&& bedSort {tmp3} {bed}"
+    "bedtools intersect -a - -b {bed_cleaning_intermediate} > {unsorted_bed_intermediate} "
+    "&& bedSort {unsorted_bed_intermediate} {bed}"
 )
-shell("rm {0} {1} {2}".format(tmp, tmp2, tmp3))
+shell("rm {0} {1} {2}".format(qvalue_intermediate,
+                              bed_cleaning_intermediate,
+                              unsorted_bed_intermediate))

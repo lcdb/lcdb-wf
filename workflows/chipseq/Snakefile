@@ -411,7 +411,7 @@ rule macs2_backgrounds:
         d_estimate_default_value=300,
         read_length=c.patterns['peaks']['macs2_extended'] + '.read_length.txt'
     wrapper:
-        wrapper_for('macs2/generate_and_combine_backgrounds')
+        wrapper_for('macs2/backgrounds')
 
 
 rule fingerprint:

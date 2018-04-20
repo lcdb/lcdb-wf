@@ -80,55 +80,60 @@ def conditionally_generate_files(_local,
 
 
 
-d_estimate_file = snakemake.params.d_estimate
-d_estimate_default_value = snakemake.params.d_estimate_default_value
-read_length_file = snakemake.params.read_length
-ip_bam = snakemake.input.ip_bam
-control_bam = snakemake.input.ctrl_bam
+d_estimate_file = snakemake.params.get("d_estimate")
+d_estimate_default_value = snakemake.params.get("d_estimate_default_value", "300")
+read_length_file = snakemake.params.get("read_length")
+ip_bam = snakemake.input.get("ip_bam")
+ip_bam_length = None
+control_bam = snakemake.input.get("ctrl_bam")
 control_bam_length = None
 
-output_background_bdg_unscaled = snakemake.output.background_bdg_unscaled
-output_ip_bdg_unscaled = snakemake.output.ip_bdg_unscaled
-output_background_bdg_scaled = snakemake.output.background_bdg_scaled
-output_ip_bdg_scaled = snakemake.output.ip_bdg_scaled
+output_background_bdg_unscaled = snakemake.output.get("background_bdg_unscaled")
+output_ip_bdg_unscaled = snakemake.output.get("ip_bdg_unscaled")
+output_background_bdg_scaled = snakemake.output.get("background_bdg_scaled")
+output_ip_bdg_scaled = snakemake.output.get("ip_bdg_scaled")
 
 if d_estimate_file is None:
-    raise ValueError("macs2/combine_backgrounds requires params.d_estimate")
+    raise ValueError("macs2/backgrounds requires params.d_estimate")
 if read_length_file is None:
-    raise ValueError("macs2/combine_backgrounds requires params.read_length")
+    raise ValueError("macs2/backgrounds requires params.read_length")
 if ip_bam is None:
-    raise ValueError("macs2/combine_backgrounds requires input.ip_bam")
-else:
-    ip_bam_length = int(subprocess.check_output(["samtools", "view", "-c", ip_bam[0]]).decode('utf-8'))
+    raise ValueError("macs2/backgrounds requires input.ip_bam")
+ip_bam_length = int(subprocess.check_output(["samtools", "view", "-c", ip_bam[0]]).decode('utf-8'))
 if control_bam is None:
-    raise ValueError("macs2/combine_backgrounds requires input.ctrl_bam")
-else:
-    control_bam_length = int(subprocess.check_output(["samtools", "view", "-c", control_bam[0]]).decode('utf-8'))
+    raise ValueError("macs2/backgrounds requires input.ctrl_bam")
+control_bam_length = int(subprocess.check_output(["samtools", "view", "-c", control_bam[0]]).decode('utf-8'))
 if output_background_bdg_unscaled is None:
-    raise ValueError("macs2/combine_backgrounds requires output.background_bdg_unscaled")
+    raise ValueError("macs2/backgrounds requires output.background_bdg_unscaled")
 if output_ip_bdg_unscaled is None:
-    raise ValueError("macs2/combine_backgrounds requires output.ip_bdg_unscaled")
+    raise ValueError("macs2/backgrounds requires output.ip_bdg_unscaled")
 if output_background_bdg_scaled is None:
-    raise ValueError("macs2/combine_backgrounds requires output.background_bdg_scaled")
+    raise ValueError("macs2/backgrounds requires output.background_bdg_scaled")
 if output_ip_bdg_scaled is None:
-    raise ValueError("macs2/combine_backgrounds requires output.ip_bdg_scaled")
+    raise ValueError("macs2/backgrounds requires output.ip_bdg_scaled")
 
 # this wrapper requires control extensions for both slocal and llocal. These can be cached.
-slocal = snakemake.params.block.get('slocal')[0]
-llocal = snakemake.params.block.get('llocal')[0]
-mfold_upper = snakemake.params.block.get('mfold_upper')[0]
-mfold_lower = snakemake.params.block.get('mfold_lower')[0]
+slocal = snakemake.params.block.get('slocal')
+llocal = snakemake.params.block.get('llocal')
+mfold_upper = snakemake.params.block.get('mfold_upper')
+mfold_lower = snakemake.params.block.get('mfold_lower')
 
 if slocal is None or \
    llocal is None:
-   raise ValueError("macs2_extended runs require slocal and llocal parameters to be specified")
-
+    raise ValueError("macs2_extended runs require slocal and llocal parameters to be specified")
+if mfold_lower is None or \
+   mfold_upper is None:
+    raise ValueError("macs2_extended runs require mfold lower and upper parameters to be specified")
+slocal = slocal[0]
+llocal = llocal[0]
+mfold_lower = mfold_lower[0]
+mfold_upper = mfold_upper[0]
 
 effective_genome_count = snakemake.params.block.get('effective_genome_count',
-                         snakemake.params.block.get('reference_effective_genome_count', ''))
+                         snakemake.params.block.get('reference_effective_genome_count'))
 
 genome_count_flag = ''
-if effective_genome_count != '':
+if effective_genome_count is not None:
     genome_count_flag = ' -g ' + effective_genome_count + ' '
 
 # Multiple processes may try to write d estimates simultaneously.
@@ -229,17 +234,17 @@ with open(d_estimate_file, "r") as f:
             d_estimate = int(tokens[2])
             break
 if d_estimate is None:
-    raise ValueError("macs2/combine_backgrounds requires preexisting d estimate for these parameters")
+    raise ValueError("macs2/backgrounds requires preexisting d estimate for these parameters")
 
 
 genome_background = float(control_bam_length) * float(d_estimate) / float(effective_genome_count)
 
 
-tmp1 = tempfile.NamedTemporaryFile().name
-tmp2 = tempfile.NamedTemporaryFile().name
-tmp3 = tempfile.NamedTemporaryFile().name
-tmp4 = tempfile.NamedTemporaryFile().name
-tmp5 = tempfile.NamedTemporaryFile().name
+slocal_llocal_merged = tempfile.NamedTemporaryFile().name
+d_slocal_llocal_merged = tempfile.NamedTemporaryFile().name
+slocal_background = tempfile.NamedTemporaryFile().name
+llocal_background = tempfile.NamedTemporaryFile().name
+d_background = tempfile.NamedTemporaryFile().name
 
 macs2_ip_repo = os.path.split(ip_bam[0])[0] + "/macs2_bdgs/"
 macs2_control_repo = os.path.split(control_bam[0])[0] + "/macs2_bdgs/"
@@ -257,41 +262,45 @@ conditionally_generate_files(None,
                              d_estimate,
                              control_bam,
                              macs2_control_repo,
-                             tmp5,
+                             d_background,
                              True)
 
 conditionally_generate_files(slocal,
                              d_estimate,
                              control_bam,
                              macs2_control_repo,
-                             tmp3,
+                             slocal_background,
                              True)
 
 conditionally_generate_files(llocal,
                              d_estimate,
                              control_bam,
                              macs2_control_repo,
-                             tmp4,
+                             llocal_background,
                              True)
 
 cmds = (
     'macs2 bdgcmp -m max '
-    '-t {tmp3} '
-    '-c {tmp4} '
-    '-o {tmp1} && '
+    '-t {slocal_background} '
+    '-c {llocal_background} '
+    '-o {slocal_llocal_merged} && '
     'macs2 bdgcmp -m max '
-    '-t {tmp1} '
-    '-c {tmp5} '
-    '-o {tmp2} && '
+    '-t {slocal_llocal_merged} '
+    '-c {d_background} '
+    '-o {d_slocal_llocal_merged} && '
     'macs2 bdgopt -m max '
-    '-i {tmp2} '
+    '-i {d_slocal_llocal_merged} '
     '-m max '
     '-p {genome_background} '
     '-o {output_background_bdg_unscaled} '
 )
 
 shell(cmds + '{log}')
-shell("rm {0} {1} {2} {3} {4}".format(tmp1, tmp2, tmp3, tmp4, tmp5))
+shell("rm {0} {1} {2} {3} {4}".format(slocal_llocal_merged,
+                                      d_slocal_llocal_merged,
+                                      slocal_background,
+                                      llocal_background,
+                                      d_background))
 
 if control_bam_length > ip_bam_length:
     mult_factor = ip_bam_length / control_bam_length
