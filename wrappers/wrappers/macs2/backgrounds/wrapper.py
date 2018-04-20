@@ -30,17 +30,22 @@ def conditionally_generate_files(_local,
     if _local is None:
         local_est = _d_estimate
 
-    # Prevent race conditions by getting a lock on the entire damn directory.
-    # Unfortunately, due to making this exist outside of Snakemake, there is the
-    # very real chance that a failed rule will cause some sort of consistency issue.
-    # I think this solution works... mostly. There might still be a very small chance of collisions.
-    lock_file = open(_path + "/.directory_lock", "a")
-    for timeout in range(lock_timeout_max_intervals):
-        try:
-            #acquire directory lock
-            fcntl.flock(lock_file, fcntl.LOCK_EX)
-            # if the desired bdg file doesn't exist
-            if not os.path.isfile(bdg_param_filename):
+    # if the desired bdg file doesn't exist
+    if not os.path.isfile(bdg_param_filename):
+        # Prevent race conditions by getting a lock on the entire damn directory.
+        # Unfortunately, due to making this exist outside of Snakemake, there is the
+        # very real chance that a failed rule will cause some sort of consistency issue.
+        # I think this solution works... mostly. There might still be a very small chance of collisions.
+        lock_file = open(_path + "/.directory_lock", "a")
+        for timeout in range(lock_timeout_max_intervals):
+            try:
+                # acquire directory lock
+                fcntl.flock(lock_file, fcntl.LOCK_EX)
+                # check one more time if it exists
+                if os.path.isfile(bdg_param_filename):
+                    fcntl.flock(lock_file, fcntl.LOCK_UN)
+                    lock_file.close()
+                    break
                 # make the file
                 local_intermediate_file = tempfile.NamedTemporaryFile().name
                 # if it's a control, extend bidirectionally
@@ -59,23 +64,23 @@ def conditionally_generate_files(_local,
                     shell("macs2 pileup -i {0} --extsize {1} -o {2} {3}".format(_filename, int(local_est), bdg_param_filename, log))
                 # symlink the output to the correct bdg file
                 shell("ln -s {0} {1}".format(os.path.abspath(bdg_param_filename), _out_bdg))
-            # release directory lock
+                # release directory lock
+                fcntl.flock(lock_file, fcntl.LOCK_UN)
+                lock_file.close()
+                break
+            except IOError:
+                # in this case, the directory is in use already. Chill out for a reasonable amount of time.
+                time.sleep(lock_timeout_interval_seconds)
+            except Exception as e:
+                # something unrelated failed. Clean up after yourself and then cry for help.
+                fcntl.flock(lock_file, fcntl.LOCK_UN)
+                lock_file.close()
+                raise e
+        # assuming everything's coded correctly, this catches when the mutex acquisition times out.
+        if not lock_file.closed:
             fcntl.flock(lock_file, fcntl.LOCK_UN)
             lock_file.close()
-            break
-        except IOError:
-            # in this case, the directory is in use already. Chill out for a reasonable amount of time.
-            time.sleep(lock_timeout_interval_seconds)
-        except Exception as e:
-            # something unrelated failed. Clean up after yourself and then cry for help.
-            fcntl.flock(lock_file, fcntl.LOCK_UN)
-            lock_file.close()
-            raise e
-    # assuming everything's coded correctly, this catches when the mutex acquisition times out.
-    if not lock_file.closed:
-        fcntl.flock(lock_file, fcntl.LOCK_UN)
-        lock_file.close()
-        raise ValueError("macs2/background unable to generate {0} in reasonable time frame".format(bdg_param_filename))
+            raise ValueError("macs2/background unable to generate {0} in reasonable time frame".format(bdg_param_filename))
 
 
 

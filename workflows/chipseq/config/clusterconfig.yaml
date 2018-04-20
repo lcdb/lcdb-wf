@@ -30,3 +30,9 @@ spp:
 
 sicer:
   prefix: "--gres=lscratch:20 --mem=16g --time=4:00:00"
+
+macs2_backgrounds:
+  prefix: "--gres=lscratch:20 --mem=16g --time=2:00:00"
+
+macs2_extended_bdgpeakcall:
+  prefix: "--gres=lscratch:20 --mem=16g --time=2:00:00"
