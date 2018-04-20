@@ -62,14 +62,13 @@ def conditionally_generate_files(_local,
                         shell("rm {0}".format(local_intermediate_file))
                 else:
                     shell("macs2 pileup -i {0} --extsize {1} -o {2} {3}".format(_filename, int(local_est), bdg_param_filename, log))
-                # symlink the output to the correct bdg file
-                shell("ln -s {0} {1}".format(os.path.abspath(bdg_param_filename), _out_bdg))
                 # release directory lock
                 fcntl.flock(lock_file, fcntl.LOCK_UN)
                 lock_file.close()
                 break
             except IOError:
                 # in this case, the directory is in use already. Chill out for a reasonable amount of time.
+                print("sleeping!")
                 time.sleep(lock_timeout_interval_seconds)
             except Exception as e:
                 # something unrelated failed. Clean up after yourself and then cry for help.
@@ -81,6 +80,8 @@ def conditionally_generate_files(_local,
             fcntl.flock(lock_file, fcntl.LOCK_UN)
             lock_file.close()
             raise ValueError("macs2/background unable to generate {0} in reasonable time frame".format(bdg_param_filename))
+    # symlink the output to the correct bdg file
+    shell("ln -s {0} {1}".format(os.path.abspath(bdg_param_filename), _out_bdg))
 
 
 
@@ -214,6 +215,7 @@ if not value_available:
             break
         except IOError:
             # in this case, the lock file is in use already. Chill out for a reasonable amount of time.
+            print("sleeping!!")
             time.sleep(lock_timeout_interval_seconds)
         except Exception as e:
             # something unrelated failed. Clean up after yourself and then cry for help.
@@ -262,6 +264,8 @@ conditionally_generate_files(None,
                              macs2_ip_repo,
                              output_ip_bdg_unscaled,
                              False)
+if not os.path.isfile(output_ip_bdg_unscaled):
+    raise ValueError("unable to detect file output from ipbam extension")
 
 conditionally_generate_files(None,
                              d_estimate,
@@ -269,6 +273,8 @@ conditionally_generate_files(None,
                              macs2_control_repo,
                              d_background,
                              True)
+if not os.path.isfile(d_background):
+    raise ValueError("unable to detect file output from dbackground extension")
 
 conditionally_generate_files(slocal,
                              d_estimate,
@@ -276,14 +282,16 @@ conditionally_generate_files(slocal,
                              macs2_control_repo,
                              slocal_background,
                              True)
-
+if not os.path.isfile(slocal_background):
+    raise ValueError("unable to detect file output from slocal background extension")
 conditionally_generate_files(llocal,
                              d_estimate,
                              control_bam,
                              macs2_control_repo,
                              llocal_background,
                              True)
-
+if not os.path.isfile(llocal_background):
+    raise ValueError("unable to detect file output from llocal background extension")
 cmds = (
     'macs2 bdgcmp -m max '
     '-t {slocal_background} '
