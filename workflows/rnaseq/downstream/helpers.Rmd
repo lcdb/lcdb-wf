@@ -262,13 +262,14 @@ pval.hist <- function(res){
 my.summary <- function(res, dds, alpha, ...){
    if (missing(alpha)){
        alpha <- if (is.null(metadata(res)$alpha)){ 0.1 } else { metadata(res)$alpha }
-        notallzero <- sum(res$baseMean > 0)
    }
+   notallzero <- sum(res$baseMean > 0)
    up <- sum(res$padj < alpha & res$log2FoldChange > 0, na.rm=TRUE)
    down <- sum(res$padj < alpha & res$log2FoldChange < 0, na.rm=TRUE)
    filt <- sum(!is.na(res$pvalue) & is.na(res$padj))
    outlier <- sum(res$baseMean > 0 & is.na(res$pvalue))
    ft <- if(is.null(metadata(res)$filterThreshold)){ 0 } else { round(metadata(res)$filterThreshold) }
+   # adjust width.cutoff as newline insertion causes this to return a df with multiple duplicate rows!
    df <- data.frame(
                     total.annotated.genes=nrow(res),
                     total.nonzero.read.count=notallzero,
@@ -277,7 +278,7 @@ my.summary <- function(res, dds, alpha, ...){
                     down=down,
                     outliers=outlier,
                     low.counts=filt,
-                    design=deparse(design(dds))
+                    design=deparse(design(dds), width.cutoff=500L)
                     )
    return(df)
 }
