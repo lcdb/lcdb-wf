@@ -244,7 +244,13 @@ v = dataframe_for_value(domain, algorithm, value)
 
 if (v['fill_piv'] < 0).values.any() & (v['fill_piv'] > 0).values.any():
     center = 0
-    cmap = sns.color_palette('RdBu_r', as_cmap=True)
+    # as_cmap is not recognized by color_palette
+    cmap = sns.color_palette('RdBu_r')
+    # this next line is the theoretical solution
+    # but then running it without this next line also works.
+    # so there's some sort of implicit cast or hidden type support
+    # but i'm not an expert.
+    cmap = matplotlib.colors.ListedColormap(cmap)
 else:
     center = None
     cmap = sns.cubehelix_palette(as_cmap=True)
