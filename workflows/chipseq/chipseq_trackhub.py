@@ -145,7 +145,7 @@ for sample in df['label'].unique():
     bigwig = os.path.join(
         sample_dir, sample,
         sample + '.cutadapt.unique.nodups.bam.bigwig')
-    
+
     subgroup = df[df.loc[:, 'label'] == sample].to_dict('records')[0]
     subgroup = {
         sanitize(k, strict=True): sanitize(v, strict=True)
@@ -153,7 +153,7 @@ for sample in df['label'].unique():
     }
     subgroup['algorithm'] = 'NA'
     subgroup['peaks'] = 'no'
-    
+
     signal_view.add_tracks(
         Track(
             name=sanitize(sample + os.path.basename(bigwig), strict=True),
