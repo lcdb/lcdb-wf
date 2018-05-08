@@ -136,17 +136,25 @@ Here is the sample table with metadata used for this analysis:
 knitr::kable(colData[, colnames(colData)[!colnames(colData) %in% exclude.for.printing]])
 ```
 
+```{r salmon}
+# Load transcript-level counts
+txi <- tximport(colData[, 'salmon.path'], type='salmon', txOut=TRUE)
+
+transcript.tpm <- txi$abundance
+colnames(transcript.tpm) <- colData$samplename
+```
+
 ```{r ddstxi, cache=TRUE, eval=TRUE}
 # Assumption: eval=TRUE by default, for testing.
 # Change to eval to FALSE to disable in practice.
 
-# Load transcript-level counts
-dds.txi <- DESeqDataSetFromSalmon(
-                                  sampleTable=colData,
-                                  directory='.',
-                                  # Assumption: what to model
-                                  design=~group)
-# rlog normalize transcript counts
+dds.txi <- DESeqDataSetFromTximport(
+    txi, colData=colData[, -grepl('path', colnames(colData)), drop=FALSE],
+    # Assumption: what to model
+    design=~group
+)
+
+# rlog normalize transcript counts for heatmaps and PCA
 rld.txi <- varianceStabilizingTransformation(dds.txi, blind=FALSE)
 ```
 
@@ -253,7 +261,6 @@ dds <- DESeq(dds,
 ```
 
 
-
 ```{r results, cache=TRUE}
 # Assumption: use only one run, and the contrast you want is group
 # (treatment/control).
@@ -298,6 +305,7 @@ res.list.lookup <- list(
                         )
 ```
 
+
 ```{r attach, cache=TRUE, depends='results'}
 # Assumption: Original annotations use Ensembl IDs
 keytype <- 'ENSEMBL'
@@ -311,6 +319,14 @@ for (name in names(res.list)){
         keytype=keytype,
         columns=columns)
 }
+
+# Assumption: using ENSEMBLTRANS transcript IDs with Salmon
+# honestly if you're using something else, you may just want to skip this step.
+# append gene mappings to transcript counts from Salmon
+transcript.geneids <- mapIds(orgdb,
+                             keys=rownames(transcript.tpm),
+                             column=keytype,
+                             keytype='ENSEMBLTRANS')
 ```
 
 # Differential expression
@@ -437,6 +453,49 @@ for (name in names(ll)){
 }
 ```
 
+```{r groupcounts, cache=TRUE}
+counts.list <- list()
+
+# compute aggregate (by gene) normalized transcript counts from Salmon
+gene.tpm <- aggregate(transcript.tpm, list(transcript.geneids), sum)
+
+# Use normalized counts to get per-level mean counts. Attach Salmon aggregate
+# counts to each output file. This does ~not~ assume any particular model.
+for (name in names(res.list)) {
+    counts.list[[name]] <- res.list[[name]][,c("gene", "baseMean", "log2FoldChange", "lfcSE", "padj")]
+    # extract the dds object in use
+    my.dds <- dds.list[[name]]
+
+    # get the DESeq2 normalized per-gene count data
+    my.normalized.counts <- counts(my.dds, TRUE)
+    colnames(gene.tpm) <- c("Gene", colnames(my.normalized.counts))
+
+    # report per-sample Salmon counts to output files
+    merged.results.deseq.counts <- merge(data.frame(res.list[[name]]), my.normalized.counts, by.x="gene", by.y="row.names", all.x=TRUE)
+    merged.results.salmon.tpm <- merge(data.frame(res.list[[name]]), gene.tpm, by.x="gene", by.y="Gene", all.x=TRUE)
+    for (colname in colnames(my.normalized.counts)) {
+        res.list[[name]][,paste('deseq2.counts', colname, sep='.')] <- merged.results.deseq.counts[,colname]
+        res.list[[name]][,paste('avg.salmon.tpm', colname, sep='.')] <- merged.results.salmon.tpm[,colname]
+    }
+
+    # extract the design matrix
+    my.model <- model.matrix(design(my.dds), colData(my.dds))
+    # unique rows correspond to groups
+    my.unique.patterns <- unique(my.model)
+    # for each unique pattern
+    for (i in 1:nrow(my.unique.patterns)) {
+        # determine which samples conform to that pattern
+        in.pattern <- apply(my.model, 1, function(row) {all(row == my.unique.patterns[i,])})
+    # get counts just in those samples
+    in.counts <- rowMeans(my.normalized.counts[,in.pattern])
+    counts.list[[name]] <- cbind(counts.list[[name]], in.counts)
+    colnames(counts.list[[name]])[ncol(counts.list[[name]])] <- format.group.name(my.unique.patterns[i,])
+    }
+}
+
+```
+
+
 # Exported results
 
 ```{r}
@@ -466,6 +525,7 @@ for (name in names(res.list)){
   mdcat('## ', res.list.lookup[[name]])
   fn <- paste0(name, '.tsv')
   write.table(res.list[[name]], file=fn, row.names=FALSE, sep='\t')
+  write.table(counts.list[[name]], file=paste(fn, ".counts", sep=""), row.names=FALSE, sep="\t")
   mdcat('- [', fn, '](', fn, '), results for ', res.list.lookup[[name]])
   for (sel in names(sel.list[[name]])){
     fn <- paste0(name, '.', sel, '.tsv')

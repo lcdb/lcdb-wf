@@ -63,13 +63,12 @@ os.chdir(tmpdir)
 shell(
     # there is a CI-specific bug, in which the python symlink is not correctly resolved to python2.7;
     # so as a really desperate hack, modify SICER's python calls to directly touch 2.7
-    # but only on circleci
-    """function fixci {{ if [[ "$CIRCLECI" == true ]] ; then sed -i 's/^python/$CONDA_PREFIX\/bin\/python2.7/' """
-    """$CONDA_PREFIX/share/sicer*/SICER.sh ; fi ; }} && fixci"""
+    """sed 's/^python/$CONDA_PREFIX\/bin\/python2.7/' """
+    """$CONDA_PREFIX/share/sicer*/SICER.sh > {tmpdir}/SICER.sh && chmod u+x {tmpdir}/SICER.sh """
 )
 shell(
     # run SICER
-    """SICER.sh {tmpdir} ip.bed in.bed {tmpdir} """
+    """{tmpdir}/SICER.sh {tmpdir} ip.bed in.bed {tmpdir} """
     """{genome_build} {redundancy_threshold} {window_size} """
     """{fragment_size} {effective_genome_fraction} {gap_size} {fdr} > tmp.output 2>&1 """
 )
@@ -132,6 +131,7 @@ else:
 shell(
     "export LC_COLLATE=C; "
     # format the output in broadPeak format
+    # note that SICER can emit p-values of 0 and in that case this file will contain "inf" entries
     """awk -F"\\t" -v lab={label} """
     """'{{printf("%s\\t%d\\t%d\\t%s_peak_%d\\t%d\\t.\\t%g\\t%g\\t%g\\n", $1, """
     """$2, $3-1, lab, NR, -10*log($6)/log(10), $7, -log($6)/log(10), -log($8)/log(10))}}' """
@@ -141,8 +141,8 @@ shell(
     # rename the assorted output files
     "mv {resultsfile} {snakemake.output.bed}-islands-summary-significant && "
     "mv {summary_graph} {snakemake.output.bed}.graph && "
-    "mv {normalized_prefilter_wig} {snakemake.output.bed}-normalized-prefilter.wig && "
-    "mv {normalized_postfilter_wig} {snakemake.output.bed}-normalized-postfilter.wig && "
+    "wigToBigWig {normalized_prefilter_wig} {snakemake.input.chromsizes} {snakemake.output.bed}-normalized-prefilter.bigWig && "
+    "wigToBigWig {normalized_postfilter_wig} {snakemake.input.chromsizes} {snakemake.output.bed}-normalized-postfilter.bigWig && "
     "mv {candidate_islands} {snakemake.output.bed}-islands-summary && "
     "mv {significant_islands} {snakemake.output.bed}-island.bed && "
     "mv {redundancy_removed} {snakemake.output.bed}-islandfiltered.bed && "

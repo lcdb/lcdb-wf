@@ -27,6 +27,7 @@ patterns_by_sample:
     metrics: '{sample_dir}/{sample}/{sample}.cutadapt.unique.nodups.bam.metrics'
 
   merged_techreps: '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.merged.bam'
+
   bigwig: '{merged_dir}/{label}/{label}.cutadapt.unique.nodups.bam.bigwig'
 
   fingerprint:
