@@ -96,6 +96,15 @@ chipseq:
         fdr: 0.5
         zthr: 4
 
+merged_bigwigs:
+  - input-wingdisc:
+    - input-wingdisc-1
+    - input-wingdisc-2
+  - gaf-wingdisc:
+    - gaf-wingdisc-1
+    - gaf-wingdisc-2
+  - gaf-embryo:
+    - gaf-embryo-1
 
 aligner:
   index: 'bowtie2'

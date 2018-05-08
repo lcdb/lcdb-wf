@@ -42,9 +42,12 @@ patterns_by_sample:
     heatmap: '{agg_dir}/deeptools/correlation_heatmap.png'
 
 patterns_by_peaks:
-    peaks:
-       macs2: '{peak_calling}/macs2/{macs2_run}/peaks.bed'
-       spp: '{peak_calling}/spp/{spp_run}/peaks.bed'
-    bigbed:
-        macs2: '{peak_calling}/macs2/{macs2_run}/peaks.bigbed'
-        spp: '{peak_calling}/spp/{spp_run}/peaks.bigbed'
+  peaks:
+    macs2: '{peak_calling}/macs2/{macs2_run}/peaks.bed'
+    spp: '{peak_calling}/spp/{spp_run}/peaks.bed'
+  bigbed:
+    macs2: '{peak_calling}/macs2/{macs2_run}/peaks.bigbed'
+    spp: '{peak_calling}/spp/{spp_run}/peaks.bigbed'
+
+patterns_by_aggregate:
+  merged_bigwigs: '{agg_dir}/merged_bigwigs/{merged_bigwig_label}.bigwig'
