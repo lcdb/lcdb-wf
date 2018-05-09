@@ -35,6 +35,7 @@ variables:
       keys:
         - v1-{{ checksum "requirements.txt" }}
 
+
   # --------------------------------------------------------------------------
   # Run the setup script, which installs miniconda, sets up bioconda, and
   # installs the global env
@@ -129,6 +130,29 @@ jobs:
       - *get-data
       - *references-step
 
+  build-docs:
+    <<: *defaults
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - 99:b4:dd:2c:82:9a:27:07:ca:b4:eb:bf:9c:49:4a:72
+      - checkout
+      - *restore_cache
+      - *set-path
+      - run:
+          name: Install sphinx
+          command: conda install sphinx -y
+      - run:
+          name: OK for unknown github host
+          command: mkdir -p ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+      - run:
+          name: Install git
+          command: yum install git -y
+      - run:
+          name: Build and upload docs
+          command: ci/build-docs.sh
+
+
 workflows:
   version: 2
   test-suite:
@@ -154,4 +178,11 @@ workflows:
           filters:
             branches:
               ignore:
+                - master
+      - build-docs:
+          requires:
+            - initial-setup
+          filters:
+            branches:
+              only:
                 - master

@@ -2,9 +2,6 @@
 
 set -eou pipefail
 
-# docs-specific deps here
-conda install -y sphinx
-
 # References:
 #  - https://docs.travis-ci.com/user/encrypting-files
 #  - https://gist.github.com/domenic/ec8b0fc8ab45f39403dd
@@ -22,27 +19,15 @@ BRANCH="gh-pages"
 ORIGIN="lcdb-wf"
 GITHUB_USERNAME="lcdb"
 
-HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
 # DOCSOURCE is directory containing the Makefile, relative to the directory
 # containing this bash script.
-DOCSOURCE=${HERE}/../docs
+DOCSOURCE=`pwd`/docs
 
 # DOCHTML is where sphinx is configured to save the output HTML
-DOCHTML=${HERE}/../docs/_build/html
+DOCHTML=$DOCSOURCE/_build/html
 
 # tmpdir to which built docs will be copied
 STAGING=/tmp/${GITHUB_USERNAME}-docs
-
-# The public key should have been added to the repo's settings in github; the
-# private key should have been encrypted using `travis encrypt-file` and the
-# encrypted version committed to the repo under $ENCRYPTED_FILE.
-#
-# ENCRYPTION_LABEL is from .travis.yml, and should have been edited to match
-# the hash value reported by `travis encrypt-file`.
-#
-# See https://gist.github.com/domenic/ec8b0fc8ab45f39403dd for details
-ENCRYPTED_FILE=${HERE}/key.enc
 
 # Build docs only if travis-ci is testing this branch:
 BUILD_DOCS_FROM_BRANCH="master"
@@ -54,43 +39,26 @@ BUILD_DOCS_FROM_BRANCH="master"
 #
 # ----------------------------------------------------------------------------
 
-# Stop early (and descriptively)
-if [[ $TRAVIS_BRANCH != $BUILD_DOCS_FROM_BRANCH ]]; then
-    echo "Not building docs because not on branch '$BUILD_DOCS_FROM_BRANCH'"
-    exit 0
-fi
-if [[ $TRAVIS_PULL_REQUEST != "false" ]]; then
-    echo "This is a pull request, so not building docs"
-    exit 0
-fi
-if [[ $TRAVIS_OS_NAME != "linux" ]]; then
-    echo "OS is not Linux, so not building docs"
+if [[ $CIRCLE_PROJECT_USERNAME != $GITHUB_USERNAME ]]; then
+    # exit if not in lcdb repo
     exit 0
 fi
 
-# Decrypt and ssh-add key.
-ENCRYPTED_KEY_VAR="encrypted_${ENCRYPTION_LABEL}_key"
-ENCRYPTED_IV_VAR="encrypted_${ENCRYPTION_LABEL}_iv"
-ENCRYPTED_KEY=${!ENCRYPTED_KEY_VAR}
-ENCRYPTED_IV=${!ENCRYPTED_IV_VAR}
-openssl aes-256-cbc -K $ENCRYPTED_KEY -iv $ENCRYPTED_IV -in $ENCRYPTED_FILE -out key -d
-chmod 600 key
-eval `ssh-agent -s`
-ssh-add key
+REPO="git@github.com:${GITHUB_USERNAME}/${ORIGIN}.git"
 
 # clone the branch to tmpdir, clean out contents
 rm -rf $STAGING
 mkdir -p $STAGING
-SSH_REPO="git@github.com:${GITHUB_USERNAME}/${ORIGIN}.git"
+
 SHA=$(git rev-parse --verify HEAD)
-git clone $SSH_REPO $STAGING
+git clone $REPO $STAGING
 cd $STAGING
 git checkout $BRANCH || git checkout --orphan $BRANCH
 rm -r *
 
 # build docs and copy over to tmpdir
 cd ${DOCSOURCE}
-make clean html 2>&1 | grep -v "WARNING: nonlocal image URL found:"
+make clean html SPHINXOPTS="-j2" 2>&1 | grep -v "WARNING: nonlocal image URL found:"
 cp -r ${DOCHTML}/* $STAGING
 
 # commit and push
@@ -104,11 +72,17 @@ if git diff --quiet; then
     exit 0
 fi
 
+if [[ $CIRCLE_BRANCH != master ]]; then
+    echo "Not pushing docs because not on branch '$BUILD_DOCS_FROM_BRANCH'"
+    exit 0
+fi
+
+
 # Add, commit, and push
 echo ".*" >> .gitignore
-git config user.name "Travis CI"
+git config user.name "Circle CI build"
 git config user.email "${GITHUB_USERNAME}@users.noreply.github.com"
 git add -A .
 git commit --all -m "Updated docs to commit ${SHA}."
-echo "Pushing to $SSH_REPO:$BRANCH"
-git push $SSH_REPO $BRANCH &> /dev/null
+echo "Pushing to $REPO:$BRANCH"
+git push $REPO $BRANCH &> /dev/null

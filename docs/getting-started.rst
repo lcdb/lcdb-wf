@@ -59,13 +59,58 @@ This will download the example data to the directory ``data/``::
     python ci/get-data.py
 
 
-Run the RNA-seq workflow with example data
+A note about test settings
+--------------------------
+
+.. warning::
+
+    Running the workflows as-is on a single machine with limited RAM may cause
+    all RAM to be consumed! Use ``ci/preprocessor.py`` as described below to
+    solve this.
+
+A major benefit of ``lcdb-wf`` is that the code undergoes automated testing
+(currently on `CircleCI <https://circleci.com/gh/lcdb>`_). However our only has 2 cores and
+2GB RAM. We developed a small representative `test dataset
+<https://github.com/lcdb/lcdb-test-data>`_ from real-world data. We also need
+to make settings to the workflows, for example to set the Java VM memory to
+only 2GB.
+
+This does not work in real-world analysis situations, where we likely need much
+more memory. We had to make a design decision: should the "default" state of
+the workflows reflect production-ready settings, or reflect test-ready
+settings? We chose the former, because we want to minimize the editing (and
+therefore possibility of introducing errors) in production.
+
+To accomodate this, we have a script ``ci/preprocessor.py``. This script looks
+for specially-formatted comments in the workflows, swaps out production
+settings for test settings, and writes the results to stdout. **To run the test
+data, we recommend running the preprocessor to toggle on the test settings and
+run the resulting automatically-edited workflow.** In production, especially
+when running on a cluster, there's no need to do this.
+
+Try the RNA-seq workflow with example data
 ------------------------------------------
 
-With the `lcdb-wf` environment activated, change to the ``workflows/rnaseq``
-directory, and run::
+With the `lcdb-wf` environment activated:
 
-    snakemake --use-conda
+.. code-block:: bash
+
+    source activate lcdb-wf
+
+Change to the ``workflows/rnaseq`` directory, and run the preprocessor to
+convert all the settings to minimal test settings and save the results in a new
+Snakefile:
+
+.. code-block:: bash
+
+    cd workflows/rnaseq
+    python ../../ci/preprocessor.py Snakefile > Snakefile.test
+
+Then run the new workflow:
+
+.. code-block:: bash
+
+    snakemake -s Snakefile.test --configfile config/config.yaml --use-conda
 
 Specify more than one core with ``-j``, e.g., ``-j 8`` to use more cores.
 
@@ -94,12 +139,29 @@ After the workflow runs, here are some useful Points of interest in the output:
 Run the ChIP-seq workflow with example data
 -------------------------------------------
 
-With the `lcdb-wf` environment activated, change to the ``workflows/chipseq``
-directory, and run::
+With the `lcdb-wf` environment activated:
 
-    snakemake --use-conda
+.. code-block:: bash
+
+    source activate lcdb-wf
+
+Change to the ``workflows/chipseq`` directory, and run the preprocessor to
+convert all the settings to minimal test settings and save the results in a new
+Snakefile:
+
+.. code-block:: bash
+
+    cd workflows/chipseq
+    python ../../ci/preprocessor.py Snakefile > Snakefile.test
+
+Then run the new workflow:
+
+.. code-block:: bash
+
+    snakemake -s Snakefile.test --configfile config/config.yaml --use-conda
 
 Specify more than one core with ``-j``, e.g., ``-j 8`` to use more cores.
+
 
 Like the RNA-seq workflow, the ChIP-seq workflow includes the
 ``workflows/references/Snakemake`` workflow, so that genome fastas are
@@ -138,13 +200,32 @@ Run the references workflow with example data
 ---------------------------------------------
 
 This is optional; parts of this workflow were actually run automatically as
-needed for the RNA-seq and ChIP-seq workflows. With the `lcdb-wf` environment
-activated, change to the ``workflows/references`` directory and run::
+needed for the RNA-seq and ChIP-seq workflows.
 
-    snakemake --use-conda
 
-Adjust the ``-j`` argument to match the number of CPUs to run jobs in parallel
-and speed up the workflow.
+With the `lcdb-wf` environment activated:
+
+.. code-block:: bash
+
+    source activate lcdb-wf
+
+Change to the ``workflows/references`` directory, and run the preprocessor to
+convert all the settings to minimal test settings and save the results in a new
+Snakefile:
+
+.. code-block:: bash
+
+    cd workflows/references
+    python ../../ci/preprocessor.py Snakefile > Snakefile.test
+
+Then run the new workflow:
+
+.. code-block:: bash
+
+    snakemake -s Snakefile.test --configfile config/config.yaml --use-conda
+
+Specify more than one core with ``-j``, e.g., ``-j 8`` to use more cores.
+
 
 .. image:: references.png
 
