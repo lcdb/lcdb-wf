@@ -198,8 +198,10 @@ class ChIPSeqConfig(SeqConfig):
 
         self.targets = {}
         self.targets.update(self.targets_by_sample)
+        self.targets.update(self.targets_by_aggregation)
         self.targets.update(self.targets_for_peaks)
 
         self.patterns = {}
         self.patterns.update(self.patterns_by_sample)
+        self.patterns.update(self.patterns_by_aggregation)
         self.patterns.update(self.patterns_by_peaks)
