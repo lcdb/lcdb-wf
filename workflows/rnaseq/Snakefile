@@ -629,7 +629,7 @@ def bigwigs_to_merge(wc):
         sample=antisense_labels)
     return sense_bigwigs + antisense_bigwigs
 
-if 'merged_bigwig' in config:
+if 'merged_bigwigs' in config:
     rule merge_bigwigs:
         """
         Merge together bigWigs as specified in the config ("merged_bigwigs"
