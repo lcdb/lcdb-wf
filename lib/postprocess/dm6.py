@@ -2,7 +2,7 @@ from snakemake.shell import shell
 
 def fasta_postprocess(origfn, newfn):
     shell(
-          "gunzip -c {origfn} "
+          "gunzip -fc {origfn} "
           "| chrom_convert --from FlyBase --to UCSC --fileType FASTA -i - "
           "| gzip -c > {newfn} "
           "&& rm {origfn}")

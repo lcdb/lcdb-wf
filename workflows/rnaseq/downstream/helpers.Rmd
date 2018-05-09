@@ -13,7 +13,19 @@ library(DEGreport)
 #'
 #' @return OrgDb object
 get.orgdb <- function(species, cache, annotation_key_override=NA){
-    ah <- AnnotationHub(cache='../../../include/AnnotationHubCache')
+
+    # Workaround to allow AnnotationHub to use proxy. See
+    # https://github.com/Bioconductor/AnnotationHub/issues/4, and thanks
+    # Wolfgang!
+    ah <- AnnotationHub::.Hub("AnnotationHub",
+        getAnnotationHubOption("URL"),
+
+        # Cache location is specific to this instance of lcdb-wf so we don't
+        # clobber old runs with new annotation data
+        '../../../include/AnnotationHubCache',
+
+        httr::use_proxy(Sys.getenv("http_proxy")),
+        FALSE)
 
     find.annotationhub.name <- function(species.name, override.code) { #autodetect ah names based on loaded database
         if (is.na(override.code)) {
@@ -135,6 +147,32 @@ DESeqDataSetFromSalmon <- function (sampleTable, directory='.', design,
     return(object)
 }
 
+#' Compute label for one component of an arbitrary design matrix
+#'
+#' @param pattern.mat single row from unique(model.matrix) call from a dds object
+#'
+#' @return formatted column name
+
+format.group.name <- function(pattern.mat) {
+    my.res <- "counts"
+    # enforce input format
+    stopifnot(is.vector(pattern.mat))
+    # if there's only one element
+    if (length(pattern.mat) == 1) {
+        # it must be the intercept
+	my.res <- paste(my.res, "groupMean", sep=".")
+    } else { # more than one element
+        # for every non-intercept entry
+        for (i in 2:length(pattern.mat)) {
+	    # if 1, include
+	    if (pattern.mat[i] == 1) my.res <- paste(my.res, names(pattern.mat[i]), sep=".")
+	    # otherwise don't
+	    else my.res <- paste(my.res, ".not", names(pattern.mat[i]), sep="")
+	}
+    }
+    my.res
+}
+
 #' Plot a gene's normalized counts across samples
 #'
 #' @param gene Gene ID
@@ -236,13 +274,14 @@ pval.hist <- function(res){
 my.summary <- function(res, dds, alpha, ...){
    if (missing(alpha)){
        alpha <- if (is.null(metadata(res)$alpha)){ 0.1 } else { metadata(res)$alpha }
-        notallzero <- sum(res$baseMean > 0)
    }
+   notallzero <- sum(res$baseMean > 0)
    up <- sum(res$padj < alpha & res$log2FoldChange > 0, na.rm=TRUE)
    down <- sum(res$padj < alpha & res$log2FoldChange < 0, na.rm=TRUE)
    filt <- sum(!is.na(res$pvalue) & is.na(res$padj))
    outlier <- sum(res$baseMean > 0 & is.na(res$pvalue))
    ft <- if(is.null(metadata(res)$filterThreshold)){ 0 } else { round(metadata(res)$filterThreshold) }
+   # adjust width.cutoff as newline insertion causes this to return a df with multiple duplicate rows!
    df <- data.frame(
                     total.annotated.genes=nrow(res),
                     total.nonzero.read.count=notallzero,
@@ -251,7 +290,7 @@ my.summary <- function(res, dds, alpha, ...){
                     down=down,
                     outliers=outlier,
                     low.counts=filt,
-                    design=deparse(design(dds))
+                    design=deparse(design(dds), width.cutoff=500L)
                     )
    return(df)
 }

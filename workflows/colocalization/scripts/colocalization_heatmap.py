@@ -244,7 +244,7 @@ v = dataframe_for_value(domain, algorithm, value)
 
 if (v['fill_piv'] < 0).values.any() & (v['fill_piv'] > 0).values.any():
     center = 0
-    cmap = sns.color_palette('RdBu_r', as_cmap=True)
+    cmap = 'RdBu_r'
 else:
     center = None
     cmap = sns.cubehelix_palette(as_cmap=True)
