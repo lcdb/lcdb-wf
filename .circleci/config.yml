@@ -158,31 +158,31 @@ workflows:
   test-suite:
     jobs:
       - initial-setup
-#      - chipseq:
-#         requires:
-#           - initial-setup
-#         filters:
-#           branches:
-#             ignore:
-#               - master
-#      - rnaseq:
-#          requires:
-#            - initial-setup
-#          filters:
-#            branches:
-#              ignore:
-#                - master
-#      - references:
-#          requires:
-#            - initial-setup
-#          filters:
-#            branches:
-#              ignore:
-#                - master
+      - chipseq:
+         requires:
+           - initial-setup
+         filters:
+           branches:
+             ignore:
+               - master
+      - rnaseq:
+          requires:
+            - initial-setup
+          filters:
+            branches:
+              ignore:
+                - master
+      - references:
+          requires:
+            - initial-setup
+          filters:
+            branches:
+              ignore:
+                - master
       - build-docs:
           requires:
             - initial-setup
-        #    filters:
-        #      branches:
-        #        only:
-        #          - master
+            filters:
+              branches:
+                only:
+                  - master
