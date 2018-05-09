@@ -61,3 +61,6 @@ bigwig:
 
 downstream:
    rnaseq: 'downstream/rnaseq.html'
+
+patterns_by_aggregate:
+  merged_bigwig: '{agg_dir}/merged_bigwigs/{merged_bigwig_label}.bigwig'

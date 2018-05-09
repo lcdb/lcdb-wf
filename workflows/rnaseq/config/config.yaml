@@ -33,6 +33,39 @@ gtf:
 salmon:
   tag: "test_transcriptome"
 
+# keys become the labels of merged bigwigs (see
+# patterns['patterns_by_agggregate']['merged_bigwig']).
+#
+# Each key in addition specifies sense and antisense samples to merge. You can
+# merge all strands together by supplying both sense and antisense keys.
+# For example:
+#
+# merged_bigwigs:
+#   control_sense:
+#     sense:
+#       - control1
+#       - control2
+#   control_all:
+#     sense:
+#       - control1
+#       - control2
+#     antisense:
+#       - control1
+#       - control2
+
+merged_bigwigs:
+  control_sense:
+    sense:
+      - sample1
+      - sample2
+  treatment_all:
+    sense:
+      - sample3
+      - sample4
+    antisense:
+      - sample3
+      - sample4
+
 # references has the structure:
 #
 #   assembly:           [ used as top-level dir for references ]
