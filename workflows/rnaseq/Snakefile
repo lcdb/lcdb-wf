@@ -33,33 +33,34 @@ def wrapper_for(path):
 # ----------------------------------------------------------------------------
 # RULES
 # ----------------------------------------------------------------------------
+final_targets = utils.flatten((
+    c.targets['bam'],
+    utils.flatten(c.targets['fastqc']),
+    utils.flatten(c.targets['libsizes']),
+    [c.targets['fastq_screen']],
+    [c.targets['libsizes_table']],
+    [c.targets['rrna_percentages_table']],
+    [c.targets['multiqc']],
+    utils.flatten(c.targets['featurecounts']),
+    utils.flatten(c.targets['rrna']),
+    utils.flatten(c.targets['markduplicates']),
+    utils.flatten(c.targets['salmon']),
+    utils.flatten(c.targets['dupradar']),
+    utils.flatten(c.targets['preseq']),
+    utils.flatten(c.targets['rseqc']),
+    utils.flatten(c.targets['collectrnaseqmetrics']),
+    utils.flatten(c.targets['bigwig']),
+    utils.flatten(c.targets['downstream']),
+))
+
+if 'merged_bigwigs' in config:
+    final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
 
 rule targets:
     """
     Final targets to create
     """
-    input:
-        (
-            c.targets['bam'] +
-            utils.flatten(c.targets['fastqc']) +
-            utils.flatten(c.targets['libsizes']) +
-            [c.targets['fastq_screen']] +
-            [c.targets['libsizes_table']] +
-            [c.targets['rrna_percentages_table']] +
-            [c.targets['multiqc']] +
-            utils.flatten(c.targets['featurecounts']) +
-            utils.flatten(c.targets['rrna']) +
-            utils.flatten(c.targets['markduplicates']) +
-            utils.flatten(c.targets['salmon']) +
-            utils.flatten(c.targets['dupradar']) +
-            utils.flatten(c.targets['preseq']) +
-            utils.flatten(c.targets['rseqc']) +
-            utils.flatten(c.targets['collectrnaseqmetrics']) +
-            utils.flatten(c.targets['bigwig']) +
-            utils.flatten(c.targets['downstream']) +
-            utils.flatten(c.targets['merged_bigwig'])
-
-        )
+    input: final_targets
 
 
 if 'orig_filename' in c.sampletable.columns:
@@ -628,18 +629,18 @@ def bigwigs_to_merge(wc):
         sample=antisense_labels)
     return sense_bigwigs + antisense_bigwigs
 
-
-rule merge_bigwigs:
-    """
-    Merge together bigWigs as specified in the config ("merged_bigwigs"
-    section).
-    """
-    input:
-        bigwigs=bigwigs_to_merge,
-        chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
-    output:
-        c.patterns['merged_bigwig']
-    wrapper:
-        wrapper_for('average-bigwigs')
+if 'merged_bigwig' in config:
+    rule merge_bigwigs:
+        """
+        Merge together bigWigs as specified in the config ("merged_bigwigs"
+        section).
+        """
+        input:
+            bigwigs=bigwigs_to_merge,
+            chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
+        output:
+            c.patterns['merged_bigwig']
+        wrapper:
+            wrapper_for('average-bigwigs')
 
 # vim: ft=python

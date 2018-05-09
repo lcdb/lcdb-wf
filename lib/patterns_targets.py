@@ -106,7 +106,7 @@ class RNASeqConfig(SeqConfig):
         self.targets = helpers.fill_patterns(self.patterns, self.fill)
 
         # Then the aggregation
-        if self.patterns_by_aggregation is not None:
+        if self.patterns_by_aggregation is not None and 'merged_bigwigs' in self.config:
             self.fill_by_aggregation = dict(
                 agg_dir=self.agg_dir,
                 merged_bigwig_label=self.config['merged_bigwigs'].keys(),
@@ -127,6 +127,8 @@ class ChIPSeqConfig(SeqConfig):
         self.agg_dir = self.config.get('aggregation_dir', 'aggregation')
         self.merged_dir = self.config.get('merged_dir', 'merged')
         self.peak_calling = self.config.get('peaks_dir', 'chipseq')
+
+        self.targets = {}
 
         # For ChIP-seq, the structure of the patterns is quite different for
         # samples than it is for peaks. For example, the peaks do not have any
@@ -152,15 +154,21 @@ class ChIPSeqConfig(SeqConfig):
         )
         self.targets_by_sample = helpers.fill_patterns(
             self.patterns_by_sample, self.fill_by_sample)
+        self.targets.update(self.targets_by_sample)
+        self.patterns.update(self.patterns_by_sample)
 
         # Then the aggregation
-        self.patterns_by_aggregation = self.patterns['patterns_by_aggregate']
-        self.fill_by_aggregation = dict(
-            agg_dir=self.agg_dir,
-            merged_bigwig_label=self.config['merged_bigwigs'].keys(),
-        )
-        self.targets_by_aggregation = helpers.fill_patterns(
-            self.patterns_by_aggregation, self.fill_by_aggregation)
+
+        self.patterns_by_aggregation = self.patterns.pop('patterns_by_aggregate')
+        if self.patterns_by_aggregation is not None and 'merged_bigwigs' in self.config:
+            self.fill_by_aggregation = dict(
+                agg_dir=self.agg_dir,
+                merged_bigwig_label=self.config['merged_bigwigs'].keys(),
+            )
+            self.targets_by_aggregation = helpers.fill_patterns(
+                self.patterns_by_aggregation, self.fill_by_aggregation)
+            self.targets.update(self.targets_by_aggregation)
+            self.patterns.update(self.patterns_by_aggregation)
 
         # Then the peaks
         #
@@ -208,12 +216,5 @@ class ChIPSeqConfig(SeqConfig):
                 helpers.fill_patterns(_peak_patterns, _fill)
             )
 
-        self.targets = {}
-        self.targets.update(self.targets_by_sample)
-        self.targets.update(self.targets_by_aggregation)
         self.targets.update(self.targets_for_peaks)
-
-        self.patterns = {}
-        self.patterns.update(self.patterns_by_sample)
-        self.patterns.update(self.patterns_by_aggregation)
         self.patterns.update(self.patterns_by_peaks)
