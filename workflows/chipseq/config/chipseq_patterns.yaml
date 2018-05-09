@@ -51,3 +51,6 @@ patterns_by_peaks:
     macs2: '{peak_calling}/macs2/{macs2_run}/peaks.bigbed'
     spp: '{peak_calling}/spp/{spp_run}/peaks.bigbed'
     sicer: '{peak_calling}/sicer/{sicer_run}/peaks.bigbed'
+
+patterns_by_aggregate:
+  merged_bigwig: '{agg_dir}/merged_bigwigs/{merged_bigwig_label}.bigwig'

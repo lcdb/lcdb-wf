@@ -120,13 +120,13 @@ chipseq:
         zthr: 4
 
 merged_bigwigs:
-  - input-wingdisc:
+  input-wingdisc:
     - input-wingdisc-1
     - input-wingdisc-2
-  - gaf-wingdisc:
+  gaf-wingdisc:
     - gaf-wingdisc-1
     - gaf-wingdisc-2
-  - gaf-embryo:
+  gaf-embryo:
     - gaf-embryo-1
 
 aligner:
