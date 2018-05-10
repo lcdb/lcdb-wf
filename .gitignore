@@ -15,3 +15,5 @@ slurm*out
 workflows/figures/figures
 docs/_build
 \.cache/v/cache/
+/workflows/chipseq/Snakefile.test
+/workflows/rnaseq/Snakefile.test

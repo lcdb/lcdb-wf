@@ -35,28 +35,31 @@ def wrapper_for(path):
 # ----------------------------------------------------------------------------
 # RULES
 # ----------------------------------------------------------------------------
+final_targets = utils.flatten((
+    c.targets['bam'],
+    utils.flatten(c.targets['fastqc']),
+    utils.flatten(c.targets['libsizes']),
+    [c.targets['fastq_screen']],
+    [c.targets['libsizes_table']],
+    [c.targets['multiqc']],
+    utils.flatten(c.targets['markduplicates']),
+    utils.flatten(c.targets['bigwig']),
+    utils.flatten(c.targets['peaks']),
+    utils.flatten(c.targets['merged_techreps']),
+    utils.flatten(c.targets['fingerprint']),
+    utils.flatten(c.targets['bigbed']),
+    utils.flatten(c.targets['multibigwigsummary']),
+    utils.flatten(c.targets['plotcorrelation']),
+))
+
+if 'merged_bigwigs' in config:
+    final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
 
 rule targets:
     """
     Final targets to create
     """
-    input:
-        (
-            c.targets['bam'] +
-            utils.flatten(c.targets['fastqc']) +
-            utils.flatten(c.targets['libsizes']) +
-            [c.targets['fastq_screen']] +
-            [c.targets['libsizes_table']] +
-            [c.targets['multiqc']] +
-            utils.flatten(c.targets['markduplicates']) +
-            utils.flatten(c.targets['bigwig']) +
-            utils.flatten(c.targets['peaks']) +
-            utils.flatten(c.targets['merged_techreps']) +
-            utils.flatten(c.targets['fingerprint']) +
-            utils.flatten(c.targets['bigbed']) +
-            utils.flatten(c.targets['multibigwigsummary']) +
-            utils.flatten(c.targets['plotcorrelation'])
-        )
+    input: final_targets
 
 
 if 'orig_filename' in c.sampletable.columns:
@@ -598,6 +601,22 @@ rule plotcorrelation:
         # '--zMin -1 '
         # '--zMax 1 '
 
-
+if 'merged_bigwigs' in config:
+    rule merge_bigwigs:
+        """
+        Merge together bigWigs as specified in the config ("merged_bigwigs"
+        section).
+        """
+        input:
+            bigwigs=lambda wc: expand(
+                c.patterns['bigwig'],
+                label=config['merged_bigwigs'][wc.merged_bigwig_label],
+                merged_dir=config['merged_dir']
+            ),
+            chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
+        output:
+            c.patterns['merged_bigwig']
+        wrapper:
+            wrapper_for('average-bigwigs')
 
 # vim: ft=python

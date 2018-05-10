@@ -102,8 +102,20 @@ class RNASeqConfig(SeqConfig):
         self.agg_dir = self.config.get('aggregation_dir', 'aggregation')
         self.fill = dict(sample=self.samples, sample_dir=self.sample_dir,
                          agg_dir=self.agg_dir)
+        self.patterns_by_aggregation = self.patterns.pop('patterns_by_aggregate')
         self.targets = helpers.fill_patterns(self.patterns, self.fill)
 
+        # Then the aggregation
+        if self.patterns_by_aggregation is not None and 'merged_bigwigs' in self.config:
+            self.fill_by_aggregation = dict(
+                agg_dir=self.agg_dir,
+                merged_bigwig_label=self.config['merged_bigwigs'].keys(),
+            )
+            self.targets_by_aggregation = helpers.fill_patterns(
+                self.patterns_by_aggregation, self.fill_by_aggregation)
+
+            self.targets.update(self.targets_by_aggregation)
+            self.patterns.update(self.patterns_by_aggregation)
 
 class ChIPSeqConfig(SeqConfig):
     def __init__(self, config, patterns, workdir=None):
@@ -116,12 +128,17 @@ class ChIPSeqConfig(SeqConfig):
         self.merged_dir = self.config.get('merged_dir', 'merged')
         self.peak_calling = self.config.get('peaks_dir', 'chipseq')
 
+        self.targets = {}
+
         # For ChIP-seq, the structure of the patterns is quite different for
-        # samples vs for peaks. For example, the peaks do not have any sample
-        # info in the filenames and are sort of at an aggregated level (since
-        # multiple samples can make it into the same peak-calling run). So we
+        # samples than it is for peaks. For example, the peaks do not have any
+        # sample info in the filenames and at an aggregated level (since
+        # multiple samples can make it into the same peak-calling run).  So we
         # construct them separately, and then later update self.patterns and
         # self.targets.
+        #
+        # Furthermore, the averaged bigwigs are yet another way of doing the
+        # aggregation, so they have to be handled separately as well.
         #
         # First, the samples
         self.patterns_by_sample = self.patterns['patterns_by_sample']
@@ -137,6 +154,21 @@ class ChIPSeqConfig(SeqConfig):
         )
         self.targets_by_sample = helpers.fill_patterns(
             self.patterns_by_sample, self.fill_by_sample)
+        self.targets.update(self.targets_by_sample)
+        self.patterns.update(self.patterns_by_sample)
+
+        # Then the aggregation
+
+        self.patterns_by_aggregation = self.patterns.pop('patterns_by_aggregate')
+        if self.patterns_by_aggregation is not None and 'merged_bigwigs' in self.config:
+            self.fill_by_aggregation = dict(
+                agg_dir=self.agg_dir,
+                merged_bigwig_label=self.config['merged_bigwigs'].keys(),
+            )
+            self.targets_by_aggregation = helpers.fill_patterns(
+                self.patterns_by_aggregation, self.fill_by_aggregation)
+            self.targets.update(self.targets_by_aggregation)
+            self.patterns.update(self.patterns_by_aggregation)
 
         # Then the peaks
         #
@@ -170,7 +202,6 @@ class ChIPSeqConfig(SeqConfig):
                 k:{pc: v[pc]} for k, v in self.patterns_by_peaks.items()
             }
 
-
             _fill = {
                 'peak_calling': self.peak_calling,
                 pc + '_run': list(
@@ -185,10 +216,5 @@ class ChIPSeqConfig(SeqConfig):
                 helpers.fill_patterns(_peak_patterns, _fill)
             )
 
-        self.targets = {}
-        self.targets.update(self.targets_by_sample)
         self.targets.update(self.targets_for_peaks)
-
-        self.patterns = {}
-        self.patterns.update(self.patterns_by_sample)
         self.patterns.update(self.patterns_by_peaks)
