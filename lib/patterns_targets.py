@@ -102,7 +102,7 @@ class RNASeqConfig(SeqConfig):
         self.agg_dir = self.config.get('aggregation_dir', 'aggregation')
         self.fill = dict(sample=self.samples, sample_dir=self.sample_dir,
                          agg_dir=self.agg_dir)
-        self.patterns_by_aggregation = self.patterns.pop('patterns_by_aggregate')
+        self.patterns_by_aggregation = self.patterns.pop('patterns_by_aggregate', None)
         self.targets = helpers.fill_patterns(self.patterns, self.fill)
 
         # Then the aggregation
@@ -159,7 +159,7 @@ class ChIPSeqConfig(SeqConfig):
 
         # Then the aggregation
 
-        self.patterns_by_aggregation = self.patterns.pop('patterns_by_aggregate')
+        self.patterns_by_aggregation = self.patterns.pop('patterns_by_aggregate', None)
         if self.patterns_by_aggregation is not None and 'merged_bigwigs' in self.config:
             self.fill_by_aggregation = dict(
                 agg_dir=self.agg_dir,
