@@ -1,0 +1,26 @@
+references:
+  spombe:
+    default:
+      fasta:
+        url: 'ftp://ftp.pombase.org/pombe/genome_sequence_and_features/genome_sequence/Schizosaccharomyces_pombe_all_chromosomes.fa.gz'
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+      gtf:
+        url: 'ftp://ftp.pombase.org/pombe/genome_sequence_and_features/gff3/schizosaccharomyces_pombe.genome.gff3.gz'
+    transcriptome:
+      fasta:
+        url: 'ftp://ftp.pombase.org/pombe/genome_sequence_and_features/feature_sequences/cds.fa.gz'
+        indexes:
+          - 'salmon'
+    rRNA:
+      fasta:
+        url:
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+        postprocess:
+            function: 'lib.common.filter_fastas'
+            args: 'Schizosaccharomyces pombe'
+        indexes:
+            - 'hisat2'
+            - 'bowtie2'

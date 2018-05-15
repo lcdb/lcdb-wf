@@ -1,0 +1,23 @@
+references:
+  ercc:
+    srm2374:
+      fasta:
+        url: 'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        postprocess: "lib.postprocess.ercc.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+      gtf:
+        url: 'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        postprocess: "lib.postprocess.ercc.gtf_postprocess"
+
+    fisher92:
+      fasta:
+        url: 'https://tools.thermofisher.com/content/sfs/manuals/ERCC92.zip'
+        postprocess: "lib.postprocess.erccFisher.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+      gtf:
+        url: 'https://tools.thermofisher.com/content/sfs/manuals/ERCC92.zip'
+        postprocess: "lib.pos

@@ -1,0 +1,9 @@
+references:
+  sacCer3:
+    default:
+      fasta:
+        url: 'http://hgdownload.cse.ucsc.edu/goldenPath/sacCer3/bigZips/chromFa.tar.gz'
+        postprocess: 'lib.postprocess.sacCer3.fasta_postprocess'
+        indexes:
+            - 'bowtie2'
+            - 'hisat2'

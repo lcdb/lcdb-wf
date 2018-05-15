@@ -1,0 +1,155 @@
+references:
+  dmel:
+    rRNA:
+      fasta:
+        url:
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+        postprocess:
+            function: 'lib.common.filter_fastas'
+            args: 'Drosophila melanogaster'
+        indexes:
+            - 'hisat2'
+            - 'bowtie2'
+
+    r6-11:
+      gtf:
+        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/gtf/dmel-all-r6.11.gtf.gz'
+        postprocess: "lib.postprocess.dm6.gtf_postprocess"
+        conversions:
+          - 'refflat'
+          - gffutils: # kwargs below will be provided to `gffutils.create_db`
+              merge_strategy: 'merge'
+              id_spec:
+                  transcript: ['transcript_id', 'transcript_symbol']
+                  gene: ['gene_id', 'gene_symbol']
+              gtf_transcript_key: 'transcript_id'
+              gtf_gene_key: 'gene_id'
+              disable_infer_genes: True
+
+          # the attribute from the GTF to consider gene ID
+          - genelist:
+              gene_id: 'gene_id'
+
+          - annotation_hub:
+              ahkey: 'AH49581'
+              keytype: 'ENSEMBL'
+
+      fb_annotation:
+        url: 'ftp://ftp.flybase.net/releases/FB2016_03/precomputed_files/genes/fbgn_annotation_ID.tsv.gz'
+        postprocess: "lib.postprocess.dm6.fb_annotation_postprocess"
+
+      fb_synonym:
+        url: 'ftp://ftp.flybase.net/releases/FB2016_03/precomputed_files/synonyms/fb_synonym_fb_2016_03.tsv.gz'
+        postprocess: "lib.postprocess.dm6.fb_synonym_postprocess"
+
+      fasta:
+        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/fasta/dmel-all-chromosome-r6.11.fasta.gz'
+        postprocess: "lib.postprocess.dm6.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+
+    r6-11_transcriptome:
+      fasta:
+        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/fasta/dmel-all-transcript-r6.11.fasta.gz'
+        indexes:
+          - 'salmon'
+
+    r6-11_and_ercc:
+      gtf:
+        url:
+          - 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/gtf/dmel-all-r6.11.gtf.gz'
+          - 'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        postprocess:
+          function: "lib.postprocess.merge.file_merge"
+          args:
+            - "lib.postprocess.dm6.gtf_postprocess"
+            - "lib.postprocess.ercc.gtf_postprocess"
+        conversions:
+          - 'refflat'
+          - 'gffutils'
+
+      fasta:
+        url:
+          - 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.11_FB2016_03/fasta/dmel-all-chromosome-r6.11.fasta.gz'
+          -  'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        postprocess:
+          function: "lib.postprocess.merge.file_merge"
+          args:
+            - "lib.postprocess.dm6.fasta_postprocess"
+            - "lib.postprocess.ercc.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+
+    r6-16:
+      gtf:
+        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.16_FB2017_03/gtf/dmel-all-r6.16.gtf.gz'
+        postprocess: "lib.postprocess.dm6.gtf_postprocess"
+        conversions:
+          - 'refflat'
+          - gffutils: # kwargs below will be provided to `gffutils.create_db`
+              merge_strategy: 'merge'
+              id_spec:
+                  transcript: ['transcript_id', 'transcript_symbol']
+                  gene: ['gene_id', 'gene_symbol']
+              gtf_transcript_key: 'transcript_id'
+              gtf_gene_key: 'gene_id'
+              disable_infer_genes: True
+
+          # the attribute from the GTF to consider gene ID
+          - genelist:
+              gene_id: 'gene_id'
+
+          - annotation_hub:
+              ahkey: 'AH49581'
+              keytype: 'ENSEMBL'
+
+      fb_annotation:
+        url: 'ftp://ftp.flybase.net/releases/FB2017_03/precomputed_files/genes/fbgn_annotation_ID.tsv.gz'
+        postprocess: "lib.postprocess.dm6.fb_annotation_postprocess"
+
+      fb_synonym:
+        url: 'ftp://ftp.flybase.net/releases/FB2017_03/precomputed_files/synonyms/fb_synonym_fb_2017_03.tsv.gz'
+        postprocess: "lib.postprocess.dm6.fb_synonym_postprocess"
+
+      fasta:
+        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.16_FB2017_03/fasta/dmel-all-chromosome-r6.16.fasta.gz'
+        postprocess: "lib.postprocess.dm6.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+
+    r6-16_transcriptome:
+      fasta:
+        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.16_FB2017_03/fasta/dmel-all-transcript-r6.16.fasta.gz'
+        indexes:
+          - 'salmon'
+
+    r6-16_and_ercc:
+      gtf:
+        url:
+          - 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.16_FB2017_03/gtf/dmel-all-r6.16.gtf.gz'
+          - 'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        postprocess:
+          function: "lib.postprocess.merge.file_merge"
+          args:
+            - "lib.postprocess.dm6.gtf_postprocess"
+            - "lib.postprocess.ercc.gtf_postprocess"
+        conversions:
+          - 'refflat'
+          - 'gffutils'
+
+      fasta:
+        url:
+          - 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.16_FB2017_03/fasta/dmel-all-chromosome-r6.16.fasta.gz'
+          -  'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        postprocess:
+          function: "lib.postprocess.merge.file_merge"
+          args:
+            - "lib.postprocess.dm6.fasta_postprocess"
+            - "lib.postprocess.ercc.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
