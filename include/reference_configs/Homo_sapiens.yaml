@@ -1,6 +1,12 @@
 references:
   human:
     gencode-v25:
+
+      metadata:
+        reference_genome_build: 'hg38'
+        reference_effective_genome_count: 2.7e9
+        reference_effective_genome_proportion: 0.87
+
       fasta:
         url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh38.primary_assembly.genome.fa.gz'
         indexes:
@@ -23,6 +29,7 @@ references:
               disable_infer_transcripts: True
 
 
+
     gencode-v25-transcriptome:
       fasta:
         url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz'
@@ -30,6 +37,11 @@ references:
           - 'salmon'
 
     gencode-v19:
+      metadata:
+        reference_genome_build: 'hg19'
+        reference_effective_genome_count: 2.7e9
+        reference_effective_genome_proportion: 0.87
+
       fasta:
         url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/GRCh37.p13.genome.fa.gz'
         indexes:

@@ -273,6 +273,10 @@ def references_dict(config):
     ... references:
     ...   dm6:
     ...     r6-11:
+    ...       metadata:
+    ...         reference_genome_build: 'dm6'
+    ...         reference_effective_genome_count: 1.2e7
+    ...         reference_effective_genome_proportion: 0.97
     ...       fasta:
     ...         url: ""
     ...         indexes:
@@ -292,7 +296,7 @@ def references_dict(config):
 
     To this format:
 
-    >>> d = config_to_dict('tmp')
+    >>> d, conversion_kwargs = references_dict('tmp')
     >>> assert d == (
     ... {
     ...   'dm6': {
@@ -307,10 +311,11 @@ def references_dict(config):
     ...      'r6-11_transcriptome': {
     ...          'fasta': '/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.fasta',
     ...          'chromsizes': '/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.chromsizes',
-    ...          'salmon': '/data/dm6/r6-11_transcriptome/salmon/dm6_r6-11_transcriptome/hash.bin,
+    ...          'salmon': '/data/dm6/r6-11_transcriptome/salmon/dm6_r6-11_transcriptome/hash.bin',
     ...          },
     ...     },
     ... }), d
+    >>> assert conversion_kwargs == {'/data/dm6/r6-11/gtf/dm6_r6-11.refflat': {}}
     >>> os.unlink('tmp')
 
     """
@@ -341,6 +346,8 @@ def references_dict(config):
         for tag in config['references'][assembly].keys():
             e = {}
             for type_, block in config['references'][assembly][tag].items():
+                if type_ == 'metadata':
+                    continue
                 e[type_] = (
                     '{references_dir}/'
                     '{assembly}/'

@@ -1,6 +1,12 @@
 references:
   mouse:
     gencode_m12:
+
+      metadata:
+        reference_genome_build: 'mm10'
+        reference_effective_genome_count: 2.3e9
+        reference_effective_genome_proportion: 0.87
+
       fasta:
         url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M12/GRCm38.primary_assembly.genome.fa.gz'
         indexes:

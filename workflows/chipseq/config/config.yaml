@@ -50,7 +50,8 @@ chipseq:
       # specified here, SICER will use this value instead of the value specific
       # to the genome build if NOT specified here, SICER will use the
       # mappability value for your genome build
-      # effective_genome_fraction: 0.75
+      effective_genome_fraction: 0.75
+      genome_build: dm6
       gap_size: 600
       fdr: 0.01
 
@@ -132,60 +133,3 @@ aligner:
 #         indexes:      [ list of indexes to build; only if type == fasta ]
 
 references: {}
-
-# these are pulled from various sources, most notably
-#   https://github.com/biocore-ntnu/epic/tree/master/epic/scripts/effective_sizes
-# these should only be considered approximate. more precise estimates can be generated
-# with specific parameters from individual experiments.
-mappability:
-  dm2:
-    count: 1.2e8
-    proportion: 0.88
-  dm3:
-    count: 1.2e8
-    proportion: 0.88
-  dm6:
-    count: 1.2e8
-    proportion: 0.88
-  hg18:
-    count: 2.7e9
-    proportion: 0.87
-  hg19:
-    count: 2.7e9
-    proportion: 0.87
-  hg38:
-    count: 2.7e9
-    proportion: 0.87
-  mm8:
-    count: 2.3e9
-    proportion: 0.87
-  mm9:
-    count: 2.3e9
-    proportion: 0.87
-  mm10:
-    count: 2.3e9
-    proportion: 0.87
-  rn4:
-    count: 2.2e9
-    proportion: 0.80
-  rn5:
-    count: 2.2e9
-    proportion: 0.76
-  rn6:
-    count: 2.2e9
-    proportion: 0.82
-  sacCer1:
-    count: 1.2e7
-    proportion: 0.95
-  sacCer2:
-    count: 1.2e7
-    proportion: 0.95
-  sacCer3:
-    count: 1.2e7
-    proportion: 0.95
-  pombe:
-    count: 1.2e7
-    proportion: 0.97
-  tair8:
-    count: 1.1e8
-    proportion: 0.95
