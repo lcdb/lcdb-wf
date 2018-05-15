@@ -282,23 +282,23 @@ rule multiqc:
         config='config/multiqc_config.yaml'
     output:
         c.targets['multiqc']
-    params:
-        analysis_directory=" ".join([c.sample_dir, c.agg_dir, c.peak_calling]),
-        extra='--config config/multiqc_config.yaml',
-        outdir=os.path.dirname(c.targets['multiqc'][0]),
-        basename=os.path.basename(c.targets['multiqc'][0])
     log:
         c.targets['multiqc'][0] + '.log'
-    shell:
-        'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
-        'multiqc '
-        '--quiet '
-        '--outdir {params.outdir} '
-        '--force '
-        '--filename {params.basename} '
-        '--config config/multiqc_config.yaml '
-        '{params.analysis_directory} '
-        '&> {log} '
+    run:
+        analysis_directory = set([os.path.dirname(i) for i in input])
+        outdir = os.path.dirname(c.targets['multiqc'][0])
+        basename = os.path.basename(c.targets['multiqc'][0])
+        shell(
+            'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
+            'multiqc '
+            '--quiet '
+            '--outdir {outdir} '
+            '--force '
+            '--filename {basename} '
+            '--config {input.config} '
+            '{analysis_directory} '
+            '&> {log} '
+        )
 
 
 rule markduplicates:
@@ -611,11 +611,12 @@ if 'merged_bigwigs' in config:
             bigwigs=lambda wc: expand(
                 c.patterns['bigwig'],
                 label=config['merged_bigwigs'][wc.merged_bigwig_label],
-                merged_dir=config['merged_dir']
             ),
             chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
         output:
             c.patterns['merged_bigwig']
+        log:
+            c.patterns['merged_bigwig'] + '.log'
         wrapper:
             wrapper_for('average-bigwigs')
 

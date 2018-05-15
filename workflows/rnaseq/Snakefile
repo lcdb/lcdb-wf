@@ -255,6 +255,7 @@ rule featurecounts:
         '{input.bam} '
         '&> {log}'
 
+
 rule rrna_libsizes_table:
     """
     Aggregate rRNA counts into a table
@@ -380,23 +381,22 @@ rule multiqc:
         ),
         config='config/multiqc_config.yaml'
     output: c.targets['multiqc']
-    params:
-        analysis_directory=" ".join([c.sample_dir, c.agg_dir]),
-        extra='--config config/multiqc_config.yaml',
-        outdir=os.path.dirname(c.targets['multiqc'][0]),
-        basename=os.path.basename(c.targets['multiqc'][0])
     log: c.targets['multiqc'][0] + '.log'
-    shell:
-        'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
-        'multiqc '
-        '--quiet '
-        '--outdir {params.outdir} '
-        '--force '
-        '--filename {params.basename} '
-        '--config config/multiqc_config.yaml '
-        '{params.analysis_directory} '
-        '&> {log} '
-
+    run:
+        analysis_directory = set([os.path.dirname(i) for i in input])
+        outdir = os.path.dirname(c.targets['multiqc'][0])
+        basename = os.path.basename(c.targets['multiqc'][0])
+        shell(
+            'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
+            'multiqc '
+            '--quiet '
+            '--outdir {outdir} '
+            '--force '
+            '--filename {basename} '
+            '--config {input.config} '
+            '{analysis_directory} '
+            '&> {log} '
+        )
 
 rule markduplicates:
     """
@@ -487,7 +487,7 @@ rule dupRadar:
         dataframe=c.patterns['dupradar']['dataframe'],
         model=c.patterns['dupradar']['model'],
         curve=c.patterns['dupradar']['curve'],
-    log: '{sample_dir}/{sample}/dupradar/dupradar.log'
+    log: c.patterns['dupradar']['dataframe'] + '.log'
     wrapper:
         wrapper_for('dupradar')
 
@@ -620,12 +620,10 @@ def bigwigs_to_merge(wc):
     sense_labels = chunk.get('sense', [])
     sense_bigwigs = expand(
         c.patterns['bigwig']['sense'],
-        sample_dir=config['sample_dir'],
         sample=sense_labels
     )
     antisense_bigwigs = expand(
         c.patterns['bigwig']['antisense'],
-        sample_dir=config['sample_dir'],
         sample=antisense_labels)
     return sense_bigwigs + antisense_bigwigs
 
@@ -640,6 +638,8 @@ if 'merged_bigwigs' in config:
             chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
         output:
             c.patterns['merged_bigwig']
+        log:
+            c.patterns['merged_bigwig'] + '.log'
         wrapper:
             wrapper_for('average-bigwigs')
 
