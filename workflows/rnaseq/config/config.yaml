@@ -1,17 +1,4 @@
-
-# sampletable: TSV file defining sample metadata.
-#
-# First column must have header name "samplename".
 sampletable: 'config/sampletable.tsv'
-
-# sample_dir: directory in which each sample is expected to have its own
-# directory and fastq file[s]. If `sampletable` lists a sample with samplename
-# SAMPLE1, then at least the file $sample_dir/SAMPLE1/SAMPLE1_R1.fastq.gz is
-# expected.
-sample_dir: 'data/rnaseq_samples'
-
-# Directory to contain reports and other aggregations
-aggregation_dir: 'data/aggregation'
 
 # Which key in the `references` dict below to use
 assembly: 'dmel'
@@ -32,26 +19,6 @@ gtf:
 
 salmon:
   tag: "test_transcriptome"
-
-# keys become the labels of merged bigwigs (see
-# patterns['patterns_by_agggregate']['merged_bigwig']).
-#
-# Each key in addition specifies sense and antisense samples to merge. You can
-# merge all strands together by supplying both sense and antisense keys.
-# For example:
-#
-# merged_bigwigs:
-#   control_sense:
-#     sense:
-#       - control1
-#       - control2
-#   control_all:
-#     sense:
-#       - control1
-#       - control2
-#     antisense:
-#       - control1
-#       - control2
 
 merged_bigwigs:
   control_sense:

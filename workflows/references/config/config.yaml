@@ -6,15 +6,6 @@ sampletable: 'config/sampletable.tsv'
 
 hub_config: 'config/test_hub_config.yml'
 
-# sample_dir: directory in which each sample is expected to have its own
-# directory and fastq file[s]. If `sampletable` lists a sample with samplename
-# SAMPLE1, then at least the file $sample_dir/SAMPLE1/SAMPLE1_R1.fastq.gz is
-# expected.
-sample_dir: 'data/rnaseq_samples'
-
-# Directory to contain reports and other aggregations
-aggregation_dir: 'data/aggregation'
-
 # Which key in the `references` dict below to use
 assembly: 'dmel'
 
