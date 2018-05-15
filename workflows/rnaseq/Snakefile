@@ -211,7 +211,7 @@ rule fastq_screen:
     # experiment
     input:
         fastq=rules.cutadapt.output.fastq,
-        expected=c.refdict[c.assembly][config['aligner']['tag']['bowtie2'],
+        expected=c.refdict[c.assembly][config['aligner']['tag']]['bowtie2'],
         rRNA=c.refdict[c.assembly][config['rrna']['tag']]['bowtie2'],
         phix=c.refdict['phix']['default']['bowtie2']
     output:
