@@ -1,0 +1,8 @@
+references:
+  phix:
+    default:
+      fasta:
+        url: 'ftp://igenome:G3nom3s4u@ussd-ftp.illumina.com/PhiX/Illumina/RTA/PhiX_Illumina_RTA.tar.gz'
+        postprocess: "lib.postprocess.phix.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
