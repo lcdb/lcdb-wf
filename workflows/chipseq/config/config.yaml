@@ -131,23 +131,7 @@ aligner:
 #         conversions:  [ list of gtf conversions; only if type == gtf ]
 #         indexes:      [ list of indexes to build; only if type == fasta ]
 
-references:
-  dmel:
-    test:
-      fasta:
-        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/add-chipseq/data/seq/dm6.small.fa"
-        postprocess: 'lib.postprocess.dm6.fasta_postprocess'
-        indexes:
-          - 'bowtie2'
-      genome_build: dm6
-
-  phix:
-    default:
-      fasta:
-        url: 'ftp://igenome:G3nom3s4u@ussd-ftp.illumina.com/PhiX/Illumina/RTA/PhiX_Illumina_RTA.tar.gz'
-        postprocess: "lib.postprocess.phix.fasta_postprocess"
-        indexes:
-          - 'bowtie2'
+references: {}
 
 # these are pulled from various sources, most notably
 #   https://github.com/biocore-ntnu/epic/tree/master/epic/scripts/effective_sizes

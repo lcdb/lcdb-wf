@@ -38,4 +38,4 @@ merged_bigwigs:
 # files here, (excluding the "references:" line of each file, so that it
 # doesn't overwrite this key) or call Snakemake with the --configfile argument
 # for each additional references file you want to include.
-#references:
+references: {}

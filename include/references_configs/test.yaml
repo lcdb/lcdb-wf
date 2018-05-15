@@ -1,6 +1,7 @@
 references:
   dmel:
     test:
+      genome_build: 'dm6'
       fasta:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa"
         postprocess: 'lib.common.gzipped'

@@ -58,7 +58,7 @@ variables:
         command: |
           cd workflows/chipseq
           source activate lcdb-wf-test
-          ./run_test.sh --configfile ../../include/reference_configs/test.yaml --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+          ./run_test.sh --configfile ../../include/reference_configs/test.yaml --use-conda -j2 -T -k -p -r
           python chipseq_trackhub.py config/config.yaml config/hub_config.yaml
 
   references-step: &references-step
@@ -67,7 +67,7 @@ variables:
         command: |
           cd workflows/references
           source activate lcdb-wf-test
-          ./run_test.sh --configfile ../../include/reference_configs/test.yaml --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+          ./run_test.sh --configfile ../../include/reference_configs/test.yaml --use-conda -j2 -T -k -p -r
 
   rnaseq-step: &rnaseq-step
       run:
@@ -75,7 +75,7 @@ variables:
         command: |
           cd workflows/rnaseq
           source activate lcdb-wf-test
-          ./run_test.sh --configfile ../../include/reference_configs/test.yaml --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+          ./run_test.sh --configfile ../../include/reference_configs/test.yaml --use-conda -j2 -T -k -p -r
           python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
 
   # The path needs to be set each time
