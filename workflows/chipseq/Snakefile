@@ -198,7 +198,7 @@ rule fastq_screen:
     """
     input:
         fastq=rules.cutadapt.output.fastq,
-        dm6=refdict[c.assembly][config['aligner']['tag']]['bowtie2'],
+        expected=c.refdict[c.assembly][config['aligner']['tag']['bowtie2'],
         phix=refdict['phix']['default']['bowtie2']
     output:
         txt=c.patterns['fastq_screen']
