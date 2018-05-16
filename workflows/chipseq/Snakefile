@@ -497,8 +497,8 @@ rule spp:
         enrichment_estimates=c.patterns['peaks']['spp'] + '.est.wig',
         smoothed_enrichment_mle=c.patterns['peaks']['spp'] + '.mle.wig',
         rdata=c.patterns['peaks']['spp'] + '.RData'
-    #log:
-    #    c.patterns['peaks']['spp'] + '.log'
+    log:
+        c.patterns['peaks']['spp'] + '.log'
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.spp_run, 'spp'),
         keep_tempfiles=False,
