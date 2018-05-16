@@ -39,9 +39,9 @@ args = ap.parse_args()
 # details
 config = yaml.load(open(args.config))
 
-for cfg in args.additional_configs:
-    update_config(config, yaml.load(open(cfg)))
-
+if args.additional_configs:
+    for cfg in args.additional_configs:
+        update_config(config, yaml.load(open(cfg)))
 
 hub_config = yaml.load(open(args.hub_config))
 

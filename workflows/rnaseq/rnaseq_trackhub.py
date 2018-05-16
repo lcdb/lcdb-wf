@@ -29,7 +29,7 @@ ap.add_argument('config', help='Main config.yaml file')
 ap.add_argument('hub_config', help='Track hub config YAML file')
 ap.add_argument('--additional-configs', nargs='+',
                 help='Additional config files with which to update the main '
-                'config')
+                'config',)
 args = ap.parse_args()
 
 # Access configured options. See comments in example hub_config.yaml for
@@ -37,8 +37,9 @@ args = ap.parse_args()
 config = yaml.load(open(args.config))
 hub_config = yaml.load(open(args.hub_config))
 
-for cfg in args.additional_configs:
-    update_config(config, yaml.load(open(cfg)))
+if args.additional_configs:
+    for cfg in args.additional_configs:
+        update_config(config, yaml.load(open(cfg)))
 
 c = RNASeqConfig(config, os.path.join(os.path.dirname(args.config), 'rnaseq_patterns.yaml'))
 
