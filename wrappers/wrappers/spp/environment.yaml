@@ -8,3 +8,4 @@ dependencies:
   - bedtools
   - samtools
   - r-spp
+  - bioconductor-s4vectors<0.18
