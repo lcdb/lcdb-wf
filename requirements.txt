@@ -12,6 +12,7 @@ bioconductor-genomicfeatures
 bioconductor-genomeinfodbdata
 bioconductor-sva
 bioconductor-tximport
+bioconductor-s4vectors<0.18
 biopython
 bowtie2
 cutadapt
