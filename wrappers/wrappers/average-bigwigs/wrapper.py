@@ -1,6 +1,6 @@
+import os
 import tempfile
 from snakemake.shell import shell
-
 # Inspired by http://wresch.github.io/2014/01/31/merge-bigwig-files.html
 
 # If memory was supplied, we'll use that for sorting.
