@@ -35,6 +35,7 @@ def wrapper_for(path):
 # ----------------------------------------------------------------------------
 # RULES
 # ----------------------------------------------------------------------------
+# See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
     c.targets['bam'],
     utils.flatten(c.targets['fastqc']),
@@ -107,6 +108,7 @@ rule cutadapt:
     log:
         c.patterns['cutadapt'] + '.log'
     params:
+        # NOTE: Change cutadapt params here.
         extra='-a file:../../include/adapters.fa -q 20 --minimum-length=25'
     wrapper:
         wrapper_for('cutadapt')
@@ -137,6 +139,9 @@ rule bowtie2:
         c.patterns['bam'] + '.log'
     params:
         samtools_view_extra='-F 0x04'
+    # NOTE:
+    # When running on a cluster, number of threads here should match the
+    # resources requested in the cluster config.
     threads: 8
     wrapper:
         wrapper_for('bowtie2/align')
@@ -196,6 +201,8 @@ rule fastq_screen:
     """
     Run fastq_screen to look for contamination from other genomes
     """
+    # NOTE: add any additional references here that you might have configured
+    # in config.yaml, using a form similar to the `phix` entry.
     input:
         fastq=rules.cutadapt.output.fastq,
         expected=c.refdict[c.assembly][config['aligner']['tag']]['bowtie2'],
@@ -268,6 +275,8 @@ rule multiqc:
     """
     Aggregate various QC stats and logs into a single HTML report with MultiQC
     """
+    # NOTE: if you add more rules and want MultiQC to pick up the output, best
+    # to add outputs from those rules to the inputs here.
     input:
         files=(
             utils.flatten(c.targets['fastqc']) +
@@ -313,6 +322,9 @@ rule markduplicates:
     log:
         c.patterns['markduplicates']['bam'] + '.log'
     params:
+        # NOTE: Be careful with the memory here; make sure you have enough
+        # and/or it matches the resources you're requesting in the cluster
+        # config.
         java_args='-Xmx20g'
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     shell:
@@ -345,6 +357,9 @@ rule merge_techreps:
     log:
         c.patterns['merged_techreps'] + '.log'
     params:
+        # NOTE: Be careful with the memory here; make sure you have enough
+        # and/or it matches the resources you're requesting in the cluster
+        # config.
         java_args='-Xmx32g'
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     wrapper:
@@ -362,8 +377,6 @@ rule bigwig:
         bai=c.patterns['merged_techreps'] + '.bai',
     output:
         c.patterns['bigwig']
-    params:
-        extra='--minMappingQuality 20 --ignoreDuplicates --smoothLength 10'
     log:
         c.patterns['bigwig'] + '.log'
     shell:
@@ -373,8 +386,8 @@ rule bigwig:
         '-p {threads} '
         '--minMappingQuality 20 '
         '--ignoreDuplicates '
-        # Can't use the following normalization for testing due to <1000 reads
-        # total in example data.
+        # Can't use the CPM normalization for testing due to <1000 reads total
+        # in example data; keep uncommented when running in production
         # [TEST SETTINGS +1]
         '--normalizeUsing CPM '
         '--extendReads 300 '
@@ -502,6 +515,9 @@ rule spp:
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.spp_run, 'spp'),
         keep_tempfiles=False,
+        # NOTE: Be careful with the memory here; make sure you have enough
+        # and/or it matches the resources you're requesting in the cluster
+        # config.
         java_args='-Xmx24g',
         # java_args='-Xmx2g',  # [TEST SETTINGS -1]
     threads: 2
@@ -594,7 +610,7 @@ rule plotcorrelation:
         '--colorMap viridis '
         '--outFileCorMatrix {output.tab}'
 
-        # Note: if you're expecting negative correlation, try a divergent
+        # NOTE: if you're expecting negative correlation, try a divergent
         # colormap and setting the min/max to ensure that the colomap is
         # centered on zero:
         # '--colorMap RdBu_r '

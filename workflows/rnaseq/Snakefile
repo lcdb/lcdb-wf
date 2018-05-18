@@ -33,6 +33,8 @@ def wrapper_for(path):
 # ----------------------------------------------------------------------------
 # RULES
 # ----------------------------------------------------------------------------
+
+# See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
     c.targets['bam'],
     utils.flatten(c.targets['fastqc']),
@@ -113,6 +115,7 @@ rule cutadapt:
     log:
         c.patterns['cutadapt'] + '.log'
     params:
+        # NOTE: Change cutadapt params here
         extra='-a file:../../include/adapters.fa -q 20 --minimum-length=25'
     wrapper:
         wrapper_for('cutadapt')
@@ -142,6 +145,9 @@ rule hisat2:
     log:
         c.patterns['bam'] + '.log'
     params:
+        # NOTE: see examples at
+        # https://github.com/lcdb/lcdb-wf/tree/master/wrappers/wrappers/hisat2/align
+        # for details on setting hisat2 params and samtools params separately.
         samtools_view_extra='-F 0x04'
     threads: 6
     wrapper:
@@ -207,8 +213,8 @@ rule fastq_screen:
     """
     Run fastq_screen to look for contamination from other genomes
     """
-    # NOTE: you may want to add other genomes as appropriate for your
-    # experiment
+    # NOTE: add any additional references here that you might have configured
+    # in config.yaml, using a form similar to the `phix` entry.
     input:
         fastq=rules.cutadapt.output.fastq,
         expected=c.refdict[c.assembly][config['aligner']['tag']]['bowtie2'],
@@ -235,20 +241,20 @@ rule featurecounts:
     log:
         '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt.log'
     shell:
+        'featureCounts '
+
         # NOTE:
         # By default, this rule runs three times, using a different strand
         # setting each time. The strand argument (-s0, -s1, -s2) to
         # featureCounts is pulled straight from the wildcards, and the
-        # filenames have been set up in rnaseq_patterns.yaml.
+        # corresponding filenames have been set up in rnaseq_patterns.yaml.
         #
         # You probably do NOT want to add your own -s argument below, however
         # other arguments might be useful. For example, for nascent RNA-seq,
         # add '-t gene -g gene_id -f '
-        'featureCounts '
-
-        # Convert wildcards s0, s1, s2 to an argument
         '-{wildcards.stranded} '
 
+        # NOTE: additional featureCounts args here
         '-T {threads} '
         '-a {input.annotation} '
         '-o {output.counts} '
@@ -363,6 +369,8 @@ rule multiqc:
     """
     Aggregate various QC stats and logs into a single HTML report with MultiQC
     """
+    # NOTE: if you add more rules and want MultiQC to pick up the output, best
+    # to add outputs from those rules to the inputs here.
     input:
         files=(
             utils.flatten(c.targets['fastqc']) +
@@ -410,6 +418,9 @@ rule markduplicates:
     log:
         c.patterns['markduplicates']['bam'] + '.log'
     params:
+        # NOTE: Be careful with the memory here; make sure you have enough
+        # and/or it matches the resources you're requesting in the cluster
+        # config.
         java_args='-Xmx20g'
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     shell:
@@ -433,6 +444,9 @@ rule collectrnaseqmetrics:
         metrics=c.patterns['collectrnaseqmetrics']['metrics'],
         pdf=c.patterns['collectrnaseqmetrics']['pdf']
     params:
+        # NOTE: Be careful with the memory here; make sure you have enough
+        # and/or it matches the resources you're requesting in the cluster
+        # config.
         java_args='-Xmx20g'
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     log:
@@ -441,6 +455,7 @@ rule collectrnaseqmetrics:
         'picard '
         '{params.java_args} '
         'CollectRnaSeqMetrics '
+
         # NOTE: Adjust strandedness appropriately. From the Picard docs:
         #
         #     STRAND=StrandSpecificity For strand-specific library prep. For
@@ -449,7 +464,9 @@ rule collectrnaseqmetrics:
         #     Possible values: {NONE, FIRST_READ_TRANSCRIPTION_STRAND,
         #     SECOND_READ_TRANSCRIPTION_STRAND}
         #
-        'STRAND=NONE CHART_OUTPUT={output.pdf} '
+        'STRAND=NONE '
+
+        'CHART_OUTPUT={output.pdf} '
         'REF_FLAT={input.refflat} '
         'INPUT={input.bam} '
         'OUTPUT={output.metrics} '
@@ -507,6 +524,7 @@ rule salmon:
     log:
         c.patterns['salmon'] + '.log'
     shell:
+        # NOTE: adjust Salmon params as needed.
         'salmon quant '
         '--index {params.index_dir} '
         '--output {params.outdir} '
@@ -539,6 +557,8 @@ rule bigwig_neg:
     log:
         c.patterns['bigwig']['neg'] + '.log'
     shell:
+        # NOTE: adjust bamCoverage params as needed; make sure the bigwig_pos
+        # rule below reflects the same changes.
         'bamCoverage '
         '--bam {input.bam} '
         '-o {output} '
@@ -563,6 +583,8 @@ rule bigwig_pos:
     log:
         c.patterns['bigwig']['pos'] + '.log'
     shell:
+        # NOTE: adjust bamCoverage params as needed; make sure the bigwig_neg
+        # rule above reflects the same changes.
         'bamCoverage '
         '--bam {input.bam} '
         '-o {output} '
@@ -605,6 +627,8 @@ rule rnaseq_rmarkdown:
     """
     input:
         featurecounts=utils.flatten(c.targets['featurecounts']),
+
+        # NOTE: the Rmd will likely need heavy editing depending on the project.
         rmd='downstream/rnaseq.Rmd',
         sampletable=config['sampletable']
     output:

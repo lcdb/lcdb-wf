@@ -22,6 +22,8 @@ PATH_KEYS = [
 
 def resolve_config(config, workdir=None):
     """
+    Finds the config file.
+
     Parameters
     ----------
     config : str, dict
@@ -45,8 +47,7 @@ def resolve_config(config, workdir=None):
 
 def gzipped(tmpfiles, outfile):
     """
-    Cat-and-gzip a list of uncompressed input files into a single compressed
-    output file.
+    Cat-and-gzip a list of uncompressed files into a compressed output file.
     """
     with gzip.open(outfile, 'wt') as fout:
         for f in tmpfiles:
@@ -66,6 +67,8 @@ def cat(tmpfiles, outfile):
 
 def filter_fastas(tmpfiles, outfile, pattern):
     """
+    Extract records from fasta file(s) given a search pattern.
+
     Given input gzipped FASTAs, create a new gzipped fasta containing only
     records whose description matches `pattern`.
 
@@ -435,6 +438,8 @@ def tempdir_for_biowulf():
 
 def get_references_dir(config):
     """
+    Identify the references directory based on config and env vars.
+
     Returns the references dir, preferring the value of an existing environment
     variable `REFERENCES_DIR` over the config entry "references_dir". Raise an
     error if either can't be found.
@@ -453,6 +458,8 @@ def get_references_dir(config):
 
 def get_sampletable(config):
     """
+    Return samples and pandas.DataFrame of parsed sampletable.
+
     Returns the sample IDs and the parsed sampletable from the file specified
     in the config.
 

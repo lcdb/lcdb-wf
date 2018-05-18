@@ -127,12 +127,12 @@ def merged_input_for_ip(sampletable, merged_ip):
     ... ip3         ctcf       s2cell-2             s2cell-ctcf-1
     ... input1      input      s2cell-1             s2cell-input-1
     ... input3      input      s2cell-2             s2cell-input-3
-    ... input9      input      s2cell-1             s2cell-input-9'''),
+    ... input9      input      s2cell-1             s2cell-input-1'''),
     ... sep='\s+')
 
 
     >>> merged_input_for_ip(df, 's2cell-gaf-1')
-    ['s2cell-input-1', 's2cell-input-9']
+    ['s2cell-input-1']
 
     >>> merged_input_for_ip(df, 's2cell-ctcf-1')
     ['s2cell-input-3']

@@ -8,7 +8,8 @@ RIP-seq or small RNA-seq).
 
 
 This workflow can use references created by the references workflow with no
-need to run the references separately. This workflow includes:
+need to run the references workflow separately. This workflow performs the
+following tasks:
 
     - Build a HISAT2 index
     - Build a salmon transcriptome index
@@ -39,7 +40,7 @@ The DAG of jobs looks like this:
 .. image:: rnaseq.png
 
 Preliminary setup: AnnotationHub
--------------------------------
+--------------------------------
 
 In order to support multiple genomes, we use the AnnotationHub package from
 Bioconductor as a uniform API to access annotation information for GO analysis
