@@ -17,7 +17,8 @@ def make_relative_symlink(target, linkname):
     linkbase = os.path.basename(linkname)
     if not os.path.exists(linkdir):
         shell('mkdir -p {linkdir}')
-        shell('cd {linkdir}; ln -sf {relative_target} {linkbase}')
+    shell('cd {linkdir}; ln -sf {relative_target} {linkbase}')
+
 
 if len(snakemake.input.bigwigs) == 1:
     make_relative_symlink(snakemake.input.bigwigs[0], snakemake.output[0])
