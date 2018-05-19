@@ -84,7 +84,7 @@ class RNASeqConfig(SeqConfig):
             as relative to `workdir`
         """
         SeqConfig.__init__(self, config, patterns, workdir)
-        self.fill = dict(sample=self.sample)
+        self.fill = dict(sample=self.samples)
         self.patterns_by_aggregation = self.patterns.pop('patterns_by_aggregate', None)
         self.targets = helpers.fill_patterns(self.patterns, self.fill)
 

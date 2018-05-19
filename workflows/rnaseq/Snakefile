@@ -76,7 +76,7 @@ if 'orig_filename' in c.sampletable.columns:
         Symlinks files over from original filename
         """
         input: [_st.loc[sample, 'orig_filename']  for sample in _st.index ]
-        output: [c.patterns['fastq'].format(sample=sample, sample_dir=c.sample_dir) for sample in _st.index]
+        output: [c.patterns['fastq'].format(sample=sample) for sample in _st.index]
         run:
             for i, o in zip(input, output):
                 utils.make_relative_symlink(i, o)
