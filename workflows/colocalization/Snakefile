@@ -51,15 +51,19 @@ chromsizes = references(
 for k, v in config['beds'].items():
     config['beds'][k] = external(v)
 
-# Here we are adding all the called peaks to the bed files to check for
-# colocalization
-peaks = chipseq(utils.flatten(chipseq_config.targets['peaks']))
-for fn in peaks:
-    toks = fn.split('/')
-    peakcaller = toks[-3]
-    label = toks[-2]
-    key = peakcaller + '_' + label
-    config['beds'][key] = fn
+# If ADD_CHIPSEQ_PEAKS is True, we will addn all the called peaks to the bed
+# files to check for colocalization.
+ADD_CHIPSEQ_PEAKS = True
+# ADD_CHIPSEQ_PEAKS = False  # [TEST SETTINGS -1]
+
+if ADD_CHIPSEQ_PEAKS:
+    peaks = chipseq(utils.flatten(chipseq_config.targets['peaks']))
+    for fn in peaks:
+        toks = fn.split('/')
+        peakcaller = toks[-3]
+        label = toks[-2]
+        key = peakcaller + '_' + label
+        config['beds'][key] = fn
 
 
 # Number of shufflings for GAT
