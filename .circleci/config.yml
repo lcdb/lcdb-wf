@@ -190,6 +190,13 @@ workflows:
             branches:
               ignore:
                 - master
+      - colocalization:
+          requires:
+            - initial-setup
+          filters:
+            branches:
+              ignore:
+                - master
       - build-docs:
           requires:
             - initial-setup
