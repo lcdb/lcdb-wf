@@ -200,7 +200,3 @@ workflows:
       - build-docs:
           requires:
             - initial-setup
-          filters:
-            branches:
-              only:
-                - master
