@@ -349,7 +349,6 @@ rule merge_techreps:
         lambda wc: expand(
             c.patterns['markduplicates']['bam'],
             sample=common.get_techreps(c.sampletable, wc.label),
-            sample_dir=c.sample_dir
         )
     output:
         bam=c.patterns['merged_techreps'],
@@ -402,10 +401,10 @@ rule fingerprint:
     Note: uses the merged techreps.
     """
     input:
-        bams=lambda wc: expand(c.patterns['merged_techreps'], merged_dir=c.merged_dir, label=wc.ip_label),
-        control=lambda wc: expand(c.patterns['merged_techreps'], merged_dir=c.merged_dir, label=chipseq.merged_input_for_ip(c.sampletable, wc.ip_label)),
-        bais=lambda wc: expand(c.patterns['merged_techreps'] + '.bai', merged_dir=c.merged_dir, label=wc.ip_label),
-        control_bais=lambda wc: expand(c.patterns['merged_techreps'] + '.bai', merged_dir=c.merged_dir, label=chipseq.merged_input_for_ip(c.sampletable, wc.ip_label)),
+        bams=lambda wc: expand(c.patterns['merged_techreps'], label=wc.ip_label),
+        control=lambda wc: expand(c.patterns['merged_techreps'], label=chipseq.merged_input_for_ip(c.sampletable, wc.ip_label)),
+        bais=lambda wc: expand(c.patterns['merged_techreps'] + '.bai', label=wc.ip_label),
+        control_bais=lambda wc: expand(c.patterns['merged_techreps'] + '.bai', label=chipseq.merged_input_for_ip(c.sampletable, wc.ip_label)),
     output:
         plot=c.patterns['fingerprint']['plot'],
         raw_counts=c.patterns['fingerprint']['raw_counts'],
@@ -441,13 +440,11 @@ rule sicer:
             expand(
                 c.patterns['merged_techreps'],
                 label=chipseq.samples_for_run(config, wc.sicer_run, 'sicer', 'ip'),
-                merged_dir=c.merged_dir,
             ),
         control=lambda wc:
             expand(
                 c.patterns['merged_techreps'],
                 label=chipseq.samples_for_run(config, wc.sicer_run, 'sicer', 'control'),
-                merged_dir=c.merged_dir,
             ),
         chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
     output:
@@ -468,13 +465,11 @@ rule macs2:
             expand(
                 c.patterns['merged_techreps'],
                 label=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'ip'),
-                merged_dir=c.merged_dir,
             ),
         control=lambda wc:
             expand(
                 c.patterns['merged_techreps'],
                 label=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'control'),
-                merged_dir=c.merged_dir,
             ),
         chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
     output:
@@ -496,13 +491,11 @@ rule spp:
             expand(
                 c.patterns['merged_techreps'],
                 label=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'ip'),
-                merged_dir=c.merged_dir,
             ),
         control=lambda wc:
             expand(
                 c.patterns['merged_techreps'],
                 label=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'control'),
-                merged_dir=c.merged_dir,
             ),
         chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
     output:

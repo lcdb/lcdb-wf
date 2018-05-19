@@ -153,7 +153,6 @@ class ChIPSeqConfig(SeqConfig):
         self.patterns_by_aggregation = self.patterns.pop('patterns_by_aggregate', None)
         if self.patterns_by_aggregation is not None and 'merged_bigwigs' in self.config:
             self.fill_by_aggregation = dict(
-                agg_dir=self.agg_dir,
                 merged_bigwig_label=self.config['merged_bigwigs'].keys(),
             )
             self.targets_by_aggregation = helpers.fill_patterns(
