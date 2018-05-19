@@ -31,6 +31,7 @@ hisat2
 intervalstats
 kallisto
 lcdblib
+matplotlib
 multiqc
 pandas
 pandoc
