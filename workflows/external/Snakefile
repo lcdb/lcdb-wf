@@ -59,17 +59,12 @@ rule modencode:
 
 
 
-# Note that since the original reference used for the example does not have
-# "chr" chromosome prefixes, we remove them here immediately after lifting
-# over.
 rule liftover:
     input:
         bed='{prefix}.dm3',
         chainfile=rules.download_chainfile.output
     output: '{prefix}'
     shell:
-        'liftOver {input.bed} {input.chainfile} {output}.chr {output}.unmapped'
-        '&& sed "s/^chr//g" {output}.chr > {output} '
-        '&& rm {output}.chr'
+        'liftOver {input.bed} {input.chainfile} {output} {output}.unmapped'
 
 # vim: ft=python
