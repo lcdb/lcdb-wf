@@ -208,18 +208,24 @@ rule bam_index:
         'samtools index {input} {output}'
 
 
+def fastq_screen_references():
+    """
+    Returns the Bowtie2 indexes for the configured references from the
+    `fastq_screen:` section of the config
+    """
+    refs = {}
+    for i in config['fastq_screen']:
+        refs[i['label']] = c.refdict[i['assembly']][i['tag']]['bowtie2']
+    return refs
+
 
 rule fastq_screen:
     """
     Run fastq_screen to look for contamination from other genomes
     """
-    # NOTE: add any additional references here that you might have configured
-    # in config.yaml, using a form similar to the `phix` entry.
     input:
+        **fastq_screen_references(),
         fastq=rules.cutadapt.output.fastq,
-        expected=c.refdict[c.assembly][config['aligner']['tag']]['bowtie2'],
-        rRNA=c.refdict[c.assembly][config['rrna']['tag']]['bowtie2'],
-        phix=c.refdict['phix']['default']['bowtie2']
     output:
         txt=c.patterns['fastq_screen']
     log:

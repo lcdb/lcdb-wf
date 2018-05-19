@@ -20,6 +20,17 @@ gtf:
 salmon:
   tag: "test_transcriptome"
 
+fastq_screen:
+  - label: rRNA
+    assembly: dmel
+    tag: test
+  - label: PhiX
+    assembly: phix
+    tag: default
+  - label: Fly
+    assembly: dmel
+    tag: test
+
 merged_bigwigs:
   control_sense:
     sense:
@@ -34,8 +45,67 @@ merged_bigwigs:
       - sample4
 
 # See the reference config files in the top level of the repo,
-# include/reference_configs. Either paste the contents of one or more of those
-# files here, (excluding the "references:" line of each file, so that it
-# doesn't overwrite this key) or call Snakemake with the --configfile argument
-# for each additional references file you want to include.
-references: {}
+# include/reference_configs, for inspiration for more species.
+references:
+  dmel:
+    test:
+      fasta:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa"
+        postprocess: 'lib.common.gzipped'
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+      gtf:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf"
+        postprocess: 'lib.common.gzipped'
+        conversions:
+          - 'refflat'
+          - gffutils: # kwargs below will be provided to `gffutils.create_db`
+              merge_strategy: 'merge'
+              id_spec:
+                  transcript: ['transcript_id', 'transcript_symbol']
+                  gene: ['gene_id', 'gene_symbol']
+              gtf_transcript_key: 'transcript_id'
+              gtf_gene_key: 'gene_id'
+
+          # the attribute from the GTF to consider gene ID
+          - genelist:
+              gene_id: 'gene_id'
+
+          # a <- AnnotationHub()
+          # a[(a$rdataclass == 'OrgDb') & grepl('melanogaster', a$species),]
+          - annotation_hub:
+              ahkey: 'AH57972'
+              keytype: 'ENSEMBL'
+
+      metadata:
+        reference_genome_build: 'dm6'
+        reference_effective_genome_count: 1.2e8
+        reference_effective_genome_proportion: 0.88
+
+    test_transcriptome:
+      fasta:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.transcriptome.fa"
+        postprocess: 'lib.common.gzipped'
+        indexes:
+          - 'salmon'
+
+    rRNA:
+      fasta:
+        url:
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+        postprocess:
+          function: 'lib.common.filter_fastas'
+          args: 'Drosophila melanogaster'
+        indexes:
+          - 'hisat2'
+          - 'bowtie2'
+
+  phix:
+    default:
+      fasta:
+        url: 'ftp://igenome:G3nom3s4u@ussd-ftp.illumina.com/PhiX/Illumina/RTA/PhiX_Illumina_RTA.tar.gz'
+        postprocess: "lib.postprocess.phix.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
