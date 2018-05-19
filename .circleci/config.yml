@@ -58,8 +58,8 @@ variables:
         command: |
           cd workflows/chipseq
           source activate lcdb-wf-test
-          ./run_test.sh --configfile ../../include/reference_configs/test.yaml --use-conda -j2 -T -k -p -r
-          python chipseq_trackhub.py config/config.yaml config/hub_config.yaml --additional-configs ../../include/reference_configs/test.yaml
+          ./run_test.sh --use-conda -j2 -T -k -p -r
+          python chipseq_trackhub.py config/config.yaml config/hub_config.yaml
 
   references-step: &references-step
       run:
@@ -67,7 +67,7 @@ variables:
         command: |
           cd workflows/references
           source activate lcdb-wf-test
-          ./run_test.sh --configfile ../../include/reference_configs/test.yaml --use-conda -j2 -T -k -p -r
+          ./run_test.sh  --use-conda -j2 -T -k -p -r
 
   rnaseq-step: &rnaseq-step
       run:
@@ -75,8 +75,16 @@ variables:
         command: |
           cd workflows/rnaseq
           source activate lcdb-wf-test
-          ./run_test.sh --configfile ../../include/reference_configs/test.yaml --use-conda -j2 -T -k -p -r
-          python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml --additional-configs ../../include/reference_configs/test.yaml
+          ./run_test.sh --use-conda -j2 -T -k -p -r
+          python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
+
+  colocalization-step: &colocalization-step
+      run:
+        name: colocalization workflow
+        command: |
+          cd workflows/colocalization
+          source activate lcdb-wf-test
+          ./run_test.sh --use-conda -j2 -T -k -p -r
 
   # The path needs to be set each time
   set-path: &set-path
@@ -99,7 +107,6 @@ jobs:
 
   chipseq:
     <<: *defaults
-    #parallelism: 2
     steps:
       - checkout
       - *restore_cache
@@ -109,7 +116,6 @@ jobs:
 
   rnaseq:
     <<: *defaults
-    #parallelism: 2
     steps:
       - checkout
       - *restore_cache
@@ -117,9 +123,17 @@ jobs:
       - *get-data
       - *rnaseq-step
 
+  colocalization:
+    <<: *defaults
+    steps:
+      - checkout
+      - *restore_cache
+      - *set-path
+      - *get-data
+      - *colocalization-step
+
   references:
     <<: *defaults
-    #parallelism: 2
     steps:
       - checkout
       - *restore_cache
