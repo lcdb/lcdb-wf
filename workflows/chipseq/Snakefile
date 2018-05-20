@@ -26,7 +26,10 @@ include: '../references/Snakefile'
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
 
+common.deprecation_handler(config)
+
 c = ChIPSeqConfig(config, 'config/chipseq_patterns.yaml')
+
 
 
 def wrapper_for(path):

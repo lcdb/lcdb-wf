@@ -1,5 +1,6 @@
 import os
 import tempfile
+import warnings
 import yaml
 import pandas
 from Bio import SeqIO
@@ -499,3 +500,19 @@ def get_techreps(sampletable, label):
         raise ValueError(err)
 
     return result
+
+
+def deprecation_handler(config):
+    """
+    Checks the config to see if anything has been deprecated.
+
+    Also makes any fixes that can be done automatically.
+    """
+    if 'assembly' in config:
+        config['organism'] = config['assembly']
+        warnings.simplefilter('default')
+        warnings.warn(
+            "'assembly' should be replaced with 'organism' in config files. "
+            "As a temporary measure, a new 'organism' key has been added with "
+            "the value of 'assembly'",
+            DeprecationWarning)

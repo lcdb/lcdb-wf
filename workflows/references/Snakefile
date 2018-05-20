@@ -12,6 +12,8 @@ from lib import common
 
 configfile: 'config/config.yaml'
 
+common.deprecation_handler(config)
+
 tempfile.tempdir = common.tempdir_for_biowulf()
 
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
