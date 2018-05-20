@@ -39,7 +39,7 @@ chipseq_refdict, chipseq_args = common.references_dict(chipseq_config.config)
 # nested)
 chromsizes = references(
     chipseq_refdict[
-        chipseq_config.config['assembly']
+        chipseq_config.config['organism']
     ][
         chipseq_config.config['aligner']['tag']
     ]['chromsizes']
@@ -100,13 +100,13 @@ rule target:
 
 rule sorted_chromsizes:
     input: chromsizes
-    output: os.path.join(config['output'], config['assembly'] + '.sorted.chromsizes')
+    output: os.path.join(config['output'], config['organism'] + '.sorted.chromsizes')
     shell:
         'sort -k1,1 {input} > {output}'
 
 rule chromsizes_bed:
     input: rules.sorted_chromsizes.output
-    output: os.path.join(config['output'], config['assembly'] + '.bed')
+    output: os.path.join(config['output'], config['organism'] + '.bed')
     shell:
         """awk '{{OFS="\\t"; print $1,"0",$2}}' {input} > {output}"""
 

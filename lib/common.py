@@ -125,7 +125,7 @@ def twobit_to_fasta(tmpfiles, outfile):
     shell('rm {fastas}')
 
 
-def download_and_postprocess(outfile, config, assembly, tag, type_):
+def download_and_postprocess(outfile, config, organism, tag, type_):
     """
     Given an output file, figure out what to do based on the config.
 
@@ -137,12 +137,12 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
 
     config : dict
 
-    assembly : str
-        Which assembly to use. Must be a key in the "references" section of the
+    organism : str
+        Which organism to use. Must be a key in the "references" section of the
         config.
 
     tag : str
-        Which tag for the assembly to use. Must be a tag for the assembly in
+        Which tag for the organism to use. Must be a tag for the organism in
         the config
 
     type_ : str
@@ -153,7 +153,7 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
 
     This function:
 
-     - uses `assembly`, `tag`, `type_` as a key into the config dict to figure
+     - uses `organism`, `tag`, `type_` as a key into the config dict to figure
        out:
          - what postprocessing function (if any) was specified along with
            its optional args
@@ -204,7 +204,7 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
         """
         shell("mv {origfn} {newfn}")
 
-    block = config['references'][assembly][tag][type_]
+    block = config['references'][organism][tag][type_]
 
     # postprocess can be missing, in which case we use the default above
     post_process = block.get('postprocess', None)
@@ -257,7 +257,7 @@ def references_dict(config):
     """
     Reformats the config file's reference section into a more practical form.
 
-    Files can be referenced as `d[assembly][tag][type]`.
+    Files can be referenced as `d[organism][tag][type]`.
 
     Parameters
     ----------
@@ -344,19 +344,19 @@ def references_dict(config):
 
     d = {}
     conversion_kwargs = {}
-    for assembly in config['references'].keys():
-        d[assembly] = {}
-        for tag in config['references'][assembly].keys():
+    for organism in config['references'].keys():
+        d[organism] = {}
+        for tag in config['references'][organism].keys():
             e = {}
-            for type_, block in config['references'][assembly][tag].items():
+            for type_, block in config['references'][organism][tag].items():
                 if type_ == 'metadata':
                     continue
                 e[type_] = (
                     '{references_dir}/'
-                    '{assembly}/'
+                    '{organism}/'
                     '{tag}/'
                     '{type_}/'
-                    '{assembly}_{tag}.{type_}'.format(**locals())
+                    '{organism}_{tag}.{type_}'.format(**locals())
                 )
 
                 # Add conversions if specified.
@@ -386,10 +386,10 @@ def references_dict(config):
                             ext = conversion_extensions[conversion]
                         output = (
                             '{references_dir}/'
-                            '{assembly}/'
+                            '{organism}/'
                             '{tag}/'
                             '{type_}/'
-                            '{assembly}_{tag}{ext}'.format(**locals())
+                            '{organism}_{tag}{ext}'.format(**locals())
                         )
                         e[conversion] = output
 
@@ -402,18 +402,18 @@ def references_dict(config):
                         ext = index_extensions[index]
 
                         e[index] = (
-                            '{references_dir}/{assembly}/{tag}/{index}/{assembly}_{tag}{ext}'
+                            '{references_dir}/{organism}/{tag}/{index}/{organism}_{tag}{ext}'
                             .format(**locals())
                         )
 
                     e['chromsizes'] = (
                         '{references_dir}/'
-                        '{assembly}/'
+                        '{organism}/'
                         '{tag}/'
                         '{type_}/'
-                        '{assembly}_{tag}.chromsizes'.format(**locals())
+                        '{organism}_{tag}.chromsizes'.format(**locals())
                     )
-                d[assembly][tag] = e
+                d[organism][tag] = e
     return d, conversion_kwargs
 
 

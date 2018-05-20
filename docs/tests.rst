@@ -1,3 +1,5 @@
+.. _running-the-tests:
+
 Running the tests
 =================
 

@@ -23,7 +23,7 @@ A chromsizes file is also built.
     # top-level section for references
     references:
 
-      # label for the assembly or species
+      # label for the organism or species
       sacCer3:
 
         # "tag" to differentiate between different versions.
@@ -46,7 +46,7 @@ A chromsizes file is also built.
                 - 'hisat2'
 
 Each block in the YAML file describes either a `fasta` or `gtf` file. Each
-block has at least the assembly, type, and a URL.  A block can optionally have
+block has at least the organism, type, and a URL.  A block can optionally have
 a `postprocess`, which is an arbitrary function (described below) that converts
 the downloaded URL to something that conforms to the standards of the workflow
 (also described below). By supplying a tag, we can differentiate between
@@ -144,7 +144,7 @@ this:
         )
 
 We specify this function to be called in the fasta config block like this (note
-that the module doesn't have to be the same name as the assembly, but it is
+that the module doesn't have to be the same name as the organism, but it is
 here for clarity):
 
 .. code-block:: yaml

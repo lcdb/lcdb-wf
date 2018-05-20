@@ -5,7 +5,7 @@
 sampletable: 'config/sampletable.tsv'
 
 # Which key in the `references` dict below to use
-assembly: 'dmel'
+organism: 'dmel'
 
 # If not specified here, use the environment variable REFERENCES_DIR.
 references_dir: 'references_data'
@@ -110,13 +110,13 @@ chipseq:
 
 fastq_screen:
   - label: rRNA
-    assembly: dmel
+    organism: dmel
     tag: test
   - label: PhiX
-    assembly: phix
+    organism: phix
     tag: default
   - label: Fly
-    assembly: dmel
+    organism: dmel
     tag: test
 
 merged_bigwigs:
@@ -135,7 +135,7 @@ aligner:
 
 # references has the structure:
 #
-#   assembly:           [ used as top-level dir for references ]
+#   organism:           [ used as top-level dir for references ]
 #     tag:              [ user-defined; often indicates version or release ]
 #       type:           [ must be either "gtf" or "fasta" ]
 #         url:          [ string or list of urls ]

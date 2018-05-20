@@ -6,7 +6,6 @@ RNA-seq workflow
 This workflow is used for RNA-seq and RNA-seq-like analysis (like euRNA-seq,
 RIP-seq or small RNA-seq).
 
-
 This workflow can use references created by the references workflow with no
 need to run the references workflow separately. This workflow performs the
 following tasks:
@@ -25,9 +24,10 @@ following tasks:
       configured genomes
     - Assess transcript coverage with Picard CollectRnaSeqMetrics
     - Build bigWigs (optionally strand-specific) created from BAM files
+    - Optionally merge bigWigs as defined by config
     - Aggregate QC results using MultiQC. Includes custom tables for library
       sizes and rRNA contamination
-    - Run various QC and differential expression. This is performed in an
+    - Run various QC and differential expression. This is  performed in an
       RMarkdown file that runs a standard DESeq2 differential expression
       analysis along with diagnostic plots, exported tables of differentially
       expressed genes for each contrast, and downstream GO analysis using
@@ -39,62 +39,37 @@ The DAG of jobs looks like this:
 
 .. image:: rnaseq.png
 
-Preliminary setup: AnnotationHub
---------------------------------
+To run the workflow on your own data:
 
-In order to support multiple genomes, we use the AnnotationHub package from
-Bioconductor as a uniform API to access annotation information for GO analysis
-and mapping gene ID to gene name and symbol. This uniformity and flexibility is
-offset by the need to do some preliminary setup to work around 1) running the
-analysis on nodes with no internet acess and 2) AnnotationHub caching issues.
+- Install the dependencies (:ref:`getting-started`)
+- Optionally run the workflow on provided test data (:ref:`running-the-tests`)
+- Search the Snakefile for the string ``NOTE`` and edit rules as described by those comments
+- Edit the sampletable to reflect your sample IDs and their FASTQ files (:ref:`sampletable`)
+- Edit the config file to reflect the references you want to use (:ref:`references-config`)
+- Edit the config file to reflect the optional bigWig merging you would like (:ref:`cfg-merged-bigwigs`)
 
-To run the analysis on a node with no internet access, we need to pre-download
-the annotation information. It's best to do this in a directory-specific
-manner, since Bioconductor updates their annotations frequently. You don't want
-to use the default cache location of ``~/.AnnotationHub``, because that could
-collide with other experiments that you don't want to update yet.
+If you are running on a local machine, from the ``workflows/rnaseq`` directory
+and with the environment activated, this will do a dry run:
 
-The solution is to:
-1. activate the environment on a machine with internet access
-2. change to the top level directory of the repo
-3. start R
-4. run the following code:
+.. code-block:: bash
 
-.. code-block:: r
+    snakemake -n
 
-    library(AnnotationHub)
-    ah <- AnnotationHub(cache='include/AnnotationHubCache')
-    idx <- grepl('Homo sapiens', ah$species) & ah$rdataclass == 'OrgDb'
+If no errors are displayed, run the workflow (assuming 8 CPUs):
 
-    # This may give multiple results. In order to choose, you can view more
-    # information on the options:
-    mcols(ah[idx])
+.. code-block:: bash
 
-    # Choose the annotation key you want to use. Accessing the OrgDb object
-    # triggers a download, and the download will go to the cache directory
-    # specified above.
-    orgdb <- ah[[annotation_key]]
+    snakemake -j 8 --use-conda
 
-Parameters and settings
------------------------
-See :ref:`config` for configuring in general; here we describe the
-RNA-seq-specific configuration.
+If you are running on a cluster other than NIH's Biowulf, edit the settings in
+the ``workflows/rnaseq/config/clusterconfig.yaml`` to reflect the settings for
+your cluster.
 
-:``config/sampletable.tsv``:
-    This TSV is loaded into the RMarkdown file, so any information you add here
-    will be available in R and can therefore be used in linear models with
-    DESeq2 or can be used to otherwise annotate samples.
+Edit ``include/WRAPPER_SLURM`` to reflect the environment name that you used.
 
+From the ``workflows/rnaseq`` directory:
 
-:``downstream/rnaseq.Rmd``:
-    This file runs the differential expression analysis and other downstream
-    work. Search for the string ``Assumption``. This indicates places where
-    assumptions have been made about the experiment (what columns to use as
-    factors, how to group samples, etc).
+.. code-block:: bash
 
-:``rnaseq_trackhub.py``:
-    This script builds the track hub for RNA-seq. Look for the string
-    ``ASSUMPTION`` and follow the instructions there for how to customize for
-    your particular experiment.
-
+    sbatch ../../include/WRAPPER_SLURM
 

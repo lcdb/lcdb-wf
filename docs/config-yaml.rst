@@ -7,13 +7,14 @@ Field                                        Used for References Used for RNA-se
 :ref:`references <cfg-references>`                    yes                 yes              yes      always
 :ref:`references_dir <cfg-references-dir>`            yes                 yes              yes      if REFERENCES_DIR env var not set
 :ref:`sampletable <cfg-sampletable>`                  .                   yes              yes      always
-:ref:`assembly <cfg-assembly>`                        .                   yes              yes      always
+:ref:`organism <cfg-organism>`                        .                   yes              yes      always
 :ref:`aligner <cfg-aligner>`                          .                   yes              yes      always
 :ref:`gtf <cfg-gtf>`                                  .                   yes              .        always for RNA-seq
-:ref:`chipseq <cfg-chipseq>`                          .                   .                yes      always for ChIP-seq
 :ref:`rrna <cfg-rrna>`                                .                   yes              .        if rRNA screening desired
 :ref:`salmon <cfg-salmon>`                            .                   yes              .        if Salmon quantification will be run
+:ref:`fastq_screen <cfg-fastq-screen>`                .                   yes              yes      if using Fastq_screen
 :ref:`merged_bigwigs <cfg-merged-bigwigs>`            .                   yes              yes      if you want to merge bigwigs
+:ref:`chipseq <cfg-chipseq>`                          .                   .                yes      always for ChIP-seq
 ============================================ =================== ================ ================= =========
 
 Example configs
@@ -26,7 +27,7 @@ RNA-seq
 
     references_dir: "/data/references"
     sampletable: "config/sampletable.tsv"
-    assembly: 'human'
+    organism: 'human'
     aligner:
       tag: 'gencode-v25'
       index: 'hisat2'
@@ -36,8 +37,16 @@ RNA-seq
     gtf:
       tag: '
 
-    # Portions omitted from "references" section for simplicity; see references
-    # config section for details.
+    fastq_screen:
+      - label: Human
+        organism: human
+        tag: gencode-v25
+      - label: rRNA
+        organism: human
+        tag: rRNA
+
+    # Portions have been omitted from "references" section below for
+    # simplicity; see references config section for details.
 
     references:
       human:
@@ -75,8 +84,8 @@ Required for references, RNA-seq and ChIP-seq
     files and (optionally) post-process them, and which indexes to build. This
     is the most complex section; see :ref:`references-config` for details.
 
-    Briefly, the example above has a single assembly configured: "human". That
-    assembly has three tags: "gencode-v25", "gencode-v25-transcriptome", and
+    Briefly, the example above has a single organism configured: "human". That
+    organism has three tags: "gencode-v25", "gencode-v25-transcriptome", and
     "rRNA".
 
 .. _cfg-references-dir:
@@ -104,27 +113,27 @@ Required for RNA-seq and ChIP-seq
 
         sampletable: "config/sampletable.tsv"
 
-.. _cfg-assembly:
+.. _cfg-organism:
 
-``assembly``
+``organism``
 ````````````
     This field selects the top-level section of the ``references`` section that
     will be used for the analysis. In the example above, "human" is the only
-    assembly configured.
+    organism configured.
 
     Example:
 
     .. code-block:: yaml
 
-        assembly: "human"
+        organism: "human"
 
 .. _cfg-aligner:
 
 ``aligner``
 ```````````
     This field has two sub-fields, and automatically uses the configured
-    ``assembly`` to select the top-level entry in the references section.
-    ``tag`` selects the tag from the assembly to use, and ``index`` selects
+    ``organism`` to select the top-level entry in the references section.
+    ``tag`` selects the tag from the organism to use, and ``index`` selects
     which aligner index to use. The relevant option from the example above
     would be "gencode-v25", which configures both bowtie2 and hisat2 indexes to
     be built. For RNA-seq we would likely choose "hisat2"; for ChIP-seq
@@ -140,6 +149,33 @@ Required for RNA-seq and ChIP-seq
 
 Optional fields
 ~~~~~~~~~~~~~~~
+
+.. _cfg-fastq-screen:
+
+``fastq_screen``
+````````````````
+
+    This section configures which Bowtie2 indexes should be used with
+    `fastq_screen`. It takes the form of a list of dictionaries. Each
+    dictionary has the keys:
+
+        - `label`: how to label the genome in the output
+        - `organism`: a configured organism. In the example above, there is only a single configured organism, "human".
+        - `tag`: a configured tag for that organism.
+
+    Each entry in the list must have a Bowtie2 index configured to be built.
+
+    Example:
+
+    .. code-block:: yaml
+
+        fastq_screen:
+          - label: Human
+            organism: human
+            tag: gencode-v25
+          - label: rRNA
+            organism: human
+            tag: rRNA
 
 .. _cfg-merged-bigwigs:
 
@@ -214,7 +250,7 @@ RNA-seq-only fields
     This field selects the reference tag to use for screening rRNA reads.
     Similar to the ``aligner`` field, it takes both a ``tag`` and ``index``
     key. The specified index must have been configured to be built for the
-    specified tag. It uses the already configured ``assembly``.
+    specified tag. It uses the already configured ``organism``.
 
     Example:
 
@@ -250,9 +286,3 @@ ChIP-seq-only fields
 ```````````
     This section configures the peak-calling stage of the ChIP-seq workflow.
     This can get fairly complicated. 
-
-
-
-
-
-:``assembly``:

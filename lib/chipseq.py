@@ -51,7 +51,7 @@ def peak_calling_dict(config, algorithm=None):
 
         # If metadata key has been provided, then use that to populate the
         # block as default values.
-        metadata = config['references'][config['assembly']][config['aligner']['tag']].get('metadata', {})
+        metadata = config['references'][config['organism']][config['aligner']['tag']].get('metadata', {})
         block.update(metadata)
 
         d[key] = block

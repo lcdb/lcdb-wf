@@ -139,7 +139,7 @@ rule hisat2:
     """
     input:
         fastq=rules.cutadapt.output.fastq,
-        index=[c.refdict[c.assembly][config['aligner']['tag']]['hisat2']]
+        index=[c.refdict[c.organism][config['aligner']['tag']]['hisat2']]
     output:
         bam=c.patterns['bam']
     log:
@@ -160,7 +160,7 @@ rule rRNA:
     """
     input:
         fastq=rules.cutadapt.output.fastq,
-        index=[c.refdict[c.assembly][config['rrna']['tag']]['bowtie2']]
+        index=[c.refdict[c.organism][config['rrna']['tag']]['bowtie2']]
     output:
         bam=c.patterns['rrna']['bam']
     log:
@@ -215,7 +215,7 @@ def fastq_screen_references():
     """
     refs = {}
     for i in config['fastq_screen']:
-        refs[i['label']] = c.refdict[i['assembly']][i['tag']]['bowtie2']
+        refs[i['label']] = c.refdict[i['organism']][i['tag']]['bowtie2']
     return refs
 
 
@@ -240,7 +240,7 @@ rule featurecounts:
     Count reads in annotations with featureCounts from the subread package
     """
     input:
-        annotation=c.refdict[c.assembly][config['gtf']['tag']]['gtf'],
+        annotation=c.refdict[c.organism][config['gtf']['tag']]['gtf'],
         bam=rules.hisat2.output
     output:
         counts='{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt'
@@ -445,7 +445,7 @@ rule collectrnaseqmetrics:
     """
     input:
         bam=c.patterns['bam'],
-        refflat=c.refdict[c.assembly][config['gtf']['tag']]['refflat']
+        refflat=c.refdict[c.organism][config['gtf']['tag']]['refflat']
     output:
         metrics=c.patterns['collectrnaseqmetrics']['metrics'],
         pdf=c.patterns['collectrnaseqmetrics']['pdf']
@@ -500,7 +500,7 @@ rule dupRadar:
     """
     input:
         bam=rules.markduplicates.output.bam,
-        annotation=c.refdict[c.assembly][config['gtf']['tag']]['gtf'],
+        annotation=c.refdict[c.organism][config['gtf']['tag']]['gtf'],
     output:
         density_scatter=c.patterns['dupradar']['density_scatter'],
         expression_histogram=c.patterns['dupradar']['expression_histogram'],
@@ -521,11 +521,11 @@ rule salmon:
     """
     input:
         fastq=c.patterns['cutadapt'],
-        index=c.refdict[c.assembly][config['salmon']['tag']]['salmon'],
+        index=c.refdict[c.organism][config['salmon']['tag']]['salmon'],
     output:
         c.patterns['salmon']
     params:
-        index_dir=os.path.dirname(c.refdict[c.assembly][config['salmon']['tag']]['salmon']),
+        index_dir=os.path.dirname(c.refdict[c.organism][config['salmon']['tag']]['salmon']),
         outdir=os.path.dirname(c.patterns['salmon'])
     log:
         c.patterns['salmon'] + '.log'
@@ -665,7 +665,7 @@ if 'merged_bigwigs' in config:
         """
         input:
             bigwigs=bigwigs_to_merge,
-            chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
+            chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
         output:
             c.patterns['merged_bigwig']
         log:

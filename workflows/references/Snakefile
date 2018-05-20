@@ -37,9 +37,9 @@ rule download_and_process:
     saves the resulting gzipped file to *.fasta.gz or *.gtf.gz.
     """
     output:
-        temporary('{references_dir}/{assembly}/{tag}/{_type}/{assembly}_{tag}.{_type}.gz')
+        temporary('{references_dir}/{organism}/{tag}/{_type}/{organism}_{tag}.{_type}.gz')
     run:
-        common.download_and_postprocess(output[0], config, wildcards.assembly, wildcards.tag, wildcards._type)
+        common.download_and_postprocess(output[0], config, wildcards.organism, wildcards.tag, wildcards._type)
 
 
 rule unzip:
@@ -49,9 +49,9 @@ rule unzip:
     input:
         rules.download_and_process.output
     output:
-        protected('{references_dir}/{assembly}/{tag}/{_type}/{assembly}_{tag}.{_type}')
+        protected('{references_dir}/{organism}/{tag}/{_type}/{organism}_{tag}.{_type}')
     log:
-        '{references_dir}/logs/{assembly}/{tag}/{_type}/{assembly}_{tag}.{_type}.log'
+        '{references_dir}/logs/{organism}/{tag}/{_type}/{organism}_{tag}.{_type}.log'
     shell: 'gunzip -c {input} > {output}'
 
 
@@ -60,11 +60,11 @@ rule bowtie2_index:
     Build bowtie2 index
     """
     input:
-        '{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
+        '{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta'
     output:
-        protected(aligners.bowtie2_index_from_prefix('{references_dir}/{assembly}/{tag}/bowtie2/{assembly}_{tag}'))
+        protected(aligners.bowtie2_index_from_prefix('{references_dir}/{organism}/{tag}/bowtie2/{organism}_{tag}'))
     log:
-        '{references_dir}/logs/{assembly}/{tag}/bowtie2/{assembly}_{tag}.log'
+        '{references_dir}/logs/{organism}/{tag}/bowtie2/{organism}_{tag}.log'
     run:
         prefix = aligners.prefix_from_bowtie2_index(output)
         shell(
@@ -79,11 +79,11 @@ rule hisat2_index:
     Build HISAT2 index
     """
     input:
-        '{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
+        '{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta'
     output:
-        protected(aligners.hisat2_index_from_prefix('{references_dir}/{assembly}/{tag}/hisat2/{assembly}_{tag}'))
+        protected(aligners.hisat2_index_from_prefix('{references_dir}/{organism}/{tag}/hisat2/{organism}_{tag}'))
     log:
-        '{references_dir}/logs/{assembly}/{tag}/hisat2/{assembly}_{tag}.log'
+        '{references_dir}/logs/{organism}/{tag}/hisat2/{organism}_{tag}.log'
     run:
         prefix = aligners.prefix_from_hisat2_index(output)
         shell(
@@ -98,11 +98,11 @@ rule symlink_fasta_to_index_dir:
     this makes the appropriate symlink
     """
     input:
-        fasta='{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
+        fasta='{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta'
     output:
-        '{references_dir}/{assembly}/{tag}/{index}/{assembly}_{tag}.fasta'
+        '{references_dir}/{organism}/{tag}/{index}/{organism}_{tag}.fasta'
     log:
-        '{references_dir}/logs/{assembly}/{tag}/{index}/{assembly}_{tag}.fasta.log'
+        '{references_dir}/logs/{organism}/{tag}/{index}/{organism}_{tag}.fasta.log'
     shell:
         'ln -sf {input} {output}'
 
@@ -110,13 +110,13 @@ rule symlink_fasta_to_index_dir:
 rule salmon_index:
     "Build salmon index"
     output:
-        protected('{references_dir}/{assembly}/{tag}/salmon/{assembly}_{tag}/hash.bin')
+        protected('{references_dir}/{organism}/{tag}/salmon/{organism}_{tag}/hash.bin')
     input:
-        fasta='{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
+        fasta='{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta'
     log:
-        '{references_dir}/logs/{assembly}/{tag}/salmon/{assembly}_{tag}.log'
+        '{references_dir}/logs/{organism}/{tag}/salmon/{organism}_{tag}.log'
     params:
-        outdir='{references_dir}/{assembly}/{tag}/salmon/{assembly}_{tag}'
+        outdir='{references_dir}/{organism}/{tag}/salmon/{organism}_{tag}'
     shell:
         'salmon index '
         '--transcripts {input.fasta} '
@@ -128,11 +128,11 @@ rule conversion_refflat:
     """Converts a GTF into refFlat format
     """
     input:
-        '{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf'
+        '{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf'
     output:
-        protected('{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.refflat')
+        protected('{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.refflat')
     log:
-        '{references_dir}/logs/{assembly}/{tag}/gtf/{assembly}_{tag}.refflat.log'
+        '{references_dir}/logs/{organism}/{tag}/gtf/{organism}_{tag}.refflat.log'
     shell:
         'gtfToGenePred -ignoreGroupsWithoutExons {input} {output}.tmp '
         '''&& awk '{{print $1"\t"$0}}' {output}.tmp > {output} '''
@@ -143,11 +143,11 @@ rule conversion_gffutils:
     """Converts a GTF into a gffutils sqlite3 database
     """
     input:
-        gtf='{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf'
+        gtf='{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf'
     output:
-        db=protected('{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf.db')
+        db=protected('{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf.db')
     log:
-        '{references_dir}/logs/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf.db.log'
+        '{references_dir}/logs/{organism}/{tag}/gtf/{organism}_{tag}.gtf.db.log'
     run:
         import gffutils
         kwargs = conversion_kwargs[output[0]]
@@ -160,11 +160,11 @@ rule chromsizes:
     """Creates a chromsizes table from fasta
     """
     input:
-        '{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta'
+        '{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta'
     output:
-        protected('{references_dir}/{assembly}/{tag}/fasta/{assembly}_{tag}.chromsizes')
+        protected('{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.chromsizes')
     log:
-        '{references_dir}/logs/{assembly}/{tag}/fasta/{assembly}_{tag}.fasta.log'
+        '{references_dir}/logs/{organism}/{tag}/fasta/{organism}_{tag}.fasta.log'
     shell:
         'export LC_COLLATE=C; '
         'rm -f {output}.tmp '
@@ -180,9 +180,9 @@ rule genelist:
     """Creates a list of unique gene names in the GTF
     """
     input:
-        gtf='{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.gtf'
+        gtf='{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf'
     output:
-        protected('{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.genelist')
+        protected('{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.genelist')
     run:
         attribute = conversion_kwargs[output[0]]['gene_id']
         import gffutils
@@ -202,9 +202,9 @@ rule annotations:
     input:
         rules.genelist.output
     output:
-        protected('{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}.{keytype}.csv')
+        protected('{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.{keytype}.csv')
     params:
-        prefix='{references_dir}/{assembly}/{tag}/gtf/{assembly}_{tag}',
+        prefix='{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}',
         ahkey=lambda wildcards, output: conversion_kwargs[output[0]]['ahkey']
     shell:
         '''Rscript -e "'''

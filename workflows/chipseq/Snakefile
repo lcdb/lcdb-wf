@@ -132,7 +132,7 @@ rule bowtie2:
     """
     input:
         fastq=rules.cutadapt.output.fastq,
-        index=[refdict[c.assembly][config['aligner']['tag']]['bowtie2']]
+        index=[refdict[c.organism][config['aligner']['tag']]['bowtie2']]
     output:
         bam=c.patterns['bam']
     log:
@@ -204,7 +204,7 @@ def fastq_screen_references():
     """
     refs = {}
     for i in config['fastq_screen']:
-        refs[i['label']] = c.refdict[i['assembly']][i['tag']]['bowtie2']
+        refs[i['label']] = c.refdict[i['organism']][i['tag']]['bowtie2']
     return refs
 
 
@@ -453,7 +453,7 @@ rule sicer:
                 c.patterns['merged_techreps'],
                 label=chipseq.samples_for_run(config, wc.sicer_run, 'sicer', 'control'),
             ),
-        chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
+        chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
     output:
         bed=c.patterns['peaks']['sicer']
     log:
@@ -478,7 +478,7 @@ rule macs2:
                 c.patterns['merged_techreps'],
                 label=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'control'),
             ),
-        chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
+        chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
     output:
         bed=c.patterns['peaks']['macs2']
     log:
@@ -504,7 +504,7 @@ rule spp:
                 c.patterns['merged_techreps'],
                 label=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'control'),
             ),
-        chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
+        chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
     output:
         bed=c.patterns['peaks']['spp'],
         enrichment_estimates=c.patterns['peaks']['spp'] + '.est.wig',
@@ -531,7 +531,7 @@ rule bed_to_bigbed:
     """
     input:
         bed='{prefix}.bed',
-        chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes']
+        chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes']
     output: '{prefix}.bigbed'
     run:
         # Based on the filename, identify the algorithm. Based on the contents,
@@ -628,7 +628,7 @@ if 'merged_bigwigs' in config:
                 c.patterns['bigwig'],
                 label=config['merged_bigwigs'][wc.merged_bigwig_label],
             ),
-            chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
+            chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
         output:
             c.patterns['merged_bigwig']
         log:

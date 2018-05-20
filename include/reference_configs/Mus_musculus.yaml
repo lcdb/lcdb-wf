@@ -8,7 +8,7 @@ references:
         reference_effective_genome_proportion: 0.87
 
       fasta:
-        url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M12/GRCm38.primary_assembly.genome.fa.gz'
+        url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M12/GRCm38.primary_organism.genome.fa.gz'
         indexes:
           - 'hisat2'
           - 'bowtie2'

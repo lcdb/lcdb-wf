@@ -1,7 +1,7 @@
 sampletable: 'config/sampletable.tsv'
 
 # Which key in the `references` dict below to use
-assembly: 'dmel'
+organism: 'dmel'
 
 # If not specified here, use the environment variable REFERENCES_DIR.
 references_dir: 'references_data'
@@ -22,13 +22,13 @@ salmon:
 
 fastq_screen:
   - label: rRNA
-    assembly: dmel
+    organism: dmel
     tag: test
   - label: PhiX
-    assembly: phix
+    organism: phix
     tag: default
   - label: Fly
-    assembly: dmel
+    organism: dmel
     tag: test
 
 merged_bigwigs:

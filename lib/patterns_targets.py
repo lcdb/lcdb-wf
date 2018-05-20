@@ -59,7 +59,7 @@ class SeqConfig(object):
         self.config['references_dir'] = common.get_references_dir(self.config)
         self.samples, self.sampletable = common.get_sampletable(self.config)
         self.refdict, self.conversion_kwargs = common.references_dict(self.config)
-        self.assembly = self.config['assembly']
+        self.organism = self.config['organism']
         self.patterns = yaml.load(open(patterns))
 
 
