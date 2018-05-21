@@ -67,8 +67,8 @@ if ADD_CHIPSEQ_PEAKS:
 
 
 # Number of shufflings for GAT
-# TEST_SETTINGS: change this to something like 1000 or more
-N = 100
+# N = 100 [TEST_SETTINGS +1]
+N = 10000
 
 targets = expand(
     '{outdir}/{algorithm}/{domain}/{query}/{query}_vs_{reference}.txt',
