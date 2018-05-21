@@ -101,3 +101,4 @@ See :ref:`getting-started` to get started.
    wrappers
    cluster
    autodoc
+   changelog
