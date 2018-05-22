@@ -53,6 +53,7 @@ r-upsetr
 salmon
 samtools
 snakemake <4.5.0
+sra-tools
 subread
 trackhub
 ucsc-bedtobigbed
