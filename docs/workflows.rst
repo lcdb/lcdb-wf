@@ -1,6 +1,17 @@
 Overview of workflows
 =====================
 
+.. note::
+
+    These workflows **are intended to be edited and customized by the user**.
+
+    The typical use-case is to clone the entire repository into a new directory
+    for each project. The Snakefiles and config files are then edited
+    accordingly for that particular project.
+
+
+Orientation of the directory structure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The following is a high-level overview of the files used by the workflows. See
 :ref:`config` for more specific configuration information.
 
@@ -48,26 +59,38 @@ Each workflow lives in its own directory:
 
 ::
 
-    [1] ├── references
-    [2] ├── rnaseq
-    [3] ├── chipseq
-    [4] ├── colocalization
-    [5] ├── external
-    [6] └── figures
+    ├── references/
+    │   ├── Snakefile
+    │   └── ...
+    ├── rnaseq/
+    │   ├── Snakefile
+    │   └── ...
+    ├── chipseq/
+    │   ├── Snakefile
+    │   └── ...
+    ├── colocalization/
+    │   ├── Snakefile
+    │   └── ...
+    ├── external/
+    │   ├── Snakefile
+    │   └── ...
+    └── figures/
+        ├── Snakefile
+        └── ...
 
-There
-are two general classes of workflows, the primary analysis and the downstream
-analysis. The primary analysis workflows are:
 
-1. :ref:`references`
-2. :ref:`rnaseq`
-3. :ref:`chipseq`
+There are two general classes of workflows, the primary analysis and the
+downstream analysis. The primary analysis workflows are:
+
+- :ref:`references`
+- :ref:`rnaseq`
+- :ref:`chipseq`
 
 and the downstream workflows are:
 
-4. :ref:`colocalization`
-5. :ref:`external`
-6. :ref:`figures`
+- :ref:`colocalization`
+- :ref:`external`
+- :ref:`figures`
 
 Each workflow is driven by a ``Snakefile`` and is configured by plain text
 `YAML <https://en.wikipedia.org/wiki/YAML>`_ and `TSV
@@ -81,21 +104,6 @@ While the references workflow can be run stand-alone, but usually it is run as
 a by-product of running the RNA-seq or ChIP-seq workflows. See
 :ref:`references` for details; here we will focus on RNA-seq and ChIP-seq which
 share common properties.
-
-When setting up an analysis, the three most important files in each workflow
-directory are:
-
-
-1. ``config/sampletable.tsv``. This configures which samples to run, their
-   locations on disk, and other optional metadata for your experiment.
-2. ``config/config.yaml``. This configures reference genomes to use and the
-   location of your sampletable. For convenience this is a hard-coded filename,
-   but see :ref:`config` for how to modify.
-3. ``Snakefile``. This contains all the rules to run.
-
-When the Snakefile is run, it loads the config file, which in turn loads the
-configured sampletable. This information is used to tell Snakemake what files
-need to be created.
 
 Where possible, we prefer to have rules use the normal command-line syntax for
 tools (examples include rules calling samtools, deepTools bamCoverage, picard,

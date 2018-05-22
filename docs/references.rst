@@ -3,34 +3,20 @@
 References workflow
 ===================
 
-This workflow is intended to be `include:`-ed into other workflows that depend
-on reference fastas, indexes, and annotations. In that case, rules in this
-references workflow will only be run for those files asked for in the parent
-workflow.
+This workflow is not normally run on its own. Rather, it is intended to be
+`include:`-ed into other workflows that depend on reference fastas, indexes,
+and annotations. That way, rules in this references workflow will only be run
+for those files asked for in the parent workflow.
 
-This workflow can also be called on its own, in which case it will build
-**all** of the references and indexes specified in the config. This can be
-helpful when setting up the workflows for the first time on a new machine. Run
-it like this::
+It is still possible to run this workflow on its own. In that case, it will
+build **all** of the references and indexes specified in the config. This can
+be helpful when setting up the workflows for the first time on a new machine.
 
-    snakemake -s references.snakefile --configfile config/config.yaml
-
-In both cases, it depends on the `references` section being in the global
-config dictionary. See below for details.
+In all cases, it depends on the `references` section being in
+``config/config.yaml``. See :ref:`references-config` for details on
+configuring.
 
 .. image:: references.png
-
-Overview
---------
-The references workflow is based on the idea that while each genome's source
-files (FASTA, GTF) may come from different places and have slightly different
-formatting, once they are well-formatted they can be used to create a hisat2
-index, a list of genes, intergenic regions, and so on without any further
-customization.
-
-The challenging part is the "well-formatted" part. The config file allows very
-flexible specification of how to create the files by providing a sort of plugin
-architecture.
 
 References workflow and the reference dict
 ------------------------------------------
@@ -47,7 +33,6 @@ The format of the config YAML is designed to be convenient to edit and
 maintain. It can be awkward to use within a Snakefile though, so for
 convenience it is converted into an easier-to-access dictionary in
 the ``c`` config object in each workflow, accessible as ``c.refdict``.
-
 
 If we have the following `references` section defined in our config file (see
 :ref:`config` for more):

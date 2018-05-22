@@ -154,16 +154,18 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
 
     This function:
 
-     - uses `organism`, `tag`, `type_` as a key into the config dict to figure
-       out:
-         - what postprocessing function (if any) was specified along with
-           its optional args
-         - the URL[s] to download
-     - resolves the name of the postprocessing function (if provided) and
-       imports it
-     - downloads the URL[s] to tempfile[s]
-     - calls the imported postprocessing function using the tempfile[s] and
-       outfile plus any additional specified arguments.
+        - uses `organism`, `tag`, `type_` as a key into the config dict to figure
+          out:
+
+            - what postprocessing function (if any) was specified along with
+              its optional args
+            - the URL[s] to download
+
+        - resolves the name of the postprocessing function (if provided) and
+          imports it
+        - downloads the URL[s] to tempfile[s]
+        - calls the imported postprocessing function using the tempfile[s] and
+          outfile plus any additional specified arguments.
 
 
     The postprocessing function must have one of the following two signatures,
@@ -272,6 +274,7 @@ def references_dict(config):
 
     >>> from textwrap import dedent
     >>> fout = open('tmp', 'w')
+
     >>> _ = fout.write(dedent('''
     ... references_dir: "/data"
     ... references:

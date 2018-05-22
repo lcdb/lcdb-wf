@@ -3,12 +3,115 @@
 
 References config
 =================
-The references workflow has rules that convert a standardized FASTA or GTF file
-into various indexes and other reference files used by tools.
 
-The trick is the "standardized" part.
+Using existing configs
+----------------------
+If you just want to use some references configs that work, the
+``include/reference_configs`` directory has configs that you can paste into
+your ``config.yaml``. Copy everything except the leading ``references:`` into
+your config file's ``references:`` section.
 
-The way this is resolved is 
+For example if ``include/reference_configs/PhiX.yaml`` contains this:
+
+.. code-block:: yaml
+
+    # contents of include/reference_configs/PhiX.yaml
+    references:
+      phix:
+        default:
+          fasta:
+            url: 'ftp://...PhiX_Illumina_RTA.tar.gz'
+            postprocess: "lib.postprocess.phix.fasta_postprocess"
+            indexes:
+              - 'bowtie2'
+
+And ``include/reference_configs/Saccharomyces_cerevisiae.yaml`` contains this:
+
+.. code-block:: yaml
+
+    # contents of include/reference_configs/Saccharomyces_cerevisiae.yaml
+    references:
+      sacCer3:
+        default:
+          fasta:
+            url: 'http://...chromFa.tar.gz'
+            postprocess: 'lib.postprocess.sacCer3.fasta_postprocess'
+            indexes:
+                - 'bowtie2'
+                - 'hisat2'
+
+Then you can copy their contents into your ``config/config.yaml`` for your
+workflow of choice so that the references section looks like this:
+
+.. code-block:: yaml
+
+    # contents of e.g. workflows/rnaseq/config/config.yaml
+
+    sampletable: 'config/sampletable.tsv'
+    organism: 'sacCer3'
+
+    aligner:
+      index: 'hisat2'
+      tag: 'default'
+
+    # ...other items omitted for clarity...
+
+    # References section with parts copied from example configs
+    references:
+      phix:
+        default:
+          fasta:
+            url: 'ftp://...PhiX_Illumina_RTA.tar.gz'
+            postprocess: "lib.postprocess.phix.fasta_postprocess"
+            indexes:
+              - 'bowtie2'
+
+      sacCer3:
+        default:
+          fasta:
+            url: 'http://...chromFa.tar.gz'
+            postprocess: 'lib.postprocess.sacCer3.fasta_postprocess'
+            indexes:
+                - 'bowtie2'
+                - 'hisat2'
+
+The example configs are just starting points; feel free to add or modify your
+``config.yaml`` as needed.
+
+The remainder of this section explains how to customize the references, to add
+your own or modify the existing examples.
+
+Overview
+--------
+The references workflow is based on the idea that while each genome's source
+files (FASTA, GTF) may come from different places and have slightly different
+formatting, once they are well-formatted they can be used to create a hisat2
+index, a bowtie2 index, a list of genes, intergenic regions, and so on without
+any further customization.
+
+The challenging part is the "well-formatted" part. To solve this, the config
+file and references building system allows a very flexible specification of how
+to modify references via a plugin architecture.
+
+- Each key in the references section refers to an **organism**.
+- An organism has one or more **tags**.
+- Each **tag** has a FASTA file and/or a GTF (or GFF) file associated with it.
+- The FASTA and/or GTF specify a URI or list of URIs from which to download the
+  raw file(s). These can be `ftp://`, `http://`, `https://`, or `file://` URIs.
+- An optional **postprocess** key specifies the import path to a Python module.
+- For FASTA files one or more **indexes** are requested
+- For GTF files, zero or more **conversions** are requested.
+
+
+.. code-block:: yaml
+
+    references:                                    # top-level key in config file, must exist
+      human:                                       # organism
+        gencode-v25:                               # tag
+          # fasta and gtf config will go here...
+
+        gencode-v25-transcriptome:                 # a second tag
+          # fasta and gtf config will go here...
 
 It's probably easiest to show an example config and then describe what's
 happening. This example downloads a tarball of fasta files for the yeast

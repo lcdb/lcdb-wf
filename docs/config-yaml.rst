@@ -1,5 +1,14 @@
+.. _config-yaml:
+
 Config YAML
 ===========
+
+Config files are expected to be in the file ``config/config.yaml`` relative to
+the Snakefile. It is possible to use Snakemake mechanisms such as ``--config``
+(to override a particular config value) and ``--configfile`` (to update the
+config with a different file), but it is easiest to edit the existing
+``config/config.yaml`` in place. This has the additional benefit of storing all
+config information in one place for reproducibility.
 
 ============================================ =================== ================ ================= =========
 Field                                        Used for References Used for RNA-seq Used for ChIP-seq Required
@@ -9,11 +18,11 @@ Field                                        Used for References Used for RNA-se
 :ref:`sampletable <cfg-sampletable>`                  .                   yes              yes      always
 :ref:`organism <cfg-organism>`                        .                   yes              yes      always
 :ref:`aligner <cfg-aligner>`                          .                   yes              yes      always
+:ref:`fastq_screen <cfg-fastq-screen>`                .                   yes              yes      if using Fastq_screen
+:ref:`merged_bigwigs <cfg-merged-bigwigs>`            .                   yes              yes      if you want to merge bigwigs
 :ref:`gtf <cfg-gtf>`                                  .                   yes              .        always for RNA-seq
 :ref:`rrna <cfg-rrna>`                                .                   yes              .        if rRNA screening desired
 :ref:`salmon <cfg-salmon>`                            .                   yes              .        if Salmon quantification will be run
-:ref:`fastq_screen <cfg-fastq-screen>`                .                   yes              yes      if using Fastq_screen
-:ref:`merged_bigwigs <cfg-merged-bigwigs>`            .                   yes              yes      if you want to merge bigwigs
 :ref:`chipseq <cfg-chipseq>`                          .                   .                yes      always for ChIP-seq
 ============================================ =================== ================ ================= =========
 
@@ -22,6 +31,9 @@ Example configs
 
 RNA-seq
 ~~~~~~~
+
+The config file for RNA-seq is expected to be in
+``workflows/rnaseq/config/config.yaml``:
 
 .. code-block:: yaml
 
@@ -35,7 +47,7 @@ RNA-seq
       tag: 'rRNA'
       index: 'bowtie2'
     gtf:
-      tag: '
+      tag: 'gencode-v25'
 
     fastq_screen:
       - label: Human
@@ -71,6 +83,110 @@ RNA-seq
             indexes:
                 - 'bowtie2'
 
+ChIP-seq
+~~~~~~~~
+
+The config file for ChIP-seq is expected to be in
+``workflows/chipseq/config/config.yaml``.
+
+The major differences between ChIP-seq and RNA-seq configs are:
+
+- ChIP-seq has no ``gtf`` or ``rrna`` fields
+- ChIP-seq has a ``chipseq: peak_calling:`` section
+
+.. code-block:: yaml
+
+    sampletable: 'config/sampletable.tsv'
+    organism: 'dmel'
+
+    aligner:
+      index: 'bowtie2'
+      tag: 'test'
+
+    chipseq:
+      peak_calling:
+
+        - label: gaf-embryo-1
+          algorithm: macs2
+          ip:
+            - gaf-embryo-1
+          control:
+            - input-embryo-1
+
+        - label: gaf-embryo-1
+          algorithm: spp
+          ip:
+            - gaf-embryo-1
+          control:
+            - input-embryo-1
+
+        - label: gaf-wingdisc-pooled
+          algorithm: macs2
+          ip:
+            - gaf-wingdisc-1
+            - gaf-wingdisc-2
+          control:
+            - input-wingdisc-1
+            - input-wingdisc-2
+
+        - label: gaf-wingdisc-pooled
+          algorithm: spp
+          ip:
+            - gaf-wingdisc-1
+            - gaf-wingdisc-2
+          control:
+            - input-wingdisc-1
+            - input-wingdisc-2
+
+    fastq_screen:
+      - label: PhiX
+        organism: phix
+        tag: default
+      - label: Human
+        organism: human
+        tag: gencode-v25
+
+    merged_bigwigs:
+      input-wingdisc:
+        - input-wingdisc-1
+        - input-wingdisc-2
+      gaf-wingdisc:
+        - gaf-wingdisc-1
+        - gaf-wingdisc-2
+      gaf-embryo:
+        - gaf-embryo-1
+
+
+    # Portions have been omitted from "references" section below for
+    # simplicity; see references config section for details.
+
+    references:
+      human:
+        gencode-v25:
+          fasta:
+            url: 'ftp://.../genome.fa.gz'
+            indexes:
+              - 'hisat2'
+              - 'bowtie2'
+          gtf:
+            url: 'ftp://.../annotation.gtf.gz'
+
+      dmel:
+        test:
+          fasta:
+            url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa"
+            postprocess: 'lib.common.gzipped'
+            indexes:
+              - 'bowtie2'
+              - 'hisat2'
+
+      phix:
+        default:
+          fasta:
+            url: 'ftp://...'
+            indexes:
+              - 'bowtie2'
+
 
 Field descriptions
 ------------------
@@ -81,31 +197,36 @@ Required for references, RNA-seq and ChIP-seq
 ``references``
 ``````````````
     This section defines labels for references, where to get FASTA and GTF
-    files and (optionally) post-process them, and which indexes to build. This
-    is the most complex section; see :ref:`references-config` for details.
+    files and (optionally) post-process them, and which indexes to build.
 
-    Briefly, the example above has a single organism configured: "human". That
-    organism has three tags: "gencode-v25", "gencode-v25-transcriptome", and
-    "rRNA".
+    Briefly, the example above has a single organism configured ("human"). That
+    organism has three tags ("gencode-v25", "gencode-v25-transcriptome", and
+    "rRNA").
+
+    This is the most complex section and is documented elsewhere (see
+    :ref:`references-config`).
+
 
 .. _cfg-references-dir:
 
 ``references_dir``
 ``````````````````
-    Top-level directory in which to create references. If not specified the
-    workflows will look for the environment variable ``REFERENCES_DIR``. If
-    ``REFERENCES_DIR`` env var exists, it takes precedence over the
-    ``references_dir`` field in the config file.
+    Top-level directory in which to create references.
+
+    If not specified, uses the environment variable ``REFERENCES_DIR``.
+
+    If specified and ``REFERENCES_DIR`` also exists, ``REFERENCES_DIR`` takes
+    precedence.
 
 Required for RNA-seq and ChIP-seq
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. _cfg-sampletable:
 
-``sampletable``
-```````````````
+``sampletable`` field
+`````````````````````
     Path to sampletable file which, at minimum, list sample names and paths to
-    FASTQ files. It is relative to the Snakefile. See :ref:`sampletable` for
-    more info on the expected contents of the file.
+    FASTQ files. The path is relative to the Snakefile. See :ref:`sampletable`
+    for more info on the expected contents of the file.
 
     Example:
 
@@ -115,8 +236,8 @@ Required for RNA-seq and ChIP-seq
 
 .. _cfg-organism:
 
-``organism``
-````````````
+``organism`` field
+``````````````````
     This field selects the top-level section of the ``references`` section that
     will be used for the analysis. In the example above, "human" is the only
     organism configured.
@@ -129,8 +250,8 @@ Required for RNA-seq and ChIP-seq
 
 .. _cfg-aligner:
 
-``aligner``
-```````````
+``aligner`` config section
+``````````````````````````
     This field has two sub-fields, and automatically uses the configured
     ``organism`` to select the top-level entry in the references section.
     ``tag`` selects the tag from the organism to use, and ``index`` selects
@@ -152,8 +273,8 @@ Optional fields
 
 .. _cfg-fastq-screen:
 
-``fastq_screen``
-````````````````
+``fastq_screen`` config section
+```````````````````````````````
 
     This section configures which Bowtie2 indexes should be used with
     `fastq_screen`. It takes the form of a list of dictionaries. Each
@@ -179,8 +300,8 @@ Optional fields
 
 .. _cfg-merged-bigwigs:
 
-``merged_bigwigs``
-``````````````````
+``merged_bigwigs`` config section
+`````````````````````````````````
     This section controls optional merging of signal files in bigWig format.
     Its format differs depending on RNA-seq or ChIP-seq, due to how strands are
     handled in those workflows.
@@ -244,8 +365,8 @@ RNA-seq-only fields
 ~~~~~~~~~~~~~~~~~~~
 .. _cfg-rrna:
 
-``rrrna``
-`````````
+``rrrna`` field
+```````````````
 
     This field selects the reference tag to use for screening rRNA reads.
     Similar to the ``aligner`` field, it takes both a ``tag`` and ``index``
@@ -263,8 +384,8 @@ RNA-seq-only fields
 
 .. _cfg-gtf:
 
-``gtf``
-```````
+``gtf`` field
+`````````````
 
     This field selects the reference tag to use for counting reads in features.
     The tag must have had a ``gtf:`` section specified; see
@@ -272,17 +393,94 @@ RNA-seq-only fields
 
 .. _cfg-salmon:
 
-``salmon``
-``````````
+``salmon`` field
+````````````````
     This field selects the reference tag to use for the Salmon index (if used).
     The tag must have had a FASTA configured, and an index for "salmon" must
     have been configured to be built.
 
 ChIP-seq-only fields
 ~~~~~~~~~~~~~~~~~~~~
+
 .. _cfg-chipseq:
 
-``chipseq``
-```````````
-    This section configures the peak-calling stage of the ChIP-seq workflow.
-    This can get fairly complicated. 
+``chipseq`` config section
+``````````````````````````
+    This section configures the peak-calling stage of the ChIP-seq workflow. It
+    currently expects a single key, ``peak_calling``, which is a list of
+    peak-calling runs.
+
+    A peak-calling run is a dictionary configuring a single peak-calling run
+    which results in a single BED file of called peaks. A peak-calling run is
+    uniquely described by its ``label`` and ``algorithm``. This way, we can use
+    the same label (e.g., `gaf-embryo-1`) across multiple peak-callers to help
+    organize the output.
+
+    Here is a minimal example of a peak-calling config section. It defines
+    a single peak-calling run using the `macs2` algorithm. Note that the
+    ``ip:`` and ``control:`` keys are lists of **labels** from the ChIP-seq
+    sample table's ``label`` column, not sample IDs from the first column.
+
+    .. code-block:: yaml
+
+        chipseq:
+          peak_calling:
+
+            - label: gaf-embryo-1
+              algorithm: macs2
+              ip:
+                - gaf-embryo-1
+              control:
+                - input-embryo-1
+
+    The above peak-calling config will result in a file
+    ``data/chipseq_peaks/macs2/gaf-embryo-1/peaks.bed`` (that pattern is
+    defined in ``chipseq_patterns.yaml`` if you need to change it).
+
+    We can specify additional command-line arguments that are passed verbatim
+    to `macs2` with the ``extra:`` section, for example:
+
+    .. code-block:: yaml
+
+        chipseq:
+          peak_calling:
+
+            - label: gaf-embryo-1
+              algorithm: macs2
+              ip:
+                - gaf-embryo-1
+              control:
+                - input-embryo-1
+              extra: '--nomodel --extsize 147'
+
+
+    `macs2` supports multiple IP and input files, which internally are merged
+    by `macs2`. We can supply multiple IP and input labels for biological
+    replicates to get a set of peaks called on pooled samples. Note that we
+    give it a different label so it doesn't overwrite the other peak-calling
+    run we already have configured.
+
+    .. code-block:: yaml
+
+        chipseq:
+          peak_calling:
+
+            - label: gaf-embryo-1
+              algorithm: macs2
+              ip:
+                - gaf-embryo-1
+              control:
+                - input-embryo-1
+              extra: '--nomodel --extsize 147'
+
+
+            - label: gaf-embryo-pooled
+              algorithm: macs2
+              ip:
+                - gaf-embryo-1
+                - gaf-embryo-2
+              control:
+                - input-embryo-1
+                - input-embryo-2
+
+

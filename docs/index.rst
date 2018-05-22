@@ -90,7 +90,6 @@ See :ref:`getting-started` to get started.
    getting-started
    tests
    workflows
-   patterns-targets
    config
    references
    rnaseq
@@ -100,5 +99,6 @@ See :ref:`getting-started` to get started.
    colocalization
    wrappers
    cluster
+   downstream-rnaseq
    autodoc
    changelog

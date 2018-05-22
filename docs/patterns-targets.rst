@@ -1,37 +1,58 @@
 .. _patterns-and-targets:
 
 Patterns and targets
---------------------
+====================
 We use a hybrid approach to specifying input and output patterns for Snakemake
 rules. These are used in the RNA-seq and ChIP-seq workflows.
 
-**Patterns** are defined in
+Patterns
+--------
 
-- ``workflows/rnaseq/config/rnaseq_patterns.yaml`` for RNA-seq
-- ``workflows/chipseq/config/chipseq_patterns.yaml`` for ChIP-seq
+**Patterns** are filename-like strings with placeholders in them, like this::
 
-Generally you don't need to modify them (though you can). This file is useful
-as a guide to the files that are created by the workflow.
+    data/rnaseq_samples/{sample}/{sample}_R1.fastq.gz
 
+Generally you don't need to modify them (though you can). The patterns file is
+useful as a guide to the files that are created by the workflow.
+
+- RNA-seq patterns are in ``workflows/rnaseq/config/rnaseq_patterns.yaml``
+- ChIP-seq patterns are in ``workflows/chipseq/config/chipseq_patterns.yaml``
+
+
+Targets
+-------
 **Targets** are created by filling in those patterns with metadata
 (samplenames, peak-calling runs) as configured in the sample table and config
 file. It's the equivalent of a complicated `expand()` call in a standard
 Snakefile.
 
+If we had 2 samples, A and B, then filling in the pattern::
+
+    data/rnaseq_samples/{sample}/{sample}_R1.fastq.gz
+
+would result in::
+
+    data/rnaseq_samples/A/A_R1.fastq.gz
+    data/rnaseq_samples/B/B_R1.fastq.gz
+
+
+How patterns and targets are used in Snakefiles
+-----------------------------------------------
 Briefly:
 
-- Each Snakefile has access to an object, ``c``
+- Each Snakefile has access to an object, ``c``.
 - **Patterns** are accessed via the ``c.patterns`` dictionary. The structure of
-  this dictionary matches that of the patterns file. Patterns still have the `{}`
-  placeholders as written in that file.
-- **Targets** are accessed via the ``c.targets`` dictionary. Their placeholders
-  are filled in. The structure matches that of ``c.patterns``, but since the
-  placeholders are filled in, the single string from patterns may turn into
-  a list after being filled in using the `snakemake.expand()` function.
+  ``c.patterns`` matches that of the patterns file. Patterns still have the
+  ``{}`` placeholders as written in that file.
+- **Targets** are accessed via the ``c.targets`` dictionary. The structure
+  matches that of ``c.patterns``, but the placeholders are filled in based on
+  other configuration information such that each single string from patterns
+  may turn into a list after being filled in using the `snakemake.expand()`
+  function.
 - We can collapse arbitrary groups of patterns or targets together into
   a flattened list with ``lib.utils.flatten()``.
 
-For example:
+Here is an example rule that uses patterns and targets from the ``c`` object:
 
 .. code-block:: python
 
@@ -48,8 +69,20 @@ For example:
         shell:
             'cutadapt {input} -o {output}'
 
-In the example above, the targets and patterns would have the following values,
-as configured by default in the ``rnaseq_patterns.yaml`` file:
+In the example above, ``c.patterns['fastq']`` and ``c.patterns['cutadapt']``
+have the following values, configured in ``config/rnaseq_patterns.yaml``:
+
+.. code-block:: python
+
+    c.patterns['fastq']
+    # data/rnaseq_samples/{sample}/{sample}_R1.fastq.gz
+
+    c.patterns['cutadapt']
+    # data/rnaseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz
+
+
+And ``c.targets[['cutadapt']`` might have the following values, after being
+filled in with the sampletable (see below for details):
 
 .. code-block:: python
 
@@ -59,17 +92,13 @@ as configured by default in the ``rnaseq_patterns.yaml`` file:
     # data/rnaseq_samples/sample1/sample3_R1.cutadapt.fastq.gz
     # data/rnaseq_samples/sample1/sample4_R1.cutadapt.fastq.gz
 
-    c.patterns['fastq']
-    # data/rnaseq_samples/{sample}/{sample}_R1.fastq.gz
 
-    c.patterns['cutadapt']
-    # data/rnaseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz
 
 
 This has several advantages:
 
-- Patterns can be automatically filled in by the sampletable, so the workflow
-  is largely controlled by a TSV.
+- Patterns can be automatically filled in by the sampletable and config file,
+  so the workflow is largely controlled by a TSV file and a YAML file.
 
 - Storing filenames outside individual Snakefiles allows us to access them much
   more easily from other Snakefiles or downstream scripts.
@@ -87,15 +116,13 @@ This has several advantages:
 - It's easier to understand the output locations of files by looking at the
   patterns file than it is to scroll through a Snakefile.
 
-- Downstream tasks can access these patterns and targets as well, avoiding the
-  need to retype filename patterns and maintain them across multiple workflows.
-
 - Letting the ``c`` objects do the work of filling in patterns allows complex
   work to be abstracted away, resulting in simpler Snakefiles. For example,
   filling in the output BED files across many arbitrary-named configured
   peak-calling runs gets complicated, but since this is handled transparently
-  by the ``c`` object, we do things like ``utils.flatten(c.targets['peaks'])``
-  to get all the BED files for all peak-callers and all peak-calling runs.
+  by the ``c`` object, we can do things like
+  ``utils.flatten(c.targets['peaks'])`` to get all the BED files for all
+  peak-callers and all peak-calling runs.
 
 .. seealso::
 
@@ -109,6 +136,6 @@ This has several advantages:
 
     In addition, the `figures Snakefile
     <https://github.com/lcdb/lcdb-wf/blob/master/workflows/figures/Snakefile>`_,
-    which demonstrates how the ChIP-seq and RNA-seq patterns and targets can be
-    used for downstream work.
+    demonstrates how the ChIP-seq and RNA-seq patterns and targets can be used
+    for downstream work.
 

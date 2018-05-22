@@ -3,31 +3,37 @@
 Initial setup
 =============
 
+.. note::
+
+    `lcdb-wf` is tested and heavily used on Linux.
+
+    It is likely to work on macOS as long as all relevant conda packages are
+    available for macOS -- though this is not tested.
+
+    It will **not** work on Windows due to a general lack of support of Windows
+    in bioinformatics tools.
 
 Setup required once per system
 ------------------------------
-The following needs to be performed on each system on which you will be running
-the workflows.
+We use `bioconda <https://bioconda.github.io>`_ to automatically install
+software into the working directory without needing admin rights on the
+machine.
 
-1. Set up bioconda
-~~~~~~~~~~~~~~~~~~
+The following steps need to be performed once per machine:
 
-Follow the instructions for setting up `bioconda
-<https://bioconda.github.io>`_.  This includes installing `conda` and setting
-up the channels in the correct order.
+- If you have the Anaconda Python distribution, you already have conda.
+  Otherwise, install `Miniconda <https://conda.io/miniconda.html>`_.
 
-This is required to be able to have all software automatically installed into
-the working directory without needing admin rights on the machine.
-
-2. Add the `lcdb` channel (one-time setup)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This enables the `lcdb` conda channel so that additional dependencies not
-included in bioconda (primarily, the ``lcdblib`` package) can be installed:
+- Run the following commands to set up your conda channels. This puts the
+  `lcdb` channel as lowest priority (this channel has the `lcdblib` package),
+  and then matches the channel order required by `bioconda`.
 
 .. code-block:: bash
 
     conda config --add channels lcdb
+    conda config --add channels defaults
+    conda config --add channels conda-forge
+    conda config --add channels bioconda
 
 
 Setup required once per project
@@ -47,21 +53,26 @@ change to that directory.
     cd my-project-dir
 
 
+.. _create-env:
+
 2. Create a new conda environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This creates a top-level environment with Snakemake and other requirements. It
-should be `activated` any time you'll be working with these workflows.
+The following command will create a top-level environment with Snakemake and
+other requirements. It needs to be `activated` any time you'll be working with
+these workflows.
 
 If you're not familiar with ``conda``, it installs particular versions of
 software in an isolated location on your computer. When you "activate" the
 environment, it places that location at the beginning of your ``$PATH``
-variable, so that any executables there are found first.
+variable, so that any executables there are found first. It does not affect any
+existing installation of any software on your machine and does not need root
+privileges.
 
-Here we're using the name "lcdb-wf" for the new environment, but you can use
-anything. In fact, it's recommended that you choose a unique name for each
-project. That way you can update packages in each project independently of any
-others.
+**It is recommended that you use a different environment name for each
+project**. That way you can update packages in each project independently of
+any others. Here we use the name "lcdb-wf" for the new environment, but you can
+use anything.
 
 ::
 
@@ -73,7 +84,13 @@ Then activate the environment::
 
 Eventually when you're done, you can "deactivate", which removes the
 environment location from your ``$PATH`` until the next time you activate it.
-You might want to hold off on this for now::
+You might want to hold off on this for now if you'll be running the tests::
 
     source deactivate
 
+Next steps
+----------
+
+You may want to run tests to make sure everything is set up (see
+:ref:`running-the-tests`), or jump right in to learning about how to configure
+the workflows for your particular experiment (see :ref:`config`).
