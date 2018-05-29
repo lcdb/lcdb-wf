@@ -82,6 +82,7 @@ references:
 
       fasta:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa"
+        postprocess: 'lib.common.gzipped'
         indexes:
           - 'bowtie2'
           - 'hisat2'
