@@ -147,7 +147,7 @@ references:
   dmel:
     test:
       fasta:
-        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/add-chipseq/data/seq/dm6.small.fa"
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa"
         postprocess: 'lib.postprocess.dm6.fasta_postprocess'
         indexes:
           - 'bowtie2'
