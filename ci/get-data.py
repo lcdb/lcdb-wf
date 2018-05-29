@@ -4,7 +4,7 @@ from snakemake.shell import shell
 from snakemake.utils import makedirs
 
 shell.executable('/bin/bash')
-BRANCH = 'use-chr'
+BRANCH = 'master'
 URL = 'https://github.com/lcdb/lcdb-test-data/blob/{0}/data/{{}}?raw=true'.format(BRANCH)
 
 

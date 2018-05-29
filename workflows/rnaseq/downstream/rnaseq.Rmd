@@ -471,8 +471,14 @@ for (name in names(res.list)) {
     colnames(gene.tpm) <- c("Gene", colnames(my.normalized.counts))
 
     # report per-sample Salmon counts to output files
-    merged.results.deseq.counts <- merge(data.frame(res.list[[name]]), my.normalized.counts, by.x="gene", by.y="row.names", all.x=TRUE)
-    merged.results.salmon.tpm <- merge(data.frame(res.list[[name]]), gene.tpm, by.x="gene", by.y="Gene", all.x=TRUE)
+    merged.results.deseq.counts <- merge(data.frame(res.list[[name]]), my.normalized.counts, by.x="gene", by.y="row.names", all.x=TRUE, sort=FALSE)
+    merged.results.salmon.tpm <- merge(data.frame(res.list[[name]]), gene.tpm, by.x="gene", by.y="Gene", all.x=TRUE, sort=FALSE)
+    rownames(merged.results.deseq.counts) <- merged.results.deseq.counts$gene
+    rownames(merged.results.salmon.tpm)   <- merged.results.salmon.tpm$gene
+    merged.results.deseq.counts           <- merged.results.deseq.counts[rownames(res.list[[name]]),]
+    merged.results.salmon.tpm <- merged.results.salmon.tpm[rownames(res.list[[name]]),]
+    rownames(merged.results.deseq.counts) <- NULL
+    rownames(merged.results.salmon.tpm) <- NULL
     for (colname in colnames(my.normalized.counts)) {
         res.list[[name]][,paste('deseq2.counts', colname, sep='.')] <- merged.results.deseq.counts[,colname]
         res.list[[name]][,paste('avg.salmon.tpm', colname, sep='.')] <- merged.results.salmon.tpm[,colname]
