@@ -2,8 +2,8 @@
 ```{r, include=FALSE}
 # =============================================================================
 # IMPORTANT:
-# Before running this, search for the string "Assumption". This indicates parts
-# of the file that need to be changed depending on the experiment.
+# Before running this, search for the string "NOTE:". This indicates parts of
+# the file that need to be changed depending on the experiment.
 # =============================================================================
 #
 # This Rmd file aims to include "the works", with some preliminary exploratory
@@ -11,8 +11,7 @@
 # and transcript models (with examples of interaction) SVA, and some downstream
 # GO analysis.
 #
-# Assumptions are indicated where they are made, so look for those comments
-# starting with "Assumptions:" identify places that may need some editing.
+# Look for the string "NOTE:" to identify places that may need some editing.
 # Notably, the only model run by default is `~group`, which will only be
 # appropriate for the simplest experiments.
 
@@ -34,13 +33,12 @@ knitr::opts_chunk$set(collapse=TRUE, warning=FALSE, message=FALSE,
 # RNA-seq results
 
 ```{r, include=FALSE}
-# Here's a template for including a link that will load a prepared track hub. Not included by default.
-# [Load hub and prepared session on UCSC Genome Browser](http://genome.ucsc.edu/cgi-bin/hgTracks?db=ASSEMBLY&hubUrl=https://HOST/PATH/hub.txt&hgS_loadUrlName=https://HOST/PATH/session.txt&hgS_doLoadUrl=submit&position=chr1:1-100)
+# NOTE: Here's a template for including a link that will load a prepared track
+# hub. It is not included by default.
+
+# [Load hub and prepared session on UCSC Genome
+# Browser](http://genome.ucsc.edu/cgi-bin/hgTracks?db=ASSEMBLY&hubUrl=https://HOST/PATH/hub.txt&hgS_loadUrlName=https://HOST/PATH/session.txt&hgS_doLoadUrl=submit&position=chr1:1-100)
 ```
-
-Note: if you're unfamiliar with any of the plots or tables here, see the
-[Background and help](#Help) section for details.
-
 
 ```{r imports}
 library(DESeq2)
@@ -56,24 +54,26 @@ library(UpSetR)
 ```
 
 ```{r child='helpers.Rmd'}
-# When running interactively, use the following to load helper functions.
+# When running interactively, run the following to load helper functions.
 # When rendering this file, the contents of this code block will be skipped
-# since it is a "child" block for which all contents are expected to be
-# in the other file.
+# since it is a "child" block for which all contents are expected to be in
+# the other file.
 rmarkdown::render('helpers.Rmd', run_pandoc=FALSE)
 ```
 
 ```{r annotationhub_setup}
-# Try disabling this when running locally to get nicer figures:
+# NOTE: try disabling this when running locally to get nicer figures:
 # options(bitmapType='cairo')
 
-# Assumption: change these to reflect organism you're working with.
-# e.g., 'Mus musculus', 'mmu'; 'Homo sapiens', 'hsa'. Provide an annotation key
-# to override if you know the one to use, otherwise leave NA.
+# NOTE:
+# Change these to reflect organism you're working with,  e.g., 'Mus musculus',
+# 'mmu'; 'Homo sapiens', 'hsa'. You can also provide an annotation key to
+# override if you know the one to use, otherwise leave NA.
 annotation_genus_species <- 'Drosophila melanogaster'
 kegg.org <- 'dme'
-hub.cache <- '../../../include/AnnotationHubCache'
 annotation_key_override <- NA
+
+hub.cache <- '../../../include/AnnotationHubCache'
 
 # To ensure that we do not clobber any local copies of the annotation, we copy
 # to tmp. This also should increase performance when running on the cluster --
@@ -90,20 +90,22 @@ orgdb <- get.orgdb(
 ```
 
 ```{r coldata_setup}
-# Assumption: path name to sampletable
+# NOTE: path name to sampletable
 sample.table.filename = '../config/sampletable.tsv'
 
 colData <- read.table(sample.table.filename, sep='\t', header=TRUE)
 
-# Assumption: which featureCounts strandedness to use. All three are created by
-# default; here is where you specify which one to use for differential
-# expression.
+# NOTE: Specify which featureCounts strandedness to use. All three are created
+# by default in the workflow, but here is where you specify which one to use
+# for differential expression.
 
 featurecounts.strandedness <- 's0'  # unstranded
 # featurecounts.strandedness <- 's1' # plus-strand reads correspond to sense-strand transcription (e.g., Ovation kits)
 # featurecounts.strandedness <- 's2' # minus-strand reads correspond to sense-strand transcription (e.g., TruSeq kits)
 
-# Assumption: data directory and extension to featurecounts output
+# NOTE: Paths to featureCounts output.
+# This is configured in the patterns and targets from the workflow; if you've
+# changed anything there you will need to change it here as well.
 colData$featurecounts.path <- sapply(
     colData$samplename,
     function (x) file.path(
@@ -112,20 +114,29 @@ colData$featurecounts.path <- sapply(
         )
     )
 
-# Assumption: data directory and salmon filenames
+# NOTE: Paths to Salmon output.
+# This is configured in the patterns and targets from the workflow; if you've
+# changed anything there you will need to change it here as well.
 colData$salmon.path <- sapply(
     colData$samplename,
     function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
 )
 
-# Assumption: which columns in sampletable, and that "group" should be factor
+# NOTE: Factor columns.
+# These are the columns in the sampletable that should be converted to factors
 factor.columns <- c('group')
+
+# NOTE: Which columns to exclude from printing.
+# If you have very verbose metadata in your sampletable you can exclude those
+# columns here.
 exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'orig_filename')
 for (col in factor.columns){
     colData[[col]] <- as.factor(colData[[col]])
 }
 
-# Assumption: "control" is the base level for the group factor
+# NOTE: Relevel the factors.
+# For the test data, "control" is the base level for the "group" factor, but
+# you will need to edit as appropriate for your experimenal design.
 colData$group <- relevel(colData$group, ref='control')
 ```
 ## Experiment overview
@@ -139,23 +150,25 @@ knitr::kable(colData[, colnames(colData)[!colnames(colData) %in% exclude.for.pri
 ```{r salmon}
 # Load transcript-level counts
 txi <- tximport(colData[, 'salmon.path'], type='salmon', txOut=TRUE)
-
 transcript.tpm <- txi$abundance
 colnames(transcript.tpm) <- colData$samplename
 ```
 
 ```{r ddstxi, cache=TRUE, eval=TRUE}
-# Assumption: eval=TRUE by default, for testing.
-# Change to eval to FALSE to disable in practice.
-
 dds.txi <- DESeqDataSetFromTximport(
     txi, colData=colData[, -grepl('path', colnames(colData)), drop=FALSE],
-    # Assumption: what to model
+
+    # NOTE: design to use when importing Salmon data.
     design=~group
 )
 
-# rlog normalize transcript counts for heatmaps and PCA
-rld.txi <- varianceStabilizingTransformation(dds.txi, blind=FALSE)
+# Normalize transcript counts for heatmaps and PCA. We're using vst rather than
+# rlog because the DESeq2 docs say they are largely equivalent, and vst is
+# substantially faster.
+#
+# Since this is for exploratory data analysis, we use blind=TRUE
+# to ignore the design.
+rld.txi <- varianceStabilizingTransformation(dds.txi, blind=TRUE)
 ```
 
 
@@ -164,13 +177,15 @@ rld.txi <- varianceStabilizingTransformation(dds.txi, blind=FALSE)
 dds <- DESeqDataSetFromFeatureCounts(
     sampleTable=colData,
     directory='.',
-    # Assumption: what to model.
-    # Used for EDA, so it's recommended to use a single factor that describes
-    #condition
+    # NOTE: What design to use?
+    # This object will be used for EDA, so it's recommended to use a single
+    # factor that describes the samples
     design=~group)
 
-# Assumption: If gene names came in as Ensembl "gene.version" IDs, here we
-# split them to only give the gene ID.
+# NOTE: Gene IDs with "." in them
+# If gene names came in as Ensembl "gene.version" IDs, here we split them to
+# only give the gene ID. If you want to keep existing "." in gene names,
+# comment out this line.
 rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
 
 # Variance-stablilized transform to normalize gene-level counts.
@@ -191,6 +206,10 @@ we expect to see replicates clustering together and separation of treatments.
 ## Clustered heatmap
 
 ```{r}
+# NOTE: Which columns to use for grouping the heatmap?
+# Add as many columns as you want for the last argument. The test data uses
+# just the "group" column to create colored boxes corresponding to values of
+# "group" alongside the heatmap.
 plot.heatmap(rld, colData, c('group'))
 ```
 
@@ -203,8 +222,8 @@ explained by each principal component is indicated in the axes label.
 
 
 ```{r}
-# Assumption: gene-level counts
-# Assumption: color by 'group' factor
+# NOTE: Which columns to use for grouping the heatmap?
+# See similiar note above for which columns to group by
 plotPCA(rld, intgroup=c('group'))
 ```
 
@@ -216,6 +235,8 @@ This heatmap takes the top 50 most-varying genes and plots their deviation from
 the row mean.
 
 ```{r, fig.height=12}
+# NOTE: Which columns to use for grouping the heatmap?
+# See similiar note above for which columns to group by
 vargenes.heatmap(rld, c('group'))
 ```
 
@@ -234,95 +255,134 @@ sf <- sf[order(sf)]
 knitr::kable(sf)
 ```
 
-```{r, eval=FALSE}
-# Assumption: you do not want to use parallel.  If you do, change eval to
-# TRUE and set cores appropriately. Then use the `parallel=TRUE` argument
-# whenever you call the `DESeq()` function.
-register(MulticoreParam(4))
+```{r}
+# NOTE: Run DESeq2 on multiple cores.
+#
+# By default, we do not run in parallel, however this can be very useful in
+# experiments with many samples and complex designs.  To run in parallel,
+# comment out the line below and set cores appropriately. Then, add the
+# argument `parallel=TRUE` whenever you call DESeq()
+# register(MulticoreParam(4))
+parallel <- FALSE
 ```
 
 ```{r dds_models, cache=TRUE}
-# Assumption: using gene counts.
-
+# NOTE: gene rather than transcript counts
+# By default we use gene counts rather than transcript counts. See code above
+# where the `dds.txi` object is created for how to modify this for transcript
+# counts.
 dds <- DESeqDataSetFromFeatureCounts(
     sampleTable=colData,
     directory='.',
-    # Assumption: model to use
+    # NOTE: model to use
+    # This will b
     design=~group
 )
 
-# Assumption: If gene names came in as Ensembl "gene.version" IDs, here we
-# split them to only give the gene ID.
+# NOTE: If gene names came in as Ensembl "gene.version" IDs, here we split them
+# to only give the gene ID.
 rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
 dds <- DESeq(dds,
-    # Assumption: this the default for versions of DESeq2 > 1.16. We set it
-    # explicitly here for consistency.
-    betaPrior=FALSE)
+    # NOTE: betaPrior
+    # betaPrior=FALSE is the default in DESeq2 >1.16, but here we set it
+    # explicitly for consistency across different versions.
+    betaPrior=FALSE,
+    parallel=parallel
+    )
 ```
 
 
 ```{r results, cache=TRUE}
-# Assumption: use only one run, and the contrast you want is group
-# (treatment/control).
+# NOTE: lots of editing likely needed here...
 #
-# Assumption: you want the lfcShrink version of the results. In DESeq2 versions
-# >1.16, the lfc shrinkage is performed in a separate step, so that's what we do here.
+# This is the block that performs the contrasts, filling out the `res.list`
+# named list, which ties together the results, the DESeq object from which the
+# results were extracted, and a descriptive label to be used in plots and
+# headings.
+#
+# For each entry in `res.list`, you will get DE results sections automatically
+# created for each item. Each of these sections will have the "label" as its
+# header, and will contain a summary table, MA plots, counts plots of top 3 up-
+# and down-regulated genes, p-value distribution, and exported results tables
+# with links in the rendered HTML to the output files.
+#
+# NOTE: Here are some notes on using lfcShrink...
+# As currently implemented (05 apr 2018), lfcShrink checks its arguments for an
+# existing results table. If it exists, it applies shrinkage to the lfc and se
+# in that table. If it *doesn't* exist, it calls results on dds with the syntax
+#
+#     res <- results(dds, name=coef)
+# or
+#
+#     res <- results(dds, contrast=contrast)
+#
+# It does not pass any further arguments to results, and it doesn't warn you
+# that results-style arguments were unrecognized and ignored. Therefore,
+# lfcShrink DOES NOT directly support lfcThreshold, or other alternative
+# hypotheses, or any of the custom analysis methods you can access through
+# results(). To get those, you have to call results first, without shrinkage,
+# and then apply lfcShrink.
+#
+# Here we use the lfcShrink version of the results. In DESeq2 versions >1.16,
+# the lfc shrinkage is performed in a separate step, so that's what we do here.
 # This is slightly different results than if you used betaPrior=TRUE when
 # creating the DESeq object.
-#
-# By adding more results to res.list (and its originating dds to ddd.list), you
-# will get DE results sections automatically created for each item. The
-# res.list.lookup maps the list names to nicer labels that will be used in
-# headings.
 
-# As currently implemented (05 apr 2018), lfcShrink checks its arguments for an existing results
-# table. If it exists, it applies shrinkage to the lfc and se in that table. If it ~doesn't~ exist,
-# it calls results on dds with the syntax
-#
-## res <- results(dds, name=coef)
-# or
-## res <- results(dds, contrast=contrast)
-#
-# It does not pass any further arguments to results, and it doesn't warn you that results-style arguments
-# were unrecognized and ignored. Therefore, lfcShrink does not directly support
-# lfcThreshold, or other alternative hypotheses, or any of the custom analysis methods you can access
-# through results. To get those, you have to call results first, without shrinkage, and then apply lfcShrink.
 
-res.lfcthresh.2 <- results(dds, contrast=c('group', 'treatment', 'control'), lfcThreshold=2)
+# res.list is a named list. Each item should be a list with names c('res',
+# 'dds', 'label'). "res" is a DESeqResults object, "dds" is the corresponding
+# DESeq object the results were extracted from, and "label" is a nicer label to
+# use for headers and other text.
+res.list <- list()
 
-res.list <- list(
-                 all=lfcShrink(dds, contrast=c('group', 'treatment', 'control')),
-                 lfc2=lfcShrink(dds, contrast=c('group', 'treatment', 'control'), res=res.lfcthresh.2)
-                 )
-dds.list <- list(
-                 all=dds,
-                 lfc2=dds
-                 )
+# NOTE: Example contrast.
+# Using the example data, this compares treatment group to control group.
+# Change to reflect your experiment.
+res.list[['all']] <- list(
+    res=lfcShrink(dds, contrast=c('group', 'treatment', 'control')),
+    dds=dds,
+    label='Using a log2FoldChange threshold of 0'
+)
 
-res.list.lookup <- list(
-                        all='Using a log2 fold change threshold of 0',
-                        lfc2='Using a log2 fold change threshold of 2'
-                        )
+
+# NOTE: Example contrast.
+# Using the example data, this compares treatment group to control group but
+# requiring genes to have >4-fold differences (log2(4) = 2).
+# Change to reflect your experiment.
+res.lfcthresh.2 <- results(
+    dds,
+    contrast=c('group', 'treatment', 'control'),
+    lfcThreshold=2)
+
+res.list[['lfc2']] <- list(
+    res=lfcShrink(
+        dds,
+        contrast=c('group', 'treatment', 'control'),
+        res=res.lfcthresh.2
+    ),
+    dds=dds,
+    label='Using a log2FoldChange threshold of >2'
+)
 ```
 
 
 ```{r attach, cache=TRUE, depends='results'}
-# Assumption: Original annotations use Ensembl IDs
+# NOTE: Assumes Ensembl Ids
 keytype <- 'ENSEMBL'
 
-# Assumption: Symbol, Uniprot and alias columns are available in the OrgDb
+# NOTE: Assumes that Symbol, Uniprot and alias columns are available in the
+# OrgDb
 columns <- c('SYMBOL', 'UNIPROT', 'ALIAS')
 
 for (name in names(res.list)){
-    res.list[[name]] <- attach.info(
-        res.list[[name]],
+    res.list[[name]][['res']] <- attach.info(
+        res.list[[name]][['res']],
         keytype=keytype,
         columns=columns)
 }
 
-# Assumption: using ENSEMBLTRANS transcript IDs with Salmon
-# honestly if you're using something else, you may just want to skip this step.
-# append gene mappings to transcript counts from Salmon
+# NOTE: Assumes using ENSEMBLTRANS transcript IDs with Salmon
+# If you're using something else, you may just want to skip this step.
 transcript.geneids <- mapIds(orgdb,
                              keys=rownames(transcript.tpm),
                              column=keytype,
@@ -349,19 +409,16 @@ For each comparison, we report:
 See the [Background and help](#Help) section for details on these.
 
 ```{r, results='asis'}
-# Assumption: which columns to add to the top plots' titles. These may have
-# come from the `attach.info` call above.
+# NOTE: Which columns to add to the top plots' titles?
+# This will add nicer titles to the plots. These may have come from the
+# `attach.info` call above.
 add_cols <- c('symbol', 'alias')
 
 for (name in names(res.list)){
-
-  # NOTE: You might find it useful to call the `the.works()` function in
-  # helpers.Rmd which does a lot of this in one shot.
-  # the.works(name, res.list, dds.list, res.list.lookup, add_cols=add_cols)
-
-  dds.i <- dds.list[[name]]
-  res.i <- res.list[[name]]
-  mdcat('## ', res.list.lookup[[name]])
+  dds.i <- res.list[[name]][['dds']]
+  res.i <- res.list[[name]][['res']]
+  label <- res.list[[name]][['label']]
+  mdcat('## ', label)
   mdcat('### Summary of results')
   print(knitr::kable(my.summary(res.i, dds.i)))
   mdcat('### Normalized counts of top 3 upregulated genes')
@@ -377,6 +434,9 @@ for (name in names(res.list)){
 
 
 ```{r, fig.width=12, results='asis'}
+# UpSet plots only make sense for more than one set of genes.
+# The Markdown explanatory text and the plots themselves are only created if
+# res.list has multiple items in it.
 if (length(res.list) > 1){
     mdcat("## UpSet plots")
     mdcat("Gather together all the interesting gene sets into an ",
@@ -417,77 +477,115 @@ algorithm to cluster genes into similar expression patterns. The lists of genes
 found in each cluster are reported below the plot.
 
 ```{r, fig.width=12, results='asis', cache=TRUE}
+# NOTE: which genes to plot?
+# By default, we get all the changed genes, but you may want only the up or
+# down genes.
+ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed'))
 
-ll <- lapply(res.list, get.sig, 'changed')
+# Filter out results where there were zero genes detected.
 ll <- ll[lapply(ll, length) > 0]
+
 for (name in names(ll)){
     genes <- ll[[name]]
 
-    # Set a hard limit -- beware plotting more genes than this as it could take
-    # a lot of time to perform the clustering. If there are more than this
-    # limit, then take a random sample.
+    # NOTE: hard limit to number of genes
+    #
+    # Plotting more genes than this will take a lot of time to perform the
+    # clustering.
+    #
+    # If there are more than this limit, then we take a random sample.
     lim <- 2000
     if (length(genes) > lim){
         genes <- sample(genes, lim)
     }
+
+    # Extract the normalized counts for these genes
     idx <- rownames(rld) %in% genes
     ma <- assay(rld)[idx,]
-    mdcat('## ', res.list.lookup[[name]])
-    colData.i <- colData(dds.list[[name]])
 
-    # Assumption:
-    # - you want the gene patterns to be plotted across "group" on the
-    #   x-axis (this is the `time` argument to degPatterns)
-    # - min cluster size (minc) is 1. This is for testing purposes; you'll
-    #   probably want to reset to at least the DEGreport default of 15.
-    # - For more complicated designs, try the `col` argument to color by
-    #   another factor.
-    d <- degPatterns(ma, colData.i, time='group', reduce=TRUE, cutoff=0.5, minc=1)
+    # Print a nice Markdown header
+    mdcat('## ', res.list[[name]][['label']])
+    colData.i <- colData(res.list[[name]][['dds']])
 
+    d <- degPatterns(
+        ma,
+        colData.i,
+
+        # NOTE: "time" becomes the x-axis of the plot; change as appropriate to
+        # your experiment
+        time='group',
+
+        # NOTE: reduce will merge clusters that are similar; similarity
+        # determined by cutoff
+        reduce=TRUE, cutoff=0.5,
+
+        # NOTE: For more complicated designs, try the `col` argument to color
+        # the plot by another factor.
+        # col="another.column",
+
+        # NOTE: increase min cluster size to 15
+        # This is purposely set low for test data; the DEGreport default is 15.
+        minc=1
+        )
+
+    # In the final_clusters directory, this creates files containing lists of
+    # the genes in each cluster, and adds a link to the Markdown.
     dir.create('final_clusters')
     for (u in unique(d$df$cluster)){
-        fn <- file.path('final_clusters', paste0('final.', name, '.cluster.', u, '.txt'))
-        write.table(d$df[d$df$cluster==u, 'genes'], file=fn, quote=FALSE, row.names=FALSE, col.names=FALSE)
+        fn <- file.path('final_clusters',
+                        paste0('final.', name, '.cluster.', u, '.txt'))
+        write.table(d$df[d$df$cluster==u, 'genes'], file=fn, quote=FALSE,
+                    row.names=FALSE, col.names=FALSE)
         mdcat('- [', fn, '](', fn, '), cluster "', u, '" genes')
     }
 }
 ```
 
 ```{r groupcounts, cache=TRUE}
+# NOTE: optionally disable this chunk
+#
+# This chunk inspects the model matrix of the design, aggregates counts for
+# each of the levels in the design, and attaches them to each set of results.
+#
+# It also attaches normalized gene counts and Salmon TPM
 counts.list <- list()
 
-# compute aggregate (by gene) normalized transcript counts from Salmon
+# Compute aggregate (by gene) normalized transcript counts from Salmon
 gene.tpm <- aggregate(transcript.tpm, list(transcript.geneids), sum)
 
 # Use normalized counts to get per-level mean counts. Attach Salmon aggregate
-# counts to each output file. This does ~not~ assume any particular model.
+# counts to each output file. This does *not* assume any particular model.
 for (name in names(res.list)) {
-    counts.list[[name]] <- res.list[[name]][,c("gene", "baseMean", "log2FoldChange", "lfcSE", "padj")]
-    # extract the dds object in use
-    my.dds <- dds.list[[name]]
+
+    my.res <- res.list[[name]][['res']]
+    my.dds <- res.list[[name]][['dds']]
+
+    counts.list[[name]] <- my.res[,c("gene", "baseMean", "log2FoldChange", "lfcSE", "padj")]
 
     # get the DESeq2 normalized per-gene count data
     my.normalized.counts <- counts(my.dds, TRUE)
     colnames(gene.tpm) <- c("Gene", colnames(my.normalized.counts))
 
     # report per-sample Salmon counts to output files
-    merged.results.deseq.counts <- merge(data.frame(res.list[[name]]), my.normalized.counts, by.x="gene", by.y="row.names", all.x=TRUE, sort=FALSE)
-    merged.results.salmon.tpm <- merge(data.frame(res.list[[name]]), gene.tpm, by.x="gene", by.y="Gene", all.x=TRUE, sort=FALSE)
+    merged.results.deseq.counts <- merge(data.frame(my.res), my.normalized.counts, by.x="gene", by.y="row.names", all.x=TRUE, sort=FALSE)
+    merged.results.salmon.tpm <- merge(data.frame(my.res), gene.tpm, by.x="gene", by.y="Gene", all.x=TRUE, sort=FALSE)
     rownames(merged.results.deseq.counts) <- merged.results.deseq.counts$gene
     rownames(merged.results.salmon.tpm)   <- merged.results.salmon.tpm$gene
-    merged.results.deseq.counts           <- merged.results.deseq.counts[rownames(res.list[[name]]),]
-    merged.results.salmon.tpm <- merged.results.salmon.tpm[rownames(res.list[[name]]),]
+    merged.results.deseq.counts           <- merged.results.deseq.counts[rownames(my.res),]
+    merged.results.salmon.tpm <- merged.results.salmon.tpm[rownames(my.res),]
     rownames(merged.results.deseq.counts) <- NULL
     rownames(merged.results.salmon.tpm) <- NULL
     for (colname in colnames(my.normalized.counts)) {
-        res.list[[name]][,paste('deseq2.counts', colname, sep='.')] <- merged.results.deseq.counts[,colname]
-        res.list[[name]][,paste('avg.salmon.tpm', colname, sep='.')] <- merged.results.salmon.tpm[,colname]
+        my.res[,paste('deseq2.counts', colname, sep='.')] <- merged.results.deseq.counts[,colname]
+        my.res[,paste('avg.salmon.tpm', colname, sep='.')] <- merged.results.salmon.tpm[,colname]
     }
 
     # extract the design matrix
     my.model <- model.matrix(design(my.dds), colData(my.dds))
+
     # unique rows correspond to groups
     my.unique.patterns <- unique(my.model)
+
     # for each unique pattern
     for (i in 1:nrow(my.unique.patterns)) {
         # determine which samples conform to that pattern
@@ -498,29 +596,31 @@ for (name in names(res.list)) {
     colnames(counts.list[[name]])[ncol(counts.list[[name]])] <- format.group.name(my.unique.patterns[i,])
     }
 }
-
 ```
 
 
 # Exported results
 
-```{r}
-# Subset out up/down regulated. Other selections can be added, and
-# corresponding output files will be created and GO analysis will be performed
-# on them below.
-#
-# sel.list will be a list of lists of subsets of the original results in
-# res.list; access selections with, e.g., sel.list[['experiment1]'][['up']]
+```{r selections}
 sel.list <- list()
 for (name in names(res.list)){
-  res <- res.list[[name]]
+  res <- res.list[[name]][['res']]
 
-  # Assumption: significance level
+  # NOTE: significance level
   alpha <- 0.1
+
+  # NOTE: any other selections?
+  # Here we just get the up- and downregulated genes, but any arbitrary subsets
+  # of the results can be added.
+  #
+  # For each selection:
+  #   - TSV of the subset of genes will be written to file and a link created
+  #     for it in the Markdown
+  #   - GO analysis will be performed on each group separately below.
   sel.list[[name]] <- list(
-    up=res[(res$padj < alpha) & (res$log2FoldChange > 0) & !is.na(res$padj) & !is.na(res$log2FoldChange),],
-    dn=res[(res$padj < alpha) & (res$log2FoldChange < 0) & !is.na(res$padj) & !is.na(res$log2FoldChange),]
-  )
+    up=res[get.sig(res, alpha=alpha, direction='up'),],
+    dn=res[get.sig(res, alpha=alpha, direction='dn'),]
+    )
 }
 ```
 
@@ -528,15 +628,17 @@ for (name in names(res.list)){
 # Write out files for full and each selection, and create a link to them in the
 # HTML generated by this RMarkdown.
 for (name in names(res.list)){
-  mdcat('## ', res.list.lookup[[name]])
+  mdcat('## ', res.list[[name]][['label']])
   fn <- paste0(name, '.tsv')
-  write.table(res.list[[name]], file=fn, row.names=FALSE, sep='\t')
+  write.table(res.list[[name]][['res']], file=fn, row.names=FALSE, sep='\t')
   write.table(counts.list[[name]], file=paste(fn, ".counts", sep=""), row.names=FALSE, sep="\t")
-  mdcat('- [', fn, '](', fn, '), results for ', res.list.lookup[[name]])
+  mdcat('- [', fn, '](', fn, '), results for ', res.list[[name]][['label']])
+
+  # Selections defined above written out to file, and a Markdown link created.
   for (sel in names(sel.list[[name]])){
     fn <- paste0(name, '.', sel, '.tsv')
     write.table(sel.list[[name]][[sel]], file=fn, row.names=FALSE, sep='\t')
-    mdcat('- [', fn, '](', fn, '), just the "', sel, '" genes for ', res.list.lookup[[name]])
+    mdcat('- [', fn, '](', fn, '), just the "', sel, '" genes for ', res.list[[name]][['label']])
   }
 }
 ```
@@ -549,6 +651,10 @@ package with some custom plotting functions.
 
 
 ```{r GO, cache=TRUE}
+# NOTE: computationally intensive.
+# clusterProfiler can take a long time to run. You may want to disable this
+# chunk to speed things up.
+
 # Here we summarize the results into dataframes and attach additional
 # information to them such that they can be concatenated together into a large
 # tidy dataframe.
@@ -613,12 +719,14 @@ The full analysis table can be viewed here:
 lim <- 50
 nchunks <- 1
 
-# Assumption: all experiments have the same selections
+# NOTE: we assume that all experiments have the same selections.
+# This is the default case from the above "selections" chunk.
 for (sel in names(sel.list[[1]])){
   mdcat('## ', sel)
   m <- do.call(rbind, enrich.list)
 
-  ###compute description length distribution for entire ontology
+  # Some GO descriptions are really long. To keep the plot dimensions
+  # reasonable, we will be truncating them all to the 75th percentile.
   length.quantile <- quantile(nchar(as.vector(m$Description, mode="character")), 0.75)
 
   # convert to phred score, and flip the "downregulated"
@@ -676,4 +784,7 @@ sessionInfo()
 # Help
 
 ```{r, child="help_docs.Rmd", run_pandoc=FALSE}
+# NOTE: optional help section
+# Delete this chunk, or set to eval=FALSE, if you don't want to include the
+# help text from "help_docs.Rmd"
 ```
