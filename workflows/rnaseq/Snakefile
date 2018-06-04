@@ -377,8 +377,8 @@ rule multiqc:
     """
     Aggregate various QC stats and logs into a single HTML report with MultiQC
     """
-    # NOTE: if you add more rules and want MultiQC to pick up the output, best
-    # to add outputs from those rules to the inputs here.
+    # NOTE: if you add more rules and want MultiQC to pick up the output, then
+    # add outputs from those rules to the inputs here.
     input:
         files=(
             utils.flatten(c.targets['fastqc']) +
@@ -532,12 +532,21 @@ rule salmon:
     log:
         c.patterns['salmon'] + '.log'
     shell:
-        # NOTE: adjust Salmon params as needed.
+        # NOTE: adjust Salmon params as needed
         'salmon quant '
         '--index {params.index_dir} '
         '--output {params.outdir} '
         '--threads {threads} '
+
+        # NOTE: --libType=A auto-detects library type. Change if needed.
         '--libType=A '
+
+        # NOTE: Docs suggest using --gcBias and --seqBias is a good idea
+        '--gcBias '
+        '--seqBias '
+
+        # -r is for single-end; use
+        # -1 {input.r1} -2 {input.r2} for paired-end
         '-r {input.fastq} '
         '&> {log}'
 
@@ -565,8 +574,8 @@ rule bigwig_neg:
     log:
         c.patterns['bigwig']['neg'] + '.log'
     shell:
-        # NOTE: adjust bamCoverage params as needed; make sure the bigwig_pos
-        # rule below reflects the same changes.
+        # NOTE: adjust bamCoverage params as needed
+        # Make sure the bigwig_pos rule below reflects the same changes.
         'bamCoverage '
         '--bam {input.bam} '
         '-o {output} '
@@ -591,8 +600,8 @@ rule bigwig_pos:
     log:
         c.patterns['bigwig']['pos'] + '.log'
     shell:
-        # NOTE: adjust bamCoverage params as needed; make sure the bigwig_neg
-        # rule above reflects the same changes.
+        # NOTE: adjust bamCoverage params as needed
+        # Make sure the bigwig_neg rule above reflects the same changes.
         'bamCoverage '
         '--bam {input.bam} '
         '-o {output} '
