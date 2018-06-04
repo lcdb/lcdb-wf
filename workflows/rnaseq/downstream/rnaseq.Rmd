@@ -65,10 +65,9 @@ rmarkdown::render('helpers.Rmd', run_pandoc=FALSE)
 # NOTE: try disabling this when running locally to get nicer figures:
 # options(bitmapType='cairo')
 
-# NOTE:
-# Change these to reflect organism you're working with,  e.g., 'Mus musculus',
-# 'mmu'; 'Homo sapiens', 'hsa'. You can also provide an annotation key to
-# override if you know the one to use, otherwise leave NA.
+# NOTE: Change these to reflect organism you're working with.
+#   e.g., 'Mus musculus', 'mmu'; 'Homo sapiens', 'hsa'. You can also provide an
+#   annotation key to override if you know the one to use, otherwise leave NA.
 annotation_genus_species <- 'Drosophila melanogaster'
 kegg.org <- 'dme'
 annotation_key_override <- NA
@@ -95,17 +94,19 @@ sample.table.filename = '../config/sampletable.tsv'
 
 colData <- read.table(sample.table.filename, sep='\t', header=TRUE)
 
-# NOTE: Specify which featureCounts strandedness to use. All three are created
-# by default in the workflow, but here is where you specify which one to use
-# for differential expression.
+# NOTE: Specify which featureCounts strandedness to use.
+#
+#   All three are created by default in the workflow, but here is where you
+#   specify which one to use for differential expression.
 
 featurecounts.strandedness <- 's0'  # unstranded
 # featurecounts.strandedness <- 's1' # plus-strand reads correspond to sense-strand transcription (e.g., Ovation kits)
 # featurecounts.strandedness <- 's2' # minus-strand reads correspond to sense-strand transcription (e.g., TruSeq kits)
 
 # NOTE: Paths to featureCounts output.
-# This is configured in the patterns and targets from the workflow; if you've
-# changed anything there you will need to change it here as well.
+#
+#   This is configured in the patterns and targets from the workflow; if you've
+#   changed anything there you will need to change it here as well.
 colData$featurecounts.path <- sapply(
     colData$samplename,
     function (x) file.path(
@@ -115,28 +116,33 @@ colData$featurecounts.path <- sapply(
     )
 
 # NOTE: Paths to Salmon output.
-# This is configured in the patterns and targets from the workflow; if you've
-# changed anything there you will need to change it here as well.
+#
+#    This is configured in the patterns and targets from the workflow; if
+#    you've changed anything there you will need to change it here as well.
 colData$salmon.path <- sapply(
     colData$samplename,
     function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
 )
 
 # NOTE: Factor columns.
-# These are the columns in the sampletable that should be converted to factors
+#
+#    These are the columns in the sampletable that should be converted to
+#    factors
 factor.columns <- c('group')
 
 # NOTE: Which columns to exclude from printing.
-# If you have very verbose metadata in your sampletable you can exclude those
-# columns here.
+#
+#   If you have very verbose metadata in your sampletable you can exclude those
+#   columns here.
 exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'orig_filename')
 for (col in factor.columns){
     colData[[col]] <- as.factor(colData[[col]])
 }
 
 # NOTE: Relevel the factors.
-# For the test data, "control" is the base level for the "group" factor, but
-# you will need to edit as appropriate for your experimenal design.
+#
+#   For the test data, "control" is the base level for the "group" factor, but
+#   you will need to edit as appropriate for your experimenal design.
 colData$group <- relevel(colData$group, ref='control')
 ```
 ## Experiment overview
@@ -178,14 +184,15 @@ dds <- DESeqDataSetFromFeatureCounts(
     sampleTable=colData,
     directory='.',
     # NOTE: What design to use?
-    # This object will be used for EDA, so it's recommended to use a single
-    # factor that describes the samples
+    #
+    #   This object will be used for EDA, so it's recommended to use a single
+    #   factor that describes the samples
     design=~group)
 
 # NOTE: Gene IDs with "." in them
-# If gene names came in as Ensembl "gene.version" IDs, here we split them to
-# only give the gene ID. If you want to keep existing "." in gene names,
-# comment out this line.
+#    If gene names came in as Ensembl "gene.version" IDs, here we split them to
+#    only give the gene ID. If you want to keep existing "." in gene names,
+#    comment out this line.
 rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
 
 # Variance-stablilized transform to normalize gene-level counts.
@@ -207,9 +214,11 @@ we expect to see replicates clustering together and separation of treatments.
 
 ```{r}
 # NOTE: Which columns to use for grouping the heatmap?
-# Add as many columns as you want for the last argument. The test data uses
-# just the "group" column to create colored boxes corresponding to values of
-# "group" alongside the heatmap.
+#
+#    Add as many columns as you want for the last argument. The test data uses
+#    just the "group" column to create colored boxes corresponding to values of
+#    "group" alongside the heatmap.
+#
 plot.heatmap(rld, colData, c('group'))
 ```
 
@@ -223,7 +232,8 @@ explained by each principal component is indicated in the axes label.
 
 ```{r}
 # NOTE: Which columns to use for grouping the heatmap?
-# See similiar note above for which columns to group by
+#
+#    See similiar note above for which columns to group by
 plotPCA(rld, intgroup=c('group'))
 ```
 
@@ -236,7 +246,8 @@ the row mean.
 
 ```{r, fig.height=12}
 # NOTE: Which columns to use for grouping the heatmap?
-# See similiar note above for which columns to group by
+#
+#   See similiar note above for which columns to group by
 vargenes.heatmap(rld, c('group'))
 ```
 
@@ -258,24 +269,25 @@ knitr::kable(sf)
 ```{r}
 # NOTE: Run DESeq2 on multiple cores.
 #
-# By default, we do not run in parallel, however this can be very useful in
-# experiments with many samples and complex designs.  To run in parallel,
-# comment out the line below and set cores appropriately. Then, add the
-# argument `parallel=TRUE` whenever you call DESeq()
-# register(MulticoreParam(4))
+#    By default, we do not run in parallel, however this can be very useful in
+#    experiments with many samples and complex designs.  To run in parallel,
+#    comment out the line below and set cores appropriately. Then, add the
+#    argument `parallel=TRUE` whenever you call DESeq()
+#    register(MulticoreParam(4))
 parallel <- FALSE
 ```
 
 ```{r dds_models, cache=TRUE}
 # NOTE: gene rather than transcript counts
-# By default we use gene counts rather than transcript counts. See code above
-# where the `dds.txi` object is created for how to modify this for transcript
-# counts.
+#
+#    By default we use gene counts rather than transcript counts. See code
+#    above where the `dds.txi` object is created for how to modify this for
+#    transcript counts.
 dds <- DESeqDataSetFromFeatureCounts(
     sampleTable=colData,
     directory='.',
     # NOTE: model to use
-    # This will b
+    #   This will be used for contrasts below.
     design=~group
 )
 
@@ -284,8 +296,9 @@ dds <- DESeqDataSetFromFeatureCounts(
 rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
 dds <- DESeq(dds,
     # NOTE: betaPrior
-    # betaPrior=FALSE is the default in DESeq2 >1.16, but here we set it
-    # explicitly for consistency across different versions.
+    #
+    #    betaPrior=FALSE is the default in DESeq2 >1.16, but here we set it
+    #    explicitly for consistency across different versions.
     betaPrior=FALSE,
     parallel=parallel
     )
@@ -293,40 +306,40 @@ dds <- DESeq(dds,
 
 
 ```{r results, cache=TRUE}
-# NOTE: lots of editing likely needed here...
+# NOTE: lots of editing likely needed in this chunk!
 #
-# This is the block that performs the contrasts, filling out the `res.list`
-# named list, which ties together the results, the DESeq object from which the
-# results were extracted, and a descriptive label to be used in plots and
-# headings.
+#    This is the block that performs the contrasts, filling out the `res.list`
+#    named list, which ties together the results, the DESeq object from which the
+#    results were extracted, and a descriptive label to be used in plots and
+#    headings.
 #
-# For each entry in `res.list`, you will get DE results sections automatically
-# created for each item. Each of these sections will have the "label" as its
-# header, and will contain a summary table, MA plots, counts plots of top 3 up-
-# and down-regulated genes, p-value distribution, and exported results tables
-# with links in the rendered HTML to the output files.
+#    For each entry in `res.list`, you will get DE results sections automatically
+#    created for each item. Each of these sections will have the "label" as its
+#    header, and will contain a summary table, MA plots, counts plots of top 3 up-
+#    and down-regulated genes, p-value distribution, and exported results tables
+#    with links in the rendered HTML to the output files.
 #
-# NOTE: Here are some notes on using lfcShrink...
-# As currently implemented (05 apr 2018), lfcShrink checks its arguments for an
-# existing results table. If it exists, it applies shrinkage to the lfc and se
-# in that table. If it *doesn't* exist, it calls results on dds with the syntax
+#    NOTE: Here are some notes on using lfcShrink...
+#    As currently implemented (05 apr 2018), lfcShrink checks its arguments for an
+#    existing results table. If it exists, it applies shrinkage to the lfc and se
+#    in that table. If it *doesn't* exist, it calls results on dds with the syntax
 #
-#     res <- results(dds, name=coef)
-# or
+#        res <- results(dds, name=coef)
+#    or
 #
-#     res <- results(dds, contrast=contrast)
+#        res <- results(dds, contrast=contrast)
 #
-# It does not pass any further arguments to results, and it doesn't warn you
-# that results-style arguments were unrecognized and ignored. Therefore,
-# lfcShrink DOES NOT directly support lfcThreshold, or other alternative
-# hypotheses, or any of the custom analysis methods you can access through
-# results(). To get those, you have to call results first, without shrinkage,
-# and then apply lfcShrink.
+#    It does not pass any further arguments to results, and it doesn't warn you
+#    that results-style arguments were unrecognized and ignored. Therefore,
+#    lfcShrink DOES NOT directly support lfcThreshold, or other alternative
+#    hypotheses, or any of the custom analysis methods you can access through
+#    results(). To get those, you have to call results first, without shrinkage,
+#    and then apply lfcShrink.
 #
-# Here we use the lfcShrink version of the results. In DESeq2 versions >1.16,
-# the lfc shrinkage is performed in a separate step, so that's what we do here.
-# This is slightly different results than if you used betaPrior=TRUE when
-# creating the DESeq object.
+#    Here we use the lfcShrink version of the results. In DESeq2 versions >1.16,
+#    the lfc shrinkage is performed in a separate step, so that's what we do here.
+#    This is slightly different results than if you used betaPrior=TRUE when
+#    creating the DESeq object.
 
 
 # res.list is a named list. Each item should be a list with names c('res',
@@ -335,9 +348,10 @@ dds <- DESeq(dds,
 # use for headers and other text.
 res.list <- list()
 
-# NOTE: Example contrast.
-# Using the example data, this compares treatment group to control group.
-# Change to reflect your experiment.
+# NOTE: Example contrast #1
+#
+#   Using the example data, this compares treatment group to control group.
+#   Change to reflect your experiment.
 res.list[['all']] <- list(
     res=lfcShrink(dds, contrast=c('group', 'treatment', 'control')),
     dds=dds,
@@ -345,10 +359,11 @@ res.list[['all']] <- list(
 )
 
 
-# NOTE: Example contrast.
-# Using the example data, this compares treatment group to control group but
-# requiring genes to have >4-fold differences (log2(4) = 2).
-# Change to reflect your experiment.
+# NOTE: Example contrast #2
+#
+#    Using the example data, this compares treatment group to control group but
+#    requiring genes to have >4-fold differences (log2(4) = 2). Change to
+#    reflect your experiment.
 res.lfcthresh.2 <- results(
     dds,
     contrast=c('group', 'treatment', 'control'),
@@ -382,7 +397,8 @@ for (name in names(res.list)){
 }
 
 # NOTE: Assumes using ENSEMBLTRANS transcript IDs with Salmon
-# If you're using something else, you may just want to skip this step.
+#
+#   If you're using something else, you may just want to skip this step.
 transcript.geneids <- mapIds(orgdb,
                              keys=rownames(transcript.tpm),
                              column=keytype,
@@ -410,8 +426,9 @@ See the [Background and help](#Help) section for details on these.
 
 ```{r, results='asis'}
 # NOTE: Which columns to add to the top plots' titles?
-# This will add nicer titles to the plots. These may have come from the
-# `attach.info` call above.
+#
+#    This will add nicer titles to the plots. These may have come from the
+#    `attach.info` call above.
 add_cols <- c('symbol', 'alias')
 
 for (name in names(res.list)){
@@ -434,9 +451,9 @@ for (name in names(res.list)){
 
 
 ```{r, fig.width=12, results='asis'}
-# UpSet plots only make sense for more than one set of genes.
-# The Markdown explanatory text and the plots themselves are only created if
-# res.list has multiple items in it.
+# UpSet plots only make sense for more than one set of genes. The Markdown
+# explanatory text and the plots themselves are only created if res.list has
+# multiple items in it.
 if (length(res.list) > 1){
     mdcat("## UpSet plots")
     mdcat("Gather together all the interesting gene sets into an ",
@@ -478,8 +495,8 @@ found in each cluster are reported below the plot.
 
 ```{r, fig.width=12, results='asis', cache=TRUE}
 # NOTE: which genes to plot?
-# By default, we get all the changed genes, but you may want only the up or
-# down genes.
+#    By default, we get all the changed genes, but you may want only the up or
+#    down genes.
 ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed'))
 
 # Filter out results where there were zero genes detected.
@@ -490,10 +507,10 @@ for (name in names(ll)){
 
     # NOTE: hard limit to number of genes
     #
-    # Plotting more genes than this will take a lot of time to perform the
-    # clustering.
+    #    Plotting more genes than this will take a lot of time to perform the
+    #    clustering.
     #
-    # If there are more than this limit, then we take a random sample.
+    #    If there are more than this limit, then we take a random sample.
     lim <- 2000
     if (length(genes) > lim){
         genes <- sample(genes, lim)
@@ -544,10 +561,12 @@ for (name in names(ll)){
 ```{r groupcounts, cache=TRUE}
 # NOTE: optionally disable this chunk
 #
-# This chunk inspects the model matrix of the design, aggregates counts for
-# each of the levels in the design, and attaches them to each set of results.
+#    This chunk inspects the model matrix of the design, aggregates counts for
+#    each of the levels in the design, and attaches them to each set of
+#    results.
 #
-# It also attaches normalized gene counts and Salmon TPM
+#    It also attaches normalized gene counts and Salmon TPM.
+#
 counts.list <- list()
 
 # Compute aggregate (by gene) normalized transcript counts from Salmon
@@ -610,13 +629,13 @@ for (name in names(res.list)){
   alpha <- 0.1
 
   # NOTE: any other selections?
-  # Here we just get the up- and downregulated genes, but any arbitrary subsets
-  # of the results can be added.
+  #    Here we just get the up- and downregulated genes, but any arbitrary
+  #    subsets of the results can be added.
   #
-  # For each selection:
-  #   - TSV of the subset of genes will be written to file and a link created
-  #     for it in the Markdown
-  #   - GO analysis will be performed on each group separately below.
+  #    For each selection:
+  #      - TSV of the subset of genes will be written to file and a link
+  #        created for it in the Markdown
+  #      - GO analysis will be performed on each group separately below.
   sel.list[[name]] <- list(
     up=res[get.sig(res, alpha=alpha, direction='up'),],
     dn=res[get.sig(res, alpha=alpha, direction='dn'),]
@@ -652,8 +671,8 @@ package with some custom plotting functions.
 
 ```{r GO, cache=TRUE}
 # NOTE: computationally intensive.
-# clusterProfiler can take a long time to run. You may want to disable this
-# chunk to speed things up.
+#    clusterProfiler can take a long time to run. You may want to disable this
+#    chunk to speed things up.
 
 # Here we summarize the results into dataframes and attach additional
 # information to them such that they can be concatenated together into a large
@@ -720,7 +739,8 @@ lim <- 50
 nchunks <- 1
 
 # NOTE: we assume that all experiments have the same selections.
-# This is the default case from the above "selections" chunk.
+#
+#    This is the default case from the above "selections" chunk.
 for (sel in names(sel.list[[1]])){
   mdcat('## ', sel)
   m <- do.call(rbind, enrich.list)
@@ -783,8 +803,8 @@ sessionInfo()
 
 # Help
 
-```{r, child="help_docs.Rmd", run_pandoc=FALSE}
+```{r helpdocs, child="help_docs.Rmd", run_pandoc=FALSE}
 # NOTE: optional help section
-# Delete this chunk, or set to eval=FALSE, if you don't want to include the
-# help text from "help_docs.Rmd"
+#   Delete this chunk, or set to eval=FALSE, if you don't want to include the
+#   help text from "help_docs.Rmd"
 ```
