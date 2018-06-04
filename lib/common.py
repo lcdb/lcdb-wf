@@ -1,3 +1,4 @@
+import glob
 import os
 import tempfile
 import warnings
@@ -268,13 +269,13 @@ def references_dict(config):
 
     Notes
     -----
+
     The config file is designed to be easy to edit and use from the user's
     standpoint. But it's not so great for practical usage. Here we convert the
     config file which has the format::
 
     >>> from textwrap import dedent
     >>> fout = open('tmp', 'w')
-
     >>> _ = fout.write(dedent('''
     ... references_dir: "/data"
     ... references:
@@ -348,11 +349,14 @@ def references_dict(config):
 
     d = {}
     conversion_kwargs = {}
-    for organism in config['references'].keys():
+
+    merged_references = config['references']
+
+    for organism in merged_references.keys():
         d[organism] = {}
-        for tag in config['references'][organism].keys():
+        for tag in merged_references[organism].keys():
             e = {}
-            for type_, block in config['references'][organism][tag].items():
+            for type_, block in merged_references[organism][tag].items():
                 if type_ == 'metadata':
                     continue
                 e[type_] = (
@@ -505,6 +509,56 @@ def get_techreps(sampletable, label):
     return result
 
 
+def load_config(config):
+    """
+    Loads the config.
+
+    Resolves any included references directories/files and runs the deprecation
+    handler.
+    """
+    if isinstance(config, str):
+        config = yaml.load(open(config))
+
+    config = deprecation_handler(config)
+
+    # Here we populate a list of reference sections. Items later on the list
+    # will have higher priority
+    includes = config.get('include_references', [])
+    reference_sections = []
+
+    # First the directories. Directories that come earlier lose to those that
+    # come later.
+    for dirname in filter(os.path.isdir, includes):
+        # Note we're looking recursively for .yaml and .yml, so very large
+        # reference directories are possible
+        for fn in glob.glob(os.path.join(dirname, '**/*.y?ml'), recursive=True):
+            refs = yaml.load(open(fn)).get('references', None)
+            if refs is None:
+                raise ValueError("No 'references:' section in {0}".format(fn))
+            reference_sections.append(refs)
+
+    # Now the files
+    for fn in filter(os.path.isfile, includes):
+        refs = yaml.load(open(fn)).get('references', None)
+        if refs is None:
+            raise ValueError("No 'references:' section in {0}".format(fn))
+        reference_sections.append(refs)
+
+    # The last thing we include is the references section as written in the
+    # config, which wins over all.
+    reference_sections.append(config['references'])
+
+    merged_references = {}
+    for ref in reference_sections:
+        for organism in ref.keys():
+            org_dict = merged_references.get(organism, {})
+            for tag in ref[organism].keys():
+                org_dict[tag] = ref[organism][tag]
+            merged_references[organism] = org_dict
+    config['references'] = merged_references
+    return config
+
+
 def deprecation_handler(config):
     """
     Checks the config to see if anything has been deprecated.
@@ -519,3 +573,4 @@ def deprecation_handler(config):
             "As a temporary measure, a new 'organism' key has been added with "
             "the value of 'assembly'",
             DeprecationWarning)
+    return config

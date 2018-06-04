@@ -52,7 +52,8 @@ class SeqConfig(object):
         if isinstance(config, str):
             self.path = config
 
-        self.config = common.resolve_config(config, workdir)
+        self.config = common.load_config(
+            common.resolve_config(config, workdir))
 
         # Read the config file and extract all sort of useful bits. This mostly
         # uses the `common` module to handle the details.

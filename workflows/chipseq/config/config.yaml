@@ -189,22 +189,7 @@ references:
         indexes:
           - 'salmon'
 
-    rRNA:
-      fasta:
-        url:
-          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
-          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
-        postprocess:
-          function: 'lib.common.filter_fastas'
-          args: 'Drosophila melanogaster'
-        indexes:
-          - 'hisat2'
-          - 'bowtie2'
 
-  phix:
-    default:
-      fasta:
-        url: 'ftp://igenome:G3nom3s4u@ussd-ftp.illumina.com/PhiX/Illumina/RTA/PhiX_Illumina_RTA.tar.gz'
-        postprocess: "lib.postprocess.phix.fasta_postprocess"
-        indexes:
-          - 'bowtie2'
+include_references:
+  - '../../include/reference_configs/PhiX.yaml'
+  - '../../include/reference_configs/Drosophila_melanogaster.yaml'

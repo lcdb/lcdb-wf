@@ -12,7 +12,7 @@ from lib import common
 
 configfile: 'config/config.yaml'
 
-common.deprecation_handler(config)
+config = common.load_config(config)
 
 tempfile.tempdir = common.tempdir_for_biowulf()
 

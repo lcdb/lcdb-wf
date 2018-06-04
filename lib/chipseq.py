@@ -161,7 +161,7 @@ def merged_input_for_ip(sampletable, merged_ip):
         'label'
     ]
 
-    return input_label.tolist()
+    return sorted(input_label.unique())
 
 
 def detect_peak_format(fn):

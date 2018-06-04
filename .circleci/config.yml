@@ -52,6 +52,13 @@ variables:
         source activate lcdb-wf-test
         python ci/get-data.py
 
+  pytest-step: &pytest-step
+    run:
+      name: Run pytest suite
+      command: |
+        source activate lcdb-wf-test
+        pytest --doctest-modules lib
+
   chipseq-step: &chipseq-step
       run:
         name: chipseq workflow
@@ -104,6 +111,14 @@ jobs:
       - *restore_cache
       - *setup
       - *save_cache
+
+  pytest:
+    <<: *defaults
+    steps:
+      - checkout
+      - *restore_cache
+      - *setup
+      - *pytest-step
 
   chipseq:
     <<: *defaults
@@ -169,9 +184,13 @@ workflows:
   test-suite:
     jobs:
       - initial-setup
+      - pytest:
+         requires:
+           - initial-setup
       - chipseq:
          requires:
            - initial-setup
+           - pytest
          filters:
            branches:
              ignore:
@@ -179,6 +198,7 @@ workflows:
       - rnaseq:
           requires:
             - initial-setup
+           - pytest
           filters:
             branches:
               ignore:
@@ -186,6 +206,7 @@ workflows:
       - references:
           requires:
             - initial-setup
+           - pytest
           filters:
             branches:
               ignore:
@@ -193,6 +214,7 @@ workflows:
       - colocalization:
           requires:
             - initial-setup
+           - pytest
           filters:
             branches:
               ignore:
