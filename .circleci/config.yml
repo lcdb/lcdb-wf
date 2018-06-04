@@ -198,7 +198,7 @@ workflows:
       - rnaseq:
           requires:
             - initial-setup
-           - pytest
+            - pytest
           filters:
             branches:
               ignore:
@@ -206,7 +206,7 @@ workflows:
       - references:
           requires:
             - initial-setup
-           - pytest
+            - pytest
           filters:
             branches:
               ignore:
@@ -214,7 +214,7 @@ workflows:
       - colocalization:
           requires:
             - initial-setup
-           - pytest
+            - pytest
           filters:
             branches:
               ignore:
