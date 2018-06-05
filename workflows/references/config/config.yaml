@@ -34,11 +34,6 @@ references:
               ahkey: 'AH57972'
               keytype: 'ENSEMBL'
 
-      metadata:
-        reference_genome_build: 'dm6'
-        reference_effective_genome_count: 1.2e8
-        reference_effective_genome_proportion: 0.88
-
     test_transcriptome:
       fasta:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.transcriptome.fa"
