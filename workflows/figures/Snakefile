@@ -4,7 +4,7 @@ This workflow is used to drive downstream analysis scripts.
 Scripts live in the `scripts` subdirectory. For each script `scriptname.py`,
 the script is expected to create a README.txt file in ReStructured Text format
 in the `figures/scriptname/README.txt`. Of course it will likely do all sorts
-of other things, but this is the only output fil that is expected. It's best to
+of other things, but this is the only output file that is expected. It's best to
 write this file at the very end of the script so that it only is created after
 everything else successfully completes.
 
