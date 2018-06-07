@@ -59,6 +59,8 @@ This will download the example data to the directory ``data/``::
     python ci/get-data.py
 
 
+.. _note-on-test-settings:
+
 A note about test settings
 --------------------------
 
