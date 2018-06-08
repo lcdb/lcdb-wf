@@ -14,11 +14,11 @@ To run a workflow on Biowulf, from the workflow directory (e.g.,
 
     sbatch ../../include/WRAPPER_SLURM
 
-The ``WRAPPER_SLURM`` script submits the main Snakemake process on a separate node to avoid any
-restrictions from running on the head node. That main snakemake process then
-submits each rule separately to the cluster scheduler. As configured in that
-script, we specify ``config/clusterconfig.yaml`` as containing the
-rule-specific cluster arguments.
+The ``WRAPPER_SLURM`` script submits the main Snakemake process on a separate
+node to avoid any restrictions from running on the head node. That main
+snakemake process then submits each rule separately to the cluster scheduler.
+As configured in that script, we specify ``config/clusterconfig.yaml`` as
+containing the rule-specific cluster arguments.
 
 That script also contains this Snakemake arguments::
 

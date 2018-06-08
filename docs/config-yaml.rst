@@ -4,30 +4,40 @@ Config YAML
 ===========
 
 Config files are expected to be in the file ``config/config.yaml`` relative to
-the Snakefile. It is possible to use Snakemake mechanisms such as ``--config``
-(to override a particular config value) and ``--configfile`` (to update the
-config with a different file), but it is easiest to edit the existing
+the Snakefile. For example, the RNA-seq workflow at
+``workflows/rnaseq/Snakefile`` expects the config file
+``workflows/rnaseq/config/config.yaml``.
+
+While it is possible to use Snakemake mechanisms such as ``--config`` to
+override a particular config value and ``--configfile`` to update the config
+with a different file, it is easiest to edit the existing
 ``config/config.yaml`` in place. This has the additional benefit of storing all
 config information in one place for reproducibility.
 
-============================================ =================== ================ ================= =========
-Field                                        Used for References Used for RNA-seq Used for ChIP-seq Required
-============================================ =================== ================ ================= =========
-:ref:`references <cfg-references>`                    yes                 yes              yes      always
-:ref:`references_dir <cfg-references-dir>`            yes                 yes              yes      if REFERENCES_DIR env var not set
-:ref:`sampletable <cfg-sampletable>`                  .                   yes              yes      always
-:ref:`organism <cfg-organism>`                        .                   yes              yes      always
-:ref:`aligner <cfg-aligner>`                          .                   yes              yes      always
-:ref:`fastq_screen <cfg-fastq-screen>`                .                   yes              yes      if using Fastq_screen
-:ref:`merged_bigwigs <cfg-merged-bigwigs>`            .                   yes              yes      if you want to merge bigwigs
-:ref:`gtf <cfg-gtf>`                                  .                   yes              .        always for RNA-seq
-:ref:`rrna <cfg-rrna>`                                .                   yes              .        if rRNA screening desired
-:ref:`salmon <cfg-salmon>`                            .                   yes              .        if Salmon quantification will be run
-:ref:`chipseq <cfg-chipseq>`                          .                   .                yes      always for ChIP-seq
-============================================ =================== ================ ================= =========
+The following table summarizes the config fields, which ones are use for which
+workflow, and under what conditions, if any, they are required. Each option
+links to a section below with more details on how to use it.
+
+================================================================================== =================== ================ ================= =========
+Field                                                                              Used for References Used for RNA-seq Used for ChIP-seq Required
+================================================================================== =================== ================ ================= =========
+:ref:`references <cfg-references>` and/or :ref:`include_references <cfg-inc-refs>`          yes                 yes              yes      yes
+:ref:`references_dir <cfg-references-dir>`                                                  yes                 yes              yes      if `REFERENCES_DIR` env var not set
+:ref:`sampletable <cfg-sampletable>`                                                        .                   yes              yes      always
+:ref:`organism <cfg-organism>`                                                              .                   yes              yes      always
+:ref:`aligner <cfg-aligner>`                                                                .                   yes              yes      always
+:ref:`fastq_screen <cfg-fastq-screen>`                                                      .                   yes              yes      if using `fastq_screen`
+:ref:`merged_bigwigs <cfg-merged-bigwigs>`                                                  .                   yes              yes      if you want to merge bigwigs
+:ref:`gtf <cfg-gtf>`                                                                        .                   yes              .        always for RNA-seq
+:ref:`rrna <cfg-rrna>`                                                                      .                   yes              .        if rRNA screening desired
+:ref:`salmon <cfg-salmon>`                                                                  .                   yes              .        if Salmon quantification will be run
+:ref:`chipseq <cfg-chipseq>`                                                                .                   .                yes      always for ChIP-seq
+================================================================================== =================== ================ ================= =========
 
 Example configs
 ---------------
+
+To provide an overview, here are example config files.
 
 RNA-seq
 ~~~~~~~
@@ -205,6 +215,19 @@ Required for references, RNA-seq and ChIP-seq
 
     This is the most complex section and is documented elsewhere (see
     :ref:`references-config`).
+
+
+.. _cfg-inc-refs:
+
+``include_references``
+``````````````````````
+
+    This section can be used to supplement the ``references`` section with
+    other reference sections stored elsewhere in files. It's a convenient way
+    of managing a large amount of references without cluttering the config
+    file.
+
+    See :ref:`references-config` for more.
 
 
 .. _cfg-references-dir:
@@ -397,7 +420,8 @@ RNA-seq-only fields
 ````````````````
     This field selects the reference tag to use for the Salmon index (if used).
     The tag must have had a FASTA configured, and an index for "salmon" must
-    have been configured to be built.
+    have been configured to be built for the organism selected with the
+    ``organism`` config option.
 
 ChIP-seq-only fields
 ~~~~~~~~~~~~~~~~~~~~

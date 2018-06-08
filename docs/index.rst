@@ -93,12 +93,13 @@ See :ref:`getting-started` to get started.
    config
    references
    rnaseq
+   downstream-rnaseq
    chipseq
    external
    figures
    colocalization
    wrappers
    cluster
-   downstream-rnaseq
+   troubleshooting
    autodoc
    changelog

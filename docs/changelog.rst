@@ -32,9 +32,11 @@ RNA-seq
   error messages)
 - run preseq for RNA-seq library complexity QC
 - support for merging bigwigs
-- rule for symlinking stranded bigwigs
 - featureCounts is now run in all three strandedness modes, and results
   incorporated into MultiQC as separate modules.
+- RNA-seq now symlinks "pos" and "neg" bigWigs, which describe how reads map to
+  the *reference*, to "sense" and "antisense" bigWigs, which describe the
+  *originating RNA*. This makes it easy to swap strands depending on protocol.
 - new ``downstream/helpers.Rmd`` which factors out a lot of the work previously
   done in ``rnaseq.Rmd`` into separate functions.
 - track hub building respects new sense/antisense bigwig symlinks
@@ -75,69 +77,42 @@ Both RNA-seq and ChIP-seq
 
 v1.1
 ----
-- ``include/reference_configs`` contains example config files for various
-  species that can be pasted into individual workflows' ``references:``
-  section.
+
+- The default settings in Snakefiles are for real-world use, rather than for
+  testing. This reduces the amount of editing necessary before running actual
+  data. See :ref:`test-settings` for the extra step to take when testing
+  locally.
+
+- new ``run_test.sh`` script in each workflow directory to automatically run
+  the preprocessor when running test data
+
+- added extensive comments to Snakefiles with ``NOTE:`` string to make it
+  obvious where and how to make changes.
 
 - `fastq_screen` is now configured via ``config.yaml``. This reduces the need
   to edit the Snakefile and coordinate between the config and the fastq_screen
   rule. Now everything is done within the config file.
 
-- In the config file, ``assembly`` is now ``organism``. The change is backwards
-  compatible, but a DeprecationWarning is raised if ``assembly:`` is still
-  used, and it is then automatically copied over to ``organism``
+- `fastq_screen` wrapper now handles additional output files created when using
+  the ``--tag`` and ``--filter`` arguments to ``fastq_screen``.
 
-- using CircleCI for continuous integration testing
+- In the config file, ``assembly`` has been changed to the more-descriptive
+  ``organism``. The change is backwards compatible, but a DeprecationWarning is
+  raised if ``assembly:`` is still used, and changed to ``organism`` (though
+  only in memory, not on disk).
 
-- the default settings in Snakefiles are for real-world use, rather than for
-  testing. This reduces the amount of editing necessary before running actual
-  data. See :ref:`test-settings` for the extra step to take when testing
-  locally.
-
-- All Snakefiles now have the string ``# NOTE`` to indicate settings that may
-  need to be changed depending on the experiment.
-
-- Documentation overhaul to bring everything up to v1.1, including Sphinx
+- Documentation overhaul to bring everything up to v1.1. This includes Sphinx
   autodocs on the ``lib`` module.
 
-- patterns no longer use ``{sample_dir}``, ``{agg_dir}``, etc placeholders that
+- Patterns no longer use ``{sample_dir}``, ``{agg_dir}``, etc placeholders that
   need to be configured in the config YAML. Instead, these directories are
   hard-coded directly into the patterns. This simplifies the config files,
   simplifies the patterns, and removes one layer of disconnect between the
   filenames and how they are determined.
 
-- additional section in configs for averaging bigWigs in a flexible manner
-
 - removed 4C workflow since it used 4c-ker
 
-- ChIP-seq and RNA-seq can now run directly on sample tables from SRA's run
-  browser (fastqs will be downloaded with fastq-dump, etc).
-
-- pinning to deepTools >3.0 to use new command line args
-
-- ChIP-seq now supports SICER for peak-calling.
-
-- ChIP-seq multibigwigsummary and heatmaps for QC and clustering of samples
-
-- ChIP-seq track hub with peaks and signal
-
-- Peak caller wrappers now handle their own conversion to bigBed
-
 - macs2 and sicer can accept mappable genome size overrides
-  
-- Improvements to MultiQC config so that multiple module runs (e.g., FastQC on
-  raw, trimmed, aligned) show up separately in the stats table.
-
-- Added colocalization workflow, external workflow, and figures workflow.
-
-- RNA-seq now runs all three strandedness for featureCounts, and reports them
-  all in MultiQC so you can check protocol expectations.
-
-- RNA-seq now runs preseq for QC
-
-- RNA-seq now symlinks "pos" and "neg" bigWigs, which describe how reads map to
-  the *reference* to "sense" and "antisense" bigWigs, which describe the
-  originating RNA. This makes it easy to swap strands depending on protocol.
 
 - RNA-seq track hub with signal
 
@@ -146,13 +121,8 @@ v1.1
     - ``downstream/help_docs.Rmd`` can be included for first-time users to
       describe the sections of the RNA-seq analysis
 
-    - factored out ``downstream/helpers.Rmd`` into a separate file that is
-      included into the main Rmd.
-
-    - AnnotationHub is cached in ``include`` dir of repo to avoid clobbering
-      any locally-installed versions.
-
-    - UpSet plot example to show how to compare results from multiple contrasts
+    - ``rnaseq.Rmd`` now uses the same ``NOTE:`` syntax as the Snakefiles for
+      indicating where/what to change
 
     - Easy swapping of which strand to use from the three featureCounts runs
       performed by the workflow
@@ -160,4 +130,15 @@ v1.1
     - Be explicit about using DESeq2::lfcShrink as is now the default in recent
       DESeq2 versions
 
-    - DEGpatterns plots
+    - improved the mechanism for keeping together results objects, dds objects, and
+      labels (list of lists, rather than individual list object; refactored
+      functions to use this new structure
+
+- pytest test suite is run on the ``lib`` module
+
+- new `metadata` section in references config, which can be used to store
+
+- references can now be included from other YAML files into the main config
+  file. This dramatically simplifies individual configfiles, and allows
+  multiple workflows to use identical references without having to do
+  error-prone and hard-to-maintain copy/pastes between workflow configs.

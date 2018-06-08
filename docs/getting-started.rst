@@ -19,11 +19,10 @@ We use `bioconda <https://bioconda.github.io>`_ to automatically install
 software into the working directory without needing admin rights on the
 machine.
 
-The following steps need to be performed once per machine:
+If you have the Anaconda Python distribution, you already have conda.
+Otherwise, install `Miniconda <https://conda.io/miniconda.html>`_.
 
-- If you have the Anaconda Python distribution, you already have conda.
-  Otherwise, install `Miniconda <https://conda.io/miniconda.html>`_.
-
+**Optional:** 
 - Run the following commands to set up your conda channels. This puts the
   `lcdb` channel as lowest priority (this channel has the `lcdblib` package),
   and then matches the channel order required by `bioconda`.
@@ -72,11 +71,17 @@ privileges.
 **It is recommended that you use a different environment name for each
 project**. That way you can update packages in each project independently of
 any others. Here we use the name "lcdb-wf" for the new environment, but you can
-use anything.
+use anything. Note that here we specify the channels to use, which include
+``bioconda`` which depends on ``conda-forge``, and ``lcdb`` which provides the
+``lcdblib`` package used by these workflows.
 
 ::
 
-    conda create -n lcdb-wf -y python=3 --file requirements.txt
+    conda create -n lcdb-wf \
+      --file requirements.txt \
+      --channel bioconda \
+      --channel conda-forge \
+      --channel lcdb
 
 Then activate the environment::
 

@@ -8,10 +8,12 @@ creates, and this is the first place to check if something goes wrong.
 
 Some rules do not explicitly redirect to ``log:`` or may only redirect either
 stdout or stderr. Where this output ends up depends on if you're running
-locally or on a cluster. When running locally, stdout and stderr will be
-included in the output from Snakemake, so check there.
+locally or on a cluster.
 
-If running on a cluster, the default behavior is to send the main Snakemake
+**When running locally,**  stdout and stderr will be included in the output
+from Snakemake, so check there.
+
+**If running on a cluster,** the default behavior is to send the main Snakemake
 output to ``Snakefile.log``.  The per-rule output depends on how it was sent to
 the cluster.  As described in the above section, by default stdout and stderr
 are sent to the ``logs`` directory, named after rule and job ID.
@@ -34,4 +36,3 @@ For example, if we find the following error in ``Snakefile.log``::
 
 Then we would check ``logs/rnaseq_markdown.e.60894387`` and
 ``logs/rnaseq_markdown.o.60894387`` for more information.
-
