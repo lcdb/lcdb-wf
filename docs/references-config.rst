@@ -19,12 +19,12 @@ your config file:
       - '../../include/references_configs'
 
 This will populate the config with the contents of all the files contained in
-``include/references_configs``; the path configured here is relative to the
-Snakefile using the config. You will still need to inspect the contents of
-those files to decide which organsim and tag you want to use for your
-particular experiment (see :ref:`cfg-organism` and :ref:`cfg-aligner` for more
-on these fields). For example, if you are working with human RNA-seq data, you
-may want this in your config:
+the ``include/references_configs`` directory. The path is relative to the
+Snakefile using the config. Note that you will still need to inspect the
+contents of those files to decide which organsim and tag you want to use for
+your particular experiment (see :ref:`cfg-organism` and :ref:`cfg-aligner` for
+more on these fields). For example, if you are working with human RNA-seq data,
+and you use the above ``include_references``, you may want this in your config:
 
 .. code-block:: yaml
 
@@ -33,6 +33,10 @@ may want this in your config:
       tag: 'gencode-v25'
       index: 'hisat2'
     salmon: 'gencode-v25-transcriptome'
+
+since the ``gencode-v25`` and ``gencode-v25-transcriptome`` tags are configured
+for the ``human`` key in
+``../../include/references_configs/Homo_sapiens.yaml``.
 
 The remainder of this section of the documentation explains how to customize
 the references, to add your own or modify the existing examples.
@@ -64,13 +68,26 @@ to modify references via a plugin architecture. It works something like this:
 It's probably easiest to show an example config and then describe what's
 happening.
 
-The following example configures the workflow to download a tarball of fasta
-files for the yeast genome from UCSC, concatenate them into a single file, and
-build a bowtie2 and hisat2 index for it. It's heavily commented for
+Example references config
+-------------------------
+
+The following example configures the workflow to:
+
+- download a fasta file from the GENCODE project for the human genome and build
+  a hisat2 and bowtie2 index
+- download the corresponding GTF file from GENCODE, strip off the dotted
+  version numbers from Ensembl gene and transcript IDs, and create a refFlat
+  format file from it
+- download the SILVA rRNA database and keep only the ribosomal RNA sequence
+  corresponding to *Homo sapiens*
+
+This example contains sufficient real-world complexity to illustrate the
+flexibility afforded by the references workflow. It is heavily commented for
 illustration.
 
-
 .. code-block:: yaml
+
+    # EXAMPLE REFERENCES CONFIG SECTION
 
     # This configures the directory in which the prepared references will be
     # saved (see below for directory structure):
@@ -78,16 +95,15 @@ illustration.
     references_dir: 'data/references'
 
     # One of the organisms configured below. We are only configuring a single one
-    # so sacCer3 is our only option here:
+    # so "human" is our only option here:
 
-    organism: 'saccharomyces_cerevisiae'
+    organism: 'human'
 
-    # Here we specify which tag (under organism "sacCer3" below) to use for
-    # aligning, as well as which index we'll be using. This example is RNA-seq,
-    # so we'll use HISAT2:
+    # Here we specify which tag under "human" to use for aligning, as well as
+    # which index we'll be using. This example is RNA-seq, so we'll use HISAT2:
 
     aligner:
-      tag: 'sacCer3'
+      tag: 'gencode-v25'
       index: 'hisat2'
 
     # Top-level section for references:
@@ -96,12 +112,12 @@ illustration.
 
       # Label for this organism or species:
 
-      saccharomyces_cerevisiae:
+      human:
 
-        # "sacCer3" is our tag to describe this particular FASTA and GTF we're
-        # preparing:
+        # "gencode-v25" is our tag to describe this particular FASTA and GTF
+        # we're preparing:
 
-        sacCer3:
+        gencode-v25:
 
           # This block will define how to get and postprocess a FASTA file:
 
@@ -109,68 +125,131 @@ illustration.
 
             # URL to download:
 
-            url: 'http://hgdownload.cse.ucsc.edu/goldenPath/sacCer3/bigZips/chromFa.tar.gz'
-
-            # The yeast genome from UCSC comes as a tarball of fastas. We can
-            # specify a function to apply to the downloaded tarball to get
-            # a single fasta file. See below for details.
-
-            postprocess: 'lib.postprocess.sacCer3.fasta_lib.postprocess'
+            url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh38.primary_organism.genome.fa.gz'
 
             # We can optionally build indexes for various aligners:
 
             indexes:
+              - 'hisat2'
+              - 'bowtie2'
+
+          # This next block will define how to get and postprocess a GTF file.
+          # The coordinates of the GTF file correspond to the
+          # coordinates in the fasta defined above, so we're putting it under
+          # the same tag. This is not required; we could also put it under
+          # separate tag (perhaps called "gencode-v25-annotations")
+
+          gtf:
+            url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz'
+
+            # The GENCODE annotations include the dotted Ensembl versions in
+            # the gene IDs. The following function, strip_ensembl_version, is
+            # defined in lib/postprocess/hg38.py. It strips off those dotted
+            # versions so that our resulting GTF file used by the workflows
+            # will not contain them:
+
+            postprocess: 'lib.postprocess.hg38.strip_ensembl_version'
+
+            # Once well-formatted by the postprocessing function, we can now
+            # perform standard conversions on the GTF. These conversions are
+            # defined as rules in the references Snakefile, and will be run
+            # if the conversion is specified here. Here we ask to get a refFlat
+            # file, which can be provided to Picard's collectRnaSeqMetrics tool:
+
+            conversions:
+              - 'refflat'
+
+
+        # Here is another tag, to create a FASTA file for ribosomal RNA. It can
+        # then be used for fastq_screen, or for the rRNA screening portion of the
+        # RNA-seq workflow:
+
+        rRNA:
+          fasta:
+
+            # The SILVA database has separate files for large and small subunit
+            # sequences. We'd like them all; by providing multiple URLs they will
+            # be concatenated:
+
+            url:
+              - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+              - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+
+            # However, the downloaded files contain many species. Here we only
+            # care about human. We already have a function, "filter_fastas()", in
+            # lib/common.py that accepts a FASTA and only keeps the records that
+            # contain the provided first argument.
+
+            # We specify that first argument here, and it will be passed to that
+            # function, resulting in a final FASTA file that only contains the
+            # rRNA sequence for Homo sapiens:
+
+            postprocess:
+                function: 'lib.common.filter_fastas'
+                args: 'Homo sapiens'
+
+            # We only need a bowtie2 index out of it.
+            indexes:
                 - 'bowtie2'
-                - 'hisat2'
 
 Without all those comments, it looks like this:
 
 .. code-block:: yaml
 
     references_dir: 'data/references'
-    organism: 'saccharomyces_cerevisiae'
+    organism: 'human'
     aligner:
-      tag: 'sacCer3'
+      tag: 'gencode-v25'
       index: 'hisat2'
     references:
-      saccharomyces_cerevisiae:
-        sacCer3:
+      human:
+        gencode-v25:
           fasta:
-            url: 'http://hgdownload.cse.ucsc.edu/goldenPath/sacCer3/bigZips/chromFa.tar.gz'
-            postprocess: 'lib.postprocess.sacCer3.fasta_lib.postprocess'
+            url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh38.primary_organism.genome.fa.gz'
+            indexes:
+              - 'hisat2'
+              - 'bowtie2'
+          gtf:
+            url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz'
+            postprocess: 'lib.postprocess.hg38.strip_ensembl_version'
+            conversions:
+              - 'refflat'
+        rRNA:
+          fasta:
+            url:
+              - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+              - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+            postprocess:
+                function: 'lib.common.filter_fastas'
+                args: 'Homo sapiens'
             indexes:
                 - 'bowtie2'
-                - 'hisat2'
+
+
+The above file will result in the following directory structure::
+
+    data/references/human/gencode-v25/fasta
+    data/references/human/gencode-v25/bowtie2
+    data/references/human/gencode-v25/hisat2
+    data/references/human/gencode-v25/gtf
+    data/references/human/gencode-v25-transcriptome/fasta
+    data/references/human/gencode-v25-transcriptome/salmon
+    data/references/human/rRNA/fasta
+    data/references/human/rRNA/bowtie2
 
 Each block in the YAML file describes either a `fasta` or `gtf` file. Each
 block has at least the organism, type, and a URL.  A block can optionally have
 a `postprocess`, which is an arbitrary function (described below) that converts
 the downloaded URL to something that conforms to the standards of the workflow
 (also described below). By supplying a tag, we can differentiate between
-different versions (e.g., FlyBase r6.04 vs r6.11) or different kinds of
-postprocessing (e.g, "chr" preprended to chrom names or not).
+different versions (e.g., FlyBase r6.04 vs r6.11; hg19 vs hg38) or different
+kinds of postprocessing (e.g, "chr" preprended to chrom names or not;
+comprehensive annotation vs only coding genes).
 
-Blocks with a type of `fasta` can have an optional  `indexes` entry which will
-build the specified indexes. Blocks with a type of `gtf` can have an optional
-`conversions` entry which will perform the specified conversion. Available
-indexes and conversions are described below.
-
-Running the references workflow using this config will result in the following
-files in ``data/references``::
-
-      saccharomyces_cerevisiae
-      └── sacCer3
-          ├── bowtie2
-          │   ├── saccharomyces_cerevisiae_sacCer3.1.bt2   # bowtie2 index files
-          │   ├── saccharomyces_cerevisiae_sacCer3.2.bt2
-          │   ├── saccharomyces_cerevisiae_sacCer3.3.bt2
-          │   ├── saccharomyces_cerevisiae_sacCer3.4.bt2
-          │   ├── saccharomyces_cerevisiae_sacCer3.rev.1.bt2
-          │   └── saccharomyces_cerevisiae_sacCer3.rev.2.bt2
-          └── fasta
-              ├── saccharomyces_cerevisiae_sacCer3.chromsizes
-              ├── saccharomyces_cerevisiae_sacCer3.fasta
-              └── saccharomyces_cerevisiae_sacCer3.fasta.gz.log
+`fasta` blocks can have an optional  `indexes` entry which will build the
+specified indexes. `gtf` blocks can have an optional `conversions` entry which
+will perform the specified conversion. Available indexes and conversions are
+described below.
 
 
 Post processing
@@ -205,19 +284,8 @@ For example, above we used the postprocess function
 ``lib.postprocess.sacCer3.fasta_lib.postprocess``, and you can view this
 function in ``lib/postprocess/sacCer3.py``.
 
-A post-processing function has the following signature:
-
-.. code-block:: python
-
-    def func(temp_downloaded_filenames, final_postprocessed_filename, **kwargs)
-
-where:
-
-    - ``temp_downloaded_filenames`` is a list of temporary files downloaded for
-      each provided URL. In our example above, there's only one URL provided,
-      so this will be a list of one item.
-    - ``final_postprocessed_filename`` is the final filename to create and will
-      be a string.
+Please see :func:`lib.common.download_and_postprocess` for more details, and
+the files in the ``lib/postproces`` directory for inspiration.
 
 These two arguments are automatically provided by the references workflow --
 you don't have to know or care exactly what the filenames are, just what has to
@@ -268,32 +336,41 @@ chromosome names.  In this way, we can apply arbitrary code to modify
 references to get them into a uniform format.
 
 
-TODO: document the conversions for GTF, specifically the `genelist` and
-`annotation_hub` conversions and how the kwargs can be specified.
-
 Available indexes and conversions
 ---------------------------------
-
-Current indexes:
+The following indexes can be currently be specified for fasta files:
 
     - hisat2
     - bowtie2
-    - kallisto
     - salmon
 
-Planned indexes:
+The following conversions can be specified for GTF files:
 
-    - STAR
-    - bwa
+:refflat:
+    Converts GTF to refFlat format. See the ``conversion_refflat`` rule in
+    ``workflows/references/Snakefile``.
 
-Current conversions:
 
-    - refflat (converts GTF to refFlat format)
-    - gffutils (converts GTF to gffutils database)
-    - genelist
-    - annotation_hub
+:gffutils:
+    Converts GTF to gffutils database. You can specify arbitrary kwargs to
+    ``gffutils.create_db`` by including them as keys. For example, if the GTF
+    file already contains features for genes and transcripts:
 
-Planned:
+    .. code-block:: yaml
 
-    - intergenic (needs chromsizes; therefore need to link a GTF tag to a FASTA
-      tag but not quite sure how best to do this)
+        conversions:
+          - gffutils:
+              disable_infer_genes: True
+              disable_infer_transcripts: True
+
+:genelist:
+    Reads the postprocessed GTF file, and extracts the set of gene IDs found.
+    The GTF attribute to use is configured by the ``gene_id:`` key, for
+    example, if the file contains gene IDs in the ``Name`` attribute of each
+    line, use the following:
+
+    .. code-block:: yaml
+
+        conversions:
+          - genelist:
+              gene_id: 'Name'
