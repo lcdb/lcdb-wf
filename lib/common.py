@@ -182,22 +182,39 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
         def func(infiles, outfile, *args):
             pass
 
+    or::
+
+        def func(infiles, outfile, *args, **kwargs):
+            pass
+
 
     The function is specified as a string that resolves to an importable
     function, e.g., `postprocess: lib.postprocess.dm6.fix` will call a function
     called `fix` in the file `lib/postprocess/dm6.py`.
 
-    If specified in the config as a dict, it must have `function` and `args`
-    keys. The `function` key indicates the importable path to the function, and
-    `args` can be a string or list of arguments that will be provided as
-    additional args to a function with the second kind of signature above.  For
-    example::
+    If the contents of `postprocess:` is a dict, it must have at least the key
+    `function`, and optionally `args` and/or `kwargs` keys. The `function` key
+    indicates the importable path to the function.  `args` can be a string
+    or list of arguments that will be provided as additional args to a function
+    with the second kind of signature above.  If `kwargs` is provided, it is
+    a dict that is passed to the function with the third kind of signature
+    above. For example::
 
         postprocess:
             function: lib.postprocess.dm6.fix
             args:
                 - True
                 - 3
+
+    or::
+
+        postprocess:
+            function: lib.postprocess.dm6.fix
+            args:
+                - True
+                - 3
+            kwargs:
+                skip: exon
 
     """
 
@@ -215,6 +232,7 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
     if post_process is None:
         func = default_postprocess
         args = ()
+        kwargs = {}
 
     # postprocess can have a single string value (indicating the function) or
     # it can be a dict with keys "function" and optionally "args". The value of
@@ -223,11 +241,13 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
         if isinstance(post_process, dict):
             name = post_process.get('function', post_process)
             args = post_process.get('args', ())
+            kwargs = post_process.get('kwargs', {})
             if isinstance(args, str):
                 args = (args,)
         elif isinstance(post_process, str):
             name = post_process
             args = ()
+            kwargs = {}
 
         # import the function
         func = resolve_name(name)
@@ -248,7 +268,7 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
             else:
                 shell("wget {url} -O- > {tmpfile} 2> {outfile}.log")
 
-        func(tmpfiles, outfile, *args)
+        func(tmpfiles, outfile, *args, **kwargs)
     except Exception as e:
         raise e
     finally:
@@ -344,7 +364,8 @@ def references_dict(config):
         'refflat': '.refflat',
         'gffutils': '.gtf.db',
         'genelist': '.genelist',
-        'annotation_hub': '.{keytype}.csv'
+        'annotation_hub': '.{keytype}.csv',
+        'mappings': '.mapping.tsv.gz',
     }
 
     d = {}
@@ -519,7 +540,6 @@ def load_config(config):
     if isinstance(config, str):
         config = yaml.load(open(config))
 
-    config = deprecation_handler(config)
 
     # Here we populate a list of reference sections. Items later on the list
     # will have higher priority
@@ -556,6 +576,10 @@ def load_config(config):
                 org_dict[tag] = ref[organism][tag]
             merged_references[organism] = org_dict
     config['references'] = merged_references
+
+    # Run the deprecation handler on the final config
+    config = deprecation_handler(config)
+
     return config
 
 
@@ -565,12 +589,26 @@ def deprecation_handler(config):
 
     Also makes any fixes that can be done automatically.
     """
+    warnings.simplefilter('default')
     if 'assembly' in config:
         config['organism'] = config['assembly']
-        warnings.simplefilter('default')
         warnings.warn(
             "'assembly' should be replaced with 'organism' in config files. "
             "As a temporary measure, a new 'organism' key has been added with "
             "the value of 'assembly'",
             DeprecationWarning)
+
+
+    for org, block1 in config.get('references', {}).items():
+        for tag, block2 in block1.items():
+            gtf_conversions = block2.get('gtf', {}).get('conversions', [])
+            for c in gtf_conversions:
+                if isinstance(c, dict) and 'annotation_hub' in c:
+                    warnings.warn(
+                        "You may want to try the 'mappings' conversion rather "
+                        "than 'annotation_hub' since it works directly off "
+                        "the GTF file rather than assuming concordance between "
+                        "GTF and AnnoationHub instances",
+                        DeprecationWarning)
+
     return config

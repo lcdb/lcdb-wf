@@ -1,9 +1,11 @@
 import os
 import sys
 sys.path.insert(0, srcdir('../..'))
+import gzip
 import yaml
 import importlib
 import tempfile
+import pandas
 from snakemake.utils import makedirs
 from lcdblib.utils.imports import resolve_name
 from lcdblib.utils import utils
@@ -195,6 +197,50 @@ rule genelist:
             for feature in sorted(list(set(genes))):
                 fout.write(feature + '\n')
 
+
+rule mappings:
+    """
+    Creates gzipped TSV mapping between attributes in the GTF.
+    """
+    input:
+        gtf='{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf'
+    output:
+        protected('{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.mapping.tsv.gz')
+    params:
+        include_featuretypes=lambda wildcards, output: conversion_kwargs[output[0]].get('include_featuretypes', [])
+    run:
+        import gffutils
+
+        # Will want to change the setting back to what it was originally when
+        # we're done
+        orig_setting = gffutils.constants.always_return_list
+        gffutils.constants.always_return_list = False
+
+        include_featuretypes = params.include_featuretypes
+
+        res = []
+        for f in gffutils.DataIterator(input[0]):
+
+            ft = f.featuretype
+
+            if include_featuretypes and (ft not in include_featuretypes):
+                continue
+
+            d = dict(f.attributes)
+            d['__featuretype__'] = ft
+            res.append(d)
+
+        df = pandas.DataFrame(res)
+
+        # Depending on how many attributes there were and the
+        # include_featuretypes settings, this may take a while.
+        df = df.drop_duplicates()
+
+        with gzip.open(output[0], 'wt') as fout:
+            df.to_csv(fout, sep='\t', index=False)
+
+        # Restore original setting
+        gffutils.constants.always_return_list = orig_setting
 
 rule annotations:
     """Creates TSVs mappings between gene names (created in the `genelist` rule

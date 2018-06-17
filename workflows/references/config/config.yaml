@@ -34,6 +34,9 @@ references:
               ahkey: 'AH57972'
               keytype: 'ENSEMBL'
 
+          - mappings:
+              include_featuretypes: ['exon']
+
     test_transcriptome:
       fasta:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.transcriptome.fa"

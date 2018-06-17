@@ -78,6 +78,9 @@ Both RNA-seq and ChIP-seq
 v1.1
 ----
 
+Infrastructure
+~~~~~~~~~~~~~~
+
 - The default settings in Snakefiles are for real-world use, rather than for
   testing. This reduces the amount of editing necessary before running actual
   data. See :ref:`test-settings` for the extra step to take when testing
@@ -88,6 +91,35 @@ v1.1
 
 - added extensive comments to Snakefiles with ``NOTE:`` string to make it
   obvious where and how to make changes.
+
+- Documentation overhaul to bring everything up to v1.1. This includes Sphinx
+  autodocs on the ``lib`` module.
+
+- pytest test suite is run on the ``lib`` module
+
+References
+~~~~~~~~~~
+
+- new `metadata` section in references config, which can be used to store
+  additional information like mappable bases and genome size.
+
+- References can now be included from other YAML files into the main config
+  file. This dramatically simplifies individual configfiles, and allows
+  multiple workflows to use identical references without having to do
+  error-prone and hard-to-maintain copy/pastes between workflow configs. See
+  :ref:`references-config` for details.
+
+- New GTF conversion, ``mappings``. This is intended to replace the
+  ``annotation_hub`` conversion, which was problematic because 1) a particular
+  annotation hub accession is not guaranteed to be found in new versions of
+  AnnotationHub, resulting in lack of reproducibility, and 2) it was difficult
+  to synchronize the results with a particular GTF annotation. The
+  ``annotation_hub`` conversion is still supported, but if it's used then
+  a DeprecationWarning will be emitted, recommending ``mappings`` instead.
+
+
+Both RNA-seq and ChIP-seq
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - `fastq_screen` is now configured via ``config.yaml``. This reduces the need
   to edit the Snakefile and coordinate between the config and the fastq_screen
@@ -101,9 +133,6 @@ v1.1
   raised if ``assembly:`` is still used, and changed to ``organism`` (though
   only in memory, not on disk).
 
-- Documentation overhaul to bring everything up to v1.1. This includes Sphinx
-  autodocs on the ``lib`` module.
-
 - Patterns no longer use ``{sample_dir}``, ``{agg_dir}``, etc placeholders that
   need to be configured in the config YAML. Instead, these directories are
   hard-coded directly into the patterns. This simplifies the config files,
@@ -112,9 +141,12 @@ v1.1
 
 - removed 4C workflow since it used 4c-ker
 
+ChIP-seq
+~~~~~~~~
 - macs2 and sicer can accept mappable genome size overrides
 
-- RNA-seq track hub with signal
+RNA-seq
+~~~~~~~
 
 - RNA-seq downstream:
 
@@ -134,11 +166,4 @@ v1.1
       labels (list of lists, rather than individual list object; refactored
       functions to use this new structure
 
-- pytest test suite is run on the ``lib`` module
 
-- new `metadata` section in references config, which can be used to store
-
-- references can now be included from other YAML files into the main config
-  file. This dramatically simplifies individual configfiles, and allows
-  multiple workflows to use identical references without having to do
-  error-prone and hard-to-maintain copy/pastes between workflow configs.
