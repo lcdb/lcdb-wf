@@ -53,8 +53,9 @@ def gzipped(tmpfiles, outfile):
     """
     with gzip.open(outfile, 'wt') as fout:
         for f in tmpfiles:
-            for line in open(f):
-                fout.write(line)
+            with open(f) as infile:
+                for line in infile:
+                    fout.write(line)
 
 
 def cat(tmpfiles, outfile):
@@ -566,7 +567,7 @@ def load_config(config):
 
     # The last thing we include is the references section as written in the
     # config, which wins over all.
-    reference_sections.append(config['references'])
+    reference_sections.append(config.get('references', {}))
 
     merged_references = {}
     for ref in reference_sections:
