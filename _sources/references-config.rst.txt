@@ -20,9 +20,9 @@ this in your config file:
       - '../../include/references_configs'
 
 This will populate the config with the contents of all the files contained in
-the ``include/references_configs`` directory. The path is relative to the
-Snakefile using the config. Note that you will still need to inspect the
-contents of those files to decide which organsim and tag you want to use for
+the ``include/references_configs`` directory (the path is relative to the
+Snakefile using the config). **Note that you will still need to inspect the
+contents** of those files to decide which organsim and tag you want to use for
 your particular experiment (see :ref:`cfg-organism` and :ref:`cfg-aligner` for
 more on these fields). For example, if you are working with human RNA-seq data,
 and you use the above ``include_references``, you may want this in your config:
@@ -38,6 +38,18 @@ and you use the above ``include_references``, you may want this in your config:
 since the ``gencode-v25`` and ``gencode-v25-transcriptome`` tags are configured
 for the ``human`` key in
 ``../../include/references_configs/Homo_sapiens.yaml``.
+
+You can provide entire directories of reference configs, a single file, or use the references section below. The prioritization works like this:
+
+- an organism can show up in multiple configs; if a tag exists for an organism
+  in more than one config, higher-priority configs will overwrite the contents
+  of the tag.
+- directories have lowest priority; when multiple directories are specified the
+  last one has priority
+- files have priority over directories; when multiple files are specified the
+  last one has priority
+- the ``references:``` section always has priority over anything in
+  ``include_references:``.
 
 The remainder of this section of the documentation explains how to customize
 the references, to add your own or modify the existing examples.

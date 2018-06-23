@@ -112,9 +112,9 @@ this in your config file:</p>
 </pre></div>
 </div>
 <p>This will populate the config with the contents of all the files contained in
-the <code class="docutils literal notranslate"><span class="pre">include/references_configs</span></code> directory. The path is relative to the
-Snakefile using the config. Note that you will still need to inspect the
-contents of those files to decide which organsim and tag you want to use for
+the <code class="docutils literal notranslate"><span class="pre">include/references_configs</span></code> directory (the path is relative to the
+Snakefile using the config). <strong>Note that you will still need to inspect the
+contents</strong> of those files to decide which organsim and tag you want to use for
 your particular experiment (see <a class="reference internal" href="config-yaml.html#cfg-organism"><span class="std std-ref">organism field</span></a> and <a class="reference internal" href="config-yaml.html#cfg-aligner"><span class="std std-ref">aligner config section</span></a> for
 more on these fields). For example, if you are working with human RNA-seq data,
 and you use the above <code class="docutils literal notranslate"><span class="pre">include_references</span></code>, you may want this in your config:</p>
@@ -128,6 +128,18 @@ and you use the above <code class="docutils literal notranslate"><span class="pr
 <p>since the <code class="docutils literal notranslate"><span class="pre">gencode-v25</span></code> and <code class="docutils literal notranslate"><span class="pre">gencode-v25-transcriptome</span></code> tags are configured
 for the <code class="docutils literal notranslate"><span class="pre">human</span></code> key in
 <code class="docutils literal notranslate"><span class="pre">../../include/references_configs/Homo_sapiens.yaml</span></code>.</p>
+<p>You can provide entire directories of reference configs, a single file, or use the references section below. The prioritization works like this:</p>
+<ul class="simple">
+<li>an organism can show up in multiple configs; if a tag exists for an organism
+in more than one config, higher-priority configs will overwrite the contents
+of the tag.</li>
+<li>directories have lowest priority; when multiple directories are specified the
+last one has priority</li>
+<li>files have priority over directories; when multiple files are specified the
+last one has priority</li>
+<li>the <code class="docutils literal notranslate"><span class="pre">references:`</span></code> section always has priority over anything in
+<code class="docutils literal notranslate"><span class="pre">include_references:</span></code>.</li>
+</ul>
 <p>The remainder of this section of the documentation explains how to customize
 the references, to add your own or modify the existing examples.</p>
 </div>
