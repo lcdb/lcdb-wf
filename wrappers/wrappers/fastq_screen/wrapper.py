@@ -55,6 +55,14 @@ shell(
 # Move output to the filenames specified by the rule
 shell("cp {tempdir}/{prefix}_screen.txt {snakemake.output.txt}")
 
+# Check for the output of the --tag option to fastq_screen
+if os.path.isfile("{tempdir}/{prefix}.tagged.fastq.gz"):
+    shell("cp {tempdir}/{prefix}.tagged.fastq.gz {snakemake.output.txt}.tagged.fastq.gz")
+
+# Check for the output of the --filter XXXXXX option to fastq_screen
+if os.path.isfile("{tempdir}/{prefix}.tagged_filter.fastq.gz"):
+    shell("cp {tempdir}/{prefix}.tagged_filter.fastq.gz {snakemake.output.txt}.tagged_filter.fastq.gz")
+
 # Clean up temp
 shell("rm -r {tempdir}")
 shell("rm {tmp}")

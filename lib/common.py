@@ -1,5 +1,7 @@
+import glob
 import os
 import tempfile
+import warnings
 import yaml
 import pandas
 from Bio import SeqIO
@@ -22,6 +24,8 @@ PATH_KEYS = [
 
 def resolve_config(config, workdir=None):
     """
+    Finds the config file.
+
     Parameters
     ----------
     config : str, dict
@@ -45,13 +49,13 @@ def resolve_config(config, workdir=None):
 
 def gzipped(tmpfiles, outfile):
     """
-    Cat-and-gzip a list of uncompressed input files into a single compressed
-    output file.
+    Cat-and-gzip a list of uncompressed files into a compressed output file.
     """
     with gzip.open(outfile, 'wt') as fout:
         for f in tmpfiles:
-            for line in open(f):
-                fout.write(line)
+            with open(f) as infile:
+                for line in infile:
+                    fout.write(line)
 
 
 def cat(tmpfiles, outfile):
@@ -66,6 +70,8 @@ def cat(tmpfiles, outfile):
 
 def filter_fastas(tmpfiles, outfile, pattern):
     """
+    Extract records from fasta file(s) given a search pattern.
+
     Given input gzipped FASTAs, create a new gzipped fasta containing only
     records whose description matches `pattern`.
 
@@ -122,7 +128,7 @@ def twobit_to_fasta(tmpfiles, outfile):
     shell('rm {fastas}')
 
 
-def download_and_postprocess(outfile, config, assembly, tag, type_):
+def download_and_postprocess(outfile, config, organism, tag, type_):
     """
     Given an output file, figure out what to do based on the config.
 
@@ -134,12 +140,12 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
 
     config : dict
 
-    assembly : str
-        Which assembly to use. Must be a key in the "references" section of the
+    organism : str
+        Which organism to use. Must be a key in the "references" section of the
         config.
 
     tag : str
-        Which tag for the assembly to use. Must be a tag for the assembly in
+        Which tag for the organism to use. Must be a tag for the organism in
         the config
 
     type_ : str
@@ -150,16 +156,18 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
 
     This function:
 
-     - uses `assembly`, `tag`, `type_` as a key into the config dict to figure
-       out:
-         - what postprocessing function (if any) was specified along with
-           its optional args
-         - the URL[s] to download
-     - resolves the name of the postprocessing function (if provided) and
-       imports it
-     - downloads the URL[s] to tempfile[s]
-     - calls the imported postprocessing function using the tempfile[s] and
-       outfile plus any additional specified arguments.
+        - uses `organism`, `tag`, `type_` as a key into the config dict to figure
+          out:
+
+            - what postprocessing function (if any) was specified along with
+              its optional args
+            - the URL[s] to download
+
+        - resolves the name of the postprocessing function (if provided) and
+          imports it
+        - downloads the URL[s] to tempfile[s]
+        - calls the imported postprocessing function using the tempfile[s] and
+          outfile plus any additional specified arguments.
 
 
     The postprocessing function must have one of the following two signatures,
@@ -175,22 +183,39 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
         def func(infiles, outfile, *args):
             pass
 
+    or::
+
+        def func(infiles, outfile, *args, **kwargs):
+            pass
+
 
     The function is specified as a string that resolves to an importable
     function, e.g., `postprocess: lib.postprocess.dm6.fix` will call a function
     called `fix` in the file `lib/postprocess/dm6.py`.
 
-    If specified in the config as a dict, it must have `function` and `args`
-    keys. The `function` key indicates the importable path to the function, and
-    `args` can be a string or list of arguments that will be provided as
-    additional args to a function with the second kind of signature above.  For
-    example::
+    If the contents of `postprocess:` is a dict, it must have at least the key
+    `function`, and optionally `args` and/or `kwargs` keys. The `function` key
+    indicates the importable path to the function.  `args` can be a string
+    or list of arguments that will be provided as additional args to a function
+    with the second kind of signature above.  If `kwargs` is provided, it is
+    a dict that is passed to the function with the third kind of signature
+    above. For example::
 
         postprocess:
             function: lib.postprocess.dm6.fix
             args:
                 - True
                 - 3
+
+    or::
+
+        postprocess:
+            function: lib.postprocess.dm6.fix
+            args:
+                - True
+                - 3
+            kwargs:
+                skip: exon
 
     """
 
@@ -201,13 +226,14 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
         """
         shell("mv {origfn} {newfn}")
 
-    block = config['references'][assembly][tag][type_]
+    block = config['references'][organism][tag][type_]
 
     # postprocess can be missing, in which case we use the default above
     post_process = block.get('postprocess', None)
     if post_process is None:
         func = default_postprocess
         args = ()
+        kwargs = {}
 
     # postprocess can have a single string value (indicating the function) or
     # it can be a dict with keys "function" and optionally "args". The value of
@@ -216,11 +242,13 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
         if isinstance(post_process, dict):
             name = post_process.get('function', post_process)
             args = post_process.get('args', ())
+            kwargs = post_process.get('kwargs', {})
             if isinstance(args, str):
                 args = (args,)
         elif isinstance(post_process, str):
             name = post_process
             args = ()
+            kwargs = {}
 
         # import the function
         func = resolve_name(name)
@@ -241,7 +269,7 @@ def download_and_postprocess(outfile, config, assembly, tag, type_):
             else:
                 shell("wget {url} -O- > {tmpfile} 2> {outfile}.log")
 
-        func(tmpfiles, outfile, *args)
+        func(tmpfiles, outfile, *args, **kwargs)
     except Exception as e:
         raise e
     finally:
@@ -254,7 +282,7 @@ def references_dict(config):
     """
     Reformats the config file's reference section into a more practical form.
 
-    Files can be referenced as `d[assembly][tag][type]`.
+    Files can be referenced as `d[organism][tag][type]`.
 
     Parameters
     ----------
@@ -262,6 +290,7 @@ def references_dict(config):
 
     Notes
     -----
+
     The config file is designed to be easy to edit and use from the user's
     standpoint. But it's not so great for practical usage. Here we convert the
     config file which has the format::
@@ -273,6 +302,10 @@ def references_dict(config):
     ... references:
     ...   dm6:
     ...     r6-11:
+    ...       metadata:
+    ...         reference_genome_build: 'dm6'
+    ...         reference_effective_genome_count: 1.2e7
+    ...         reference_effective_genome_proportion: 0.97
     ...       fasta:
     ...         url: ""
     ...         indexes:
@@ -292,7 +325,7 @@ def references_dict(config):
 
     To this format:
 
-    >>> d = config_to_dict('tmp')
+    >>> d, conversion_kwargs = references_dict('tmp')
     >>> assert d == (
     ... {
     ...   'dm6': {
@@ -307,10 +340,11 @@ def references_dict(config):
     ...      'r6-11_transcriptome': {
     ...          'fasta': '/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.fasta',
     ...          'chromsizes': '/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.chromsizes',
-    ...          'salmon': '/data/dm6/r6-11_transcriptome/salmon/dm6_r6-11_transcriptome/hash.bin,
+    ...          'salmon': '/data/dm6/r6-11_transcriptome/salmon/dm6_r6-11_transcriptome/hash.bin',
     ...          },
     ...     },
     ... }), d
+    >>> assert conversion_kwargs == {'/data/dm6/r6-11/gtf/dm6_r6-11.refflat': {}}
     >>> os.unlink('tmp')
 
     """
@@ -331,22 +365,28 @@ def references_dict(config):
         'refflat': '.refflat',
         'gffutils': '.gtf.db',
         'genelist': '.genelist',
-        'annotation_hub': '.{keytype}.csv'
+        'annotation_hub': '.{keytype}.csv',
+        'mappings': '.mapping.tsv.gz',
     }
 
     d = {}
     conversion_kwargs = {}
-    for assembly in config['references'].keys():
-        d[assembly] = {}
-        for tag in config['references'][assembly].keys():
+
+    merged_references = config['references']
+
+    for organism in merged_references.keys():
+        d[organism] = {}
+        for tag in merged_references[organism].keys():
             e = {}
-            for type_, block in config['references'][assembly][tag].items():
+            for type_, block in merged_references[organism][tag].items():
+                if type_ == 'metadata':
+                    continue
                 e[type_] = (
                     '{references_dir}/'
-                    '{assembly}/'
+                    '{organism}/'
                     '{tag}/'
                     '{type_}/'
-                    '{assembly}_{tag}.{type_}'.format(**locals())
+                    '{organism}_{tag}.{type_}'.format(**locals())
                 )
 
                 # Add conversions if specified.
@@ -376,10 +416,10 @@ def references_dict(config):
                             ext = conversion_extensions[conversion]
                         output = (
                             '{references_dir}/'
-                            '{assembly}/'
+                            '{organism}/'
                             '{tag}/'
                             '{type_}/'
-                            '{assembly}_{tag}{ext}'.format(**locals())
+                            '{organism}_{tag}{ext}'.format(**locals())
                         )
                         e[conversion] = output
 
@@ -392,18 +432,18 @@ def references_dict(config):
                         ext = index_extensions[index]
 
                         e[index] = (
-                            '{references_dir}/{assembly}/{tag}/{index}/{assembly}_{tag}{ext}'
+                            '{references_dir}/{organism}/{tag}/{index}/{organism}_{tag}{ext}'
                             .format(**locals())
                         )
 
                     e['chromsizes'] = (
                         '{references_dir}/'
-                        '{assembly}/'
+                        '{organism}/'
                         '{tag}/'
                         '{type_}/'
-                        '{assembly}_{tag}.chromsizes'.format(**locals())
+                        '{organism}_{tag}.chromsizes'.format(**locals())
                     )
-                d[assembly][tag] = e
+                d[organism][tag] = e
     return d, conversion_kwargs
 
 
@@ -428,6 +468,8 @@ def tempdir_for_biowulf():
 
 def get_references_dir(config):
     """
+    Identify the references directory based on config and env vars.
+
     Returns the references dir, preferring the value of an existing environment
     variable `REFERENCES_DIR` over the config entry "references_dir". Raise an
     error if either can't be found.
@@ -446,6 +488,8 @@ def get_references_dir(config):
 
 def get_sampletable(config):
     """
+    Return samples and pandas.DataFrame of parsed sampletable.
+
     Returns the sample IDs and the parsed sampletable from the file specified
     in the config.
 
@@ -485,3 +529,87 @@ def get_techreps(sampletable, label):
         raise ValueError(err)
 
     return result
+
+
+def load_config(config):
+    """
+    Loads the config.
+
+    Resolves any included references directories/files and runs the deprecation
+    handler.
+    """
+    if isinstance(config, str):
+        config = yaml.load(open(config))
+
+
+    # Here we populate a list of reference sections. Items later on the list
+    # will have higher priority
+    includes = config.get('include_references', [])
+    reference_sections = []
+
+    # First the directories. Directories that come earlier lose to those that
+    # come later.
+    for dirname in filter(os.path.isdir, includes):
+        # Note we're looking recursively for .yaml and .yml, so very large
+        # reference directories are possible
+        for fn in glob.glob(os.path.join(dirname, '**/*.y?ml'), recursive=True):
+            refs = yaml.load(open(fn)).get('references', None)
+            if refs is None:
+                raise ValueError("No 'references:' section in {0}".format(fn))
+            reference_sections.append(refs)
+
+    # Now the files
+    for fn in filter(os.path.isfile, includes):
+        refs = yaml.load(open(fn)).get('references', None)
+        if refs is None:
+            raise ValueError("No 'references:' section in {0}".format(fn))
+        reference_sections.append(refs)
+
+    # The last thing we include is the references section as written in the
+    # config, which wins over all.
+    reference_sections.append(config.get('references', {}))
+
+    merged_references = {}
+    for ref in reference_sections:
+        for organism in ref.keys():
+            org_dict = merged_references.get(organism, {})
+            for tag in ref[organism].keys():
+                org_dict[tag] = ref[organism][tag]
+            merged_references[organism] = org_dict
+    config['references'] = merged_references
+
+    # Run the deprecation handler on the final config
+    config = deprecation_handler(config)
+
+    return config
+
+
+def deprecation_handler(config):
+    """
+    Checks the config to see if anything has been deprecated.
+
+    Also makes any fixes that can be done automatically.
+    """
+    warnings.simplefilter('default')
+    if 'assembly' in config:
+        config['organism'] = config['assembly']
+        warnings.warn(
+            "'assembly' should be replaced with 'organism' in config files. "
+            "As a temporary measure, a new 'organism' key has been added with "
+            "the value of 'assembly'",
+            DeprecationWarning)
+
+
+    for org, block1 in config.get('references', {}).items():
+        for tag, block2 in block1.items():
+            gtf_conversions = block2.get('gtf', {}).get('conversions', [])
+            for c in gtf_conversions:
+                if isinstance(c, dict) and 'annotation_hub' in c:
+                    warnings.warn(
+                        "You may want to try the 'mappings' conversion rather "
+                        "than 'annotation_hub' since it works directly off "
+                        "the GTF file rather than assuming concordance between "
+                        "GTF and AnnoationHub instances",
+                        DeprecationWarning)
+
+    return config

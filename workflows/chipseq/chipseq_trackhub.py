@@ -14,26 +14,35 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 import re
 import argparse
+from pprint import pprint
 import pandas
 import yaml
 import glob
+from snakemake.utils import update_config
 from trackhub.helpers import sanitize
 from trackhub import CompositeTrack, ViewTrack, SubGroupDefinition, Track, default_hub
 from trackhub.helpers import filter_composite_from_subgroups, dimensions_from_subgroups, hex2rgb
-from trackhub.upload import upload_hub
+from trackhub.upload import upload_hub, stage_hub
 
 from lib import chipseq
 from lib.patterns_targets import ChIPSeqConfig
 
-
 ap = argparse.ArgumentParser()
 ap.add_argument('config', help='Main config.yaml file')
 ap.add_argument('hub_config', help='Track hub config YAML file')
+ap.add_argument('--additional-configs', nargs='+',
+                help='Additional config files with which to update the main '
+                'config')
 args = ap.parse_args()
 
 # Access configured options. See comments in example hub_config.yaml for
 # details
 config = yaml.load(open(args.config))
+
+if args.additional_configs:
+    for cfg in args.additional_configs:
+        update_config(config, yaml.load(open(cfg)))
+
 hub_config = yaml.load(open(args.hub_config))
 
 hub, genomes_file, genome, trackdb = default_hub(
@@ -44,7 +53,7 @@ hub, genomes_file, genome, trackdb = default_hub(
     genome=hub_config['hub']['genome']
 )
 
-c = ChIPSeqConfig(args.config, os.path.join(os.path.dirname(args.config), 'chipseq_patterns.yaml'))
+c = ChIPSeqConfig(config, os.path.join(os.path.dirname(args.config), 'chipseq_patterns.yaml'))
 
 # Set up subgroups based on unique values from columns specified in the config
 df = pandas.read_table(config['sampletable'], comment='#')
@@ -94,10 +103,6 @@ to_sort += ['algorithm', 'peaks']
 
 sort_order = ' '.join([i + '=+' for i in to_sort])
 
-# Identify samples based on config and sampletable
-sample_dir = config['merged_dir']
-samples = df['label']
-
 composite = CompositeTrack(
     name=hub_config['hub']['name'] + 'composite',
     short_label='ChIP-seq composite',
@@ -139,14 +144,12 @@ def decide_color(samplename):
     return hex2rgb('#000000')
 
 
-for sample in df['label'].unique():
+for label in df['label'].unique():
 
     # ASSUMPTION: bigwig filename pattern
-    bigwig = os.path.join(
-        sample_dir, sample,
-        sample + '.cutadapt.unique.nodups.bam.bigwig')
+    bigwig = c.patterns['bigwig'].format(label=label)
 
-    subgroup = df[df.loc[:, 'label'] == sample].to_dict('records')[0]
+    subgroup = df[df.loc[:, 'label'] == label].to_dict('records')[0]
     subgroup = {
         sanitize(k, strict=True): sanitize(v, strict=True)
         for k, v in subgroup.items()
@@ -156,14 +159,14 @@ for sample in df['label'].unique():
 
     signal_view.add_tracks(
         Track(
-            name=sanitize(sample + os.path.basename(bigwig), strict=True),
-            short_label=sample,
-            long_label=sample,
+            name=sanitize(label + os.path.basename(bigwig), strict=True),
+            short_label=label,
+            long_label=label,
             tracktype='bigWig',
             subgroups=subgroup,
             source=bigwig,
-            color=decide_color(sample),
-            altColor=decide_color(sample),
+            color=decide_color(label),
+            altColor=decide_color(label),
             maxHeightPixels='8:35:100',
             viewLimits='0:500',
         )
@@ -294,7 +297,6 @@ if supplemental:
     for block in supplemental:
         supplemental_view.add_tracks(Track(**block))
 
-
 # Tie everything together
 composite.add_subgroups(subgroups)
 trackdb.add_tracks(composite)
@@ -304,6 +306,8 @@ composite.add_view(peaks_view)
 # Render and upload using settings from hub config file
 hub.render()
 kwargs = hub_config.get('upload', {})
-
 if kwargs.get('remote_dir', False):
     upload_hub(hub=hub, **kwargs)
+
+else:
+    stage_hub(hub, 'staging')

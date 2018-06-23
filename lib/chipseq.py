@@ -48,14 +48,12 @@ def peak_calling_dict(config, algorithm=None):
             key = key[0]
         if key in d:
             raise ValueError("peak calling run '{0}' already defined".format(key))
-#spike in the genome build listed for a particular annotation in the config file, as default
-#will be overridden by anything specified by the user in the peak caller run
-        chosen_assembly = config['assembly']
-        chosen_build = config['aligner']['tag']
-        reference_genome_build = config['references'][chosen_assembly][chosen_build]['genome_build']
-        block['reference_effective_genome_fraction'] = config['mappability'][reference_genome_build]['proportion']
-        block['reference_effective_genome_count'] = config['mappability'][reference_genome_build]['count']
-        block['reference_genome_build'] = reference_genome_build
+
+        # If metadata key has been provided, then use that to populate the
+        # block as default values.
+        metadata = config['references'][config['organism']][config['aligner']['tag']].get('metadata', {})
+        block.update(metadata)
+
         d[key] = block
     return d
 
@@ -129,12 +127,12 @@ def merged_input_for_ip(sampletable, merged_ip):
     ... ip3         ctcf       s2cell-2             s2cell-ctcf-1
     ... input1      input      s2cell-1             s2cell-input-1
     ... input3      input      s2cell-2             s2cell-input-3
-    ... input9      input      s2cell-1             s2cell-input-9'''),
+    ... input9      input      s2cell-1             s2cell-input-1'''),
     ... sep='\s+')
 
 
     >>> merged_input_for_ip(df, 's2cell-gaf-1')
-    ['s2cell-input-1', 's2cell-input-9']
+    ['s2cell-input-1']
 
     >>> merged_input_for_ip(df, 's2cell-ctcf-1')
     ['s2cell-input-3']
@@ -163,7 +161,7 @@ def merged_input_for_ip(sampletable, merged_ip):
         'label'
     ]
 
-    return input_label.tolist()
+    return sorted(input_label.unique())
 
 
 def detect_peak_format(fn):

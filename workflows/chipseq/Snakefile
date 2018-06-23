@@ -26,7 +26,10 @@ include: '../references/Snakefile'
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
 
+config = common.load_config(config)
+
 c = ChIPSeqConfig(config, 'config/chipseq_patterns.yaml')
+
 
 
 def wrapper_for(path):
@@ -35,6 +38,7 @@ def wrapper_for(path):
 # ----------------------------------------------------------------------------
 # RULES
 # ----------------------------------------------------------------------------
+# See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
     c.targets['bam'],
     utils.flatten(c.targets['fastqc']),
@@ -107,6 +111,7 @@ rule cutadapt:
     log:
         c.patterns['cutadapt'] + '.log'
     params:
+        # NOTE: Change cutadapt params here.
         extra='-a file:../../include/adapters.fa -q 20 --minimum-length=25'
     wrapper:
         wrapper_for('cutadapt')
@@ -130,13 +135,16 @@ rule bowtie2:
     """
     input:
         fastq=rules.cutadapt.output.fastq,
-        index=[refdict[c.assembly][config['aligner']['tag']]['bowtie2']]
+        index=[refdict[c.organism][config['aligner']['tag']]['bowtie2']]
     output:
         bam=c.patterns['bam']
     log:
         c.patterns['bam'] + '.log'
     params:
         samtools_view_extra='-F 0x04'
+    # NOTE:
+    # When running on a cluster, number of threads here should match the
+    # resources requested in the cluster config.
     threads: 8
     wrapper:
         wrapper_for('bowtie2/align')
@@ -192,20 +200,29 @@ rule bam_index:
         'samtools index {input} {output}'
 
 
+def fastq_screen_references():
+    """
+    Returns the Bowtie2 indexes for the configured references from the
+    `fastq_screen:` section of the config
+    """
+    refs = {}
+    for i in config['fastq_screen']:
+        refs[i['label']] = c.refdict[i['organism']][i['tag']]['bowtie2']
+    return refs
+
+
 rule fastq_screen:
     """
     Run fastq_screen to look for contamination from other genomes
     """
     input:
+        **fastq_screen_references(),
         fastq=rules.cutadapt.output.fastq,
-        dm6=refdict[c.assembly][config['aligner']['tag']]['bowtie2'],
-        phix=refdict['phix']['default']['bowtie2']
     output:
         txt=c.patterns['fastq_screen']
     log:
         c.patterns['fastq_screen'] + '.log'
-    params:
-        subset=100000
+    params: subset=100000
     wrapper:
         wrapper_for('fastq_screen')
 
@@ -268,6 +285,8 @@ rule multiqc:
     """
     Aggregate various QC stats and logs into a single HTML report with MultiQC
     """
+    # NOTE: if you add more rules and want MultiQC to pick up the output, best
+    # to add outputs from those rules to the inputs here.
     input:
         files=(
             utils.flatten(c.targets['fastqc']) +
@@ -282,23 +301,23 @@ rule multiqc:
         config='config/multiqc_config.yaml'
     output:
         c.targets['multiqc']
-    params:
-        analysis_directory=" ".join([c.sample_dir, c.agg_dir, c.peak_calling]),
-        extra='--config config/multiqc_config.yaml',
-        outdir=os.path.dirname(c.targets['multiqc'][0]),
-        basename=os.path.basename(c.targets['multiqc'][0])
     log:
         c.targets['multiqc'][0] + '.log'
-    shell:
-        'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
-        'multiqc '
-        '--quiet '
-        '--outdir {params.outdir} '
-        '--force '
-        '--filename {params.basename} '
-        '--config config/multiqc_config.yaml '
-        '{params.analysis_directory} '
-        '&> {log} '
+    run:
+        analysis_directory = set([os.path.dirname(i) for i in input])
+        outdir = os.path.dirname(c.targets['multiqc'][0])
+        basename = os.path.basename(c.targets['multiqc'][0])
+        shell(
+            'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
+            'multiqc '
+            '--quiet '
+            '--outdir {outdir} '
+            '--force '
+            '--filename {basename} '
+            '--config {input.config} '
+            '{analysis_directory} '
+            '&> {log} '
+        )
 
 
 rule markduplicates:
@@ -313,6 +332,9 @@ rule markduplicates:
     log:
         c.patterns['markduplicates']['bam'] + '.log'
     params:
+        # NOTE: Be careful with the memory here; make sure you have enough
+        # and/or it matches the resources you're requesting in the cluster
+        # config.
         java_args='-Xmx20g'
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     shell:
@@ -337,7 +359,6 @@ rule merge_techreps:
         lambda wc: expand(
             c.patterns['markduplicates']['bam'],
             sample=common.get_techreps(c.sampletable, wc.label),
-            sample_dir=c.sample_dir
         )
     output:
         bam=c.patterns['merged_techreps'],
@@ -345,6 +366,9 @@ rule merge_techreps:
     log:
         c.patterns['merged_techreps'] + '.log'
     params:
+        # NOTE: Be careful with the memory here; make sure you have enough
+        # and/or it matches the resources you're requesting in the cluster
+        # config.
         java_args='-Xmx32g'
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     wrapper:
@@ -362,8 +386,6 @@ rule bigwig:
         bai=c.patterns['merged_techreps'] + '.bai',
     output:
         c.patterns['bigwig']
-    params:
-        extra='--minMappingQuality 20 --ignoreDuplicates --smoothLength 10'
     log:
         c.patterns['bigwig'] + '.log'
     shell:
@@ -373,8 +395,8 @@ rule bigwig:
         '-p {threads} '
         '--minMappingQuality 20 '
         '--ignoreDuplicates '
-        # Can't use the following normalization for testing due to <1000 reads
-        # total in example data.
+        # Can't use the CPM normalization for testing due to <1000 reads total
+        # in example data; keep uncommented when running in production
         # [TEST SETTINGS +1]
         '--normalizeUsing CPM '
         '--extendReads 300 '
@@ -389,10 +411,10 @@ rule fingerprint:
     Note: uses the merged techreps.
     """
     input:
-        bams=lambda wc: expand(c.patterns['merged_techreps'], merged_dir=c.merged_dir, label=wc.ip_label),
-        control=lambda wc: expand(c.patterns['merged_techreps'], merged_dir=c.merged_dir, label=chipseq.merged_input_for_ip(c.sampletable, wc.ip_label)),
-        bais=lambda wc: expand(c.patterns['merged_techreps'] + '.bai', merged_dir=c.merged_dir, label=wc.ip_label),
-        control_bais=lambda wc: expand(c.patterns['merged_techreps'] + '.bai', merged_dir=c.merged_dir, label=chipseq.merged_input_for_ip(c.sampletable, wc.ip_label)),
+        bams=lambda wc: expand(c.patterns['merged_techreps'], label=wc.ip_label),
+        control=lambda wc: expand(c.patterns['merged_techreps'], label=chipseq.merged_input_for_ip(c.sampletable, wc.ip_label)),
+        bais=lambda wc: expand(c.patterns['merged_techreps'] + '.bai', label=wc.ip_label),
+        control_bais=lambda wc: expand(c.patterns['merged_techreps'] + '.bai', label=chipseq.merged_input_for_ip(c.sampletable, wc.ip_label)),
     output:
         plot=c.patterns['fingerprint']['plot'],
         raw_counts=c.patterns['fingerprint']['raw_counts'],
@@ -428,15 +450,13 @@ rule sicer:
             expand(
                 c.patterns['merged_techreps'],
                 label=chipseq.samples_for_run(config, wc.sicer_run, 'sicer', 'ip'),
-                merged_dir=c.merged_dir,
             ),
         control=lambda wc:
             expand(
                 c.patterns['merged_techreps'],
                 label=chipseq.samples_for_run(config, wc.sicer_run, 'sicer', 'control'),
-                merged_dir=c.merged_dir,
             ),
-        chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
+        chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
     output:
         bed=c.patterns['peaks']['sicer']
     log:
@@ -455,15 +475,13 @@ rule macs2:
             expand(
                 c.patterns['merged_techreps'],
                 label=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'ip'),
-                merged_dir=c.merged_dir,
             ),
         control=lambda wc:
             expand(
                 c.patterns['merged_techreps'],
                 label=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'control'),
-                merged_dir=c.merged_dir,
             ),
-        chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
+        chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
     output:
         bed=c.patterns['peaks']['macs2']
     log:
@@ -483,15 +501,13 @@ rule spp:
             expand(
                 c.patterns['merged_techreps'],
                 label=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'ip'),
-                merged_dir=c.merged_dir,
             ),
         control=lambda wc:
             expand(
                 c.patterns['merged_techreps'],
                 label=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'control'),
-                merged_dir=c.merged_dir,
             ),
-        chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
+        chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
     output:
         bed=c.patterns['peaks']['spp'],
         enrichment_estimates=c.patterns['peaks']['spp'] + '.est.wig',
@@ -502,6 +518,9 @@ rule spp:
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.spp_run, 'spp'),
         keep_tempfiles=False,
+        # NOTE: Be careful with the memory here; make sure you have enough
+        # and/or it matches the resources you're requesting in the cluster
+        # config.
         java_args='-Xmx24g',
         # java_args='-Xmx2g',  # [TEST SETTINGS -1]
     threads: 2
@@ -515,7 +534,7 @@ rule bed_to_bigbed:
     """
     input:
         bed='{prefix}.bed',
-        chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes']
+        chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes']
     output: '{prefix}.bigbed'
     run:
         # Based on the filename, identify the algorithm. Based on the contents,
@@ -594,7 +613,7 @@ rule plotcorrelation:
         '--colorMap viridis '
         '--outFileCorMatrix {output.tab}'
 
-        # Note: if you're expecting negative correlation, try a divergent
+        # NOTE: if you're expecting negative correlation, try a divergent
         # colormap and setting the min/max to ensure that the colomap is
         # centered on zero:
         # '--colorMap RdBu_r '
@@ -611,11 +630,12 @@ if 'merged_bigwigs' in config:
             bigwigs=lambda wc: expand(
                 c.patterns['bigwig'],
                 label=config['merged_bigwigs'][wc.merged_bigwig_label],
-                merged_dir=config['merged_dir']
             ),
-            chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
+            chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
         output:
             c.patterns['merged_bigwig']
+        log:
+            c.patterns['merged_bigwig'] + '.log'
         wrapper:
             wrapper_for('average-bigwigs')
 

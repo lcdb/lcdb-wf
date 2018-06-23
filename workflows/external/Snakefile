@@ -7,6 +7,8 @@ import pybedtools
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
 
+# This is a useful construct for mapping intended output filenames to the URLs
+# they come from
 modencode = {
     'data/modencode_gaf_kc.bed': 'ftp://data.modencode.org/all_files/dmel-interpreted-1/3245_Kc_Trl-D2_peaks.bed.gff3.gz',
     'data/modencode_gaf_pupa.bed': 'ftp://data.modencode.org/all_files/dmel-interpreted-1/3830_WPP_Trl-D2_peaks.bed.gff.gz',
@@ -19,12 +21,22 @@ rule targets:
 
 
 rule download_chainfile:
+    """
+    Download the chainfile we need for liftover
+    """
     output: 'data/dm3ToDm6.over.chain.gz'
     shell:
-        'wget -O- http://hgdownload.cse.ucsc.edu/goldenPath/dm3/liftOver/dm3ToDm6.over.chain.gz > {output}'
+        'wget -O- '
+        'http://hgdownload.cse.ucsc.edu/goldenPath/dm3/liftOver/dm3ToDm6.over.chain.gz '
+        '> {output}'
 
 
 rule modencode:
+    """
+    Download URLs to a temporary file, and then prepare them for liftover (need
+    "chr" on chromosome names; need to remove negative coordinates; need to
+    convert to BED)
+    """
     output: temporary('data/modencode_{factor}.bed.dm3')
     run:
         key = str(output[0]).replace('.dm3', '')
@@ -58,18 +70,15 @@ rule modencode:
         shell('rm {output}.tmp')
 
 
-
-# Note that since the original reference used for the example does not have
-# "chr" chromosome prefixes, we remove them here immediately after lifting
-# over.
 rule liftover:
+    """
+    Perform the liftover
+    """
     input:
         bed='{prefix}.dm3',
         chainfile=rules.download_chainfile.output
     output: '{prefix}'
     shell:
-        'liftOver {input.bed} {input.chainfile} {output}.chr {output}.unmapped'
-        '&& sed "s/^chr//g" {output}.chr > {output} '
-        '&& rm {output}.chr'
+        'liftOver {input.bed} {input.chainfile} {output} {output}.unmapped'
 
 # vim: ft=python

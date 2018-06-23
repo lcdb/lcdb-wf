@@ -24,7 +24,7 @@ For example, consider the following config file in ``config/config.yaml``:
 .. code-block:: yaml
 
     sampletable: 'config/sampletable.tsv'
-    assembly: 'genomeA'
+    organism: 'genomeA'
     references_dir: 'references_data'
 
     ... (other config items) ...
@@ -71,7 +71,7 @@ Doing so effectively gives the Snakefile the following config file:
 .. code-block:: yaml
 
     sampletable: 'config/sampletable.tsv'
-    assembly: 'genomeA'
+    organism: 'genomeA'
     references_dir: 'references_data'
 
     ... (other config items) ...

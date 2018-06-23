@@ -24,6 +24,8 @@ include: '../references/Snakefile'
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
 
+config = common.load_config(config)
+
 c = RNASeqConfig(config, 'config/rnaseq_patterns.yaml')
 
 
@@ -33,6 +35,8 @@ def wrapper_for(path):
 # ----------------------------------------------------------------------------
 # RULES
 # ----------------------------------------------------------------------------
+
+# See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
     c.targets['bam'],
     utils.flatten(c.targets['fastqc']),
@@ -74,7 +78,7 @@ if 'orig_filename' in c.sampletable.columns:
         Symlinks files over from original filename
         """
         input: [_st.loc[sample, 'orig_filename']  for sample in _st.index ]
-        output: [c.patterns['fastq'].format(sample=sample, sample_dir=c.sample_dir) for sample in _st.index]
+        output: [c.patterns['fastq'].format(sample=sample) for sample in _st.index]
         run:
             for i, o in zip(input, output):
                 utils.make_relative_symlink(i, o)
@@ -113,6 +117,7 @@ rule cutadapt:
     log:
         c.patterns['cutadapt'] + '.log'
     params:
+        # NOTE: Change cutadapt params here
         extra='-a file:../../include/adapters.fa -q 20 --minimum-length=25'
     wrapper:
         wrapper_for('cutadapt')
@@ -136,12 +141,15 @@ rule hisat2:
     """
     input:
         fastq=rules.cutadapt.output.fastq,
-        index=[c.refdict[c.assembly][config['aligner']['tag']]['hisat2']]
+        index=[c.refdict[c.organism][config['aligner']['tag']]['hisat2']]
     output:
         bam=c.patterns['bam']
     log:
         c.patterns['bam'] + '.log'
     params:
+        # NOTE: see examples at
+        # https://github.com/lcdb/lcdb-wf/tree/master/wrappers/wrappers/hisat2/align
+        # for details on setting hisat2 params and samtools params separately.
         samtools_view_extra='-F 0x04'
     threads: 6
     wrapper:
@@ -154,7 +162,7 @@ rule rRNA:
     """
     input:
         fastq=rules.cutadapt.output.fastq,
-        index=[c.refdict[c.assembly][config['rrna']['tag']]['bowtie2']]
+        index=[c.refdict[c.organism][config['rrna']['tag']]['bowtie2']]
     output:
         bam=c.patterns['rrna']['bam']
     log:
@@ -202,18 +210,24 @@ rule bam_index:
         'samtools index {input} {output}'
 
 
+def fastq_screen_references():
+    """
+    Returns the Bowtie2 indexes for the configured references from the
+    `fastq_screen:` section of the config
+    """
+    refs = {}
+    for i in config['fastq_screen']:
+        refs[i['label']] = c.refdict[i['organism']][i['tag']]['bowtie2']
+    return refs
+
 
 rule fastq_screen:
     """
     Run fastq_screen to look for contamination from other genomes
     """
-    # NOTE: you may want to add other genomes as appropriate for your
-    # experiment
     input:
+        **fastq_screen_references(),
         fastq=rules.cutadapt.output.fastq,
-        dm6=c.refdict['dmel'][config['aligner']['tag']]['bowtie2'],
-        rRNA=c.refdict[c.assembly][config['rrna']['tag']]['bowtie2'],
-        phix=c.refdict['phix']['default']['bowtie2']
     output:
         txt=c.patterns['fastq_screen']
     log:
@@ -228,32 +242,33 @@ rule featurecounts:
     Count reads in annotations with featureCounts from the subread package
     """
     input:
-        annotation=c.refdict[c.assembly][config['gtf']['tag']]['gtf'],
+        annotation=c.refdict[c.organism][config['gtf']['tag']]['gtf'],
         bam=rules.hisat2.output
     output:
         counts='{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt'
     log:
         '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt.log'
     shell:
+        'featureCounts '
+
         # NOTE:
         # By default, this rule runs three times, using a different strand
         # setting each time. The strand argument (-s0, -s1, -s2) to
         # featureCounts is pulled straight from the wildcards, and the
-        # filenames have been set up in rnaseq_patterns.yaml.
+        # corresponding filenames have been set up in rnaseq_patterns.yaml.
         #
         # You probably do NOT want to add your own -s argument below, however
         # other arguments might be useful. For example, for nascent RNA-seq,
         # add '-t gene -g gene_id -f '
-        'featureCounts '
-
-        # Convert wildcards s0, s1, s2 to an argument
         '-{wildcards.stranded} '
 
+        # NOTE: additional featureCounts args here
         '-T {threads} '
         '-a {input.annotation} '
         '-o {output.counts} '
         '{input.bam} '
         '&> {log}'
+
 
 rule rrna_libsizes_table:
     """
@@ -362,6 +377,8 @@ rule multiqc:
     """
     Aggregate various QC stats and logs into a single HTML report with MultiQC
     """
+    # NOTE: if you add more rules and want MultiQC to pick up the output, then
+    # add outputs from those rules to the inputs here.
     input:
         files=(
             utils.flatten(c.targets['fastqc']) +
@@ -380,23 +397,22 @@ rule multiqc:
         ),
         config='config/multiqc_config.yaml'
     output: c.targets['multiqc']
-    params:
-        analysis_directory=" ".join([c.sample_dir, c.agg_dir]),
-        extra='--config config/multiqc_config.yaml',
-        outdir=os.path.dirname(c.targets['multiqc'][0]),
-        basename=os.path.basename(c.targets['multiqc'][0])
     log: c.targets['multiqc'][0] + '.log'
-    shell:
-        'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
-        'multiqc '
-        '--quiet '
-        '--outdir {params.outdir} '
-        '--force '
-        '--filename {params.basename} '
-        '--config config/multiqc_config.yaml '
-        '{params.analysis_directory} '
-        '&> {log} '
-
+    run:
+        analysis_directory = set([os.path.dirname(i) for i in input])
+        outdir = os.path.dirname(c.targets['multiqc'][0])
+        basename = os.path.basename(c.targets['multiqc'][0])
+        shell(
+            'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
+            'multiqc '
+            '--quiet '
+            '--outdir {outdir} '
+            '--force '
+            '--filename {basename} '
+            '--config {input.config} '
+            '{analysis_directory} '
+            '&> {log} '
+        )
 
 rule markduplicates:
     """
@@ -410,6 +426,9 @@ rule markduplicates:
     log:
         c.patterns['markduplicates']['bam'] + '.log'
     params:
+        # NOTE: Be careful with the memory here; make sure you have enough
+        # and/or it matches the resources you're requesting in the cluster
+        # config.
         java_args='-Xmx20g'
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     shell:
@@ -428,11 +447,14 @@ rule collectrnaseqmetrics:
     """
     input:
         bam=c.patterns['bam'],
-        refflat=c.refdict[c.assembly][config['gtf']['tag']]['refflat']
+        refflat=c.refdict[c.organism][config['gtf']['tag']]['refflat']
     output:
         metrics=c.patterns['collectrnaseqmetrics']['metrics'],
         pdf=c.patterns['collectrnaseqmetrics']['pdf']
     params:
+        # NOTE: Be careful with the memory here; make sure you have enough
+        # and/or it matches the resources you're requesting in the cluster
+        # config.
         java_args='-Xmx20g'
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     log:
@@ -441,6 +463,7 @@ rule collectrnaseqmetrics:
         'picard '
         '{params.java_args} '
         'CollectRnaSeqMetrics '
+
         # NOTE: Adjust strandedness appropriately. From the Picard docs:
         #
         #     STRAND=StrandSpecificity For strand-specific library prep. For
@@ -449,7 +472,9 @@ rule collectrnaseqmetrics:
         #     Possible values: {NONE, FIRST_READ_TRANSCRIPTION_STRAND,
         #     SECOND_READ_TRANSCRIPTION_STRAND}
         #
-        'STRAND=NONE CHART_OUTPUT={output.pdf} '
+        'STRAND=NONE '
+
+        'CHART_OUTPUT={output.pdf} '
         'REF_FLAT={input.refflat} '
         'INPUT={input.bam} '
         'OUTPUT={output.metrics} '
@@ -477,7 +502,7 @@ rule dupRadar:
     """
     input:
         bam=rules.markduplicates.output.bam,
-        annotation=c.refdict[c.assembly][config['gtf']['tag']]['gtf'],
+        annotation=c.refdict[c.organism][config['gtf']['tag']]['gtf'],
     output:
         density_scatter=c.patterns['dupradar']['density_scatter'],
         expression_histogram=c.patterns['dupradar']['expression_histogram'],
@@ -487,7 +512,7 @@ rule dupRadar:
         dataframe=c.patterns['dupradar']['dataframe'],
         model=c.patterns['dupradar']['model'],
         curve=c.patterns['dupradar']['curve'],
-    log: '{sample_dir}/{sample}/dupradar/dupradar.log'
+    log: c.patterns['dupradar']['dataframe'] + '.log'
     wrapper:
         wrapper_for('dupradar')
 
@@ -498,20 +523,30 @@ rule salmon:
     """
     input:
         fastq=c.patterns['cutadapt'],
-        index=c.refdict[c.assembly][config['salmon']['tag']]['salmon'],
+        index=c.refdict[c.organism][config['salmon']['tag']]['salmon'],
     output:
         c.patterns['salmon']
     params:
-        index_dir=os.path.dirname(c.refdict[c.assembly][config['salmon']['tag']]['salmon']),
+        index_dir=os.path.dirname(c.refdict[c.organism][config['salmon']['tag']]['salmon']),
         outdir=os.path.dirname(c.patterns['salmon'])
     log:
         c.patterns['salmon'] + '.log'
     shell:
+        # NOTE: adjust Salmon params as needed
         'salmon quant '
         '--index {params.index_dir} '
         '--output {params.outdir} '
         '--threads {threads} '
+
+        # NOTE: --libType=A auto-detects library type. Change if needed.
         '--libType=A '
+
+        # NOTE: Docs suggest using --gcBias and --seqBias is a good idea
+        '--gcBias '
+        '--seqBias '
+
+        # -r is for single-end; use
+        # -1 {input.r1} -2 {input.r2} for paired-end
         '-r {input.fastq} '
         '&> {log}'
 
@@ -539,6 +574,8 @@ rule bigwig_neg:
     log:
         c.patterns['bigwig']['neg'] + '.log'
     shell:
+        # NOTE: adjust bamCoverage params as needed
+        # Make sure the bigwig_pos rule below reflects the same changes.
         'bamCoverage '
         '--bam {input.bam} '
         '-o {output} '
@@ -563,6 +600,8 @@ rule bigwig_pos:
     log:
         c.patterns['bigwig']['pos'] + '.log'
     shell:
+        # NOTE: adjust bamCoverage params as needed
+        # Make sure the bigwig_neg rule above reflects the same changes.
         'bamCoverage '
         '--bam {input.bam} '
         '-o {output} '
@@ -605,6 +644,8 @@ rule rnaseq_rmarkdown:
     """
     input:
         featurecounts=utils.flatten(c.targets['featurecounts']),
+
+        # NOTE: the Rmd will likely need heavy editing depending on the project.
         rmd='downstream/rnaseq.Rmd',
         sampletable=config['sampletable']
     output:
@@ -620,12 +661,10 @@ def bigwigs_to_merge(wc):
     sense_labels = chunk.get('sense', [])
     sense_bigwigs = expand(
         c.patterns['bigwig']['sense'],
-        sample_dir=config['sample_dir'],
         sample=sense_labels
     )
     antisense_bigwigs = expand(
         c.patterns['bigwig']['antisense'],
-        sample_dir=config['sample_dir'],
         sample=antisense_labels)
     return sense_bigwigs + antisense_bigwigs
 
@@ -637,9 +676,11 @@ if 'merged_bigwigs' in config:
         """
         input:
             bigwigs=bigwigs_to_merge,
-            chromsizes=refdict[c.assembly][config['aligner']['tag']]['chromsizes'],
+            chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
         output:
             c.patterns['merged_bigwig']
+        log:
+            c.patterns['merged_bigwig'] + '.log'
         wrapper:
             wrapper_for('average-bigwigs')
 

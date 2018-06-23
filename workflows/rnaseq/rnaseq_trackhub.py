@@ -8,25 +8,40 @@ This module assumes a particular filename pattern and whether or not bigwigs
 are stranded.  Such assumptions are indicated in the comments below.
 """
 
-import re
 import os
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+import re
+from pprint import pprint
 import pandas
 import yaml
 import matplotlib
+from snakemake.utils import update_config
 from trackhub.helpers import sanitize, hex2rgb, dimensions_from_subgroups, filter_composite_from_subgroups
 from trackhub import CompositeTrack, ViewTrack, SubGroupDefinition, Track, default_hub
-from trackhub.upload import upload_hub
-
+from trackhub.upload import upload_hub, stage_hub
 import argparse
+
+from lib.patterns_targets import RNASeqConfig
+
 ap = argparse.ArgumentParser()
 ap.add_argument('config', help='Main config.yaml file')
 ap.add_argument('hub_config', help='Track hub config YAML file')
+ap.add_argument('--additional-configs', nargs='+',
+                help='Additional config files with which to update the main '
+                'config',)
 args = ap.parse_args()
 
 # Access configured options. See comments in example hub_config.yaml for
 # details
 config = yaml.load(open(args.config))
 hub_config = yaml.load(open(args.hub_config))
+
+if args.additional_configs:
+    for cfg in args.additional_configs:
+        update_config(config, yaml.load(open(cfg)))
+
+c = RNASeqConfig(config, os.path.join(os.path.dirname(args.config), 'rnaseq_patterns.yaml'))
 
 hub, genomes_file, genome, trackdb = default_hub(
     hub_name=hub_config['hub']['name'],
@@ -35,7 +50,6 @@ hub, genomes_file, genome, trackdb = default_hub(
     email=hub_config['hub']['email'],
     genome=hub_config['hub']['genome']
 )
-
 
 # Set up subgroups based on the configured columns
 df = pandas.read_table(config['sampletable'], comment='#')
@@ -66,10 +80,6 @@ subgroups.append(
 to_sort = hub_config['subgroups'].get('sort_order', [])
 to_sort += [sg.name for sg in subgroups if sg.name not in to_sort]
 sort_order = ' '.join([i + '=+' for i in to_sort])
-
-# Identify samples based on config and sampletable
-sample_dir = config['sample_dir']
-samples = df[df.columns[0]]
 
 composite = CompositeTrack(
     name=hub_config['hub']['name'] + 'composite',
@@ -111,15 +121,12 @@ def decide_color(samplename):
                 return hex2rgb(color)
     return hex2rgb('#000000')
 
-
 for sample in df[df.columns[0]]:
     # ASSUMPTION: stranded bigwigs
     for direction in 'sense', 'antisense':
 
         # ASSUMPTION: bigwig filename pattern
-        bigwig = os.path.join(
-            sample_dir, sample,
-            sample + '.cutadapt.bam.{0}.bigwig'.format(direction))
+        bigwig = c.patterns['bigwig'][direction].format(sample=sample)
 
         subgroup = df[df.iloc[:, 0] == sample].to_dict('records')[0]
         subgroup = {
@@ -173,3 +180,5 @@ kwargs = hub_config.get('upload', {})
 # any uploading.
 if kwargs.get('remote_dir', False):
     upload_hub(hub=hub, **kwargs)
+else:
+    stage_hub(hub, 'staging')

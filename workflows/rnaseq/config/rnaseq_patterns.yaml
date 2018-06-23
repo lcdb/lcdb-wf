@@ -1,66 +1,52 @@
-fastq: '{sample_dir}/{sample}/{sample}_R1.fastq.gz'
-cutadapt: '{sample_dir}/{sample}/{sample}_R1.cutadapt.fastq.gz'
-bam: '{sample_dir}/{sample}/{sample}.cutadapt.bam'
-
+fastq: 'data/rnaseq_samples/{sample}/{sample}_R1.fastq.gz'
+cutadapt: 'data/rnaseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz'
+bam: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam'
 fastqc:
-  raw: '{sample_dir}/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.zip'
-  cutadapt: '{sample_dir}/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip'
-  bam: '{sample_dir}/{sample}/fastqc/{sample}.cutadapt.bam_fastqc.zip'
-
+  raw: 'data/rnaseq_samples/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.zip'
+  cutadapt: 'data/rnaseq_samples/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip'
+  bam: 'data/rnaseq_samples/{sample}/fastqc/{sample}.cutadapt.bam_fastqc.zip'
 libsizes:
-        fastq:   '{sample_dir}/{sample}/{sample}_R1.fastq.gz.libsize'
-        cutadapt: '{sample_dir}/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize'
-        bam:     '{sample_dir}/{sample}/{sample}.cutadapt.bam.libsize'
-
-fastq_screen: '{sample_dir}/{sample}/{sample}.cutadapt.screen.txt'
+  fastq:   'data/rnaseq_samples/{sample}/{sample}_R1.fastq.gz.libsize'
+  cutadapt: 'data/rnaseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize'
+  bam:     'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.libsize'
+fastq_screen: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.screen.txt'
 featurecounts:
-  s0: '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.s0.txt'
-  s1: '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.s1.txt'
-  s2: '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.s2.txt'
-libsizes_table: '{agg_dir}/libsizes_table.tsv'
-libsizes_yaml: '{agg_dir}/libsizes_table_mqc.yaml'
-rrna_percentages_table: '{agg_dir}/rrna_percentages_table.tsv'
-rrna_percentages_yaml: '{agg_dir}/rrna_percentages_table_mqc.yaml'
-
+  s0: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.featurecounts.s0.txt'
+  s1: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.featurecounts.s1.txt'
+  s2: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.featurecounts.s2.txt'
+libsizes_table: 'data/rnaseq_aggregation/libsizes_table.tsv'
+libsizes_yaml: 'data/rnaseq_aggregation/libsizes_table_mqc.yaml'
+rrna_percentages_table: 'data/rnaseq_aggregation/rrna_percentages_table.tsv'
+rrna_percentages_yaml: 'data/rnaseq_aggregation/rrna_percentages_table_mqc.yaml'
 rrna:
-   bam: '{sample_dir}/{sample}/rRNA/{sample}.cutadapt.rrna.bam'
-   libsize: '{sample_dir}/{sample}/rRNA/{sample}.cutadapt.rrna.bam.libsize'
-
-multiqc: '{agg_dir}/multiqc.html'
-
+   bam: 'data/rnaseq_samples/{sample}/rRNA/{sample}.cutadapt.rrna.bam'
+   libsize: 'data/rnaseq_samples/{sample}/rRNA/{sample}.cutadapt.rrna.bam.libsize'
+multiqc: 'data/rnaseq_aggregation/multiqc.html'
 markduplicates:
-   bam: '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam'
-   metrics: '{sample_dir}/{sample}/{sample}.cutadapt.markdups.bam.metrics'
-
+   bam: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam'
+   metrics: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.metrics'
 collectrnaseqmetrics:
-   metrics: '{sample_dir}/{sample}/{sample}.collectrnaseqmetrics.metrics'
-   pdf: '{sample_dir}/{sample}/{sample}.collectrnaseqmetrics.pdf'
-
+   metrics: 'data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.metrics'
+   pdf: 'data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.pdf'
 dupradar:
-   density_scatter: '{sample_dir}/{sample}/dupradar/{sample}_density_scatter.png'
-   expression_histogram: '{sample_dir}/{sample}/dupradar/{sample}_expression_histogram.png'
-   expression_boxplot: '{sample_dir}/{sample}/dupradar/{sample}_expression_boxplot.png'
-   expression_barplot: '{sample_dir}/{sample}/dupradar/{sample}_expression_barplot.png'
-   multimapping_histogram: '{sample_dir}/{sample}/dupradar/{sample}_multimapping_histogram.png'
-   dataframe: '{sample_dir}/{sample}/dupradar/{sample}_dataframe.tsv'
-   model: '{sample_dir}/{sample}/dupradar/{sample}_model.txt'
-   curve: '{sample_dir}/{sample}/dupradar/{sample}_curve.txt'
-
-preseq: '{sample_dir}/{sample}/{sample}_preseq_c_curve.txt'
-
-salmon: '{sample_dir}/{sample}/{sample}.salmon/quant.sf'
-
+   density_scatter: 'data/rnaseq_samples/{sample}/dupradar/{sample}_density_scatter.png'
+   expression_histogram: 'data/rnaseq_samples/{sample}/dupradar/{sample}_expression_histogram.png'
+   expression_boxplot: 'data/rnaseq_samples/{sample}/dupradar/{sample}_expression_boxplot.png'
+   expression_barplot: 'data/rnaseq_samples/{sample}/dupradar/{sample}_expression_barplot.png'
+   multimapping_histogram: 'data/rnaseq_samples/{sample}/dupradar/{sample}_multimapping_histogram.png'
+   dataframe: 'data/rnaseq_samples/{sample}/dupradar/{sample}_dataframe.tsv'
+   model: 'data/rnaseq_samples/{sample}/dupradar/{sample}_model.txt'
+   curve: 'data/rnaseq_samples/{sample}/dupradar/{sample}_curve.txt'
+preseq: 'data/rnaseq_samples/{sample}/{sample}_preseq_c_curve.txt'
+salmon: 'data/rnaseq_samples/{sample}/{sample}.salmon/quant.sf'
 rseqc:
-   bam_stat: '{sample_dir}/{sample}/rseqc/{sample}_bam_stat.txt'
-
+   bam_stat: 'data/rnaseq_samples/{sample}/rseqc/{sample}_bam_stat.txt'
 bigwig:
-   pos: '{sample_dir}/{sample}/{sample}.cutadapt.bam.pos.bigwig'
-   neg: '{sample_dir}/{sample}/{sample}.cutadapt.bam.neg.bigwig'
-   sense: '{sample_dir}/{sample}/{sample}.cutadapt.bam.sense.bigwig'
-   antisense: '{sample_dir}/{sample}/{sample}.cutadapt.bam.antisense.bigwig'
-
+   pos: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.pos.bigwig'
+   neg: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.neg.bigwig'
+   sense: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.sense.bigwig'
+   antisense: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.antisense.bigwig'
 downstream:
    rnaseq: 'downstream/rnaseq.html'
-
 patterns_by_aggregate:
-  merged_bigwig: '{agg_dir}/merged_bigwigs/{merged_bigwig_label}.bigwig'
+  merged_bigwig: 'data/rnaseq_aggregation/merged_bigwigs/{merged_bigwig_label}.bigwig'

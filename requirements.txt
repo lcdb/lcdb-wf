@@ -12,6 +12,7 @@ bioconductor-genomicfeatures
 bioconductor-genomeinfodbdata
 bioconductor-sva
 bioconductor-tximport
+bioconductor-s4vectors
 biopython
 bowtie2
 cutadapt
@@ -30,6 +31,7 @@ hisat2
 intervalstats
 kallisto
 lcdblib
+matplotlib
 multiqc
 pandas
 pandoc
@@ -51,6 +53,7 @@ r-upsetr
 salmon
 samtools
 snakemake <4.5.0
+sra-tools
 subread
 trackhub
 ucsc-bedtobigbed

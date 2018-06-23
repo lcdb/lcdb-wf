@@ -1,5 +1,9 @@
 references:
   sacCer3:
+      metadata:
+        reference_genome_build: 'sacCer3'
+        reference_effective_genome_count: 1.2e7
+        reference_effective_genome_proportion: 0.95
     default:
       fasta:
         url: 'http://hgdownload.cse.ucsc.edu/goldenPath/sacCer3/bigZips/chromFa.tar.gz'

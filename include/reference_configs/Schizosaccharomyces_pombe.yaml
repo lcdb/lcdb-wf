@@ -1,6 +1,11 @@
 references:
   spombe:
     default:
+      metadata:
+        reference_genome_build: 'pombe'
+        reference_effective_genome_count: 1.2e7
+        reference_effective_genome_proportion: 0.97
+
       fasta:
         url: 'ftp://ftp.pombase.org/pombe/genome_sequence_and_features/genome_sequence/Schizosaccharomyces_pombe_all_chromosomes.fa.gz'
         indexes:

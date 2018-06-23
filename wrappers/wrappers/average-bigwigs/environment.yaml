@@ -1,8 +1,5 @@
 channels:
   - bioconda
-  - conda-forge
-  - lcdb
 dependencies:
-  - lcdblib
   - ucsc-bigwigmerge
   - ucsc-bedgraphtobigwig

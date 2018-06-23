@@ -5,4 +5,4 @@ beds:
 domains:
   dm6: results/dm6.bed
 output: results
-assembly: dm6
+organism: dm6

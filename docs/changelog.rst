@@ -32,9 +32,11 @@ RNA-seq
   error messages)
 - run preseq for RNA-seq library complexity QC
 - support for merging bigwigs
-- rule for symlinking stranded bigwigs
 - featureCounts is now run in all three strandedness modes, and results
   incorporated into MultiQC as separate modules.
+- RNA-seq now symlinks "pos" and "neg" bigWigs, which describe how reads map to
+  the *reference*, to "sense" and "antisense" bigWigs, which describe the
+  *originating RNA*. This makes it easy to swap strands depending on protocol.
 - new ``downstream/helpers.Rmd`` which factors out a lot of the work previously
   done in ``rnaseq.Rmd`` into separate functions.
 - track hub building respects new sense/antisense bigwig symlinks
@@ -72,3 +74,96 @@ Both RNA-seq and ChIP-seq
 - support for SRA run tables so it's trivial to re-run experiments
   in SRA
 - multiple FastQC runs are shown separately in MultiQC output
+
+v1.1
+----
+
+Infrastructure
+~~~~~~~~~~~~~~
+
+- The default settings in Snakefiles are for real-world use, rather than for
+  testing. This reduces the amount of editing necessary before running actual
+  data. See :ref:`test-settings` for the extra step to take when testing
+  locally.
+
+- new ``run_test.sh`` script in each workflow directory to automatically run
+  the preprocessor when running test data
+
+- added extensive comments to Snakefiles with ``NOTE:`` string to make it
+  obvious where and how to make changes.
+
+- Documentation overhaul to bring everything up to v1.1. This includes Sphinx
+  autodocs on the ``lib`` module.
+
+- pytest test suite is run on the ``lib`` module
+
+References
+~~~~~~~~~~
+
+- new `metadata` section in references config, which can be used to store
+  additional information like mappable bases and genome size.
+
+- References can now be included from other YAML files into the main config
+  file. This dramatically simplifies individual configfiles, and allows
+  multiple workflows to use identical references without having to do
+  error-prone and hard-to-maintain copy/pastes between workflow configs. See
+  :ref:`references-config` for details.
+
+- New GTF conversion, ``mappings``. This is intended to replace the
+  ``annotation_hub`` conversion, which was problematic because 1) a particular
+  annotation hub accession is not guaranteed to be found in new versions of
+  AnnotationHub, resulting in lack of reproducibility, and 2) it was difficult
+  to synchronize the results with a particular GTF annotation. The
+  ``annotation_hub`` conversion is still supported, but if it's used then
+  a DeprecationWarning will be emitted, recommending ``mappings`` instead.
+
+
+Both RNA-seq and ChIP-seq
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- `fastq_screen` is now configured via ``config.yaml``. This reduces the need
+  to edit the Snakefile and coordinate between the config and the fastq_screen
+  rule. Now everything is done within the config file.
+
+- `fastq_screen` wrapper now handles additional output files created when using
+  the ``--tag`` and ``--filter`` arguments to ``fastq_screen``.
+
+- In the config file, ``assembly`` has been changed to the more-descriptive
+  ``organism``. The change is backwards compatible, but a DeprecationWarning is
+  raised if ``assembly:`` is still used, and changed to ``organism`` (though
+  only in memory, not on disk).
+
+- Patterns no longer use ``{sample_dir}``, ``{agg_dir}``, etc placeholders that
+  need to be configured in the config YAML. Instead, these directories are
+  hard-coded directly into the patterns. This simplifies the config files,
+  simplifies the patterns, and removes one layer of disconnect between the
+  filenames and how they are determined.
+
+- removed 4C workflow since it used 4c-ker
+
+ChIP-seq
+~~~~~~~~
+- macs2 and sicer can accept mappable genome size overrides
+
+RNA-seq
+~~~~~~~
+
+- RNA-seq downstream:
+
+    - ``downstream/help_docs.Rmd`` can be included for first-time users to
+      describe the sections of the RNA-seq analysis
+
+    - ``rnaseq.Rmd`` now uses the same ``NOTE:`` syntax as the Snakefiles for
+      indicating where/what to change
+
+    - Easy swapping of which strand to use from the three featureCounts runs
+      performed by the workflow
+
+    - Be explicit about using DESeq2::lfcShrink as is now the default in recent
+      DESeq2 versions
+
+    - improved the mechanism for keeping together results objects, dds objects, and
+      labels (list of lists, rather than individual list object; refactored
+      functions to use this new structure
+
+

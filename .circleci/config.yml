@@ -26,14 +26,14 @@ variables:
 
   save_cache: &save_cache
     save_cache:
-      key: v1-{{ checksum "requirements.txt" }}
+      key: v2-{{ checksum "requirements.txt" }}
       paths:
         - miniconda
 
   restore_cache: &restore_cache
     restore_cache:
       keys:
-        - v1-{{ checksum "requirements.txt" }}
+        - v2-{{ checksum "requirements.txt" }}
 
 
   # --------------------------------------------------------------------------
@@ -52,14 +52,20 @@ variables:
         source activate lcdb-wf-test
         python ci/get-data.py
 
+  pytest-step: &pytest-step
+    run:
+      name: Run pytest suite
+      command: |
+        source activate lcdb-wf-test
+        pytest --doctest-modules lib
+
   chipseq-step: &chipseq-step
       run:
         name: chipseq workflow
         command: |
           cd workflows/chipseq
           source activate lcdb-wf-test
-          python -m doctest ../../ci/preprocessor.py && python ../../ci/preprocessor.py Snakefile > Snakefile.test
-          snakemake -s Snakefile.test --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+          ./run_test.sh --use-conda -j2 -T -k -p -r
           python chipseq_trackhub.py config/config.yaml config/hub_config.yaml
 
   references-step: &references-step
@@ -68,8 +74,7 @@ variables:
         command: |
           cd workflows/references
           source activate lcdb-wf-test
-          python -m doctest ../../ci/preprocessor.py && python ../../ci/preprocessor.py Snakefile > Snakefile.test
-          snakemake -s Snakefile.test --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+          ./run_test.sh  --use-conda -j2 -T -k -p -r
 
   rnaseq-step: &rnaseq-step
       run:
@@ -77,9 +82,16 @@ variables:
         command: |
           cd workflows/rnaseq
           source activate lcdb-wf-test
-          python -m doctest ../../ci/preprocessor.py && python ../../ci/preprocessor.py Snakefile > Snakefile.test
-          snakemake -s Snakefile.test --configfile config/config.yaml --use-conda -j2 -T -k -p -r
+          ./run_test.sh --use-conda -j2 -T -k -p -r
           python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
+
+  colocalization-step: &colocalization-step
+      run:
+        name: colocalization workflow
+        command: |
+          cd workflows/colocalization
+          source activate lcdb-wf-test
+          ./run_test.sh --use-conda -j2 -T -k -p -r
 
   # The path needs to be set each time
   set-path: &set-path
@@ -100,9 +112,16 @@ jobs:
       - *setup
       - *save_cache
 
+  pytest:
+    <<: *defaults
+    steps:
+      - checkout
+      - *restore_cache
+      - *setup
+      - *pytest-step
+
   chipseq:
     <<: *defaults
-    parallelism: 2
     steps:
       - checkout
       - *restore_cache
@@ -112,7 +131,6 @@ jobs:
 
   rnaseq:
     <<: *defaults
-    parallelism: 2
     steps:
       - checkout
       - *restore_cache
@@ -120,9 +138,17 @@ jobs:
       - *get-data
       - *rnaseq-step
 
+  colocalization:
+    <<: *defaults
+    steps:
+      - checkout
+      - *restore_cache
+      - *set-path
+      - *get-data
+      - *colocalization-step
+
   references:
     <<: *defaults
-    parallelism: 2
     steps:
       - checkout
       - *restore_cache
@@ -158,9 +184,13 @@ workflows:
   test-suite:
     jobs:
       - initial-setup
+      - pytest:
+         requires:
+           - initial-setup
       - chipseq:
          requires:
            - initial-setup
+           - pytest
          filters:
            branches:
              ignore:
@@ -168,6 +198,7 @@ workflows:
       - rnaseq:
           requires:
             - initial-setup
+            - pytest
           filters:
             branches:
               ignore:
@@ -175,6 +206,15 @@ workflows:
       - references:
           requires:
             - initial-setup
+            - pytest
+          filters:
+            branches:
+              ignore:
+                - master
+      - colocalization:
+          requires:
+            - initial-setup
+            - pytest
           filters:
             branches:
               ignore:
@@ -182,7 +222,3 @@ workflows:
       - build-docs:
           requires:
             - initial-setup
-          filters:
-            branches:
-              only:
-                - master

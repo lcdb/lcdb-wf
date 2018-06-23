@@ -39,7 +39,7 @@ chipseq_refdict, chipseq_args = common.references_dict(chipseq_config.config)
 # nested)
 chromsizes = references(
     chipseq_refdict[
-        chipseq_config.config['assembly']
+        chipseq_config.config['organism']
     ][
         chipseq_config.config['aligner']['tag']
     ]['chromsizes']
@@ -51,20 +51,24 @@ chromsizes = references(
 for k, v in config['beds'].items():
     config['beds'][k] = external(v)
 
-# Here we are adding all the called peaks to the bed files to check for
-# colocalization
-peaks = chipseq(utils.flatten(chipseq_config.targets['peaks']))
-for fn in peaks:
-    toks = fn.split('/')
-    peakcaller = toks[-3]
-    label = toks[-2]
-    key = peakcaller + '_' + label
-    config['beds'][key] = fn
+# If ADD_CHIPSEQ_PEAKS is True, we will addn all the called peaks to the bed
+# files to check for colocalization.
+ADD_CHIPSEQ_PEAKS = True
+# ADD_CHIPSEQ_PEAKS = False  # [TEST SETTINGS -1]
+
+if ADD_CHIPSEQ_PEAKS:
+    peaks = chipseq(utils.flatten(chipseq_config.targets['peaks']))
+    for fn in peaks:
+        toks = fn.split('/')
+        peakcaller = toks[-3]
+        label = toks[-2]
+        key = peakcaller + '_' + label
+        config['beds'][key] = fn
 
 
 # Number of shufflings for GAT
-# TEST_SETTINGS: change this to something like 1000 or more
-N = 100
+# N = 100 [TEST_SETTINGS +1]
+N = 10000
 
 targets = expand(
     '{outdir}/{algorithm}/{domain}/{query}/{query}_vs_{reference}.txt',
@@ -96,13 +100,13 @@ rule target:
 
 rule sorted_chromsizes:
     input: chromsizes
-    output: os.path.join(config['output'], config['assembly'] + '.sorted.chromsizes')
+    output: os.path.join(config['output'], config['organism'] + '.sorted.chromsizes')
     shell:
         'sort -k1,1 {input} > {output}'
 
 rule chromsizes_bed:
     input: rules.sorted_chromsizes.output
-    output: os.path.join(config['output'], config['assembly'] + '.bed')
+    output: os.path.join(config['output'], config['organism'] + '.bed')
     shell:
         """awk '{{OFS="\\t"; print $1,"0",$2}}' {input} > {output}"""
 
@@ -249,6 +253,8 @@ rule heatmap:
         )
     output:
         '{outdir}/{algorithm}/{domain}/{value}_heatmap.pdf'
+    conda:
+        'scripts/heatmap_env.yaml'
     shell:
         'python scripts/colocalization_heatmap.py '
         '--domain {wildcards.domain} '

@@ -160,15 +160,15 @@ format.group.name <- function(pattern.mat) {
     # if there's only one element
     if (length(pattern.mat) == 1) {
         # it must be the intercept
-	my.res <- paste(my.res, "groupMean", sep=".")
+    my.res <- paste(my.res, "groupMean", sep=".")
     } else { # more than one element
         # for every non-intercept entry
         for (i in 2:length(pattern.mat)) {
-	    # if 1, include
-	    if (pattern.mat[i] == 1) my.res <- paste(my.res, names(pattern.mat[i]), sep=".")
-	    # otherwise don't
-	    else my.res <- paste(my.res, ".not", names(pattern.mat[i]), sep="")
-	}
+        # if 1, include
+        if (pattern.mat[i] == 1) my.res <- paste(my.res, names(pattern.mat[i]), sep=".")
+        # otherwise don't
+        else my.res <- paste(my.res, ".not", names(pattern.mat[i]), sep="")
+    }
     }
     my.res
 }
@@ -259,7 +259,8 @@ top.plots <- function(res, n, func, dds, add_cols=NULL){
 #'
 #' @return Side effect is to create plot
 pval.hist <- function(res){
-    hist(res$pvalue[res$baseMean>1], breaks=0:20/20, col='grey50', border='white', xlab='P-value', main='Distribution of p-values')
+    hist(res$pvalue[res$baseMean>1], breaks=0:20/20, col='grey50',
+         border='white', xlab='P-value', main='Distribution of p-values')
 }
 
 #' Summarize DESeq2 results into a dataframe
@@ -281,7 +282,8 @@ my.summary <- function(res, dds, alpha, ...){
    filt <- sum(!is.na(res$pvalue) & is.na(res$padj))
    outlier <- sum(res$baseMean > 0 & is.na(res$pvalue))
    ft <- if(is.null(metadata(res)$filterThreshold)){ 0 } else { round(metadata(res)$filterThreshold) }
-   # adjust width.cutoff as newline insertion causes this to return a df with multiple duplicate rows!
+   # adjust width.cutoff as newline insertion causes this to return a df with
+   # multiple duplicate rows!
    df <- data.frame(
                     total.annotated.genes=nrow(res),
                     total.nonzero.read.count=notallzero,
@@ -419,18 +421,20 @@ attach.info <- function(res, keytype='ENSEMBL', columns=c('SYMBOL', 'UNIPROT', '
 
 #' Combine everything in the results list into a single table
 #'
-#' @param res.list List of DESeq2 results objects
-#' @param dds.list List of DESeq2 objects
-#' @param res.list.lookup List mapping res.list names to nicer-looking ones
+#' @param res.list Named list of lists, where each sublist contains the following
+#'                 names: c('res', 'dds', 'label'). "res" is a DESeqResults object,
+#'                 "dds" is a DESeq object, and "label" is a nicer-looking
+#'                 label to use.
 #'
 #' @return Dataframe
 summarize.res.list <- function(res.list, dds.list, res.list.lookup){
     slist <- list()
     for (name in names(res.list)){
-        slist[[name]] <- my.summary(res.list[[name]], dds.list[[name]])
+        x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']])
+        rownames(x) <- res.list[[name]][['label']]
+        slist[[name]] <- x
     }
     slist <- do.call(rbind, slist)
-    rownames(slist) <- as.character(sapply(rownames(slist), function (x) res.list.lookup[x]))
     return(slist)
 }
 
@@ -459,5 +463,3 @@ get.sig <- function(x, direction='up', alpha=0.1, thresh=0, return.names=TRUE){
     }
 }
 ```
-
-

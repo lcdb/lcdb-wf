@@ -21,6 +21,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('../lib'))
 
 
 # -- General configuration ------------------------------------------------
@@ -35,7 +36,9 @@ sys.path.insert(0, os.path.abspath('..'))
 extensions = [
     'generate_guide',
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.doctest',
+    'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
@@ -85,6 +88,8 @@ pygments_style = 'sphinx'
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 
+autoclass_content = "both"
+autosummary_generate = True
 
 # -- Options for HTML output ----------------------------------------------
 
@@ -97,14 +102,25 @@ html_theme = 'alabaster'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    'description': 'Customizable workflows for high-throughput sequencing analysis',
+    'show_related': 'true',
+    'fixed_sidebar': 'true',
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-
+html_sidebars = {
+    "*": [
+        'about.html',
+        'navigation.html',
+        'relations.html',
+        'searchbox.html',
+    ]
+}
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.

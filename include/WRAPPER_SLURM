@@ -7,7 +7,7 @@
 if [[ ! -e logs ]]; then mkdir -p logs; fi
 
 # Run snakemake
-(source activate lcdb-wf; \
+(
     time snakemake \
     -p \
     --directory $PWD \
