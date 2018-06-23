@@ -647,14 +647,13 @@
 
 <span class="sd">    Also makes any fixes that can be done automatically.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="s1">&#39;assembly&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
         <span class="n">config</span><span class="p">[</span><span class="s1">&#39;organism&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;assembly&#39;</span><span class="p">]</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;&#39;assembly&#39; should be replaced with &#39;organism&#39; in config files. &quot;</span>
             <span class="s2">&quot;As a temporary measure, a new &#39;organism&#39; key has been added with &quot;</span>
             <span class="s2">&quot;the value of &#39;assembly&#39;&quot;</span><span class="p">,</span>
-            <span class="ne">DeprecationWarning</span><span class="p">)</span>
+            <span class="ne">UserWarning</span><span class="p">)</span>
 
 
     <span class="k">for</span> <span class="n">org</span><span class="p">,</span> <span class="n">block1</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;references&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -667,7 +666,7 @@
                         <span class="s2">&quot;than &#39;annotation_hub&#39; since it works directly off &quot;</span>
                         <span class="s2">&quot;the GTF file rather than assuming concordance between &quot;</span>
                         <span class="s2">&quot;GTF and AnnoationHub instances&quot;</span><span class="p">,</span>
-                        <span class="ne">DeprecationWarning</span><span class="p">)</span>
+                        <span class="ne">UserWarning</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">config</span></div>
 </pre></div>

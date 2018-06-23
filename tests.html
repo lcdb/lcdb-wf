@@ -157,7 +157,7 @@ directory:</p>
 </div>
 <p>First, run in dry-run mode which will print out the jobs to be run.  The
 arguments will be described later, this is just to get things running:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./run_test.sh -n --use-conda --configfile ../../include/reference_configs/test.yaml
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./run_test.sh -n --use-conda
 </pre></div>
 </div>
 <p>If all goes well, you will get lots of output ending with a summary of the
@@ -165,14 +165,17 @@ number of jobs that will be run. Then, use the same command but remove the
 <code class="docutils literal notranslate"><span class="pre">-n</span></code>, and optionall include the <code class="docutils literal notranslate"><span class="pre">-j</span></code> argument to specify the number of
 cores to use, for example <code class="docutils literal notranslate"><span class="pre">-j</span> <span class="pre">8</span></code> if you have 8 cores on your machine (this
 example just uses 2 cores):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./run_test.sh -j <span class="m">2</span> --use-conda --configfile ../../include/reference_configs/test.yaml
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./run_test.sh -j <span class="m">2</span> --use-conda
 </pre></div>
 </div>
 <p>This will take ~15 minutes to run.</p>
-<p>Briefly, this workflow first imports the references workflow, which downloads
-genome sequence and reference files and builds indexes as necessary (HISAT2
-genome index, salmon transcriptome index, bowtie2 index for rRNA, GTF file of
-gene annotations) and then carries on with the RNA-seq workflow.</p>
+<p>Briefly,the file <code class="docutils literal notranslate"><span class="pre">config/config.yaml</span></code> sets up lots of configuration like
+where the fastq files are found, how to build references, and so on. The
+workflow expects the file called <code class="docutils literal notranslate"><span class="pre">config/config.yaml</span></code>; see <a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration</span></a> for
+more details. This workflow first imports the references workflow, which
+downloads genome sequence and reference files and builds indexes as necessary
+(HISAT2 genome index, salmon transcriptome index, bowtie2 index for rRNA, GTF
+file of gene annotations) and then carries on with the RNA-seq workflow.</p>
 <p>The RNA-seq workflow includes the standard mapping, counting, and differential
 expression stages, as well as many quality-control steps. See <a class="reference internal" href="rnaseq.html#rnaseq"><span class="std std-ref">RNA-seq workflow</span></a> for
 more details.</p>
@@ -197,7 +200,7 @@ repo, change to the <code class="docutils literal notranslate"><span class="pre"
 </div>
 <p>First, run in dry-run mode which will print out the jobs to be run.  The
 arguments will be described later, this is just to get things running:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./run_test.sh -n --use-conda --configfile ../../include/reference_configs/test.yaml
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./run_test.sh -n --use-conda
 </pre></div>
 </div>
 <p>If all goes well, you will get lots of output ending with a summary of the
@@ -205,13 +208,14 @@ number of jobs that will be run. Then, use the same command but remove the
 <code class="docutils literal notranslate"><span class="pre">-n</span></code>, and optionall include the <code class="docutils literal notranslate"><span class="pre">-j</span></code> argument to specify the number of
 cores to use, for example <code class="docutils literal notranslate"><span class="pre">-j</span> <span class="pre">8</span></code> if you have 8 cores on your machine (this
 example just uses 2 cores):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./run_test.sh -j <span class="m">2</span> --use-conda --configfile ../../include/reference_configs/test.yaml
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./run_test.sh -j <span class="m">2</span> --use-conda
 </pre></div>
 </div>
-<p>Like the RNA-seq workflow, the ChIP-seq workflow includes the
+<p>Like the RNA-seq workflow, the ChIP-seq workflow expects
+a <code class="docutils literal notranslate"><span class="pre">config/config.yaml</span></code> file and includes the
 <code class="docutils literal notranslate"><span class="pre">workflows/references/Snakemake</span></code> workflow, so that genome fastas are
 downloaded and indexes built as necessary, before continuing on to the ChIP-seq
-workflow.</p>
+workflow. The ChIP-seq workflow includes QC, mapping, and peak-calling.</p>
 <p>Points of interest:</p>
 <blockquote>
 <div><ul class="simple">

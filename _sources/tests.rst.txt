@@ -82,7 +82,7 @@ arguments will be described later, this is just to get things running:
 
 .. code-block:: bash
 
-    ./run_test.sh -n --use-conda --configfile ../../include/reference_configs/test.yaml
+    ./run_test.sh -n --use-conda
 
 If all goes well, you will get lots of output ending with a summary of the
 number of jobs that will be run. Then, use the same command but remove the
@@ -92,14 +92,17 @@ example just uses 2 cores):
 
 .. code-block:: bash
 
-    ./run_test.sh -j 2 --use-conda --configfile ../../include/reference_configs/test.yaml
+    ./run_test.sh -j 2 --use-conda
 
 This will take ~15 minutes to run.
 
-Briefly, this workflow first imports the references workflow, which downloads
-genome sequence and reference files and builds indexes as necessary (HISAT2
-genome index, salmon transcriptome index, bowtie2 index for rRNA, GTF file of
-gene annotations) and then carries on with the RNA-seq workflow.
+Briefly,the file ``config/config.yaml`` sets up lots of configuration like
+where the fastq files are found, how to build references, and so on. The
+workflow expects the file called ``config/config.yaml``; see :ref:`config` for
+more details. This workflow first imports the references workflow, which
+downloads genome sequence and reference files and builds indexes as necessary
+(HISAT2 genome index, salmon transcriptome index, bowtie2 index for rRNA, GTF
+file of gene annotations) and then carries on with the RNA-seq workflow.
 
 The RNA-seq workflow includes the standard mapping, counting, and differential
 expression stages, as well as many quality-control steps. See :ref:`rnaseq` for
@@ -130,7 +133,7 @@ arguments will be described later, this is just to get things running:
 
 .. code-block:: bash
 
-    ./run_test.sh -n --use-conda --configfile ../../include/reference_configs/test.yaml
+    ./run_test.sh -n --use-conda
 
 If all goes well, you will get lots of output ending with a summary of the
 number of jobs that will be run. Then, use the same command but remove the
@@ -140,12 +143,13 @@ example just uses 2 cores):
 
 .. code-block:: bash
 
-    ./run_test.sh -j 2 --use-conda --configfile ../../include/reference_configs/test.yaml
+    ./run_test.sh -j 2 --use-conda
 
-Like the RNA-seq workflow, the ChIP-seq workflow includes the
+Like the RNA-seq workflow, the ChIP-seq workflow expects
+a ``config/config.yaml`` file and includes the
 ``workflows/references/Snakemake`` workflow, so that genome fastas are
 downloaded and indexes built as necessary, before continuing on to the ChIP-seq
-workflow.
+workflow. The ChIP-seq workflow includes QC, mapping, and peak-calling.
 
 Points of interest:
 
