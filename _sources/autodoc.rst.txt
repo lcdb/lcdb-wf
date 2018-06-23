@@ -1,5 +1,9 @@
 Module documentation
 ====================
 
-.. automodule:: lib
-    :members:
+.. toctree::
+   :maxdepth: 2
+
+   lib.common
+   lib.chipseq
+   lib.patterns_targets

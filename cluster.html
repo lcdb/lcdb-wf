@@ -1,0 +1,143 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Running on a cluster &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Troubleshooting" href="troubleshooting.html" />
+    <link rel="prev" title="Wrappers" href="wrappers.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+
+
+
+<p class="blurb">Customizable workflows for high-throughput sequencing analysis</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Running on a cluster</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="wrappers.html" title="previous chapter">Wrappers</a></li>
+      <li>Next: <a href="troubleshooting.html" title="next chapter">Troubleshooting</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="running-on-a-cluster">
+<span id="cluster"></span><h1>Running on a cluster<a class="headerlink" href="#running-on-a-cluster" title="Permalink to this headline">¶</a></h1>
+<p>The example commands in <a class="reference internal" href="getting-started.html#getting-started"><span class="std std-ref">Initial setup</span></a> describe running Snakemake
+locally. For larger data sets, you’ll want to run them on an HPC cluster.
+Snakemake <a class="reference external" href="http://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html">supports arbitrary cluster commands</a>,
+making it easy to run these workflows on many different cluster environments.</p>
+<p>The default configuration we provide is specific to the NIH Biowulf cluster.
+To run a workflow on Biowulf, from the workflow directory (e.g.,
+<code class="docutils literal notranslate"><span class="pre">workflows/rnaseq</span></code>, run the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sbatch</span> <span class="o">../../</span><span class="n">include</span><span class="o">/</span><span class="n">WRAPPER_SLURM</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">WRAPPER_SLURM</span></code> script submits the main Snakemake process on a separate
+node to avoid any restrictions from running on the head node. That main
+snakemake process then submits each rule separately to the cluster scheduler.
+As configured in that script, we specify <code class="docutils literal notranslate"><span class="pre">config/clusterconfig.yaml</span></code> as
+containing the rule-specific cluster arguments.</p>
+<p>That script also contains this Snakemake arguments:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">--</span><span class="n">jobname</span> <span class="s2">&quot;s.</span><span class="si">{rulename}</span><span class="s2">.</span><span class="si">{jobid}</span><span class="s2">.sh&quot;</span> \
+<span class="o">--</span><span class="n">cluster</span> <span class="s1">&#39;sbatch </span><span class="si">{cluster.prefix}</span><span class="s1"> --cpus-per-task=</span><span class="si">{threads}</span><span class="s1">  --output=logs/</span><span class="si">{rule}</span><span class="s1">.o.%j --error=logs/</span><span class="si">{rule}</span><span class="s1">.e.%j&#39;</span> \
+</pre></div>
+</div>
+<p>This means that each job is named after the rule and job id (the <code class="docutils literal notranslate"><span class="pre">--jobname</span></code>
+arg) and the stdout and stderr go to files in <code class="docutils literal notranslate"><span class="pre">logs</span></code> and are named after the
+rule, followed by a <code class="docutils literal notranslate"><span class="pre">.o</span></code> or <code class="docutils literal notranslate"><span class="pre">.e</span></code>, followed by the cluster job ID (the
+<code class="docutils literal notranslate"><span class="pre">--cluster</span></code> arg).</p>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/cluster.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

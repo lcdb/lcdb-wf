@@ -1,0 +1,177 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Configuration &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Config YAML" href="config-yaml.html" />
+    <link rel="prev" title="Overview of workflows" href="workflows.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+
+
+
+<p class="blurb">Customizable workflows for high-throughput sequencing analysis</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config-yaml.html">Config YAML</a></li>
+<li class="toctree-l2"><a class="reference internal" href="references-config.html">References config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampletable.html">Sample tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patterns-targets.html">Patterns and targets</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="workflows.html" title="previous chapter">Overview of workflows</a></li>
+      <li>Next: <a href="config-yaml.html" title="next chapter">Config YAML</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="configuration">
+<span id="config"></span><h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
+<p>The majority of the work in setting up a new project is in the configuration –
+which samples to run, where the data files are, which references are
+needed, etc.</p>
+<p><strong>The entry point for configuration</strong> is in the <code class="docutils literal notranslate"><span class="pre">config/config.yaml</span></code> file found
+in each workflow directory. See <a class="reference internal" href="config-yaml.html#config-yaml"><span class="std std-ref">Config YAML</span></a> for more.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="config-yaml.html">Config YAML</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config-yaml.html#example-configs">Example configs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config-yaml.html#field-descriptions">Field descriptions</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p>The <strong>references section</strong> of the config file configures the genomes,
+transcriptomes, and annotations to be used. See <a class="reference internal" href="references-config.html#references-config"><span class="std std-ref">References config</span></a> for more.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="references-config.html">References config</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="references-config.html#using-existing-configs">Using existing configs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="references-config.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="references-config.html#example-references-config">Example references config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="references-config.html#post-processing">Post processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="references-config.html#available-indexes-and-conversions">Available indexes and conversions</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p>The <strong>sample table</strong>, lists sample IDs, filenames, and other metadata. Its path
+is specified in the config file. See <a class="reference internal" href="sampletable.html#sampletable"><span class="std std-ref">Sample tables</span></a> for more.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="sampletable.html">Sample tables</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sampletable.html#rna-seq-sample-table">RNA-seq sample table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampletable.html#chip-seq-sample-table">ChIP-seq sample table</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p>A <strong>patterns file</strong> only needs to be edited
+if you’re doing custom work. It determines the patterns of files that will be
+created by the workflow. Ssee <a class="reference internal" href="patterns-targets.html#patterns-and-targets"><span class="std std-ref">Patterns and targets</span></a> for more.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="patterns-targets.html">Patterns and targets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="patterns-targets.html#patterns">Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patterns-targets.html#targets">Targets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patterns-targets.html#how-patterns-and-targets-are-used-in-snakefiles">How patterns and targets are used in Snakefiles</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/config.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,3 +1,18 @@
 pre {
-	font-size: 0.7em;
+    font-size: 0.7em;
+}
+
+
+h3 {
+    font-style: italic;
+}
+
+h2 {
+    /* text-decoration: underline; */
+}
+
+code {
+    background-color: #fff;
+    font-size: 0.8em;
+    color: #444;
 }

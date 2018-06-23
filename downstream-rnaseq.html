@@ -1,0 +1,218 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Downstream RNA-seq in R &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ChIP-seq workflow" href="chipseq.html" />
+    <link rel="prev" title="RNA-seq workflow" href="rnaseq.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+
+
+
+<p class="blurb">Customizable workflows for high-throughput sequencing analysis</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Downstream RNA-seq in R</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#editing-rnaseq-rmd">Editing <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#points-of-interest">Points of interest</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="rnaseq.html" title="previous chapter">RNA-seq workflow</a></li>
+      <li>Next: <a href="chipseq.html" title="next chapter">ChIP-seq workflow</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="downstream-rna-seq-in-r">
+<span id="downstream-rnaseq"></span><h1>Downstream RNA-seq in R<a class="headerlink" href="#downstream-rna-seq-in-r" title="Permalink to this headline">¶</a></h1>
+<p>In a typical RNA-seq analysis, it is relatively straightforward to go from raw
+reads to read counts in features to importing them into R. After that however,
+expression analysis gets a bit more complicated and highly depends on the
+design of the experiment. We had to make a design decision: do we expose
+various configuration options for an RNA-seq analysis in order to keep the
+entire workflow driven by a config file, or allow the full flexibility of R?</p>
+<p>We chose to use the full power and flexibility of R. We provide a fairly
+complete RMarkdown file that is <strong>intended to be edited and customized per
+experiment</strong>. This file is <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq/downstream/rnaseq.Rmd</span></code>, and it
+is run by the <code class="docutils literal notranslate"><span class="pre">rnaseq</span></code> rule in the RNA-seq workflow, which renders it through
+Knitr to create an HTML file. The rule’s inputs are the featureCounts output,
+the sample table, and the Rmd itself, so if any of these change the Rmd will be
+re-run.</p>
+<p>Many of the code chunks have the <code class="docutils literal notranslate"><span class="pre">cached=TRUE</span></code> option to speed up
+re-rendering and make iterative development quicker. When everything’s in
+a final state, you may want to delete the <code class="docutils literal notranslate"><span class="pre">rnaseq_cache</span></code> directory and
+re-run.</p>
+<div class="section" id="editing-rnaseq-rmd">
+<h2>Editing <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code><a class="headerlink" href="#editing-rnaseq-rmd" title="Permalink to this headline">¶</a></h2>
+<p>Search for the string <code class="docutils literal notranslate"><span class="pre">NOTE:</span></code> in <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code> to identify locations in the
+RMarkdown file that should be edited, or at least checked, prior to running.</p>
+<p>As with many analyses in R, the work is highly iterative. You may want to
+consider using RStudio when working on the analysis, and then run the Snakefile
+when complete.  To ensure that RStudio is using the same packages as the
+workflows, you should set the <code class="docutils literal notranslate"><span class="pre">RSTUDIO_WHICH_R</span></code> environment variable.</p>
+<p>The easiest way to do this is to activate the conda environment you’re using
+for the analysis, then export the identified location of R to that variable:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span> activate lcdb-wf
+<span class="nb">export</span> <span class="nv">RSTUDIO_WHICH_R</span><span class="o">=</span><span class="k">$(</span>which R<span class="k">)</span>
+</pre></div>
+</div>
+<p>On MacOS, you may additionally need the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>launchctl setenv RSTUDIO_WHICH_R <span class="nv">$RSTUDIO_WHICH_R</span>
+</pre></div>
+</div>
+<p>Then run RStudio, which should pick up the conda environment’s version of R and
+should already have packages like DESeq2 installed in the environment.</p>
+</div>
+<div class="section" id="points-of-interest">
+<h2>Points of interest<a class="headerlink" href="#points-of-interest" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="standard-qc">
+<h3>Standard QC<a class="headerlink" href="#standard-qc" title="Permalink to this headline">¶</a></h3>
+<p>Clustered correlation heatmaps, PCA plots, and clustered heatmaps of the most
+variable genes are created, much like the <a class="reference external" href="https://www.bioconductor.org/packages/release/workflows/vignettes/rnaseqGene/inst/doc/rnaseqGene.html">Bioconductor RNA-seq workflow</a>.</p>
+</div>
+<div class="section" id="use-salmon-counts-or-featurecounts">
+<h3>Use Salmon counts or featureCounts<a class="headerlink" href="#use-salmon-counts-or-featurecounts" title="Permalink to this headline">¶</a></h3>
+<p>Both Salmon quantification and featureCounts are imported into <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code>,
+and you can decide which to use for any particular analysis.</p>
+</div>
+<div class="section" id="easy-support-for-multiple-contrasts-and-comparing-them">
+<h3>Easy support for multiple contrasts, and comparing them<a class="headerlink" href="#easy-support-for-multiple-contrasts-and-comparing-them" title="Permalink to this headline">¶</a></h3>
+<p>For complex experimental designs, populate the <code class="docutils literal notranslate"><span class="pre">res.list</span></code> list with lists
+containing the results, the DESeq object, and a nice label. For example:</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span>res.list<span class="p">[[</span><span class="s">&#39;mut1&#39;</span><span class="p">]]</span> <span class="o">&lt;-</span> <span class="kt">list</span><span class="p">(</span>
+    res<span class="o">=</span>lfcShrink<span class="p">(</span>dds<span class="p">,</span> contrast<span class="o">=</span><span class="kt">c</span><span class="p">(</span><span class="s">&#39;group&#39;</span><span class="p">,</span> <span class="s">&#39;mutant1&#39;</span><span class="p">,</span> <span class="s">&#39;control&#39;</span><span class="p">)),</span>
+    dds<span class="o">=</span>dds<span class="p">,</span>
+    label<span class="o">=</span><span class="s">&#39;Effect of mutant 1&#39;</span>
+<span class="p">)</span>
+res.list<span class="p">[[</span><span class="s">&#39;time&#39;</span><span class="p">]]</span> <span class="o">&lt;-</span> <span class="kt">list</span><span class="p">(</span>
+    res<span class="o">=</span>lfcShrink<span class="p">(</span>dds.with.different.design<span class="p">,</span> contrast<span class="o">=</span><span class="kt">c</span><span class="p">(</span><span class="s">&#39;time&#39;</span><span class="p">,</span> <span class="s">&#39;t1&#39;</span><span class="p">,</span> <span class="s">&#39;t0&#39;</span><span class="p">)),</span>
+    dds<span class="o">=</span>dds.with.different.design<span class="p">,</span>
+    label<span class="o">=</span><span class="s">&#39;Effect of time in WT&#39;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>For each entry in <code class="docutils literal notranslate"><span class="pre">res.list</span></code>, a section will be built with a header
+reflecting the label, a summary table, counts plots of the top 3 up- and top
+3 down-regulated genes, an M-A plot, a p-value distribution histogram, and
+links to the exported results. In addition if there were multiple contrasts
+with detected DE genes, these will be compared in UpSet plots to identify the
+genes that are shared as DE across contrasts.</p>
+</div>
+<div class="section" id="help-docs">
+<h3>Help docs<a class="headerlink" href="#help-docs" title="Permalink to this headline">¶</a></h3>
+<p>For new users, or when distributing the output to collaborators who might
+not be familiar with the plots containined in the report, a background and
+help section are included. This can be disabled by deleting the “helpdocs”
+chunk at the end of the file.</p>
+</div>
+<div class="section" id="helper-functions">
+<h3>Helper functions<a class="headerlink" href="#helper-functions" title="Permalink to this headline">¶</a></h3>
+<p>The file <code class="docutils literal notranslate"><span class="pre">helpers.Rmd</span></code> contains lots of helper functions that are
+included in <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code> as a child document. This way the main document
+doesn’t get cluttered with all the functions while you’re editing it, but
+the code for those functions is still included in the HTML output.</p>
+</div>
+<div class="section" id="go-analysis">
+<h3>GO analysis<a class="headerlink" href="#go-analysis" title="Permalink to this headline">¶</a></h3>
+<p>For each of the entries in <code class="docutils literal notranslate"><span class="pre">res.list</span></code> (as described above), GO analysis will
+be performed using clusterProfiler, using GO and KEGG enrichment. These will be
+shown in bubble plots, which each contrast in a different color so that GO
+enrichment can be compared between contrasts on the same plot.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/downstream-rnaseq.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

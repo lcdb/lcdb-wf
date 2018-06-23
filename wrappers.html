@@ -4,40 +4,94 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Wrappers &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Tests" href="tests.html" />
-    <link rel="prev" title="RNA-seq workflow" href="rnaseq.html" />
+    <link rel="next" title="Running on a cluster" href="cluster.html" />
+    <link rel="prev" title="Colocalization workflow" href="colocalization.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body>
-  
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
 
-    <div class="document">
+
+
+<p class="blurb">Customizable workflows for high-throughput sequencing analysis</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Wrappers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#writing-wrappers">Writing wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-tests">Running tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#writing-tests">Writing tests</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="colocalization.html" title="previous chapter">Colocalization workflow</a></li>
+      <li>Next: <a href="cluster.html" title="next chapter">Running on a cluster</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="wrappers">
@@ -59,11 +113,11 @@ dependencies for the tests themselves. For example, one of the HISAT2 tests
 verifies that the index has the correct chromosomes by running hisat2-inspect,
 so hisat2 is a dependency.</p>
 <p>With the bioconda channel set up, install the dependencies:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">testenv</span> <span class="o">--</span><span class="n">file</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">testenv</span> <span class="o">--</span><span class="n">file</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 <p>And run tests:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">activate</span> <span class="n">testenv</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">activate</span> <span class="n">testenv</span>
 <span class="n">pytest</span> <span class="n">test</span><span class="o">/</span><span class="n">tests</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">v</span>
 </pre></div>
 </div>
@@ -77,17 +131,17 @@ a function that downloads a fastq file for use in other tests. Another example
 of a fixture would be a function that runs cutadapt on that fastq, and provides
 that trimmed fastq for other tests. An example of a test would be a function
 that checks the cutadapt output to ensure it is as expected.</p>
-<p>See <code class="docutils literal"><span class="pre">test/test_demo.py</span></code> for a heavily-annotated example, and
-<code class="docutils literal"><span class="pre">test/raw_data_fixtures.py</span></code> for useful fixtures.</p>
-<p>Write new tests in <code class="docutils literal"><span class="pre">tests/test_&lt;wrappername&gt;.py</span></code>. Put any fixtures at the top
+<p>See <code class="docutils literal notranslate"><span class="pre">test/test_demo.py</span></code> for a heavily-annotated example, and
+<code class="docutils literal notranslate"><span class="pre">test/raw_data_fixtures.py</span></code> for useful fixtures.</p>
+<p>Write new tests in <code class="docutils literal notranslate"><span class="pre">tests/test_&lt;wrappername&gt;.py</span></code>. Put any fixtures at the top
 of the file. Import any fixtures from other files as needed. There is
-a <code class="docutils literal"><span class="pre">raw_data_fixtures.py</span></code> file that will be helpful.</p>
+a <code class="docutils literal notranslate"><span class="pre">raw_data_fixtures.py</span></code> file that will be helpful.</p>
 <p>A test consists of a <em>Snakefile</em> (typically written as a triple-quoted string
 inside each test function), an <em>input data function</em> (typically created via
-<code class="docutils literal"><span class="pre">utils.symlink_in_tempdir</span></code>), and a <em>test function</em> that performs arbitrary
+<code class="docutils literal notranslate"><span class="pre">utils.symlink_in_tempdir</span></code>), and a <em>test function</em> that performs arbitrary
 tests on the output.</p>
 <p>Importantly, for any test, you can go to
-<code class="docutils literal"><span class="pre">/tmp/pytest-of-$USER/pytest-$N/$TEST_NAME</span></code> directory and you’ll see the
+<code class="docutils literal notranslate"><span class="pre">/tmp/pytest-of-$USER/pytest-$N/$TEST_NAME</span></code> directory and you’ll see the
 Snakefile, input data, and any created output files. This is useful for writing
 the tests in the first place (e.g., what kinds of things to test for) or for
 troubleshooting (e.g., go to the directory and run snakemake to see what
@@ -101,12 +155,12 @@ teardown that needs to be done once, or for preparing data just once that can
 be used across many tests. In this repo, the fixtures are primarily used for
 downloading data from the testing data repo to a test-specific temporary
 directory.</p>
-<p>Fixtures are stored in a conftest.py file (see <code class="docutils literal"><span class="pre">tests/conftest.py</span></code>). Any
-discovered pytest tests in any module (functions starting with <code class="docutils literal"><span class="pre">test_</span></code>) can
+<p>Fixtures are stored in a conftest.py file (see <code class="docutils literal notranslate"><span class="pre">tests/conftest.py</span></code>). Any
+discovered pytest tests in any module (functions starting with <code class="docutils literal notranslate"><span class="pre">test_</span></code>) can
 use any of these fixtures as an argument, and will get the return value of that
 fixture at runtime.</p>
-<p>pytest also has some built-in fixtures. Here we use the <code class="docutils literal"><span class="pre">tmpdir</span></code> fixture and
-the <code class="docutils literal"><span class="pre">tmpdir_factory</span></code> fixture. The nice thing about these is that pytest
+<p>pytest also has some built-in fixtures. Here we use the <code class="docutils literal notranslate"><span class="pre">tmpdir</span></code> fixture and
+the <code class="docutils literal notranslate"><span class="pre">tmpdir_factory</span></code> fixture. The nice thing about these is that pytest
 manages them on disk and only keeps the last handful of tempdirs. This makes it
 straightforward to find the test data on disk and poke around when
 troubleshooting.</p>
@@ -129,58 +183,17 @@ as py.test fixture dependencies. Not sure we need to go that route though.</p>
 
 
           </div>
+          
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Wrappers</a><ul>
-<li><a class="reference internal" href="#writing-wrappers">Writing wrappers</a></li>
-<li><a class="reference internal" href="#running-tests">Running tests</a></li>
-<li><a class="reference internal" href="#writing-tests">Writing tests</a><ul>
-<li><a class="reference internal" href="#some-notes-on-how-the-fixtures-work">Some notes on how the fixtures work</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="rnaseq.html" title="previous chapter">RNA-seq workflow</a></li>
-      <li>Next: <a href="tests.html" title="next chapter">Tests</a></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/wrappers.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
       
       |
       <a href="_sources/wrappers.rst.txt"

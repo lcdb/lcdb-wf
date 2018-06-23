@@ -1,0 +1,260 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>lib.chipseq &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for lib.chipseq</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Helpers for ChIP-seq.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Example config for reference</span>
+<span class="c1"># __example_config__ = {</span>
+<span class="c1">#     &#39;peak_calling&#39;: {</span>
+<span class="c1">#         [</span>
+<span class="c1">#             {</span>
+<span class="c1">#                 &#39;label&#39;: &#39;rep1&#39;,</span>
+<span class="c1">#                 &#39;algorithm&#39;: &#39;macs2&#39;,</span>
+<span class="c1">#                 &#39;input&#39;: [&#39;input_1&#39;],</span>
+<span class="c1">#                 &#39;ip&#39;: [&#39;ip_1&#39;],</span>
+<span class="c1">#                 &#39;extra&#39;: &#39;--gs dm&#39;,</span>
+<span class="c1">#             },</span>
+<span class="c1">#             {</span>
+<span class="c1">#                 &#39;label&#39;: &#39;rep2&#39;,</span>
+<span class="c1">#                 &#39;algorithm&#39;: &#39;macs2&#39;,</span>
+<span class="c1">#                 &#39;input&#39;: [&#39;input_2&#39;],</span>
+<span class="c1">#                 &#39;ip&#39;: [&#39;ip_2&#39;],</span>
+<span class="c1">#                 &#39;extra&#39;: &#39;--gs dm&#39;,</span>
+<span class="c1">#             },</span>
+<span class="c1">#</span>
+<span class="c1">#         ]</span>
+<span class="c1">#     }</span>
+<span class="c1"># }</span>
+
+
+<div class="viewcode-block" id="peak_calling_dict"><a class="viewcode-back" href="../../lib.chipseq.html#lib.chipseq.peak_calling_dict">[docs]</a><span class="k">def</span> <span class="nf">peak_calling_dict</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a dictionary of peak-calling runs from the config.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : dict</span>
+
+<span class="sd">    algorithm : None</span>
+<span class="sd">        If `algorithm` is None, dictionary is keyed by (label, algorithm).</span>
+<span class="sd">        Otherwise, only the runs for `algorithm` are returned, keyed by</span>
+<span class="sd">        `label`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;chipseq&#39;</span><span class="p">][</span><span class="s1">&#39;peak_calling&#39;</span><span class="p">]:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">],</span> <span class="n">block</span><span class="p">[</span><span class="s1">&#39;algorithm&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">algorithm</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">algorithm</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;peak calling run &#39;</span><span class="si">{0}</span><span class="s2">&#39; already defined&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+
+        <span class="c1"># If metadata key has been provided, then use that to populate the</span>
+        <span class="c1"># block as default values.</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;references&#39;</span><span class="p">][</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;organism&#39;</span><span class="p">]][</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;aligner&#39;</span><span class="p">][</span><span class="s1">&#39;tag&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">block</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+
+        <span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">block</span>
+    <span class="k">return</span> <span class="n">d</span></div>
+
+
+<div class="viewcode-block" id="block_for_run"><a class="viewcode-back" href="../../lib.chipseq.html#lib.chipseq.block_for_run">[docs]</a><span class="k">def</span> <span class="nf">block_for_run</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the block for the (label, algorithm) run.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : dict</span>
+
+<span class="sd">    label, algorithm : str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">peak_calling_dict</span><span class="p">(</span><span class="n">config</span><span class="p">)[(</span><span class="n">label</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="samples_for_run"><a class="viewcode-back" href="../../lib.chipseq.html#lib.chipseq.samples_for_run">[docs]</a><span class="k">def</span> <span class="nf">samples_for_run</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">,</span> <span class="n">treatment</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the sample names configured for a particular peak-calling run</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : dict</span>
+
+<span class="sd">    label, algorithm :</span>
+<span class="sd">        Used as keys into peak_calling_dict()</span>
+
+<span class="sd">    treatment : ip | input</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">block_for_run</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">)[</span><span class="n">treatment</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="merged_input_for_ip"><a class="viewcode-back" href="../../lib.chipseq.html#lib.chipseq.merged_input_for_ip">[docs]</a><span class="k">def</span> <span class="nf">merged_input_for_ip</span><span class="p">(</span><span class="n">sampletable</span><span class="p">,</span> <span class="n">merged_ip</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the merged input label for a merged IP label.</span>
+
+<span class="sd">    This is primarily used for the `fingerprint` rule, where we collect all the</span>
+<span class="sd">    available input BAMs together.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    sampletable : pandas.DataFrame</span>
+
+<span class="sd">    merged_ip : str</span>
+<span class="sd">        Label of IP to use, must be present in the `label` column of the</span>
+<span class="sd">        sampletable.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    This should make more sense if we have an example to work with.....</span>
+
+<span class="sd">    Samples ip1 and ip2 are technical replicates. They are from a different</span>
+<span class="sd">    experiment than ip3 and input3, hence their different</span>
+<span class="sd">    biological_material.</span>
+
+<span class="sd">    The way we know that input1 should be paired with ip1 and ip2 is because</span>
+<span class="sd">    it shares the same biological material.</span>
+
+<span class="sd">    Compare input1 and input9. They are not technical replicates (since they</span>
+<span class="sd">    do not share the same `label`) but they are biological replicates because</span>
+<span class="sd">    they share the same biological material.</span>
+
+<span class="sd">    &gt;&gt;&gt; from io import StringIO</span>
+<span class="sd">    &gt;&gt;&gt; import pandas as pd</span>
+<span class="sd">    &gt;&gt;&gt; df = pd.read_table(StringIO(&#39;&#39;&#39;</span>
+<span class="sd">    ... samplename  antibody   biological_material  label</span>
+<span class="sd">    ... ip1         gaf        s2cell-1             s2cell-gaf-1</span>
+<span class="sd">    ... ip2         gaf        s2cell-1             s2cell-gaf-1</span>
+<span class="sd">    ... ip3         ctcf       s2cell-2             s2cell-ctcf-1</span>
+<span class="sd">    ... input1      input      s2cell-1             s2cell-input-1</span>
+<span class="sd">    ... input3      input      s2cell-2             s2cell-input-3</span>
+<span class="sd">    ... input9      input      s2cell-1             s2cell-input-1&#39;&#39;&#39;),</span>
+<span class="sd">    ... sep=&#39;\s+&#39;)</span>
+
+
+<span class="sd">    &gt;&gt;&gt; merged_input_for_ip(df, &#39;s2cell-gaf-1&#39;)</span>
+<span class="sd">    [&#39;s2cell-input-1&#39;]</span>
+
+<span class="sd">    &gt;&gt;&gt; merged_input_for_ip(df, &#39;s2cell-ctcf-1&#39;)</span>
+<span class="sd">    [&#39;s2cell-input-3&#39;]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">biomaterial</span> <span class="o">=</span> <span class="n">sampletable</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">sampletable</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">merged_ip</span><span class="p">,</span> <span class="s1">&#39;biological_material&#39;</span><span class="p">]</span>
+
+    <span class="c1"># This is a double-check that the merged IP all comes from the same</span>
+    <span class="c1"># biological material.</span>
+    <span class="c1">#</span>
+    <span class="c1"># Note that we&#39;re printing here in addition to raising a ValueError because</span>
+    <span class="c1"># when this is used in an input function to a snakemake rule, the traceback</span>
+    <span class="c1"># is hidden</span>
+    <span class="c1">#</span>
+    <span class="k">if</span> <span class="n">biomaterial</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Expected a single biomaterial, found: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">biomaterial</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span>
+
+    <span class="c1"># Now we find all the inputs from that biological material -- this is</span>
+    <span class="c1"># defined as everything sharing the biological material that has &quot;input&quot; as</span>
+    <span class="c1"># its antibody. They should also</span>
+    <span class="n">biomaterial</span> <span class="o">=</span> <span class="n">biomaterial</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">input_label</span> <span class="o">=</span> <span class="n">sampletable</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+        <span class="p">(</span><span class="n">sampletable</span><span class="p">[</span><span class="s1">&#39;biological_material&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">biomaterial</span><span class="p">)</span> <span class="o">&amp;</span>
+        <span class="p">(</span><span class="n">sampletable</span><span class="p">[</span><span class="s1">&#39;antibody&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;input&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;label&#39;</span>
+    <span class="p">]</span>
+
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">input_label</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="detect_peak_format"><a class="viewcode-back" href="../../lib.chipseq.html#lib.chipseq.detect_peak_format">[docs]</a><span class="k">def</span> <span class="nf">detect_peak_format</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Figure out if a BED file is narrowPeak or broadPeak.</span>
+
+<span class="sd">    Returns None if undetermined.</span>
+
+<span class="sd">    This is useful for figuring out which autoSql file we should use or which</span>
+<span class="sd">    bigBed 6+4 or bigBed 6+3 format to use.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">toks</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;narrowPeak&#39;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">9</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;broadPeak&#39;</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

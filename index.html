@@ -4,175 +4,182 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>lcdb-wf &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Getting started" href="getting-started.html" />
+    <link rel="next" title="Initial setup" href="getting-started.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body>
-  
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">lcdb-wf</a></h1>
 
-    <div class="document">
+
+
+<p class="blurb">Customizable workflows for high-throughput sequencing analysis</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="getting-started.html" title="next chapter">Initial setup</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="lcdb-wf">
 <h1>lcdb-wf<a class="headerlink" href="#lcdb-wf" title="Permalink to this headline">¶</a></h1>
 <p><cite>lcdb-wf</cite> is a collection of Snakemake workflows for common high-throughput
-sequencing analysis, along with associated infrastructure.</p>
+sequencing analysis.</p>
+<p>There are a lot of workflows out there for high-throughput sequencing analysis.
+What makes <cite>lcdb-wf</cite> different?</p>
+<div class="section" id="designed-with-customization-in-mind">
+<h2>Designed with customization in mind<a class="headerlink" href="#designed-with-customization-in-mind" title="Permalink to this headline">¶</a></h2>
 <p>We recognize that every experiment has its own unique idiosyncracies. Rather
 than provide a one-size-fits-all solution, we aim to provide a reasonable
 starting point that users can modify for their own use.</p>
-<p>An important part of keeping these workflows high-quality is that every change
-to the code on GitHub triggers an automated test, the results of which you can
-find at <a class="reference external" href="https://travis-ci.org/lcdb/lcdb-wf">https://travis-ci.org/lcdb/lcdb-wf</a>. Each test sets the system up from
-scratch, including installing all software, downloading example data, and
-running everything up through the final results.</p>
+<p>Non-model organism? Custom gene annotations? Complicated regression models?
+Unconventional command-line arguments to tools? New tools to add to the
+workflow? No problem.</p>
+</div>
+<div class="section" id="tested-automatically">
+<h2>Tested automatically<a class="headerlink" href="#tested-automatically" title="Permalink to this headline">¶</a></h2>
+<p>Every change to the code on GitHub triggers an automated test, the results of
+which you can find at <a class="reference external" href="https://circleci.com/gh/lcdb/lcdb-wf">https://circleci.com/gh/lcdb/lcdb-wf</a>. Each test sets the
+system up from scratch, including installing all software, downloading example
+data, and running everything up through the final results.</p>
+</div>
+<div class="section" id="track-hubs">
+<h2>Track hubs<a class="headerlink" href="#track-hubs" title="Permalink to this headline">¶</a></h2>
+<p>The ChIP-seq and RNA-seq workflows generate track hubs that can be viewed in
+the UCSC Genome Browser. ChIP-seq shows signal and called peaks (across
+multiple peak-callers); RNA-seq shows strand-specific signal tracks. Both
+support the addition of arbitrary additional tracks (primers, loci of interest,
+external data, etc) to view alongside your data.</p>
+</div>
+<div class="section" id="unified-approach-to-references">
+<h2>Unified approach to references<a class="headerlink" href="#unified-approach-to-references" title="Permalink to this headline">¶</a></h2>
+<p>The references workflow is shared by RNA-seq and ChIP-seq and is driven by
+a config file that specifies URLs for FASTA and GTF files. Set it up once for
+a site to get lots of genomes you can use for running <cite>fastq_screen</cite>, and
+easily include arbitrary other genomes. They can then be automatically included
+in RNA-seq and ChIP-seq workflows.</p>
+</div>
+<div class="section" id="integration-with-external-data-and-figure-making">
+<h2>Integration with external data and figure-making<a class="headerlink" href="#integration-with-external-data-and-figure-making" title="Permalink to this headline">¶</a></h2>
+<p>Examples are included (and tested) for how to tie together workflows, including
+downloading external data and downstream figure-making work.</p>
+<p>If an upstream file changes (e.g., gene annotation), all downstream jobs
+depending on it – including figures – will be updated so you can ensure that
+even complex analyses stay correct and up-to-date.</p>
+</div>
+<div class="section" id="advantages-of-snakemake">
+<h2>Advantages of Snakemake<a class="headerlink" href="#advantages-of-snakemake" title="Permalink to this headline">¶</a></h2>
+<p>The workflows are built using <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/">Snakemake</a>, so we also get the following
+for free:</p>
+<div class="section" id="run-locally-or-on-a-cluster-with-the-same-code">
+<h3>Run locally or on a cluster with the same code<a class="headerlink" href="#run-locally-or-on-a-cluster-with-the-same-code" title="Permalink to this headline">¶</a></h3>
+<p>Run the same workflow locally or on a cluster with only a slight command-line
+modification. SLURM support for the NIH Biowulf cluster is built in; edit the
+<code class="docutils literal notranslate"><span class="pre">clusterconfig.yaml</span></code> file to specify cluster arguments specific to your
+system.</p>
+</div>
+<div class="section" id="only-run-the-jobs-required">
+<h3>Only run the jobs required<a class="headerlink" href="#only-run-the-jobs-required" title="Permalink to this headline">¶</a></h3>
+<p>New gene annotation? Snakemake tracks dependencies, so it will detect that the
+annotations changed, and re-run only the jobs that depend on that file at some
+point in their dependency chain, leaving other files that don’t depend on it
+untouched.</p>
+</div>
+<div class="section" id="parallelization">
+<h3>Parallelization<a class="headerlink" href="#parallelization" title="Permalink to this headline">¶</a></h3>
+<p>It’s trivial to run jobs in parallel, for as many CPUs or cluster nodes as you
+have available by using the <code class="docutils literal notranslate"><span class="pre">-j</span></code> argument to Snakemake.</p>
+</div>
+<div class="section" id="software-installation">
+<h3>Software installation<a class="headerlink" href="#software-installation" title="Permalink to this headline">¶</a></h3>
+<p>Installation of all dependencies is handled by conda, ensuring reproducibility,
+streamlined setup, and no need for root administrator privileges.</p>
+<p>See <a class="reference internal" href="getting-started.html#getting-started"><span class="std std-ref">Initial setup</span></a> to get started.</p>
 <div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#one-time-setup">One-time setup</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#a-note-about-test-settings">A note about test settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#try-the-rna-seq-workflow-with-example-data">Try the RNA-seq workflow with example data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#run-the-chip-seq-workflow-with-example-data">Run the ChIP-seq workflow with example data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#run-the-references-workflow-with-example-data">Run the references workflow with example data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#external-workflow">“External” workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#figures-workflow">“Figures” workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#colocalization-workflow">Colocalization workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#next-steps">Next steps</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="workflows.html">Features common to all workflows</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="workflows.html#configuration">Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows.html#running-on-a-cluster">Running on a cluster</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows.html#troubleshooting">Troubleshooting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows.html#patterns-and-targets"><cite>patterns</cite> and <cite>targets</cite></a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows.html#references-workflow-and-the-reference-dict">References workflow and the reference dict</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="references.html#overview">Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="references.html#requirements">Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="references.html#post-processing">Post processing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="references.html#available-indexes-and-conversions">Available indexes and conversions</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="rnaseq.html#preliminary-setup-annotationhub">Preliminary setup: AnnotationHub</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rnaseq.html#parameters-and-settings">Parameters and settings</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="wrappers.html#writing-wrappers">Writing wrappers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wrappers.html#running-tests">Running tests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wrappers.html#writing-tests">Writing tests</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="tests.html">Tests</a></li>
-<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
-</ul>
-</div>
-<div class="section" id="guiding-principles">
-<h2>Guiding principles<a class="headerlink" href="#guiding-principles" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>Expect users to know Snakemake</li>
-<li>Expect users will edit and customize the workflows accordingly</li>
-<li>Rely in wrappers where possible</li>
-<li>Test wrappers individually</li>
-<li>Test workflows to ensure end-to-end functionality</li>
-<li>Add complexity to wrappers rather than snakefile</li>
-<li>Wrappers should expose relatively simple APIs.</li>
-<li>Run references workflow once per site; other workflows either point directly
-to the created files or <cite>include:</cite> the references workflow to trigger updates</li>
-<li>Rely on tab-delimited sampletables as much as possible</li>
-<li>It’s easier to delete than to create: each workflow will have “the works” and
-can be trimmed down according to the particular experiment’s needs.</li>
-</ul>
 </div>
 </div>
-<div class="section" id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
-<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
-<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
-</ul>
+</div>
 </div>
 
 
           </div>
+          
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="#">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">lcdb-wf</a><ul>
-<li><a class="reference internal" href="#guiding-principles">Guiding principles</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="#">Documentation overview</a><ul>
-      <li>Next: <a href="getting-started.html" title="next chapter">Getting started</a></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/index.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
       
       |
       <a href="_sources/index.rst.txt"

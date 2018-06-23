@@ -1,0 +1,495 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>References config &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Sample tables" href="sampletable.html" />
+    <link rel="prev" title="Config YAML" href="config-yaml.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+
+
+
+<p class="blurb">Customizable workflows for high-throughput sequencing analysis</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="config.html">Configuration</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="config-yaml.html">Config YAML</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">References config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampletable.html">Sample tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patterns-targets.html">Patterns and targets</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="config.html">Configuration</a><ul>
+      <li>Previous: <a href="config-yaml.html" title="previous chapter">Config YAML</a></li>
+      <li>Next: <a href="sampletable.html" title="next chapter">Sample tables</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="references-config">
+<span id="id1"></span><h1>References config<a class="headerlink" href="#references-config" title="Permalink to this headline">¶</a></h1>
+<p>The references section defines genomes, transcriptomes, and annotations to use.
+It supports arbitrarily many species and assemblies, and supports customizing
+references for a particular project.</p>
+<div class="section" id="using-existing-configs">
+<h2>Using existing configs<a class="headerlink" href="#using-existing-configs" title="Permalink to this headline">¶</a></h2>
+<p>If you just want to use some references configs that work, then put this in
+your config file:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">include_references</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="s">&#39;../../include/references_configs&#39;</span>
+</pre></div>
+</div>
+<p>This will populate the config with the contents of all the files contained in
+the <code class="docutils literal notranslate"><span class="pre">include/references_configs</span></code> directory. The path is relative to the
+Snakefile using the config. Note that you will still need to inspect the
+contents of those files to decide which organsim and tag you want to use for
+your particular experiment (see <a class="reference internal" href="config-yaml.html#cfg-organism"><span class="std std-ref">organism field</span></a> and <a class="reference internal" href="config-yaml.html#cfg-aligner"><span class="std std-ref">aligner config section</span></a> for
+more on these fields). For example, if you are working with human RNA-seq data,
+and you use the above <code class="docutils literal notranslate"><span class="pre">include_references</span></code>, you may want this in your config:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">organism</span><span class="p p-Indicator">:</span> <span class="s">&#39;human&#39;</span>
+<span class="l l-Scalar l-Scalar-Plain">aligner</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="s">&#39;gencode-v25&#39;</span>
+  <span class="l l-Scalar l-Scalar-Plain">index</span><span class="p p-Indicator">:</span> <span class="s">&#39;hisat2&#39;</span>
+<span class="l l-Scalar l-Scalar-Plain">salmon</span><span class="p p-Indicator">:</span> <span class="s">&#39;gencode-v25-transcriptome&#39;</span>
+</pre></div>
+</div>
+<p>since the <code class="docutils literal notranslate"><span class="pre">gencode-v25</span></code> and <code class="docutils literal notranslate"><span class="pre">gencode-v25-transcriptome</span></code> tags are configured
+for the <code class="docutils literal notranslate"><span class="pre">human</span></code> key in
+<code class="docutils literal notranslate"><span class="pre">../../include/references_configs/Homo_sapiens.yaml</span></code>.</p>
+<p>The remainder of this section of the documentation explains how to customize
+the references, to add your own or modify the existing examples.</p>
+</div>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The references workflow is based on the idea that while each genome’s source
+files (FASTA, GTF) may come from different providers (Ensembl, FlyBase, UCSC,
+etc) and have slightly different formatting (strange headers, one big file or
+a tarball of individual chromosomes, etc), once they are well-formatted they
+can be used to create a hisat2 index, a bowtie2 index, a list of genes,
+intergenic regions, and so on without any further customization.</p>
+<p>The challenging part is the “well-formatted” part. To solve this, the config
+file and references building system allows a very flexible specification of how
+to modify references via a plugin architecture. It works something like this:</p>
+<ul class="simple">
+<li>Each key in the references section refers to an <strong>organism</strong>.</li>
+<li>An organism has one or more <strong>tags</strong>.</li>
+<li>Each <strong>tag</strong> has a FASTA file and/or a GTF file associated with it.</li>
+<li>Each FASTA or GTF specifies one or more URIs from which to download the raw
+file(s). These can be <cite>ftp://</cite>, <cite>http://</cite>, <cite>https://</cite>, or <cite>file://</cite> URIs.</li>
+<li>An optional <strong>postprocess</strong> key specifies the import path to a Python module.
+This is the primary hook for customization, and is described in more detail
+below.</li>
+<li>For FASTA files one or more <strong>indexes</strong> are requested</li>
+<li>For GTF files, zero or more <strong>conversions</strong> are requested.</li>
+</ul>
+<p>It’s probably easiest to show an example config and then describe what’s
+happening.</p>
+</div>
+<div class="section" id="example-references-config">
+<h2>Example references config<a class="headerlink" href="#example-references-config" title="Permalink to this headline">¶</a></h2>
+<p>The following example configures the workflow to:</p>
+<ul class="simple">
+<li>download a fasta file from the GENCODE project for the human genome and build
+a hisat2 and bowtie2 index</li>
+<li>download the corresponding GTF file from GENCODE, strip off the dotted
+version numbers from Ensembl gene and transcript IDs, and create a refFlat
+format file from it</li>
+<li>download the SILVA rRNA database and keep only the ribosomal RNA sequence
+corresponding to <em>Homo sapiens</em></li>
+</ul>
+<p>This example contains sufficient real-world complexity to illustrate the
+flexibility afforded by the references workflow. It is heavily commented for
+illustration.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># EXAMPLE REFERENCES CONFIG SECTION</span>
+
+<span class="c1"># This configures the directory in which the prepared references will be</span>
+<span class="c1"># saved (see below for directory structure):</span>
+
+<span class="l l-Scalar l-Scalar-Plain">references_dir</span><span class="p p-Indicator">:</span> <span class="s">&#39;data/references&#39;</span>
+
+<span class="c1"># One of the organisms configured below. We are only configuring a single one</span>
+<span class="c1"># so &quot;human&quot; is our only option here:</span>
+
+<span class="l l-Scalar l-Scalar-Plain">organism</span><span class="p p-Indicator">:</span> <span class="s">&#39;human&#39;</span>
+
+<span class="c1"># Here we specify which tag under &quot;human&quot; to use for aligning, as well as</span>
+<span class="c1"># which index we&#39;ll be using. This example is RNA-seq, so we&#39;ll use HISAT2:</span>
+
+<span class="l l-Scalar l-Scalar-Plain">aligner</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="s">&#39;gencode-v25&#39;</span>
+  <span class="l l-Scalar l-Scalar-Plain">index</span><span class="p p-Indicator">:</span> <span class="s">&#39;hisat2&#39;</span>
+
+<span class="c1"># Top-level section for references:</span>
+
+<span class="l l-Scalar l-Scalar-Plain">references</span><span class="p p-Indicator">:</span>
+
+  <span class="c1"># Label for this organism or species:</span>
+
+  <span class="l l-Scalar l-Scalar-Plain">human</span><span class="p p-Indicator">:</span>
+
+    <span class="c1"># &quot;gencode-v25&quot; is our tag to describe this particular FASTA and GTF</span>
+    <span class="c1"># we&#39;re preparing:</span>
+
+    <span class="l l-Scalar l-Scalar-Plain">gencode-v25</span><span class="p p-Indicator">:</span>
+
+      <span class="c1"># This block will define how to get and postprocess a FASTA file:</span>
+
+      <span class="l l-Scalar l-Scalar-Plain">fasta</span><span class="p p-Indicator">:</span>
+
+        <span class="c1"># URL to download:</span>
+
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="s">&#39;ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh38.primary_organism.genome.fa.gz&#39;</span>
+
+        <span class="c1"># We can optionally build indexes for various aligners:</span>
+
+        <span class="l l-Scalar l-Scalar-Plain">indexes</span><span class="p p-Indicator">:</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;hisat2&#39;</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;bowtie2&#39;</span>
+
+      <span class="c1"># This next block will define how to get and postprocess a GTF file.</span>
+      <span class="c1"># The coordinates of the GTF file correspond to the</span>
+      <span class="c1"># coordinates in the fasta defined above, so we&#39;re putting it under</span>
+      <span class="c1"># the same tag. This is not required; we could also put it under</span>
+      <span class="c1"># separate tag (perhaps called &quot;gencode-v25-annotations&quot;)</span>
+
+      <span class="l l-Scalar l-Scalar-Plain">gtf</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="s">&#39;ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz&#39;</span>
+
+        <span class="c1"># The GENCODE annotations include the dotted Ensembl versions in</span>
+        <span class="c1"># the gene IDs. The following function, strip_ensembl_version, is</span>
+        <span class="c1"># defined in lib/postprocess/hg38.py. It strips off those dotted</span>
+        <span class="c1"># versions so that our resulting GTF file used by the workflows</span>
+        <span class="c1"># will not contain them:</span>
+
+        <span class="l l-Scalar l-Scalar-Plain">postprocess</span><span class="p p-Indicator">:</span> <span class="s">&#39;lib.postprocess.hg38.strip_ensembl_version&#39;</span>
+
+        <span class="c1"># Once well-formatted by the postprocessing function, we can now</span>
+        <span class="c1"># perform standard conversions on the GTF. These conversions are</span>
+        <span class="c1"># defined as rules in the references Snakefile, and will be run</span>
+        <span class="c1"># if the conversion is specified here. Here we ask to get a refFlat</span>
+        <span class="c1"># file, which can be provided to Picard&#39;s collectRnaSeqMetrics tool:</span>
+
+        <span class="l l-Scalar l-Scalar-Plain">conversions</span><span class="p p-Indicator">:</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;refflat&#39;</span>
+
+
+    <span class="c1"># Here is another tag, to create a FASTA file for ribosomal RNA. It can</span>
+    <span class="c1"># then be used for fastq_screen, or for the rRNA screening portion of the</span>
+    <span class="c1"># RNA-seq workflow:</span>
+
+    <span class="l l-Scalar l-Scalar-Plain">rRNA</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">fasta</span><span class="p p-Indicator">:</span>
+
+        <span class="c1"># The SILVA database has separate files for large and small subunit</span>
+        <span class="c1"># sequences. We&#39;d like them all; by providing multiple URLs they will</span>
+        <span class="c1"># be concatenated:</span>
+
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz&#39;</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz&#39;</span>
+
+        <span class="c1"># However, the downloaded files contain many species. Here we only</span>
+        <span class="c1"># care about human. We already have a function, &quot;filter_fastas()&quot;, in</span>
+        <span class="c1"># lib/common.py that accepts a FASTA and only keeps the records that</span>
+        <span class="c1"># contain the provided first argument.</span>
+
+        <span class="c1"># We specify that first argument here, and it will be passed to that</span>
+        <span class="c1"># function, resulting in a final FASTA file that only contains the</span>
+        <span class="c1"># rRNA sequence for Homo sapiens:</span>
+
+        <span class="l l-Scalar l-Scalar-Plain">postprocess</span><span class="p p-Indicator">:</span>
+            <span class="l l-Scalar l-Scalar-Plain">function</span><span class="p p-Indicator">:</span> <span class="s">&#39;lib.common.filter_fastas&#39;</span>
+            <span class="l l-Scalar l-Scalar-Plain">args</span><span class="p p-Indicator">:</span> <span class="s">&#39;Homo</span><span class="nv"> </span><span class="s">sapiens&#39;</span>
+
+        <span class="c1"># We only need a bowtie2 index out of it.</span>
+        <span class="l l-Scalar l-Scalar-Plain">indexes</span><span class="p p-Indicator">:</span>
+            <span class="p p-Indicator">-</span> <span class="s">&#39;bowtie2&#39;</span>
+</pre></div>
+</div>
+<p>Without all those comments, it looks like this:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">references_dir</span><span class="p p-Indicator">:</span> <span class="s">&#39;data/references&#39;</span>
+<span class="l l-Scalar l-Scalar-Plain">organism</span><span class="p p-Indicator">:</span> <span class="s">&#39;human&#39;</span>
+<span class="l l-Scalar l-Scalar-Plain">aligner</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="s">&#39;gencode-v25&#39;</span>
+  <span class="l l-Scalar l-Scalar-Plain">index</span><span class="p p-Indicator">:</span> <span class="s">&#39;hisat2&#39;</span>
+<span class="l l-Scalar l-Scalar-Plain">references</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">human</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">gencode-v25</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">fasta</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="s">&#39;ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh38.primary_organism.genome.fa.gz&#39;</span>
+        <span class="l l-Scalar l-Scalar-Plain">indexes</span><span class="p p-Indicator">:</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;hisat2&#39;</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;bowtie2&#39;</span>
+      <span class="l l-Scalar l-Scalar-Plain">gtf</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="s">&#39;ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz&#39;</span>
+        <span class="l l-Scalar l-Scalar-Plain">postprocess</span><span class="p p-Indicator">:</span> <span class="s">&#39;lib.postprocess.hg38.strip_ensembl_version&#39;</span>
+        <span class="l l-Scalar l-Scalar-Plain">conversions</span><span class="p p-Indicator">:</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;refflat&#39;</span>
+    <span class="l l-Scalar l-Scalar-Plain">rRNA</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">fasta</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz&#39;</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz&#39;</span>
+        <span class="l l-Scalar l-Scalar-Plain">postprocess</span><span class="p p-Indicator">:</span>
+            <span class="l l-Scalar l-Scalar-Plain">function</span><span class="p p-Indicator">:</span> <span class="s">&#39;lib.common.filter_fastas&#39;</span>
+            <span class="l l-Scalar l-Scalar-Plain">args</span><span class="p p-Indicator">:</span> <span class="s">&#39;Homo</span><span class="nv"> </span><span class="s">sapiens&#39;</span>
+        <span class="l l-Scalar l-Scalar-Plain">indexes</span><span class="p p-Indicator">:</span>
+            <span class="p p-Indicator">-</span> <span class="s">&#39;bowtie2&#39;</span>
+</pre></div>
+</div>
+<p>The above file will result in the following directory structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="o">/</span><span class="n">references</span><span class="o">/</span><span class="n">human</span><span class="o">/</span><span class="n">gencode</span><span class="o">-</span><span class="n">v25</span><span class="o">/</span><span class="n">fasta</span>
+<span class="n">data</span><span class="o">/</span><span class="n">references</span><span class="o">/</span><span class="n">human</span><span class="o">/</span><span class="n">gencode</span><span class="o">-</span><span class="n">v25</span><span class="o">/</span><span class="n">bowtie2</span>
+<span class="n">data</span><span class="o">/</span><span class="n">references</span><span class="o">/</span><span class="n">human</span><span class="o">/</span><span class="n">gencode</span><span class="o">-</span><span class="n">v25</span><span class="o">/</span><span class="n">hisat2</span>
+<span class="n">data</span><span class="o">/</span><span class="n">references</span><span class="o">/</span><span class="n">human</span><span class="o">/</span><span class="n">gencode</span><span class="o">-</span><span class="n">v25</span><span class="o">/</span><span class="n">gtf</span>
+<span class="n">data</span><span class="o">/</span><span class="n">references</span><span class="o">/</span><span class="n">human</span><span class="o">/</span><span class="n">gencode</span><span class="o">-</span><span class="n">v25</span><span class="o">-</span><span class="n">transcriptome</span><span class="o">/</span><span class="n">fasta</span>
+<span class="n">data</span><span class="o">/</span><span class="n">references</span><span class="o">/</span><span class="n">human</span><span class="o">/</span><span class="n">gencode</span><span class="o">-</span><span class="n">v25</span><span class="o">-</span><span class="n">transcriptome</span><span class="o">/</span><span class="n">salmon</span>
+<span class="n">data</span><span class="o">/</span><span class="n">references</span><span class="o">/</span><span class="n">human</span><span class="o">/</span><span class="n">rRNA</span><span class="o">/</span><span class="n">fasta</span>
+<span class="n">data</span><span class="o">/</span><span class="n">references</span><span class="o">/</span><span class="n">human</span><span class="o">/</span><span class="n">rRNA</span><span class="o">/</span><span class="n">bowtie2</span>
+</pre></div>
+</div>
+<p>Each block in the YAML file describes either a <cite>fasta</cite> or <cite>gtf</cite> file. Each
+block has at least the organism, type, and a URL.  A block can optionally have
+a <cite>postprocess</cite>, which is an arbitrary function (described below) that converts
+the downloaded URL to something that conforms to the standards of the workflow
+(also described below). By supplying a tag, we can differentiate between
+different versions (e.g., FlyBase r6.04 vs r6.11; hg19 vs hg38) or different
+kinds of postprocessing (e.g, “chr” preprended to chrom names or not;
+comprehensive annotation vs only coding genes).</p>
+<p><cite>fasta</cite> blocks can have an optional  <cite>indexes</cite> entry which will build the
+specified indexes. <cite>gtf</cite> blocks can have an optional <cite>conversions</cite> entry which
+will perform the specified conversion. Available indexes and conversions are
+described below.</p>
+</div>
+<div class="section" id="post-processing">
+<h2>Post processing<a class="headerlink" href="#post-processing" title="Permalink to this headline">¶</a></h2>
+<p><strong>All files created by a block are required to be gzipped.</strong></p>
+<p>This means that if a URL points to an uncompressed GTF file, a post-processing
+function must gzip it. It also means that any post-processing functions must
+write gzipped output files.</p>
+<p>Other than that, it’s up to the user to decide what transformations (if any)
+are required. Examples might include:</p>
+<ul class="simple">
+<li>exluding particular contigs</li>
+<li>removing or editing problematic genes that have transcripts on both strands
+– mod(mdg4) I’m looking at you</li>
+<li>renaming chromosomes (e.g., prepend “chr”)</li>
+<li>remove unnecessary annotations (e.g., keep only cds/exon/transcript/gene features)</li>
+</ul>
+<p>In the example config above, the yeast genome is available as a tarball of
+separate fasta files, but we’d like to get it into a single fasta file for
+downstream tools to work with.</p>
+<p>The configuration block can define an optional <cite>postprocess</cite> string which
+contains a dotted name referring to Python function that is importable by the
+<cite>reference.snakefile</cite> workflow. By default, the workflow will find modules in
+in <code class="docutils literal notranslate"><span class="pre">lib.postprocess</span></code> directory, so it’s most convenient and organized to put
+your functions within modules in that directory.</p>
+<p>For example, above we used the postprocess function
+<code class="docutils literal notranslate"><span class="pre">lib.postprocess.sacCer3.fasta_lib.postprocess</span></code>, and you can view this
+function in <code class="docutils literal notranslate"><span class="pre">lib/postprocess/sacCer3.py</span></code>.</p>
+<p>Please see <a class="reference internal" href="lib.common.html#lib.common.download_and_postprocess" title="lib.common.download_and_postprocess"><code class="xref py py-func docutils literal notranslate"><span class="pre">lib.common.download_and_postprocess()</span></code></a> for more details, and
+the files in the <code class="docutils literal notranslate"><span class="pre">lib/postproces</span></code> directory for inspiration.</p>
+<p>These two arguments are automatically provided by the references workflow –
+you don’t have to know or care exactly what the filenames are, just what has to
+be done to their contents.</p>
+<p>See the files in <code class="docutils literal notranslate"><span class="pre">lib/postprocess</span></code> for inspiration if you need to write your
+own post-processing functions.</p>
+<p>The job of a postprocessing function is to ensure that the
+fastq/gtf/transcriptome fasta meets the requirements described above and is
+ready for any intended downstream tasks. For example if we download the fasta
+file from FlyBase for dm6 but want “chr” prepended to chromosome names, we can
+create a function in the file <code class="docutils literal notranslate"><span class="pre">dm6.py</span></code> called <code class="docutils literal notranslate"><span class="pre">add_chr</span></code> that does
+this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># This is dm6.py</span>
+
+<span class="kn">from</span> <span class="nn">snakemake.shell</span> <span class="kn">import</span> <span class="n">shell</span>  <span class="c1"># a very convenient function</span>
+
+<span class="k">def</span> <span class="nf">add_chr</span><span class="p">(</span><span class="n">origfn</span><span class="p">,</span> <span class="n">newfn</span><span class="p">):</span>
+    <span class="n">shell</span><span class="p">(</span>
+        <span class="s1">&#39;zcat {origfn} &#39;</span>       <span class="c1"># input is always gzipped</span>
+        <span class="s1">&#39;| sed &quot;s/&gt;/&gt;chr/g&quot; &#39;</span>  <span class="c1"># add chr to names</span>
+        <span class="s1">&#39;| gzip -c &gt; {newfn} &#39;</span> <span class="c1"># re-zip</span>
+        <span class="s1">&#39;&amp;&amp; rm {origfn}&#39;</span>       <span class="c1"># clean up</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>We specify this function to be called in the fasta config block like this (note
+that the module doesn’t have to be the same name as the organism, but it is
+here for clarity):</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">dm6</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">fasta</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">...</span>
+    <span class="l l-Scalar l-Scalar-Plain">postprocess</span><span class="p p-Indicator">:</span> <span class="s">&quot;dm6.add_chr&quot;</span>
+</pre></div>
+</div>
+<p>This expects a file <code class="docutils literal notranslate"><span class="pre">dm6.py</span></code> in the same directory as the
+<cite>references.snakefile</cite> workflow, and expects a function <code class="docutils literal notranslate"><span class="pre">add_chr</span></code> to
+be defined in that module.</p>
+<p>Any downstream rules that operate on the genome FASTA file (like hisat2 index,
+bowtie2 index, etc) will now use this fixed version with “chr” prepended to
+chromosome names.  In this way, we can apply arbitrary code to modify
+references to get them into a uniform format.</p>
+</div>
+<div class="section" id="available-indexes-and-conversions">
+<h2>Available indexes and conversions<a class="headerlink" href="#available-indexes-and-conversions" title="Permalink to this headline">¶</a></h2>
+<p>The following indexes can be currently be specified for fasta files:</p>
+<blockquote>
+<div><ul class="simple">
+<li>hisat2</li>
+<li>bowtie2</li>
+<li>salmon</li>
+</ul>
+</div></blockquote>
+<p>The following conversions can be specified for GTF files:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">refflat:</th><td class="field-body"><p class="first">Converts GTF to refFlat format. See the <code class="docutils literal notranslate"><span class="pre">conversion_refflat</span></code> rule in
+<code class="docutils literal notranslate"><span class="pre">workflows/references/Snakefile</span></code>.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">gffutils:</th><td class="field-body"><p class="first">Converts GTF to gffutils database. You can specify arbitrary kwargs to
+<code class="docutils literal notranslate"><span class="pre">gffutils.create_db</span></code> by including them as keys. For example, if the GTF
+file already contains features for genes and transcripts:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">conversions</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gffutils</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">disable_infer_genes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">True</span>
+      <span class="l l-Scalar l-Scalar-Plain">disable_infer_transcripts</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">True</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">genelist:</th><td class="field-body"><p class="first">Reads the postprocessed GTF file, and extracts the set of gene IDs found.
+The GTF attribute to use is configured by the <code class="docutils literal notranslate"><span class="pre">gene_id:</span></code> key, for
+example, if the file contains gene IDs in the <code class="docutils literal notranslate"><span class="pre">Name</span></code> attribute of each
+line, use the following:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">conversions</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">genelist</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">gene_id</span><span class="p p-Indicator">:</span> <span class="s">&#39;Name&#39;</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">mappings:</th><td class="field-body"><p class="first">Reads the postprocesses GTF file, and outputs mappings between attributes
+as a gzipped TSV.</p>
+<p>You can include/exclude featuretypes from being checked.  For example, if
+your GTF has genes and transcripts in addition to exons, the gene and
+transcript lines probably contain all of the attributes you are interested
+in, and the exon (and any other lines) can be ignored, speeding up the
+process. In this case you could use <code class="docutils literal notranslate"><span class="pre">include_featuretypes:</span> <span class="pre">[gene,</span>
+<span class="pre">transcript]</span></code>.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">__featuretype__</span></code> column is always included in the mapping.  This is
+the GTF featuretype of each line, with extra <code class="docutils literal notranslate"><span class="pre">__</span></code> to avoid overwriting an
+attribute that may happen to be called <code class="docutils literal notranslate"><span class="pre">featuretype</span></code>.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">conversions</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">mappings</span>
+</pre></div>
+</div>
+<div class="last highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">conversions</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">mappings</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">include_featuretypes</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[</span><span class="nv">gene</span><span class="p p-Indicator">,</span> <span class="nv">transcript</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/references-config.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

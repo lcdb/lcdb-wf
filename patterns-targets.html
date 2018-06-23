@@ -1,0 +1,246 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Patterns and targets &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="References workflow" href="references.html" />
+    <link rel="prev" title="Sample tables" href="sampletable.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+
+
+
+<p class="blurb">Customizable workflows for high-throughput sequencing analysis</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="config.html">Configuration</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="config-yaml.html">Config YAML</a></li>
+<li class="toctree-l2"><a class="reference internal" href="references-config.html">References config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampletable.html">Sample tables</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Patterns and targets</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="config.html">Configuration</a><ul>
+      <li>Previous: <a href="sampletable.html" title="previous chapter">Sample tables</a></li>
+      <li>Next: <a href="references.html" title="next chapter">References workflow</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="patterns-and-targets">
+<span id="id1"></span><h1>Patterns and targets<a class="headerlink" href="#patterns-and-targets" title="Permalink to this headline">¶</a></h1>
+<p>We use a hybrid approach to specifying input and output patterns for Snakemake
+rules. These are used in the RNA-seq and ChIP-seq workflows.</p>
+<div class="section" id="patterns">
+<h2>Patterns<a class="headerlink" href="#patterns" title="Permalink to this headline">¶</a></h2>
+<p><strong>Patterns</strong> are filename-like strings with placeholders in them, like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="o">/</span><span class="n">rnaseq_samples</span><span class="o">/</span><span class="p">{</span><span class="n">sample</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">sample</span><span class="p">}</span><span class="n">_R1</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span>
+</pre></div>
+</div>
+<p>Generally you don’t need to modify them (though you can). The patterns file is
+useful as a guide to the files that are created by the workflow.</p>
+<ul class="simple">
+<li>RNA-seq patterns are in <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq/config/rnaseq_patterns.yaml</span></code></li>
+<li>ChIP-seq patterns are in <code class="docutils literal notranslate"><span class="pre">workflows/chipseq/config/chipseq_patterns.yaml</span></code></li>
+</ul>
+</div>
+<div class="section" id="targets">
+<h2>Targets<a class="headerlink" href="#targets" title="Permalink to this headline">¶</a></h2>
+<p><strong>Targets</strong> are created by filling in those patterns with metadata
+(samplenames, peak-calling runs) as configured in the sample table and config
+file. It’s the equivalent of a complicated <cite>expand()</cite> call in a standard
+Snakefile.</p>
+<p>If we had 2 samples, A and B, then filling in the pattern:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="o">/</span><span class="n">rnaseq_samples</span><span class="o">/</span><span class="p">{</span><span class="n">sample</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">sample</span><span class="p">}</span><span class="n">_R1</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span>
+</pre></div>
+</div>
+<p>would result in:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="o">/</span><span class="n">rnaseq_samples</span><span class="o">/</span><span class="n">A</span><span class="o">/</span><span class="n">A_R1</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span>
+<span class="n">data</span><span class="o">/</span><span class="n">rnaseq_samples</span><span class="o">/</span><span class="n">B</span><span class="o">/</span><span class="n">B_R1</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-patterns-and-targets-are-used-in-snakefiles">
+<h2>How patterns and targets are used in Snakefiles<a class="headerlink" href="#how-patterns-and-targets-are-used-in-snakefiles" title="Permalink to this headline">¶</a></h2>
+<p>Briefly:</p>
+<ul class="simple">
+<li>Each Snakefile has access to an object, <code class="docutils literal notranslate"><span class="pre">c</span></code>.</li>
+<li><strong>Patterns</strong> are accessed via the <code class="docutils literal notranslate"><span class="pre">c.patterns</span></code> dictionary. The structure of
+<code class="docutils literal notranslate"><span class="pre">c.patterns</span></code> matches that of the patterns file. Patterns still have the
+<code class="docutils literal notranslate"><span class="pre">{}</span></code> placeholders as written in that file.</li>
+<li><strong>Targets</strong> are accessed via the <code class="docutils literal notranslate"><span class="pre">c.targets</span></code> dictionary. The structure
+matches that of <code class="docutils literal notranslate"><span class="pre">c.patterns</span></code>, but the placeholders are filled in based on
+other configuration information such that each single string from patterns
+may turn into a list after being filled in using the <cite>snakemake.expand()</cite>
+function.</li>
+<li>We can collapse arbitrary groups of patterns or targets together into
+a flattened list with <code class="docutils literal notranslate"><span class="pre">lib.utils.flatten()</span></code>.</li>
+</ul>
+<p>Here is an example rule that uses patterns and targets from the <code class="docutils literal notranslate"><span class="pre">c</span></code> object:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">rule</span> <span class="nb">all</span><span class="p">:</span>
+    <span class="nb">input</span><span class="p">:</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">targets</span><span class="p">[</span><span class="s1">&#39;cutadapt&#39;</span><span class="p">]</span>
+
+<span class="n">rule</span> <span class="n">cutadapt</span><span class="p">:</span>
+    <span class="nb">input</span><span class="p">:</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">patterns</span><span class="p">[</span><span class="s1">&#39;fastq&#39;</span><span class="p">]</span>
+    <span class="n">output</span><span class="p">:</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">patterns</span><span class="p">[</span><span class="s1">&#39;cutadapt&#39;</span><span class="p">]</span>
+
+    <span class="n">shell</span><span class="p">:</span>
+        <span class="s1">&#39;cutadapt {input} -o {output}&#39;</span>
+</pre></div>
+</div>
+<p>In the example above, <code class="docutils literal notranslate"><span class="pre">c.patterns['fastq']</span></code> and <code class="docutils literal notranslate"><span class="pre">c.patterns['cutadapt']</span></code>
+have the following values, configured in <code class="docutils literal notranslate"><span class="pre">config/rnaseq_patterns.yaml</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">patterns</span><span class="p">[</span><span class="s1">&#39;fastq&#39;</span><span class="p">]</span>
+<span class="c1"># data/rnaseq_samples/{sample}/{sample}_R1.fastq.gz</span>
+
+<span class="n">c</span><span class="o">.</span><span class="n">patterns</span><span class="p">[</span><span class="s1">&#39;cutadapt&#39;</span><span class="p">]</span>
+<span class="c1"># data/rnaseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz</span>
+</pre></div>
+</div>
+<p>And <code class="docutils literal notranslate"><span class="pre">c.targets[['cutadapt']</span></code> might have the following values, after being
+filled in with the sampletable (see below for details):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">targets</span><span class="p">[</span><span class="s1">&#39;cutadapt&#39;</span><span class="p">]</span>
+<span class="c1"># data/rnaseq_samples/sample1/sample1_R1.cutadapt.fastq.gz</span>
+<span class="c1"># data/rnaseq_samples/sample1/sample2_R1.cutadapt.fastq.gz</span>
+<span class="c1"># data/rnaseq_samples/sample1/sample3_R1.cutadapt.fastq.gz</span>
+<span class="c1"># data/rnaseq_samples/sample1/sample4_R1.cutadapt.fastq.gz</span>
+</pre></div>
+</div>
+<p>This has several advantages:</p>
+<ul class="simple">
+<li>Patterns can be automatically filled in by the sampletable and config file,
+so the workflow is largely controlled by a TSV file and a YAML file.</li>
+<li>Storing filenames outside individual Snakefiles allows us to access them much
+more easily from other Snakefiles or downstream scripts.</li>
+<li>Writing aggregation rules is much easier. For example, instead of lots of
+<code class="docutils literal notranslate"><span class="pre">expand()</span></code> calls, we can get all the FastQC output across raw, trimmed, and
+aligned runs with <code class="docutils literal notranslate"><span class="pre">flatten(c.targets[&quot;fastqc&quot;])</span></code>.</li>
+<li>Toggling entire sections of the workflow can be performed by changing
+a single line in the first <code class="docutils literal notranslate"><span class="pre">all</span></code> rule.</li>
+<li>We can re-organize the output directories only by editing the patterns file
+– no need to touch the Snakefile.</li>
+<li>It’s easier to understand the output locations of files by looking at the
+patterns file than it is to scroll through a Snakefile.</li>
+<li>Letting the <code class="docutils literal notranslate"><span class="pre">c</span></code> objects do the work of filling in patterns allows complex
+work to be abstracted away, resulting in simpler Snakefiles. For example,
+filling in the output BED files across many arbitrary-named configured
+peak-calling runs gets complicated, but since this is handled transparently
+by the <code class="docutils literal notranslate"><span class="pre">c</span></code> object, we can do things like
+<code class="docutils literal notranslate"><span class="pre">utils.flatten(c.targets['peaks'])</span></code> to get all the BED files for all
+peak-callers and all peak-calling runs.</li>
+</ul>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p>For more details, the code is the authoritative source.</p>
+<p>In particular:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="lib.patterns_targets.html#lib.patterns_targets.SeqConfig" title="lib.patterns_targets.SeqConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">lib.patterns_targets.SeqConfig</span></code></a></li>
+<li><a class="reference internal" href="lib.patterns_targets.html#lib.patterns_targets.RNASeqConfig" title="lib.patterns_targets.RNASeqConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">lib.patterns_targets.RNASeqConfig</span></code></a></li>
+<li><a class="reference internal" href="lib.patterns_targets.html#lib.patterns_targets.ChIPSeqConfig" title="lib.patterns_targets.ChIPSeqConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">lib.patterns_targets.ChIPSeqConfig</span></code></a></li>
+</ul>
+</div></blockquote>
+<p class="last">In addition, the <a class="reference external" href="https://github.com/lcdb/lcdb-wf/blob/master/workflows/figures/Snakefile">figures Snakefile</a>,
+demonstrates how the ChIP-seq and RNA-seq patterns and targets can be used
+for downstream work.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/patterns-targets.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

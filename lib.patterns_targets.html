@@ -1,0 +1,214 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Module lib.patterns_targets &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Changelog" href="changelog.html" />
+    <link rel="prev" title="Module lib.chipseq" href="lib.chipseq.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+
+
+
+<p class="blurb">Customizable workflows for high-throughput sequencing analysis</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="autodoc.html">Module documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="lib.common.html">Module <code class="docutils literal notranslate"><span class="pre">lib.common</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="lib.chipseq.html">Module <code class="docutils literal notranslate"><span class="pre">lib.chipseq</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Module <code class="docutils literal notranslate"><span class="pre">lib.patterns_targets</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="autodoc.html">Module documentation</a><ul>
+      <li>Previous: <a href="lib.chipseq.html" title="previous chapter">Module <code class="docutils literal notranslate"><span class="pre">lib.chipseq</span></code></a></li>
+      <li>Next: <a href="changelog.html" title="next chapter">Changelog</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-lib-patterns-targets">
+<h1>Module <code class="docutils literal notranslate"><span class="pre">lib.patterns_targets</span></code><a class="headerlink" href="#module-lib-patterns-targets" title="Permalink to this headline">¶</a></h1>
+<p>The classes in module control how <code class="docutils literal notranslate"><span class="pre">rnaseq_patterns.yaml</span></code> and
+<code class="docutils literal notranslate"><span class="pre">chipseq_patterns.yaml</span></code> are filled in with the information from their
+respective sample tables and config files.</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#lib.patterns_targets.SeqConfig" title="lib.patterns_targets.SeqConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SeqConfig</span></code></a>(config,&nbsp;patterns[,&nbsp;workdir])</td>
+<td>This class takes care of common tasks related to config and patterns files (reading the sampletable, etc) but is intended to be subclassed.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#lib.patterns_targets.RNASeqConfig" title="lib.patterns_targets.RNASeqConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RNASeqConfig</span></code></a>(config,&nbsp;patterns[,&nbsp;workdir])</td>
+<td>Config object specific to RNA-seq workflows.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#lib.patterns_targets.ChIPSeqConfig" title="lib.patterns_targets.ChIPSeqConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ChIPSeqConfig</span></code></a>(config,&nbsp;patterns[,&nbsp;workdir])</td>
+<td>Config object specific to ChIP-seq workflows.</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="details">
+<h2>Details<a class="headerlink" href="#details" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="lib.patterns_targets.SeqConfig">
+<em class="property">class </em><code class="descclassname">lib.patterns_targets.</code><code class="descname">SeqConfig</code><span class="sig-paren">(</span><em>config</em>, <em>patterns</em>, <em>workdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#SeqConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.patterns_targets.SeqConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class takes care of common tasks related to config and patterns
+files (reading the sampletable, etc) but is intended to be subclassed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a>) – </li>
+<li><strong>patterns</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Path to patterns YAML file</li>
+<li><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Config, patterns, and all paths in <cite>config</cite> should be interpreted
+as relative to <cite>workdir</cite></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="lib.patterns_targets.RNASeqConfig">
+<em class="property">class </em><code class="descclassname">lib.patterns_targets.</code><code class="descname">RNASeqConfig</code><span class="sig-paren">(</span><em>config</em>, <em>patterns</em>, <em>workdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#RNASeqConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.patterns_targets.RNASeqConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Config object specific to RNA-seq workflows.</p>
+<p>Fills in patterns to create targets by handling the by-sample and
+by-aggregate sections separately.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a>) – </li>
+<li><strong>patterns</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Path to patterns YAML file</li>
+<li><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Config, patterns, and all paths in <cite>config</cite> should be interpreted
+as relative to <cite>workdir</cite></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="lib.patterns_targets.ChIPSeqConfig">
+<em class="property">class </em><code class="descclassname">lib.patterns_targets.</code><code class="descname">ChIPSeqConfig</code><span class="sig-paren">(</span><em>config</em>, <em>patterns</em>, <em>workdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#ChIPSeqConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.patterns_targets.ChIPSeqConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Config object specific to ChIP-seq workflows.</p>
+<p>Fills in patterns to create targets by handling the by-sample, by-peak,
+and by-aggregate sections separately.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a>) – </li>
+<li><strong>patterns</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Path to patterns YAML file</li>
+<li><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Config, patterns, and all paths in <cite>config</cite> should be interpreted
+as relative to <cite>workdir</cite></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/lib.patterns_targets.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

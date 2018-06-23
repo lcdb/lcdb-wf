@@ -1,0 +1,694 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>lib.common &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for lib.common</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+<span class="kn">from</span> <span class="nn">Bio</span> <span class="k">import</span> <span class="n">SeqIO</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">from</span> <span class="nn">lcdblib.utils.imports</span> <span class="k">import</span> <span class="n">resolve_name</span>
+<span class="kn">from</span> <span class="nn">lcdblib.snakemake</span> <span class="k">import</span> <span class="n">aligners</span>
+<span class="kn">from</span> <span class="nn">snakemake.shell</span> <span class="k">import</span> <span class="n">shell</span>
+
+<span class="c1"># List of possible keys in config that are to be interpreted as paths</span>
+<span class="n">PATH_KEYS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;references_dir&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;sampletable&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;sample_dir&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;aggregation_dir&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;merged_dir&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;peaks_dir&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hub_config&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="resolve_config"><a class="viewcode-back" href="../../lib.common.html#lib.common.resolve_config">[docs]</a><span class="k">def</span> <span class="nf">resolve_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds the config file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : str, dict</span>
+<span class="sd">        If str, assume it&#39;s a YAML file and parse it; otherwise pass through</span>
+
+<span class="sd">    workdir : str</span>
+<span class="sd">        Optional location to specify relative location of all paths in `config`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">config</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">rel</span><span class="p">(</span><span class="n">pth</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">workdir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">pth</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">pth</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="n">pth</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">PATH_KEYS</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+            <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">rel</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">config</span></div>
+
+
+<div class="viewcode-block" id="gzipped"><a class="viewcode-back" href="../../lib.common.html#lib.common.gzipped">[docs]</a><span class="k">def</span> <span class="nf">gzipped</span><span class="p">(</span><span class="n">tmpfiles</span><span class="p">,</span> <span class="n">outfile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cat-and-gzip a list of uncompressed files into a compressed output file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">tmpfiles</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">as</span> <span class="n">infile</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">infile</span><span class="p">:</span>
+                    <span class="n">fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="cat"><a class="viewcode-back" href="../../lib.common.html#lib.common.cat">[docs]</a><span class="k">def</span> <span class="nf">cat</span><span class="p">(</span><span class="n">tmpfiles</span><span class="p">,</span> <span class="n">outfile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple concatenation of files.</span>
+
+<span class="sd">    Note that gzipped files can be concatenated as-is without un- and re-</span>
+<span class="sd">    compressing.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">shell</span><span class="p">(</span><span class="s1">&#39;cat </span><span class="si">{tmpfiles}</span><span class="s1"> &gt; </span><span class="si">{outfile}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="filter_fastas"><a class="viewcode-back" href="../../lib.common.html#lib.common.filter_fastas">[docs]</a><span class="k">def</span> <span class="nf">filter_fastas</span><span class="p">(</span><span class="n">tmpfiles</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract records from fasta file(s) given a search pattern.</span>
+
+<span class="sd">    Given input gzipped FASTAs, create a new gzipped fasta containing only</span>
+<span class="sd">    records whose description matches `pattern`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tmpfiles : list</span>
+<span class="sd">        gzipped fasta files to look through</span>
+
+<span class="sd">    outfile : str</span>
+<span class="sd">        gzipped output fastq file</span>
+
+<span class="sd">    pattern : str</span>
+<span class="sd">        Look for this string in each record&#39;s description</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">gen</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">tmp</span> <span class="ow">in</span> <span class="n">tmpfiles</span><span class="p">:</span>
+            <span class="n">handle</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="s1">&#39;rt&#39;</span><span class="p">)</span>
+            <span class="n">parser</span> <span class="o">=</span> <span class="n">SeqIO</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="s1">&#39;fasta&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">rec</span> <span class="ow">in</span> <span class="n">parser</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pattern</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rec</span><span class="o">.</span><span class="n">description</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">rec</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="n">rec</span><span class="o">.</span><span class="n">seq</span><span class="o">.</span><span class="n">back_transcribe</span><span class="p">()</span>
+                <span class="n">rec</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">rec</span><span class="o">.</span><span class="n">name</span>
+                <span class="k">yield</span> <span class="n">rec</span>
+
+    <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+        <span class="n">SeqIO</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">gen</span><span class="p">(),</span> <span class="n">fout</span><span class="p">,</span> <span class="s1">&#39;fasta&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="twobit_to_fasta"><a class="viewcode-back" href="../../lib.common.html#lib.common.twobit_to_fasta">[docs]</a><span class="k">def</span> <span class="nf">twobit_to_fasta</span><span class="p">(</span><span class="n">tmpfiles</span><span class="p">,</span> <span class="n">outfile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts .2bit files to fasta.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tmpfiles : list</span>
+<span class="sd">        2bit files to convert</span>
+
+<span class="sd">    outfile : str</span>
+<span class="sd">        gzipped output fastq file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Note that twoBitToFa doesn&#39;t support multiple input files, but we want to</span>
+    <span class="c1"># support them with this function</span>
+    <span class="n">lookup</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;.fa&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tmpfiles</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tmpfiles</span><span class="p">:</span>
+        <span class="n">fn</span> <span class="o">=</span> <span class="n">lookup</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">shell</span><span class="p">(</span><span class="s1">&#39;twoBitToFa </span><span class="si">{i}</span><span class="s1"> </span><span class="si">{fn}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Make sure we retain the order of the originally-provided files from the</span>
+    <span class="c1"># config when concatenating.</span>
+    <span class="n">fastas</span> <span class="o">=</span> <span class="p">[</span><span class="n">lookup</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tmpfiles</span><span class="p">]</span>
+    <span class="n">shell</span><span class="p">(</span><span class="s1">&#39;cat </span><span class="si">{fastas}</span><span class="s1"> | gzip -c &gt; </span><span class="si">{outfile}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">shell</span><span class="p">(</span><span class="s1">&#39;rm </span><span class="si">{fastas}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="download_and_postprocess"><a class="viewcode-back" href="../../lib.common.html#lib.common.download_and_postprocess">[docs]</a><span class="k">def</span> <span class="nf">download_and_postprocess</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">organism</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">type_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given an output file, figure out what to do based on the config.</span>
+
+<span class="sd">    See notes below for details.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    outfile : str</span>
+
+<span class="sd">    config : dict</span>
+
+<span class="sd">    organism : str</span>
+<span class="sd">        Which organism to use. Must be a key in the &quot;references&quot; section of the</span>
+<span class="sd">        config.</span>
+
+<span class="sd">    tag : str</span>
+<span class="sd">        Which tag for the organism to use. Must be a tag for the organism in</span>
+<span class="sd">        the config</span>
+
+<span class="sd">    type_ : str</span>
+<span class="sd">        A supported references type (gtf, fasta) to use.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+
+<span class="sd">    This function:</span>
+
+<span class="sd">        - uses `organism`, `tag`, `type_` as a key into the config dict to figure</span>
+<span class="sd">          out:</span>
+
+<span class="sd">            - what postprocessing function (if any) was specified along with</span>
+<span class="sd">              its optional args</span>
+<span class="sd">            - the URL[s] to download</span>
+
+<span class="sd">        - resolves the name of the postprocessing function (if provided) and</span>
+<span class="sd">          imports it</span>
+<span class="sd">        - downloads the URL[s] to tempfile[s]</span>
+<span class="sd">        - calls the imported postprocessing function using the tempfile[s] and</span>
+<span class="sd">          outfile plus any additional specified arguments.</span>
+
+
+<span class="sd">    The postprocessing function must have one of the following two signatures,</span>
+<span class="sd">    where `infiles` contains the list of temporary files downloaded from the</span>
+<span class="sd">    URL or URLs specified, and `outfile` is a gzipped file expected to be</span>
+<span class="sd">    created by the function::</span>
+
+<span class="sd">        def func(infiles, outfile):</span>
+<span class="sd">            pass</span>
+
+<span class="sd">    or::</span>
+
+<span class="sd">        def func(infiles, outfile, *args):</span>
+<span class="sd">            pass</span>
+
+<span class="sd">    or::</span>
+
+<span class="sd">        def func(infiles, outfile, *args, **kwargs):</span>
+<span class="sd">            pass</span>
+
+
+<span class="sd">    The function is specified as a string that resolves to an importable</span>
+<span class="sd">    function, e.g., `postprocess: lib.postprocess.dm6.fix` will call a function</span>
+<span class="sd">    called `fix` in the file `lib/postprocess/dm6.py`.</span>
+
+<span class="sd">    If the contents of `postprocess:` is a dict, it must have at least the key</span>
+<span class="sd">    `function`, and optionally `args` and/or `kwargs` keys. The `function` key</span>
+<span class="sd">    indicates the importable path to the function.  `args` can be a string</span>
+<span class="sd">    or list of arguments that will be provided as additional args to a function</span>
+<span class="sd">    with the second kind of signature above.  If `kwargs` is provided, it is</span>
+<span class="sd">    a dict that is passed to the function with the third kind of signature</span>
+<span class="sd">    above. For example::</span>
+
+<span class="sd">        postprocess:</span>
+<span class="sd">            function: lib.postprocess.dm6.fix</span>
+<span class="sd">            args:</span>
+<span class="sd">                - True</span>
+<span class="sd">                - 3</span>
+
+<span class="sd">    or::</span>
+
+<span class="sd">        postprocess:</span>
+<span class="sd">            function: lib.postprocess.dm6.fix</span>
+<span class="sd">            args:</span>
+<span class="sd">                - True</span>
+<span class="sd">                - 3</span>
+<span class="sd">            kwargs:</span>
+<span class="sd">                skip: exon</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">default_postprocess</span><span class="p">(</span><span class="n">origfn</span><span class="p">,</span> <span class="n">newfn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If no other postprocess function is defined, then simply move the original</span>
+<span class="sd">        to the new.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shell</span><span class="p">(</span><span class="s2">&quot;mv </span><span class="si">{origfn}</span><span class="s2"> </span><span class="si">{newfn}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">block</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;references&#39;</span><span class="p">][</span><span class="n">organism</span><span class="p">][</span><span class="n">tag</span><span class="p">][</span><span class="n">type_</span><span class="p">]</span>
+
+    <span class="c1"># postprocess can be missing, in which case we use the default above</span>
+    <span class="n">post_process</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;postprocess&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">post_process</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">default_postprocess</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># postprocess can have a single string value (indicating the function) or</span>
+    <span class="c1"># it can be a dict with keys &quot;function&quot; and optionally &quot;args&quot;. The value of</span>
+    <span class="c1"># &quot;args&quot; can be a string or a list.</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">post_process</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">post_process</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;function&#39;</span><span class="p">,</span> <span class="n">post_process</span><span class="p">)</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">post_process</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;args&#39;</span><span class="p">,</span> <span class="p">())</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="n">post_process</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kwargs&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">args</span><span class="p">,)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">post_process</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">post_process</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">()</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># import the function</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">resolve_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="c1"># as described in the docstring above, functions are to assume a list of</span>
+    <span class="c1"># urls</span>
+    <span class="n">urls</span> <span class="o">=</span> <span class="n">block</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">urls</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">urls</span> <span class="o">=</span> <span class="p">[</span><span class="n">urls</span><span class="p">]</span>
+
+    <span class="c1"># Download tempfiles into reasonably-named filenames</span>
+    <span class="n">tmpfiles</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">.</span><span class="si">{1}</span><span class="s1">.tmp&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">urls</span><span class="p">))]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">url</span><span class="p">,</span> <span class="n">tmpfile</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">urls</span><span class="p">,</span> <span class="n">tmpfiles</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;file:&#39;</span><span class="p">):</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;file://&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">shell</span><span class="p">(</span><span class="s1">&#39;cp </span><span class="si">{url}</span><span class="s1"> </span><span class="si">{tmpfile}</span><span class="s1"> 2&gt; </span><span class="si">{outfile}</span><span class="s1">.log&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">shell</span><span class="p">(</span><span class="s2">&quot;wget </span><span class="si">{url}</span><span class="s2"> -O- &gt; </span><span class="si">{tmpfile}</span><span class="s2"> 2&gt; </span><span class="si">{outfile}</span><span class="s2">.log&quot;</span><span class="p">)</span>
+
+        <span class="n">func</span><span class="p">(</span><span class="n">tmpfiles</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">e</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tmpfiles</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+                <span class="n">shell</span><span class="p">(</span><span class="s1">&#39;rm </span><span class="si">{i}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="references_dict"><a class="viewcode-back" href="../../lib.common.html#lib.common.references_dict">[docs]</a><span class="k">def</span> <span class="nf">references_dict</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reformats the config file&#39;s reference section into a more practical form.</span>
+
+<span class="sd">    Files can be referenced as `d[organism][tag][type]`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : dict</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+
+<span class="sd">    The config file is designed to be easy to edit and use from the user&#39;s</span>
+<span class="sd">    standpoint. But it&#39;s not so great for practical usage. Here we convert the</span>
+<span class="sd">    config file which has the format::</span>
+
+<span class="sd">    &gt;&gt;&gt; from textwrap import dedent</span>
+<span class="sd">    &gt;&gt;&gt; fout = open(&#39;tmp&#39;, &#39;w&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; _ = fout.write(dedent(&#39;&#39;&#39;</span>
+<span class="sd">    ... references_dir: &quot;/data&quot;</span>
+<span class="sd">    ... references:</span>
+<span class="sd">    ...   dm6:</span>
+<span class="sd">    ...     r6-11:</span>
+<span class="sd">    ...       metadata:</span>
+<span class="sd">    ...         reference_genome_build: &#39;dm6&#39;</span>
+<span class="sd">    ...         reference_effective_genome_count: 1.2e7</span>
+<span class="sd">    ...         reference_effective_genome_proportion: 0.97</span>
+<span class="sd">    ...       fasta:</span>
+<span class="sd">    ...         url: &quot;&quot;</span>
+<span class="sd">    ...         indexes:</span>
+<span class="sd">    ...           - bowtie2</span>
+<span class="sd">    ...           - hisat2</span>
+<span class="sd">    ...       gtf:</span>
+<span class="sd">    ...         url: &quot;&quot;</span>
+<span class="sd">    ...         conversions:</span>
+<span class="sd">    ...           - refflat</span>
+<span class="sd">    ...     r6-11_transcriptome:</span>
+<span class="sd">    ...       fasta:</span>
+<span class="sd">    ...         url: &quot;&quot;</span>
+<span class="sd">    ...         indexes:</span>
+<span class="sd">    ...           - salmon</span>
+<span class="sd">    ... &#39;&#39;&#39;))</span>
+<span class="sd">    &gt;&gt;&gt; fout.close()</span>
+
+<span class="sd">    To this format:</span>
+
+<span class="sd">    &gt;&gt;&gt; d, conversion_kwargs = references_dict(&#39;tmp&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; assert d == (</span>
+<span class="sd">    ... {</span>
+<span class="sd">    ...   &#39;dm6&#39;: {</span>
+<span class="sd">    ...      &#39;r6-11&#39;: {</span>
+<span class="sd">    ...          &#39;fasta&#39;: &#39;/data/dm6/r6-11/fasta/dm6_r6-11.fasta&#39;,</span>
+<span class="sd">    ...          &#39;refflat&#39;: &#39;/data/dm6/r6-11/gtf/dm6_r6-11.refflat&#39;,</span>
+<span class="sd">    ...          &#39;gtf&#39;: &#39;/data/dm6/r6-11/gtf/dm6_r6-11.gtf&#39;,</span>
+<span class="sd">    ...          &#39;chromsizes&#39;: &#39;/data/dm6/r6-11/fasta/dm6_r6-11.chromsizes&#39;,</span>
+<span class="sd">    ...          &#39;bowtie2&#39;: &#39;/data/dm6/r6-11/bowtie2/dm6_r6-11.1.bt2&#39;,</span>
+<span class="sd">    ...          &#39;hisat2&#39;: &#39;/data/dm6/r6-11/hisat2/dm6_r6-11.1.ht2&#39;,</span>
+<span class="sd">    ...          },</span>
+<span class="sd">    ...      &#39;r6-11_transcriptome&#39;: {</span>
+<span class="sd">    ...          &#39;fasta&#39;: &#39;/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.fasta&#39;,</span>
+<span class="sd">    ...          &#39;chromsizes&#39;: &#39;/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.chromsizes&#39;,</span>
+<span class="sd">    ...          &#39;salmon&#39;: &#39;/data/dm6/r6-11_transcriptome/salmon/dm6_r6-11_transcriptome/hash.bin&#39;,</span>
+<span class="sd">    ...          },</span>
+<span class="sd">    ...     },</span>
+<span class="sd">    ... }), d</span>
+<span class="sd">    &gt;&gt;&gt; assert conversion_kwargs == {&#39;/data/dm6/r6-11/gtf/dm6_r6-11.refflat&#39;: {}}</span>
+<span class="sd">    &gt;&gt;&gt; os.unlink(&#39;tmp&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">config</span><span class="p">))</span>
+
+    <span class="n">references_dir</span> <span class="o">=</span> <span class="n">get_references_dir</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="c1"># Map &quot;indexes&quot; value to a pattern specific to each index.</span>
+    <span class="n">index_extensions</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;bowtie2&#39;</span><span class="p">:</span> <span class="n">aligners</span><span class="o">.</span><span class="n">bowtie2_index_from_prefix</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="s1">&#39;hisat2&#39;</span><span class="p">:</span> <span class="n">aligners</span><span class="o">.</span><span class="n">hisat2_index_from_prefix</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="s1">&#39;salmon&#39;</span><span class="p">:</span> <span class="s1">&#39;/hash.bin&#39;</span>
+    <span class="p">}</span>
+
+    <span class="n">conversion_extensions</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;intergenic&#39;</span><span class="p">:</span> <span class="s1">&#39;.intergenic.gtf&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;refflat&#39;</span><span class="p">:</span> <span class="s1">&#39;.refflat&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;gffutils&#39;</span><span class="p">:</span> <span class="s1">&#39;.gtf.db&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;genelist&#39;</span><span class="p">:</span> <span class="s1">&#39;.genelist&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;annotation_hub&#39;</span><span class="p">:</span> <span class="s1">&#39;.</span><span class="si">{keytype}</span><span class="s1">.csv&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;mappings&#39;</span><span class="p">:</span> <span class="s1">&#39;.mapping.tsv.gz&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">conversion_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">merged_references</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;references&#39;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">organism</span> <span class="ow">in</span> <span class="n">merged_references</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">d</span><span class="p">[</span><span class="n">organism</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">merged_references</span><span class="p">[</span><span class="n">organism</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">type_</span><span class="p">,</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">merged_references</span><span class="p">[</span><span class="n">organism</span><span class="p">][</span><span class="n">tag</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">type_</span> <span class="o">==</span> <span class="s1">&#39;metadata&#39;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">e</span><span class="p">[</span><span class="n">type_</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="s1">&#39;</span><span class="si">{references_dir}</span><span class="s1">/&#39;</span>
+                    <span class="s1">&#39;</span><span class="si">{organism}</span><span class="s1">/&#39;</span>
+                    <span class="s1">&#39;</span><span class="si">{tag}</span><span class="s1">/&#39;</span>
+                    <span class="s1">&#39;</span><span class="si">{type_}</span><span class="s1">/&#39;</span>
+                    <span class="s1">&#39;</span><span class="si">{organism}</span><span class="s1">_</span><span class="si">{tag}</span><span class="s1">.</span><span class="si">{type_}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Add conversions if specified.</span>
+                <span class="k">if</span> <span class="n">type_</span> <span class="o">==</span> <span class="s1">&#39;gtf&#39;</span><span class="p">:</span>
+                    <span class="n">conversions</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;conversions&#39;</span><span class="p">,</span> <span class="p">[])</span>
+                    <span class="k">for</span> <span class="n">conversion</span> <span class="ow">in</span> <span class="n">conversions</span><span class="p">:</span>
+                        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">conversion</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                            <span class="c1"># if conversion is specified as dict, we assume</span>
+                            <span class="c1"># that there is only one key, and that key is the</span>
+                            <span class="c1"># actual name of the conversion; the corresponding</span>
+                            <span class="c1"># value will be kwargs. This is used e.g. for</span>
+                            <span class="c1"># gffutils conversion which often need some</span>
+                            <span class="c1"># tweaking of args depending on the gtf format.</span>
+                            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">conversion</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span> <span class="o">==</span> <span class="mi">1</span>
+                            <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">conversion</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="n">conversion</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">conversion</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+
+                        <span class="c1"># While the full set of columns for annotation hub are</span>
+                        <span class="c1"># not known in advance, we can assume at least the</span>
+                        <span class="c1"># keytype provided will be an output file. Fill that in</span>
+                        <span class="c1"># here.</span>
+                        <span class="k">if</span> <span class="n">conversion</span> <span class="o">==</span> <span class="s1">&#39;annotation_hub&#39;</span><span class="p">:</span>
+                            <span class="n">keytype</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;keytype&#39;</span><span class="p">]</span>
+                            <span class="n">ext</span> <span class="o">=</span> <span class="n">conversion_extensions</span><span class="p">[</span><span class="n">conversion</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">keytype</span><span class="o">=</span><span class="n">keytype</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">ext</span> <span class="o">=</span> <span class="n">conversion_extensions</span><span class="p">[</span><span class="n">conversion</span><span class="p">]</span>
+                        <span class="n">output</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="s1">&#39;</span><span class="si">{references_dir}</span><span class="s1">/&#39;</span>
+                            <span class="s1">&#39;</span><span class="si">{organism}</span><span class="s1">/&#39;</span>
+                            <span class="s1">&#39;</span><span class="si">{tag}</span><span class="s1">/&#39;</span>
+                            <span class="s1">&#39;</span><span class="si">{type_}</span><span class="s1">/&#39;</span>
+                            <span class="s1">&#39;</span><span class="si">{organism}</span><span class="s1">_</span><span class="si">{tag}{ext}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+                        <span class="p">)</span>
+                        <span class="n">e</span><span class="p">[</span><span class="n">conversion</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span>
+
+                        <span class="n">conversion_kwargs</span><span class="p">[</span><span class="n">output</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span>
+
+                <span class="k">if</span> <span class="n">type_</span> <span class="o">==</span> <span class="s1">&#39;fasta&#39;</span><span class="p">:</span>
+                    <span class="c1"># Add indexes if specified</span>
+                    <span class="n">indexes</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;indexes&#39;</span><span class="p">,</span> <span class="p">[])</span>
+                    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">indexes</span><span class="p">:</span>
+                        <span class="n">ext</span> <span class="o">=</span> <span class="n">index_extensions</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+                        <span class="n">e</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="s1">&#39;</span><span class="si">{references_dir}</span><span class="s1">/</span><span class="si">{organism}</span><span class="s1">/</span><span class="si">{tag}</span><span class="s1">/</span><span class="si">{index}</span><span class="s1">/</span><span class="si">{organism}</span><span class="s1">_</span><span class="si">{tag}{ext}</span><span class="s1">&#39;</span>
+                            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+                        <span class="p">)</span>
+
+                    <span class="n">e</span><span class="p">[</span><span class="s1">&#39;chromsizes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="s1">&#39;</span><span class="si">{references_dir}</span><span class="s1">/&#39;</span>
+                        <span class="s1">&#39;</span><span class="si">{organism}</span><span class="s1">/&#39;</span>
+                        <span class="s1">&#39;</span><span class="si">{tag}</span><span class="s1">/&#39;</span>
+                        <span class="s1">&#39;</span><span class="si">{type_}</span><span class="s1">/&#39;</span>
+                        <span class="s1">&#39;</span><span class="si">{organism}</span><span class="s1">_</span><span class="si">{tag}</span><span class="s1">.chromsizes&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+                    <span class="p">)</span>
+                <span class="n">d</span><span class="p">[</span><span class="n">organism</span><span class="p">][</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span>
+    <span class="k">return</span> <span class="n">d</span><span class="p">,</span> <span class="n">conversion_kwargs</span></div>
+
+
+<div class="viewcode-block" id="tempdir_for_biowulf"><a class="viewcode-back" href="../../lib.common.html#lib.common.tempdir_for_biowulf">[docs]</a><span class="k">def</span> <span class="nf">tempdir_for_biowulf</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get an appropriate tempdir.</span>
+
+<span class="sd">    The NIH biowulf cluster allows nodes to have their own /lscratch dirs as</span>
+<span class="sd">    local temp storage. However the particular dir depends on the slurm job ID,</span>
+<span class="sd">    which is not known in advance. This function sets the shell.prefix to use</span>
+<span class="sd">    such a tempdir if it&#39;s available; otherwise it leaves TMPDIR unchanged.</span>
+<span class="sd">    This makes it suitable for running locally or on other clusters, however if</span>
+<span class="sd">    you need different behavior for a different cluster, then a different</span>
+<span class="sd">    function will need to be written.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tmpdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">()</span>
+    <span class="n">jobid</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SLURM_JOBID&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">jobid</span><span class="p">:</span>
+        <span class="n">tmpdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;/lscratch&#39;</span><span class="p">,</span> <span class="n">jobid</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tmpdir</span></div>
+
+
+<div class="viewcode-block" id="get_references_dir"><a class="viewcode-back" href="../../lib.common.html#lib.common.get_references_dir">[docs]</a><span class="k">def</span> <span class="nf">get_references_dir</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Identify the references directory based on config and env vars.</span>
+
+<span class="sd">    Returns the references dir, preferring the value of an existing environment</span>
+<span class="sd">    variable `REFERENCES_DIR` over the config entry &quot;references_dir&quot;. Raise an</span>
+<span class="sd">    error if either can&#39;t be found.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">resolve_config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">references_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s1">&#39;REFERENCES_DIR&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;references_dir&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">references_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No references dir specified&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">references_dir</span></div>
+
+
+<div class="viewcode-block" id="get_sampletable"><a class="viewcode-back" href="../../lib.common.html#lib.common.get_sampletable">[docs]</a><span class="k">def</span> <span class="nf">get_sampletable</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return samples and pandas.DataFrame of parsed sampletable.</span>
+
+<span class="sd">    Returns the sample IDs and the parsed sampletable from the file specified</span>
+<span class="sd">    in the config.</span>
+
+<span class="sd">    The sample IDs are assumed to be the first column of the sampletable.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">resolve_config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">sampletable</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;sampletable&#39;</span><span class="p">],</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">)</span>
+    <span class="n">samples</span> <span class="o">=</span> <span class="n">sampletable</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">samples</span><span class="p">,</span> <span class="n">sampletable</span></div>
+
+
+<div class="viewcode-block" id="get_techreps"><a class="viewcode-back" href="../../lib.common.html#lib.common.get_techreps">[docs]</a><span class="k">def</span> <span class="nf">get_techreps</span><span class="p">(</span><span class="n">sampletable</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return all sample IDs for which the &quot;label&quot; column is `label`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># since we&#39;re not requiring a name but we want to use `loc`</span>
+    <span class="n">first_col</span> <span class="o">=</span> <span class="n">sampletable</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sampletable</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">sampletable</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">label</span><span class="p">,</span> <span class="n">first_col</span><span class="p">])</span>
+
+    <span class="c1"># If we&#39;re using a ChIP-seq-like sampletable we can provide a more</span>
+    <span class="c1"># informative error message.</span>
+
+    <span class="n">is_chipseq</span> <span class="o">=</span> <span class="s1">&#39;antibody&#39;</span> <span class="ow">in</span> <span class="n">sampletable</span><span class="o">.</span><span class="n">columns</span>
+    <span class="k">if</span> <span class="n">is_chipseq</span><span class="p">:</span>
+        <span class="n">err</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;No technical replicates found for label &#39;</span><span class="si">{}</span><span class="s2">&#39;. This looks to &quot;</span>
+               <span class="s2">&quot;be a ChIP-seq experiment; check the peak-calling section of&quot;</span>
+               <span class="s2">&quot;the config.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+              <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">err</span> <span class="o">=</span> <span class="s2">&quot;No technical replicates found for label &#39;</span><span class="si">{}</span><span class="s2">&#39;.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="load_config"><a class="viewcode-back" href="../../lib.common.html#lib.common.load_config">[docs]</a><span class="k">def</span> <span class="nf">load_config</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Loads the config.</span>
+
+<span class="sd">    Resolves any included references directories/files and runs the deprecation</span>
+<span class="sd">    handler.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">config</span><span class="p">))</span>
+
+
+    <span class="c1"># Here we populate a list of reference sections. Items later on the list</span>
+    <span class="c1"># will have higher priority</span>
+    <span class="n">includes</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;include_references&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">reference_sections</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># First the directories. Directories that come earlier lose to those that</span>
+    <span class="c1"># come later.</span>
+    <span class="k">for</span> <span class="n">dirname</span> <span class="ow">in</span> <span class="nb">filter</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">,</span> <span class="n">includes</span><span class="p">):</span>
+        <span class="c1"># Note we&#39;re looking recursively for .yaml and .yml, so very large</span>
+        <span class="c1"># reference directories are possible</span>
+        <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="s1">&#39;**/*.y?ml&#39;</span><span class="p">),</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">refs</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">))</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;references&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">refs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No &#39;references:&#39; section in </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fn</span><span class="p">))</span>
+            <span class="n">reference_sections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">refs</span><span class="p">)</span>
+
+    <span class="c1"># Now the files</span>
+    <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="nb">filter</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">,</span> <span class="n">includes</span><span class="p">):</span>
+        <span class="n">refs</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">))</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;references&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">refs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No &#39;references:&#39; section in </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fn</span><span class="p">))</span>
+        <span class="n">reference_sections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">refs</span><span class="p">)</span>
+
+    <span class="c1"># The last thing we include is the references section as written in the</span>
+    <span class="c1"># config, which wins over all.</span>
+    <span class="n">reference_sections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;references&#39;</span><span class="p">,</span> <span class="p">{}))</span>
+
+    <span class="n">merged_references</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">reference_sections</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">organism</span> <span class="ow">in</span> <span class="n">ref</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">org_dict</span> <span class="o">=</span> <span class="n">merged_references</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">organism</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">ref</span><span class="p">[</span><span class="n">organism</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">org_dict</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">ref</span><span class="p">[</span><span class="n">organism</span><span class="p">][</span><span class="n">tag</span><span class="p">]</span>
+            <span class="n">merged_references</span><span class="p">[</span><span class="n">organism</span><span class="p">]</span> <span class="o">=</span> <span class="n">org_dict</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;references&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">merged_references</span>
+
+    <span class="c1"># Run the deprecation handler on the final config</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">deprecation_handler</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">config</span></div>
+
+
+<div class="viewcode-block" id="deprecation_handler"><a class="viewcode-back" href="../../lib.common.html#lib.common.deprecation_handler">[docs]</a><span class="k">def</span> <span class="nf">deprecation_handler</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks the config to see if anything has been deprecated.</span>
+
+<span class="sd">    Also makes any fixes that can be done automatically.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;assembly&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;organism&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;assembly&#39;</span><span class="p">]</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;&#39;assembly&#39; should be replaced with &#39;organism&#39; in config files. &quot;</span>
+            <span class="s2">&quot;As a temporary measure, a new &#39;organism&#39; key has been added with &quot;</span>
+            <span class="s2">&quot;the value of &#39;assembly&#39;&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">)</span>
+
+
+    <span class="k">for</span> <span class="n">org</span><span class="p">,</span> <span class="n">block1</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;references&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">block2</span> <span class="ow">in</span> <span class="n">block1</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">gtf_conversions</span> <span class="o">=</span> <span class="n">block2</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;gtf&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;conversions&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">gtf_conversions</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">&#39;annotation_hub&#39;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                        <span class="s2">&quot;You may want to try the &#39;mappings&#39; conversion rather &quot;</span>
+                        <span class="s2">&quot;than &#39;annotation_hub&#39; since it works directly off &quot;</span>
+                        <span class="s2">&quot;the GTF file rather than assuming concordance between &quot;</span>
+                        <span class="s2">&quot;GTF and AnnoationHub instances&quot;</span><span class="p">,</span>
+                        <span class="ne">DeprecationWarning</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">config</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

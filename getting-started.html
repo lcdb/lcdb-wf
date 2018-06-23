@@ -4,26 +4,18 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Getting started &#8212; lcdb-wf 0.1 documentation</title>
+    <title>Initial setup &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Guide to files" href="guide.html" />
+    <link rel="next" title="Running the tests" href="tests.html" />
     <link rel="prev" title="lcdb-wf" href="index.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -31,342 +23,175 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body>
-  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
-  <div class="section" id="getting-started">
-<span id="id1"></span><h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
-<p>The following steps will install all necessary software and run the example
-workflows on a relatively small test data set to ensure that everything runs
-correctly. These exampls are run as the automated tests on Travis-CI
-(<a class="reference external" href="https://travis-ci.org/lcdb/lcdb-wf">https://travis-ci.org/lcdb/lcdb-wf</a>) to ensure that they are correct.</p>
-<p>The example run takes up about 360 MB of space and runs in about 15 mins on
-2 cores.</p>
-<div class="section" id="one-time-setup">
-<h2>One-time setup<a class="headerlink" href="#one-time-setup" title="Permalink to this headline">¶</a></h2>
-<p>The following needs to be performed on each system on which you will be running
-the workflows.</p>
-<div class="section" id="bioconda-one-time-setup">
-<h3>bioconda (one-time setup)<a class="headerlink" href="#bioconda-one-time-setup" title="Permalink to this headline">¶</a></h3>
-<p>Follow the instructions for setting up <a class="reference external" href="https://bioconda.github.io">bioconda</a>.  This includes installing <cite>conda</cite> and setting
-up the channels in the correct order.</p>
-<p>This is required to be able to have all software automatically installed into
-the working directory without needing admin rights on the machine.</p>
-</div>
-<div class="section" id="add-the-lcdb-channel-one-time-setup">
-<h3>Add the <cite>lcdb</cite> channel (one-time setup)<a class="headerlink" href="#add-the-lcdb-channel-one-time-setup" title="Permalink to this headline">¶</a></h3>
-<p>This enables the <cite>lcdb</cite> conda channel so that additional dependencies not
-included in bioconda can be installed:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">config</span> <span class="o">--</span><span class="n">add</span> <span class="n">channels</span> <span class="n">lcdb</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="create-a-new-conda-environment-one-time-setup">
-<h3>Create a new conda environment (one-time setup)<a class="headerlink" href="#create-a-new-conda-environment-one-time-setup" title="Permalink to this headline">¶</a></h3>
-<p>This creates a top-level environment with Snakemake and other requirements. It
-should be activated any time you’ll be working with <cite>lcdb-wf</cite>. Here we’re using
-the name “lcdb-wf”, but you can use anything:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">lcdb</span><span class="o">-</span><span class="n">wf</span> <span class="o">-</span><span class="n">y</span> <span class="n">python</span><span class="o">=</span><span class="mi">3</span> <span class="o">--</span><span class="n">file</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
-</pre></div>
-</div>
-<p>Then activate the environment:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">activate</span> <span class="n">lcdb</span><span class="o">-</span><span class="n">wf</span>
-</pre></div>
-</div>
-<p>When you’re done you can deactivate, though you might want to hold off on this
-for now:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">deactivate</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="download-example-data-one-time-setup">
-<h3>Download example data (one-time setup)<a class="headerlink" href="#download-example-data-one-time-setup" title="Permalink to this headline">¶</a></h3>
-<p>This will download the example data to the directory <code class="docutils literal"><span class="pre">data/</span></code>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">ci</span><span class="o">/</span><span class="n">get</span><span class="o">-</span><span class="n">data</span><span class="o">.</span><span class="n">py</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="section" id="a-note-about-test-settings">
-<h2>A note about test settings<a class="headerlink" href="#a-note-about-test-settings" title="Permalink to this headline">¶</a></h2>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Running the workflows as-is on a single machine with limited RAM may cause
-all RAM to be consumed! Use <code class="docutils literal"><span class="pre">ci/preprocessor.py</span></code> as described below to
-solve this.</p>
-</div>
-<p>A major benefit of <code class="docutils literal"><span class="pre">lcdb-wf</span></code> is that the code undergoes automated testing
-(currently on <a class="reference external" href="https://circleci.com/gh/lcdb">CircleCI</a>). However our only has 2 cores and
-2GB RAM. We developed a small representative <a class="reference external" href="https://github.com/lcdb/lcdb-test-data">test dataset</a> from real-world data. We also need
-to make settings to the workflows, for example to set the Java VM memory to
-only 2GB.</p>
-<p>This does not work in real-world analysis situations, where we likely need much
-more memory. We had to make a design decision: should the “default” state of
-the workflows reflect production-ready settings, or reflect test-ready
-settings? We chose the former, because we want to minimize the editing (and
-therefore possibility of introducing errors) in production.</p>
-<p>To accomodate this, we have a script <code class="docutils literal"><span class="pre">ci/preprocessor.py</span></code>. This script looks
-for specially-formatted comments in the workflows, swaps out production
-settings for test settings, and writes the results to stdout. <strong>To run the test
-data, we recommend running the preprocessor to toggle on the test settings and
-run the resulting automatically-edited workflow.</strong> In production, especially
-when running on a cluster, there’s no need to do this.</p>
-</div>
-<div class="section" id="try-the-rna-seq-workflow-with-example-data">
-<h2>Try the RNA-seq workflow with example data<a class="headerlink" href="#try-the-rna-seq-workflow-with-example-data" title="Permalink to this headline">¶</a></h2>
-<p>With the <cite>lcdb-wf</cite> environment activated:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">source</span> activate lcdb-wf
-</pre></div>
-</div>
-<p>Change to the <code class="docutils literal"><span class="pre">workflows/rnaseq</span></code> directory, and run the preprocessor to
-convert all the settings to minimal test settings and save the results in a new
-Snakefile:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">cd</span> workflows/rnaseq
-python ../../ci/preprocessor.py Snakefile &gt; Snakefile.test
-</pre></div>
-</div>
-<p>Then run the new workflow:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>snakemake -s Snakefile.test --configfile config/config.yaml --use-conda
-</pre></div>
-</div>
-<p>Specify more than one core with <code class="docutils literal"><span class="pre">-j</span></code>, e.g., <code class="docutils literal"><span class="pre">-j</span> <span class="pre">8</span></code> to use more cores.</p>
-<p>This workflow includes the <code class="docutils literal"><span class="pre">workflows/references/Snakefile</span></code> workflow. It
-downloads genome sequence and reference files and builds indexes as necessary
-(HISAT2 genome index, salmon transcriptome index, bowtie2 index for rRNA, GTF
-file of gene annotations) and then carries on with the RNA-seq workflow.</p>
-<p>These references are configured in the <code class="docutils literal"><span class="pre">config/config.yaml</span></code> file, which is
-heavily commented to guide you on how to modify it for your own needs.</p>
-<p>The RNA-seq workflow includes the standard mapping, counting, and differential
-expression stages, as well as many quality-control steps. See <a class="reference internal" href="rnaseq.html#rnaseq"><span class="std std-ref">RNA-seq workflow</span></a> for more details.</p>
-<p>The DAG of jobs looks like this:</p>
-<img alt="_images/rnaseq.png" src="_images/rnaseq.png" />
-<p>After the workflow runs, here are some useful Points of interest in the output:</p>
-<blockquote>
-<div><ul class="simple">
-<li><code class="docutils literal"><span class="pre">data/rnaseq_samples/*</span></code>: sample-specific output. For example,
-individual BAMs can be found here</li>
-<li><code class="docutils literal"><span class="pre">data/aggregation/multiqc.html</span></code>:  MultiQC report.</li>
-<li><code class="docutils literal"><span class="pre">downstream/rnaseq.html</span></code>: Differential expression results.</li>
-</ul>
-</div></blockquote>
-</div>
-<div class="section" id="run-the-chip-seq-workflow-with-example-data">
-<h2>Run the ChIP-seq workflow with example data<a class="headerlink" href="#run-the-chip-seq-workflow-with-example-data" title="Permalink to this headline">¶</a></h2>
-<p>With the <cite>lcdb-wf</cite> environment activated:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">source</span> activate lcdb-wf
-</pre></div>
-</div>
-<p>Change to the <code class="docutils literal"><span class="pre">workflows/chipseq</span></code> directory, and run the preprocessor to
-convert all the settings to minimal test settings and save the results in a new
-Snakefile:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">cd</span> workflows/chipseq
-python ../../ci/preprocessor.py Snakefile &gt; Snakefile.test
-</pre></div>
-</div>
-<p>Then run the new workflow:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>snakemake -s Snakefile.test --configfile config/config.yaml --use-conda
-</pre></div>
-</div>
-<p>Specify more than one core with <code class="docutils literal"><span class="pre">-j</span></code>, e.g., <code class="docutils literal"><span class="pre">-j</span> <span class="pre">8</span></code> to use more cores.</p>
-<p>Like the RNA-seq workflow, the ChIP-seq workflow includes the
-<code class="docutils literal"><span class="pre">workflows/references/Snakemake</span></code> workflow, so that genome fastas are
-downloaded and indexes built as necessary.</p>
-<p>The ChIP-seq workflow includes:</p>
-<blockquote>
-<div><ul class="simple">
-<li>trimming reads with cutadapt</li>
-<li>mapping reads with Bowtie2</li>
-<li>FastQC on raw, trimmed, and aligned reads</li>
-<li>Remove multimappers (samtools) and duplicates (Picard MarkDuplicates)</li>
-<li>fastq_screen on multiple configured genomes to look for evidence of
-cross-contamination</li>
-<li>QC aggregation using MultiQC, along with a custom table for library sizes</li>
-<li>merging and re-deduplicating to correctly handle technical replicates</li>
-<li>bigWigs created from unique, no-dups BAM files</li>
-<li>deepTools plotFingerprint run on grouped IP and input for QC and
-evaluation of enrichment</li>
-<li>peak-calling using macs2 and/or spp</li>
-<li>conversion of BED files into bigBed (or bigNarrowPeak where possible)</li>
-<li>track hub of bigWigs and bigBeds to visualize peak-calling in UCSC Genome Browser</li>
-</ul>
-</div></blockquote>
-<img alt="_images/chipseq.png" src="_images/chipseq.png" />
-<p>Points of interest:</p>
-<blockquote>
-<div><ul class="simple">
-<li><code class="docutils literal"><span class="pre">data/chipseq_samples/*</span></code>: sample-specific output. Individual BAM files
-for a sample can be found here.</li>
-<li><code class="docutils literal"><span class="pre">data/chipseq_merged/*</span></code>: technical replicates merged and re-deduped, or
-if only one tech rep, symlinked to the BAM in the samples directory</li>
-<li><code class="docutils literal"><span class="pre">data/chipseq_peaks/*</span></code>: peak-caller output, including BED files of
-called peaks and bedGraph files of signal as output by each algorithm</li>
-<li><code class="docutils literal"><span class="pre">data/chipseq_aggregation/multiqc.html</span></code>: MultiQC report</li>
-</ul>
-</div></blockquote>
-</div>
-<div class="section" id="run-the-references-workflow-with-example-data">
-<h2>Run the references workflow with example data<a class="headerlink" href="#run-the-references-workflow-with-example-data" title="Permalink to this headline">¶</a></h2>
-<p>This is optional; parts of this workflow were actually run automatically as
-needed for the RNA-seq and ChIP-seq workflows.</p>
-<p>With the <cite>lcdb-wf</cite> environment activated:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">source</span> activate lcdb-wf
-</pre></div>
-</div>
-<p>Change to the <code class="docutils literal"><span class="pre">workflows/references</span></code> directory, and run the preprocessor to
-convert all the settings to minimal test settings and save the results in a new
-Snakefile:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">cd</span> workflows/references
-python ../../ci/preprocessor.py Snakefile &gt; Snakefile.test
-</pre></div>
-</div>
-<p>Then run the new workflow:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>snakemake -s Snakefile.test --configfile config/config.yaml --use-conda
-</pre></div>
-</div>
-<p>Specify more than one core with <code class="docutils literal"><span class="pre">-j</span></code>, e.g., <code class="docutils literal"><span class="pre">-j</span> <span class="pre">8</span></code> to use more cores.</p>
-<img alt="_images/references.png" src="_images/references.png" />
-</div>
-<div class="section" id="external-workflow">
-<h2>“External” workflow<a class="headerlink" href="#external-workflow" title="Permalink to this headline">¶</a></h2>
-<p>This workflow is a working example downloads some data from modENCODE in an
-older fly genome assembly (dm3), fixes the formatting so they can be lifted
-over, and lifts over the files to the newer dm6 assembly.</p>
-<p>It can be used as a template for integrative downstream work, as a place to
-keep track and automate the download and preparation of external published
-data. It can then be incorporated into the <code class="docutils literal"><span class="pre">figures</span></code> workflow (described
-below) to integrate the analysis with other output.</p>
-<img alt="external.png" src="external.png" />
-</div>
-<div class="section" id="figures-workflow">
-<h2>“Figures” workflow<a class="headerlink" href="#figures-workflow" title="Permalink to this headline">¶</a></h2>
-<p>This workflow is a working example of how you would tie together output from
-RNA-seq, ChIP-seq, and “external” workflows to automate figure creation and
-formally link together the dependencies of each figure all the way back to the
-original fastq files. If any changes are made upstream, they will trigger
-downstream rules to re-run as needed.</p>
-<p>For example, if a new GTF annotation file comes out, you would change the URL
-in the config and re-run the RNA-seq workflow. Only those jobs that depended on
-some way on the GTF file will be re-run, up to and including any figures that
-ultimately depended on that annotation file (so trimming and alignment will
-not run again, but featureCounts, DESeq2, and any figures that use DESeq2
-output will be re-run).</p>
-<p>To provide a sufficiently complex example that can be used in real-world
-applications, this workflow currently:</p>
-<blockquote>
-<div><ul class="simple">
-<li>counts the number of peaks in all configured peak-calling runs and stores
-the output in a TSC report (work is performed in the script
-<code class="docutils literal"><span class="pre">scripts/peak_count.py</span></code>)</li>
-<li>identifies peaks at promoters of genes, reports a summary of how many
-peaks from each run were found in a promoter, and creates BED files of
-these subsets (<code class="docutils literal"><span class="pre">scripts/peaks_at_promoters.py</span></code>)</li>
-<li>builds the DAG image for the ChIP-seq and RNA-seq workflows</li>
-<li>symlinks over the ChIP-seq peaks and RNA-seq differential expression results</li>
-<li>extracts the text from the README.txt files created by the scripts
-(usually from their docstrings), and compiles them into a summary report</li>
-<li>the <code class="docutils literal"><span class="pre">figures</span></code> directory can then be zipped up and distributed to collaborators</li>
-</ul>
-</div></blockquote>
-</div>
-<div class="section" id="colocalization-workflow">
-<h2>Colocalization workflow<a class="headerlink" href="#colocalization-workflow" title="Permalink to this headline">¶</a></h2>
-<p>The output of this workflow is a set of heatmaps showing metrics of
-colocalization between pairs of regions. This can be used to answer questions
-like “what else does my protein of interest bind with?”.</p>
-<p>Several colocalization methods are run, and they all give slightly different
-results.</p>
-<ul class="simple">
-<li>bedtools fisher</li>
-<li>bedtools jaccard</li>
-<li>GAT (Genome Association Test) log2 fold change</li>
-<li>GAT (Genome Association Test) nucleotide overlap</li>
-<li>IntervalStats</li>
-</ul>
-</div>
-<div class="section" id="next-steps">
-<h2>Next steps<a class="headerlink" href="#next-steps" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>Edit <code class="docutils literal"><span class="pre">config/sampletable.tsv</span></code> and <code class="docutils literal"><span class="pre">config/config.yml</span></code> to reflect your
-experimental design and desired references</li>
-<li>Add your original FASTQ files to <code class="docutils literal"><span class="pre">data/rnaseq_samples/</span></code> directories, likely
-using symlinks</li>
-<li>Edit the Snakefile for the workflow you’re running to disable any steps you
-don’t need</li>
-<li>After running the workflow, you can customize <code class="docutils literal"><span class="pre">downstream/rnaseq.Rmd</span></code> for
-your particular analysis.</li>
-</ul>
-</div>
-</div>
-
-
-          </div>
-        </div>
-      </div>
+  </head><body>
+  <div class="document">
+    
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Getting started</a><ul>
-<li><a class="reference internal" href="#one-time-setup">One-time setup</a><ul>
-<li><a class="reference internal" href="#bioconda-one-time-setup">bioconda (one-time setup)</a></li>
-<li><a class="reference internal" href="#add-the-lcdb-channel-one-time-setup">Add the <cite>lcdb</cite> channel (one-time setup)</a></li>
-<li><a class="reference internal" href="#create-a-new-conda-environment-one-time-setup">Create a new conda environment (one-time setup)</a></li>
-<li><a class="reference internal" href="#download-example-data-one-time-setup">Download example data (one-time setup)</a></li>
+<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+
+
+
+<p class="blurb">Customizable workflows for high-throughput sequencing analysis</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Initial setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setup-required-once-per-system">Setup required once per system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setup-required-once-per-project">Setup required once per project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next steps</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#a-note-about-test-settings">A note about test settings</a></li>
-<li><a class="reference internal" href="#try-the-rna-seq-workflow-with-example-data">Try the RNA-seq workflow with example data</a></li>
-<li><a class="reference internal" href="#run-the-chip-seq-workflow-with-example-data">Run the ChIP-seq workflow with example data</a></li>
-<li><a class="reference internal" href="#run-the-references-workflow-with-example-data">Run the references workflow with example data</a></li>
-<li><a class="reference internal" href="#external-workflow">“External” workflow</a></li>
-<li><a class="reference internal" href="#figures-workflow">“Figures” workflow</a></li>
-<li><a class="reference internal" href="#colocalization-workflow">Colocalization workflow</a></li>
-<li><a class="reference internal" href="#next-steps">Next steps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 </ul>
-</li>
-</ul>
+
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="index.html" title="previous chapter">lcdb-wf</a></li>
-      <li>Next: <a href="guide.html" title="next chapter">Guide to files</a></li>
+      <li>Next: <a href="tests.html" title="next chapter">Running the tests</a></li>
   </ul></li>
 </ul>
 </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/getting-started.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="initial-setup">
+<span id="getting-started"></span><h1>Initial setup<a class="headerlink" href="#initial-setup" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p><cite>lcdb-wf</cite> is tested and heavily used on Linux.</p>
+<p>It is likely to work on macOS as long as all relevant conda packages are
+available for macOS – though this is not tested.</p>
+<p class="last">It will <strong>not</strong> work on Windows due to a general lack of support of Windows
+in bioinformatics tools.</p>
+</div>
+<div class="section" id="setup-required-once-per-system">
+<h2>Setup required once per system<a class="headerlink" href="#setup-required-once-per-system" title="Permalink to this headline">¶</a></h2>
+<p>We use <a class="reference external" href="https://bioconda.github.io">bioconda</a> to automatically install
+software into the working directory without needing admin rights on the
+machine.</p>
+<p>If you have the Anaconda Python distribution, you already have conda.
+Otherwise, install <a class="reference external" href="https://conda.io/miniconda.html">Miniconda</a>.</p>
+<p><strong>Optional:</strong>
+- Run the following commands to set up your conda channels. This puts the</p>
+<blockquote>
+<div><cite>lcdb</cite> channel as lowest priority (this channel has the <cite>lcdblib</cite> package),
+and then matches the channel order required by <cite>bioconda</cite>.</div></blockquote>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda config --add channels lcdb
+conda config --add channels defaults
+conda config --add channels conda-forge
+conda config --add channels bioconda
+</pre></div>
+</div>
+</div>
+<div class="section" id="setup-required-once-per-project">
+<h2>Setup required once per project<a class="headerlink" href="#setup-required-once-per-project" title="Permalink to this headline">¶</a></h2>
+<p>The following should be done each time you set up a project.</p>
+<div class="section" id="clone-the-git-repo">
+<h3>1. Clone the git repo<a class="headerlink" href="#clone-the-git-repo" title="Permalink to this headline">¶</a></h3>
+<p>Clone the repository from github into a new directory of your choosing and
+change to that directory.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/lcdb/lcdb-wf.git my-project-dir
+<span class="nb">cd</span> my-project-dir
+</pre></div>
+</div>
+</div>
+<div class="section" id="create-a-new-conda-environment">
+<span id="create-env"></span><h3>2. Create a new conda environment<a class="headerlink" href="#create-a-new-conda-environment" title="Permalink to this headline">¶</a></h3>
+<p>The following command will create a top-level environment with Snakemake and
+other requirements. It needs to be <cite>activated</cite> any time you’ll be working with
+these workflows.</p>
+<p>If you’re not familiar with <code class="docutils literal notranslate"><span class="pre">conda</span></code>, it installs particular versions of
+software in an isolated location on your computer. When you “activate” the
+environment, it places that location at the beginning of your <code class="docutils literal notranslate"><span class="pre">$PATH</span></code>
+variable, so that any executables there are found first. It does not affect any
+existing installation of any software on your machine and does not need root
+privileges.</p>
+<p><strong>It is recommended that you use a different environment name for each
+project</strong>. That way you can update packages in each project independently of
+any others. Here we use the name “lcdb-wf” for the new environment, but you can
+use anything. Note that here we specify the channels to use, which include
+<code class="docutils literal notranslate"><span class="pre">bioconda</span></code> which depends on <code class="docutils literal notranslate"><span class="pre">conda-forge</span></code>, and <code class="docutils literal notranslate"><span class="pre">lcdb</span></code> which provides the
+<code class="docutils literal notranslate"><span class="pre">lcdblib</span></code> package used by these workflows.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">lcdb</span><span class="o">-</span><span class="n">wf</span> \
+  <span class="o">--</span><span class="n">file</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span> \
+  <span class="o">--</span><span class="n">channel</span> <span class="n">bioconda</span> \
+  <span class="o">--</span><span class="n">channel</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> \
+  <span class="o">--</span><span class="n">channel</span> <span class="n">lcdb</span>
+</pre></div>
+</div>
+<p>Then activate the environment:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">activate</span> <span class="n">lcdb</span><span class="o">-</span><span class="n">wf</span>
+</pre></div>
+</div>
+<p>Eventually when you’re done, you can “deactivate”, which removes the
+environment location from your <code class="docutils literal notranslate"><span class="pre">$PATH</span></code> until the next time you activate it.
+You might want to hold off on this for now if you’ll be running the tests:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">deactivate</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="next-steps">
+<h2>Next steps<a class="headerlink" href="#next-steps" title="Permalink to this headline">¶</a></h2>
+<p>You may want to run tests to make sure everything is set up (see
+<a class="reference internal" href="tests.html#running-the-tests"><span class="std std-ref">Running the tests</span></a>), or jump right in to learning about how to configure
+the workflows for your particular experiment (see <a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration</span></a>).</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
     <div class="footer">
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
       
       |
       <a href="_sources/getting-started.rst.txt"

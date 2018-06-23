@@ -1,0 +1,654 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Config YAML &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="References config" href="references-config.html" />
+    <link rel="prev" title="Configuration" href="config.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+
+
+
+<p class="blurb">Customizable workflows for high-throughput sequencing analysis</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="config.html">Configuration</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Config YAML</a></li>
+<li class="toctree-l2"><a class="reference internal" href="references-config.html">References config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampletable.html">Sample tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patterns-targets.html">Patterns and targets</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="config.html">Configuration</a><ul>
+      <li>Previous: <a href="config.html" title="previous chapter">Configuration</a></li>
+      <li>Next: <a href="references-config.html" title="next chapter">References config</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="config-yaml">
+<span id="id1"></span><h1>Config YAML<a class="headerlink" href="#config-yaml" title="Permalink to this headline">¶</a></h1>
+<p>Config files are expected to be in the file <code class="docutils literal notranslate"><span class="pre">config/config.yaml</span></code> relative to
+the Snakefile. For example, the RNA-seq workflow at
+<code class="docutils literal notranslate"><span class="pre">workflows/rnaseq/Snakefile</span></code> expects the config file
+<code class="docutils literal notranslate"><span class="pre">workflows/rnaseq/config/config.yaml</span></code>.</p>
+<p>While it is possible to use Snakemake mechanisms such as <code class="docutils literal notranslate"><span class="pre">--config</span></code> to
+override a particular config value and <code class="docutils literal notranslate"><span class="pre">--configfile</span></code> to update the config
+with a different file, it is easiest to edit the existing
+<code class="docutils literal notranslate"><span class="pre">config/config.yaml</span></code> in place. This has the additional benefit of storing all
+config information in one place for reproducibility.</p>
+<p>The following table summarizes the config fields, which ones are use for which
+workflow, and under what conditions, if any, they are required. Each option
+links to a section below with more details on how to use it.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="48%" />
+<col width="11%" />
+<col width="9%" />
+<col width="10%" />
+<col width="21%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Field</th>
+<th class="head">Used for References</th>
+<th class="head">Used for RNA-seq</th>
+<th class="head">Used for ChIP-seq</th>
+<th class="head">Required</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><a class="reference internal" href="#cfg-references"><span class="std std-ref">references</span></a> and/or <a class="reference internal" href="#cfg-inc-refs"><span class="std std-ref">include_references</span></a></td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#cfg-references-dir"><span class="std std-ref">references_dir</span></a></td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>if <cite>REFERENCES_DIR</cite> env var not set</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#cfg-sampletable"><span class="std std-ref">sampletable</span></a></td>
+<td>.</td>
+<td>yes</td>
+<td>yes</td>
+<td>always</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#cfg-organism"><span class="std std-ref">organism</span></a></td>
+<td>.</td>
+<td>yes</td>
+<td>yes</td>
+<td>always</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#cfg-aligner"><span class="std std-ref">aligner</span></a></td>
+<td>.</td>
+<td>yes</td>
+<td>yes</td>
+<td>always</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#cfg-fastq-screen"><span class="std std-ref">fastq_screen</span></a></td>
+<td>.</td>
+<td>yes</td>
+<td>yes</td>
+<td>if using <cite>fastq_screen</cite></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#cfg-merged-bigwigs"><span class="std std-ref">merged_bigwigs</span></a></td>
+<td>.</td>
+<td>yes</td>
+<td>yes</td>
+<td>if you want to merge bigwigs</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#cfg-gtf"><span class="std std-ref">gtf</span></a></td>
+<td>.</td>
+<td>yes</td>
+<td>.</td>
+<td>always for RNA-seq</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#cfg-rrna"><span class="std std-ref">rrna</span></a></td>
+<td>.</td>
+<td>yes</td>
+<td>.</td>
+<td>if rRNA screening desired</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#cfg-salmon"><span class="std std-ref">salmon</span></a></td>
+<td>.</td>
+<td>yes</td>
+<td>.</td>
+<td>if Salmon quantification will be run</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#cfg-chipseq"><span class="std std-ref">chipseq</span></a></td>
+<td>.</td>
+<td>.</td>
+<td>yes</td>
+<td>always for ChIP-seq</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="example-configs">
+<h2>Example configs<a class="headerlink" href="#example-configs" title="Permalink to this headline">¶</a></h2>
+<p>To provide an overview, here are example config files.</p>
+<div class="section" id="rna-seq">
+<h3>RNA-seq<a class="headerlink" href="#rna-seq" title="Permalink to this headline">¶</a></h3>
+<p>The config file for RNA-seq is expected to be in
+<code class="docutils literal notranslate"><span class="pre">workflows/rnaseq/config/config.yaml</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">references_dir</span><span class="p p-Indicator">:</span> <span class="s">&quot;/data/references&quot;</span>
+<span class="l l-Scalar l-Scalar-Plain">sampletable</span><span class="p p-Indicator">:</span> <span class="s">&quot;config/sampletable.tsv&quot;</span>
+<span class="l l-Scalar l-Scalar-Plain">organism</span><span class="p p-Indicator">:</span> <span class="s">&#39;human&#39;</span>
+<span class="l l-Scalar l-Scalar-Plain">aligner</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="s">&#39;gencode-v25&#39;</span>
+  <span class="l l-Scalar l-Scalar-Plain">index</span><span class="p p-Indicator">:</span> <span class="s">&#39;hisat2&#39;</span>
+<span class="l l-Scalar l-Scalar-Plain">rrna</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="s">&#39;rRNA&#39;</span>
+  <span class="l l-Scalar l-Scalar-Plain">index</span><span class="p p-Indicator">:</span> <span class="s">&#39;bowtie2&#39;</span>
+<span class="l l-Scalar l-Scalar-Plain">gtf</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="s">&#39;gencode-v25&#39;</span>
+
+<span class="l l-Scalar l-Scalar-Plain">fastq_screen</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Human</span>
+    <span class="l l-Scalar l-Scalar-Plain">organism</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">human</span>
+    <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">gencode-v25</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">rRNA</span>
+    <span class="l l-Scalar l-Scalar-Plain">organism</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">human</span>
+    <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">rRNA</span>
+
+<span class="c1"># Portions have been omitted from &quot;references&quot; section below for</span>
+<span class="c1"># simplicity; see references config section for details.</span>
+
+<span class="l l-Scalar l-Scalar-Plain">references</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">human</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">gencode-v25</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">fasta</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="s">&#39;ftp://.../genome.fa.gz&#39;</span>
+        <span class="l l-Scalar l-Scalar-Plain">indexes</span><span class="p p-Indicator">:</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;hisat2&#39;</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;bowtie2&#39;</span>
+      <span class="l l-Scalar l-Scalar-Plain">gtf</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="s">&#39;ftp://.../annotation.gtf.gz&#39;</span>
+
+    <span class="l l-Scalar l-Scalar-Plain">gencode-v25-transcriptome</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">fasta</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="s">&#39;ftp://.../transcriptome.fa.gz&#39;</span>
+        <span class="l l-Scalar l-Scalar-Plain">indexes</span><span class="p p-Indicator">:</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;salmon&#39;</span>
+
+    <span class="l l-Scalar l-Scalar-Plain">rRNA</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">fasta</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="s">&#39;https://...&#39;</span>
+        <span class="l l-Scalar l-Scalar-Plain">indexes</span><span class="p p-Indicator">:</span>
+            <span class="p p-Indicator">-</span> <span class="s">&#39;bowtie2&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="chip-seq">
+<h3>ChIP-seq<a class="headerlink" href="#chip-seq" title="Permalink to this headline">¶</a></h3>
+<p>The config file for ChIP-seq is expected to be in
+<code class="docutils literal notranslate"><span class="pre">workflows/chipseq/config/config.yaml</span></code>.</p>
+<p>The major differences between ChIP-seq and RNA-seq configs are:</p>
+<ul class="simple">
+<li>ChIP-seq has no <code class="docutils literal notranslate"><span class="pre">gtf</span></code> or <code class="docutils literal notranslate"><span class="pre">rrna</span></code> fields</li>
+<li>ChIP-seq has a <code class="docutils literal notranslate"><span class="pre">chipseq:</span> <span class="pre">peak_calling:</span></code> section</li>
+</ul>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sampletable</span><span class="p p-Indicator">:</span> <span class="s">&#39;config/sampletable.tsv&#39;</span>
+<span class="l l-Scalar l-Scalar-Plain">organism</span><span class="p p-Indicator">:</span> <span class="s">&#39;dmel&#39;</span>
+
+<span class="l l-Scalar l-Scalar-Plain">aligner</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">index</span><span class="p p-Indicator">:</span> <span class="s">&#39;bowtie2&#39;</span>
+  <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="s">&#39;test&#39;</span>
+
+<span class="l l-Scalar l-Scalar-Plain">chipseq</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">peak_calling</span><span class="p p-Indicator">:</span>
+
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+      <span class="l l-Scalar l-Scalar-Plain">algorithm</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">macs2</span>
+      <span class="l l-Scalar l-Scalar-Plain">ip</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+      <span class="l l-Scalar l-Scalar-Plain">control</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span>
+
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+      <span class="l l-Scalar l-Scalar-Plain">algorithm</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">spp</span>
+      <span class="l l-Scalar l-Scalar-Plain">ip</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+      <span class="l l-Scalar l-Scalar-Plain">control</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span>
+
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-pooled</span>
+      <span class="l l-Scalar l-Scalar-Plain">algorithm</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">macs2</span>
+      <span class="l l-Scalar l-Scalar-Plain">ip</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-1</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-2</span>
+      <span class="l l-Scalar l-Scalar-Plain">control</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">input-wingdisc-1</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">input-wingdisc-2</span>
+
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-pooled</span>
+      <span class="l l-Scalar l-Scalar-Plain">algorithm</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">spp</span>
+      <span class="l l-Scalar l-Scalar-Plain">ip</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-1</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-2</span>
+      <span class="l l-Scalar l-Scalar-Plain">control</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">input-wingdisc-1</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">input-wingdisc-2</span>
+
+<span class="l l-Scalar l-Scalar-Plain">fastq_screen</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">PhiX</span>
+    <span class="l l-Scalar l-Scalar-Plain">organism</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">phix</span>
+    <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">default</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Human</span>
+    <span class="l l-Scalar l-Scalar-Plain">organism</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">human</span>
+    <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">gencode-v25</span>
+
+<span class="l l-Scalar l-Scalar-Plain">merged_bigwigs</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">input-wingdisc</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">input-wingdisc-1</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">input-wingdisc-2</span>
+  <span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-1</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-2</span>
+  <span class="l l-Scalar l-Scalar-Plain">gaf-embryo</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+
+
+<span class="c1"># Portions have been omitted from &quot;references&quot; section below for</span>
+<span class="c1"># simplicity; see references config section for details.</span>
+
+<span class="l l-Scalar l-Scalar-Plain">references</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">human</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">gencode-v25</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">fasta</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="s">&#39;ftp://.../genome.fa.gz&#39;</span>
+        <span class="l l-Scalar l-Scalar-Plain">indexes</span><span class="p p-Indicator">:</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;hisat2&#39;</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;bowtie2&#39;</span>
+      <span class="l l-Scalar l-Scalar-Plain">gtf</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="s">&#39;ftp://.../annotation.gtf.gz&#39;</span>
+
+  <span class="l l-Scalar l-Scalar-Plain">dmel</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">test</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">fasta</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="s">&quot;https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa&quot;</span>
+        <span class="l l-Scalar l-Scalar-Plain">postprocess</span><span class="p p-Indicator">:</span> <span class="s">&#39;lib.common.gzipped&#39;</span>
+        <span class="l l-Scalar l-Scalar-Plain">indexes</span><span class="p p-Indicator">:</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;bowtie2&#39;</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;hisat2&#39;</span>
+
+  <span class="l l-Scalar l-Scalar-Plain">phix</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">default</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">fasta</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">url</span><span class="p p-Indicator">:</span> <span class="s">&#39;ftp://...&#39;</span>
+        <span class="l l-Scalar l-Scalar-Plain">indexes</span><span class="p p-Indicator">:</span>
+          <span class="p p-Indicator">-</span> <span class="s">&#39;bowtie2&#39;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="field-descriptions">
+<h2>Field descriptions<a class="headerlink" href="#field-descriptions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="required-for-references-rna-seq-and-chip-seq">
+<h3>Required for references, RNA-seq and ChIP-seq<a class="headerlink" href="#required-for-references-rna-seq-and-chip-seq" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="references">
+<span id="cfg-references"></span><h4><code class="docutils literal notranslate"><span class="pre">references</span></code><a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div><p>This section defines labels for references, where to get FASTA and GTF
+files and (optionally) post-process them, and which indexes to build.</p>
+<p>Briefly, the example above has a single organism configured (“human”). That
+organism has three tags (“gencode-v25”, “gencode-v25-transcriptome”, and
+“rRNA”).</p>
+<p>This is the most complex section and is documented elsewhere (see
+<a class="reference internal" href="references-config.html#references-config"><span class="std std-ref">References config</span></a>).</p>
+</div></blockquote>
+</div>
+<div class="section" id="include-references">
+<span id="cfg-inc-refs"></span><h4><code class="docutils literal notranslate"><span class="pre">include_references</span></code><a class="headerlink" href="#include-references" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div><p>This section can be used to supplement the <code class="docutils literal notranslate"><span class="pre">references</span></code> section with
+other reference sections stored elsewhere in files. It’s a convenient way
+of managing a large amount of references without cluttering the config
+file.</p>
+<p>See <a class="reference internal" href="references-config.html#references-config"><span class="std std-ref">References config</span></a> for more.</p>
+</div></blockquote>
+</div>
+<div class="section" id="references-dir">
+<span id="cfg-references-dir"></span><h4><code class="docutils literal notranslate"><span class="pre">references_dir</span></code><a class="headerlink" href="#references-dir" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div><p>Top-level directory in which to create references.</p>
+<p>If not specified, uses the environment variable <code class="docutils literal notranslate"><span class="pre">REFERENCES_DIR</span></code>.</p>
+<p>If specified and <code class="docutils literal notranslate"><span class="pre">REFERENCES_DIR</span></code> also exists, <code class="docutils literal notranslate"><span class="pre">REFERENCES_DIR</span></code> takes
+precedence.</p>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="required-for-rna-seq-and-chip-seq">
+<h3>Required for RNA-seq and ChIP-seq<a class="headerlink" href="#required-for-rna-seq-and-chip-seq" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="sampletable-field">
+<span id="cfg-sampletable"></span><h4><code class="docutils literal notranslate"><span class="pre">sampletable</span></code> field<a class="headerlink" href="#sampletable-field" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div><p>Path to sampletable file which, at minimum, list sample names and paths to
+FASTQ files. The path is relative to the Snakefile. See <a class="reference internal" href="sampletable.html#sampletable"><span class="std std-ref">Sample tables</span></a>
+for more info on the expected contents of the file.</p>
+<p>Example:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sampletable</span><span class="p p-Indicator">:</span> <span class="s">&quot;config/sampletable.tsv&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="organism-field">
+<span id="cfg-organism"></span><h4><code class="docutils literal notranslate"><span class="pre">organism</span></code> field<a class="headerlink" href="#organism-field" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div><p>This field selects the top-level section of the <code class="docutils literal notranslate"><span class="pre">references</span></code> section that
+will be used for the analysis. In the example above, “human” is the only
+organism configured.</p>
+<p>Example:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">organism</span><span class="p p-Indicator">:</span> <span class="s">&quot;human&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="aligner-config-section">
+<span id="cfg-aligner"></span><h4><code class="docutils literal notranslate"><span class="pre">aligner</span></code> config section<a class="headerlink" href="#aligner-config-section" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div><p>This field has two sub-fields, and automatically uses the configured
+<code class="docutils literal notranslate"><span class="pre">organism</span></code> to select the top-level entry in the references section.
+<code class="docutils literal notranslate"><span class="pre">tag</span></code> selects the tag from the organism to use, and <code class="docutils literal notranslate"><span class="pre">index</span></code> selects
+which aligner index to use. The relevant option from the example above
+would be “gencode-v25”, which configures both bowtie2 and hisat2 indexes to
+be built. For RNA-seq we would likely choose “hisat2”; for ChIP-seq
+“bowtie2”.</p>
+<p>Example:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">aligner</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="s">&quot;gencode-v25&quot;</span>
+  <span class="l l-Scalar l-Scalar-Plain">index</span><span class="p p-Indicator">:</span> <span class="s">&quot;hisat2&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="optional-fields">
+<h3>Optional fields<a class="headerlink" href="#optional-fields" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="fastq-screen-config-section">
+<span id="cfg-fastq-screen"></span><h4><code class="docutils literal notranslate"><span class="pre">fastq_screen</span></code> config section<a class="headerlink" href="#fastq-screen-config-section" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div><p>This section configures which Bowtie2 indexes should be used with
+<cite>fastq_screen</cite>. It takes the form of a list of dictionaries. Each
+dictionary has the keys:</p>
+<blockquote>
+<div><ul class="simple">
+<li><cite>label</cite>: how to label the genome in the output</li>
+<li><cite>organism</cite>: a configured organism. In the example above, there is only a single configured organism, “human”.</li>
+<li><cite>tag</cite>: a configured tag for that organism.</li>
+</ul>
+</div></blockquote>
+<p>Each entry in the list must have a Bowtie2 index configured to be built.</p>
+<p>Example:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">fastq_screen</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Human</span>
+    <span class="l l-Scalar l-Scalar-Plain">organism</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">human</span>
+    <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">gencode-v25</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">rRNA</span>
+    <span class="l l-Scalar l-Scalar-Plain">organism</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">human</span>
+    <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">rRNA</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="merged-bigwigs-config-section">
+<span id="cfg-merged-bigwigs"></span><h4><code class="docutils literal notranslate"><span class="pre">merged_bigwigs</span></code> config section<a class="headerlink" href="#merged-bigwigs-config-section" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div><p>This section controls optional merging of signal files in bigWig format.
+Its format differs depending on RNA-seq or ChIP-seq, due to how strands are
+handled in those workflows.</p>
+<p>Here is an RNA-seq example:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">merged_bigwigs</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">arbitrary_label_to_use</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">sense</span><span class="p p-Indicator">:</span>
+      <span class="p p-Indicator">-</span> <span class="s">&#39;sample1&#39;</span>
+      <span class="p p-Indicator">-</span> <span class="s">&#39;sample2&#39;</span>
+    <span class="l l-Scalar l-Scalar-Plain">antisense</span><span class="p p-Indicator">:</span>
+      <span class="p p-Indicator">-</span> <span class="s">&#39;sample1&#39;</span>
+      <span class="p p-Indicator">-</span> <span class="s">&#39;sample2&#39;</span>
+</pre></div>
+</div>
+<p>This will result in a single bigWig file called
+<cite>arbitrary_label_to_use.bigwig</cite> in the directory
+<cite>data/rnaseq_aggregation/merged_bigwigs</cite> (by default; this is configured
+using <code class="docutils literal notranslate"><span class="pre">config/rnaseq_patterns.yaml</span></code>). That file merges together both the
+sense and antisense signal strands of two samples, sample1 and sample2. The
+names “sample1” and “sample2” are sample names defined in the <a class="reference internal" href="sampletable.html#sampletable"><span class="std std-ref">sample
+table</span></a>.</p>
+<p>Here’s another RNA-seq example, where we merge the samples again but keep
+the strands separate. This will result in two output bigwigs.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">merged_bigwigs</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">merged_sense</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">sense</span><span class="p p-Indicator">:</span>
+      <span class="p p-Indicator">-</span> <span class="s">&#39;sample1&#39;</span>
+      <span class="p p-Indicator">-</span> <span class="s">&#39;sample2&#39;</span>
+  <span class="l l-Scalar l-Scalar-Plain">merged_antisense</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">antisense</span><span class="p p-Indicator">:</span>
+      <span class="p p-Indicator">-</span> <span class="s">&#39;sample1&#39;</span>
+      <span class="p p-Indicator">-</span> <span class="s">&#39;sample</span>
+</pre></div>
+</div>
+<p>Here is a ChIP-seq example:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">merged_bigwigs</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">arbitrary_label_to_use</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="s">&#39;label1&#39;</span>
+    <span class="p p-Indicator">-</span> <span class="s">&#39;label2&#39;</span>
+</pre></div>
+</div>
+<p>This will result in a single bigWig file called
+<cite>arbitrary_label_to_use.bigwig</cite> in the directory
+<cite>data/chipseq_aggregation/merged_bigwigs</cite> (by default; this is configured
+using <code class="docutils literal notranslate"><span class="pre">config/chipseq_patterns.yaml</span></code>) that merges together the “label1”
+and “label2” bigwigs.</p>
+<p>See <a class="reference internal" href="sampletable.html#sampletable"><span class="std std-ref">Sample tables</span></a> for more info on the relationship between a <em>sample</em>
+and a <em>label</em> when working with ChIP-seq.</p>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="rna-seq-only-fields">
+<h3>RNA-seq-only fields<a class="headerlink" href="#rna-seq-only-fields" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="rrrna-field">
+<span id="cfg-rrna"></span><h4><code class="docutils literal notranslate"><span class="pre">rrrna</span></code> field<a class="headerlink" href="#rrrna-field" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div><p>This field selects the reference tag to use for screening rRNA reads.
+Similar to the <code class="docutils literal notranslate"><span class="pre">aligner</span></code> field, it takes both a <code class="docutils literal notranslate"><span class="pre">tag</span></code> and <code class="docutils literal notranslate"><span class="pre">index</span></code>
+key. The specified index must have been configured to be built for the
+specified tag. It uses the already configured <code class="docutils literal notranslate"><span class="pre">organism</span></code>.</p>
+<p>Example:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">rrna</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">tag</span><span class="p p-Indicator">:</span> <span class="s">&#39;rRNA&#39;</span>
+  <span class="l l-Scalar l-Scalar-Plain">index</span><span class="p p-Indicator">:</span> <span class="s">&#39;bowtie2&#39;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="gtf-field">
+<span id="cfg-gtf"></span><h4><code class="docutils literal notranslate"><span class="pre">gtf</span></code> field<a class="headerlink" href="#gtf-field" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div>This field selects the reference tag to use for counting reads in features.
+The tag must have had a <code class="docutils literal notranslate"><span class="pre">gtf:</span></code> section specified; see
+<a class="reference internal" href="references-config.html#references-config"><span class="std std-ref">References config</span></a> for details.</div></blockquote>
+</div>
+<div class="section" id="salmon-field">
+<span id="cfg-salmon"></span><h4><code class="docutils literal notranslate"><span class="pre">salmon</span></code> field<a class="headerlink" href="#salmon-field" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div>This field selects the reference tag to use for the Salmon index (if used).
+The tag must have had a FASTA configured, and an index for “salmon” must
+have been configured to be built for the organism selected with the
+<code class="docutils literal notranslate"><span class="pre">organism</span></code> config option.</div></blockquote>
+</div>
+</div>
+<div class="section" id="chip-seq-only-fields">
+<h3>ChIP-seq-only fields<a class="headerlink" href="#chip-seq-only-fields" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="chipseq-config-section">
+<span id="cfg-chipseq"></span><h4><code class="docutils literal notranslate"><span class="pre">chipseq</span></code> config section<a class="headerlink" href="#chipseq-config-section" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div><p>This section configures the peak-calling stage of the ChIP-seq workflow. It
+currently expects a single key, <code class="docutils literal notranslate"><span class="pre">peak_calling</span></code>, which is a list of
+peak-calling runs.</p>
+<p>A peak-calling run is a dictionary configuring a single peak-calling run
+which results in a single BED file of called peaks. A peak-calling run is
+uniquely described by its <code class="docutils literal notranslate"><span class="pre">label</span></code> and <code class="docutils literal notranslate"><span class="pre">algorithm</span></code>. This way, we can use
+the same label (e.g., <cite>gaf-embryo-1</cite>) across multiple peak-callers to help
+organize the output.</p>
+<p>Here is a minimal example of a peak-calling config section. It defines
+a single peak-calling run using the <cite>macs2</cite> algorithm. Note that the
+<code class="docutils literal notranslate"><span class="pre">ip:</span></code> and <code class="docutils literal notranslate"><span class="pre">control:</span></code> keys are lists of <strong>labels</strong> from the ChIP-seq
+sample table’s <code class="docutils literal notranslate"><span class="pre">label</span></code> column, not sample IDs from the first column.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">chipseq</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">peak_calling</span><span class="p p-Indicator">:</span>
+
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+      <span class="l l-Scalar l-Scalar-Plain">algorithm</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">macs2</span>
+      <span class="l l-Scalar l-Scalar-Plain">ip</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+      <span class="l l-Scalar l-Scalar-Plain">control</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span>
+</pre></div>
+</div>
+<p>The above peak-calling config will result in a file
+<code class="docutils literal notranslate"><span class="pre">data/chipseq_peaks/macs2/gaf-embryo-1/peaks.bed</span></code> (that pattern is
+defined in <code class="docutils literal notranslate"><span class="pre">chipseq_patterns.yaml</span></code> if you need to change it).</p>
+<p>We can specify additional command-line arguments that are passed verbatim
+to <cite>macs2</cite> with the <code class="docutils literal notranslate"><span class="pre">extra:</span></code> section, for example:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">chipseq</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">peak_calling</span><span class="p p-Indicator">:</span>
+
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+      <span class="l l-Scalar l-Scalar-Plain">algorithm</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">macs2</span>
+      <span class="l l-Scalar l-Scalar-Plain">ip</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+      <span class="l l-Scalar l-Scalar-Plain">control</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span>
+      <span class="l l-Scalar l-Scalar-Plain">extra</span><span class="p p-Indicator">:</span> <span class="s">&#39;--nomodel</span><span class="nv"> </span><span class="s">--extsize</span><span class="nv"> </span><span class="s">147&#39;</span>
+</pre></div>
+</div>
+<p><cite>macs2</cite> supports multiple IP and input files, which internally are merged
+by <cite>macs2</cite>. We can supply multiple IP and input labels for biological
+replicates to get a set of peaks called on pooled samples. Note that we
+give it a different label so it doesn’t overwrite the other peak-calling
+run we already have configured.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">chipseq</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">peak_calling</span><span class="p p-Indicator">:</span>
+
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+      <span class="l l-Scalar l-Scalar-Plain">algorithm</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">macs2</span>
+      <span class="l l-Scalar l-Scalar-Plain">ip</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+      <span class="l l-Scalar l-Scalar-Plain">control</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span>
+      <span class="l l-Scalar l-Scalar-Plain">extra</span><span class="p p-Indicator">:</span> <span class="s">&#39;--nomodel</span><span class="nv"> </span><span class="s">--extsize</span><span class="nv"> </span><span class="s">147&#39;</span>
+
+
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">label</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">gaf-embryo-pooled</span>
+      <span class="l l-Scalar l-Scalar-Plain">algorithm</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">macs2</span>
+      <span class="l l-Scalar l-Scalar-Plain">ip</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gaf-embryo-2</span>
+      <span class="l l-Scalar l-Scalar-Plain">control</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">input-embryo-2</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/config-yaml.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
