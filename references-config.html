@@ -414,43 +414,127 @@ bowtie2 index, etc) will now use this fixed version with “chr” prepended to
 chromosome names.  In this way, we can apply arbitrary code to modify
 references to get them into a uniform format.</p>
 </div>
+<div class="section" id="locations-of-downloaded-and-post-rocessed-fasta-and-gtf-files">
+<h2>Locations of downloaded-and-post-rocessed FASTA and GTF files<a class="headerlink" href="#locations-of-downloaded-and-post-rocessed-fasta-and-gtf-files" title="Permalink to this headline">¶</a></h2>
+<p>Generally speaking, the fasta and gtf files will be in:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">fasta</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.</span><span class="n">fasta</span>
+<span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">gtf</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.</span><span class="n">gtf</span>
+</pre></div>
+</div>
+<p>If a config file looks like this (simplified here for clarity):</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">references_dir</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">refs</span>
+<span class="l l-Scalar l-Scalar-Plain">references</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">human</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">hg38</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">fasta</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">...</span>
+      <span class="l l-Scalar l-Scalar-Plain">gtf</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">...</span>
+</pre></div>
+</div>
+<p>Then the following files will be created:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">refs</span><span class="o">/</span><span class="n">human</span><span class="o">/</span><span class="n">hg38</span><span class="o">/</span><span class="n">fasta</span><span class="o">/</span><span class="n">human_hg38</span><span class="o">.</span><span class="n">fasta</span>
+<span class="n">refs</span><span class="o">/</span><span class="n">human</span><span class="o">/</span><span class="n">hg38</span><span class="o">/</span><span class="n">gtf</span><span class="o">/</span><span class="n">human_hg38</span><span class="o">.</span><span class="n">gtf</span>
+</pre></div>
+</div>
+<p>If you are running the references workflow directly, or it is included in
+another workflow that requests a chromsizes file, the following will also be
+created:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">refs</span><span class="o">/</span><span class="n">human</span><span class="o">/</span><span class="n">hg38</span><span class="o">/</span><span class="n">fasta</span><span class="o">/</span><span class="n">human_hg38</span><span class="o">.</span><span class="n">chromsizes</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">URLs are expected to be gzipped and any postprocessing functions are
+expected to output gzipped files. This is because it is most common for
+providers to offer gzipped reference files, and therefore minimizes the
+effort required to prepare fasta and gtf files.  However, not all downstream
+tools handle gzipped input. The references workflow therefore stores only the
+uncompressed versions. We consider the resulting configuration simplicity to
+be worth the additional space and time cost.</p>
+</div>
+</div>
 <div class="section" id="available-indexes-and-conversions">
 <h2>Available indexes and conversions<a class="headerlink" href="#available-indexes-and-conversions" title="Permalink to this headline">¶</a></h2>
 <p>The following indexes can be currently be specified for fasta files:</p>
-<blockquote>
-<div><ul class="simple">
-<li>hisat2</li>
-<li>bowtie2</li>
-<li>salmon</li>
-</ul>
-</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">hisat2:</th><td class="field-body"><div class="first highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">indexes</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">hisat2</span>
+</pre></div>
+</div>
+<p>Output files:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">hisat2</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.*.</span><span class="n">ht2</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">bowtie2:</th><td class="field-body"><div class="first highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">indexes</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">bowtie2</span>
+</pre></div>
+</div>
+<p>Output files:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">bowtie2</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.*.</span><span class="n">bt2</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">salmon:</th><td class="field-body"><div class="first highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">indexes</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">salmon</span>
+</pre></div>
+</div>
+<p>Output files:</p>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">salmon</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/*</span>
+</pre></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
 <p>The following conversions can be specified for GTF files:</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">refflat:</th><td class="field-body"><p class="first">Converts GTF to refFlat format. See the <code class="docutils literal notranslate"><span class="pre">conversion_refflat</span></code> rule in
+<tr class="field-odd field"><th class="field-name">refflat:</th><td class="field-body"><div class="first highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">conversions</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">refflat</span>
+</pre></div>
+</div>
+<p>Converts GTF to refFlat format. See the <code class="docutils literal notranslate"><span class="pre">conversion_refflat</span></code> rule in
 <code class="docutils literal notranslate"><span class="pre">workflows/references/Snakefile</span></code>.</p>
+<p>Output file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">gtf</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.</span><span class="n">refflat</span>
+</pre></div>
+</div>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">gffutils:</th><td class="field-body"><p class="first">Converts GTF to gffutils database. You can specify arbitrary kwargs to
-<code class="docutils literal notranslate"><span class="pre">gffutils.create_db</span></code> by including them as keys. For example, if the GTF
-file already contains features for genes and transcripts:</p>
+<tr class="field-even field"><th class="field-name">gffutils:</th><td class="field-body"><p class="first">Converts GTF to gffutils database (typically used for downstream work). You
+can specify arbitrary kwargs to <code class="docutils literal notranslate"><span class="pre">gffutils.create_db</span></code> by including them as
+keys. For example, if the GTF file already contains features for genes and
+transcripts:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">conversions</span><span class="p p-Indicator">:</span>
   <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gffutils</span><span class="p p-Indicator">:</span>
       <span class="l l-Scalar l-Scalar-Plain">disable_infer_genes</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">True</span>
       <span class="l l-Scalar l-Scalar-Plain">disable_infer_transcripts</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">True</span>
 </pre></div>
 </div>
+<p>Output file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">gtf</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.</span><span class="n">gtf</span><span class="o">.</span><span class="n">db</span>
+</pre></div>
+</div>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">genelist:</th><td class="field-body"><p class="first">Reads the postprocessed GTF file, and extracts the set of gene IDs found.
-The GTF attribute to use is configured by the <code class="docutils literal notranslate"><span class="pre">gene_id:</span></code> key, for
-example, if the file contains gene IDs in the <code class="docutils literal notranslate"><span class="pre">Name</span></code> attribute of each
-line, use the following:</p>
+<tr class="field-odd field"><th class="field-name">genelist:</th><td class="field-body"><p class="first">Reads the postprocessed GTF file, and extracts the set of gene IDs found,
+one ID per line. The GTF attribute to use is configured by the
+<code class="docutils literal notranslate"><span class="pre">gene_id:</span></code> key, for example, if the file contains gene IDs in the
+<code class="docutils literal notranslate"><span class="pre">Name</span></code> attribute of each line, use the following:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">conversions</span><span class="p p-Indicator">:</span>
   <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">genelist</span><span class="p p-Indicator">:</span>
       <span class="l l-Scalar l-Scalar-Plain">gene_id</span><span class="p p-Indicator">:</span> <span class="s">&#39;Name&#39;</span>
+</pre></div>
+</div>
+<p>Output file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">gtf</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.</span><span class="n">genelist</span>
 </pre></div>
 </div>
 </td>
@@ -470,9 +554,13 @@ attribute that may happen to be called <code class="docutils literal notranslate
   <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">mappings</span>
 </pre></div>
 </div>
-<div class="last highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">conversions</span><span class="p p-Indicator">:</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">conversions</span><span class="p p-Indicator">:</span>
   <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">mappings</span><span class="p p-Indicator">:</span>
       <span class="l l-Scalar l-Scalar-Plain">include_featuretypes</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">[</span><span class="nv">gene</span><span class="p p-Indicator">,</span> <span class="nv">transcript</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+<p>Output file:</p>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">gtf</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.</span><span class="n">mapping</span><span class="o">.</span><span class="n">tsv</span><span class="o">.</span><span class="n">gz</span>
 </pre></div>
 </div>
 </td>
