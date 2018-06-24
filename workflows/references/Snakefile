@@ -236,8 +236,7 @@ rule mappings:
         # include_featuretypes settings, this may take a while.
         df = df.drop_duplicates()
 
-        with gzip.open(output[0], 'wt') as fout:
-            df.to_csv(fout, sep='\t', index=False)
+        df.to_csv(output[0], sep='\t', index=False, compression='gzip')
 
         # Restore original setting
         gffutils.constants.always_return_list = orig_setting

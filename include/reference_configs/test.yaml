@@ -24,11 +24,14 @@ references:
           - genelist:
               gene_id: 'gene_id'
 
+          # Deprecated in favor of "mappings"
           # a <- AnnotationHub()
           # a[(a$rdataclass == 'OrgDb') & grepl('melanogaster', a$species),]
-          - annotation_hub:
-              ahkey: 'AH57972'
-              keytype: 'ENSEMBL'
+          # - annotation_hub:
+          #     ahkey: 'AH57972'
+          #    keytype: 'ENSEMBL'
+          #
+          - mappings
 
       metadata:
         reference_genome_build: 'dm6'

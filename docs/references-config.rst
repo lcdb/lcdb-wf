@@ -8,10 +8,11 @@ The references section defines genomes, transcriptomes, and annotations to use.
 It supports arbitrarily many species and assemblies, and supports customizing
 references for a particular project.
 
-Using existing configs
-----------------------
-If you just want to use some references configs that work, then put this in
-your config file:
+Including existing reference configs
+------------------------------------
+We provide a number of pre-configured reference configs for common model
+organisms.  If you just want to use some references configs that work, then put
+this in your config file:
 
 .. code-block:: yaml
 
@@ -19,9 +20,9 @@ your config file:
       - '../../include/references_configs'
 
 This will populate the config with the contents of all the files contained in
-the ``include/references_configs`` directory. The path is relative to the
-Snakefile using the config. Note that you will still need to inspect the
-contents of those files to decide which organsim and tag you want to use for
+the ``include/references_configs`` directory (the path is relative to the
+Snakefile using the config). **Note that you will still need to inspect the
+contents** of those files to decide which organsim and tag you want to use for
 your particular experiment (see :ref:`cfg-organism` and :ref:`cfg-aligner` for
 more on these fields). For example, if you are working with human RNA-seq data,
 and you use the above ``include_references``, you may want this in your config:
@@ -37,6 +38,18 @@ and you use the above ``include_references``, you may want this in your config:
 since the ``gencode-v25`` and ``gencode-v25-transcriptome`` tags are configured
 for the ``human`` key in
 ``../../include/references_configs/Homo_sapiens.yaml``.
+
+You can provide entire directories of reference configs, a single file, or use the references section below. The prioritization works like this:
+
+- an organism can show up in multiple configs; if a tag exists for an organism
+  in more than one config, higher-priority configs will overwrite the contents
+  of the tag.
+- directories have lowest priority; when multiple directories are specified the
+  last one has priority
+- files have priority over directories; when multiple files are specified the
+  last one has priority
+- the ``references:``` section always has priority over anything in
+  ``include_references:``.
 
 The remainder of this section of the documentation explains how to customize
 the references, to add your own or modify the existing examples.
@@ -335,26 +348,105 @@ bowtie2 index, etc) will now use this fixed version with "chr" prepended to
 chromosome names.  In this way, we can apply arbitrary code to modify
 references to get them into a uniform format.
 
+Locations of downloaded-and-post-rocessed FASTA and GTF files
+-------------------------------------------------------------
+Generally speaking, the fasta and gtf files will be in::
+
+    {references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta
+    {references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf
+
+If a config file looks like this (simplified here for clarity):
+
+.. code-block:: yaml
+
+  references_dir: refs
+  references:
+    human:
+      hg38:
+        fasta: ...
+        gtf: ...
+
+Then the following files will be created::
+
+    refs/human/hg38/fasta/human_hg38.fasta
+    refs/human/hg38/gtf/human_hg38.gtf
+
+
+If you are running the references workflow directly, or it is included in
+another workflow that requests a chromsizes file, the following will also be
+created::
+
+    refs/human/hg38/fasta/human_hg38.chromsizes
+
+.. note::
+
+  URLs are expected to be gzipped and any postprocessing functions are
+  expected to output gzipped files. This is because it is most common for
+  providers to offer gzipped reference files, and therefore minimizes the
+  effort required to prepare fasta and gtf files.  However, not all downstream
+  tools handle gzipped input. The references workflow therefore stores only the
+  uncompressed versions. We consider the resulting configuration simplicity to
+  be worth the additional space and time cost.
+
 
 Available indexes and conversions
 ---------------------------------
 The following indexes can be currently be specified for fasta files:
 
-    - hisat2
-    - bowtie2
-    - salmon
+:hisat2:
+
+    .. code-block:: yaml
+
+        indexes:
+          - hisat2
+
+    Output files::
+
+      {references_dir}/{organism}/{tag}/hisat2/{organism}_{tag}.*.ht2
+
+:bowtie2:
+
+    .. code-block:: yaml
+
+        indexes:
+          - bowtie2
+
+    Output files::
+
+      {references_dir}/{organism}/{tag}/bowtie2/{organism}_{tag}.*.bt2
+
+:salmon:
+
+    .. code-block:: yaml
+
+        indexes:
+          - salmon
+
+    Output files::
+
+      {references_dir}/{organism}/{tag}/salmon/{organism}_{tag}/*
 
 The following conversions can be specified for GTF files:
 
 :refflat:
+
+    .. code-block:: yaml
+
+        conversions:
+          - refflat
+
     Converts GTF to refFlat format. See the ``conversion_refflat`` rule in
     ``workflows/references/Snakefile``.
 
+    Output file::
+
+      {references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.refflat
 
 :gffutils:
-    Converts GTF to gffutils database. You can specify arbitrary kwargs to
-    ``gffutils.create_db`` by including them as keys. For example, if the GTF
-    file already contains features for genes and transcripts:
+    Converts GTF to gffutils database (typically used for downstream work). You
+    can specify arbitrary kwargs to ``gffutils.create_db`` by including them as
+    keys. For example, if the GTF file already contains features for genes and
+    transcripts:
 
     .. code-block:: yaml
 
@@ -363,17 +455,26 @@ The following conversions can be specified for GTF files:
               disable_infer_genes: True
               disable_infer_transcripts: True
 
+
+    Output file::
+
+        {references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf.db
+
 :genelist:
-    Reads the postprocessed GTF file, and extracts the set of gene IDs found.
-    The GTF attribute to use is configured by the ``gene_id:`` key, for
-    example, if the file contains gene IDs in the ``Name`` attribute of each
-    line, use the following:
+    Reads the postprocessed GTF file, and extracts the set of gene IDs found,
+    one ID per line. The GTF attribute to use is configured by the
+    ``gene_id:`` key, for example, if the file contains gene IDs in the
+    ``Name`` attribute of each line, use the following:
 
     .. code-block:: yaml
 
         conversions:
           - genelist:
               gene_id: 'Name'
+
+    Output file::
+
+      {references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.genelist
 
 :mappings:
     Reads the postprocesses GTF file, and outputs mappings between attributes
@@ -400,3 +501,7 @@ The following conversions can be specified for GTF files:
         conversions:
           - mappings:
               include_featuretypes: [gene, transcript]
+
+    Output file::
+
+      {references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.mapping.tsv.gz

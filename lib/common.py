@@ -590,14 +590,13 @@ def deprecation_handler(config):
 
     Also makes any fixes that can be done automatically.
     """
-    warnings.simplefilter('default')
     if 'assembly' in config:
         config['organism'] = config['assembly']
         warnings.warn(
             "'assembly' should be replaced with 'organism' in config files. "
             "As a temporary measure, a new 'organism' key has been added with "
             "the value of 'assembly'",
-            DeprecationWarning)
+            UserWarning)
 
 
     for org, block1 in config.get('references', {}).items():
@@ -610,6 +609,6 @@ def deprecation_handler(config):
                         "than 'annotation_hub' since it works directly off "
                         "the GTF file rather than assuming concordance between "
                         "GTF and AnnoationHub instances",
-                        DeprecationWarning)
+                        UserWarning)
 
     return config
