@@ -22,12 +22,6 @@ extra_fn_clean_exts:
 sp:
   fastq_screen:
     fn: '*.screen.txt'
-  picard/rnaseqmetrics:
-    contents_re: '.*picard\.analysis\.[Rr]na[Ss]eq[Mm]etrics.*'
-    shared: true
-  picard/markdups:
-    contents_re: '.*picard\.sam\.[Dd]uplication[Mm]etrics.*'
-    shared: true
 
 # Set the module order to reflect the order of the workflow. Note that here
 # we're also running the FastQC module multiple times, and putting them in
