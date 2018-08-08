@@ -33,7 +33,7 @@ kallisto
 lcdblib
 matplotlib
 multiqc
-pandas
+pandas ==0.22.0
 pandoc
 picard
 preseq
