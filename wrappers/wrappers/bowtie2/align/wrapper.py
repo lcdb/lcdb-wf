@@ -15,7 +15,7 @@ log = snakemake.log_fmt_shell()
 # Handle paired-end reads. Since snakemake automatically converts a one-element
 # list to a string, here we detect single-end reads by checking if input.fastq
 # is a string.
-if isinstance(snakemake.input.fastq, str):
+if isinstance(snakemake.input.fastq, str) or len(snakemake.input.fastq) == 1:
     fastqs = '-U {0} '.format(snakemake.input.fastq)
 else:
     assert len(snakemake.input.fastq) == 2

@@ -9,6 +9,7 @@ import gzip
 from lcdblib.utils.imports import resolve_name
 from lcdblib.snakemake import aligners
 from snakemake.shell import shell
+from snakemake.io import expand
 
 # List of possible keys in config that are to be interpreted as paths
 PATH_KEYS = [
@@ -612,3 +613,39 @@ def deprecation_handler(config):
                         UserWarning)
 
     return config
+
+
+def fill_r1_r2(sampletable, pattern, r1_only=False):
+    """
+    Returns 1 or 2 rendered versions of a pattern depending on PE or SE.
+
+    Given a pattern (which is expected to contain a placeholder for "{sample}"
+    and "{n}"), look up in the sampletable whether or not it is paired-end.
+
+    Parameters
+    ----------
+
+    sampletable : pandas.DataFrame
+        Contains a "layout" column with either "SE" or "PE". If column does not
+        exist, assume SE.
+
+    pattern : str
+        Must contain at least a "{sample}" placeholder.
+
+    r1_only : bool
+        If True, then only return the file for R1 even if PE is configured.
+    """
+    def func(wc):
+        try:
+            wc.sample
+        except AttributeError:
+            raise ValueError(
+                'Need "{{sample}}" in pattern '
+                '"{pattern}"'.format(pattern=pattern))
+        row = sampletable.set_index(sampletable.columns[0]).loc[wc.sample]
+        n = [1]
+        if row['layout'] == 'PE' and not r1_only:
+            n = [1, 2]
+        res = expand(pattern, sample=wc.sample, n=n)
+        return res
+    return func

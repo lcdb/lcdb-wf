@@ -37,8 +37,10 @@ with open(tmp, 'w') as fout:
 
 # fastq_screen hard-codes filenames according to this prefix. We will send
 # hard-coded output to a temp dir, and then move them later.
-prefix = os.path.basename(snakemake.input.fastq.split('.fastq')[0])
 tempdir = tempfile.mkdtemp()
+
+# Note that we assume only R1 is coming in.
+prefix = os.path.basename(snakemake.input.fastq[0].split('.fastq')[0])
 
 shell(
     "fastq_screen --outdir {tempdir} "
