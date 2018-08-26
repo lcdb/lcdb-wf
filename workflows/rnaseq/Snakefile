@@ -81,9 +81,12 @@ if 'orig_filename' in c.sampletable.columns:
         """
         row = _st.loc[wc.sample]
         res = [row['orig_filename']]
-        r2 = row['orig_filename_R2']
-        if isinstance(r2, str):
-            res.append(row['orig_filename_R2'])
+        try:
+            r2 = row['orig_filename_R2']
+            if isinstance(r2, str):
+                res.append(row['orig_filename_R2'])
+        except KeyError:
+            pass
         return res
 
     rule symlinks:

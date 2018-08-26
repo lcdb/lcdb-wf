@@ -79,9 +79,12 @@ if 'orig_filename' in c.sampletable.columns:
         """
         row = _st.loc[wc.sample]
         res = [row['orig_filename']]
-        r2 = row['orig_filename_R2']
-        if isinstance(r2, str):
-            res.append(row['orig_filename_R2'])
+        try:
+            r2 = row['orig_filename_R2']
+            if isinstance(r2, str):
+                res.append(row['orig_filename_R2'])
+        except KeyError:
+            pass
         return res
 
     rule symlinks:
@@ -150,12 +153,15 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                 )
 
 
+def render_r1_r2(pattern):
+    return expand(pattern, sample='{sample}', n=[1,2])
+
 rule cutadapt:
     """
     Run cutadapt
     """
     input:
-        fastq=fastqs_for_pattern(c.patterns['fastq'])
+        fastq=common.fill_r1_r2(c.sampletable, c.patterns['fastq'])
     output:
         fastq=render_r1_r2(c.patterns['cutadapt'])
     log:
@@ -204,7 +210,7 @@ rule bowtie2:
     Map reads with Bowtie2
     """
     input:
-        fastq=rules.cutadapt.output.fastq,
+        fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
         index=[refdict[c.organism][config['aligner']['tag']]['bowtie2']]
     output:
         bam=c.patterns['bam']

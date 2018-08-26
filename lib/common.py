@@ -644,8 +644,11 @@ def fill_r1_r2(sampletable, pattern, r1_only=False):
                 '"{pattern}"'.format(pattern=pattern))
         row = sampletable.set_index(sampletable.columns[0]).loc[wc.sample]
         n = [1]
-        if row['layout'] == 'PE' and not r1_only:
-            n = [1, 2]
+        try:
+            if row['layout'] == 'PE' and not r1_only:
+                n = [1, 2]
+        except KeyError:
+            pass
         res = expand(pattern, sample=wc.sample, n=n)
         return res
     return func
