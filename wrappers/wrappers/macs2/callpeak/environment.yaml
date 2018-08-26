@@ -4,5 +4,6 @@ channels:
   - defaults
 dependencies:
   - macs2
+  - numpy
   - bedtools
   - ucsc-bedsort

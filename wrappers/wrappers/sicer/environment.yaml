@@ -4,6 +4,7 @@ channels:
   - defaults
 dependencies:
   - python=2
+  - numpy
   - sicer
   - bedtools
   - ucsc-bedsort
