@@ -1,5 +1,0 @@
-channels:
-  - bioconda
-dependencies:
-  - python=3
-  - cutadapt ==1.13
