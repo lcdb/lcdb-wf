@@ -212,7 +212,7 @@ rule hisat2:
     Map reads with HISAT2
     """
     input:
-        fastq=rules.cutadapt.output.fastq,
+        fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
         index=[c.refdict[c.organism][config['aligner']['tag']]['hisat2']]
     output:
         bam=c.patterns['bam']
