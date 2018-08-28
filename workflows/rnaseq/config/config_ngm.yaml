@@ -9,7 +9,7 @@ organism: 'dmel'
 references_dir: 'references_data'
 
 aligner:
-  index: 'hisat2'
+  index: 'ngm'
   tag: 'test'
 
 rrna:
@@ -29,9 +29,9 @@ fastq_screen:
   - label: PhiX
     organism: phix
     tag: default
-  - label: Fly
-    organism: dmel
-    tag: test
+  # - label: Fly
+  #   organism: dmel
+  #   tag: test
 
 merged_bigwigs:
   control_sense:
@@ -52,4 +52,4 @@ merged_bigwigs:
 include_references:
   - '../../include/reference_configs/test.yaml'
   - '../../include/reference_configs/PhiX.yaml'
-  - '../../include/reference_configs/Drosophila_melanogaster.yaml'
+  # - '../../include/reference_configs/Drosophila_melanogaster.yaml'

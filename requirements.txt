@@ -33,6 +33,7 @@ kallisto
 lcdblib
 matplotlib
 multiqc
+nextgenmap
 numpy >1.15
 pandas ==0.22.0
 pandoc

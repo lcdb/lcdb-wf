@@ -78,6 +78,20 @@ rule bowtie2_index:
             '&> {log}')
 
 
+rule ngm_index:
+    input:
+        '{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta'
+    output:
+        protected('{references_dir}/{organism}/{tag}/ngm/{organism}_{tag}.fasta-enc.2.ngm')
+    log:
+        '{references_dir}/logs/{organism}/{tag}/ngm/{organism}_{tag}.log'
+    run:
+        prefix = aligners.prefix_from_bowtie2_index(output)
+
+        shell('ngm ' '-r {input} ' '&> {log}')
+        shell('mv {input}-enc.2.ngm $(dirname {output})')
+
+
 rule hisat2_index:
     """
     Build HISAT2 index
@@ -107,8 +121,8 @@ rule symlink_fasta_to_index_dir:
         '{references_dir}/{organism}/{tag}/{index}/{organism}_{tag}.fasta'
     log:
         '{references_dir}/logs/{organism}/{tag}/{index}/{organism}_{tag}.fasta.log'
-    shell:
-        'ln -sf {input} {output}'
+    run:
+        utils.make_relative_symlink(input[0], output[0])
 
 
 rule salmon_index:

@@ -26,7 +26,7 @@ shell.executable('/bin/bash')
 
 config = common.load_config(config)
 
-c = RNASeqConfig(config, 'config/rnaseq_patterns.yaml')
+c = RNASeqConfig(config, config.get('patterns', 'config/rnaseq_patterns.yaml'))
 
 
 def wrapper_for(path):
@@ -207,25 +207,80 @@ rule fastqc:
         wrapper_for('fastqc')
 
 
-rule hisat2:
-    """
-    Map reads with HISAT2
-    """
-    input:
-        fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
-        index=[c.refdict[c.organism][config['aligner']['tag']]['hisat2']]
-    output:
-        bam=c.patterns['bam']
-    log:
-        c.patterns['bam'] + '.log'
-    params:
-        # NOTE: see examples at
-        # https://github.com/lcdb/lcdb-wf/tree/master/wrappers/wrappers/hisat2/align
-        # for details on setting hisat2 params and samtools params separately.
-        samtools_view_extra='-F 0x04'
-    threads: 6
-    wrapper:
-        wrapper_for('hisat2/align')
+if config['aligner']['index'] == 'hisat2':
+    rule hisat2:
+        """
+        Map reads with HISAT2
+        """
+        input:
+            fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            index=[c.refdict[c.organism][config['aligner']['tag']]['hisat2']]
+        output:
+            bam=c.patterns['bam']
+        log:
+            c.patterns['bam'] + '.log'
+        params:
+            # NOTE: see examples at
+            # https://github.com/lcdb/lcdb-wf/tree/master/wrappers/wrappers/hisat2/align
+            # for details on setting hisat2 params and samtools params separately.
+            samtools_view_extra='-F 0x04'
+        threads: 6
+        wrapper:
+            wrapper_for('hisat2/align')
+
+if config['aligner']['index'] == 'ngm':
+    rule ngm:
+        """
+        Map reads with NextGenMap
+        """
+        input:
+            fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            index=[c.refdict[c.organism][config['aligner']['tag']]['ngm']],
+            fasta=[c.refdict[c.organism][config['aligner']['tag']]['ngm_fasta']]
+        output:
+            bam=c.patterns['bam']
+        log:
+            c.patterns['bam'] + '.log'
+        threads: 6
+        run:
+            if common.is_paired_end(c.sampletable, wildcards.sample):
+                fastqs = '-1 {0} -2 {1} '.format(*input.fastq)
+            else:
+                fastqs = '--qry {0} '.format(input.fastq)
+
+            prefix = input.index[0].replace('-enc.2.ngm', '')
+
+            output_prefix = output.bam.replace('.bam', '')
+
+            shell(
+                "ngm "
+                "-r {prefix} "
+                "{fastqs} "
+                "-t {threads} "
+                "-o {output_prefix}.sam "
+                # NOTE: add extra NextGenMap options here.
+                "&> {log}"
+            )
+
+            shell(
+                "samtools view -Sb "
+                # NOTE: change samtools view arguments here if needed; default
+                # is to remove unmapped reads
+                "-F 0x04 "
+                "{output_prefix}.sam "
+                "> {output_prefix}.tmp.bam && rm {output_prefix}.sam"
+            )
+
+            shell(
+                "samtools sort "
+                "-o {output.bam} "
+                # NOTE: optionally provide other sort arguments here. If you
+                # increase threads, you may need to increase memory in the
+                # clusterconfig as well.
+                "-O BAM "
+                "{output_prefix}.tmp.bam "
+                "&& rm {output_prefix}.tmp.bam "
+            )
 
 
 rule rRNA:
@@ -240,6 +295,9 @@ rule rRNA:
     log:
         c.patterns['rrna']['bam'] + '.log'
     params:
+        # NOTE: we'd likely only want to report a single alignment for rRNA
+        # screening
+        bowtie2_extra='-k 1',
         samtools_view_extra='-F 0x04'
     threads: 6
     wrapper:
