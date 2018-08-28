@@ -336,12 +336,15 @@ def references_dict(config):
     ...          'gtf': '/data/dm6/r6-11/gtf/dm6_r6-11.gtf',
     ...          'chromsizes': '/data/dm6/r6-11/fasta/dm6_r6-11.chromsizes',
     ...          'bowtie2': '/data/dm6/r6-11/bowtie2/dm6_r6-11.1.bt2',
+    ...          'bowtie2_fasta': '/data/dm6/r6-11/bowtie2/dm6_r6-11.fasta',
     ...          'hisat2': '/data/dm6/r6-11/hisat2/dm6_r6-11.1.ht2',
+    ...          'hisat2_fasta': '/data/dm6/r6-11/hisat2/dm6_r6-11.fasta',
     ...          },
     ...      'r6-11_transcriptome': {
     ...          'fasta': '/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.fasta',
     ...          'chromsizes': '/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.chromsizes',
     ...          'salmon': '/data/dm6/r6-11_transcriptome/salmon/dm6_r6-11_transcriptome/hash.bin',
+    ...          'salmon_fasta': '/data/dm6/r6-11_transcriptome/salmon/dm6_r6-11_transcriptome.fasta',
     ...          },
     ...     },
     ... }), d
@@ -435,6 +438,13 @@ def references_dict(config):
 
                         e[index] = (
                             '{references_dir}/{organism}/{tag}/{index}/{organism}_{tag}{ext}'
+                            .format(**locals())
+                        )
+
+                        # Each index will get the original fasta symlinked over
+                        # to its directory
+                        e[index + '_fasta'] = (
+                            '{references_dir}/{organism}/{tag}/{index}/{organism}_{tag}.fasta'
                             .format(**locals())
                         )
 
