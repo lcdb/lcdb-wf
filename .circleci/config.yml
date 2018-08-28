@@ -94,6 +94,15 @@ variables:
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -T -k -p -r --forcerun ngm --until ngm --configfile config/config_ngm.yaml
 
+  rnaseq-star-step: &rnaseq-star-step
+      run:
+        name: rnaseq star aligner
+        command: |
+          cp -r workflows/rnaseq workflows/rnaseq-star
+          cd workflows/rnaseq-star
+          source activate lcdb-wf-test
+          ./run_test.sh --use-conda -T -k -p -r --forcerun star --until star --configfile config/config_star.yaml
+
   colocalization-step: &colocalization-step
       run:
         name: colocalization workflow
@@ -155,6 +164,16 @@ jobs:
       - *set-path
       - *get-data
       - *rnaseq-ngm-step
+
+  rnaseq-star:
+    <<: *defaults
+    steps:
+      - checkout
+      - *restore_cache
+      - *set-path
+      - *get-data
+      - *rnaseq-star-step
+
 
   colocalization:
     <<: *defaults
@@ -222,6 +241,14 @@ workflows:
               ignore:
                 - master
       - rnaseq-ngm:
+          requires:
+            - initial-setup
+            - pytest
+          filters:
+            branches:
+              ignore:
+                - master
+      - rnaseq-star:
           requires:
             - initial-setup
             - pytest

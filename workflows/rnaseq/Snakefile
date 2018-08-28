@@ -228,6 +228,82 @@ if config['aligner']['index'] == 'hisat2':
         wrapper:
             wrapper_for('hisat2/align')
 
+if config['aligner']['index'] == 'star':
+    rule star:
+        """
+        Map reads with STAR
+        """
+        input:
+            fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            index=[c.refdict[c.organism][config['aligner']['tag']]['star']]
+        output:
+            bam=c.patterns['bam']
+        log:
+            c.patterns['bam'] + '.log'
+        threads: 6
+        run:
+            genomedir = os.path.dirname(input.index[0])
+            prefix = os.path.dirname(output[0]) + '.star.'
+            shell(
+                'STAR '
+                '--runThreadN {threads} '
+                '--genomeDir {genomedir} '
+                '--readFilesIn {input.fastq} '
+                '--readFilesCommand zcat '
+                '--outFileNamePrefix {prefix} '
+                # NOTE: The STAR docs indicate that the following parameters
+                # are standard options for ENCODE long-RNA-seq pipeline.
+                # Comments are from the STAR docs.
+
+                # reduces number of spurious junctions
+                '--outFilterType BySJout '
+
+                # if more than this many multimappers, consider unmapped
+                '--outFilterMultimapNmax 20 '
+
+                # min overhang for unannotated junctions
+                '--alignSJoverhangMin 8 '
+
+                # min overhang for annotated junctions
+                '--alignSJDBoverhangMin 1 '
+
+                # max mismatches per pair
+                '--outFilterMismatchNmax 999 '
+
+                # max mismatches per pair relative to read length
+                '--outFilterMismatchNoverReadLmax 0.04 '
+
+                # min intron length
+                '--alignIntronMin 20 '
+
+                # max intron length
+                '--alignIntronMax 1000000 '
+
+                # max distance between mates
+                '--alignMatesGapMax 1000000 '
+
+                 '&> {log} '
+            )
+
+            shell(
+                'samtools view '
+                '-Sb '
+                '-F 0x04 '
+                '{prefix}Aligned.out.sam '
+                '> {output}.tmp.bam '
+                '&& rm {prefix}Aligned.out.sam '
+            )
+            shell(
+                "samtools sort "
+                "-o {output.bam} "
+                # NOTE: optionally provide other sort arguments here. If you
+                # increase threads, you may need to increase memory in the
+                # clusterconfig as well.
+                "-O BAM "
+                "{output}.tmp.bam "
+                "&& rm {output}.tmp.bam "
+            )
+
 if config['aligner']['index'] == 'ngm':
     rule ngm:
         """

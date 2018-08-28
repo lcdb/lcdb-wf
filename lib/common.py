@@ -362,7 +362,8 @@ def references_dict(config):
         'bowtie2': aligners.bowtie2_index_from_prefix('')[0],
         'hisat2': aligners.hisat2_index_from_prefix('')[0],
         'ngm': '.fasta-enc.2.ngm',
-        'salmon': '/hash.bin'
+        'star': '/Genome',
+        'salmon': '/hash.bin',
     }
 
     conversion_extensions = {
