@@ -1,7 +1,0 @@
-channels:
-  - bioconda
-  - lcdb
-dependencies:
-  - nextgenmap
-  - samtools ==1.4.1
-  - lcdblib ==0.1.2.post

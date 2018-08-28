@@ -94,7 +94,6 @@ variables:
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -T -k -p -r --forcerun ngm --until ngm --configfile config/config_ngm.yaml
 
-
   colocalization-step: &colocalization-step
       run:
         name: colocalization workflow
