@@ -261,6 +261,9 @@ rule rRNA:
     log:
         c.patterns['rrna']['bam'] + '.log'
     params:
+        # NOTE: we'd likely only want to report a single alignment for rRNA
+        # screening
+        bowtie2_extra='-k 1',
         samtools_view_extra='-F 0x04'
     threads: 6
     wrapper:
