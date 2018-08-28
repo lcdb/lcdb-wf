@@ -207,25 +207,46 @@ rule fastqc:
         wrapper_for('fastqc')
 
 
-rule hisat2:
-    """
-    Map reads with HISAT2
-    """
-    input:
-        fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
-        index=[c.refdict[c.organism][config['aligner']['tag']]['hisat2']]
-    output:
-        bam=c.patterns['bam']
-    log:
-        c.patterns['bam'] + '.log'
-    params:
-        # NOTE: see examples at
-        # https://github.com/lcdb/lcdb-wf/tree/master/wrappers/wrappers/hisat2/align
-        # for details on setting hisat2 params and samtools params separately.
-        samtools_view_extra='-F 0x04'
-    threads: 6
-    wrapper:
-        wrapper_for('hisat2/align')
+if config['aligner']['index'] == 'hisat2':
+    rule hisat2:
+        """
+        Map reads with HISAT2
+        """
+        input:
+            fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            index=[c.refdict[c.organism][config['aligner']['tag']]['hisat2']]
+        output:
+            bam=c.patterns['bam']
+        log:
+            c.patterns['bam'] + '.log'
+        params:
+            # NOTE: see examples at
+            # https://github.com/lcdb/lcdb-wf/tree/master/wrappers/wrappers/hisat2/align
+            # for details on setting hisat2 params and samtools params separately.
+            samtools_view_extra='-F 0x04'
+        threads: 6
+        wrapper:
+            wrapper_for('hisat2/align')
+
+if config['aligner']['index'] == 'ngm':
+    rule ngm:
+        """
+        Map reads with NextGenMap
+        """
+        input:
+            fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            index=[c.refdict[c.organism][config['aligner']['tag']]['ngm']]
+        output:
+            bam=c.patterns['bam']
+
+        log:
+            c.patterns['bam'] + '.log'
+        params:
+            samtools_view_extra='-F 0x04',
+            ngm_extra='--min-identity 0.9'
+        threads: 6
+        wrapper:
+            wrapper_for('ngm/align')
 
 
 rule rRNA:

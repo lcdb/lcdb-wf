@@ -358,6 +358,7 @@ def references_dict(config):
     index_extensions = {
         'bowtie2': aligners.bowtie2_index_from_prefix('')[0],
         'hisat2': aligners.hisat2_index_from_prefix('')[0],
+        'ngm': '.fasta-enc.2.ngm',
         'salmon': '/hash.bin'
     }
 
