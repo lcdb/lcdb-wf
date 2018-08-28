@@ -121,8 +121,8 @@ rule symlink_fasta_to_index_dir:
         '{references_dir}/{organism}/{tag}/{index}/{organism}_{tag}.fasta'
     log:
         '{references_dir}/logs/{organism}/{tag}/{index}/{organism}_{tag}.fasta.log'
-    shell:
-        'ln -sf {input} {output}'
+    run:
+        utils.make_relative_symlink(input[0], output[0])
 
 
 rule salmon_index:
