@@ -98,15 +98,12 @@ class RNASeqConfig(SeqConfig):
         #
         _fill_samples = []
         _fill_n = []
-        _st = self.sampletable.set_index(self.sampletable.columns[0])
         for sample in self.samples:
-            row = _st.loc[sample]
-            if row['layout'] == 'PE':
+            if common.is_paired_end(self.sampletable, sample):
                 n = [1, 2]
             else:
                 n = [1]
             for i in n:
-
                 _fill_samples.append(sample)
                 _fill_n.append(i)
 
