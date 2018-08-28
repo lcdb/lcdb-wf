@@ -89,7 +89,7 @@ variables:
       run:
         name: rnaseq NGM aligner
         command: |
-          rsync -arv --progress workflows/rnaseq workflows/rnaseq-ngm --exclude .snakemake
+          cp workflows/rnaseq workflows/rnaseq-ngm
           cd workflows/rnaseq-ngm
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -T -k -p -r --forcerun ngm --until ngm --configfile config/config_ngm.yaml
