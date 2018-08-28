@@ -28,7 +28,10 @@ shell.executable('/bin/bash')
 
 config = common.load_config(config)
 
-c = ChIPSeqConfig(config, 'config/chipseq_patterns.yaml')
+c = ChIPSeqConfig(
+    config,
+    config.get('patterns', 'config/chipseq_patterns.yaml')
+)
 
 
 def wrapper_for(path):
