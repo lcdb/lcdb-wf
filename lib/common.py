@@ -615,19 +615,51 @@ def deprecation_handler(config):
     return config
 
 
+def is_paired_end(sampletable, sample):
+    """
+    Inspects the sampletable to see if the sample is paired-end or not
+
+    Parameters
+    ----------
+    sampletable : pandas.DataFrame
+        Contains a "layout" or "LibraryLayout" column (but not both). If the
+        lowercase value is "pe" or "paired", consider the sample paired-end.
+        Otherwise consider single-end.
+
+    sample : str
+        Assumed to be found in the first column of `sampletable`
+    """
+    row = sampletable.set_index(sampletable.columns[0]).loc[sample]
+    if 'layout' in row and 'LibraryLayout' in row:
+        raise ValueError("Expecting column 'layout' or 'LibraryLayout', "
+                         "not both")
+    try:
+        return row['layout'].lower() in ['pe', 'paired']
+    except KeyError:
+        pass
+    try:
+        return row['LibraryLayout'].lower() in ['pe', 'paired']
+    except KeyError:
+        pass
+    return False
+
+
 def fill_r1_r2(sampletable, pattern, r1_only=False):
     """
-    Returns 1 or 2 rendered versions of a pattern depending on PE or SE.
+    Returns a function intended to be used as a rule's input function.
 
-    Given a pattern (which is expected to contain a placeholder for "{sample}"
-    and "{n}"), look up in the sampletable whether or not it is paired-end.
+    The returned function, when provided with wildcards, will return one or two
+    rendered versions of a pattern depending on SE or PE respectively.
+    Specifically, given a pattern (which is expected to contain a placeholder
+    for "{sample}" and "{n}"), look up in the sampletable whether or not it is
+    paired-end.
 
     Parameters
     ----------
 
     sampletable : pandas.DataFrame
-        Contains a "layout" column with either "SE" or "PE". If column does not
-        exist, assume SE.
+        Contains a "layout" column with either "SE" or "PE", or "LibraryLayout"
+        column with "SINGLE" or "PAIRED". If column does not exist, assume SE.
 
     pattern : str
         Must contain at least a "{sample}" placeholder.
@@ -642,13 +674,9 @@ def fill_r1_r2(sampletable, pattern, r1_only=False):
             raise ValueError(
                 'Need "{{sample}}" in pattern '
                 '"{pattern}"'.format(pattern=pattern))
-        row = sampletable.set_index(sampletable.columns[0]).loc[wc.sample]
         n = [1]
-        try:
-            if row['layout'] == 'PE' and not r1_only:
-                n = [1, 2]
-        except KeyError:
-            pass
+        if is_paired_end(sampletable, wc.sample) and not r1_only:
+            n = [1, 2]
         res = expand(pattern, sample=wc.sample, n=n)
         return res
     return func
