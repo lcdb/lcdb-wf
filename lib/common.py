@@ -9,6 +9,7 @@ import gzip
 from lcdblib.utils.imports import resolve_name
 from lcdblib.snakemake import aligners
 from snakemake.shell import shell
+from snakemake.io import expand
 
 # List of possible keys in config that are to be interpreted as paths
 PATH_KEYS = [
@@ -612,3 +613,70 @@ def deprecation_handler(config):
                         UserWarning)
 
     return config
+
+
+def is_paired_end(sampletable, sample):
+    """
+    Inspects the sampletable to see if the sample is paired-end or not
+
+    Parameters
+    ----------
+    sampletable : pandas.DataFrame
+        Contains a "layout" or "LibraryLayout" column (but not both). If the
+        lowercase value is "pe" or "paired", consider the sample paired-end.
+        Otherwise consider single-end.
+
+    sample : str
+        Assumed to be found in the first column of `sampletable`
+    """
+    row = sampletable.set_index(sampletable.columns[0]).loc[sample]
+    if 'layout' in row and 'LibraryLayout' in row:
+        raise ValueError("Expecting column 'layout' or 'LibraryLayout', "
+                         "not both")
+    try:
+        return row['layout'].lower() in ['pe', 'paired']
+    except KeyError:
+        pass
+    try:
+        return row['LibraryLayout'].lower() in ['pe', 'paired']
+    except KeyError:
+        pass
+    return False
+
+
+def fill_r1_r2(sampletable, pattern, r1_only=False):
+    """
+    Returns a function intended to be used as a rule's input function.
+
+    The returned function, when provided with wildcards, will return one or two
+    rendered versions of a pattern depending on SE or PE respectively.
+    Specifically, given a pattern (which is expected to contain a placeholder
+    for "{sample}" and "{n}"), look up in the sampletable whether or not it is
+    paired-end.
+
+    Parameters
+    ----------
+
+    sampletable : pandas.DataFrame
+        Contains a "layout" column with either "SE" or "PE", or "LibraryLayout"
+        column with "SINGLE" or "PAIRED". If column does not exist, assume SE.
+
+    pattern : str
+        Must contain at least a "{sample}" placeholder.
+
+    r1_only : bool
+        If True, then only return the file for R1 even if PE is configured.
+    """
+    def func(wc):
+        try:
+            wc.sample
+        except AttributeError:
+            raise ValueError(
+                'Need "{{sample}}" in pattern '
+                '"{pattern}"'.format(pattern=pattern))
+        n = [1]
+        if is_paired_end(sampletable, wc.sample) and not r1_only:
+            n = [1, 2]
+        res = expand(pattern, sample=wc.sample, n=n)
+        return res
+    return func

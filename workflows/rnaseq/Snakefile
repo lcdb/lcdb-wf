@@ -60,6 +60,7 @@ final_targets = utils.flatten((
 if 'merged_bigwigs' in config:
     final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
 
+
 rule targets:
     """
     Final targets to create
@@ -73,15 +74,35 @@ if 'orig_filename' in c.sampletable.columns:
     # convenience in generating the input/output filenames.
     _st = c.sampletable.set_index(c.sampletable.columns[0])
 
+    def orig_for_sample(wc):
+        """
+        Given a sample, returns either one or two original fastq files
+        depending on whether the library was single- or paired-end.
+        """
+        row = _st.loc[wc.sample]
+        res = [row['orig_filename']]
+        try:
+            r2 = row['orig_filename_R2']
+            if isinstance(r2, str):
+                res.append(row['orig_filename_R2'])
+        except KeyError:
+            pass
+        return res
+
     rule symlinks:
         """
         Symlinks files over from original filename
         """
-        input: [_st.loc[sample, 'orig_filename']  for sample in _st.index ]
-        output: [c.patterns['fastq'].format(sample=sample) for sample in _st.index]
+        input:
+            orig_for_sample
+        output:
+            c.patterns['fastq']
+        wildcard_constraints:
+            n="\d+"
         run:
-            for i, o in zip(input, output):
-                utils.make_relative_symlink(i, o)
+            for src, linkname in zip(input, output):
+                utils.make_relative_symlink(src, linkname)
+
 
     rule symlink_targets:
         input: c.targets['fastq']
@@ -97,30 +118,81 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
             c.patterns['fastq']
         run:
             srr = _st.loc[wildcards.sample, 'Run']
-            shell(
-                'fastq-dump '
-                '{srr} '
-                '-Z '
-                '| gzip -c > {output}.tmp '
-                '&& mv {output}.tmp {output} '
-            )
 
+            # Two different paths depending on the layout. In both cases, we
+            # want to avoid creating the final output until the very end, to
+            # avoid incomplete downloads.
+            if _st.loc[wildcards.sample, 'layout'] == 'PE':
+
+                # For PE we need to use --split-files, which also means using
+                # the slower --gzip
+                shell(
+                    'fastq-dump '
+                    '{srr} '
+                    '--gzip '
+                    '--split-files '
+                )
+
+                # The filenames are predictable, so we can move them as needd.
+                shell(
+                    'mv {srr}_1.fastq.gz '
+                    '$(dirname {output})/{sample}_R1.fastq.gz'
+                )
+                shell(
+                    'mv {srr}_2.fastq.gz '
+                    '$(dirname {output})/{sample}_R2.fastq.gz'
+                )
+
+            else:
+                # For SE, we can use the faster stdout | gzip, and move it
+                # directly when done.
+                shell(
+                    'fastq-dump '
+                    '{srr} '
+                    '-Z '
+                    '| gzip -c > {output}.tmp '
+                    '&& mv {output}.tmp {output} '
+                )
+
+
+def render_r1_r2(pattern):
+    return expand(pattern, sample='{sample}', n=[1,2])
 
 rule cutadapt:
     """
     Run cutadapt
     """
     input:
-        fastq=c.patterns['fastq']
+        fastq=common.fill_r1_r2(c.sampletable, c.patterns['fastq'])
     output:
-        fastq=c.patterns['cutadapt']
+        fastq=render_r1_r2(c.patterns['cutadapt'])
     log:
-        c.patterns['cutadapt'] + '.log'
-    params:
+        render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
+    run:
+        paired = len(input) == 2
+
         # NOTE: Change cutadapt params here
         extra='-a file:../../include/adapters.fa -q 20 --minimum-length=25'
-    wrapper:
-        wrapper_for('cutadapt')
+
+        if paired:
+            shell(
+                "cutadapt "
+                "{extra} "
+                "{input.fastq[0]} "
+                "{input.fastq[1]} "
+                "-o {output[0]} "
+                "-p {output[1]} "
+                "&> {log}"
+            )
+        else:
+            shell(
+                "cutadapt "
+                "{extra} "
+                "{input.fastq[0]} "
+                "-o {output[0]} "
+                "&> {log}"
+            )
+            shell('touch {output[1]}')
 
 
 rule fastqc:
@@ -140,7 +212,7 @@ rule hisat2:
     Map reads with HISAT2
     """
     input:
-        fastq=rules.cutadapt.output.fastq,
+        fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
         index=[c.refdict[c.organism][config['aligner']['tag']]['hisat2']]
     output:
         bam=c.patterns['bam']
@@ -161,7 +233,7 @@ rule rRNA:
     Map reads with bowtie2 to the rRNA reference
     """
     input:
-        fastq=rules.cutadapt.output.fastq,
+        fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt'], r1_only=True),
         index=[c.refdict[c.organism][config['rrna']['tag']]['bowtie2']]
     output:
         bam=c.patterns['rrna']['bam']
@@ -227,7 +299,7 @@ rule fastq_screen:
     """
     input:
         **fastq_screen_references(),
-        fastq=rules.cutadapt.output.fastq,
+        fastq=common.fill_r1_r2(c.sampletable, rules.cutadapt.output.fastq, r1_only=True),
     output:
         txt=c.patterns['fastq_screen']
     log:
@@ -243,7 +315,7 @@ rule featurecounts:
     """
     input:
         annotation=c.refdict[c.organism][config['gtf']['tag']]['gtf'],
-        bam=rules.hisat2.output
+        bam=c.patterns['bam']
     output:
         counts='{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt'
     log:
@@ -419,7 +491,7 @@ rule markduplicates:
     Mark or remove PCR duplicates with Picard MarkDuplicates
     """
     input:
-        bam=rules.hisat2.output
+        bam=c.patterns['bam']
     output:
         bam=c.patterns['markduplicates']['bam'],
         metrics=c.patterns['markduplicates']['metrics']
@@ -522,7 +594,7 @@ rule salmon:
     Quantify reads coming from transcripts with Salmon
     """
     input:
-        fastq=c.patterns['cutadapt'],
+        fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
         index=c.refdict[c.organism][config['salmon']['tag']]['salmon'],
     output:
         c.patterns['salmon']
@@ -531,24 +603,43 @@ rule salmon:
         outdir=os.path.dirname(c.patterns['salmon'])
     log:
         c.patterns['salmon'] + '.log'
-    shell:
-        # NOTE: adjust Salmon params as needed
-        'salmon quant '
-        '--index {params.index_dir} '
-        '--output {params.outdir} '
-        '--threads {threads} '
+    run:
+        paired = len(input.fastq) == 2
+        if paired:
+            shell(
+                # NOTE: adjust Salmon params as needed
+                'salmon quant '
+                '--index {params.index_dir} '
+                '--output {params.outdir} '
+                '--threads {threads} '
 
-        # NOTE: --libType=A auto-detects library type. Change if needed.
-        '--libType=A '
+                # NOTE: --libType=A auto-detects library type. Change if needed.
+                '--libType=A '
 
-        # NOTE: Docs suggest using --gcBias and --seqBias is a good idea
-        '--gcBias '
-        '--seqBias '
+                # NOTE: Docs suggest using --gcBias and --seqBias is a good idea
+                '--gcBias '
+                '--seqBias '
+                '-1 {input.fastq[0]} '
+                '-2 {input.fastq[1]} '
+                '&> {log}'
+            )
+        else:
+            shell(
+                # NOTE: adjust Salmon params as needed
+                'salmon quant '
+                '--index {params.index_dir} '
+                '--output {params.outdir} '
+                '--threads {threads} '
 
-        # -r is for single-end; use
-        # -1 {input.r1} -2 {input.r2} for paired-end
-        '-r {input.fastq} '
-        '&> {log}'
+                # NOTE: --libType=A auto-detects library type. Change if needed.
+                '--libType=A '
+
+                # NOTE: Docs suggest using --gcBias and --seqBias is a good idea
+                '--gcBias '
+                '--seqBias '
+                '-r {input.fastq} '
+                '&> {log}'
+            )
 
 
 rule rseqc_bam_stat:
@@ -644,6 +735,7 @@ rule rnaseq_rmarkdown:
     """
     input:
         featurecounts=utils.flatten(c.targets['featurecounts']),
+        salmon=utils.flatten(c.targets['salmon']),
 
         # NOTE: the Rmd will likely need heavy editing depending on the project.
         rmd='downstream/rnaseq.Rmd',

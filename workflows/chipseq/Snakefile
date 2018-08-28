@@ -31,9 +31,9 @@ config = common.load_config(config)
 c = ChIPSeqConfig(config, 'config/chipseq_patterns.yaml')
 
 
-
 def wrapper_for(path):
     return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
+
 
 # ----------------------------------------------------------------------------
 # RULES
@@ -67,14 +67,40 @@ rule targets:
 
 
 if 'orig_filename' in c.sampletable.columns:
+
+    # Convert the sampletable to be indexed by the first column, for
+    # convenience in generating the input/output filenames.
+    _st = c.sampletable.set_index(c.sampletable.columns[0])
+
+    def orig_for_sample(wc):
+        """
+        Given a sample, returns either one or two original fastq files
+        depending on whether the library was single- or paired-end.
+        """
+        row = _st.loc[wc.sample]
+        res = [row['orig_filename']]
+        try:
+            r2 = row['orig_filename_R2']
+            if isinstance(r2, str):
+                res.append(row['orig_filename_R2'])
+        except KeyError:
+            pass
+        return res
+
     rule symlinks:
         """
         Symlinks files over from original filename
         """
-        input: lambda wc: c.sampletable.set_index(c.sampletable.columns[0])['orig_filename'].to_dict()[wc.sample]
-        output: c.patterns['fastq']
+        input:
+            orig_for_sample
+        output:
+            c.patterns['fastq']
+        wildcard_constraints:
+            n="\d+"
         run:
-            utils.make_relative_symlink(input[0], output[0])
+            for src, linkname in zip(input, output):
+                utils.make_relative_symlink(src, linkname)
+
 
     rule symlink_targets:
         input: c.targets['fastq']
@@ -90,31 +116,81 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
             c.patterns['fastq']
         run:
             srr = _st.loc[wildcards.sample, 'Run']
-            shell(
-                'fastq-dump '
-                '{srr} '
-                '-Z '
-                '| gzip -c > {output}.tmp '
-                '&& mv {output}.tmp {output} '
-            )
+
+            # Two different paths depending on the layout. In both cases, we
+            # want to avoid creating the final output until the very end, to
+            # avoid incomplete downloads.
+            if _st.loc[wildcards.sample, 'layout'] == 'PE':
+
+                # For PE we need to use --split-files, which also means using
+                # the slower --gzip
+                shell(
+                    'fastq-dump '
+                    '{srr} '
+                    '--gzip '
+                    '--split-files '
+                )
+
+                # The filenames are predictable, so we can move them as needd.
+                shell(
+                    'mv {srr}_1.fastq.gz '
+                    '$(dirname {output})/{sample}_R1.fastq.gz'
+                )
+                shell(
+                    'mv {srr}_2.fastq.gz '
+                    '$(dirname {output})/{sample}_R2.fastq.gz'
+                )
+
+            else:
+                # For SE, we can use the faster stdout | gzip, and move it
+                # directly when done.
+                shell(
+                    'fastq-dump '
+                    '{srr} '
+                    '-Z '
+                    '| gzip -c > {output}.tmp '
+                    '&& mv {output}.tmp {output} '
+                )
 
 
+def render_r1_r2(pattern):
+    return expand(pattern, sample='{sample}', n=[1,2])
 
 rule cutadapt:
     """
     Run cutadapt
     """
     input:
-        fastq=c.patterns['fastq']
+        fastq=common.fill_r1_r2(c.sampletable, c.patterns['fastq'])
     output:
-        fastq=c.patterns['cutadapt']
+        fastq=render_r1_r2(c.patterns['cutadapt'])
     log:
-        c.patterns['cutadapt'] + '.log'
-    params:
-        # NOTE: Change cutadapt params here.
+        render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
+    run:
+        paired = len(input) == 2
+
+        # NOTE: Change cutadapt params here
         extra='-a file:../../include/adapters.fa -q 20 --minimum-length=25'
-    wrapper:
-        wrapper_for('cutadapt')
+
+        if paired:
+            shell(
+                "cutadapt "
+                "{extra} "
+                "{input.fastq[0]} "
+                "{input.fastq[1]} "
+                "-o {output[0]} "
+                "-p {output[1]} "
+                "&> {log}"
+            )
+        else:
+            shell(
+                "cutadapt "
+                "{extra} "
+                "{input.fastq[0]} "
+                "-o {output[0]} "
+                "&> {log}"
+            )
+            shell('touch {output[1]}')
 
 
 rule fastqc:
@@ -134,7 +210,7 @@ rule bowtie2:
     Map reads with Bowtie2
     """
     input:
-        fastq=rules.cutadapt.output.fastq,
+        fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
         index=[refdict[c.organism][config['aligner']['tag']]['bowtie2']]
     output:
         bam=c.patterns['bam']

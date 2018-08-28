@@ -22,6 +22,12 @@ _download_file('rnaseq_samples/sample1/sample1.small_R1.fastq.gz', 'workflows/rn
 _download_file('rnaseq_samples/sample2/sample2.small_R1.fastq.gz', 'workflows/rnaseq/data/example_data/rnaseq_sample2.fq.gz')
 _download_file('rnaseq_samples/sample3/sample3.small_R1.fastq.gz', 'workflows/rnaseq/data/example_data/rnaseq_sample3.fq.gz')
 _download_file('rnaseq_samples/sample4/sample4.small_R1.fastq.gz', 'workflows/rnaseq/data/example_data/rnaseq_sample4.fq.gz')
+
+_download_file('rnaseq_samples/sample1/sample1.small_R1.fastq.gz', 'workflows/rnaseq/data/example_data/rnaseq_sample1PE_1.fq.gz')
+_download_file('rnaseq_samples/sample1/sample1.small_R2.fastq.gz', 'workflows/rnaseq/data/example_data/rnaseq_sample1PE_2.fq.gz')
+_download_file('rnaseq_samples/sample2/sample2.small_R1.fastq.gz', 'workflows/rnaseq/data/example_data/rnaseq_sample2PE_1.fq.gz')
+_download_file('rnaseq_samples/sample2/sample2.small_R2.fastq.gz', 'workflows/rnaseq/data/example_data/rnaseq_sample2PE_2.fq.gz')
+
 _download_file('chipseq_samples/input_1/input_1.tiny_R1.fastq.gz', 'workflows/chipseq/data/example_data/chipseq_input1.fq.gz')
 _download_file('chipseq_samples/ip_1/ip_1.tiny_R1.fastq.gz', 'workflows/chipseq/data/example_data/chipseq_ip1.fq.gz')
 _download_file('chipseq_samples/input_2/input_2.tiny_R1.fastq.gz', 'workflows/chipseq/data/example_data/chipseq_input2.fq.gz')

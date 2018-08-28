@@ -33,6 +33,7 @@ kallisto
 lcdblib
 matplotlib
 multiqc
+numpy >1.15
 pandas ==0.22.0
 pandoc
 picard
@@ -58,6 +59,8 @@ subread
 trackhub
 ucsc-bedtobigbed
 ucsc-bedsort
+ucsc-bigwigmerge
+ucsc-bedgraphtobigwig
 ucsc-fetchchromsizes
 ucsc-gtftogenepred
 ucsc-liftover
