@@ -103,3 +103,4 @@ See :ref:`getting-started` to get started.
    troubleshooting
    autodoc
    changelog
+   developers
