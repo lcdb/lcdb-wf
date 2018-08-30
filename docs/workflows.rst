@@ -98,9 +98,41 @@ Each workflow is driven by a ``Snakefile`` and is configured by plain text
 :ref:`config` for much more on this).  In this section, we will take
 a higher-level look at the features common to the primary analysis workflows.
 
+Features common to workflows
+----------------------------
+The directory ``../..`` is added to Python's path. This way, the ``../../lib``
+module can be found, and we can use the various helper functions there. This is
+also simpler than providing a `setup.py` to install the helper functions.
+
+The config file is hard-coded to be `config/config.yaml`, but this can be
+overridden by Snakemake from the commandline, using ``snakemake --configfile
+<path to other config file>``. This allows the config file to be in the
+`config` dir with other config files without having to be specified on the
+command line, while also affording the user flexibility.
+
+The config file is loaded using ``common.load_config``. This function resolves
+various paths (especially the `includ`-ed reference configs) and checks to see
+if the config is well-formatted.
+
+A `SeqConfig` object is created. It needs that parsed config file as well as
+the patterns file (see :ref:`patterns-and-targets`). The act of creating this
+object reads the sample table, fills in the patterns with sample names, creates
+a reference dictionary (see ``common.references_dict``) for easy access to
+reference files, and for ChIP-seq, also fills in the filenames for the
+configured peak-calling runs. This object, called ``c`` for convenience, can be
+accesto get all sort of information -- ``c.sampletable``, ``c.config``,
+``c.patterns``, ``c.targets``, and ``c.refdict`` are frequently used in rules
+throughout the Snakefiles.
+
+
+Cluster-specific settings
+-------------------------
+See :ref:`cluster` for details.
+
+
 Primary analysis workflows
 --------------------------
-While the references workflow can be run stand-alone, but usually it is run as
+While the references workflow can be run stand-alone, usually it is run as
 a by-product of running the RNA-seq or ChIP-seq workflows. See
 :ref:`references` for details; here we will focus on RNA-seq and ChIP-seq which
 share common properties.
@@ -137,5 +169,3 @@ comments that say `# [TEST SETTINGS]`; you can ignore these, and see
 
         cp -r workflows/rnaseq workflows/genome1-rnaseq
         cp -r workflows/rnaseq workflows/genome2-rnaseq
-
-
