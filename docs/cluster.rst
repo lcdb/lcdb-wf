@@ -67,6 +67,7 @@ is to set ``$TMPDIR`` to the default temp directory as documented in Python's
 However if you use these workflows on a different cluster, you may need to
 provide a different function to return the job-specific temp directory.
 
+.. _clusterconfig:
 
 ``clusterconfig.yaml`` files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
