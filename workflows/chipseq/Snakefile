@@ -10,6 +10,7 @@ import pybedtools
 from lcdblib.snakemake import helpers, aligners
 from lcdblib.utils import utils
 from lib import common, chipseq
+from lib import cluster_specific
 from lib.patterns_targets import ChIPSeqConfig
 
 # ----------------------------------------------------------------------------
@@ -23,7 +24,7 @@ from lib.patterns_targets import ChIPSeqConfig
 configfile: 'config/config.yaml'
 include: '../references/Snakefile'
 
-shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
+shell.prefix('set -euo pipefail; export TMPDIR={};'.format(cluster_specific.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
 
 config = common.load_config(config)

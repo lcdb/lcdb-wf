@@ -1,10 +1,11 @@
 import sys
 sys.path.insert(0, srcdir('../..'))
+from lib import cluster_specific
 from lib import common
 import pybedtools
 
 
-shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
+shell.prefix('set -euo pipefail; export TMPDIR={};'.format(cluster_specific.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
 
 # This is a useful construct for mapping intended output filenames to the URLs

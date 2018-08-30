@@ -8,6 +8,7 @@ import pandas as pd
 from lcdblib.snakemake import helpers, aligners
 from lcdblib.utils import utils
 from lib import common
+from lib import cluster_specific
 from lib.patterns_targets import RNASeqConfig, ChIPSeqConfig
 import os
 from snakemake.utils import makedirs
@@ -16,7 +17,7 @@ import yaml
 import numpy as np
 
 configfile: 'config/config.yaml'
-shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
+shell.prefix('set -euo pipefail; export TMPDIR={};'.format(cluster_specific.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
 
 chipseq_config = ChIPSeqConfig('config/config.yaml', 'config/chipseq_patterns.yaml', workdir='../chipseq')
