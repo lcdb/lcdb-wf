@@ -92,6 +92,40 @@ rule ngm_index:
         shell('mv {input}-enc.2.ngm $(dirname {output})')
 
 
+rule star_index:
+    input:
+        fasta='{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta',
+        gtf='{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf',
+    output:
+        protected('{references_dir}/{organism}/{tag}/star/{organism}_{tag}/Genome')
+    log:
+        '{references_dir}/{organism}/{tag}/star/{organism}_{tag}/Genome.log'
+    threads:
+        8
+    run:
+        genomedir = os.path.dirname(output[0])
+        shell('rm -r {genomedir}')
+        shell('mkdir -p {genomedir}')
+        shell(
+            'STAR '
+            '--runMode genomeGenerate '
+            '--runThreadN {threads} '
+            '--genomeDir {genomedir} '
+            '--genomeFastaFiles {input.fasta} '
+
+            # NOTE: GTF is optional
+            '--sjdbGTFfile {input.gtf} '
+
+            # NOTE: STAR docs say that 100 should work well.
+            '--sjdbOverhang 100 '
+
+            # NOTE: for small genomes, may need to scale this down to
+            # min(14, log2(GenomeLength) / 2 - 1)
+            # --genomeSAindexNbases 14
+            '&> {log}'
+        )
+
+
 rule hisat2_index:
     """
     Build HISAT2 index

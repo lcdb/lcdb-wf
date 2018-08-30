@@ -283,6 +283,9 @@ Required for RNA-seq and ChIP-seq
     be built. For RNA-seq we would likely choose "hisat2"; for ChIP-seq
     "bowtie2".
 
+    Currently-configured options are ``hisat2``, ``bowtie2``, ``star``, and
+    ``ngm``.
+
     Example:
 
     .. code-block:: yaml

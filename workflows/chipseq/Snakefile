@@ -238,6 +238,9 @@ rule unique:
     output:
         c.patterns['unique']
     params:
+        # NOTE: the quality score chosen here should reflect the scores output
+        # by the aligner used. For example, STAR uses 255 as max mapping
+        # quality.
         extra="-b -q 20"
     shell:
         'samtools view -b -q 20 {input} > {output}'

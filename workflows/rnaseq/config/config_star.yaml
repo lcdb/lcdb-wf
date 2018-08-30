@@ -1,0 +1,55 @@
+sampletable: 'config/sampletable.tsv'
+
+patterns: 'config/rnaseq_patterns.yaml'
+
+# Which key in the `references` dict below to use
+organism: 'dmel'
+
+# If not specified here, use the environment variable REFERENCES_DIR.
+references_dir: 'references_data'
+
+aligner:
+  index: 'star'
+  tag: 'test'
+
+rrna:
+  index: 'bowtie2'
+  tag: 'rRNA'
+
+gtf:
+  tag: "test"
+
+salmon:
+  tag: "test_transcriptome"
+
+fastq_screen:
+  - label: rRNA
+    organism: dmel
+    tag: test
+  - label: PhiX
+    organism: phix
+    tag: default
+  # - label: Fly
+  #   organism: dmel
+  #   tag: test
+
+merged_bigwigs:
+  control_sense:
+    sense:
+      - sample1
+      - sample2
+  treatment_all:
+    sense:
+      - sample3
+      - sample4
+    antisense:
+      - sample3
+      - sample4
+
+# See the reference config files in the top level of the repo,
+# include/reference_configs, for inspiration for more species.
+
+include_references:
+  - '../../include/reference_configs/test.yaml'
+  - '../../include/reference_configs/PhiX.yaml'
+  # - '../../include/reference_configs/Drosophila_melanogaster.yaml'

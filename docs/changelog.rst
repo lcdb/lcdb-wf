@@ -166,4 +166,14 @@ RNA-seq
       labels (list of lists, rather than individual list object; refactored
       functions to use this new structure
 
+v1.2
+----
+
+- First-class paired-end support, including mixing PE and SE samples in the
+  same sampletable
+- Support for NextGenMap aligner and STAR aligner
+- FASTA files are always symlinked into the directories of indexes that were
+  created from it
+- Updates to dependencies and MultiQC config
+
 

@@ -8,6 +8,7 @@ references:
           - 'bowtie2'
           - 'hisat2'
           - 'ngm'
+          - 'star'
       gtf:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf"
         postprocess: 'lib.common.gzipped'

@@ -30,3 +30,9 @@ bigwig_neg:
 
 bigwig_pos:
   prefix: "--gres=lscratch:20 --mem=16g"
+
+star:
+  prefix: "--time=8:00:00 --mem=64g"
+
+ngm:
+  prefix: "--time=8:00:00 --mem=64g"
