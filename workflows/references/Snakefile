@@ -10,15 +10,16 @@ from snakemake.utils import makedirs
 from lcdblib.utils.imports import resolve_name
 from lcdblib.utils import utils
 from lcdblib.snakemake import aligners, helpers
+from lib import cluster_specific
 from lib import common
 
 configfile: 'config/config.yaml'
 
 config = common.load_config(config)
 
-tempfile.tempdir = common.tempdir_for_biowulf()
+tempfile.tempdir = cluster_specific.tempdir_for_biowulf()
 
-shell.prefix('set -euo pipefail; export TMPDIR={};'.format(common.tempdir_for_biowulf()))
+shell.prefix('set -euo pipefail; export TMPDIR={};'.format(cluster_specific.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
 references_dir = common.get_references_dir(config)
 refdict, conversion_kwargs = common.references_dict(config)

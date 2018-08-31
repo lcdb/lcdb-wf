@@ -483,9 +483,9 @@ The following conversions can be specified for GTF files:
     You can include/exclude featuretypes from being checked.  For example, if
     your GTF has genes and transcripts in addition to exons, the gene and
     transcript lines probably contain all of the attributes you are interested
-    in, and the exon (and any other lines) can be ignored, speeding up the
-    process. In this case you could use ``include_featuretypes: [gene,
-    transcript]``.
+    in (like gene_id, symbol, name, etc) and the exon (and any other lines) can
+    be ignored, speeding up the process. In this case you could use
+    ``include_featuretypes: [gene, transcript]``.
 
     A ``__featuretype__`` column is always included in the mapping.  This is
     the GTF featuretype of each line, with extra ``__`` to avoid overwriting an
