@@ -45,7 +45,7 @@ references:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf"
         postprocess:
           function: 'lib.common.convert_gtf_chroms'
-          args: '/data/NICHD-core0/infrastructure/assembly-lookups/mockBDGP6_to_ucsc.tsv'
+          args: '../../include/chromosome-name-mappings/test_to_ucsc.tsv'
 
     test_transcriptome:
       fasta:
