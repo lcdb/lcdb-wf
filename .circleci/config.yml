@@ -65,7 +65,7 @@ variables:
         command: |
           cd workflows/chipseq
           source activate lcdb-wf-test
-          ./run_test.sh --use-conda -j2 -T -k -p -r
+          ./run_test.sh --use-conda -j2 -k -p -r
           python chipseq_trackhub.py config/config.yaml config/hub_config.yaml
 
   references-step: &references-step
@@ -74,7 +74,7 @@ variables:
         command: |
           cd workflows/references
           source activate lcdb-wf-test
-          ./run_test.sh  --use-conda -j2 -T -k -p -r
+          ./run_test.sh  --use-conda -j2 -k -p -r
 
   rnaseq-step: &rnaseq-step
       run:
@@ -82,7 +82,7 @@ variables:
         command: |
           cd workflows/rnaseq
           source activate lcdb-wf-test
-          ./run_test.sh --use-conda -j2 -T -k -p -r
+          ./run_test.sh --use-conda -j2 -k -p -r
           python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
 
   rnaseq-ngm-step: &rnaseq-ngm-step
@@ -92,7 +92,7 @@ variables:
           cp -r workflows/rnaseq workflows/rnaseq-ngm
           cd workflows/rnaseq-ngm
           source activate lcdb-wf-test
-          ./run_test.sh --use-conda -T -k -p -r --forcerun ngm --until ngm --configfile config/config_ngm.yaml
+          ./run_test.sh --use-conda -k -p -r --forcerun ngm --until ngm --configfile config/config_ngm.yaml
 
   rnaseq-star-step: &rnaseq-star-step
       run:
@@ -101,7 +101,7 @@ variables:
           cp -r workflows/rnaseq workflows/rnaseq-star
           cd workflows/rnaseq-star
           source activate lcdb-wf-test
-          ./run_test.sh --use-conda -T -k -p -r --forcerun star --until star --configfile config/config_star.yaml
+          ./run_test.sh --use-conda -k -p -r --forcerun star --until star --configfile config/config_star.yaml
 
   colocalization-step: &colocalization-step
       run:
@@ -109,7 +109,7 @@ variables:
         command: |
           cd workflows/colocalization
           source activate lcdb-wf-test
-          ./run_test.sh --use-conda -j2 -T -k -p -r
+          ./run_test.sh --use-conda -j2 -k -p -r
 
   # The path needs to be set each time
   set-path: &set-path
