@@ -54,7 +54,7 @@ r-spp
 r-upsetr
 salmon
 samtools
-snakemake <4.5.0
+snakemake
 sra-tools
 star
 subread
