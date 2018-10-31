@@ -45,7 +45,7 @@ references:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf"
         postprocess:
           function: 'lib.common.convert_gtf_chroms'
-          args: 'https://github.com/NICHD-BSPC/chrom-name-mappings/blob/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/fly/flybase_r6.23_BDGP6_to_ucsc_dm6/mappings_flybase_r6.23_BDGP6_to_ucsc_dm6.tsv'
+          args: 'https://github.com/NICHD-BSPC/chrom-name-mappings/blob/893cb5bdf84c2d6f5c6d48fe74c791646383f189/mappings/test/test_to_ucsc.tsv'
 
     test_transcriptome:
       fasta:
