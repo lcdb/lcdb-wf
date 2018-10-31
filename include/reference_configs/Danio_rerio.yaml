@@ -14,7 +14,7 @@ references:
         url: 'ftp://ftp.ensembl.org/pub/release-94/gtf/danio_rerio/Danio_rerio.GRCz11.94.gtf.gz'
         postproccess:
           function: 'lib.common.convert_gtf_chroms'
-          args: 'https://github.com/NICHD-BSPC/chrom-name-mappings/blob/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/zebrafish/ensembl_GRCz11_to_ucsc_danRer11/mappings_ensembl_GRCz11_to_ucsc_danRer11.tsv'
+          args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/zebrafish/ensembl_GRCz11_to_ucsc_danRer11/mappings_ensembl_GRCz11_to_ucsc_danRer11.tsv'
         conversions:
           - 'refflat'
 

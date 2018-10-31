@@ -16,7 +16,7 @@ references:
         url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M18/gencode.vM18.primary_assembly.annotation.gtf.gz'
         postproccess:
           function: 'lib.common.convert_gtf_chroms'
-          args: 'https://github.com/NICHD-BSPC/chrom-name-mappings/blob/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/mouse/gencode_GRCm38.m18_to_ucsc_mm10/mappings_gencode_GRCm38.m18_to_ucsc_mm10.tsv'
+          args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/mouse/gencode_GRCm38.m18_to_ucsc_mm10/mappings_gencode_GRCm38.m18_to_ucsc_mm10.tsv'
         conversions:
           - 'refflat'
 

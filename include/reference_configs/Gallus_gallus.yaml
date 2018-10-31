@@ -14,7 +14,7 @@ references:
         url: 'ftp://ftp.ensembl.org/pub/release-94/gtf/gallus_gallus/Gallus_gallus.Gallus_gallus-5.0.94.gtf.gz'
         postproccess:
           function: 'lib.common.convert_gtf_chroms'
-          args: 'https://github.com/NICHD-BSPC/chrom-name-mappings/blob/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/chicken/ensembl_Gallus_gallus-5.0_to_ucsc_galGal5/mappings_ensembl_Gallus_gallus-5.0_to_ucsc_galGal5.tsv'
+          args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/chicken/ensembl_Gallus_gallus-5.0_to_ucsc_galGal5/mappings_ensembl_Gallus_gallus-5.0_to_ucsc_galGal5.tsv'
         conversions:
           - 'refflat'
 

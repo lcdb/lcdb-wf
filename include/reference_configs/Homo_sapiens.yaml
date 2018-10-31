@@ -16,7 +16,7 @@ references:
         url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/gencode.v28.primary_assembly.annotation.gtf.gz'
         postproccess:
           function: 'lib.common.convert_gtf_chroms'
-          args: 'https://github.com/NICHD-BSPC/chrom-name-mappings/blob/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/human/gencode_GRCh38.28_to_ucsc_hg38/mappings_gencode_GRCh38.28_to_ucsc_hg38.tsv'
+          args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/human/gencode_GRCh38.28_to_ucsc_hg38/mappings_gencode_GRCh38.28_to_ucsc_hg38.tsv'
         conversions:
           - 'refflat'
 
