@@ -153,3 +153,63 @@ references:
         indexes:
           - 'bowtie2'
           - 'hisat2'
+
+    r6-24:
+      gtf:
+        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.24_FB2018_05/gtf/dmel-all-r6.24.gtf.gz'
+        postproccess:
+          function: 'lib.common.convert_gtf_chroms'
+          args: 'https://github.com/NICHD-BSPC/chrom-name-mappings/blob/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/fly/flybase_r6.23_BDGP6_to_ucsc_dm6/mappings_flybase_r6.23_BDGP6_to_ucsc_dm6.tsv'
+        conversions:
+          - 'refflat'
+
+      fb_annotation:
+        url: 'ftp://ftp.flybase.net/releases/FB2018_05/precomputed_files/genes/fbgn_annotation_ID.tsv.gz'
+        postprocess: "lib.postprocess.dm6.fb_annotation_postprocess"
+
+      fb_synonym:
+        url: 'ftp://ftp.flybase.net/releases/FB2018_05/precomputed_files/synonyms/fb_synonym_fb_2018_05.tsv.gz'
+        postprocess: "lib.postprocess.dm6.fb_synonym_postprocess"
+
+      fasta:
+        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.24_FB2018_05/fasta/dmel-all-chromosome-r6.24.fasta.gz'
+        postprocess: "lib.postprocess.dm6.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+
+    r6-24_transcriptome:
+      fasta:
+        url:
+          - 'ftp://ftp.flybase.net/releases/FB2018_05/dmel_r6.24/fasta/dmel-all-transcript-r6.24.fasta.gz'
+          - 'ftp://ftp.flybase.net/releases/FB2018_05/dmel_r6.24/fasta/dmel-all-ncRNA-r6.24.fasta.gz'
+        postprocess: 'lib.common.cat'
+        indexes:
+          - 'salmon'
+
+    r6-24_and_ercc:
+      gtf:
+        url:
+          - 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.24_FB2018_05/gtf/dmel-all-r6.24.gtf.gz'
+          - 'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        postprocess:
+          function: "lib.postprocess.merge.file_merge"
+          args:
+            - "lib.postprocess.dm6.gtf_postprocess"
+            - "lib.postprocess.ercc.gtf_postprocess"
+        conversions:
+          - 'refflat'
+          - 'gffutils'
+
+      fasta:
+        url:
+          - 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.24_FB2018_05/fasta/dmel-all-chromosome-r6.24.fasta.gz'
+          - 'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        postprocess:
+          function: "lib.postprocess.merge.file_merge"
+          args:
+            - "lib.postprocess.dm6.fasta_postprocess"
+            - "lib.postprocess.ercc.fasta_postprocess"
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'

@@ -1,5 +1,31 @@
 references:
   human:
+    gencode-v28:
+      metadata:
+        reference_genome_build: 'hg38.p12'
+        reference_effective_genome_count: 2.7e9
+        reference_effective_genome_proportion: 0.87
+
+      fasta:
+        url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/GRCh38.primary_assembly.genome.fa.gz'
+        indexes:
+          - 'hisat2'
+          - 'bowtie2'
+
+      gtf:
+        url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/gencode.v28.primary_assembly.annotation.gtf.gz'
+        postproccess:
+          function: 'lib.common.convert_gtf_chroms'
+          args: 'https://github.com/NICHD-BSPC/chrom-name-mappings/blob/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/human/gencode_GRCh38.28_to_ucsc_hg38/mappings_gencode_GRCh38.28_to_ucsc_hg38.tsv'
+        conversions:
+          - 'refflat'
+
+    gencode-v28-transcriptome:
+      fasta:
+        url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/gencode.v28.transcripts.fa.gz'
+        indexes:
+          - 'salmon'
+
     gencode-v25:
 
       metadata:
@@ -12,6 +38,7 @@ references:
         indexes:
           - 'hisat2'
           - 'bowtie2'
+
       gtf:
         url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz'
         postprocess: 'lib.postprocess.hg38.strip_ensembl_version'
@@ -27,8 +54,6 @@ references:
               gtf_gene_key: 'gene_id'
               disable_infer_genes: True
               disable_infer_transcripts: True
-
-
 
     gencode-v25-transcriptome:
       fasta:

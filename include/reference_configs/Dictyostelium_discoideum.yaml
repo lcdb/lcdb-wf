@@ -1,26 +1,25 @@
 references:
   dicty:
-    ensembl_2.7.33:
+    ensembl_2.7.41:
+      fasta:
+        url: 'ftp://ftp.ensemblgenomes.org/pub/protists/release-41/fasta/dictyostelium_discoideum/dna/Dictyostelium_discoideum.dicty_2.7.dna_sm.toplevel.fa.gz'
+        indexes:
+            - 'bowtie2'
+            - 'hisat2'
       gtf:
-        url: 'ftp://ftp.ensemblgenomes.org/pub/release-33/protists/gtf/dictyostelium_discoideum/Dictyostelium_discoideum.dicty_2.7.33.gtf.gz'
+        url: 'ftp://ftp.ensemblgenomes.org/pub/protists/release-41/gff3/dictyostelium_discoideum/Dictyostelium_discoideum.dicty_2.7.41.gff3.gz'
         conversions:
           - 'refflat'
 
-    ensembl_transcriptome_2.7:
+    ensembl_transcriptome_2.7.41:
       fasta:
         url:
-            - "ftp://ftp.ensemblgenomes.org/pub/protists/release-33/fasta/dictyostelium_discoideum/cdna/Dictyostelium_discoideum.dicty_2.7.cdna.all.fa.gz"
-            - "ftp://ftp.ensemblgenomes.org/pub/protists/release-33/fasta/dictyostelium_discoideum/ncrna/Dictyostelium_discoideum.dicty_2.7.ncrna.fa.gz"
+            - "ftp://ftp.ensemblgenomes.org/pub/protists/release-41/fasta/dictyostelium_discoideum/cds/Dictyostelium_discoideum.dicty_2.7.cds.all.fa.gz"
+            - "ftp://ftp.ensemblgenomes.org/pub/protists/release-41/fasta/dictyostelium_discoideum/ncrna/Dictyostelium_discoideum.dicty_2.7.ncrna.fa.gz"
         postprocess: "lib.common.cat"
         indexes:
             - "salmon"
 
-    ensembl_2.7:
-      fasta:
-        url: 'ftp://ftp.ensemblgenomes.org/pub/protists/release-33/fasta/dictyostelium_discoideum/dna/Dictyostelium_discoideum.dicty_2.7.dna_sm.toplevel.fa.gz'
-        indexes:
-            - 'bowtie2'
-            - 'hisat2'
     rRNA:
       fasta:
         url:
@@ -32,5 +31,3 @@ references:
         postprocess:
             function: 'lib.common.filter_fastas'
             args: 'Dictyostelium discoideum'
-
-
