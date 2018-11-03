@@ -5,6 +5,7 @@ import yaml
 import pandas
 from Bio import SeqIO
 import gzip
+import binascii
 from lcdblib.utils.imports import resolve_name
 from lcdblib.snakemake import aligners
 from snakemake.shell import shell
@@ -20,6 +21,16 @@ PATH_KEYS = [
     'peaks_dir',
     'hub_config',
 ]
+
+def _is_gzipped(fn):
+    """
+    Filename-independent method of checking if a file is gzipped or not. Uses
+    the magic number.
+
+    xref https://stackoverflow.com/a/47080739
+    """
+    with open(fn, 'rb') as f:
+        return binascii.hexlify(f.read(2)) == b'1f8b'
 
 
 def resolve_config(config, workdir=None):
@@ -689,10 +700,11 @@ def convert_gtf_chroms(tmpfiles, outfile, conv_table):
         Lookup table file for the chromosome name conversion
     """
     def openfile(tmp, mode):
-        if tmp.endswith('.gz'):
+        if _is_gzipped(tmp):
             return gzip.open(tmp, mode)
         else:
             return open(tmp, mode)
+
     lookup = pandas.read_table(conv_table, sep='\t', header = None, names = ('a', 'b')).set_index('a')['b'].to_dict()
     with gzip.open(outfile, 'wt') as fout:
         for tmp in tmpfiles:

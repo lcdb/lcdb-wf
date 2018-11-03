@@ -42,7 +42,7 @@ references:
 
     chrom_test:
       gtf:
-        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf"
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf.gz"
         postprocess:
           function: 'lib.common.convert_gtf_chroms'
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/893cb5bdf84c2d6f5c6d48fe74c791646383f189/mappings/test/test_to_ucsc.tsv'
