@@ -33,6 +33,16 @@ def _is_gzipped(fn):
         return binascii.hexlify(f.read(2)) == b'1f8b'
 
 
+def openfile(tmp, mode):
+    """
+    Returns an open file handle; auto-detects gzipped files.
+    """
+    if _is_gzipped(tmp):
+        return gzip.open(tmp, mode)
+    else:
+        return open(tmp, mode)
+
+
 def resolve_config(config, workdir=None):
     """
     Finds the config file.
@@ -687,23 +697,21 @@ def fill_r1_r2(sampletable, pattern, r1_only=False):
 
 def convert_gtf_chroms(tmpfiles, outfile, conv_table):
     """
-    Convert chromosome names from GTF file given a search pattern.
-    Given input gzipped GTF, create a new gzipped GTF containing chromosome
-    names whose description matches `pattern`.
+    Convert chrom names in GTF file according to conversion table.
+
     Parameters
     ----------
     tmpfiles : str
-        gzipped GTF files to look through
+        GTF files to look through
+
     outfile : str
         gzipped output GTF file
+
     conv_table : str
-        Lookup table file for the chromosome name conversion
+        Lookup table file for the chromosome name conversion. Uses pandas to
+        read lookup table, so it can be file://, a path relative to the
+        snakefile, or an http://, https://, or ftp:// URL.
     """
-    def openfile(tmp, mode):
-        if _is_gzipped(tmp):
-            return gzip.open(tmp, mode)
-        else:
-            return open(tmp, mode)
 
     lookup = pandas.read_table(conv_table, sep='\t', header = None, names = ('a', 'b')).set_index('a')['b'].to_dict()
     with gzip.open(outfile, 'wt') as fout:
