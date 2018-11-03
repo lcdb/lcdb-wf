@@ -22,6 +22,7 @@ PATH_KEYS = [
     'hub_config',
 ]
 
+
 def _is_gzipped(fn):
     """
     Filename-independent method of checking if a file is gzipped or not. Uses
@@ -177,8 +178,8 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
 
     This function:
 
-        - uses `organism`, `tag`, `type_` as a key into the config dict to figure
-          out:
+        - uses `organism`, `tag`, `type_` as a key into the config dict to
+          figure out:
 
             - what postprocessing function (if any) was specified along with
               its optional args
@@ -532,10 +533,11 @@ def get_techreps(sampletable, label):
 
     is_chipseq = 'antibody' in sampletable.columns
     if is_chipseq:
-        err = ("No technical replicates found for label '{}'. This looks to "
-               "be a ChIP-seq experiment; check the peak-calling section of"
-               "the config.".format(label)
-              )
+        err = (
+            "No technical replicates found for label '{}'. This looks to "
+            "be a ChIP-seq experiment; check the peak-calling section of"
+            "the config.".format(label)
+        )
     else:
         err = "No technical replicates found for label '{}'.".format(label)
 
@@ -555,7 +557,6 @@ def load_config(config):
     if isinstance(config, str):
         config = yaml.load(open(config))
 
-
     # Here we populate a list of reference sections. Items later on the list
     # will have higher priority
     includes = config.get('include_references', [])
@@ -566,7 +567,8 @@ def load_config(config):
     for dirname in filter(os.path.isdir, includes):
         # Note we're looking recursively for .yaml and .yml, so very large
         # reference directories are possible
-        for fn in glob.glob(os.path.join(dirname, '**/*.y?ml'), recursive=True):
+        for fn in glob.glob(os.path.join(dirname, '**/*.y?ml'),
+                            recursive=True):
             refs = yaml.load(open(fn)).get('references', None)
             if refs is None:
                 raise ValueError("No 'references:' section in {0}".format(fn))
@@ -611,7 +613,6 @@ def deprecation_handler(config):
             "As a temporary measure, a new 'organism' key has been added with "
             "the value of 'assembly'",
             UserWarning)
-
 
     for org, block1 in config.get('references', {}).items():
         for tag, block2 in block1.items():
@@ -713,17 +714,23 @@ def convert_gtf_chroms(tmpfiles, outfile, conv_table):
         snakefile, or an http://, https://, or ftp:// URL.
     """
 
-    lookup = pandas.read_table(conv_table, sep='\t', header = None, names = ('a', 'b')).set_index('a')['b'].to_dict()
+    lookup = pandas.read_table(
+        conv_table, sep='\t', header=None, names=('a', 'b')
+    ).set_index('a')['b'].to_dict()
+
     with gzip.open(outfile, 'wt') as fout:
-        for tmp in tmpfiles:
-            with openfile(tmp,'rt') as tmp:
+        for tmpfn in tmpfiles:
+            with openfile(tmpfn, 'rt') as tmp:
                 for line in tmp:
-                    linelist = line.split('\t')
-                    if linelist[0] in lookup.keys():
-                        linelist[0] = lookup[linelist[0]]
-                        line = '\t'.join(linelist)
+                    toks = line.split('\t')
+                    chrom = toks[0]
+                    if chrom in lookup.keys():
+                        toks[0]= lookup[chrom]
+                        line = '\t'.join(toks)
                     else:
                         raise ValueError(
-                            'Chromosome "{linelist}" not found in conversion table '
-                            '"{conv_table}"'.format(linelist=linelist[0], conv_table=conv_table))
+                            'Chromosome "{chrom}" not found in conversion table '
+                            '"{conv_table}"'
+                            .format(chrom=chrom, conv_table=conv_table)
+                        )
                     fout.write(line)
