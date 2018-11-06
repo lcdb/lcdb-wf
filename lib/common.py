@@ -252,28 +252,44 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
 
     # postprocess can be missing, in which case we use the default above
     post_process = block.get('postprocess', None)
-    if post_process is None:
-        func = default_postprocess
-        args = ()
-        kwargs = {}
 
-    # postprocess can have a single string value (indicating the function) or
-    # it can be a dict with keys "function" and optionally "args". The value of
-    # "args" can be a string or a list.
-    else:
-        if isinstance(post_process, dict):
-            name = post_process.get('function', post_process)
-            args = post_process.get('args', ())
-            kwargs = post_process.get('kwargs', {})
-            if isinstance(args, str):
-                args = (args,)
-        elif isinstance(post_process, str):
-            name = post_process
+    if not isinstance(post_process, list):
+        post_process = [post_process]
+
+    funcs = []
+    func_tmpfiles = []
+    for i, post_process_block in enumerate(post_process):
+        if post_process_block is None:
+            funcs = [default_postprocess]
             args = ()
             kwargs = {}
 
-        # import the function
-        func = resolve_name(name)
+        # postprocess can have a single string value (indicating the function) or
+        # it can be a dict with keys "function" and optionally "args". The value of
+        # "args" can be a string or a list.
+        else:
+            if isinstance(post_process_block, dict):
+                name = post_process_block.get('function', post_process)
+                args = post_process_block.get('args', ())
+                kwargs = post_process_block.get('kwargs', {})
+                if isinstance(args, str):
+                    args = (args,)
+            elif isinstance(post_process_block, str):
+                name = post_process_block
+                args = ()
+                kwargs = {}
+
+            # import the function
+            func = resolve_name(name)
+
+        tmp_outfile = f'{outfile}.{i}.{name}.tmp'
+        func_tmpfiles.append(tmp_outfile)
+        funcs.append([func, args, kwargs, tmp_outfile])
+
+    # The last func's outfile should be the final outfile
+    funcs[-1][-1] = outfile
+
+    print(funcs)
 
     # as described in the docstring above, functions are to assume a list of
     # urls
@@ -291,11 +307,13 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
             else:
                 shell("wget {url} -O- > {tmpfile} 2> {outfile}.log")
 
-        func(tmpfiles, outfile, *args, **kwargs)
+        for func, args, kwargs, outfile in funcs:
+            func(tmpfiles, outfile, *args, **kwargs)
+
     except Exception as e:
         raise e
     finally:
-        for i in tmpfiles:
+        for i in tmpfiles + func_tmpfiles:
             if os.path.exists(i):
                 shell('rm {i}')
 
