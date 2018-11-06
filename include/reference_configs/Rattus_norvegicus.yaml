@@ -12,7 +12,7 @@ references:
           - 'bowtie2'
       gtf:
         url: 'ftp://ftp.ensembl.org/pub/release-94/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.94.gtf.gz'
-        postproccess:
+        postprocess:
           function: 'lib.common.convert_gtf_chroms'
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/6378179e30bf4502d10a63e1b4f4f8a0b0070ce9/mappings/rat/ensembl_Rnor_6.0_to_ucsc_rn6/mappings_ensembl_Rnor_6.0_to_ucsc_rn6.tsv'
         conversions:

@@ -12,7 +12,7 @@ references:
           - 'bowtie2'
       gtf:
         url: 'ftp://ftp.ensembl.org/pub/release-94/gtf/macaca_mulatta/Macaca_mulatta.Mmul_8.0.1.94.gtf.gz'
-        postproccess:
+        postprocess:
           function: 'lib.common.convert_gtf_chroms'
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/6378179e30bf4502d10a63e1b4f4f8a0b0070ce9/mappings/macaque/ensembl_Mmul_8.0.1_to_ucsc_rheMac8/mappings_ensembl_Mmul_8.0.1_to_ucsc_rheMac8.tsv'
         conversions:
