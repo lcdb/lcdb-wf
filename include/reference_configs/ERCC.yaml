@@ -20,4 +20,4 @@ references:
           - 'hisat2'
       gtf:
         url: 'https://tools.thermofisher.com/content/sfs/manuals/ERCC92.zip'
-        postprocess: "lib.pos
+        postprocess: "lib.postprocess.erccFisher.gtf_postprocess"
