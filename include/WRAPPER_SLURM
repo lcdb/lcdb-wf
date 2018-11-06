@@ -11,7 +11,7 @@ if [[ ! -e logs ]]; then mkdir -p logs; fi
     time snakemake \
     -p \
     --directory $PWD \
-    -T \
+    # -T \
     -k \
     --rerun-incomplete \
     --jobname "s.{rulename}.{jobid}.sh" \
