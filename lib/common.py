@@ -289,8 +289,6 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
     # The last func's outfile should be the final outfile
     funcs[-1][-1] = outfile
 
-    print(funcs)
-
     # as described in the docstring above, functions are to assume a list of
     # urls
     urls = block['url']
