@@ -192,7 +192,7 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
           outfile plus any additional specified arguments.
 
 
-    The postprocessing function must have one of the following two signatures,
+    The postprocessing function must have one of the following signatures,
     where `infiles` contains the list of temporary files downloaded from the
     URL or URLs specified, and `outfile` is a gzipped file expected to be
     created by the function::
@@ -243,8 +243,8 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
 
     def default_postprocess(origfn, newfn):
         """
-        If no other postprocess function is defined, then simply move the original
-        to the new.
+        If no other postprocess function is defined, then simply move the
+        original to the new.
         """
         shell("mv {origfn} {newfn}")
 
