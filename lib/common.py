@@ -5,6 +5,7 @@ import yaml
 import pandas
 from Bio import SeqIO
 import gzip
+import binascii
 from lcdblib.utils.imports import resolve_name
 from lcdblib.snakemake import aligners
 from snakemake.shell import shell
@@ -20,6 +21,27 @@ PATH_KEYS = [
     'peaks_dir',
     'hub_config',
 ]
+
+
+def _is_gzipped(fn):
+    """
+    Filename-independent method of checking if a file is gzipped or not. Uses
+    the magic number.
+
+    xref https://stackoverflow.com/a/47080739
+    """
+    with open(fn, 'rb') as f:
+        return binascii.hexlify(f.read(2)) == b'1f8b'
+
+
+def openfile(tmp, mode):
+    """
+    Returns an open file handle; auto-detects gzipped files.
+    """
+    if _is_gzipped(tmp):
+        return gzip.open(tmp, mode)
+    else:
+        return open(tmp, mode)
 
 
 def resolve_config(config, workdir=None):
@@ -156,8 +178,8 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
 
     This function:
 
-        - uses `organism`, `tag`, `type_` as a key into the config dict to figure
-          out:
+        - uses `organism`, `tag`, `type_` as a key into the config dict to
+          figure out:
 
             - what postprocessing function (if any) was specified along with
               its optional args
@@ -170,7 +192,7 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
           outfile plus any additional specified arguments.
 
 
-    The postprocessing function must have one of the following two signatures,
+    The postprocessing function must have one of the following signatures,
     where `infiles` contains the list of temporary files downloaded from the
     URL or URLs specified, and `outfile` is a gzipped file expected to be
     created by the function::
@@ -221,8 +243,8 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
 
     def default_postprocess(origfn, newfn):
         """
-        If no other postprocess function is defined, then simply move the original
-        to the new.
+        If no other postprocess function is defined, then simply move the
+        original to the new.
         """
         shell("mv {origfn} {newfn}")
 
@@ -230,28 +252,43 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
 
     # postprocess can be missing, in which case we use the default above
     post_process = block.get('postprocess', None)
-    if post_process is None:
-        func = default_postprocess
-        args = ()
-        kwargs = {}
 
-    # postprocess can have a single string value (indicating the function) or
-    # it can be a dict with keys "function" and optionally "args". The value of
-    # "args" can be a string or a list.
-    else:
-        if isinstance(post_process, dict):
-            name = post_process.get('function', post_process)
-            args = post_process.get('args', ())
-            kwargs = post_process.get('kwargs', {})
-            if isinstance(args, str):
-                args = (args,)
-        elif isinstance(post_process, str):
-            name = post_process
+    if not isinstance(post_process, list):
+        post_process = [post_process]
+
+    funcs = []
+    func_tmpfiles = []
+    for i, post_process_block in enumerate(post_process):
+        if post_process_block is None:
+            func = default_postprocess
             args = ()
             kwargs = {}
+            name = None
 
-        # import the function
-        func = resolve_name(name)
+        # postprocess can have a single string value (indicating the function) or
+        # it can be a dict with keys "function" and optionally "args". The value of
+        # "args" can be a string or a list.
+        else:
+            if isinstance(post_process_block, dict):
+                name = post_process_block.get('function', post_process)
+                args = post_process_block.get('args', ())
+                kwargs = post_process_block.get('kwargs', {})
+                if isinstance(args, str):
+                    args = (args,)
+            elif isinstance(post_process_block, str):
+                name = post_process_block
+                args = ()
+                kwargs = {}
+
+            # import the function
+            func = resolve_name(name)
+
+        tmp_outfile = f'{outfile}.{i}.{name}.tmp'
+        func_tmpfiles.append(tmp_outfile)
+        funcs.append([func, args, kwargs, tmp_outfile])
+
+    # The last func's outfile should be the final outfile
+    funcs[-1][-1] = outfile
 
     # as described in the docstring above, functions are to assume a list of
     # urls
@@ -269,11 +306,13 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
             else:
                 shell("wget {url} -O- > {tmpfile} 2> {outfile}.log")
 
-        func(tmpfiles, outfile, *args, **kwargs)
+        for func, args, kwargs, outfile in funcs:
+            func(tmpfiles, outfile, *args, **kwargs)
+
     except Exception as e:
         raise e
     finally:
-        for i in tmpfiles:
+        for i in tmpfiles + func_tmpfiles:
             if os.path.exists(i):
                 shell('rm {i}')
 
@@ -511,10 +550,11 @@ def get_techreps(sampletable, label):
 
     is_chipseq = 'antibody' in sampletable.columns
     if is_chipseq:
-        err = ("No technical replicates found for label '{}'. This looks to "
-               "be a ChIP-seq experiment; check the peak-calling section of"
-               "the config.".format(label)
-              )
+        err = (
+            "No technical replicates found for label '{}'. This looks to "
+            "be a ChIP-seq experiment; check the peak-calling section of"
+            "the config.".format(label)
+        )
     else:
         err = "No technical replicates found for label '{}'.".format(label)
 
@@ -534,7 +574,6 @@ def load_config(config):
     if isinstance(config, str):
         config = yaml.load(open(config))
 
-
     # Here we populate a list of reference sections. Items later on the list
     # will have higher priority
     includes = config.get('include_references', [])
@@ -545,7 +584,8 @@ def load_config(config):
     for dirname in filter(os.path.isdir, includes):
         # Note we're looking recursively for .yaml and .yml, so very large
         # reference directories are possible
-        for fn in glob.glob(os.path.join(dirname, '**/*.y?ml'), recursive=True):
+        for fn in glob.glob(os.path.join(dirname, '**/*.y?ml'),
+                            recursive=True):
             refs = yaml.load(open(fn)).get('references', None)
             if refs is None:
                 raise ValueError("No 'references:' section in {0}".format(fn))
@@ -590,7 +630,6 @@ def deprecation_handler(config):
             "As a temporary measure, a new 'organism' key has been added with "
             "the value of 'assembly'",
             UserWarning)
-
 
     for org, block1 in config.get('references', {}).items():
         for tag, block2 in block1.items():
@@ -672,3 +711,86 @@ def fill_r1_r2(sampletable, pattern, r1_only=False):
         res = expand(pattern, sample=wc.sample, n=n)
         return res
     return func
+
+
+def convert_gtf_chroms(tmpfiles, outfile, conv_table):
+    """
+    Convert chrom names in GTF file according to conversion table.
+
+    Parameters
+    ----------
+    tmpfiles : str
+        GTF files to look through
+
+    outfile : str
+        gzipped output GTF file
+
+    conv_table : str
+        Lookup table file for the chromosome name conversion. Uses pandas to
+        read lookup table, so it can be file://, a path relative to the
+        snakefile, or an http://, https://, or ftp:// URL.
+    """
+
+    lookup = pandas.read_table(
+        conv_table, sep='\t', header=None, names=('a', 'b')
+    ).set_index('a')['b'].to_dict()
+
+    with gzip.open(outfile, 'wt') as fout:
+        for tmpfn in tmpfiles:
+            with openfile(tmpfn, 'rt') as tmp:
+                for line in tmp:
+                    if not line.startswith("#"):
+                        toks = line.split('\t')
+                        chrom = toks[0]
+                        if chrom in lookup.keys():
+                            toks[0]= lookup[chrom]
+                            line = '\t'.join(toks)
+                        else:
+                            raise ValueError(
+                                'Chromosome "{chrom}" not found in conversion table '
+                                '"{conv_table}"'
+                                .format(chrom=chrom, conv_table=conv_table)
+                            )
+                    fout.write(line)
+
+def convert_fasta_chroms(tmpfiles, outfile, conv_table):
+    """
+    Convert chrom names in fasta file according to conversion table.
+
+    Parameters
+    ----------
+    tmpfiles : str
+        fasta files to look through
+
+    outfile : str
+        gzipped output fasta file
+
+    conv_table : str
+        Lookup table file for the chromosome name conversion. Uses pandas to
+        read lookup table, so it can be file://, a path relative to the
+        snakefile, or an http://, https://, or ftp:// URL.
+    """
+
+    lookup = pandas.read_table(
+        conv_table, sep='\t', header=None, names=('a', 'b')
+    ).set_index('a')['b'].to_dict()
+
+    with gzip.open(outfile, 'wt') as fout:
+        for tmpfn in tmpfiles:
+            with openfile(tmpfn, 'rt') as tmp:
+                for line in tmp:
+                    if line.startswith(">"):
+                        line = line.rstrip("\n")
+                        toks = line.split(' ')
+                        chrom = toks[0].lstrip(">")
+                        chrom = chrom.rstrip("\n")
+                        if chrom in lookup.keys():
+                            toks[0]= ">" + lookup[chrom]
+                            line = ' '.join(toks) + "\n"
+                        else:
+                            raise ValueError(
+                                'Chromosome "{chrom}" not found in conversion table '
+                                '"{conv_table}"'
+                                .format(chrom=chrom, conv_table=conv_table)
+                            )
+                    fout.write(line)

@@ -1,23 +1,28 @@
 references:
   spombe:
-    default:
+    ucsc_41::
       metadata:
         reference_genome_build: 'pombe'
         reference_effective_genome_count: 1.2e7
         reference_effective_genome_proportion: 0.97
 
       fasta:
-        url: 'ftp://ftp.pombase.org/pombe/genome_sequence_and_features/genome_sequence/Schizosaccharomyces_pombe_all_chromosomes.fa.gz'
+        url: 'ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/fasta/schizosaccharomyces_pombe/dna/Schizosaccharomyces_pombe.ASM294v2.dna_sm.toplevel.fa.gz'
         indexes:
           - 'bowtie2'
           - 'hisat2'
       gtf:
-        url: 'ftp://ftp.pombase.org/pombe/genome_sequence_and_features/gff3/schizosaccharomyces_pombe.genome.gff3.gz'
-    transcriptome:
+        url: 'ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/gff3/schizosaccharomyces_pombe/Schizosaccharomyces_pombe.ASM294v2.94.gff3.gz'
+
+    ucsc_41_transcriptome:
       fasta:
-        url: 'ftp://ftp.pombase.org/pombe/genome_sequence_and_features/feature_sequences/cds.fa.gz'
+        url:
+          - 'ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/fasta/schizosaccharomyces_pombe/cdna/Schizosaccharomyces_pombe.ASM294v2.cdna.all.fa.gz'
+          - 'ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/fasta/schizosaccharomyces_pombe/ncrna/Schizosaccharomyces_pombe.ASM294v2.ncrna.fa.gz'
+        postprocess: 'lib.common.cat'
         indexes:
           - 'salmon'
+
     rRNA:
       fasta:
         url:

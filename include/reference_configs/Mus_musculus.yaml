@@ -1,5 +1,35 @@
 references:
   mouse:
+    gencode_m18:
+
+      metadata:
+        reference_genome_build: 'mm10.p6'
+        reference_effective_genome_count: 2.3e9
+        reference_effective_genome_proportion: 0.87
+
+      fasta:
+        url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M18/GRCm38.primary_assembly.genome.fa.gz'
+        postprocess:
+          function: 'lib.common.convert_fasta_chroms'
+          args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/mouse/gencode_GRCm38.m18_to_ucsc_mm10/mappings_gencode_GRCm38.m18_to_ucsc_mm10.tsv'
+        indexes:
+          - 'hisat2'
+          - 'bowtie2'
+      gtf:
+        url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M18/gencode.vM18.primary_assembly.annotation.gtf.gz'
+        postprocess:
+          function: 'lib.common.convert_gtf_chroms'
+          args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/mouse/gencode_GRCm38.m18_to_ucsc_mm10/mappings_gencode_GRCm38.m18_to_ucsc_mm10.tsv'
+        conversions:
+          - 'refflat'
+
+
+    gencode_m18_transcriptome:
+      fasta:
+        url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M18/gencode.vM18.transcripts.fa.gz'
+        indexes:
+          - 'salmon'
+
     gencode_m12:
 
       metadata:
