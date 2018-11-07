@@ -46,6 +46,11 @@ references:
         postprocess:
           function: 'lib.common.convert_gtf_chroms'
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/893cb5bdf84c2d6f5c6d48fe74c791646383f189/mappings/test/test_to_ucsc.tsv'
+      fasta:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/fasta_long_header/data/seq/dm6.small.longheader.fa"
+        postprocess:
+          function: 'lib.common.convert_fasta_chroms'
+          args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/893cb5bdf84c2d6f5c6d48fe74c791646383f189/mappings/test/test_to_ucsc.tsv'
 
     test_transcriptome:
       fasta:
@@ -65,6 +70,10 @@ references:
         indexes:
           - 'hisat2'
           - 'bowtie2'
+
+    gtf_no_postproc:
+      gtf:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf.gz"
 
   phix:
     default:
