@@ -4,3 +4,7 @@ references_dir: 'references_dir'
 # include/reference_configs, for inspiration for more species.
 include_references:
   - '../../include/reference_configs/test.yaml'
+  # - '../../include/reference_configs/Escherichia_coli.yaml'
+  # - '../../include/reference_configs/Drosophila_melanogaster.yaml'
+  # - '../../include/reference_configs/Dictyostelium_discoideum.yaml'
+  - '../../include/reference_configs/Danio_rerio.yaml'
