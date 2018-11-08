@@ -31,7 +31,7 @@ def wrapper_for(path):
     return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
 
 
-localrules: symlink_fasta_to_index_dir, chromsizes
+localrules: symlink_fasta_to_index_dir
 
 rule all_references:
     input: utils.flatten(refdict)
@@ -218,10 +218,18 @@ rule chromsizes:
         protected('{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.chromsizes')
     log:
         '{references_dir}/logs/{organism}/{tag}/fasta/{organism}_{tag}.fasta.log'
+    params:
+        # NOTE: Be careful with the memory here; make sure you have enough
+        # and/or it matches the resources you're requesting in the cluster
+        # config.
+        java_args='-Xmx20g'
+        # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     shell:
         'export LC_COLLATE=C; '
         'rm -f {output}.tmp '
-        '&& picard CreateSequenceDictionary R={input} O={output}.tmp &> {log} '
+        '&& picard '
+        '{params.java_args} '
+        'CreateSequenceDictionary R={input} O={output}.tmp &> {log} '
         '&& grep "^@SQ" {output}.tmp '
         '''| awk '{{print $2, $3}}' '''
         '| sed "s/SN://g;s/ LN:/\\t/g" '
