@@ -34,6 +34,9 @@ config = common.load_config(config)
 
 c = RNASeqConfig(config, config.get('patterns', 'config/rnaseq_patterns.yaml'))
 
+wildcard_constraints:
+    n = '[1,2]'
+
 
 def wrapper_for(path):
     return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)

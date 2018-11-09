@@ -38,6 +38,9 @@ c = ChIPSeqConfig(
     config.get('patterns', 'config/chipseq_patterns.yaml')
 )
 
+wildcard_constraints:
+    n = '[1,2]'
+
 
 def wrapper_for(path):
     return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
