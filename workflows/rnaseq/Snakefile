@@ -129,7 +129,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
             # Two different paths depending on the layout. In both cases, we
             # want to avoid creating the final output until the very end, to
             # avoid incomplete downloads.
-            if _st.loc[wildcards.sample, 'layout'] == 'PE':
+            if common.is_paired_end(c.sampletable, wildcards.sample):
 
                 # For PE we need to use --split-files, which also means using
                 # the slower --gzip
@@ -144,11 +144,11 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                 # The filenames are predictable, so we can move them as needd.
                 shell(
                     'mv {srr}_1.fastq.gz '
-                    '$(dirname {output})/{sample}_R1.fastq.gz'
+                    '$(dirname {output})/{wildcards.sample}_R1.fastq.gz'
                 )
                 shell(
                     'mv {srr}_2.fastq.gz '
-                    '$(dirname {output})/{sample}_R2.fastq.gz'
+                    '$(dirname {output})/{wildcards.sample}_R2.fastq.gz'
                 )
 
             else:
