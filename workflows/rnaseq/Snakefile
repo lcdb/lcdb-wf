@@ -26,7 +26,6 @@ else:
     configfile: workflow.overwrite_configfile
 
 include: '../references/Snakefile'
-
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(cluster_specific.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
 
@@ -76,7 +75,6 @@ rule targets:
     """
     input: final_targets
 
-
 if 'orig_filename' in c.sampletable.columns:
 
     # Convert the sampletable to be indexed by the first column, for
@@ -116,7 +114,7 @@ if 'orig_filename' in c.sampletable.columns:
     rule symlink_targets:
         input: c.targets['fastq']
 
-if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('SRR')) > 1:
+if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('SRR')) > 0:
 
     # Convert the sampletable to be indexed by the first column, for
     # convenience in generating the input/output filenames.
@@ -140,6 +138,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     '{srr} '
                     '--gzip '
                     '--split-files '
+                    # '-X 1000 ' # [TEST SETTINGS]
                 )
 
                 # The filenames are predictable, so we can move them as needd.
@@ -159,6 +158,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     'fastq-dump '
                     '{srr} '
                     '-Z '
+                    # '-X 1000 ' # [TEST SETTINGS]
                     '| gzip -c > {output}.tmp '
                     '&& mv {output}.tmp {output} '
                 )

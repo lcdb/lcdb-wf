@@ -140,6 +140,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     '{srr} '
                     '--gzip '
                     '--split-files '
+                    # '-X 1000 ' # [TEST SETTINGS]
                 )
 
                 # The filenames are predictable, so we can move them as needd.
@@ -159,6 +160,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     'fastq-dump '
                     '{srr} '
                     '-Z '
+                    # '-X 1000 ' # [TEST SETTINGS]
                     '| gzip -c > {output}.tmp '
                     '&& mv {output}.tmp {output} '
                 )
