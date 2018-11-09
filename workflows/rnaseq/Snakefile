@@ -18,8 +18,13 @@ from lib.patterns_targets import RNASeqConfig
 #
 # ----------------------------------------------------------------------------
 
+# Only use default if no configfile specified on the command line with
+# --configfile
+if not workflow.overwrite_configfile:
+    configfile: 'config/config.yaml'
+else:
+    configfile: workflow.overwrite_configfile
 
-configfile: 'config/config.yaml'
 include: '../references/Snakefile'
 
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(cluster_specific.tempdir_for_biowulf()))
