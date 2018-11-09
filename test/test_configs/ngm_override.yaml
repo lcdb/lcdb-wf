@@ -1,0 +1,10 @@
+aligner:
+  index: ngm
+  tag: test
+
+merged_bigwigs:
+  control_sense:
+    sense: []
+  treatment_all:
+    sense: []
+    antisense: []
