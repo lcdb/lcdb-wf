@@ -144,11 +144,11 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                 # The filenames are predictable, so we can move them as needd.
                 shell(
                     'mv {srr}_1.fastq.gz '
-                    '$(dirname {output})/{sample}_R1.fastq.gz'
+                    '$(dirname {output})/{wildcards.sample}_R1.fastq.gz'
                 )
                 shell(
                     'mv {srr}_2.fastq.gz '
-                    '$(dirname {output})/{sample}_R2.fastq.gz'
+                    '$(dirname {output})/{wildcards.sample}_R2.fastq.gz'
                 )
 
             else:
