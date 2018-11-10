@@ -118,9 +118,14 @@ variables:
           cp -r workflows/rnaseq workflows/rnaseq-sra-test
           cd workflows/rnaseq-sra-test
           source activate lcdb-wf-test
+
           ./run_test.sh --use-conda -k -p -r --until cutadapt \
             --configfile ../../test/test_configs/override.yaml \
             --config sampletable=../../test/test_configs/test_sra_sampletable.tsv
+
+          ./run_test.sh --use-conda -k -p -r --until cutadapt \
+            --configfile ../../test/test_configs/override.yaml \
+            --config sampletable=../../test/test_configs/test_sra_sampletable_SE_only.tsv
 
   colocalization-step: &colocalization-step
       run:
