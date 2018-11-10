@@ -41,6 +41,11 @@ expect the following files to already exist (paths relative to the Snakefile)::
     data/rnaseq_samples/t1/t1_R1.fastq.gz
     data/rnaseq_samples/t2/t2_R1.fastq.gz
 
+.. _symlinks:
+
+Symlinking FASTQs
+~~~~~~~~~~~~~~~~~
+
 To avoid having to copy or symlink files over into the expected directory
 structure, we can instead list the original filenames in a column called
 ``orig_filename`` and they will be automatically symlinked into
@@ -91,18 +96,33 @@ Paired-end data
 **Paired-end and single-end data may be mixed in the same sampletable.**
 A sample is specified as paired-end using a separate column in the sampletable.
 That column can either be named `layout` (easiest if you're writing your own
-sample table) or `LibraryLayout` (if you're using an SRA sampletable). An error
-will be raised if both columns are provided.
+sample table) or `LibraryLayout` (if you're using an SRA sampletable, in which
+case you can leave it as-is). An error will be raised if both columns are
+provided.
 
 If one of these columns exists, the values of the column are converted to
 lowercase. For each sample, if the value is either `pe` or `paired`, the sample
 will be considered paired-end. In all other cases the sample will be considered
 single-end.
 
-For paired-end samples that will be symlinked, `orig_filename_R2` must
-additionally be specified. If there is a mix of SE and PE samples, the SE must
-have an empty entry (in the context of the tab-delimited sampletable, this
-means two tab characters next to each other with nothing in between).
+For paired-end samples that will be symlinked, both `orig_filename` and
+`orig_filename_R2` must be specified as paths relative to the Snakefile (see
+:ref:`symlinks` above). If there is a mix of SE and PE samples, the SE sample
+must have an empty entry for `orig_filename_R2` (in the context of the
+tab-delimited sampletable, this means two tab characters next to
+each other with nothing in between).
+
+.. note::
+
+  If the sample table contains both single- and paired-end samples, the
+  `fastq_dump` and `cutadapt` rules will create empty R2 files.
+
+  Once the BAM files are created (after alignment in a single- or paired-end
+  fashion as appropriate for the sample), we operate mostly on the BAM.
+
+  After the alignment stage, remaining rules **do not** differentiate between
+  single- and paired-end reads. In particular, featureCounts and bamCoverage
+  may need different parameters depending on the library layout.
 
 ::
 
