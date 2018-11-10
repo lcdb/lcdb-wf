@@ -68,6 +68,14 @@ final_targets = utils.flatten((
 if 'merged_bigwigs' in config:
     final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
 
+# Special case: all samples are single-end
+if all(c.sampletable.iloc[:, 0].apply(
+    lambda x: not common.is_paired_end(c.sampletable, x))
+):
+    ALL_SE = True
+    final_targets = [i.replace('{n}', '1') for i in final_targets]
+else:
+    ALL_SE = False
 
 rule targets:
     """
@@ -114,6 +122,13 @@ if 'orig_filename' in c.sampletable.columns:
     rule symlink_targets:
         input: c.targets['fastq']
 
+
+def render_r1_r2(pattern):
+    if ALL_SE:
+        return expand(pattern, sample='{sample}', n=[1])
+    return expand(pattern, sample='{sample}', n=[1, 2])
+
+
 if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('SRR')) > 0:
 
     # Convert the sampletable to be indexed by the first column, for
@@ -122,7 +137,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
 
     rule fastq_dump:
         output:
-            c.patterns['fastq']
+            fastq=render_r1_r2(c.patterns['fastq'])
         run:
             srr = _st.loc[wildcards.sample, 'Run']
 
@@ -142,14 +157,8 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                 )
 
                 # The filenames are predictable, so we can move them as needd.
-                shell(
-                    'mv {srr}_1.fastq.gz '
-                    '$(dirname {output})/{wildcards.sample}_R1.fastq.gz'
-                )
-                shell(
-                    'mv {srr}_2.fastq.gz '
-                    '$(dirname {output})/{wildcards.sample}_R2.fastq.gz'
-                )
+                shell('mv {srr}_1.fastq.gz {output[0]}')
+                shell('mv {srr}_2.fastq.gz {output[1]}')
 
             else:
                 # For SE, we can use the faster stdout | gzip, and move it
@@ -159,13 +168,12 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     '{srr} '
                     '-Z '
                     # '-X 100000 ' # [TEST SETTINGS]
-                    '| gzip -c > {output}.tmp '
-                    '&& mv {output}.tmp {output} '
+                    '| gzip -c > {output[0]}.tmp '
+                    '&& mv {output[0]}.tmp {output[0]} '
                 )
+                if not ALL_SE:
+                    shell('touch {output[1]}')
 
-
-def render_r1_r2(pattern):
-    return expand(pattern, sample='{sample}', n=[1,2])
 
 rule cutadapt:
     """
@@ -201,7 +209,8 @@ rule cutadapt:
                 "-o {output[0]} "
                 "&> {log}"
             )
-            shell('touch {output[1]}')
+            if not ALL_SE:
+                shell('touch {output[1]}')
 
 
 rule fastqc:
