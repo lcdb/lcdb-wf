@@ -17,6 +17,7 @@ references:
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/6378179e30bf4502d10a63e1b4f4f8a0b0070ce9/mappings/macaque/ensembl_Mmul_8.0.1_to_ucsc_rheMac8/mappings_ensembl_Mmul_8.0.1_to_ucsc_rheMac8.tsv'
         conversions:
           - 'refflat'
+          - 'mappings'
 
 
     ucsc_8_transcriptome:

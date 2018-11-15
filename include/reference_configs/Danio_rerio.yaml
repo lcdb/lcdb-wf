@@ -17,6 +17,8 @@ references:
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/zebrafish/ensembl_GRCz11_to_ucsc_danRer11/mappings_ensembl_GRCz11_to_ucsc_danRer11.tsv'
         conversions:
           - 'refflat'
+          - 'mappings'
+
 
 
     ucsc_11_transcriptome:

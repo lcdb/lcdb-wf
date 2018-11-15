@@ -23,6 +23,7 @@ references:
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/human/gencode_GRCh38.28_to_ucsc_hg38/mappings_gencode_GRCh38.28_to_ucsc_hg38.tsv'
         conversions:
           - 'refflat'
+          - 'mappings'
 
     gencode-v28-transcriptome:
       fasta:
@@ -58,6 +59,7 @@ references:
               gtf_gene_key: 'gene_id'
               disable_infer_genes: True
               disable_infer_transcripts: True
+          - 'mappings'
 
     gencode-v25-transcriptome:
       fasta:
@@ -81,6 +83,7 @@ references:
         postprocess: 'lib.postprocess.hg38.strip_ensembl_version'
         conversions:
           - 'refflat'
+          - 'mappings'
 
     gencode_v19_plus_lncRNA_transcriptome:
       fasta:
