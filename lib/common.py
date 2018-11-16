@@ -445,7 +445,7 @@ def references_dict(config):
                             # value will be kwargs. This is used e.g. for
                             # gffutils conversion which often need some
                             # tweaking of args depending on the gtf format.
-                            assert len(list(conversion.keys())) == 1
+                            assert len(list(conversion.keys())) == 1, conversion
                             kwargs = list(conversion.values())[0]
                             conversion = list(conversion.keys())[0]
 
