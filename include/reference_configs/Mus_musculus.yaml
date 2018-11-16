@@ -22,7 +22,8 @@ references:
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/mouse/gencode_GRCm38.m18_to_ucsc_mm10/mappings_gencode_GRCm38.m18_to_ucsc_mm10.tsv'
         conversions:
           - 'refflat'
-          - 'mappings'
+          - mappings:
+              include_featuretypes: ['gene', 'transcript']
 
 
     gencode_m18_transcriptome:
@@ -47,7 +48,8 @@ references:
         url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M12/gencode.vM12.annotation.gtf.gz'
         conversions:
           - 'refflat'
-          - 'mappings'
+          - mappings:
+              include_featuretypes: ['gene', 'transcript']
 
 
     gencode_m12_transcriptome:
