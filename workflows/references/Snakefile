@@ -271,7 +271,7 @@ rule mappings:
         # Will want to change the setting back to what it was originally when
         # we're done
         orig_setting = gffutils.constants.always_return_list
-        gffutils.constants.always_return_list = False
+        gffutils.constants.always_return_list = True
 
         include_featuretypes = params.include_featuretypes
 
@@ -284,7 +284,15 @@ rule mappings:
                 continue
 
             d = dict(f.attributes)
+
+            # In some cases, we're getting lines with repeated keys (zebrafish,
+            # for example, repeats the "tag" attribute). Handle such cases
+            # here.
+            for k, v in d.items():
+                d[k] = ','.join(v)
+
             d['__featuretype__'] = ft
+
             res.append(d)
 
         df = pandas.DataFrame(res)
