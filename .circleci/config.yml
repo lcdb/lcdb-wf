@@ -3,9 +3,10 @@ version: 2
 variables:
 
   # default settings for all steps
-  # defaults: &defaults
-  #  docker:
-  #    - image: bioconda/bioconda-utils-build-env
+  defaults: &defaults
+    machine: true
+  #docker:
+  #   - image: bioconda/bioconda-utils-build-env
 
   # --------------------------------------------------------------------------
   # The caching dramatically speeds up testing time, because we can do the
@@ -147,7 +148,7 @@ jobs:
   # Builds the global conda environment, lcdb-wf-test, and then saves the
   # `miniconda` dir to the cache which can be restored in later jobs.
   initial-setup:
-    # <<: *defaults
+    <<: *defaults
     steps:
       - checkout
       - *restore_cache
@@ -155,7 +156,7 @@ jobs:
       - *save_cache
 
   pytest:
-    # <<: *defaults
+    <<: *defaults
     steps:
       - checkout
       - *restore_cache
@@ -163,7 +164,7 @@ jobs:
       - *pytest-step
 
   chipseq:
-    # <<: *defaults
+    <<: *defaults
     steps:
       - checkout
       - *restore_cache
@@ -172,7 +173,7 @@ jobs:
       - *chipseq-step
 
   rnaseq:
-    # <<: *defaults
+    <<: *defaults
     steps:
       - checkout
       - *restore_cache
@@ -181,7 +182,7 @@ jobs:
       - *rnaseq-step
 
   rnaseq-ngm:
-    # <<: *defaults
+    <<: *defaults
     steps:
       - checkout
       - *restore_cache
@@ -190,7 +191,7 @@ jobs:
       - *rnaseq-ngm-step
 
   rnaseq-star:
-    # <<: *defaults
+    <<: *defaults
     steps:
       - checkout
       - *restore_cache
@@ -200,7 +201,7 @@ jobs:
 
 
   colocalization:
-    # <<: *defaults
+    <<: *defaults
     steps:
       - checkout
       - *restore_cache
@@ -209,7 +210,7 @@ jobs:
       - *colocalization-step
 
   references:
-    # <<: *defaults
+    <<: *defaults
     steps:
       - checkout
       - *restore_cache
@@ -218,7 +219,7 @@ jobs:
       - *references-step
 
   build-docs:
-    # <<: *defaults
+    <<: *defaults
     steps:
       - add_ssh_keys:
           fingerprints:
