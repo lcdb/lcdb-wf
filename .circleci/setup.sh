@@ -30,7 +30,7 @@ if ! type conda > /dev/null; then
         tag="MacOSX"
     elif [[ $OSTYPE == linux* ]]; then
         tag="Linux"
-        sudo apt-get install ttf-dejavu
+        sudo yum install -y dejavu-fonts-common freetype fontconfig freetype-devel fontconfig-devel
     else
         echo "Unsupported OS: $OSTYPE"
         exit 1
@@ -49,4 +49,3 @@ if ! type conda > /dev/null; then
     conda create -n lcdb-wf-test -y --file requirements.txt
     conda remove -y r-base
 fi
-
