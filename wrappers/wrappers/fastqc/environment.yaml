@@ -1,6 +1,6 @@
 channels:
-  - bioconda
   - conda-forge
+  - bioconda
 dependencies:
   # for fastqc running in minimal containers, which complain about missing
   # fonts
