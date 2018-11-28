@@ -27,14 +27,14 @@ variables:
 
   save_cache: &save_cache
     save_cache:
-      key: v3-{{ checksum "requirements.txt" }}
+      key: v4-{{ checksum "requirements.txt" }}
       paths:
         - miniconda
 
   restore_cache: &restore_cache
     restore_cache:
       keys:
-        - v3-{{ checksum "requirements.txt" }}
+        - v4-{{ checksum "requirements.txt" }}
 
 
   # --------------------------------------------------------------------------
