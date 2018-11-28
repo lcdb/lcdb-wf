@@ -214,8 +214,8 @@ rule fastqc:
     output:
         html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
         zip='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
-    wrapper:
-        wrapper_for('fastqc')
+    script:
+        wrapper_for('fastqc/wrapper.py')
 
 
 rule bowtie2:
