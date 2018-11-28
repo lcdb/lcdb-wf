@@ -30,7 +30,7 @@ if ! type conda > /dev/null; then
         tag="MacOSX"
     elif [[ $OSTYPE == linux* ]]; then
         tag="Linux"
-        sudo apt-get install -y ttf-dejavu freetype2-demos fontconfig
+        sudo apt-get install -y fonts-dejavu-core fonts-dejavu-extra freetype2-demos fontconfig
     else
         echo "Unsupported OS: $OSTYPE"
         exit 1
