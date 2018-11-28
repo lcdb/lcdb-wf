@@ -10,8 +10,8 @@ source $BASH_ENV
 
 cat > ~/.condarc <<EOF
 channels:
-  - bioconda
   - conda-forge
+  - bioconda
   - defaults
   - lcdb
 default_channels:
@@ -30,6 +30,7 @@ if ! type conda > /dev/null; then
         tag="MacOSX"
     elif [[ $OSTYPE == linux* ]]; then
         tag="Linux"
+        sudo apt-get install ttf-dejavu
     else
         echo "Unsupported OS: $OSTYPE"
         exit 1
