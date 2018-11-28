@@ -3,9 +3,9 @@ version: 2
 variables:
 
   # default settings for all steps
-  defaults: &defaults
-    docker:
-      - image: bioconda/bioconda-utils-build-env
+  #defaults: &defaults
+  #  docker:
+  #    - image: bioconda/bioconda-utils-build-env
 
   # --------------------------------------------------------------------------
   # The caching dramatically speeds up testing time, because we can do the
