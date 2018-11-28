@@ -3,7 +3,7 @@ version: 2
 variables:
 
   # default settings for all steps
-  #defaults: &defaults
+  defaults: &defaults
   #  docker:
   #    - image: bioconda/bioconda-utils-build-env
 
