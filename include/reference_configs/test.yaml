@@ -44,13 +44,22 @@ references:
       gtf:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf.gz"
         postprocess:
-          function: 'lib.common.convert_gtf_chroms'
+          function: 'lib.postprocess.utils.convert_gtf_chroms'
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/893cb5bdf84c2d6f5c6d48fe74c791646383f189/mappings/test/test_to_ucsc.tsv'
       fasta:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/fasta_long_header/data/seq/dm6.small.longheader.fa"
         postprocess:
-          function: 'lib.common.convert_fasta_chroms'
+          function: 'lib.postprocess.utils.convert_fasta_chroms'
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/893cb5bdf84c2d6f5c6d48fe74c791646383f189/mappings/test/test_to_ucsc.tsv'
+
+    test_exclude_gtf_pattern:
+      gtf:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf.gz"
+        postprocess:
+          function: 'lib.postprocess.utils.match_gtf_9th'
+          args:
+            - 'FBgn0002121'
+            - '-'
 
     test_transcriptome:
       fasta:
@@ -89,6 +98,10 @@ references:
         gtf:
           url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf.gz"
           postprocess:
-            - function: 'lib.common.convert_gtf_chroms'
+            - function: 'lib.postprocess.utils.match_gtf_9th'
+              args:
+                - 'FBgn0002121'
+                - '-'
+            - function: 'lib.postprocess.utils.convert_gtf_chroms'
               args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/893cb5bdf84c2d6f5c6d48fe74c791646383f189/mappings/test/test_to_ucsc.tsv'
             - 'lib.postprocess.test.test_postprocess'
