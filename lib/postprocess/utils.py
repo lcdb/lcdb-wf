@@ -1,8 +1,10 @@
 import sys
+import os
 import pandas as pd
 import gzip
 import re
-sys.path.append('../../lib')
+here = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(here, '../../lib'))
 from common import openfile
 
 def match_gtf_9th(tmpfiles, outfile, strmatch, optstrand = "None"):
