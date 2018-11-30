@@ -298,6 +298,7 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
 
     # Download tempfiles into reasonably-named filenames
     tmpfiles = ['{0}.{1}.tmp'.format(outfile, i) for i in range(len(urls))]
+    tmpinputfiles = tmpfiles
     try:
         for url, tmpfile in zip(urls, tmpfiles):
             if url.startswith('file:'):
@@ -307,7 +308,8 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
                 shell("wget {url} -O- > {tmpfile} 2> {outfile}.log")
 
         for func, args, kwargs, outfile in funcs:
-            func(tmpfiles, outfile, *args, **kwargs)
+            func(tmpinputfiles, outfile, *args, **kwargs)
+            tmpinputfiles = [outfile]
 
     except Exception as e:
         raise e
