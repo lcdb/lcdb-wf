@@ -21,9 +21,6 @@ EOF
 if ! type conda > /dev/null; then
     echo "Setting up conda..."
 
-    # setup conda if not loaded from cache
-    mkdir -p $WORKSPACE
-
     # step 1: download and install miniconda
     if [[ $OSTYPE == darwin* ]]; then
         tag="MacOSX"
