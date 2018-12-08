@@ -1,11 +1,10 @@
 #!/bin/bash
 set -e
 
-WORKSPACE=`pwd`
-MINICONDA_VER=4.3.21
+MINICONDA_VER=latest
 
 # Set path
-echo "export PATH=$WORKSPACE/miniconda/bin:$PATH" >> $BASH_ENV
+echo "export PATH=/miniconda/bin:$PATH" >> $BASH_ENV
 source $BASH_ENV
 
 cat > ~/.condarc <<EOF
@@ -36,7 +35,7 @@ if ! type conda > /dev/null; then
         exit 1
     fi
     curl -L -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-$MINICONDA_VER-$tag-x86_64.sh
-    bash miniconda.sh -b -p $WORKSPACE/miniconda
+    bash miniconda.sh -b -p /miniconda
 
     #conda config --system --add channels defaults
     #conda config --system --add channels bioconda
@@ -45,6 +44,5 @@ if ! type conda > /dev/null; then
 
     # After SSHing in, for some reason this seems to fix it...
     # conda install -y r-base=3.4.1 bioconductor-genomeinfodbdata bioconductor-annotationhub
-    conda update -y conda
     conda create -n lcdb-wf-test -y --file requirements.txt -c conda-forge -c bioconda
 fi
