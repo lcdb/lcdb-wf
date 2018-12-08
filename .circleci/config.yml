@@ -143,6 +143,8 @@ variables:
         command: |
           echo 'export PATH=$WORKSPACE/miniconda/bin:$PATH' >> $BASH_ENV
           source $BASH_ENV
+          echo $PATH
+          which conda
 jobs:
 
   # Builds the global conda environment, lcdb-wf-test, and then saves the
