@@ -27,14 +27,14 @@ variables:
 
   save_cache: &save_cache
     save_cache:
-      key: v4-{{ checksum "requirements.txt" }}
+      key: v0-{{ checksum "requirements.txt" }}-{{ checksum ".circleci/setup.sh" }}
       paths:
-        - miniconda
+        - /miniconda
 
   restore_cache: &restore_cache
     restore_cache:
       keys:
-        - v4-{{ checksum "requirements.txt" }}
+        - v0-{{ checksum "requirements.txt" }}-{{ checksum ".circleci/setup.sh" }}
 
 
   # --------------------------------------------------------------------------
