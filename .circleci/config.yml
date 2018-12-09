@@ -229,7 +229,7 @@ jobs:
           command: mkdir -p ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
       - run:
           name: Install git
-          command: yum install git -y
+          command: sudo apt-get install git -y
       - run:
           name: Build and upload docs
           command: ci/build-docs.sh
