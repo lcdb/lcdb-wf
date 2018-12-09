@@ -30,5 +30,5 @@ if ! type conda > /dev/null; then
 
     # After SSHing in, for some reason this seems to fix it...
     # conda install -y r-base=3.4.1 bioconductor-genomeinfodbdata bioconductor-annotationhub
-    conda create -n lcdb-wf-test -y --file requirements.txt
+    conda install -y --file requirements.txt
 fi
