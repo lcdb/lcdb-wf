@@ -20,10 +20,9 @@ if ! type conda > /dev/null; then
         echo "Unsupported OS: $OSTYPE"
         exit 1
     fi
-    sudo mkdir /miniconda
     sudo chown $USER:$USER /miniconda
     curl -L -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-$MINICONDA_VER-$tag-x86_64.sh
-    bash miniconda.sh -b -p /miniconda
+    bash miniconda.sh -f -b -p /miniconda
 
     conda config --system --add channels defaults
     conda config --system --add channels bioconda
