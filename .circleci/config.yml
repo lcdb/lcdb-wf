@@ -29,7 +29,7 @@ variables:
     save_cache:
       key: v0-{{ checksum "requirements.txt" }}-{{ checksum ".circleci/setup.sh" }}
       paths:
-        - $HOME/miniconda
+        - miniconda
 
   restore_cache: &restore_cache
     restore_cache:
@@ -45,6 +45,16 @@ variables:
       name: Setup conda
       command: .circleci/setup.sh
   # --------------------------------------------------------------------------
+
+  # The path needs to be set each time
+  set-path: &set-path
+      run:
+        name: Set path
+        command: |
+          echo "export PATH=$CIRCLE_WORKING_DIRECTORY/miniconda/bin:$PATH" >> $BASH_ENV
+          source $BASH_ENV
+          echo $PATH
+          which conda
 
   get-data: &get-data
     run:
@@ -136,15 +146,6 @@ variables:
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
 
-  # The path needs to be set each time
-  set-path: &set-path
-      run:
-        name: Set path
-        command: |
-          echo 'export PATH=$HOME/miniconda/bin:$PATH' >> $BASH_ENV
-          source $BASH_ENV
-          echo $PATH
-          which conda
 jobs:
 
   # Builds the global conda environment, lcdb-wf-test, and then saves the
