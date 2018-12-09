@@ -244,13 +244,13 @@ workflows:
          requires:
            - initial-setup
       - chipseq:
-        requires:
-          - initial-setup
-          - pytest
-        filters:
-          branches:
-            ignore:
-              - master
+         requires:
+           - initial-setup
+           - pytest
+         filters:
+           branches:
+             ignore:
+               - master
       - rnaseq:
           requires:
             - initial-setup
