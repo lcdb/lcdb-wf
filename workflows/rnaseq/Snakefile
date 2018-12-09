@@ -59,7 +59,7 @@ final_targets = utils.flatten((
     utils.flatten(c.targets['salmon']),
     utils.flatten(c.targets['dupradar']),
     utils.flatten(c.targets['preseq']),
-    utils.flatten(c.targets['rseqc']),
+    # utils.flatten(c.targets['rseqc']),
     utils.flatten(c.targets['collectrnaseqmetrics']),
     utils.flatten(c.targets['bigwig']),
     utils.flatten(c.targets['downstream']),
@@ -613,7 +613,7 @@ rule multiqc:
             utils.flatten(c.targets['bam']) +
             utils.flatten(c.targets['markduplicates']) +
             utils.flatten(c.targets['salmon']) +
-            utils.flatten(c.targets['rseqc']) +
+            # utils.flatten(c.targets['rseqc']) +
             utils.flatten(c.targets['fastq_screen']) +
             utils.flatten(c.targets['dupradar']) +
             utils.flatten(c.targets['preseq']) +
