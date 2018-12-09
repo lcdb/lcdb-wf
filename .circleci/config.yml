@@ -60,14 +60,12 @@ variables:
     run:
       name: Download example data
       command: |
-        source activate lcdb-wf-test
         python ci/get-data.py
 
   pytest-step: &pytest-step
     run:
       name: Run pytest suite
       command: |
-        source activate lcdb-wf-test
         pytest --doctest-modules lib
 
   chipseq-step: &chipseq-step
@@ -75,7 +73,6 @@ variables:
         name: chipseq workflow
         command: |
           cd workflows/chipseq
-          source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
           python chipseq_trackhub.py config/config.yaml config/hub_config.yaml
 
@@ -84,7 +81,6 @@ variables:
         name: references workflow
         command: |
           cd workflows/references
-          source activate lcdb-wf-test
           ./run_test.sh  --use-conda -j2 -k -p -r
 
   rnaseq-step: &rnaseq-step
@@ -92,7 +88,6 @@ variables:
         name: rnaseq workflow
         command: |
           cd workflows/rnaseq
-          source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
           python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
 
@@ -102,7 +97,6 @@ variables:
         command: |
           cp -r workflows/rnaseq workflows/rnaseq-ngm
           cd workflows/rnaseq-ngm
-          source activate lcdb-wf-test
           ./run_test.sh --use-conda -k -p -r \
             --forcerun ngm \
             --configfile ../../test/test_configs/ngm_override.yaml \
@@ -115,7 +109,6 @@ variables:
         command: |
           cp -r workflows/rnaseq workflows/rnaseq-star
           cd workflows/rnaseq-star
-          source activate lcdb-wf-test
           ./run_test.sh --use-conda -k -p -r \
             --forcerun star \
             --configfile ../../test/test_configs/star_override.yaml \
@@ -128,7 +121,6 @@ variables:
         command: |
           cp -r workflows/rnaseq workflows/rnaseq-sra-test
           cd workflows/rnaseq-sra-test
-          source activate lcdb-wf-test
 
           ./run_test.sh --use-conda -k -p -r --until cutadapt \
             --configfile ../../test/test_configs/override.yaml \
@@ -143,7 +135,6 @@ variables:
         name: colocalization workflow
         command: |
           cd workflows/colocalization
-          source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
 
 jobs:
