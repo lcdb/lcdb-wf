@@ -243,7 +243,7 @@ workflows:
       - pytest:
          requires:
            - initial-setup
-     - chipseq:
+      - chipseq:
         requires:
           - initial-setup
           - pytest
