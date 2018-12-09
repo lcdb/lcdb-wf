@@ -32,7 +32,7 @@ if ! type conda > /dev/null; then
         exit 1
     fi
     curl -L -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-$MINICONDA_VER-$tag-x86_64.sh
-    bash miniconda.sh -b -p /miniconda
+    sudo bash miniconda.sh -b -p /miniconda
 
     #conda config --system --add channels defaults
     #conda config --system --add channels bioconda
