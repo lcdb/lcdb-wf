@@ -7,17 +7,6 @@ MINICONDA_VER=latest
 echo "export PATH=/miniconda/bin:$PATH" >> $BASH_ENV
 source $BASH_ENV
 
-cat > ~/.condarc <<EOF
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-  - lcdb
-default_channels:
-  - https://repo.continuum.io/pkgs/main
-  - https://repo.continuum.io/pkgs/free
-EOF
-
 if ! type conda > /dev/null; then
     echo "Setting up conda..."
 
@@ -34,10 +23,10 @@ if ! type conda > /dev/null; then
     curl -L -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-$MINICONDA_VER-$tag-x86_64.sh
     sudo bash miniconda.sh -b -p /miniconda
 
-    #conda config --system --add channels defaults
-    #conda config --system --add channels bioconda
-    #conda config --system --add channels conda-forge
-    #conda config --system --add channels lcdb
+    conda config --system --add channels defaults
+    conda config --system --add channels bioconda
+    conda config --system --add channels conda-forge
+    conda config --system --add channels lcdb
 
     # After SSHing in, for some reason this seems to fix it...
     # conda install -y r-base=3.4.1 bioconductor-genomeinfodbdata bioconductor-annotationhub
