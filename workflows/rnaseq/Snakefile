@@ -243,8 +243,8 @@ if config['aligner']['index'] == 'hisat2':
             # for details on setting hisat2 params and samtools params separately.
             samtools_view_extra='-F 0x04'
         threads: 6
-        wrapper:
-            wrapper_for('hisat2/align')
+        script:
+            wrapper_for('hisat2/align/wrapper.py')
 
 if config['aligner']['index'] == 'star':
     rule star:
@@ -394,8 +394,8 @@ rule rRNA:
         bowtie2_extra='-k 1',
         samtools_view_extra='-F 0x04'
     threads: 6
-    wrapper:
-        wrapper_for('bowtie2/align')
+    script:
+        wrapper_for('bowtie2/align/wrapper.py')
 
 
 rule fastq_count:
@@ -457,8 +457,8 @@ rule fastq_screen:
     log:
         c.patterns['fastq_screen'] + '.log'
     params: subset=100000
-    wrapper:
-        wrapper_for('fastq_screen')
+    script:
+        wrapper_for('fastq_screen/wrapper.py')
 
 
 rule featurecounts:
@@ -737,8 +737,8 @@ rule dupRadar:
         model=c.patterns['dupradar']['model'],
         curve=c.patterns['dupradar']['curve'],
     log: c.patterns['dupradar']['dataframe'] + '.log'
-    wrapper:
-        wrapper_for('dupradar')
+    script:
+        wrapper_for('dupradar/wrapper.py')
 
 
 rule salmon:
@@ -925,7 +925,7 @@ if 'merged_bigwigs' in config:
             c.patterns['merged_bigwig']
         log:
             c.patterns['merged_bigwig'] + '.log'
-        wrapper:
-            wrapper_for('average-bigwigs')
+        script:
+            wrapper_for('average-bigwigs/wrapper.py')
 
 # vim: ft=python
