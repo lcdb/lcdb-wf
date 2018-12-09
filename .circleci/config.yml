@@ -29,7 +29,7 @@ variables:
     save_cache:
       key: v0-{{ checksum "requirements.txt" }}-{{ checksum ".circleci/setup.sh" }}
       paths:
-        - /miniconda
+        - $HOME/miniconda
 
   restore_cache: &restore_cache
     restore_cache:
@@ -141,7 +141,7 @@ variables:
       run:
         name: Set path
         command: |
-          echo 'export PATH=/miniconda/bin:$PATH' >> $BASH_ENV
+          echo 'export PATH=$HOME/miniconda/bin:$PATH' >> $BASH_ENV
           source $BASH_ENV
           echo $PATH
           which conda

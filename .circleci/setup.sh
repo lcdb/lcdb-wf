@@ -4,7 +4,7 @@ set -e
 MINICONDA_VER=latest
 
 # Set path
-echo "export PATH=/miniconda/bin:$PATH" >> $BASH_ENV
+echo "export PATH=$HOME/miniconda/bin:$PATH" >> $BASH_ENV
 source $BASH_ENV
 
 if ! type conda > /dev/null; then
@@ -20,10 +20,8 @@ if ! type conda > /dev/null; then
         echo "Unsupported OS: $OSTYPE"
         exit 1
     fi
-    sudo mkdir /miniconda
-    sudo chown $USER:$USER /miniconda
     curl -L -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-$MINICONDA_VER-$tag-x86_64.sh
-    bash miniconda.sh -f -b -p /miniconda
+    bash miniconda.sh -f -b -p $HOME/miniconda
 
     conda config --system --add channels defaults
     conda config --system --add channels bioconda
