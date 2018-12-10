@@ -1,5 +1,5 @@
-r-base >=3.4
 python >=3.6
+r-base <3.5.1
 atropos
 bedtools
 bioconductor-annotationhub
@@ -24,6 +24,7 @@ fastq-screen
 font-ttf-dejavu-sans-mono
 
 gat
+git
 gffutils
 ghostscript
 graphviz
@@ -35,7 +36,6 @@ matplotlib
 multiqc
 nextgenmap
 numpy >1.15
-pandas ==0.22.0
 pandoc
 picard
 preseq
@@ -45,6 +45,7 @@ pytest
 pytest-xdist
 r-codetools
 r-dt
+r-kernsmooth
 r-knitr
 r-knitrbootstrap
 r-pheatmap

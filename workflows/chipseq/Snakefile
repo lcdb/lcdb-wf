@@ -214,8 +214,8 @@ rule fastqc:
     output:
         html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
         zip='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
-    wrapper:
-        wrapper_for('fastqc')
+    script:
+        wrapper_for('fastqc/wrapper.py')
 
 
 rule bowtie2:
@@ -235,8 +235,8 @@ rule bowtie2:
     # When running on a cluster, number of threads here should match the
     # resources requested in the cluster config.
     threads: 8
-    wrapper:
-        wrapper_for('bowtie2/align')
+    script:
+        wrapper_for('bowtie2/align/wrapper.py')
 
 
 rule unique:
@@ -315,8 +315,8 @@ rule fastq_screen:
     log:
         c.patterns['fastq_screen'] + '.log'
     params: subset=100000
-    wrapper:
-        wrapper_for('fastq_screen')
+    script:
+        wrapper_for('fastq_screen/wrapper.py')
 
 
 rule libsizes_table:
@@ -463,8 +463,8 @@ rule merge_techreps:
         # config.
         java_args='-Xmx32g'
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
-    wrapper:
-        wrapper_for('combos/merge_and_dedup')
+    script:
+        wrapper_for('combos/merge_and_dedup/wrapper.py')
 
 
 rule bigwig:
@@ -728,7 +728,7 @@ if 'merged_bigwigs' in config:
             c.patterns['merged_bigwig']
         log:
             c.patterns['merged_bigwig'] + '.log'
-        wrapper:
-            wrapper_for('average-bigwigs')
+        script:
+            wrapper_for('average-bigwigs/wrapper.py')
 
 # vim: ft=python
