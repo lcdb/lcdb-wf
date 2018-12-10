@@ -36,5 +36,7 @@ if ! type conda > /dev/null; then
     conda update -y conda
     conda create -n lcdb-wf-test -y --file requirements.txt
     conda remove -y r-base
+
+    yum install -y git
 fi
 
