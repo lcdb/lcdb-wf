@@ -24,6 +24,7 @@ fastq-screen
 font-ttf-dejavu-sans-mono
 
 gat
+git
 gffutils
 ghostscript
 graphviz
