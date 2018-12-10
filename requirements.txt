@@ -1,5 +1,5 @@
-r-base >=3.4
 python >=3.6
+r-base <3.5.1
 atropos
 bedtools
 bioconductor-annotationhub
@@ -35,7 +35,6 @@ matplotlib
 multiqc
 nextgenmap
 numpy >1.15
-pandas ==0.22.0
 pandoc
 picard
 preseq
