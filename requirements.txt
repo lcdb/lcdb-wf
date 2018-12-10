@@ -45,6 +45,7 @@ pytest
 pytest-xdist
 r-codetools
 r-dt
+r-kernsmooth
 r-knitr
 r-knitrbootstrap
 r-pheatmap
