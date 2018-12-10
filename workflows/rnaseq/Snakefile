@@ -395,7 +395,7 @@ rule rRNA:
         samtools_view_extra='-F 0x04'
     threads: 6
     script:
-        wrapper_for('bowtie2/align/wrapper.py)
+        wrapper_for('bowtie2/align/wrapper.py')
 
 
 rule fastq_count:
