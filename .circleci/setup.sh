@@ -8,17 +8,6 @@ MINICONDA_VER=4.3.21
 echo "export PATH=$WORKSPACE/miniconda/bin:$PATH" >> $BASH_ENV
 source $BASH_ENV
 
-cat > ~/.condarc <<EOF
-channels:
-  - bioconda
-  - conda-forge
-  - defaults
-  - lcdb
-default_channels:
-  - https://repo.continuum.io/pkgs/main
-  - https://repo.continuum.io/pkgs/free
-EOF
-
 if ! type conda > /dev/null; then
     echo "Setting up conda..."
 
@@ -47,5 +36,7 @@ if ! type conda > /dev/null; then
     conda update -y conda
     conda create -n lcdb-wf-test -y --file requirements.txt
     conda remove -y r-base
+
+    yum install -y git
 fi
 
