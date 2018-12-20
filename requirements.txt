@@ -1,7 +1,3 @@
-python >=3.6
-r-base <3.5.1
-atropos
-bedtools
 bioconductor-annotationhub
 bioconductor-biocparallel
 bioconductor-clusterprofiler
