@@ -12,7 +12,7 @@ references:
           - 'bowtie2'
           - 'hisat2'
       gtf:
-        url: 'ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/gff3/schizosaccharomyces_pombe/Schizosaccharomyces_pombe.ASM294v2.94.gff3.gz'
+        url: 'ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/gff3/schizosaccharomyces_pombe/Schizosaccharomyces_pombe.ASM294v2.41.gff3.gz'
 
     ucsc_41_transcriptome:
       fasta:
