@@ -30,6 +30,7 @@ references:
         indexes:
           - 'salmon'
 
+
     gencode-v25:
 
       metadata:
@@ -38,22 +39,22 @@ references:
         reference_effective_genome_proportion: 0.87
 
       fasta:
-        url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh38.primary_organism.genome.fa.gz'
+        url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh38.primary_assembly.genome.fa.gz'
         indexes:
           - 'hisat2'
           - 'bowtie2'
 
       gtf:
-        url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz'
+        url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz'
         postprocess: 'lib.postprocess.hg38.strip_ensembl_version'
         conversions:
           - 'refflat'
           - gffutils:
               merge_strategy: 'merge'
               id_spec:
-                  transcript: 'transcript_id'
-                  gene: 'gene_id'
-                  exon: 'exon_id'
+                transcript: 'transcript_id'
+                gene: 'gene_id'
+                exon: 'exon_id'
               gtf_transcript_key: 'transcript_id'
               gtf_gene_key: 'gene_id'
               disable_infer_genes: True
@@ -61,9 +62,10 @@ references:
 
     gencode-v25-transcriptome:
       fasta:
-        url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz'
+        url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz'
         indexes:
           - 'salmon'
+
 
     gencode-v19:
       metadata:
@@ -72,12 +74,12 @@ references:
         reference_effective_genome_proportion: 0.87
 
       fasta:
-        url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/GRCh37.p13.genome.fa.gz'
+        url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/GRCh37.p13.genome.fa.gz'
         indexes:
           - 'bowtie2'
           - 'hisat2'
       gtf:
-        url: 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/gencode.v19.annotation.gtf.gz'
+        url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.annotation.gtf.gz'
         postprocess: 'lib.postprocess.hg38.strip_ensembl_version'
         conversions:
           - 'refflat'
@@ -85,11 +87,12 @@ references:
     gencode_v19_plus_lncRNA_transcriptome:
       fasta:
         url:
-          - 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/gencode.v19.pc_transcripts.fa.gz'
-          - 'ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/gencode.v19.lncRNA_transcripts.fa.gz'
+          - 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.pc_transcripts.fa.gz'
+          - 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.lncRNA_transcripts.fa.gz'
         postprocess: "lib.common.cat"
         indexes:
           - 'salmon'
+
 
     rRNA:
       fasta:
@@ -97,8 +100,9 @@ references:
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
         postprocess:
-            function: 'lib.common.filter_fastas'
-            args: 'Homo sapiens'
+          function: 'lib.common.filter_fastas'
+          args: 'Homo sapiens'
         indexes:
-            - 'hisat2'
-            - 'bowtie2'
+          - 'hisat2'
+          - 'bowtie2'
+
