@@ -4,41 +4,45 @@ bioconductor-clusterprofiler
 bioconductor-degreport
 bioconductor-deseq2
 bioconductor-dupradar
-bioconductor-genomicfeatures
 bioconductor-genomeinfodbdata
+bioconductor-genomicfeatures
+bioconductor-s4vectors
 bioconductor-sva
 bioconductor-tximport
-bioconductor-s4vectors
-biopython
+biopython >=1.68
 bowtie2
 cutadapt
 deeptools >=3.0.1
 fastqc
 fastq-screen
-
 # for fastqc running on circleci
 font-ttf-dejavu-sans-mono
-
 gat
-git
-gffutils
+gffutils >=0.8.7.1
 ghostscript
+git
 graphviz
 hisat2
 intervalstats
+ipython >=5.1.0
+jsonschema >=2.5.1
 kallisto
 lcdblib
-matplotlib
+matplotlib >=1.5.3
 multiqc
 nextgenmap
 numpy >1.15
+pandas >=0.19.2
 pandoc
 picard
 preseq
-pybedtools
-pysam
-pytest
+pybedtools >=0.7.9
+pysam >=0.10.0
+pytest >=3.0.5
+pytest-runner >=2.11
 pytest-xdist
+pyyaml >=3.12
+r-base >=3.5.1
 r-codetools
 r-dt
 r-kernsmooth
@@ -50,16 +54,18 @@ r-rmarkdown
 r-spp
 r-upsetr
 salmon
-samtools
-snakemake
+samtools >=1.4.1
+scipy >=0.18.1
+seaborn >=0.7.1
+snakemake >=3.11.2
 sra-tools
 star
 subread
 trackhub
-ucsc-bedtobigbed
-ucsc-bedsort
-ucsc-bigwigmerge
 ucsc-bedgraphtobigwig
+ucsc-bedsort
+ucsc-bedtobigbed
+ucsc-bigwigmerge
 ucsc-fetchchromsizes
 ucsc-gtftogenepred
 ucsc-liftover
