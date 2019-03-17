@@ -2,7 +2,7 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - r
+  - r-base >=3.5.1
   - rseqc ==2.6.4
   - pysam
   - numpy

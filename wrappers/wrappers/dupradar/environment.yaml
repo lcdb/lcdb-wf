@@ -1,10 +1,11 @@
 channels:
+  - conda-forge
   - bioconda
   - lcdb
 dependencies:
   - python=3
   - bioconductor-dupradar
   - r-kernsmooth
-  - r
+  - r-base >=3.5.1
   - lcdblib
   - ghostscript

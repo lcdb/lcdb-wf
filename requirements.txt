@@ -1,3 +1,5 @@
+atropos
+bedtools
 bioconductor-annotationhub
 bioconductor-biocparallel
 bioconductor-clusterprofiler
@@ -71,3 +73,4 @@ ucsc-gtftogenepred
 ucsc-liftover
 ucsc-oligomatch
 ucsc-twobittofa
+ucsc-wigtobigwig
