@@ -1,7 +1,7 @@
 beds:
   # from the external workflow
-  GAF_pupa: data/modencode_gaf_pupa.bed
-  GAF_kc: data/modencode_gaf_kc.bed
+  SuHw_Kc: data/suhw_kc.bed
+  CTCF_Kc: data/ctcf_kc.bed
 domains:
   dm6: results/dm6.bed
 output: results
