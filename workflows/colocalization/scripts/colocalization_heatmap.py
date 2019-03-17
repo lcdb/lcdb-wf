@@ -8,13 +8,6 @@ import seaborn as sns
 from scipy.spatial import distance
 from scipy.cluster import hierarchy
 from matplotlib import pyplot as plt
-
-#outdir = snakemake.config['output']
-#domain = snakemake.wildcards['domain']
-#value = snakemake.wildcards['value']
-#algorithm = snakemake.wildcards['algorithm']
-#output = snakemake.output[0]
-
 import argparse
 
 ap = argparse.ArgumentParser()
@@ -31,8 +24,6 @@ value = args.value
 outdir = args.outdir
 output = args.output
 
-import sys
-print('\n'.join(sys.path))
 
 def dataframe_for_domain(domain, algorithm):
     """

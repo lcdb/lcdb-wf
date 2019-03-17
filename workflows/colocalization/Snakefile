@@ -256,8 +256,6 @@ rule heatmap:
         '{outdir}/{algorithm}/{domain}/{value}_heatmap.pdf'
 
     shell:
-        'echo `which python`; '
-        'echo $PATH; '
         'python scripts/colocalization_heatmap.py '
         '--domain {wildcards.domain} '
         '--algorithm {wildcards.algorithm} '
