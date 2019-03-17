@@ -41,7 +41,7 @@ rule beds:
         key = str(output[0]).replace('.dm3', '')
         url = modencode[key]
         shell(
-            'curl "{url}" | grep -v "track" > {output}')
+            'wget -O - "{url}" | grep -v "track" > {output}')
 
 rule liftover:
     """
