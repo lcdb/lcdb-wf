@@ -89,11 +89,14 @@ pattern = '{outdir}/{algorithm}/{domain}/{value}_heatmap.pdf'
 targets += expand(pattern, outdir=config['output'], domain=config['domains'],
                   algorithm='IntervalStats', value=['f_01'])
 targets += expand(pattern, outdir=config['output'], domain=config['domains'],
-                  algorithm='GAT', value=['l2fold', 'fractions'])
+                  algorithm='GAT', value=['l2fold'])
 targets += expand(pattern, outdir=config['output'], domain=config['domains'],
                   algorithm='jaccard', value=['jaccard'])
 targets += expand(pattern, outdir=config['output'], domain=config['domains'],
                   algorithm='fisher', value=['pval'])
+
+rule targets:
+    input: targets
 
 
 rule sorted_chromsizes:
@@ -251,6 +254,13 @@ rule heatmap:
         )
     output:
         '{outdir}/{algorithm}/{domain}/{value}_heatmap.pdf'
-    script: 'scripts/colocalization_heatmap.py'
+
+    shell:
+        'python scripts/colocalization_heatmap.py '
+        '--domain {wildcards.domain} '
+        '--algorithm {wildcards.algorithm} '
+        '--value {wildcards.value} '
+        '--outdir {config[output]} '
+        '--output {output}'
 
 # vim: ft=python

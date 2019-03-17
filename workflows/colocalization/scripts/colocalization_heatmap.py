@@ -9,12 +9,30 @@ from scipy.spatial import distance
 from scipy.cluster import hierarchy
 from matplotlib import pyplot as plt
 
-outdir = snakemake.config['output']
-domain = snakemake.wildcards['domain']
-value = snakemake.wildcards['value']
-algorithm = snakemake.wildcards['algorithm']
-output = snakemake.output[0]
+#outdir = snakemake.config['output']
+#domain = snakemake.wildcards['domain']
+#value = snakemake.wildcards['value']
+#algorithm = snakemake.wildcards['algorithm']
+#output = snakemake.output[0]
 
+import argparse
+
+ap = argparse.ArgumentParser()
+ap.add_argument('--domain')
+ap.add_argument('--algorithm')
+ap.add_argument('--value')
+ap.add_argument('--outdir')
+ap.add_argument('--output')
+args = ap.parse_args()
+
+domain = args.domain
+algorithm = args.algorithm
+value = args.value
+outdir = args.outdir
+output = args.output
+
+import sys
+print('\n'.join(sys.path))
 
 def dataframe_for_domain(domain, algorithm):
     """
