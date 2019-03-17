@@ -16,8 +16,6 @@ import pandas
 import yaml
 import numpy as np
 
-import matplotlib
-
 configfile: 'config/config.yaml'
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(cluster_specific.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
@@ -87,18 +85,18 @@ targets = expand(
 # GAT: (l2fold, fractions)
 # jaccard: (jaccard)
 # fisher: (pval)
-pattern = '{outdir}/{algorithm}/{domain}/{value}_heatmap.pdf'
-targets += expand(pattern, outdir=config['output'], domain=config['domains'],
-                  algorithm='IntervalStats', value=['f_01'])
-targets += expand(pattern, outdir=config['output'], domain=config['domains'],
-                  algorithm='GAT', value=['l2fold', 'fractions'])
-targets += expand(pattern, outdir=config['output'], domain=config['domains'],
-                  algorithm='jaccard', value=['jaccard'])
-targets += expand(pattern, outdir=config['output'], domain=config['domains'],
-                  algorithm='fisher', value=['pval'])
+#pattern = '{outdir}/{algorithm}/{domain}/{value}_heatmap.pdf'
+#targets += expand(pattern, outdir=config['output'], domain=config['domains'],
+#                  algorithm='IntervalStats', value=['f_01'])
+#targets += expand(pattern, outdir=config['output'], domain=config['domains'],
+#                  algorithm='GAT', value=['l2fold', 'fractions'])
+#targets += expand(pattern, outdir=config['output'], domain=config['domains'],
+#                  algorithm='jaccard', value=['jaccard'])
+#targets += expand(pattern, outdir=config['output'], domain=config['domains'],
+#                  algorithm='fisher', value=['pval'])
 
 rule target:
-    input: targets
+    input: targets + ['a.txt']
 
 
 rule sorted_chromsizes:
@@ -256,12 +254,6 @@ rule heatmap:
         )
     output:
         '{outdir}/{algorithm}/{domain}/{value}_heatmap.pdf'
-    shell:
-        'python scripts/colocalization_heatmap.py '
-        '--domain {wildcards.domain} '
-        '--algorithm {wildcards.algorithm} '
-        '--value {wildcards.value} '
-        '--outdir {config[output]} '
-        '--output {output}'
+    script: 'scripts/colocalization_heatmap.py'
 
 # vim: ft=python

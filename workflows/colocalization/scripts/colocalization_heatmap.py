@@ -8,19 +8,12 @@ import seaborn as sns
 from scipy.spatial import distance
 from scipy.cluster import hierarchy
 from matplotlib import pyplot as plt
-import argparse
 
-ap = argparse.ArgumentParser()
-ap.add_argument('--domain')
-ap.add_argument('--algorithm')
-ap.add_argument('--value')
-ap.add_argument('--outdir')
-ap.add_argument('--output')
-args = ap.parse_args()
-
-domain = args.domain
-algorithm = args.algorithm
-value = args.value
+outdir = snakemake.config['output']
+domain = snakemake.wildcards['domain']
+value = snakemake.wildcards['value']
+algorithm = snakemake.wildcards['algorithm']
+output = snakemake.output[0]
 
 
 def dataframe_for_domain(domain, algorithm):
@@ -30,7 +23,7 @@ def dataframe_for_domain(domain, algorithm):
     Empty files are listed as NaNs in the dataframe.
     """
     df = []
-    files = glob.glob(os.path.join(args.outdir, algorithm, domain, '*', '*.txt'))
+    files = glob.glob(os.path.join(outdir, algorithm, domain, '*', '*.txt'))
     for filename in files:
         query, reference = os.path.basename(filename).replace('.txt', '').split('_vs_')
         try:
@@ -262,4 +255,4 @@ fig = plot_heatmap(
   clustermap_kwargs=dict(center=center, cmap=cmap)
 )
 
-fig.savefig(args.output)
+fig.savefig(output)
