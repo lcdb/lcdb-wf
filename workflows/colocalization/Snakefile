@@ -85,18 +85,15 @@ targets = expand(
 # GAT: (l2fold, fractions)
 # jaccard: (jaccard)
 # fisher: (pval)
-#pattern = '{outdir}/{algorithm}/{domain}/{value}_heatmap.pdf'
-#targets += expand(pattern, outdir=config['output'], domain=config['domains'],
-#                  algorithm='IntervalStats', value=['f_01'])
-#targets += expand(pattern, outdir=config['output'], domain=config['domains'],
-#                  algorithm='GAT', value=['l2fold', 'fractions'])
-#targets += expand(pattern, outdir=config['output'], domain=config['domains'],
-#                  algorithm='jaccard', value=['jaccard'])
-#targets += expand(pattern, outdir=config['output'], domain=config['domains'],
-#                  algorithm='fisher', value=['pval'])
-
-rule target:
-    input: targets + ['a.txt']
+pattern = '{outdir}/{algorithm}/{domain}/{value}_heatmap.pdf'
+targets += expand(pattern, outdir=config['output'], domain=config['domains'],
+                  algorithm='IntervalStats', value=['f_01'])
+targets += expand(pattern, outdir=config['output'], domain=config['domains'],
+                  algorithm='GAT', value=['l2fold', 'fractions'])
+targets += expand(pattern, outdir=config['output'], domain=config['domains'],
+                  algorithm='jaccard', value=['jaccard'])
+targets += expand(pattern, outdir=config['output'], domain=config['domains'],
+                  algorithm='fisher', value=['pval'])
 
 
 rule sorted_chromsizes:
