@@ -140,7 +140,7 @@ variables:
       run:
         name: Set path
         command: |
-          echo 'export PATH=/root/project/miniconda/bin:$PATH' >> $BASH_ENV
+          echo 'export PATH=$PATH:/root/project/miniconda/bin' >> $BASH_ENV
           source $BASH_ENV
 jobs:
 
