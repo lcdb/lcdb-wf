@@ -23,4 +23,3 @@ DAG for RNA-seq workflow:
 DAG for ChIP-seq workflow:
 
 ![chipseq dag](docs/chipseq.png)
-
