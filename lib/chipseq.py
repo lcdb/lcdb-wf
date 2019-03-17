@@ -120,7 +120,7 @@ def merged_input_for_ip(sampletable, merged_ip):
 
     >>> from io import StringIO
     >>> import pandas as pd
-    >>> df = pd.read_table(StringIO('''
+    >>> df = pd.read_csv(StringIO('''
     ... samplename  antibody   biological_material  label
     ... ip1         gaf        s2cell-1             s2cell-gaf-1
     ... ip2         gaf        s2cell-1             s2cell-gaf-1

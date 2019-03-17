@@ -81,7 +81,7 @@ def wrapper_deps(d):
     )
     rev = defaultdict(lambda: defaultdict(list))
     for fn in metas:
-        m = yaml.load(open(fn))
+        m = yaml.load(open(fn), Loader=yaml.FullLoader)
         for dep in m['dependencies']:
             toks = dep.split(' ')
             name = toks[0]

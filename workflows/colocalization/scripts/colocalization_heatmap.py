@@ -34,7 +34,7 @@ def dataframe_for_domain(domain, algorithm):
     for filename in files:
         query, reference = os.path.basename(filename).replace('.txt', '').split('_vs_')
         try:
-            _df = pd.read_table(filename, comment='#')
+            _df = pd.read_csv(filename, comment='#', sep='\t')
         except pd.errors.EmptyDataError:
             _df = pd.DataFrame([dict(value=np.nan)])
 

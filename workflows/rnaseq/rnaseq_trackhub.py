@@ -34,12 +34,12 @@ args = ap.parse_args()
 
 # Access configured options. See comments in example hub_config.yaml for
 # details
-config = yaml.load(open(args.config))
-hub_config = yaml.load(open(args.hub_config))
+config = yaml.load(open(args.config), Loader=yaml.FullLoader)
+hub_config = yaml.load(open(args.hub_config), Loader=yaml.FullLoader)
 
 if args.additional_configs:
     for cfg in args.additional_configs:
-        update_config(config, yaml.load(open(cfg)))
+        update_config(config, yaml.load(open(cfg), Loader=yaml.FullLoader))
 
 c = RNASeqConfig(config, os.path.join(os.path.dirname(args.config), 'rnaseq_patterns.yaml'))
 
@@ -52,7 +52,7 @@ hub, genomes_file, genome, trackdb = default_hub(
 )
 
 # Set up subgroups based on the configured columns
-df = pandas.read_table(config['sampletable'], comment='#')
+df = pandas.read_csv(config['sampletable'], comment='#', sep='\t')
 cols = hub_config['subgroups']['columns']
 subgroups = []
 for col in cols:

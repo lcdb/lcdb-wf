@@ -61,7 +61,7 @@ class SeqConfig(object):
         self.samples, self.sampletable = common.get_sampletable(self.config)
         self.refdict, self.conversion_kwargs = common.references_dict(self.config)
         self.organism = self.config['organism']
-        self.patterns = yaml.load(open(patterns))
+        self.patterns = yaml.load(open(patterns), Loader=yaml.FullLoader)
 
 
 class RNASeqConfig(SeqConfig):

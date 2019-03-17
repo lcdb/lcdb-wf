@@ -57,7 +57,7 @@ def resolve_config(config, workdir=None):
         Optional location to specify relative location of all paths in `config`
     """
     if isinstance(config, str):
-        config = yaml.load(open(config))
+        config = yaml.load(open(config), Loader=yaml.FullLoader)
 
     def rel(pth):
         if workdir is None or os.path.isabs(pth):
@@ -393,7 +393,7 @@ def references_dict(config):
 
     """
     if isinstance(config, str):
-        config = yaml.load(open(config))
+        config = yaml.load(open(config), Loader=yaml.FullLoader)
 
     references_dir = get_references_dir(config)
 
@@ -407,6 +407,7 @@ def references_dict(config):
     }
 
     conversion_extensions = {
+
         'intergenic': '.intergenic.gtf',
         'refflat': '.refflat',
         'gffutils': '.gtf.db',
@@ -534,7 +535,7 @@ def get_sampletable(config):
     config : dict
     """
     config = resolve_config(config)
-    sampletable = pandas.read_table(config['sampletable'], comment="#")
+    sampletable = pandas.read_csv(config['sampletable'], comment="#", sep='\t')
     samples = sampletable.iloc[:, 0]
     return samples, sampletable
 
@@ -574,7 +575,7 @@ def load_config(config):
     handler.
     """
     if isinstance(config, str):
-        config = yaml.load(open(config))
+        config = yaml.load(open(config), Loader=yaml.FullLoader)
 
     # Here we populate a list of reference sections. Items later on the list
     # will have higher priority
@@ -588,14 +589,14 @@ def load_config(config):
         # reference directories are possible
         for fn in glob.glob(os.path.join(dirname, '**/*.y?ml'),
                             recursive=True):
-            refs = yaml.load(open(fn)).get('references', None)
+            refs = yaml.load(open(fn), Loader=yaml.FullLoader).get('references', None)
             if refs is None:
                 raise ValueError("No 'references:' section in {0}".format(fn))
             reference_sections.append(refs)
 
     # Now the files
     for fn in filter(os.path.isfile, includes):
-        refs = yaml.load(open(fn)).get('references', None)
+        refs = yaml.load(open(fn), Loader=yaml.FullLoader).get('references', None)
         if refs is None:
             raise ValueError("No 'references:' section in {0}".format(fn))
         reference_sections.append(refs)
