@@ -16,6 +16,8 @@ import pandas
 import yaml
 import numpy as np
 
+import matplotlib
+
 configfile: 'config/config.yaml'
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(cluster_specific.tempdir_for_biowulf()))
 shell.executable('/bin/bash')
