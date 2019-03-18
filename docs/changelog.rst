@@ -175,5 +175,30 @@ v1.2
 - FASTA files are always symlinked into the directories of indexes that were
   created from it
 - Updates to dependencies and MultiQC config
-
-
+- Reference configs:
+   - updated existing
+   - added more species
+   - new post-process for fasta or gtf: you can now use
+     NICHD-BSPC/chrom-name-mappings to convert chromosome names between UCSC
+     and Ensembl (see reference configs for examples of use)
+- Updated requirements in ``requirements.txt`` and in wrappers
+- Changed all ``pd.read_table()`` to ``pd.read_csv(sep="\t")`` to prevent warnings
+- Changed all ``yaml.load()`` to ``yaml.load(Loader=yaml.FullLoader)`` to
+  prevent warnings
+- Using DeprecationWarning rather than UserWarning in the deprecation handler
+  so there's less spam in the logs
+- From colocalization, removed the GAT "fractions" heatmap due to unresolved
+  pandas index errors
+- Improved tests:
+  - using data from pybedtools repo because modENCODE seems to be down
+  - append rather than prepend base conda to PATH on circleci
+  - separate isolated tests for STAR, ngm, and SRA
+  - updated conda
+- Docs additions:
+  - TMPDIR handling
+  - clusterconfig
+  - WRAPPER_SLURM
+  - docs for developers
+  - symlinking fastqs
+  - using SRA sampletables
+  - paired-end data
