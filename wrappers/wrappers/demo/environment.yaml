@@ -1,5 +1,4 @@
 channels:
-  - lcdb
+  - defaults
 dependencies:
   - python=3
-  - lcdblib
