@@ -1,14 +1,12 @@
 import sys
+
 sys.path.insert(0, srcdir('../..'))
 import os
 from textwrap import dedent
 import yaml
 import tempfile
 import pandas as pd
-from lcdblib.snakemake import helpers, aligners
-from lcdblib.utils import utils
-from lib import common
-from lib import cluster_specific
+from lib import common, cluster_specific, utils, helpers, aligners
 from lib.patterns_targets import RNASeqConfig
 
 # ----------------------------------------------------------------------------
