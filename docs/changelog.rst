@@ -1,6 +1,17 @@
 Changelog
 =========
 
+Changes since v1.2
+------------------
+
+ChIP-seq and RNA-seq
+~~~~~~~~~~~~~~~~~~~~
+
+- Bowtie2, HISAT2, and rRNA rules no longer use wrappers. This makes it easier
+  to track down what parameters are being used in each rule.
+- RSeQC is now available in Python 3 so wrappers have been removed.
+- NextGenMap support removed
+
 v1.2
 ----
 
