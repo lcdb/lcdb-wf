@@ -79,20 +79,6 @@ rule bowtie2_index:
             '&> {log}')
 
 
-rule ngm_index:
-    input:
-        '{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta'
-    output:
-        protected('{references_dir}/{organism}/{tag}/ngm/{organism}_{tag}.fasta-enc.2.ngm')
-    log:
-        '{references_dir}/logs/{organism}/{tag}/ngm/{organism}_{tag}.log'
-    run:
-        prefix = aligners.prefix_from_bowtie2_index(output)
-
-        shell('ngm ' '-r {input} ' '&> {log}')
-        shell('mv {input}-enc.2.ngm $(dirname {output})')
-
-
 rule star_index:
     input:
         fasta='{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta',
