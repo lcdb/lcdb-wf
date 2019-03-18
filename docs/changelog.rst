@@ -216,7 +216,6 @@ RNA-seq
   used for the contrast) as well as TPM estimates to the results tables
 - trim the labels in GO enrichment plots when too long
 
-
 ChIP-seq
 ~~~~~~~~
 - sicer for chipseq domain calling
