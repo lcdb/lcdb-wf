@@ -6,8 +6,8 @@ import pandas
 from Bio import SeqIO
 import gzip
 import binascii
-from .imports import resolve_name
-from . import aligners
+from lib.imports import resolve_name
+from lib import aligners
 from snakemake.shell import shell
 from snakemake.io import expand
 
