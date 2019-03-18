@@ -21,6 +21,8 @@ args = ap.parse_args()
 domain = args.domain
 algorithm = args.algorithm
 value = args.value
+outdir = args.outdir
+output = args.output
 
 
 def dataframe_for_domain(domain, algorithm):
@@ -30,11 +32,11 @@ def dataframe_for_domain(domain, algorithm):
     Empty files are listed as NaNs in the dataframe.
     """
     df = []
-    files = glob.glob(os.path.join(args.outdir, algorithm, domain, '*', '*.txt'))
+    files = glob.glob(os.path.join(outdir, algorithm, domain, '*', '*.txt'))
     for filename in files:
         query, reference = os.path.basename(filename).replace('.txt', '').split('_vs_')
         try:
-            _df = pd.read_table(filename, comment='#')
+            _df = pd.read_csv(filename, comment='#', sep='\t')
         except pd.errors.EmptyDataError:
             _df = pd.DataFrame([dict(value=np.nan)])
 
@@ -262,4 +264,4 @@ fig = plot_heatmap(
   clustermap_kwargs=dict(center=center, cmap=cmap)
 )
 
-fig.savefig(args.output)
+fig.savefig(output)

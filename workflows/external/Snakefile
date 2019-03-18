@@ -11,8 +11,8 @@ shell.executable('/bin/bash')
 # This is a useful construct for mapping intended output filenames to the URLs
 # they come from
 modencode = {
-    'data/modencode_gaf_kc.bed': 'ftp://data.modencode.org/all_files/dmel-interpreted-1/3245_Kc_Trl-D2_peaks.bed.gff3.gz',
-    'data/modencode_gaf_pupa.bed': 'ftp://data.modencode.org/all_files/dmel-interpreted-1/3830_WPP_Trl-D2_peaks.bed.gff.gz',
+    'data/suhw_kc.bed': 'https://raw.githubusercontent.com/daler/pybedtools/master/pybedtools/test/data/SuHw_Kc_Bushey_2009.bed',
+    'data/ctcf_kc.bed': 'https://raw.githubusercontent.com/daler/pybedtools/master/pybedtools/test/data/CTCF_Kc_Bushey_2009.bed',
 }
 
 
@@ -32,44 +32,16 @@ rule download_chainfile:
         '> {output}'
 
 
-rule modencode:
+rule beds:
     """
-    Download URLs to a temporary file, and then prepare them for liftover (need
-    "chr" on chromosome names; need to remove negative coordinates; need to
-    convert to BED)
+    Download URLs, get rid of "track" lines, and then prepare them for liftover
     """
-    output: temporary('data/modencode_{factor}.bed.dm3')
+    output: temporary('data/{factor}_{celltype}.bed.dm3')
     run:
         key = str(output[0]).replace('.dm3', '')
         url = modencode[key]
         shell(
-            'wget -O- {url} | zcat > {output}.tmp')
-
-        def generator():
-            """
-            modENCODE "GFF" files sometimes have negative coordinates.  Fix
-            those here, and output a BED line rather than GFF.
-
-            Also, since we're about to liftover, we need to prefix chrom names
-            with "chr".
-            """
-            for line in open(output[0] + '.tmp'):
-                if line.startswith('#'):
-                    continue
-                toks = line.strip().split('\t')
-                chrom = 'chr' + toks[0]
-                start = toks[3]
-                stop = toks[4]
-                start = str(max(0, int(start)))
-                yield pybedtools.create_interval_from_list([
-                    chrom,
-                    start,
-                    stop,
-                ])
-
-        fixed = pybedtools.BedTool(generator()).saveas(str(output[0]))
-        shell('rm {output}.tmp')
-
+            'wget -O - "{url}" | grep -v "track" > {output}')
 
 rule liftover:
     """

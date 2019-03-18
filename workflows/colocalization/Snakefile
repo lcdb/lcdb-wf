@@ -89,13 +89,13 @@ pattern = '{outdir}/{algorithm}/{domain}/{value}_heatmap.pdf'
 targets += expand(pattern, outdir=config['output'], domain=config['domains'],
                   algorithm='IntervalStats', value=['f_01'])
 targets += expand(pattern, outdir=config['output'], domain=config['domains'],
-                  algorithm='GAT', value=['l2fold', 'fractions'])
+                  algorithm='GAT', value=['l2fold'])
 targets += expand(pattern, outdir=config['output'], domain=config['domains'],
                   algorithm='jaccard', value=['jaccard'])
 targets += expand(pattern, outdir=config['output'], domain=config['domains'],
                   algorithm='fisher', value=['pval'])
 
-rule target:
+rule targets:
     input: targets
 
 
@@ -254,8 +254,7 @@ rule heatmap:
         )
     output:
         '{outdir}/{algorithm}/{domain}/{value}_heatmap.pdf'
-    conda:
-        'scripts/heatmap_env.yaml'
+
     shell:
         'python scripts/colocalization_heatmap.py '
         '--domain {wildcards.domain} '

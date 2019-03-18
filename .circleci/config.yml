@@ -26,14 +26,14 @@ variables:
 
   save_cache: &save_cache
     save_cache:
-      key: v0-{{ checksum "requirements.txt" }}-{{ checksum ".circleci/setup.sh" }}
+      key: v1-{{ checksum "requirements.txt" }}-{{ checksum ".circleci/setup.sh" }}
       paths:
         - miniconda
 
   restore_cache: &restore_cache
     restore_cache:
       keys:
-        - v0-{{ checksum "requirements.txt" }}-{{ checksum ".circleci/setup.sh" }}
+        - v1-{{ checksum "requirements.txt" }}-{{ checksum ".circleci/setup.sh" }}
 
 
   # --------------------------------------------------------------------------
@@ -140,7 +140,7 @@ variables:
       run:
         name: Set path
         command: |
-          echo 'export PATH=/root/project/miniconda/bin:$PATH' >> $BASH_ENV
+          echo 'export PATH=$PATH:/root/project/miniconda/bin' >> $BASH_ENV
           source $BASH_ENV
 jobs:
 

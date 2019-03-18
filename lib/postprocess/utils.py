@@ -58,7 +58,7 @@ def convert_gtf_chroms(tmpfiles, outfile, conv_table):
         read lookup table, so it can be file://, a path relative to the
         snakefile, or an http://, https://, or ftp:// URL.
     """
-    lookup = pd.read_table(
+    lookup = pd.read_csv(
         conv_table, sep='\t', header=None, names=('a', 'b')
     ).set_index('a')['b'].to_dict()
 
@@ -98,7 +98,7 @@ def convert_fasta_chroms(tmpfiles, outfile, conv_table):
         snakefile, or an http://, https://, or ftp:// URL.
     """
 
-    lookup = pd.read_table(
+    lookup = pd.read_csv(
         conv_table, sep='\t', header=None, names=('a', 'b')
     ).set_index('a')['b'].to_dict()
 
