@@ -7,9 +7,9 @@ import importlib
 import tempfile
 import pandas
 from snakemake.utils import makedirs
-from lcdblib.utils.imports import resolve_name
-from lcdblib.utils import utils
-from lcdblib.snakemake import aligners, helpers
+from lib.imports import resolve_name
+from lib import utils
+from lib import aligners, helpers
 from lib import cluster_specific
 from lib import common
 

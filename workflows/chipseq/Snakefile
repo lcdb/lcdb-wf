@@ -7,10 +7,7 @@ import tempfile
 import pandas as pd
 import numpy as np
 import pybedtools
-from lcdblib.snakemake import helpers, aligners
-from lcdblib.utils import utils
-from lib import common, chipseq
-from lib import cluster_specific
+from lib import common, cluster_specific, utils, helpers, aligners, chipseq
 from lib.patterns_targets import ChIPSeqConfig
 
 # ----------------------------------------------------------------------------
@@ -28,7 +25,10 @@ else:
     configfile: workflow.overwrite_configfile
 include: '../references/Snakefile'
 
-shell.prefix('set -euo pipefail; export TMPDIR={};'.format(cluster_specific.tempdir_for_biowulf()))
+shell.prefix(
+    'set -euo pipefail; export R_PROFILE_USER=; export TMPDIR={};'
+    .format(cluster_specific.tempdir_for_biowulf())
+)
 shell.executable('/bin/bash')
 
 config = common.load_config(config)
@@ -265,12 +265,10 @@ rule unique:
         c.patterns['bam']
     output:
         c.patterns['unique']
-    params:
+    shell:
         # NOTE: the quality score chosen here should reflect the scores output
         # by the aligner used. For example, STAR uses 255 as max mapping
         # quality.
-        extra="-b -q 20"
-    shell:
         'samtools view -b -q 20 {input} > {output}'
 
 
@@ -385,7 +383,7 @@ rule libsizes_table:
                 'title': 'Library size table',
                 'min': 0
             },
-            'data': yaml.load(df.transpose().to_json()),
+            'data': yaml.load(df.transpose().to_json(), Loader=yaml.FullLoader),
         }
         with open(output.json, 'w') as fout:
             yaml.dump(y, fout, default_flow_style=False)

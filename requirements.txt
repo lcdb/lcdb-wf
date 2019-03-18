@@ -29,7 +29,6 @@ intervalstats
 ipython >=5.1.0
 jsonschema >=2.5.1
 kallisto
-lcdblib
 matplotlib
 multiqc
 nextgenmap

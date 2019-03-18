@@ -1,14 +1,12 @@
 import sys
+
 sys.path.insert(0, srcdir('../..'))
 import os
 from textwrap import dedent
 import yaml
 import tempfile
 import pandas as pd
-from lcdblib.snakemake import helpers, aligners
-from lcdblib.utils import utils
-from lib import common
-from lib import cluster_specific
+from lib import common, cluster_specific, utils, helpers, aligners
 from lib.patterns_targets import RNASeqConfig
 
 # ----------------------------------------------------------------------------
@@ -26,7 +24,10 @@ else:
     configfile: workflow.overwrite_configfile
 
 include: '../references/Snakefile'
-shell.prefix('set -euo pipefail; export TMPDIR={};'.format(cluster_specific.tempdir_for_biowulf()))
+shell.prefix(
+    'set -euo pipefail; export R_PROFILE_USER=; export TMPDIR={};'
+    .format(cluster_specific.tempdir_for_biowulf())
+)
 shell.executable('/bin/bash')
 
 config = common.load_config(config)
@@ -491,7 +492,7 @@ rule rrna_libsizes_table:
                 'title': 'rRNA content table',
                 'min': 0
             },
-            'data': yaml.load(df.transpose().to_json()),
+            'data': yaml.load(df.transpose().to_json(), Loader=yaml.FullLoader),
         }
         with open(output.json, 'w') as fout:
             yaml.dump(y, fout, default_flow_style=False)
@@ -543,7 +544,7 @@ rule libsizes_table:
                 'title': 'Library size table',
                 'min': 0
             },
-            'data': yaml.load(df.transpose().to_json()),
+            'data': yaml.load(df.transpose().to_json(), Loader=yaml.FullLoader),
         }
         with open(output.json, 'w') as fout:
             yaml.dump(y, fout, default_flow_style=False)
@@ -847,9 +848,12 @@ rule rnaseq_rmarkdown:
         sampletable=config['sampletable']
     output:
         'downstream/rnaseq.html'
+    log:
+        'downstream/rnaseq.log'
     shell:
         'Rscript -e '
-        '''"rmarkdown::render('{input.rmd}', 'knitrBootstrap::bootstrap_document')"'''
+        '''"rmarkdown::render('{input.rmd}', 'knitrBootstrap::bootstrap_document')" '''
+        '> {log} 2>&1'
 
 
 def bigwigs_to_merge(wc):

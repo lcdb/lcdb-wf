@@ -1,6 +1,8 @@
 import os
 from snakemake.shell import shell
-from lcdblib.snakemake import aligners
+import sys
+sys.path.append(os.path.abspath('../..'))
+from lib import aligners
 import tempfile
 
 __author__ = "Ryan Dale"
