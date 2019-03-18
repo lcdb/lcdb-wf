@@ -8,7 +8,7 @@ import collections
 import yaml
 from . import common
 from . import chipseq
-from lcdblib.snakemake import helpers
+from . import helpers
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 

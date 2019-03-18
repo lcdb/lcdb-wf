@@ -6,8 +6,8 @@ import pandas
 from Bio import SeqIO
 import gzip
 import binascii
-from lcdblib.utils.imports import resolve_name
-from lcdblib.snakemake import aligners
+from .imports import resolve_name
+from . import aligners
 from snakemake.shell import shell
 from snakemake.io import expand
 
