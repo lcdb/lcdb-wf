@@ -1,7 +1,0 @@
-channels:
-  - conda-forge
-  - bioconda
-dependencies:
-  - rseqc ==2.6.4
-  - pysam
-  - numpy
