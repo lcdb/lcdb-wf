@@ -85,19 +85,6 @@ variables:
           ./run_test.sh --use-conda -j2 -k -p -r
           python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
 
-  rnaseq-ngm-step: &rnaseq-ngm-step
-      run:
-        name: rnaseq NGM aligner
-        command: |
-          cp -r workflows/rnaseq workflows/rnaseq-ngm
-          cd workflows/rnaseq-ngm
-          source activate lcdb-wf-test
-          ./run_test.sh --use-conda -k -p -r \
-            --forcerun ngm \
-            --configfile ../../test/test_configs/ngm_override.yaml \
-            --config sampletable=../../test/test_configs/two_samples.tsv \
-            --until ngm
-
   rnaseq-star-step: &rnaseq-star-step
       run:
         name: rnaseq star aligner
@@ -180,15 +167,6 @@ jobs:
       - *get-data
       - *rnaseq-step
 
-  rnaseq-ngm:
-    <<: *defaults
-    steps:
-      - checkout
-      - *restore_cache
-      - *set-path
-      - *get-data
-      - *rnaseq-ngm-step
-
   rnaseq-star:
     <<: *defaults
     steps:
@@ -257,14 +235,6 @@ workflows:
              ignore:
                - master
       - rnaseq:
-          requires:
-            - initial-setup
-            - pytest
-          filters:
-            branches:
-              ignore:
-                - master
-      - rnaseq-ngm:
           requires:
             - initial-setup
             - pytest
