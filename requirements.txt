@@ -54,6 +54,7 @@ r-readr
 r-rmarkdown
 r-spp
 r-upsetr
+rseqc >=3.0
 salmon
 samtools >=1.4.1
 scipy >=0.18.1
