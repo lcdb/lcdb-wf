@@ -239,6 +239,10 @@ workflows:
       - pytest:
          requires:
            - initial-setup
+         filters:
+           branches:
+             ignore:
+               - gitlab-runner-config
       - chipseq:
          requires:
            - initial-setup
@@ -246,7 +250,7 @@ workflows:
          filters:
            branches:
              ignore:
-               - master
+               - gitlab-runner-config
       - rnaseq:
           requires:
             - initial-setup
@@ -254,7 +258,7 @@ workflows:
           filters:
             branches:
               ignore:
-                - master
+                - gitlab-runner-config
       - rnaseq-star:
           requires:
             - initial-setup
@@ -262,7 +266,7 @@ workflows:
           filters:
             branches:
               ignore:
-                - master
+                - gitlab-runner-config
       - references:
           requires:
             - initial-setup
@@ -270,7 +274,7 @@ workflows:
           filters:
             branches:
               ignore:
-                - master
+                - gitlab-runner-config
       - colocalization:
           requires:
             - initial-setup
@@ -278,7 +282,7 @@ workflows:
           filters:
             branches:
               ignore:
-                - master
+                - gitlab-runner-config
       - build-docs:
           requires:
             - initial-setup
@@ -293,4 +297,4 @@ workflows:
           filters:
             branches:
               ignore:
-                - master
+                - gitlab-runner-config
