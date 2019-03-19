@@ -235,7 +235,11 @@ workflows:
   version: 2
   test-suite:
     jobs:
-      - initial-setup
+      - initial-setup:
+         filters:
+           branches:
+             ignore:
+               - gitlab-runner-config
       - pytest:
          requires:
            - initial-setup
