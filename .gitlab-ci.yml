@@ -2,6 +2,9 @@ stages:
   - init
   - workflows
 
+before_script:
+  - export PATH="/miniconda/bin:$PATH"
+
 initialize-conda:
   stage: "init"
   image: "ubuntu:latest"
