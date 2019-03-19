@@ -4,7 +4,8 @@ set -e
 WORKSPACE=`pwd`
 MINICONDA_VER=latest
 
-apt-get install curl
+apt-get upate
+apt-get install -y curl
 
 # Set path
 echo "export PATH=$WORKSPACE/miniconda/bin:$PATH" >> ~/.bashrc
