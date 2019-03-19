@@ -12,9 +12,11 @@ apt-get install -y curl
 curl -L -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-$MINICONDA_VER-$tag-x86_64.sh
 bash miniconda.sh -b -p $WORKSPACE/miniconda
 
-echo "export PATH=$WORKSPACE/miniconda/bin:$PATH" >> ~/.bashrc
-source ~/.bashrc
+set -x
+echo "export PATH=$WORKSPACE/miniconda/bin:$PATH" >> $WORKSPACE/.bashrc
+source $WORKSPACE/.bashrc
 echo $PATH
+set +x
 
 conda config --system --add channels defaults
 conda config --system --add channels bioconda
