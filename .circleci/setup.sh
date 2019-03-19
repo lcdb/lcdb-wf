@@ -3,30 +3,18 @@ set -e
 
 WORKSPACE=`pwd`
 MINICONDA_VER=latest
+tag="Linux"
 
 apt-get update
 apt-get install -y curl
 
 # Set path
-echo "export PATH=$WORKSPACE/miniconda/bin:$PATH" >> ~/.bashrc
-source ~/.bashrc
-
-echo "Setting up conda..."
-
-# setup conda if not loaded from cache
-mkdir -p $WORKSPACE
-
-# step 1: download and install miniconda
-if [[ $OSTYPE == darwin* ]]; then
-    tag="MacOSX"
-elif [[ $OSTYPE == linux* ]]; then
-    tag="Linux"
-else
-    echo "Unsupported OS: $OSTYPE"
-    exit 1
-fi
 curl -L -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-$MINICONDA_VER-$tag-x86_64.sh
 bash miniconda.sh -b -p $WORKSPACE/miniconda
+
+echo "export PATH=$WORKSPACE/miniconda/bin:$PATH" >> ~/.bashrc
+source ~/.bashrc
+echo $PATH
 
 conda config --system --add channels defaults
 conda config --system --add channels bioconda
