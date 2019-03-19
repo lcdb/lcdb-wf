@@ -1,9 +1,9 @@
-steps:
+stages:
   - init
   - workflows
 
 initialize-conda:
-  step: "init"
+  stage: "init"
   image: "debian:latest"
   script: "bash .circleci/setup.sh"
   cache:
@@ -13,7 +13,7 @@ initialize-conda:
     policy: "push"
 
 run-chipseq:
-  step: "workflows"
+  stage: "workflows"
   image: "debian:latest"
   script:
     - source activate lcdb-wf-test
