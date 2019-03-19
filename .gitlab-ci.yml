@@ -1,0 +1,2 @@
+job:
+  script: "bash .circleci/setup.sh"
