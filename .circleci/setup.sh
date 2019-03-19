@@ -4,7 +4,7 @@ set -e
 WORKSPACE=`pwd`
 MINICONDA_VER=latest
 
-apt-get upate
+apt-get update
 apt-get install -y curl
 
 # Set path
