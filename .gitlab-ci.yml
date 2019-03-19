@@ -1,2 +1,22 @@
-job:
+
+initialize-conda:
   script: "bash .circleci/setup.sh"
+  image: "debian:latest"
+  cache:
+    key: "$(md5sum requirements.txt | cut -f1 -d ' ')"
+    paths:
+      - "miniconda"
+    policy: "push"
+
+run-chipseq:
+  script:
+    - source activate lcdb-wf-test
+    - python ci/get-data.py
+    - cd workflows/chipseq
+    - ./run_test.sh -n
+  cache:
+    key: "$(md5sum requirements.txt | cut -f1 -d ' ')"
+    paths:
+      - "miniconda"
+    policy: "pull"
+
