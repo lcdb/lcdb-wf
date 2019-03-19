@@ -4,6 +4,14 @@ Changelog
 Changes since v1.2
 ------------------
 
+Infrastructure
+~~~~~~~~~~~~~~
+- new deploy script to copy over only the files necessary for an analysis,
+  avoiding the clutter of testing infrastructure.
+- lcdblib, an external package, is no longer a dependency. In the interest of
+  transparency, the relevant code was copied over to the ``lib`` directory in
+  this repository.
+
 ChIP-seq and RNA-seq
 ~~~~~~~~~~~~~~~~~~~~
 
