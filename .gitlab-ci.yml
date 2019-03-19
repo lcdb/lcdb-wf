@@ -4,7 +4,7 @@ stages:
 
 initialize-conda:
   stage: "init"
-  image: "debian:latest"
+  image: "ubuntu:latest"
   script: "bash .circleci/setup.sh"
   cache:
     key: "$(md5sum requirements.txt | cut -f1 -d ' ')"
@@ -14,7 +14,7 @@ initialize-conda:
 
 run-chipseq:
   stage: "workflows"
-  image: "debian:latest"
+  image: "ubuntu:latest"
   script:
     - source activate lcdb-wf-test
     - python ci/get-data.py
