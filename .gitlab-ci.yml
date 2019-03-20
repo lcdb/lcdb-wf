@@ -20,6 +20,7 @@ run-chipseq:
   image: "ubuntu:latest"
   script:
     - echo $PATH
+    - which conda
     - source activate lcdb-wf-test
     - python ci/get-data.py
     - cd workflows/chipseq
