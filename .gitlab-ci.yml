@@ -19,6 +19,7 @@ run-chipseq:
   stage: "workflows"
   image: "ubuntu:latest"
   script:
+    - echo $PATH
     - source activate lcdb-wf-test
     - python ci/get-data.py
     - cd workflows/chipseq
