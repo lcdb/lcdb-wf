@@ -12,7 +12,7 @@ initialize-conda:
   cache:
     key: "v1"
     paths:
-      - "/miniconda"
+      - "/miniconda/"
     policy: "push"
 
 run-chipseq:
@@ -29,6 +29,6 @@ run-chipseq:
   cache:
     key: "v1"
     paths:
-      - "/miniconda"
+      - "/miniconda/"
     policy: "pull"
 
