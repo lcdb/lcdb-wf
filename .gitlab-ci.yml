@@ -12,7 +12,7 @@ initialize-conda:
   cache:
     key: "$(md5sum requirements.txt | cut -f1 -d ' ')"
     paths:
-      - "miniconda"
+      - "/miniconda"
     policy: "push"
 
 run-chipseq:
