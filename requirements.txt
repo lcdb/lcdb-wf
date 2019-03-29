@@ -17,8 +17,10 @@ cutadapt
 deeptools >=3.0.1
 fastqc
 fastq-screen
+
 # for fastqc running on circleci
 font-ttf-dejavu-sans-mono
+
 gat
 gffutils >=0.8.7.1
 ghostscript

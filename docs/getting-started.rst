@@ -29,10 +29,9 @@ Otherwise, install `Miniconda <https://conda.io/miniconda.html>`_.
 
 .. code-block:: bash
 
-    conda config --add channels lcdb
     conda config --add channels defaults
-    conda config --add channels conda-forge
     conda config --add channels bioconda
+    conda config --add channels conda-forge
 
 
 Setup required once per project
@@ -77,11 +76,7 @@ use anything. Note that here we specify the channels to use, which include
 
 ::
 
-    conda create -n lcdb-wf \
-      --file requirements.txt \
-      --channel bioconda \
-      --channel conda-forge \
-      --channel lcdb
+    conda create -n lcdb-wf --file requirements.txt
 
 Then activate the environment::
 
@@ -92,6 +87,16 @@ environment location from your ``$PATH`` until the next time you activate it.
 You might want to hold off on this for now if you'll be running the tests::
 
     source deactivate
+
+.. note::
+
+   An alternative approach is to create an environment at a specific path, for
+   example inside a project directory:
+
+   .. code-block:: bash
+
+       conda create -p ./env --file requirements.txt
+       source activate ./env
 
 Next steps
 ----------

@@ -217,6 +217,19 @@ jobs:
           name: Build and upload docs
           command: ci/build-docs.sh
 
+  report-env:
+    <<: *defaults
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - 99:b4:dd:2c:82:9a:27:07:ca:b4:eb:bf:9c:49:4a:72
+      - checkout
+      - *restore_cache
+      - *set-path
+      - run:
+          name: Report environment
+          command: conda env export -n lcdb-wf-test
+
 
 workflows:
   version: 2
@@ -269,3 +282,15 @@ workflows:
       - build-docs:
           requires:
             - initial-setup
+
+      - report-env:
+          requires:
+            - rnaseq
+            - rnaseq-star
+            - chipseq
+            - references
+            - colocalization
+          filters:
+            branches:
+              ignore:
+                - master
