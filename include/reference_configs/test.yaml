@@ -104,3 +104,11 @@ references:
             - function: 'lib.postprocess.utils.convert_gtf_chroms'
               args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/893cb5bdf84c2d6f5c6d48fe74c791646383f189/mappings/test/test_to_ucsc.tsv'
             - 'lib.postprocess.test.test_postprocess'
+
+  spombe:
+    test_gff2gtf:
+      gtf:
+        url: 'ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/gff3/schizosaccharomyces_pombe/Schizosaccharomyces_pombe.ASM294v2.41.gff3.gz'
+        postprocess: 'lib.common.gff2gtf'
+        conversions:
+          - 'refflat'

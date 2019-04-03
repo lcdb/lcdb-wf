@@ -713,3 +713,12 @@ def fill_r1_r2(sampletable, pattern, r1_only=False):
         res = expand(pattern, sample=wc.sample, n=n)
         return res
     return func
+
+def gff2gtf(gff, gtf):
+    """
+    Converts a gff file to a gtf format using the gffread function from Cufflinks
+    """
+    if _is_gzipped(gff[0]):
+        shell('gzip -d -S .gz.0.tmp {gff} -c | gffread - -T -o- | gzip -c > {gtf}')
+    else:
+        shell('gffread {gff} -T -o- | gzip -c > {gtf}')
