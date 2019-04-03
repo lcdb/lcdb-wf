@@ -13,6 +13,9 @@ references:
           - 'hisat2'
       gtf:
         url: 'ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/gff3/schizosaccharomyces_pombe/Schizosaccharomyces_pombe.ASM294v2.41.gff3.gz'
+        postprocess: 'lib.common.gff2gtf'
+        conversions:
+          - 'refflat'
 
     ucsc_41_transcriptome:
       fasta:
