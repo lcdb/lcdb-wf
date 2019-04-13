@@ -9,9 +9,9 @@ apt-get install -y curl
 
 # Set path
 curl -L -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-$MINICONDA_VER-$tag-x86_64.sh
-bash miniconda.sh -b -p /miniconda
+bash miniconda.sh -b -p $CI_PROJECT_DIR/miniconda
 
-export PATH=/miniconda/bin:$PATH
+export PATH=$CI_PROJECT_DIR/miniconda/bin:$PATH
 
 conda config --system --add channels defaults
 conda config --system --add channels bioconda
