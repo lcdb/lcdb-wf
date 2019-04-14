@@ -10,12 +10,13 @@ if ! [ -x "$(command -v conda)" ]; then
   curl -L -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-$MINICONDA_VER-$tag-x86_64.sh
   bash miniconda.sh -b -p $CI_PROJECT_DIR/miniconda
   conda update -y conda
-fi
+  export PATH=$CI_PROJECT_DIR/miniconda/bin:$PATH
 
-export PATH=$CI_PROJECT_DIR/miniconda/bin:$PATH
+
+  conda create -n lcdb-wf-test -y --file requirements.txt
+fi
 
 conda config --system --add channels defaults
 conda config --system --add channels bioconda
 conda config --system --add channels conda-forge
 
-conda create -n lcdb-wf-test -y --file requirements.txt
