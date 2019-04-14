@@ -12,7 +12,7 @@ initialize-conda:
   cache:
     key: "v1"
     paths:
-      - "miniconda/"
+      - "$CI_PROJECT_DIR/miniconda/"
     policy: "push"
 
 run-chipseq:
@@ -20,7 +20,6 @@ run-chipseq:
   image: "ubuntu:latest"
   script:
     - echo $PATH
-    - ls /miniconda/bin
     - which conda
     - source activate lcdb-wf-test
     - python ci/get-data.py
@@ -29,6 +28,6 @@ run-chipseq:
   cache:
     key: "v1"
     paths:
-      - "miniconda/"
+      - "$CI_PROJECT_DIR/miniconda/"
     policy: "pull"
 
