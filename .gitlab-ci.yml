@@ -13,7 +13,6 @@ initialize-conda:
     key: "v1"
     paths:
       - "$CI_PROJECT_DIR/miniconda/"
-    policy: "push"
 
 run-chipseq:
   stage: "workflows"
