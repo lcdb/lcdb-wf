@@ -29,4 +29,3 @@ run-chipseq:
     paths:
       - "$CI_PROJECT_DIR/miniconda/"
     policy: "pull"
-
