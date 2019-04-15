@@ -15,7 +15,7 @@ initialize-conda:
     key: "v1"
     paths:
       - "$CI_PROJECT_DIR/miniconda/"
-  artifact:
+  artifacts:
     paths:
       - '$CI_PROJECT_DIR/env.yaml'
 
