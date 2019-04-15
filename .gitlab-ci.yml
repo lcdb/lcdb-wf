@@ -8,22 +8,26 @@ before_script:
 initialize-conda:
   stage: "init"
   image: "ubuntu:latest"
-  script: "bash .circleci/setup.sh"
+  script:
+    - "bash .circleci/setup.sh"
+    - "conda env export -n lcdb-wf > env.yaml"
   cache:
     key: "v1"
     paths:
       - "$CI_PROJECT_DIR/miniconda/"
+  artifact:
+    paths:
+      - '$CI_PROJECT_DIR/env.yaml'
+
 
 run-chipseq:
   stage: "workflows"
   image: "ubuntu:latest"
   script:
-    - echo $PATH
-    - which conda
     - source activate lcdb-wf-test
     - python ci/get-data.py
     - cd workflows/chipseq
-    - ./run_test.sh -n
+    - ./run_test.sh --use-conda -j8 -k -p -r
   cache:
     key: "v1"
     paths:
