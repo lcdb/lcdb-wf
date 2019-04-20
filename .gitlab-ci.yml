@@ -10,7 +10,7 @@ initialize-conda:
   image: "ubuntu:latest"
   script:
     - "bash .circleci/setup.sh"
-    - "conda env export -n lcdb-wf > env.yaml"
+    - "conda env export -n lcdb-wf-test > env.yaml"
   cache:
     key: "v1"
     paths:
