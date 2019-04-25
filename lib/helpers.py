@@ -49,7 +49,7 @@ def fill_patterns(patterns, fill, combination=product):
                 else:
                     d[k] = list(set(expand(u[k], c, **fill)))
             if not d[k]:
-                d[k] = u[k]
+                d[k] = [u[k]]
         return d
     d = {}
     return update(d, patterns, combination)
