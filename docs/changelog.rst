@@ -1,16 +1,24 @@
 Changelog
 =========
 
-Changes since v1.2
-------------------
+v1.3
+----
+Bugfixes
+~~~~~~~~
+- Fix broken paired-end support for RNA-seq. Previously, when using data from
+  elsewhere on disk and using the symlink rules, R2 would be symlinked to the
+  same file as R1.
+- Support for Snakemake 5.4.0 which changes behavior of the ``expand()``
+  function.
 
 Infrastructure
 ~~~~~~~~~~~~~~
 - new deploy script to copy over only the files necessary for an analysis,
   avoiding the clutter of testing infrastructure.
 - lcdblib, an external package, is no longer a dependency. In the interest of
-  transparency, the relevant code was copied over to the ``lib`` directory in
-  this repository.
+  better transparency and to make the code here easier to follow, the relevant
+  code from lcdblib was copied over to the ``lib`` directory in this
+  repository.
 
 ChIP-seq and RNA-seq
 ~~~~~~~~~~~~~~~~~~~~
