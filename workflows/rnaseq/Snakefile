@@ -1,14 +1,12 @@
 import sys
+
 sys.path.insert(0, srcdir('../..'))
 import os
 from textwrap import dedent
 import yaml
 import tempfile
 import pandas as pd
-from lcdblib.snakemake import helpers, aligners
-from lcdblib.utils import utils
-from lib import common
-from lib import cluster_specific
+from lib import common, cluster_specific, utils, helpers, aligners
 from lib.patterns_targets import RNASeqConfig
 
 # ----------------------------------------------------------------------------
@@ -26,7 +24,10 @@ else:
     configfile: workflow.overwrite_configfile
 
 include: '../references/Snakefile'
-shell.prefix('set -euo pipefail; export TMPDIR={};'.format(cluster_specific.tempdir_for_biowulf()))
+shell.prefix(
+    'set -euo pipefail; export R_PROFILE_USER=; export TMPDIR={};'
+    .format(cluster_specific.tempdir_for_biowulf())
+)
 shell.executable('/bin/bash')
 
 config = common.load_config(config)
@@ -104,6 +105,7 @@ if 'orig_filename' in c.sampletable.columns:
             pass
         return res
 
+
     rule symlinks:
         """
         Symlinks files over from original filename
@@ -115,8 +117,16 @@ if 'orig_filename' in c.sampletable.columns:
         wildcard_constraints:
             n="\d+"
         run:
-            for src, linkname in zip(input, output):
-                utils.make_relative_symlink(src, linkname)
+
+            assert len(output) == 1
+            if wildcards.n == '1':
+                src = input[0]
+            elif wildcards.n == '2':
+                src = input[1]
+            else:
+                raise ValueError("n={}, only 1 and 2 supported".format(wildcards.n))
+
+            utils.make_relative_symlink(src, output[0])
 
 
     rule symlink_targets:
@@ -237,14 +247,33 @@ if config['aligner']['index'] == 'hisat2':
             bam=c.patterns['bam']
         log:
             c.patterns['bam'] + '.log'
-        params:
-            # NOTE: see examples at
-            # https://github.com/lcdb/lcdb-wf/tree/master/wrappers/wrappers/hisat2/align
-            # for details on setting hisat2 params and samtools params separately.
-            samtools_view_extra='-F 0x04'
         threads: 6
-        script:
-            wrapper_for('hisat2/align/wrapper.py')
+        run:
+            prefix = aligners.prefix_from_bowtie2_index(input.index)
+            sam = output.bam.replace('.bam', '.sam')
+
+            # If two fastqs were provided, assume paired-end mode; otherwise single-end
+            if isinstance(input.fastq, str) or len(input.fastq) == 1:
+                fastqs = '-U {0} '.format(input.fastq)
+            else:
+                assert len(input.fastq) == 2
+                fastqs = '-1 {0} -2 {1} '.format(*input.fastq)
+
+            shell(
+                "hisat2 "
+                "-x {prefix} "
+                "{fastqs} "
+                '--no-unal '
+                "--threads {threads} "
+                "-S {sam} "
+                "> {log} 2>&1"
+            )
+
+            shell(
+                "samtools view -Sb {sam} "
+                "| samtools sort - -o {output.bam} -O BAM "
+                "&& rm {sam}"
+            )
 
 if config['aligner']['index'] == 'star':
     rule star:
@@ -272,108 +301,23 @@ if config['aligner']['index'] == 'star':
                 # NOTE: The STAR docs indicate that the following parameters
                 # are standard options for ENCODE long-RNA-seq pipeline.
                 # Comments are from the STAR docs.
-
-                # reduces number of spurious junctions
-                '--outFilterType BySJout '
-
-                # if more than this many multimappers, consider unmapped
-                '--outFilterMultimapNmax 20 '
-
-                # min overhang for unannotated junctions
-                '--alignSJoverhangMin 8 '
-
-                # min overhang for annotated junctions
-                '--alignSJDBoverhangMin 1 '
-
-                # max mismatches per pair
-                '--outFilterMismatchNmax 999 '
-
-                # max mismatches per pair relative to read length
-                '--outFilterMismatchNoverReadLmax 0.04 '
-
-                # min intron length
-                '--alignIntronMin 20 '
-
-                # max intron length
-                '--alignIntronMax 1000000 '
-
-                # max distance between mates
-                '--alignMatesGapMax 1000000 '
-
+                '--outFilterType BySJout '     # reduces number of spurious junctions
+                '--outFilterMultimapNmax 20 '  # if more than this many multimappers, consider unmapped
+                '--alignSJoverhangMin 8 '      # min overhang for unannotated junctions
+                '--alignSJDBoverhangMin 1 '    # min overhang for annotated junctions
+                '--outFilterMismatchNmax 999 ' # max mismatches per pair
+                '--outFilterMismatchNoverReadLmax 0.04 ' # max mismatches per pair relative to read length
+                '--alignIntronMin 20 '         # min intron length
+                '--alignIntronMax 1000000 '    # max intron length
+                '--alignMatesGapMax 1000000 '  # max distance between mates
+                '--outSAMunmapped None '       # do not report aligned reads in output
                  '&> {log} '
             )
 
             shell(
-                'samtools view '
-                '-Sb '
-                '-F 0x04 '
-                '{prefix}Aligned.out.sam '
-                '> {output}.tmp.bam '
+                'samtools view -Sb {prefix}Aligned.out.sam '
+                '| samtools sort - -O BAM -o {output.bam} '
                 '&& rm {prefix}Aligned.out.sam '
-            )
-            shell(
-                "samtools sort "
-                "-o {output.bam} "
-                # NOTE: optionally provide other sort arguments here. If you
-                # increase threads, you may need to increase memory in the
-                # clusterconfig as well.
-                "-O BAM "
-                "{output}.tmp.bam "
-                "&& rm {output}.tmp.bam "
-            )
-
-if config['aligner']['index'] == 'ngm':
-    rule ngm:
-        """
-        Map reads with NextGenMap
-        """
-        input:
-            fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
-            index=[c.refdict[c.organism][config['aligner']['tag']]['ngm']],
-            fasta=[c.refdict[c.organism][config['aligner']['tag']]['ngm_fasta']]
-        output:
-            bam=c.patterns['bam']
-        log:
-            c.patterns['bam'] + '.log'
-        threads: 6
-        run:
-            if common.is_paired_end(c.sampletable, wildcards.sample):
-                fastqs = '-1 {0} -2 {1} '.format(*input.fastq)
-            else:
-                fastqs = '--qry {0} '.format(input.fastq)
-
-            prefix = input.index[0].replace('-enc.2.ngm', '')
-
-            output_prefix = output.bam.replace('.bam', '')
-
-            shell(
-                "ngm "
-                "-r {prefix} "
-                "{fastqs} "
-                "-t {threads} "
-                "-o {output_prefix}.sam "
-                # NOTE: add extra NextGenMap options here.
-                "&> {log}"
-            )
-
-            shell(
-                "samtools view -Sb "
-                # NOTE: change samtools view arguments here if needed; default
-                # is to remove unmapped reads
-                "-F 0x04 "
-                "{output_prefix}.sam "
-                "> {output_prefix}.tmp.bam && rm {output_prefix}.sam"
-            )
-
-            shell(
-                "samtools sort "
-                "-o {output.bam} "
-                # NOTE: optionally provide other sort arguments here. If you
-                # increase threads, you may need to increase memory in the
-                # clusterconfig as well.
-                "-O BAM "
-                "{output_prefix}.tmp.bam "
-                "&& rm {output_prefix}.tmp.bam "
             )
 
 
@@ -394,8 +338,26 @@ rule rRNA:
         bowtie2_extra='-k 1',
         samtools_view_extra='-F 0x04'
     threads: 6
-    script:
-        wrapper_for('bowtie2/align/wrapper.py')
+    run:
+        prefix = aligners.prefix_from_bowtie2_index(input.index)
+        sam = output.bam.replace('.bam', '.sam')
+
+        shell(
+            "bowtie2 "
+            "-x {prefix} "
+            "-U {input.fastq} "
+            '-k 1 '       # NOTE: we only care if >=1 mapped
+            '--no-unal '  # NOTE: suppress unaligned reads
+            "--threads {threads} "
+            "-S {sam} "
+            "> {log} 2>&1"
+        )
+
+        shell(
+            "samtools view -Sb {sam} "
+            "| samtools sort - -o {output.bam} -O BAM "
+            "&& rm {sam}"
+        )
 
 
 rule fastq_count:
@@ -539,7 +501,7 @@ rule rrna_libsizes_table:
                 'title': 'rRNA content table',
                 'min': 0
             },
-            'data': yaml.load(df.transpose().to_json()),
+            'data': yaml.load(df.transpose().to_json(), Loader=yaml.FullLoader),
         }
         with open(output.json, 'w') as fout:
             yaml.dump(y, fout, default_flow_style=False)
@@ -591,7 +553,7 @@ rule libsizes_table:
                 'title': 'Library size table',
                 'min': 0
             },
-            'data': yaml.load(df.transpose().to_json()),
+            'data': yaml.load(df.transpose().to_json(), Loader=yaml.FullLoader),
         }
         with open(output.json, 'w') as fout:
             yaml.dump(y, fout, default_flow_style=False)
@@ -802,7 +764,8 @@ rule rseqc_bam_stat:
         bam=c.patterns['bam']
     output:
         txt=c.patterns['rseqc']['bam_stat']
-    wrapper: wrapper_for('rseqc/bam_stat')
+    shell:
+        'bam_stat.py -i {input.bam} > {output.txt}'
 
 
 rule bigwig_neg:
@@ -894,9 +857,12 @@ rule rnaseq_rmarkdown:
         sampletable=config['sampletable']
     output:
         'downstream/rnaseq.html'
+    log:
+        'downstream/rnaseq.log'
     shell:
         'Rscript -e '
-        '''"rmarkdown::render('{input.rmd}', 'knitrBootstrap::bootstrap_document')"'''
+        '''"rmarkdown::render('{input.rmd}', 'knitrBootstrap::bootstrap_document')" '''
+        '> {log} 2>&1'
 
 
 def bigwigs_to_merge(wc):

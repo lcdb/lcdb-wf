@@ -1,8 +1,9 @@
-import os
+import os, sys
+sys.path.append('../../')
 from textwrap import dedent
 import tempfile
 from snakemake.shell import shell
-from lcdblib.utils import utils
+from lib import utils
 log = snakemake.log_fmt_shell(append=True)
 
 # Since we'll be appending the output from multiple commands to the same log,

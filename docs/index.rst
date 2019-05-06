@@ -89,6 +89,7 @@ See :ref:`getting-started` to get started.
 
    getting-started
    tests
+   deploy
    workflows
    config
    references

@@ -6,8 +6,8 @@ import pandas
 from Bio import SeqIO
 import gzip
 import binascii
-from lcdblib.utils.imports import resolve_name
-from lcdblib.snakemake import aligners
+from lib.imports import resolve_name
+from lib import aligners
 from snakemake.shell import shell
 from snakemake.io import expand
 
@@ -401,7 +401,6 @@ def references_dict(config):
     index_extensions = {
         'bowtie2': aligners.bowtie2_index_from_prefix('')[0],
         'hisat2': aligners.hisat2_index_from_prefix('')[0],
-        'ngm': '.fasta-enc.2.ngm',
         'star': '/Genome',
         'salmon': '/hash.bin',
     }

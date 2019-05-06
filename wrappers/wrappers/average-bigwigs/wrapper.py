@@ -1,4 +1,6 @@
-import os
+import os, sys
+sys.path.append(os.path.abspath('../../'))
+from lib import utils
 import tempfile
 from snakemake.shell import shell
 # Inspired by http://wresch.github.io/2014/01/31/merge-bigwig-files.html
@@ -9,19 +11,8 @@ if 'memory' in snakemake.params:
 else:
     mem_arg = ''
 
-# Copied from lcdblib to avoid having it as a dependency just for this
-# function.
-def make_relative_symlink(target, linkname):
-    linkdir = os.path.dirname(linkname)
-    relative_target = os.path.relpath(target, start=linkdir)
-    linkbase = os.path.basename(linkname)
-    if not os.path.exists(linkdir):
-        shell('mkdir -p {linkdir}')
-    shell('cd {linkdir}; ln -sf {relative_target} {linkbase}')
-
-
 if len(snakemake.input.bigwigs) == 1:
-    make_relative_symlink(snakemake.input.bigwigs[0], snakemake.output[0])
+    utils.make_relative_symlink(snakemake.input.bigwigs[0], snakemake.output[0])
 
 else:
 

@@ -8,7 +8,7 @@ import collections
 import yaml
 from . import common
 from . import chipseq
-from lcdblib.snakemake import helpers
+from . import helpers
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
@@ -161,6 +161,7 @@ class ChIPSeqConfig(SeqConfig):
         # First, the samples...
         self.patterns_by_sample = self.patterns['patterns_by_sample']
         self.fill_by_sample = dict(
+            n=[1,2],
             sample=self.samples.values,
             label=self.sampletable.label.values,
             ip_label=self.sampletable.label[
