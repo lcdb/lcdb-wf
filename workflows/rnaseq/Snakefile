@@ -104,6 +104,7 @@ if 'orig_filename' in c.sampletable.columns:
             pass
         return res
 
+
     rule symlinks:
         """
         Symlinks files over from original filename
@@ -115,8 +116,16 @@ if 'orig_filename' in c.sampletable.columns:
         wildcard_constraints:
             n="\d+"
         run:
-            for src, linkname in zip(input, output):
-                utils.make_relative_symlink(src, linkname)
+
+            assert len(output) == 1
+            if wildcards.n == '1':
+                src = input[0]
+            elif wildcards.n == '2':
+                src = input[1]
+            else:
+                raise ValueError("n={}, only 1 and 2 supported".format(wildcards.n))
+
+            utils.make_relative_symlink(src, output[0])
 
 
     rule symlink_targets:
