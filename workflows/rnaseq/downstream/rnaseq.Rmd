@@ -299,9 +299,10 @@ dds <- DESeqDataSetFromFeatureCounts(
     design=~group
 )
 
-# NOTE: If gene names came in as Ensembl "gene.version" IDs, here we split them
-# to only give the gene ID.
-rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
+if (strip.dotted.version){
+    rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
+}
+
 dds <- DESeq(dds,
     # NOTE: betaPrior
     #
