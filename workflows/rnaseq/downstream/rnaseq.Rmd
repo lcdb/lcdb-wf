@@ -55,6 +55,7 @@ library(ReactomePA)
 library(cowplot)
 ```
 
+
 ```{r child='helpers.Rmd'}
 # When running interactively, run the following to load helper functions.
 # When rendering this file, the contents of this code block will be skipped
@@ -64,23 +65,22 @@ rmarkdown::render('helpers.Rmd', run_pandoc=FALSE)
 ```
 
 ```{r annotationhub_setup}
-# NOTE: try disabling this when running locally to get nicer figures:
-# options(bitmapType='cairo')
-
-# NOTE: Change these to reflect organism you're working with.
-#   e.g., 'Mus musculus', 'mmu'; 'Homo sapiens', 'hsa'. You can also provide an
-#   annotation key to override if you know the one to use, otherwise leave NA.
+# NOTE: Organism---------------------------------------------------------------
+#   This is the search term used for looking in the AnnotationHub
 annotation_genus_species <- 'Drosophila melanogaster'
-kegg.org <- 'dme'
+
+# NOTE: If you already know the key, provide it here---------------------------
+#   Provide this to override the AnnotationHub accession otherwise discovered
 annotation_key_override <- NA
 
+# This should generally not be changed unless you know what you're doing
 hub.cache <- '../../../include/AnnotationHubCache'
 
 # To ensure that we do not clobber any local copies of the annotation, we copy
-# to tmp. This also should increase performance when running on the cluster --
-# we avoid poor sqlite performance on shared filesystems by copying to
-# local scratch space.
-file.copy(hub.cache, tempdir(), recursive=TRUE)
+# to tmp. This also should increase performance when running on a cluster -- we
+# avoid poor sqlite performance on shared filesystems by copying to local
+# scratch space.
+ok <- file.copy(hub.cache, tempdir(), recursive=TRUE)
 new.cache <- file.path(tempdir(), 'AnnotationHubCache')
 
 orgdb <- get.orgdb(
