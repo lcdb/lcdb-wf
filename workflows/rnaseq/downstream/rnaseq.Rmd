@@ -606,8 +606,281 @@ for (name in names(ll)){
 }
 ```
 
-```{r groupcounts, cache=TRUE}
-# NOTE: optionally disable this chunk
+# Exported results
+
+```{r selections}
+sel.list <- list()
+for (name in names(res.list)){
+  res <- res.list[[name]][['res']]
+
+  # NOTE: significance level---------------------------------------------------
+  alpha <- 0.1
+
+  # NOTE: any other selections?------------------------------------------------
+  #    Here we just get the up- and downregulated genes, but any arbitrary
+  #    subsets of the results can be added.
+  #
+  #    For each selection:
+  #      - TSV of the subset of genes will be written to file and a link
+  #        created for it in the Markdown
+  #      - GO analysis will be performed on each group separately below.
+  sel.list[[name]] <- list(
+    up=res[get.sig(res, alpha=alpha, direction='up'),],
+    dn=res[get.sig(res, alpha=alpha, direction='dn'),]
+    )
+}
+
+# Keep track of our sel.list entries, here just using the last one
+sel.names <- names(sel.list[[name]])
+
+```
+
+
+# Functional enrichment analysis
+
+Here we perform gene ontology, KEGG pathway and Reactome pathway enrichment using the
+[clusterProfiler](https://bioconductor.org/packages/release/bioc/vignettes/clusterProfiler/inst/doc/clusterProfiler.html)
+package with some custom plotting functions.
+
+```{r cprof_setup, results='hide'}
+
+# output directory for clusterProfiler results
+cprof.folder <- "clusterprofiler"
+plots.folder <- "clusterprofiler/plots"
+
+# check for subfolder and create if absent
+ifelse(!dir.exists(file.path('.',cprof.folder)),
+       dir.create(file.path('.',cprof.folder), recursive = TRUE), NA)
+ifelse(!dir.exists(file.path('.',plots.folder)),
+       dir.create(file.path('.',plots.folder), recursive = TRUE), NA)
+
+# NOTE: keyTypes to obtain from bitr-------------------------------------------
+types <- c("ENTREZID","SYMBOL","UNIPROT")
+
+# NOTE: convert IDs to symbols for KEGG?---------------------------------------
+id.convert <- TRUE
+```
+
+```{r bitr_genes, results='hide'}
+# NOTE: Gene IDs are provided in what format?----------------------------------
+from.type <- "FLYBASE"
+
+deg.list <- nested.lapply(sel.list, rownames)
+genes.df <- nested.lapply(deg.list, bitr, fromType=from.type, toType=types, OrgDb=orgdb)
+```
+
+```{r enrich_all, results='hide', cache=TRUE}
+
+# run enrichment for all gene lists over a loop
+
+# NOTE: settings for clusterProfiler and plots---------------------------------
+go.keytype <- 'ENTREZID'
+kegg.keytype <- 'ncbi-geneid'
+pvalueCutoff <- 1
+qvalueCutoff <- 1
+go.uni <- NULL
+path.uni <- NULL
+kegg.organism <- 'dme'
+reactome.organism <- 'fly'
+
+
+# list to hold all enrichment results
+# will have structure:
+#
+#   all.enrich[[contrast]][[direction]][[enrichment label]]
+all.enrich <- list()
+enrich.files <- list()
+# loop over each contrast
+for(comp in names(genes.df)){
+
+    all.enrich[[comp]] <- list()
+    enrich.files[[comp]] <- list()
+
+    # loop over selection list
+    for(sel in sel.names){
+
+        all.enrich[[comp]][[sel]] <- list()
+        enrich.files[[comp]][[sel]] <- list()
+
+        gene <- genes.df[[comp]][[sel]][[go.keytype]]
+
+        for (ont in c('CC', 'BP', 'MF')){
+            go.res <- enrichGO(
+                gene=gene, universe=go.uni, keyType=go.keytype, OrgDb=orgdb,
+                ont=ont, pvalueCutoff=pvalueCutoff, qvalueCutoff=qvalueCutoff,
+                readable = TRUE)
+
+            res.label <- paste('GO', ont, sep='_')
+            all.enrich[[comp]][[sel]][[ont]] <- go.res
+            if (!is.null(go.res)){
+                enrich.files[[comp]][[sel]][[ont]] <- write.clusterprofiler.results(go.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
+            }
+        }
+
+        # perform KEGG enrichment
+        kegg.res <- enrichKEGG(
+            gene=gene, universe=path.uni, organism=kegg.organism,
+            keyType=kegg.keytype, pvalueCutoff=pvalueCutoff,
+            qvalueCutoff=qvalueCutoff)
+
+        all.enrich[[comp]][[sel]][['kegg']] <- kegg.res
+
+        if (!is.null(kegg.res)){
+            # convert uniprot IDs to readable symbols. This needs to be done separately
+            # in the case of KEGG
+            if(id.convert){
+              id.vec <- genes.df[[comp]][[sel]]$SYMBOL
+              names(id.vec) <- genes.df[[comp]][[sel]]$ENTREZID
+              kegg.res.genes <- kegg.res@result$geneID
+              for(j in 1:length(kegg.res.genes)){
+                id.split <- strsplit(kegg.res.genes[j], "/")[[1]]
+                temp <- paste(id.vec[id.split], collapse="/")
+                kegg.res@result$geneID[j] <- temp
+              }
+            }
+
+            enrich.files[[comp]][[sel]][['kegg']] <- write.clusterprofiler.results(kegg.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
+        }
+
+        # NOTE: Install OrgDb--------------------------------------------------
+        #   ReactomePA requires the relevant OrgDb package to be installed.
+        reactome.res <-enrichPathway(
+            gene=gene, universe=path.uni, organism=reactome.organism,
+            pvalueCutoff=pvalueCutoff, qvalueCutoff=qvalueCutoff, readable=TRUE)
+        all.enrich[[comp]][[sel]][['reactome']] <- reactome.res
+
+        if (!is.null(reactome.res)){
+            enrich.files[[comp]][[sel]][['reactome']] <- write.clusterprofiler.results(reactome.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
+        }
+    }
+}
+
+```
+
+```{r adjust_catlen}
+
+# This shortens the names of functional terms for better visualization
+maxcatlen <- 50
+for(comp in names(all.enrich)){
+  for(name in names(all.enrich[[comp]])){
+    for(go in names(all.enrich[[comp]][[name]])){
+      all.enrich[[comp]][[name]][[go]]@result$Description <- substr(all.enrich[[comp]][[name]][[go]]@result$Description, 1, maxcatlen)
+    }
+  }
+}
+
+```
+
+
+Below we show the results separately for each comparison: *mutant vs het*, *mutant vs wt*
+and *wt vs het*. Links to files containing analysis results are shown above each set of
+plots, with parsed files showing genes on separate lines.
+
+```{r plot_go, fig.width=15, fig.height=10, results='asis'}
+# go labels for file names
+go.label <- list(
+    BP='GO Biological Process',
+    CC='GO Cellular Component',
+    MF='GO Molecular Function',
+    kegg='KEGG Pathways',
+    reactome='Reactome Pathways')
+
+comp.label <- lapply(res.list, function (x) x[['label']])
+
+for(comp in names(all.enrich)){
+    mdcat('## ', comp.label[[comp]], ' {.tabset}')
+    for(go in names(go.label)){
+
+        mdcat('### ', go.label[[go]], ' {.tabset}')
+
+        mdcat('TSV format results (condensed and split versions):\n')
+
+        dotplots <- list()
+        emapplots <- list()
+        cnetplots <- list()
+
+        for (sel in sel.names){
+
+            res <- all.enrich[[comp]][[sel]][[go]]
+
+            if (is.null(res))
+            {
+                cat('\n\n\nNo genes enriched for:', comp, sel, go, '\n\n\n')
+                next
+            }
+
+            outfiles <- enrich.files[[comp]][[sel]][[go]]
+            f1 <- outfiles[['orig']]
+            f2 <- outfiles[['split']]
+            mdcat(' - ', sel, ' [', f1, '](', f1 ,')', ', [', f2, '](', f2 ,')')
+            title <- paste(sel, go)
+
+            # NOTE: arguments to dotplot, emapplot, and cnetplot---------------
+            #   Arguments provided are package defaults, explicitly provided
+            #   here for better visibility on what to tweak. Most commonly
+            #   adjusted is probably the showCategory argument.
+
+            dotplots[[sel]] <- dotplot(
+                res,
+                showCategory=10,
+                color='p.adjust',
+                x='GeneRatio'
+            ) +
+                ggtitle(title) +
+                theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+
+            emapplots[[sel]] <- emapplot(
+                res,
+                showCategory=30,
+                color='p.adjust'
+            ) +
+                ggtitle(title) +
+                theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+
+            cnetplots[[sel]] <- cnetplot(
+                res,
+                showCategory=5,
+                foldChange=NULL,
+                colorEdge=FALSE,
+                circular=FALSE,
+                node_label=TRUE
+            ) +
+                ggtitle(title) +
+                theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+        }
+
+        save.and.link <- function(plottype){
+            f <- file.path(plots.folder, paste0(go,"_", comp,"_", plottype, ".pdf"))
+            dev.copy(pdf, file=f, width=15, height=10)
+            dev.off()
+            mdcat('Link to pdf - [', f, '](', f, ')')
+            cat('\n')
+        }
+
+        # It's possible that we got this far without any results to plot; if so
+        # then skip creating the tabs and plots
+        skip <- (length(dotplots) == 0) & (length(emapplots) == 0) & (length(cnetplots) == 0)
+
+
+        if (!skip){
+            mdcat('#### Dotplot')
+            print(plot_grid(plotlist=dotplots, align='hv'))
+            save.and.link('dotplot')
+
+            mdcat('#### Emapplot')
+            print(plot_grid(plotlist=emapplots, align='hv'))
+            save.and.link('emapplot')
+
+            mdcat('#### Cnetplot')
+            print(plot_grid(plotlist=cnetplots, align='hv'))
+            save.and.link('cnetplot')
+        }
+    }
+}
+```
+
+```{r groupcounts, cache=TRUE, eval=FALSE}
+# NOTE: optionally disable this chunk------------------------------------------
 #
 #    This chunk inspects the model matrix of the design, aggregates counts for
 #    each of the levels in the design, and attaches them to each set of
@@ -615,6 +888,7 @@ for (name in names(ll)){
 #
 #    It also attaches normalized gene counts and Salmon TPM.
 #
+#    Requires transcript.tpm to be available, and therefore Salmon was run
 counts.list <- list()
 
 # Compute aggregate (by gene) normalized transcript counts from Salmon
@@ -666,32 +940,7 @@ for (name in names(res.list)) {
 ```
 
 
-# Exported results
-
-```{r selections}
-sel.list <- list()
-for (name in names(res.list)){
-  res <- res.list[[name]][['res']]
-
-  # NOTE: significance level
-  alpha <- 0.1
-
-  # NOTE: any other selections?
-  #    Here we just get the up- and downregulated genes, but any arbitrary
-  #    subsets of the results can be added.
-  #
-  #    For each selection:
-  #      - TSV of the subset of genes will be written to file and a link
-  #        created for it in the Markdown
-  #      - GO analysis will be performed on each group separately below.
-  sel.list[[name]] <- list(
-    up=res[get.sig(res, alpha=alpha, direction='up'),],
-    dn=res[get.sig(res, alpha=alpha, direction='dn'),]
-    )
-}
-```
-
-```{r, results='asis'}
+```{r, results='asis', eval=FALSE}
 # Write out files for full and each selection, and create a link to them in the
 # HTML generated by this RMarkdown.
 for (name in names(res.list)){
@@ -710,136 +959,6 @@ for (name in names(res.list)){
 }
 ```
 
-# Gene ontology and KEGG pathway enrichment
-
-Here we perform gene ontology enrichment and KEGG pathway enrichment using the
-[clusterProfiler](https://bioconductor.org/packages/release/bioc/vignettes/clusterProfiler/inst/doc/clusterProfiler.html)
-package with some custom plotting functions.
-
-
-```{r GO, cache=TRUE}
-# NOTE: computationally intensive.
-#    clusterProfiler can take a long time to run. You may want to disable this
-#    chunk to speed things up.
-
-# Here we summarize the results into dataframes and attach additional
-# information to them such that they can be concatenated together into a large
-# tidy dataframe.
-universe <- names(dds)
-enrich.list <- list()
-for (name in names(sel.list)){
-  for (sel in names(sel.list[[name]])){
-    sel.res <- sel.list[[name]][[sel]]
-
-    # GO enrichment
-    go.label <- paste(name, sel, 'go', sep='.')
-    message(paste(go.label, '...'))
-    sg <- summarize.go(
-      clusterprofiler.enrichgo(sel.res$gene, universe, orgdb),
-      list(label=go.label, sel=sel, experiment=name))
-    if (!is.null(sg)){
-      enrich.list[[go.label]] <- sg
-    }
-
-    # KEGG enrichment
-    kegg.label <- paste(name, sel, 'kegg', sep='.')
-    message(paste(kegg.label, '...'))
-    sk <- summarize.kegg(
-      clusterprofiler.enrichkegg(sel.res$uniprot, kegg.org),
-      list(label=kegg.label, sel=sel, experiment=name))
-    if (!is.null(sk)){
-      enrich.list[[kegg.label]] <- sk
-    }
-  }
-}
-```
-
-These plots show:
-
-- enriched category (y-axis)
-- magnitude of enrichment (x-axis; plotted as -10 log10 (FDR) or "phred" scale)
-- fraction of regulated genes falling within a particular category (size)
-- experiment (color)
-- ontology (sub-panels; BP=biological process, MF=molecular function,
-  CC=cellular component, kegg=KEGG pathway)
-- direction of regulation (up- or downregulated; separate figures; labeled at the top)
-
-The plots show the top 50 terms, and are sorted by the max enrichment across
-experiments.
-
-```{r fullenrich, cache=TRUE}
-full.enrich.table <- do.call(rbind, enrich.list)
-write.table(full.enrich.table, file='functional_enrichment.tsv', row.names=FALSE, sep='\t')
-```
-
-The full analysis table can be viewed here:
-
-- [functional_enrichment.tsv](functional_enrichment.tsv)
-
-```{r, go, fig.height=15, fig.width=15, dev=c('pdf', 'png')}
-# While clusterProfiler has canned figures, it's difficult to customize them.
-# Instead, here we create a tidy dataframe of all experiments, directions, and
-# enrichment analyses so that we can plot them with ggplot2 however the
-# experiment dictates
-
-
-lim <- 50
-nchunks <- 1
-
-# NOTE: we assume that all experiments have the same selections.
-#
-#    This is the default case from the above "selections" chunk.
-for (sel in names(sel.list[[1]])){
-  mdcat('## ', sel)
-  m <- do.call(rbind, enrich.list)
-
-  # Some GO descriptions are really long. To keep the plot dimensions
-  # reasonable, we will be truncating them all to the 75th percentile.
-  length.quantile <- quantile(nchar(as.vector(m$Description, mode="character")), 0.75)
-
-  # convert to phred score, and flip the "downregulated"
-  m$phred <- -10 * log10(m$p.adjust)
-  idx <- m$sel == sel
-
-  m <- m[idx,]
-
-  if (nrow(m) == 0){next}
-
-  #replace ontology descriptions with truncations to make plot prettier
-  temp.desc <- as.vector(m$Description, mode="character")
-  needs.replacement <- which(nchar(temp.desc) > length.quantile)
-  temp.desc <- strtrim(temp.desc, length.quantile)
-  temp.desc[needs.replacement] <- paste(temp.desc[needs.replacement], "...", sep="")
-  m$Description <- factor(temp.desc)
-
-  # Grab the top (ordered by phred)
-  max.per.term <- aggregate(phred~Description, m, FUN=max)
-  o <- rev(order(max.per.term$phred))
-  m$Description <- factor(m$Description, levels=rev(max.per.term$Description[o]))
-  top.terms <- (max.per.term$Description[o][seq(lim)])
-  m.sub <- m[m$Description %in% top.terms,]
-  m.sub$Description <- droplevels(m.sub$Description)
-  levels(m.sub$Description) <- max.per.term$Description[o]
-  #m.sub <- m.sub[order(m.sub$Description),]
-
-  chunksize <- ceiling(lim / nchunks)
-  lookup <- rep(1:nchunks, each=chunksize)
-  m.sub$chunk <- 0
-  for (i in seq(length(lookup))){
-    term <- as.character(top.terms[i])
-    lab <- lookup[i]
-    m.sub$chunk[m.sub$Description == term] = lab
-  }
-
-
-print(ggplot(m.sub) +
-    geom_point(alpha=0.6) +
-    aes(y=Description, x=phred, size=frac, color=experiment) +
-    theme(text=element_text(size=12)) +
-    facet_grid(ontology~sel, scales='free_y', space='free_y')
-  )
-}
-```
 
 # Session info
 For reproducibility purposes, here is the output of `sessionInfo()` showing the
@@ -852,7 +971,7 @@ sessionInfo()
 # Help
 
 ```{r helpdocs, child="help_docs.Rmd", run_pandoc=FALSE}
-# NOTE: optional help section
+# NOTE: optional help section--------------------------------------------------
 #   Delete this chunk, or set to eval=FALSE, if you don't want to include the
 #   help text from "help_docs.Rmd"
 ```
