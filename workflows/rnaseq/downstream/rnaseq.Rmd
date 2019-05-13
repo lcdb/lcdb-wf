@@ -1,3 +1,11 @@
+---
+output:
+    html_document:
+        code_folding: hide
+        toc: true
+        toc_float: true
+        toc_depth: 3
+---
 
 ```{r, include=FALSE}
 # =============================================================================
