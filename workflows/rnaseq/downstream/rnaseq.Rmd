@@ -217,8 +217,7 @@ we expect to see replicates clustering together and separation of treatments.
 ## Clustered heatmap
 
 ```{r}
-# NOTE: Which columns to use for grouping the heatmap?
-#
+# NOTE: Which columns to use for grouping the heatmap?-------------------------
 #    Add as many columns as you want for the last argument. The test data uses
 #    just the "group" column to create colored boxes corresponding to values of
 #    "group" alongside the heatmap.
@@ -226,7 +225,7 @@ we expect to see replicates clustering together and separation of treatments.
 plot.heatmap(rld, colData, c('group'))
 ```
 
-## PCA
+## PCA {.tabset}
 
 Another way of looking at sample clustering is principal components analysis
 (PCA). The x- and y-axes do not have units, rather, they represent the
@@ -234,11 +233,19 @@ dimensions along which the samples vary the most. The amount of variance
 explained by each principal component is indicated in the axes label.
 
 
-```{r}
-# NOTE: Which columns to use for grouping the heatmap?
-#
-#    See similiar note above for which columns to group by
-plotPCA(rld, intgroup=c('group'))
+```{r, results='asis'}
+# NOTE: Which columns to use for grouping the heatmap?-------------------------
+#    See similiar note above for which columns to group by. Here, each PCA plot
+#    will be in a separate tab.
+groups <- list(
+               group=c('group'),
+               layout=c('layout')
+               )
+
+for (group in groups){
+    mdcat('### ', group)
+    print(plotPCA(rld, intgroup=group))
+}
 ```
 
 
@@ -249,8 +256,7 @@ This heatmap takes the top 50 most-varying genes and plots their deviation from
 the row mean.
 
 ```{r, fig.height=12}
-# NOTE: Which columns to use for grouping the heatmap?
-#
+# NOTE: Which columns to use for grouping the heatmap?-------------------------
 #   See similiar note above for which columns to group by
 vargenes.heatmap(rld, c('group'))
 ```
@@ -271,8 +277,7 @@ knitr::kable(sf)
 ```
 
 ```{r}
-# NOTE: Run DESeq2 on multiple cores.
-#
+# NOTE: Run DESeq2 on multiple cores.------------------------------------------
 #    By default, we do not run in parallel, however this can be very useful in
 #    experiments with many samples and complex designs.  To run in parallel,
 #    comment out the line below and set cores appropriately. Then, add the
@@ -282,15 +287,14 @@ parallel <- FALSE
 ```
 
 ```{r dds_models, cache=TRUE}
-# NOTE: gene rather than transcript counts
-#
+# NOTE: gene rather than transcript counts-------------------------------------
 #    By default we use gene counts rather than transcript counts. See code
 #    above where the `dds.txi` object is created for how to modify this for
 #    transcript counts.
 dds <- DESeqDataSetFromFeatureCounts(
     sampleTable=colData,
     directory='.',
-    # NOTE: model to use
+    # NOTE: model to use-------------------------------------------------------
     #   This will be used for contrasts below.
     design=~group
 )
