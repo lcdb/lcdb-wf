@@ -16,12 +16,11 @@ output:
 #
 # This Rmd file aims to include "the works", with some preliminary exploratory
 # visualizations, followed by differential expression using both gene models
-# and transcript models (with examples of interaction) SVA, and some downstream
-# GO analysis.
+# and transcript models and some downstream GO analysis.
 #
 # Look for the string "NOTE:" to identify places that may need some editing.
 # Notably, the only model run by default is `~group`, which will only be
-# appropriate for the simplest experiments.
+# appropriate for the simplest experiments!
 
 # There are a fair amount of helper functions. They are stored in
 # `helpers.Rmd`, and included here as a child document so that all code is
@@ -29,24 +28,17 @@ output:
 #-----------------------------------------------------------------------------
 ```
 
-```{r, include=FALSE}
-knitr::opts_chunk$set(collapse=TRUE, warning=FALSE, message=FALSE,
-                      bootstrap.show.code=FALSE, bootstrap.show.output=FALSE,
-
-                      # try disabling this when running locally for nicer figures
-                      #dev='bitmap',
-
-                      fig.ext='png')
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 ```
+
+# Changelog
+
+Initial results
+
+Last run: `r date()`
+
 # RNA-seq results
-
-```{r, include=FALSE}
-# NOTE: Here's a template for including a link that will load a prepared track
-# hub. It is not included by default.
-
-# [Load hub and prepared session on UCSC Genome
-# Browser](http://genome.ucsc.edu/cgi-bin/hgTracks?db=ASSEMBLY&hubUrl=https://HOST/PATH/hub.txt&hgS_loadUrlName=https://HOST/PATH/session.txt&hgS_doLoadUrl=submit&position=chr1:1-100)
-```
 
 ```{r imports}
 library(DESeq2)
