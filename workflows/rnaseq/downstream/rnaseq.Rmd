@@ -91,22 +91,31 @@ orgdb <- get.orgdb(
 ```
 
 ```{r coldata_setup}
-# NOTE: path name to sampletable
-sample.table.filename = '../config/sampletable.tsv'
+# NOTE: path name to sampletable-----------------------------------------------
+#   Path is relative to the directory of this Rmd
+sample.table.filename <- '../config/sampletable.tsv'
+
+# NOTE: Strip gene versions?---------------------------------------------------
+#   Ensembl annotations often come with ".N" version numbers at the end. If
+#   TRUE, later code will strip these off.
+strip.dotted.version <- TRUE
+
+# NOTE: Which columns to exclude from printing sampletable---------------------
+#   If you have very verbose metadata in your sampletable you can exclude those
+#   columns here.
+exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'orig_filename', 'orig_filename_R2')
 
 colData <- read.table(sample.table.filename, sep='\t', header=TRUE)
 
-# NOTE: Specify which featureCounts strandedness to use.
-#
+# NOTE: Specify which featureCounts strandedness to use.-----------------------
 #   All three are created by default in the workflow, but here is where you
-#   specify which one to use for differential expression.
-
+#   specify which one to use for differential expression. This will be used to
+#   construct the paths to the correct featureCounts output files
 featurecounts.strandedness <- 's0'  # unstranded
 # featurecounts.strandedness <- 's1' # plus-strand reads correspond to sense-strand transcription (e.g., Ovation kits)
 # featurecounts.strandedness <- 's2' # minus-strand reads correspond to sense-strand transcription (e.g., TruSeq kits)
 
-# NOTE: Paths to featureCounts output.
-#
+# NOTE: Paths to featureCounts output---------------------------------------
 #   This is configured in the patterns and targets from the workflow; if you've
 #   changed anything there you will need to change it here as well.
 colData$featurecounts.path <- sapply(
@@ -117,8 +126,7 @@ colData$featurecounts.path <- sapply(
         )
     )
 
-# NOTE: Paths to Salmon output.
-#
+# NOTE: Paths to Salmon output----------------------------------------------
 #    This is configured in the patterns and targets from the workflow; if
 #    you've changed anything there you will need to change it here as well.
 colData$salmon.path <- sapply(
@@ -126,23 +134,15 @@ colData$salmon.path <- sapply(
     function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
 )
 
-# NOTE: Factor columns.
-#
+# NOTE: Factor columns------------------------------------------------------
 #    These are the columns in the sampletable that should be converted to
 #    factors
 factor.columns <- c('group')
-
-# NOTE: Which columns to exclude from printing.
-#
-#   If you have very verbose metadata in your sampletable you can exclude those
-#   columns here.
-exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'orig_filename')
 for (col in factor.columns){
     colData[[col]] <- as.factor(colData[[col]])
 }
 
-# NOTE: Relevel the factors.
-#
+# NOTE: Relevel the factors----------------------------------------------------
 #   For the test data, "control" is the base level for the "group" factor, but
 #   you will need to edit as appropriate for your experimenal design.
 colData$group <- relevel(colData$group, ref='control')
