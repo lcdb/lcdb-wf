@@ -508,7 +508,7 @@ if (length(res.list) > 1){
 }
 ```
 
-# Gene patterns
+# Gene patterns {.tabset}
 
 We can roughly group genes into expression patterns. This uses the [DEGreport
 package](https://www.bioconductor.org/packages/release/bioc/html/DEGreport.html),
@@ -517,8 +517,32 @@ which in turn uses the
 algorithm to cluster genes into similar expression patterns. The lists of genes
 found in each cluster are reported below the plot.
 
+The default general flow is as follows:
+
+```{r dpsettings}
+# NOTE: settings for DEGpatterns-----------------------------------------------
+
+# NOTE:  Max number of genes to include----------------------------------------
+#   More will be downsampled to this many
+lim <- 2000
+
+# NOTE:  Correlation coefficient above which to merge clusters-----------------
+cutoff <- 0.5
+
+# NOTE: This is set very low for test data. Default is 15.---------------------
+#   Minimum cluster size.
+minc <- 1
+```
+
+- Take the union of all genes that are changed across all contrasts
+- If there are more than `r lim` genes, randomly sample `r lim` genes (to keep the computations reasonable)
+- Cluster genes by coexpression across contrasts
+- If clusters are correlated with a correlation coefficient of `r cutoff` or
+  more, they are merged together
+- Clusters with fewer than `r minc` genes are not shown.
+
 ```{r, fig.width=12, results='asis', cache=TRUE}
-# NOTE: which genes to plot?
+# NOTE: which genes to cluster?------------------------------------------------
 #    By default, we get all the changed genes, but you may want only the up or
 #    down genes.
 ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed'))
@@ -529,13 +553,9 @@ ll <- ll[lapply(ll, length) > 0]
 for (name in names(ll)){
     genes <- ll[[name]]
 
-    # NOTE: hard limit to number of genes
-    #
-    #    Plotting more genes than this will take a lot of time to perform the
-    #    clustering.
-    #
-    #    If there are more than this limit, then we take a random sample.
-    lim <- 2000
+    # Plotting a large number of genes will take a lot of time to perform the
+    # clustering. If there are more than this limit, then we take a random
+    # sample.
     if (length(genes) > lim){
         genes <- sample(genes, lim)
     }
@@ -552,26 +572,30 @@ for (name in names(ll)){
         ma,
         colData.i,
 
-        # NOTE: "time" becomes the x-axis of the plot; change as appropriate to
-        # your experiment
+        # NOTE: xaxis of plot -------------------------------------------------
+        #   "time" argument becomes the x-axis of the plot; change as
+        #   appropriate to your experiment
         time='group',
 
-        # NOTE: reduce will merge clusters that are similar; similarity
-        # determined by cutoff
-        reduce=TRUE, cutoff=0.5,
+        # NOTE: reduce and merge cutoff----------------------------------------
+        #   Reduce will merge clusters that are similar; similarity determined
+        #   by cutoff
+        reduce=TRUE, cutoff=cutoff,
 
-        # NOTE: For more complicated designs, try the `col` argument to color
-        # the plot by another factor.
+        # NOTE: color----------------------------------------------------------
+        #   For more complicated designs, try the `col` argument to color the
+        #   plot by another factor.
         # col="another.column",
 
         # NOTE: increase min cluster size to 15
         # This is purposely set low for test data; the DEGreport default is 15.
-        minc=1
+        minc=minc
         )
 
     # In the final_clusters directory, this creates files containing lists of
     # the genes in each cluster, and adds a link to the Markdown.
     dir.create('final_clusters')
+    mdcat('\n')
     for (u in unique(d$df$cluster)){
         fn <- file.path('final_clusters',
                         paste0('final.', name, '.cluster.', u, '.txt'))
