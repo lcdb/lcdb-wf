@@ -147,6 +147,7 @@ for (col in factor.columns){
 #   you will need to edit as appropriate for your experimenal design.
 colData$group <- relevel(colData$group, ref='control')
 ```
+
 ## Experiment overview
 
 Here is the sample table with metadata used for this analysis:
@@ -156,6 +157,9 @@ knitr::kable(colData[, colnames(colData)[!colnames(colData) %in% exclude.for.pri
 ```
 
 ```{r salmon}
+# NOTE: Disable salmon?--------------------------------------------------------
+#   If you are not intending on using Salmon, set this chunk to eval=FALSE
+#
 # Load transcript-level counts
 txi <- tximport(colData[, 'salmon.path'], type='salmon', txOut=TRUE)
 transcript.tpm <- txi$abundance
@@ -166,7 +170,7 @@ colnames(transcript.tpm) <- colData$samplename
 dds.txi <- DESeqDataSetFromTximport(
     txi, colData=colData[, -grepl('path', colnames(colData)), drop=FALSE],
 
-    # NOTE: design to use when importing Salmon data.
+    # NOTE: design to use when importing Salmon data.--------------------------
     design=~group
 )
 
@@ -185,10 +189,10 @@ rld.txi <- varianceStabilizingTransformation(dds.txi, blind=TRUE)
 dds <- DESeqDataSetFromFeatureCounts(
     sampleTable=colData,
     directory='.',
-    # NOTE: What design to use?
-    #
+    # NOTE: What design to use?------------------------------------------------
     #   This object will be used for EDA, so it's recommended to use a single
-    #   factor that describes the samples
+    #   factor that describes the samples. We'll be recreating another dds
+    #   later for the actual contrasts of interest.
     design=~group)
 
 # NOTE: Gene IDs with "." in them
