@@ -304,8 +304,7 @@ if (strip.dotted.version){
 }
 
 dds <- DESeq(dds,
-    # NOTE: betaPrior
-    #
+    # NOTE: betaPrior----------------------------------------------------------
     #    betaPrior=FALSE is the default in DESeq2 >1.16, but here we set it
     #    explicitly for consistency across different versions.
     betaPrior=FALSE,
@@ -315,7 +314,12 @@ dds <- DESeq(dds,
 
 
 ```{r results, cache=TRUE}
-# NOTE: lots of editing likely needed in this chunk!
+# NOTE: lots of editing likely needed in this chunk!---------------------------
+#    This chunk builds a data structure like this:
+#
+#       res.list[[contrast]][[res]]   <- results object for this contrast
+#       res.list[[contrast]][[dds]]   <- the dds object for this contrast
+#       res.list[[contrast]][[label]] <- a nice label for this contrast
 #
 #    This is the block that performs the contrasts, filling out the `res.list`
 #    named list, which ties together the results, the DESeq object from which the
@@ -357,8 +361,7 @@ dds <- DESeq(dds,
 # use for headers and other text.
 res.list <- list()
 
-# NOTE: Example contrast #1
-#
+# NOTE: Example contrast #1----------------------------------------------------
 #   Using the example data, this compares treatment group to control group.
 #   Change to reflect your experiment.
 res.list[['all']] <- list(
@@ -368,8 +371,7 @@ res.list[['all']] <- list(
 )
 
 
-# NOTE: Example contrast #2
-#
+# NOTE: Example contrast #2----------------------------------------------------
 #    Using the example data, this compares treatment group to control group but
 #    requiring genes to have >4-fold differences (log2(4) = 2). Change to
 #    reflect your experiment.
@@ -391,11 +393,10 @@ res.list[['lfc2']] <- list(
 
 
 ```{r attach, cache=TRUE, depends='results'}
-# NOTE: Assumes Ensembl Ids
+# NOTE: Assumes Ensembl Ids----------------------------------------------------
 keytype <- 'ENSEMBL'
 
-# NOTE: Assumes that Symbol, Uniprot and alias columns are available in the
-# OrgDb
+# NOTE: Assumes these  columns are available in the OrgDb----------------------
 columns <- c('SYMBOL', 'UNIPROT', 'ALIAS')
 
 for (name in names(res.list)){
@@ -404,17 +405,9 @@ for (name in names(res.list)){
         keytype=keytype,
         columns=columns)
 }
-
-# NOTE: Assumes using ENSEMBLTRANS transcript IDs with Salmon
-#
-#   If you're using something else, you may just want to skip this step.
-transcript.geneids <- mapIds(orgdb,
-                             keys=rownames(transcript.tpm),
-                             column=keytype,
-                             keytype='ENSEMBLTRANS')
 ```
 
-# Differential expression
+# Differential expression {.tabset}
 
 Here is a table summarizing the comparisons. See the [Background and
 help](#Help) section for details.
@@ -424,18 +417,19 @@ help](#Help) section for details.
 knitr::kable(summarize.res.list(res.list, dds.list, res.list.lookup))
 ```
 
-For each comparison, we report:
+For each comparison there is a tab and under each tab are the following:
 
-- the line from the summary table for this comparison
-- counts plots for the top 3 up- and top 3 down-regulated genes
+- summary of results (the line from the summary table above for this comparison)
+- Normalized counts plots for the top 3 upregulated genes
+- Normalized counts plots for the top 3 down-regulated genes
 - an M-A plot
 - a p-value histogram
+
 
 See the [Background and help](#Help) section for details on these.
 
 ```{r, results='asis'}
-# NOTE: Which columns to add to the top plots' titles?
-#
+# NOTE: Which columns to add to the top plots' titles?-------------------------
 #    This will add nicer titles to the plots. These may have come from the
 #    `attach.info` call above.
 add_cols <- c('symbol', 'alias')
@@ -444,7 +438,7 @@ for (name in names(res.list)){
   dds.i <- res.list[[name]][['dds']]
   res.i <- res.list[[name]][['res']]
   label <- res.list[[name]][['label']]
-  mdcat('## ', label)
+  mdcat('## ', label, ' {.tabset}')
   mdcat('### Summary of results')
   print(knitr::kable(my.summary(res.i, dds.i)))
   mdcat('### Normalized counts of top 3 upregulated genes')
@@ -457,7 +451,6 @@ for (name in names(res.list)){
   pval.hist(res.i)
 }
 ```
-
 
 ```{r, fig.width=12, results='asis'}
 # UpSet plots only make sense for more than one set of genes. The Markdown
