@@ -80,6 +80,8 @@ plot.heatmap <- function(rld, colData, cols.for.grouping){
 #'
 #' @return Side effect is to plot the heatmap
 vargenes.heatmap <- function(rld, cols.for.grouping, n=50){
+  # TODO: heatmaply?
+  # TODO: allow alternative gene IDs
   topVarGenes <- head(order(rowVars(assay(rld)), decreasing=TRUE), n)
   mat <- assay(rld)[topVarGenes,]
   mat <- mat - rowMeans(mat)
@@ -96,7 +98,7 @@ vargenes.heatmap <- function(rld, cols.for.grouping, n=50){
 #'
 #' Make sure you're in an R code chunk with `results="asis"` set.
 mdcat <- function(...){
-  cat('\n', ..., '\n', sep='', fill=1500)
+  cat('\n\n', ..., ' \n\n', sep='', fill=1500)
 }
 
 
