@@ -456,32 +456,54 @@ for (name in names(res.list)){
 # UpSet plots only make sense for more than one set of genes. The Markdown
 # explanatory text and the plots themselves are only created if res.list has
 # multiple items in it.
+
 if (length(res.list) > 1){
-    mdcat("## UpSet plots")
+
+    dir.create('upset_plots', showWarnings=FALSE)
+
+    mdcat("# UpSet plots {.tabset}")
     mdcat("Gather together all the interesting gene sets into an ",
           "['UpSet' plot](http://caleydo.org/tools/upset/). These plots show ",
           "the combinatorial overlaps of genes found to be up, down, and any ",
           "changed across the different contrasts performed.")
 
-    ll <- lapply(res.list, get.sig, 'up')
+    mdcat("## Upregulated UpSet plot")
+    ll <- lapply(res.list, function (x) get.sig(x[['res']], 'up'))
     ll <- ll[lapply(ll, length) > 0]
     if (length(ll) > 1) {
-        mdcat("### Upregulated UpSet plot:")
         upset(fromList(ll), order.by='freq', nsets=length(ll))
+        outfile <- file.path('upset_plots', 'upregulated.tsv')
+        lldf <- rownames.first.col(fromList.with.names(ll))
+        write.table(lldf, file=outfile, sep='\t', row.names=FALSE)
+        mdcat('- [', outfile, ']', '(', outfile, ')')
+    } else {
+        mdcat('not enough contrasts with upregulated genes')
     }
 
-    ll <- lapply(res.list, get.sig, 'down')
+    mdcat("## Downregulated UpSet plot")
+    ll <- lapply(res.list, function (x) get.sig(x[['res']], 'down'))
     ll <- ll[lapply(ll, length) > 0]
     if (length(ll) > 1) {
-        mdcat("### Downregulated UpSet plot:")
         upset(fromList(ll), order.by='freq', nsets=length(ll))
+        outfile <- file.path('upset_plots', 'upregulated.tsv')
+        lldf <- rownames.first.col(fromList.with.names(ll))
+        write.table(lldf, file=outfile, sep='\t', row.names=FALSE)
+        mdcat('- [', outfile, ']', '(', outfile, ')')
+    } else {
+        mdcat('not enough contrasts with downregulated genes')
     }
 
-    ll <- lapply(res.list, get.sig, 'changed')
+    mdcat("## Changed genes UpSet plot")
+    ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed'))
     ll <- ll[lapply(ll, length) > 0]
     if (length(ll) > 1) {
-        mdcat("### Changed genes UpSet plot:")
         upset(fromList(ll), order.by='freq', nsets=length(ll))
+        outfile <- file.path('upset_plots', 'upregulated.tsv')
+        lldf <- rownames.first.col(fromList.with.names(ll))
+        write.table(lldf, file=outfile, sep='\t', row.names=FALSE)
+        mdcat('- [', outfile, ']', '(', outfile, ')')
+    } else {
+        mdcat('not enough contrasts with changed genes')
     }
 }
 ```
