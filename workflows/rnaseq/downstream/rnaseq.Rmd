@@ -51,6 +51,8 @@ library(clusterProfiler)
 library(AnnotationHub)
 library(BiocParallel)
 library(UpSetR)
+library(ReactomePA)
+library(cowplot)
 ```
 
 ```{r child='helpers.Rmd'}
