@@ -299,49 +299,6 @@ my.summary <- function(res, dds, alpha, ...){
    return(df)
 }
 
-#-----------------------------------------------------------------------------
-# The following are some helper functions for working with clusterProfiler results.
-# While clusterProfiler does a great job of unifying the output of different
-# enrichment metrics into a single data structure, we need a couple more things
-# for very flexibly plotting with ggplot2. These functions handle the enrichment
-# and summary of results.
-
-#' Run enrichGO on each of the three top-level ontologies
-#'
-#' @param genes Gene IDs with format matching `keytype`
-#' @param univers Universe of genes assayed
-#' @param orgdb String or OrgDb object
-#' @param keytype ID type of genes
-#"
-#' @return  List of clusterProfiler output objects, length 3 where names are
-#' ontologies (BP, MF, CC)
-clusterprofiler.enrichgo <- function(genes, universe, orgdb, keytype='ENSEMBL'){
-    lst <- list()
-    if (length(genes) > 0 ){
-        for (ont in c('BP', 'MF', 'CC')){
-            ggo <- enrichGO(gene=genes, ont=ont, universe=universe,
-                            OrgDb=orgdb, keyType=keytype, pAdjustMethod='BH',
-                            pvalueCutoff=0.01, qvalueCutoff=0.05,
-                            readable=TRUE)
-            lst[[ont]] <- ggo
-        }
-    }
-    return(lst)
-}
-
-#' Run KEGG enrichment
-#'
-#' @param genes Gene IDs typically in UniProt format
-#' @param org 3-character KEGG species ID (dme, hsa, mmu)
-#' @param keytype ID type of genes
-#'
-#' @return clusterProfiler output object
-clusterprofiler.enrichkegg <- function(genes, org, keyType='uniprot'){
-    x <- enrichKEGG(gene=genes, organism=org, keyType='uniprot',
-                    pvalueCutoff=0.05)
-    return(x)
-}
-
 #' Convert "1/100" to 0.01.
 #'
 #' clusterProfiler report columns that are strings of numbers; this converts to
