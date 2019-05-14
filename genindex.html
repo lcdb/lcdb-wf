@@ -43,6 +43,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
@@ -57,6 +58,7 @@
 <li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">Developers</a></li>
 </ul>
 
 <div class="relations">
@@ -91,16 +93,11 @@
 
 <div class="genindex-jumpbox">
  <a href="#B"><strong>B</strong></a>
- | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
- | <a href="#F"><strong>F</strong></a>
- | <a href="#G"><strong>G</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#P"><strong>P</strong></a>
- | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
- | <a href="#T"><strong>T</strong></a>
  
 </div>
 <h2 id="B">B</h2>
@@ -111,52 +108,10 @@
   </ul></td>
 </tr></table>
 
-<h2 id="C">C</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="lib.common.html#lib.common.cat">cat() (in module lib.common)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="lib.patterns_targets.html#lib.patterns_targets.ChIPSeqConfig">ChIPSeqConfig (class in lib.patterns_targets)</a>
-</li>
-  </ul></td>
-</tr></table>
-
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="lib.common.html#lib.common.deprecation_handler">deprecation_handler() (in module lib.common)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="lib.chipseq.html#lib.chipseq.detect_peak_format">detect_peak_format() (in module lib.chipseq)</a>
-</li>
-      <li><a href="lib.common.html#lib.common.download_and_postprocess">download_and_postprocess() (in module lib.common)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="F">F</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="lib.common.html#lib.common.filter_fastas">filter_fastas() (in module lib.common)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="G">G</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="lib.common.html#lib.common.get_references_dir">get_references_dir() (in module lib.common)</a>
-</li>
-      <li><a href="lib.common.html#lib.common.get_sampletable">get_sampletable() (in module lib.common)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="lib.common.html#lib.common.get_techreps">get_techreps() (in module lib.common)</a>
-</li>
-      <li><a href="lib.common.html#lib.common.gzipped">gzipped() (in module lib.common)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -165,12 +120,6 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="lib.chipseq.html#module-lib.chipseq">lib.chipseq (module)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="lib.common.html#module-lib.common">lib.common (module)</a>
-</li>
-      <li><a href="lib.common.html#lib.common.load_config">load_config() (in module lib.common)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -191,40 +140,10 @@
   </ul></td>
 </tr></table>
 
-<h2 id="R">R</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="lib.common.html#lib.common.references_dict">references_dict() (in module lib.common)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="lib.common.html#lib.common.resolve_config">resolve_config() (in module lib.common)</a>
-</li>
-      <li><a href="lib.patterns_targets.html#lib.patterns_targets.RNASeqConfig">RNASeqConfig (class in lib.patterns_targets)</a>
-</li>
-  </ul></td>
-</tr></table>
-
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="lib.chipseq.html#lib.chipseq.samples_for_run">samples_for_run() (in module lib.chipseq)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="lib.patterns_targets.html#lib.patterns_targets.SeqConfig">SeqConfig (class in lib.patterns_targets)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="T">T</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="lib.common.html#lib.common.tempdir_for_biowulf">tempdir_for_biowulf() (in module lib.common)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="lib.common.html#lib.common.twobit_to_fasta">twobit_to_fasta() (in module lib.common)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -241,8 +160,8 @@
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
 

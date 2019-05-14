@@ -16,7 +16,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Configuration" href="config.html" />
-    <link rel="prev" title="Running the tests" href="tests.html" />
+    <link rel="prev" title="Deploying lcdb-wf and staying up-to-date" href="deploy.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -44,6 +44,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Overview of workflows</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#orientation-of-the-directory-structure">Orientation of the directory structure</a></li>
 </ul>
@@ -61,13 +62,14 @@
 <li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">Developers</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="tests.html" title="previous chapter">Running the tests</a></li>
+      <li>Previous: <a href="deploy.html" title="previous chapter">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
       <li>Next: <a href="config.html" title="next chapter">Configuration</a></li>
   </ul></li>
 </ul>
@@ -174,9 +176,36 @@ downstream analysis. The primary analysis workflows are:</p>
 <a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration</span></a> for much more on this).  In this section, we will take
 a higher-level look at the features common to the primary analysis workflows.</p>
 </div>
+<div class="section" id="features-common-to-workflows">
+<h3>Features common to workflows<a class="headerlink" href="#features-common-to-workflows" title="Permalink to this headline">¶</a></h3>
+<p>The directory <code class="docutils literal notranslate"><span class="pre">../..</span></code> is added to Python’s path. This way, the <code class="docutils literal notranslate"><span class="pre">../../lib</span></code>
+module can be found, and we can use the various helper functions there. This is
+also simpler than providing a <cite>setup.py</cite> to install the helper functions.</p>
+<p>The config file is hard-coded to be <cite>config/config.yaml</cite>, but this can be
+overridden by Snakemake from the commandline, using <code class="docutils literal notranslate"><span class="pre">snakemake</span> <span class="pre">--configfile</span>
+<span class="pre">&lt;path</span> <span class="pre">to</span> <span class="pre">other</span> <span class="pre">config</span> <span class="pre">file&gt;</span></code>. This allows the config file to be in the
+<cite>config</cite> dir with other config files without having to be specified on the
+command line, while also affording the user flexibility.</p>
+<p>The config file is loaded using <code class="docutils literal notranslate"><span class="pre">common.load_config</span></code>. This function resolves
+various paths (especially the <cite>includ</cite>-ed reference configs) and checks to see
+if the config is well-formatted.</p>
+<p>A <cite>SeqConfig</cite> object is created. It needs that parsed config file as well as
+the patterns file (see <a class="reference internal" href="patterns-targets.html#patterns-and-targets"><span class="std std-ref">Patterns and targets</span></a>). The act of creating this
+object reads the sample table, fills in the patterns with sample names, creates
+a reference dictionary (see <code class="docutils literal notranslate"><span class="pre">common.references_dict</span></code>) for easy access to
+reference files, and for ChIP-seq, also fills in the filenames for the
+configured peak-calling runs. This object, called <code class="docutils literal notranslate"><span class="pre">c</span></code> for convenience, can be
+accesto get all sort of information – <code class="docutils literal notranslate"><span class="pre">c.sampletable</span></code>, <code class="docutils literal notranslate"><span class="pre">c.config</span></code>,
+<code class="docutils literal notranslate"><span class="pre">c.patterns</span></code>, <code class="docutils literal notranslate"><span class="pre">c.targets</span></code>, and <code class="docutils literal notranslate"><span class="pre">c.refdict</span></code> are frequently used in rules
+throughout the Snakefiles.</p>
+</div>
+<div class="section" id="cluster-specific-settings">
+<h3>Cluster-specific settings<a class="headerlink" href="#cluster-specific-settings" title="Permalink to this headline">¶</a></h3>
+<p>See <a class="reference internal" href="cluster.html#cluster"><span class="std std-ref">Running on a cluster</span></a> for details.</p>
+</div>
 <div class="section" id="primary-analysis-workflows">
 <h3>Primary analysis workflows<a class="headerlink" href="#primary-analysis-workflows" title="Permalink to this headline">¶</a></h3>
-<p>While the references workflow can be run stand-alone, but usually it is run as
+<p>While the references workflow can be run stand-alone, usually it is run as
 a by-product of running the RNA-seq or ChIP-seq workflows. See
 <a class="reference internal" href="references.html#references"><span class="std std-ref">References workflow</span></a> for details; here we will focus on RNA-seq and ChIP-seq which
 share common properties.</p>
@@ -226,8 +255,8 @@ cp -r workflows/rnaseq workflows/genome2-rnaseq
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="_sources/workflows.rst.txt"

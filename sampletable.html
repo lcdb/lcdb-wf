@@ -44,6 +44,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="config.html">Configuration</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="config-yaml.html">Config YAML</a></li>
@@ -64,6 +65,7 @@
 <li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">Developers</a></li>
 </ul>
 
 <div class="relations">
@@ -102,6 +104,14 @@
 <p>Sample tables map sample names to files on disk and provide additional
 metadata.It is expected to have a header and be tab-delimited. Empty lines and
 lines that start with a comment (<code class="docutils literal notranslate"><span class="pre">#</span></code>) are skipped.</p>
+<p>For running new experiments, you will need to write your own sample table. For
+running experiments uploaded to SRA, <strong>you can use the SRA sample table
+as-is</strong>, with the addition of a new column indicating what you would like to
+name each sample. This makes it almost trivial to run arbitrary SRA RNA-seq
+data sets! For ChIP-seq data from SRA, the additional columns <cite>antibody</cite>,
+<cite>label</cite>, and <cite>biological_material</cite> as described below will need to be added,
+but often that information is already in the SRA sampletable so the columns
+just need to be renamed.</p>
 <div class="section" id="rna-seq-sample-table">
 <span id="rnaseq-sampletable"></span><h2>RNA-seq sample table<a class="headerlink" href="#rna-seq-sample-table" title="Permalink to this headline">¶</a></h2>
 <p>Here is an example minimal sample table for RNA-seq. It only contains sample
@@ -126,18 +136,33 @@ expect the following files to already exist (paths relative to the Snakefile):</
 <span class="n">data</span><span class="o">/</span><span class="n">rnaseq_samples</span><span class="o">/</span><span class="n">t2</span><span class="o">/</span><span class="n">t2_R1</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span>
 </pre></div>
 </div>
+<div class="section" id="symlinking-fastqs">
+<span id="symlinks"></span><h3>Symlinking FASTQs<a class="headerlink" href="#symlinking-fastqs" title="Permalink to this headline">¶</a></h3>
 <p>To avoid having to copy or symlink files over into the expected directory
 structure, we can instead list the original filenames in a column called
 <code class="docutils literal notranslate"><span class="pre">orig_filename</span></code> and they will be automatically symlinked into
-<code class="docutils literal notranslate"><span class="pre">data/rnaseq_samples/{sample}/{sample}_R1.fastq.gz</span></code>:</p>
+<code class="docutils literal notranslate"><span class="pre">data/rnaseq_samples/{sample}/{sample}_R1.fastq.gz</span></code>. That is, the following
+sampletable:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example RNA-seq sample table with original filenames are specified</span>
 <span class="n">sample</span>   <span class="n">orig_filename</span>
 <span class="n">c1</span>       <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">c1</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span>
 <span class="n">c2</span>       <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">c2</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span>
 <span class="n">t1</span>       <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">other</span><span class="o">/</span><span class="n">t1</span><span class="o">.</span><span class="n">fq</span><span class="o">.</span><span class="n">gz</span>
-<span class="n">t2</span>       <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">other</span><span class="o">/</span><span class="n">t2</span><span class="o">.</span><span class="n">fq</span><span class="o">.</span><span class="n">gz</span>
+<span class="n">t2</span>       <span class="o">../</span><span class="n">raw</span><span class="o">-</span><span class="n">data</span><span class="o">/</span><span class="n">t2</span><span class="o">.</span><span class="n">fq</span><span class="o">.</span><span class="n">gz</span>
 </pre></div>
 </div>
+<p>Will result in the following symlinks:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="o">/</span><span class="n">rnaseq_samples</span><span class="o">/</span><span class="n">c1</span><span class="o">/</span><span class="n">c1_R1</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span> <span class="o">-&gt;</span> <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">c1</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span>
+<span class="n">data</span><span class="o">/</span><span class="n">rnaseq_samples</span><span class="o">/</span><span class="n">c2</span><span class="o">/</span><span class="n">c2_R1</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span> <span class="o">-&gt;</span> <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">c2</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span>
+<span class="n">data</span><span class="o">/</span><span class="n">rnaseq_samples</span><span class="o">/</span><span class="n">t1</span><span class="o">/</span><span class="n">t1_R1</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span> <span class="o">-&gt;</span> <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">other</span><span class="o">/</span><span class="n">t1</span><span class="o">.</span><span class="n">fq</span><span class="o">.</span><span class="n">gz</span>
+<span class="n">data</span><span class="o">/</span><span class="n">rnaseq_samples</span><span class="o">/</span><span class="n">t2</span><span class="o">/</span><span class="n">t2_R1</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span> <span class="o">-&gt;</span> <span class="o">../</span><span class="n">raw</span><span class="o">-</span><span class="n">data</span><span class="o">/</span><span class="n">t2</span><span class="o">.</span><span class="n">fq</span><span class="o">.</span><span class="n">gz</span>
+</pre></div>
+</div>
+<p>Note that <cite>orig_filename</cite> paths in the sampletable are considered <em>relative to
+the Snakefile</em>.</p>
+</div>
+<div class="section" id="additional-metadata">
+<h3>Additional metadata<a class="headerlink" href="#additional-metadata" title="Permalink to this headline">¶</a></h3>
 <p>For RNA-seq, only the first column and optionally the <cite>orig_filename</cite> column
 are used directly by the RNA-seq workflow.</p>
 <p>However, the sampletable is imported into the <code class="docutils literal notranslate"><span class="pre">downstream/rnaseq.Rmd</span></code> file
@@ -153,6 +178,45 @@ model of <code class="docutils literal notranslate"><span class="pre">~condition
 <span class="n">t1</span>       <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">other</span><span class="o">/</span><span class="n">t1</span><span class="o">.</span><span class="n">fq</span><span class="o">.</span><span class="n">gz</span>   <span class="n">treatment</span>
 <span class="n">t2</span>       <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">other</span><span class="o">/</span><span class="n">t2</span><span class="o">.</span><span class="n">fq</span><span class="o">.</span><span class="n">gz</span>   <span class="n">treatment</span>
 </pre></div>
+</div>
+</div>
+<div class="section" id="paired-end-data">
+<h3>Paired-end data<a class="headerlink" href="#paired-end-data" title="Permalink to this headline">¶</a></h3>
+<p><strong>Paired-end and single-end data may be mixed in the same sampletable.</strong>
+A sample is specified as paired-end using a separate column in the sampletable.
+That column can either be named <cite>layout</cite> (easiest if you’re writing your own
+sample table) or <cite>LibraryLayout</cite> (if you’re using an SRA sampletable, in which
+case you can leave it as-is). An error will be raised if both columns are
+provided.</p>
+<p>If one of these columns exists, the values of the column are converted to
+lowercase. For each sample, if the value is either <cite>pe</cite> or <cite>paired</cite>, the sample
+will be considered paired-end. In all other cases the sample will be considered
+single-end.</p>
+<p>For paired-end samples that will be symlinked, both <cite>orig_filename</cite> and
+<cite>orig_filename_R2</cite> must be specified as paths relative to the Snakefile (see
+<a class="reference internal" href="#symlinks"><span class="std std-ref">Symlinking FASTQs</span></a> above). If there is a mix of SE and PE samples, the SE sample
+must have an empty entry for <cite>orig_filename_R2</cite> (in the context of the
+tab-delimited sampletable, this means two tab characters next to
+each other with nothing in between).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>If the sample table contains both single- and paired-end samples, the
+<cite>fastq_dump</cite> and <cite>cutadapt</cite> rules will create empty R2 files.</p>
+<p>Once the BAM files are created (after alignment in a single- or paired-end
+fashion as appropriate for the sample), we operate mostly on the BAM.</p>
+<p class="last">After the alignment stage, remaining rules <strong>do not</strong> differentiate between
+single- and paired-end reads. In particular, featureCounts and bamCoverage
+may need different parameters depending on the library layout.</p>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example RNA-seq sample table with original filenames are specified,</span>
+<span class="c1"># and c1 is a paired-end sample</span>
+<span class="n">sample</span>   <span class="n">orig_filename</span>         <span class="n">orig_filename_R2</span>      <span class="n">layout</span>
+<span class="n">c1</span>       <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">c1_R1</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span>  <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">c1_R2</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span>  <span class="n">PE</span>
+<span class="n">c2</span>       <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">c2</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span>                           <span class="n">SE</span>
+<span class="n">t1</span>       <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">other</span><span class="o">/</span><span class="n">t1</span><span class="o">.</span><span class="n">fq</span><span class="o">.</span><span class="n">gz</span>                        <span class="n">SE</span>
+<span class="n">t2</span>       <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">other</span><span class="o">/</span><span class="n">t2</span><span class="o">.</span><span class="n">fq</span><span class="o">.</span><span class="n">gz</span>                        <span class="n">SE</span>
+</pre></div>
+</div>
 </div>
 </div>
 <div class="section" id="chip-seq-sample-table">
@@ -178,19 +242,18 @@ this is handled.</p>
 </tr>
 <tr class="field-odd field"><th class="field-name"><code class="docutils literal notranslate"><span class="pre">label</span></code>:</th><td class="field-body"><p class="first">Used to tie together technical replicates, and <strong>used to configure the
 ChIP-seq peak-calling runs</strong> (see <a class="reference internal" href="config-yaml.html#cfg-chipseq"><span class="std std-ref">chipseq config section</span></a>).</p>
-<p class="last">Technical replicates share the same label If you don’t have technical
+<p class="last">Technical replicates share the same label. If you don’t have technical
 replicates, then this column can be a copy of the first column containing
-sample names.  Technical replicates will have their BAMs merged together
-and duplicates removed from the merged
-BAM.</p>
+sample names. Technical replicates will have their BAMs merged together
+and duplicates removed from the merged BAM.</p>
 </td>
 </tr>
 </tbody>
 </table>
-<p>The reason this is more complicated than RNA-seq is because RNA-seq is often
-analyzed in R, and complicated sample handling (like summing technical
-replicates) can be performed very flexibly in R. In contrast, ChIP-seq
-peak-callers are command-line tools and frequently only take a single
+<p>The reason that the ChIP-seq sample table is more complicated than RNA-seq is
+because RNA-seq is often analyzed in R, and complicated sample handling (like
+summing technical replicates) can be performed very flexibly in R. In contrast,
+ChIP-seq peak-callers are command-line tools and frequently only take a single
 biological replicate, and so are run as Snakemake rules. As a result, more
 complex configuration is required to ensure complex experimental designs are
 handled correctly.</p>
@@ -206,9 +269,9 @@ this:</p>
 </div>
 <ul class="simple">
 <li>The input sample is required to have the antibody as “input”</li>
-<li>The input for an IP is the sample with <code class="docutils literal notranslate"><span class="pre">antibody</span> <span class="pre">==</span> <span class="pre">input</span></code> that also has
-the same biological material as the IP. Here, we know <cite>input1</cite> goes with
-<cite>ip1</cite> because they both have the same biological material.</li>
+<li>For an IP, its matched input is the sample with <code class="docutils literal notranslate"><span class="pre">antibody</span> <span class="pre">==</span> <span class="pre">input</span></code> that
+also has the same biological material as the IP. Here, we know <cite>input1</cite> goes
+with <cite>ip1</cite> because they both have the same biological material.</li>
 </ul>
 </div>
 <div class="section" id="chip-seq-sample-table-biological-replicates">
@@ -226,8 +289,9 @@ the same biological material as the IP. Here, we know <cite>input1</cite> goes w
 <li>As before, <cite>ip1</cite> and <cite>input1</cite> share the same biological material, indicating
 that <cite>input1</cite> is the matched input for <cite>ip1</cite>.</li>
 <li>The matched input for <cite>ip2</cite> is <cite>input2</cite> because they share the same
-biological material, <cite>s2cell-2</cite> and <cite>input2</cite> has <code class="docutils literal notranslate"><span class="pre">antibody</span> <span class="pre">==</span> <span class="pre">input</span></code>.</li>
-<li>Each sample has a unique label because there are no technical replicates here.</li>
+biological material (<cite>s2cell-2</cite>) and <cite>input2</cite> has <code class="docutils literal notranslate"><span class="pre">antibody</span> <span class="pre">==</span> <span class="pre">input</span></code>.</li>
+<li>Each sample has a unique label because there are no technical replicates
+here.</li>
 </ul>
 </div>
 <div class="section" id="chip-seq-sample-table-biological-and-technical-replicates">
@@ -247,8 +311,9 @@ biological material, <cite>s2cell-2</cite> and <cite>input2</cite> has <code cla
 <cite>s2cell-gaf-1</cite>. This is often the case when we need to sequence the same
 sample again for higher depth.</li>
 <li><cite>ip1</cite> and <cite>ip1a</cite> will be merged into one BAM file named after their common
-label (described further below). The remaining <cite>ip2</cite>, <cite>input1</cite>, and <cite>input2</cite>
-do not have to be merged with anything, so they will be symlinked.</li>
+label, <cite>s2cell-gaf-1</cite> (described further below). The remaining <cite>ip2</cite>,
+<cite>input1</cite>, and <cite>input2</cite> do not have to be merged with anything, so they will
+be symlinked.</li>
 </ul>
 </div>
 <div class="section" id="merging-technical-replicates-for-chip-seq">
@@ -258,9 +323,10 @@ R, ChIP-seq is a bit more complicated. The ChIP-seq workflow uses <code class="d
 <span class="pre">merge</span></code> to merge together the unique, duplicates-removed BAM files from
 technical replicates into a single BAM, and then removes the duplicates again
 from that merged file.</p>
-<p>There is a “merged_techreps” key in <code class="docutils literal notranslate"><span class="pre">config/chipseq_patterns.yaml</span></code> which defines the
-filenames to which technical replicates will be merged. By default this pattern
-is <code class="docutils literal notranslate"><span class="pre">data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam</span></code>.
+<p>There is a “merged_techreps” key in <code class="docutils literal notranslate"><span class="pre">config/chipseq_patterns.yaml</span></code> which
+defines the filenames to which technical replicates will be merged. By default
+this pattern is
+<code class="docutils literal notranslate"><span class="pre">data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam</span></code>.
 After trimming, aligning, removing multimappers, and removing duplicates, tech
 reps are merged together. Specifically, these files:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="o">/</span><span class="n">chipseq_samples</span><span class="o">/</span><span class="n">ip1</span><span class="o">/</span><span class="n">ip1</span><span class="o">.</span><span class="n">cutadapt</span><span class="o">.</span><span class="n">unique</span><span class="o">.</span><span class="n">nodups</span><span class="o">.</span><span class="n">bam</span>
@@ -282,7 +348,7 @@ example this file:</p>
 </pre></div>
 </div>
 <p>For peak-calling (see <a class="reference internal" href="config-yaml.html#cfg-chipseq"><span class="std std-ref">chipseq config section</span></a>) and any other downstream analysis,
-the files to use are these merged (or symlinked) BAM files.</p>
+<strong>the files to use are these merged (or symlinked) BAM files.</strong></p>
 </div>
 </div>
 </div>
@@ -298,8 +364,8 @@ the files to use are these merged (or symlinked) BAM files.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="_sources/sampletable.rst.txt"

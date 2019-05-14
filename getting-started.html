@@ -49,6 +49,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
@@ -63,6 +64,7 @@
 <li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">Developers</a></li>
 </ul>
 
 <div class="relations">
@@ -116,10 +118,9 @@ Otherwise, install <a class="reference external" href="https://conda.io/minicond
 <blockquote>
 <div><cite>lcdb</cite> channel as lowest priority (this channel has the <cite>lcdblib</cite> package),
 and then matches the channel order required by <cite>bioconda</cite>.</div></blockquote>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda config --add channels lcdb
-conda config --add channels defaults
-conda config --add channels conda-forge
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda config --add channels defaults
 conda config --add channels bioconda
+conda config --add channels conda-forge
 </pre></div>
 </div>
 </div>
@@ -152,11 +153,7 @@ any others. Here we use the name “lcdb-wf” for the new environment, but you 
 use anything. Note that here we specify the channels to use, which include
 <code class="docutils literal notranslate"><span class="pre">bioconda</span></code> which depends on <code class="docutils literal notranslate"><span class="pre">conda-forge</span></code>, and <code class="docutils literal notranslate"><span class="pre">lcdb</span></code> which provides the
 <code class="docutils literal notranslate"><span class="pre">lcdblib</span></code> package used by these workflows.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">lcdb</span><span class="o">-</span><span class="n">wf</span> \
-  <span class="o">--</span><span class="n">file</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span> \
-  <span class="o">--</span><span class="n">channel</span> <span class="n">bioconda</span> \
-  <span class="o">--</span><span class="n">channel</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> \
-  <span class="o">--</span><span class="n">channel</span> <span class="n">lcdb</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">lcdb</span><span class="o">-</span><span class="n">wf</span> <span class="o">--</span><span class="n">file</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 <p>Then activate the environment:</p>
@@ -168,6 +165,15 @@ environment location from your <code class="docutils literal notranslate"><span 
 You might want to hold off on this for now if you’ll be running the tests:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">deactivate</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>An alternative approach is to create an environment at a specific path, for
+example inside a project directory:</p>
+<div class="last highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -p ./env --file requirements.txt
+<span class="nb">source</span> activate ./env
+</pre></div>
+</div>
 </div>
 </div>
 </div>
@@ -190,8 +196,8 @@ the workflows for your particular experiment (see <a class="reference internal" 
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="_sources/getting-started.rst.txt"

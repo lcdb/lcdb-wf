@@ -44,6 +44,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
@@ -63,6 +64,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">Developers</a></li>
 </ul>
 
 <div class="relations">
@@ -107,84 +109,19 @@ respective sample tables and config files.</p>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="#lib.patterns_targets.SeqConfig" title="lib.patterns_targets.SeqConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SeqConfig</span></code></a>(config,&nbsp;patterns[,&nbsp;workdir])</td>
-<td>This class takes care of common tasks related to config and patterns files (reading the sampletable, etc) but is intended to be subclassed.</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">SeqConfig</span></code></td>
+<td></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#lib.patterns_targets.RNASeqConfig" title="lib.patterns_targets.RNASeqConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RNASeqConfig</span></code></a>(config,&nbsp;patterns[,&nbsp;workdir])</td>
-<td>Config object specific to RNA-seq workflows.</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">RNASeqConfig</span></code></td>
+<td></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#lib.patterns_targets.ChIPSeqConfig" title="lib.patterns_targets.ChIPSeqConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ChIPSeqConfig</span></code></a>(config,&nbsp;patterns[,&nbsp;workdir])</td>
-<td>Config object specific to ChIP-seq workflows.</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">ChIPSeqConfig</span></code></td>
+<td></td>
 </tr>
 </tbody>
 </table>
 <div class="section" id="details">
 <h2>Details<a class="headerlink" href="#details" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="lib.patterns_targets.SeqConfig">
-<em class="property">class </em><code class="descclassname">lib.patterns_targets.</code><code class="descname">SeqConfig</code><span class="sig-paren">(</span><em>config</em>, <em>patterns</em>, <em>workdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#SeqConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.patterns_targets.SeqConfig" title="Permalink to this definition">¶</a></dt>
-<dd><p>This class takes care of common tasks related to config and patterns
-files (reading the sampletable, etc) but is intended to be subclassed.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a>) – </li>
-<li><strong>patterns</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Path to patterns YAML file</li>
-<li><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Config, patterns, and all paths in <cite>config</cite> should be interpreted
-as relative to <cite>workdir</cite></li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="class">
-<dt id="lib.patterns_targets.RNASeqConfig">
-<em class="property">class </em><code class="descclassname">lib.patterns_targets.</code><code class="descname">RNASeqConfig</code><span class="sig-paren">(</span><em>config</em>, <em>patterns</em>, <em>workdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#RNASeqConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.patterns_targets.RNASeqConfig" title="Permalink to this definition">¶</a></dt>
-<dd><p>Config object specific to RNA-seq workflows.</p>
-<p>Fills in patterns to create targets by handling the by-sample and
-by-aggregate sections separately.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a>) – </li>
-<li><strong>patterns</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Path to patterns YAML file</li>
-<li><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Config, patterns, and all paths in <cite>config</cite> should be interpreted
-as relative to <cite>workdir</cite></li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="class">
-<dt id="lib.patterns_targets.ChIPSeqConfig">
-<em class="property">class </em><code class="descclassname">lib.patterns_targets.</code><code class="descname">ChIPSeqConfig</code><span class="sig-paren">(</span><em>config</em>, <em>patterns</em>, <em>workdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#ChIPSeqConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.patterns_targets.ChIPSeqConfig" title="Permalink to this definition">¶</a></dt>
-<dd><p>Config object specific to ChIP-seq workflows.</p>
-<p>Fills in patterns to create targets by handling the by-sample, by-peak,
-and by-aggregate sections separately.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a>) – </li>
-<li><strong>patterns</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Path to patterns YAML file</li>
-<li><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Config, patterns, and all paths in <cite>config</cite> should be interpreted
-as relative to <cite>workdir</cite></li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 </div>
 </div>
 
@@ -199,8 +136,8 @@ as relative to <cite>workdir</cite></li>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="_sources/lib.patterns_targets.rst.txt"

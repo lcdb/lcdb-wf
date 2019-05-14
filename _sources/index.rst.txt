@@ -89,6 +89,7 @@ See :ref:`getting-started` to get started.
 
    getting-started
    tests
+   deploy
    workflows
    config
    references
@@ -103,3 +104,4 @@ See :ref:`getting-started` to get started.
    troubleshooting
    autodoc
    changelog
+   developers
