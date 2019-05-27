@@ -681,6 +681,7 @@ qvalueCutoff <- 1
 go.uni <- NULL
 path.uni <- NULL
 kegg.organism <- 'dme'
+RUN.REACTOME <- FALSE
 reactome.organism <- 'fly'
 
 
@@ -743,16 +744,19 @@ for(comp in names(genes.df)){
             enrich.files[[comp]][[sel]][['kegg']] <- write.clusterprofiler.results(kegg.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
         }
 
-        # NOTE: Install OrgDb--------------------------------------------------
-        #   ReactomePA requires the relevant OrgDb package to be installed.
-        res.label <- 'Reactome'
-        reactome.res <-enrichPathway(
-            gene=gene, universe=path.uni, organism=reactome.organism,
-            pvalueCutoff=pvalueCutoff, qvalueCutoff=qvalueCutoff, readable=TRUE)
-        all.enrich[[comp]][[sel]][['reactome']] <- reactome.res
+        if (RUN.REACTOME) {
+            # NOTE: Install OrgDb--------------------------------------------------
+            #   ReactomePA requires the relevant OrgDb package to be installed
+            #   and so is disabled by default.
+            res.label <- 'Reactome'
+            reactome.res <-enrichPathway(
+                gene=gene, universe=path.uni, organism=reactome.organism,
+                pvalueCutoff=pvalueCutoff, qvalueCutoff=qvalueCutoff, readable=TRUE)
+            all.enrich[[comp]][[sel]][['reactome']] <- reactome.res
 
-        if (!is.null(reactome.res)){
-            enrich.files[[comp]][[sel]][['reactome']] <- write.clusterprofiler.results(reactome.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
+            if (!is.null(reactome.res)){
+                enrich.files[[comp]][[sel]][['reactome']] <- write.clusterprofiler.results(reactome.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
+            }
         }
     }
 }
