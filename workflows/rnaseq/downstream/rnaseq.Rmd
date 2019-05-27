@@ -718,6 +718,7 @@ for(comp in names(genes.df)){
         }
 
         # perform KEGG enrichment
+        res.label <- 'KEGG'
         kegg.res <- enrichKEGG(
             gene=gene, universe=path.uni, organism=kegg.organism,
             keyType=kegg.keytype, pvalueCutoff=pvalueCutoff,
@@ -744,6 +745,7 @@ for(comp in names(genes.df)){
 
         # NOTE: Install OrgDb--------------------------------------------------
         #   ReactomePA requires the relevant OrgDb package to be installed.
+        res.label <- 'Reactome'
         reactome.res <-enrichPathway(
             gene=gene, universe=path.uni, organism=reactome.organism,
             pvalueCutoff=pvalueCutoff, qvalueCutoff=qvalueCutoff, readable=TRUE)
