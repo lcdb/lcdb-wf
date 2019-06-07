@@ -8,6 +8,7 @@ bioconductor-deseq2
 bioconductor-dupradar
 bioconductor-genomeinfodbdata
 bioconductor-genomicfeatures
+bioconductor-reactomepa
 bioconductor-s4vectors
 bioconductor-sva
 bioconductor-tximport

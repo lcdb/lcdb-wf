@@ -80,6 +80,8 @@ plot.heatmap <- function(rld, colData, cols.for.grouping){
 #'
 #' @return Side effect is to plot the heatmap
 vargenes.heatmap <- function(rld, cols.for.grouping, n=50){
+  # TODO: heatmaply?
+  # TODO: allow alternative gene IDs
   topVarGenes <- head(order(rowVars(assay(rld)), decreasing=TRUE), n)
   mat <- assay(rld)[topVarGenes,]
   mat <- mat - rowMeans(mat)
@@ -96,7 +98,7 @@ vargenes.heatmap <- function(rld, cols.for.grouping, n=50){
 #'
 #' Make sure you're in an R code chunk with `results="asis"` set.
 mdcat <- function(...){
-  cat('\n', ..., '\n', sep='', fill=1500)
+  cat('\n\n', ..., ' \n\n', sep='', fill=1500)
 }
 
 
@@ -297,49 +299,6 @@ my.summary <- function(res, dds, alpha, ...){
    return(df)
 }
 
-#-----------------------------------------------------------------------------
-# The following are some helper functions for working with clusterProfiler results.
-# While clusterProfiler does a great job of unifying the output of different
-# enrichment metrics into a single data structure, we need a couple more things
-# for very flexibly plotting with ggplot2. These functions handle the enrichment
-# and summary of results.
-
-#' Run enrichGO on each of the three top-level ontologies
-#'
-#' @param genes Gene IDs with format matching `keytype`
-#' @param univers Universe of genes assayed
-#' @param orgdb String or OrgDb object
-#' @param keytype ID type of genes
-#"
-#' @return  List of clusterProfiler output objects, length 3 where names are
-#' ontologies (BP, MF, CC)
-clusterprofiler.enrichgo <- function(genes, universe, orgdb, keytype='ENSEMBL'){
-    lst <- list()
-    if (length(genes) > 0 ){
-        for (ont in c('BP', 'MF', 'CC')){
-            ggo <- enrichGO(gene=genes, ont=ont, universe=universe,
-                            OrgDb=orgdb, keyType=keytype, pAdjustMethod='BH',
-                            pvalueCutoff=0.01, qvalueCutoff=0.05,
-                            readable=TRUE)
-            lst[[ont]] <- ggo
-        }
-    }
-    return(lst)
-}
-
-#' Run KEGG enrichment
-#'
-#' @param genes Gene IDs typically in UniProt format
-#' @param org 3-character KEGG species ID (dme, hsa, mmu)
-#' @param keytype ID type of genes
-#'
-#' @return clusterProfiler output object
-clusterprofiler.enrichkegg <- function(genes, org, keyType='uniprot'){
-    x <- enrichKEGG(gene=genes, organism=org, keyType='uniprot',
-                    pvalueCutoff=0.05)
-    return(x)
-}
-
 #' Convert "1/100" to 0.01.
 #'
 #' clusterProfiler report columns that are strings of numbers; this converts to
@@ -461,5 +420,98 @@ get.sig <- function(x, direction='up', alpha=0.1, thresh=0, return.names=TRUE){
     } else {
         return(idx)
     }
+}
+
+#' Prepare list for UpSet plots, but include rownames
+#'
+#' @param x List of sets to compare (same input as to UpSetR::fromList)
+#'
+#' @return data.frame of 1 and 0 showing which genes are in which sets
+fromList.with.names <- function(lst){
+    elements <- unique(unlist(lst))
+    data <- unlist(lapply(lst, function(x) {
+        x <- as.vector(match(elements, x))
+    }))
+    data[is.na(data)] <- as.integer(0)
+    data[data != 0] <- as.integer(1)
+    data <- data.frame(matrix(data, ncol = length(lst), byrow = F))
+
+    # This is the only way in which this function differs from UpSetR::fromList
+    rownames(data) <- elements
+
+    data <- data[which(rowSums(data) != 0), ]
+    names(data) <- names(lst)
+    return(data)
+}
+
+
+#' Move rownames of data.frame to first column
+#'
+#' @param x data.frame
+#' @param name Name to use as the new first column
+#'
+#' @return data.frame with original rownames moved to new first column with
+#' optional name. rownames on the new data.frame are set to NULL.
+rownames.first.col <- function(x, name='names'){
+    orig.names <- colnames(x)
+    x <- data.frame(rownames(x), x, row.names=NULL)
+    colnames(x) <- c(name, orig.names)
+    return(x)
+}
+
+
+#' lapply over a nested list
+#'
+#' @param x Nested list. Expected 2 levels deep, and each item is the same type
+#' @param subfunc Function to apply over nested "leaf" items
+#' @param ... Additional arguments to be passed to subfunc
+#'
+#' @return Nested list with same structure but tranformed values
+nested.lapply <- function(x, subfunc, ...){
+    lapply(x, lapply, subfunc, ...)
+}
+
+#' Split clusterProfiler output into one line per gene
+#'
+#' @param x Results from clusterProfiler. It is expected that the
+#' clusterProfiler enrichment function was called with "readable=TRUE"
+#'
+#' @return data.frame with genes one per line instead of "/" separated in one
+#' line. The rest of the original line is repeated for each gene.
+#'
+split.clusterProfiler.results <- function(x){
+    df <- x@result
+    # loop over all rows
+    df.parse <- NULL
+    for(k in 1:dim(df)[1]){
+        g <- strsplit(as.character(df$geneID[k]), "/")[[1]]
+        gg <- df[rep(k, length(g)),]
+        gg$geneParse <- g
+        if(is.null(df.parse)){
+            df.parse <- gg
+        } else {
+            df.parse <- rbind(df.parse, gg)
+        }
+    }
+    return(df.parse)
+}
+
+
+#' Writes out original and split clusterprofiler results
+#'
+#' @param res clusterProfiler results
+#' @param cprof.folder Directory in which to save files. Will be created if needed.
+#' @param Label to use for the results. Will generate a filename
+#' cprof.folder/label.txt and cprof.folder/label_split.txt
+#'
+#' @return List of the two files that are created on disk.
+write.clusterprofiler.results <- function(res, cprof.folder, label){
+    dir.create(cprof.folder, showWarnings=FALSE, recursive=TRUE)
+    filename.orig <- file.path(cprof.folder, paste0(label, '.txt'))
+    write.table(res, file=filename.orig, sep='\t', quote=FALSE, row.names=FALSE)
+    filename.split <- file.path(cprof.folder, paste0(label, '_split.txt'))
+    res.split <- split.clusterProfiler.results(res)
+    write.table(res.split, file=filename.split, sep='\t', quote=FALSE, row.names=FALSE)
+    return(list(orig=filename.orig, split=filename.split))
 }
 ```

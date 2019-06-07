@@ -1,16 +1,42 @@
 Changelog
 =========
 
-Changes since v1.2
-------------------
+v1.4
+----
+RNA-seq
+~~~~~~~
+Much-improved ``rnaseq.Rmd``:
+
+- tabbed PCA plot
+- improved DEGpatterns chunk
+- dramatically improved functional enrichment section, with tabbed clusterprofiler plots and exported data in two flavors (combined and split)
+- improved upset plots, with exported files showing sets of genes
+- improved comments to highlight where to make changes
+- add new helper functions to ``helpers.R``:
+   - ``fromList.with.names``, for getting UpSet plot output
+   - ``rownames.first.col``, to make tidier dataframes
+   - ``nested.lapply``, for convenient 2-level nested list apply
+   - clusterprofiler helper functions
+
+
+v1.3
+----
+Bugfixes
+~~~~~~~~
+- Fix broken paired-end support for RNA-seq. Previously, when using data from
+  elsewhere on disk and using the symlink rules, R2 would be symlinked to the
+  same file as R1.
+- Support for Snakemake 5.4.0 which changes behavior of the ``expand()``
+  function.
 
 Infrastructure
 ~~~~~~~~~~~~~~
 - new deploy script to copy over only the files necessary for an analysis,
   avoiding the clutter of testing infrastructure.
 - lcdblib, an external package, is no longer a dependency. In the interest of
-  transparency, the relevant code was copied over to the ``lib`` directory in
-  this repository.
+  better transparency and to make the code here easier to follow, the relevant
+  code from lcdblib was copied over to the ``lib`` directory in this
+  repository.
 
 ChIP-seq and RNA-seq
 ~~~~~~~~~~~~~~~~~~~~
