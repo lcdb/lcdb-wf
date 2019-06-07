@@ -26,6 +26,18 @@ def fill_patterns(patterns, fill, combination=product):
     ['one_R1.fastq', 'two_R2.fastq']
 
     """
+    # In recent Snakemake versions (e.g., this happens in 5.4.5) file patterns
+    # with no wildcards in them are removed from expand when `zip` is used as
+    # the combination function.
+    #
+    # For example, in 5.4.5:
+    #
+    #   expand('x', zip, d=[1,2,3]) == []
+    #
+    # But in 4.4.0:
+    #
+    #   expand('x', zip, d=[1,2,3]) == ['x', 'x', 'x']
+
     def update(d, u, c):
         for k, v in u.items():
             if isinstance(v, collections.Mapping):
@@ -36,6 +48,8 @@ def fill_patterns(patterns, fill, combination=product):
                     d[k] = list(set(expand(u[k], zip, **fill.to_dict('list'))))
                 else:
                     d[k] = list(set(expand(u[k], c, **fill)))
+            if not d[k]:
+                d[k] = [u[k]]
         return d
     d = {}
     return update(d, patterns, combination)
