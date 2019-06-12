@@ -220,8 +220,7 @@ rule cutadapt:
                 '--minimum-length 25 '
                 "&> {log}"
             )
-        if not ALL_SE:
-            shell('touch {output[1]}')
+        shell('touch {output[1]}')
 
 
 rule fastqc:
