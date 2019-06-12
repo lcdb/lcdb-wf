@@ -448,7 +448,12 @@ rule featurecounts:
         # add '-t gene -g gene_id -f '
         '-{wildcards.stranded} '
 
-        # NOTE: additional featureCounts args here
+        # NOTE:
+        # For paired-end reads, you probably want -p to count fragments rather
+        # than individual reads (which may be on opposite strands from each
+        # other).
+        #
+        # -p 
         '-T {threads} '
         '-a {input.annotation} '
         '-o {output.counts} '
