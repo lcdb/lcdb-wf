@@ -70,6 +70,16 @@ final_targets = utils.flatten((
 if 'merged_bigwigs' in config:
     final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
 
+# Special case: all samples are single-end
+if all(c.sampletable.iloc[:, 0].apply(
+    lambda x: not common.is_paired_end(c.sampletable, x))
+):
+    ALL_SE = True
+    final_targets = [i.replace('{n}', '1') for i in final_targets]
+else:
+    ALL_SE = False
+
+
 rule targets:
     """
     Final targets to create
@@ -167,7 +177,10 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
 
 
 def render_r1_r2(pattern):
+    if ALL_SE:
+        return expand(pattern, sample='{sample}', n=[1])
     return expand(pattern, sample='{sample}', n=[1,2])
+
 
 rule cutadapt:
     """
@@ -207,8 +220,8 @@ rule cutadapt:
                 '--minimum-length 25 '
                 "&> {log}"
             )
-            if not ALL_SE:
-                shell('touch {output[1]}')
+        if not ALL_SE:
+            shell('touch {output[1]}')
 
 
 rule fastqc:
