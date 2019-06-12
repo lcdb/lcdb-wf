@@ -445,8 +445,11 @@ rule featurecounts:
         # By default, this is automatically detected based on the layout column
         # of the sampletable. If you do not want `-p` added automatically for
         # PE samples, change this to False:
-        #
-        if common.is_paired_end(c.sampletable, wildcards.sample)):
+        adjust_for_pe = True
+        if (
+                common.is_paired_end(c.sampletable, wildcards.sample)
+                and adjust_for_pe
+        ):
             p_arg = '-p'
         else:
             p_arg = ''
