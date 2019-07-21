@@ -24,10 +24,12 @@ references:
             args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/fly/flybase_r6.23_BDGP6_to_ucsc_dm6/mappings_flybase_r6.23_BDGP6_to_ucsc_dm6.tsv'
         conversions:
           - 'refflat'
-    
+
       fasta:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.24_FB2018_05/fasta/dmel-all-chromosome-r6.24.fasta.gz'
-        postprocess: "lib.postprocess.dm6.fasta_postprocess"
+        postprocess:
+          function: 'lib.postprocess.utils.convert_fasta_chroms'
+          args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/fly/flybase_r6.23_BDGP6_to_ucsc_dm6/mappings_flybase_r6.23_BDGP6_to_ucsc_dm6.tsv'
         indexes:
           - 'bowtie2'
           - 'hisat2'
