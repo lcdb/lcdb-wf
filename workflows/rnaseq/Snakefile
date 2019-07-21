@@ -452,7 +452,7 @@ rule featurecounts:
         # of the sampletable. If you do not want `-p` added automatically for
         # PE samples, change this to False:
         #
-        if common.is_paired_end(c.sampletable, wildcards.sample)):
+        if common.is_paired_end(c.sampletable, wildcards.sample):
             p_arg = '-p'
         else:
             p_arg = ''
