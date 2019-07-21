@@ -211,8 +211,8 @@ rule cutadapt:
                 "{input.fastq[1]} "
                 "-o {output[0]} "
                 "-p {output[1]} "
-                "-a AGATCGGAAGAGC "
-                "-A AGATCGGAAGAGC "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
                 '-q 20 '
                 '--minimum-length 25 '
                 "&> {log}"
@@ -222,7 +222,7 @@ rule cutadapt:
                 "cutadapt "
                 "{input.fastq[0]} "
                 "-o {output[0]} "
-                "-a AGATCGGAAGAGC "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 '-q 20 '
                 '--minimum-length 25 '
                 "&> {log}"
