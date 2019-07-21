@@ -21,7 +21,8 @@ references:
               - ['FBgn0002781']
               - '-'
           - function: 'lib.postprocess.utils.convert_gtf_chroms'
-            args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/fly/flybase_r6.23_BDGP6_to_ucsc_dm6/mappings_flybase_r6.23_BDGP6_to_ucsc_dm6.tsv'
+            args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/5c2f949f82ef62b9e9e37e673aabe6c857890d2a/mappings/fly/flybase_r6.23_BDGP6_to_ucsc_dm6/mappings_flybase_r6.23_BDGP6_to_ucsc_dm6.tsv'
+
         conversions:
           - 'refflat'
 
@@ -29,7 +30,7 @@ references:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.24_FB2018_05/fasta/dmel-all-chromosome-r6.24.fasta.gz'
         postprocess:
           function: 'lib.postprocess.utils.convert_fasta_chroms'
-          args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/fly/flybase_r6.23_BDGP6_to_ucsc_dm6/mappings_flybase_r6.23_BDGP6_to_ucsc_dm6.tsv'
+          args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/5c2f949f82ef62b9e9e37e673aabe6c857890d2a/mappings/fly/flybase_r6.23_BDGP6_to_ucsc_dm6/mappings_flybase_r6.23_BDGP6_to_ucsc_dm6.tsv'
         indexes:
           - 'bowtie2'
           - 'hisat2'
