@@ -219,10 +219,17 @@ class ChIPSeqConfig(SeqConfig):
                 k: {pc: v[pc]} for k, v in self.patterns_by_peaks.items()
             }
 
-            _fill = {
-                pc + '_run': list(
-                    chipseq.peak_calling_dict(self.config, algorithm=pc).keys())
-            }
+
+            # Fix for issue #166, which was caused by commit 8a211122:
+            #
+            # If no runs for the peak-caller are configured, this will be
+            # empty and we should continue on.
+            peaks_to_fill = list(chipseq.peak_calling_dict(self.config, algorithm=pc).keys())
+
+            if not peaks_to_fill:
+                continue
+
+            _fill = {pc + '_run': peaks_to_fill}
 
             # The trick here is the recursive updating of targets_for_peaks.
             # We're adding the filled-in runs of each peak caller to the
