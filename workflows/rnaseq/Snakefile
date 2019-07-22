@@ -45,6 +45,9 @@ def wrapper_for(path):
 # RULES
 # ----------------------------------------------------------------------------
 
+
+localrules: symlink_bigwigs
+
 # See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
     c.targets['bam'],
@@ -199,24 +202,29 @@ rule cutadapt:
         paired = len(input) == 2
 
         # NOTE: Change cutadapt params here
-        extra='-a file:../../include/adapters.fa -q 20 --minimum-length=25'
+
 
         if paired:
             shell(
                 "cutadapt "
-                "{extra} "
                 "{input.fastq[0]} "
                 "{input.fastq[1]} "
                 "-o {output[0]} "
                 "-p {output[1]} "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
+                '-q 20 '
+                '--minimum-length 25 '
                 "&> {log}"
             )
         else:
             shell(
                 "cutadapt "
-                "{extra} "
                 "{input.fastq[0]} "
                 "-o {output[0]} "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                '-q 20 '
+                '--minimum-length 25 '
                 "&> {log}"
             )
             if not ALL_SE:
@@ -434,26 +442,43 @@ rule featurecounts:
         counts='{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt'
     log:
         '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt.log'
-    shell:
-        'featureCounts '
-
+    run:
         # NOTE:
-        # By default, this rule runs three times, using a different strand
-        # setting each time. The strand argument (-s0, -s1, -s2) to
-        # featureCounts is pulled straight from the wildcards, and the
-        # corresponding filenames have been set up in rnaseq_patterns.yaml.
+        # For paired-end reads, you probably want -p to count fragments rather
+        # than individual reads (which may be on opposite strands from each
+        # other).
         #
-        # You probably do NOT want to add your own -s argument below, however
-        # other arguments might be useful. For example, for nascent RNA-seq,
-        # add '-t gene -g gene_id -f '
-        '-{wildcards.stranded} '
+        # By default, this is automatically detected based on the layout column
+        # of the sampletable. If you do not want `-p` added automatically for
+        # PE samples, change this to False:
+        #
+        if common.is_paired_end(c.sampletable, wildcards.sample):
+            p_arg = '-p'
+        else:
+            p_arg = ''
 
-        # NOTE: additional featureCounts args here
-        '-T {threads} '
-        '-a {input.annotation} '
-        '-o {output.counts} '
-        '{input.bam} '
-        '&> {log}'
+        shell(
+
+            'featureCounts '
+
+            # NOTE:
+            # By default, this rule runs three times, using a different strand
+            # setting each time. The strand argument (-s0, -s1, -s2) to
+            # featureCounts is pulled straight from the wildcards, and the
+            # corresponding filenames have been set up in rnaseq_patterns.yaml.
+            #
+            # You probably do NOT want to add your own -s argument below, however
+            # other arguments might be useful. For example, for nascent RNA-seq,
+            # add '-t gene -g gene_id -f '
+            '-{wildcards.stranded} '
+
+            '{p_arg} '
+            '-T {threads} '
+            '-a {input.annotation} '
+            '-o {output.counts} '
+            '{input.bam} '
+            '&> {log}'
+        )
 
 
 rule rrna_libsizes_table:
