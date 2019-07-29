@@ -354,7 +354,6 @@ dds <- DESeq(dds,
 #    This is slightly different results than if you used betaPrior=TRUE when
 #    creating the DESeq object.
 
-
 # res.list is a named list. Each item should be a list with names c('res',
 # 'dds', 'label'). "res" is a DESeqResults object, "dds" is the corresponding
 # DESeq object the results were extracted from, and "label" is a nicer label to
@@ -438,6 +437,7 @@ for (name in names(res.list)){
   dds.i <- res.list[[name]][['dds']]
   res.i <- res.list[[name]][['res']]
   label <- res.list[[name]][['label']]
+
   mdcat('## ', label, ' {.tabset}')
   mdcat('### Summary of results')
   print(knitr::kable(my.summary(res.i, dds.i)))
@@ -445,8 +445,15 @@ for (name in names(res.list)){
   top.plots(padj.order(res.i), 3, my.counts, dds.i, add_cols)
   mdcat('### Normalized counts of top 3 downregulated genes')
   top.plots(padj.order(res.i, reverse=TRUE), 3, my.counts, dds.i, add_cols)
+
+  # NOTE: By default we plot the top 10 upregulated or downregulated genes, with the lowest padj
+  # To change this behavior edit the following lines
+  res.i <- res.i[order(res.i$padj),]
+  genes.to.label <- rownames(res.i)[1:10]
+
   mdcat('### M-A plot')
-  plotMA(res.i)
+  plotMA.label(res.i)
+
   mdcat('### P-value distribution')
   pval.hist(res.i)
 }
