@@ -57,6 +57,7 @@ r-readr
 r-rmarkdown
 r-spp
 r-upsetr
+r-ggrepel
 rseqc >=3.0
 salmon
 samtools >=1.4.1
