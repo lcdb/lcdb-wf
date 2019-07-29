@@ -452,7 +452,7 @@ for (name in names(res.list)){
   genes.to.label <- rownames(res.i)[1:10]
 
   mdcat('### M-A plot')
-  plotMA.label(res.i)
+  print(plotMA.label(res.i))
 
   mdcat('### P-value distribution')
   pval.hist(res.i)
