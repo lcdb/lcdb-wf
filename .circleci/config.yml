@@ -68,6 +68,18 @@ variables:
           ./run_test.sh --use-conda -j2 -k -p -r
           python chipseq_trackhub.py config/config.yaml config/hub_config.yaml
 
+  chipseq-regression-step: &chipseq-regression-step
+      run:
+        name: chipseq regression test workflow
+        command: |
+          cd workflows/chipseq
+          source activate lcdb-wf-test
+          ./run_test.sh --use-conda -j2 -k -p -r \
+            --configfile ../../test/test_configs/test_chipseq_regression.yaml \
+            --config sampletable=../../test/test_configs/chipseq_one_run.tsv \
+            --config merged_bigwigs="{}" \
+            --until bed_to_bigbed
+
   references-step: &references-step
       run:
         name: references workflow
@@ -157,6 +169,15 @@ jobs:
       - *set-path
       - *get-data
       - *chipseq-step
+
+  chipseq-regression:
+    <<: *defaults
+    steps:
+      - checkout
+      - *restore_cache
+      - *set-path
+      - *get-data
+      - *chipseq-regression-step
 
   rnaseq:
     <<: *defaults
