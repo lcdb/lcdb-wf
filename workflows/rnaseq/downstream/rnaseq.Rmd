@@ -249,18 +249,6 @@ for (group in groups){
 ```
 
 
-## Most-varying genes
-
-We can also look at the most varying genes to get a sense of the clustering.
-This heatmap takes the top 50 most-varying genes and plots their deviation from
-the row mean.
-
-```{r, fig.height=12}
-# NOTE: Which columns to use for grouping the heatmap?-------------------------
-#   See similiar note above for which columns to group by
-vargenes.heatmap(rld, c('group'))
-```
-
 ## Size factors
 Size factors: ideally, all libraries were sequenced to identical depth, in
 which case all size factors would be 1.0. In practice, this is almost never the
