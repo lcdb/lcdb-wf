@@ -5,6 +5,7 @@ library(RColorBrewer)
 library(DEGreport)
 library(ggplot2)
 library(ggrepel)
+library(heatmaply)
 
 #' Get the OrgDb for the specified organism, using the cached AnnotationHub.
 #'
@@ -151,11 +152,9 @@ plot.heatmap <- function(rld, colData, cols.for.grouping){
     df <- as.data.frame(colData(rld)[, cols.for.grouping])
     colnames(df) <- cols.for.grouping
     rownames(df) <- colnames(rld)
-    pheatmap(sampleDistMatrix,
-             cluster_distance_rows=sampleDists,
-             cluster_distance_cols=sampleDists,
-             annotation_row=df,
-             col=colors)
+    heatmaply(sampleDistMatrix,
+              scale='none',
+              row_side_colors=colData)
 }
 
 
