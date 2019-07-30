@@ -50,6 +50,21 @@ get.orgdb <- function(species, cache, annotation_key_override=NA){
     return(orgdb)
 }
 
+#' Plot an interactive PCA plot
+#'
+#' @param rld DESeqTransform object output by varianceStabilizingTransformation() or rlog()
+#' @param intgroup character vector of names in colData(x) to use for grouping
+#'
+#' @return Handle to ggplot with added label field in aes_string() for plotting with ggplotly()
+plotPCA.ly <- function(rld, intgroup){
+  mat <- plotPCA(rld, intgroup, returnData=TRUE)
+  pv <- attr(mat, 'percentVar')
+  p <- ggplot(data=mat, aes_string(x='PC1', y='PC2', color='group', label='name')) +
+          geom_point(size=3) + xlab(paste0('PC1: ', round(pv[1]*100), '% variance')) +
+          ylab(paste0('PC2: ', round(pv[2]*100), '% variance')) + coord_fixed()
+  return(p)
+}
+
 #' Plot a MA plot labeled with selected genes
 #'
 #' @param res.list data.frame (or list) with log2FoldChange and padj columns (or elements).
