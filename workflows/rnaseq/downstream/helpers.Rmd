@@ -142,19 +142,20 @@ plotMA.label <- function(res,
 #' @param colData Dataframe of metadata, used for annotating heatmap
 #' @param cols.for.grouping Columns in colData to annotate heatmap with
 #'
-#' @return Side effect is to plot the heatmap
+#' @return matrix of sample distances
 plot.heatmap <- function(rld, colData, cols.for.grouping){
     sampleDists <- dist(t(assay(rld)))
     sampleDistMatrix <- as.matrix(sampleDists)
     rownames(sampleDistMatrix) <- colnames(rld)
-    colnames(sampleDistMatrix) <- NULL
     colors <- colorRampPalette(rev(brewer.pal(9, 'Blues')))(255)
     df <- as.data.frame(colData(rld)[, cols.for.grouping])
     colnames(df) <- cols.for.grouping
     rownames(df) <- colnames(rld)
     heatmaply(sampleDistMatrix,
               scale='none',
-              row_side_colors=colData)
+              col=colors,
+              row_side_colors=df,
+              showticklabels=c(FALSE,TRUE))
 }
 
 
