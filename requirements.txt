@@ -49,15 +49,17 @@ pyyaml >=3.12
 r-base >=3.5.1
 r-codetools
 r-dt
+r-ggrepel
+r-heatmaply
 r-kernsmooth
 r-knitr
 r-knitrbootstrap
 r-pheatmap
+r-plotly
 r-readr
 r-rmarkdown
 r-spp
 r-upsetr
-r-ggrepel
 rseqc >=3.0
 salmon
 samtools >=1.4.1
