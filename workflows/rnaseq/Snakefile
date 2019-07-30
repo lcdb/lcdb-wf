@@ -437,12 +437,14 @@ rule featurecounts:
     """
     input:
         annotation=c.refdict[c.organism][config['gtf']['tag']]['gtf'],
-        bam=c.patterns['bam']
+        bam=c.targets['bam']
     output:
-        counts='{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt'
+        counts='{sample_dir}/combined/cutadapt.bam.featurecounts.{stranded}.txt'
     log:
-        '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt.log'
+        '{sample_dir}/combined/cutadapt.bam.featurecounts.{stranded}.txt.log'
     run:
+        'featureCounts '
+
         # NOTE:
         # For paired-end reads, you probably want -p to count fragments rather
         # than individual reads (which may be on opposite strands from each
