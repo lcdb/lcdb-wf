@@ -53,6 +53,7 @@ library(BiocParallel)
 library(UpSetR)
 library(ReactomePA)
 library(cowplot)
+library(plotly)
 ```
 
 
@@ -242,10 +243,24 @@ groups <- list(
                layout=c('layout')
                )
 
-for (group in groups){
-    mdcat('### ', group)
-    print(plotPCA(rld, intgroup=group))
+# NOTE: Here we make interactive PCA plots using ggplotly. However, this does
+#    not work inside a loop. So, if you have multiple groups, copy and paste
+#    the following lines, updating the variable 'i'.
+p <- list()
+for(group in groups){
+    p[[group]] <- plotPCA.ly(rld, intgroup=group)
 }
+
+i <- 1
+mdcat('### ', names(p)[i])
+#p <- plotPCA(rld, intgroup=groups[1])
+ggplotly(p[[i]])
+
+i <- 2
+mdcat('### ', names(p)[i])
+#p <- plotPCA(rld, intgroup=groups[2])
+ggplotly(p[[i]])
+
 ```
 
 
