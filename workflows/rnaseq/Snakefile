@@ -886,7 +886,7 @@ rule rnaseq_rmarkdown:
         'downstream/rnaseq.log'
     shell:
         'Rscript -e '
-        '''"rmarkdown::render('{input.rmd}', 'knitrBootstrap::bootstrap_document')" '''
+        '''"rmarkdown::render('{input.rmd}')" '''
         '> {log} 2>&1'
 
 
