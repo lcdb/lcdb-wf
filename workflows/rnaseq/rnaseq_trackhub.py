@@ -72,7 +72,7 @@ subgroups.append(
     SubGroupDefinition(
         name='strand',
         label='strand',
-        mapping={'sense': 'sense', 'antisense': 'antisense'}))
+        mapping={'pos': 'pos', 'neg': 'neg'}))
 
 
 # Identify the sort order based on the config, and create a string appropriate
@@ -91,12 +91,12 @@ composite = CompositeTrack(
     tracktype='bigWig')
 
 # ASSUMPTION: stranded bigwigs
-sense_signal_view = ViewTrack(
-    name='sensesignalviewtrack', view='sensesignal', visibility='full',
-    tracktype='bigWig', short_label='sense strand', long_label='sense strand signal')
-antisense_signal_view = ViewTrack(
-    name='antisensesignalviewtrack', view='antisensesignal', visibility='full',
-    tracktype='bigWig', short_label='antisense strand', long_label='antisense strand signal')
+pos_signal_view = ViewTrack(
+    name='possignalviewtrack', view='possignal', visibility='full',
+    tracktype='bigWig', short_label='pos strand', long_label='positive strand signal')
+neg_signal_view = ViewTrack(
+    name='negsignalviewtrack', view='negsignal', visibility='full',
+    tracktype='bigWig', short_label= 'neg strand', long_label='negative strand signal')
 
 supplemental_view = ViewTrack(
     name='suppviewtrack', view='supplementalview', visibility='full',
@@ -123,7 +123,7 @@ def decide_color(samplename):
 
 for sample in df[df.columns[0]]:
     # ASSUMPTION: stranded bigwigs
-    for direction in 'sense', 'antisense':
+    for direction in 'pos', 'neg':
 
         # ASSUMPTION: bigwig filename pattern
         bigwig = c.patterns['bigwig'][direction].format(sample=sample)
@@ -137,11 +137,11 @@ for sample in df[df.columns[0]]:
         # ASSUMPTION: stranded bigwigs
         additional_kwargs = {}
         subgroup['strand'] = direction
-        view = sense_signal_view
-        if direction == 'antisense':
+        view = pos_signal_view
+        if direction == 'neg':
             additional_kwargs['negateValues'] = 'on'
             additional_kwargs['viewLimits'] = '-25:0'
-            view = antisense_signal_view
+            view = neg_signal_view
         else:
             additional_kwargs['viewLimits'] = '0:25'
         view.add_tracks(
@@ -169,8 +169,8 @@ if supplemental:
 # Tie everything together
 composite.add_subgroups(subgroups)
 trackdb.add_tracks(composite)
-composite.add_view(sense_signal_view)
-composite.add_view(antisense_signal_view)
+composite.add_view(pos_signal_view)
+composite.add_view(neg_signal_view)
 
 # Render and upload using settings from hub config file
 hub.render()
