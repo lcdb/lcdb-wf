@@ -103,7 +103,9 @@ illustration.
     # EXAMPLE REFERENCES CONFIG SECTION
 
     # This configures the directory in which the prepared references will be
-    # saved (see below for directory structure):
+    # saved (see below for directory structure). If you already have reference
+    files saved in the lcdb-wf structure, point this to that directory to
+    avoid rebuilding a fresh set of references:
 
     references_dir: 'data/references'
 
