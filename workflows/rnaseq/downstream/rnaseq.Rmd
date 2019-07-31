@@ -53,6 +53,7 @@ library(BiocParallel)
 library(UpSetR)
 library(ReactomePA)
 library(cowplot)
+library(plotly)
 ```
 
 
@@ -242,24 +243,26 @@ groups <- list(
                layout=c('layout')
                )
 
-for (group in groups){
-    mdcat('### ', group)
-    print(plotPCA(rld, intgroup=group))
+# NOTE: Here we make interactive PCA plots using ggplotly. However, this does
+#    not work inside a loop. So, if you have multiple groups, copy and paste
+#    the following lines, updating the variable 'i'.
+p <- list()
+for(group in groups){
+    p[[group]] <- plotPCA.ly(rld, intgroup=group)
 }
+
+i <- 1
+mdcat('### ', names(p)[i])
+#p <- plotPCA(rld, intgroup=groups[1])
+ggplotly(p[[i]])
+
+i <- 2
+mdcat('### ', names(p)[i])
+#p <- plotPCA(rld, intgroup=groups[2])
+ggplotly(p[[i]])
+
 ```
 
-
-## Most-varying genes
-
-We can also look at the most varying genes to get a sense of the clustering.
-This heatmap takes the top 50 most-varying genes and plots their deviation from
-the row mean.
-
-```{r, fig.height=12}
-# NOTE: Which columns to use for grouping the heatmap?-------------------------
-#   See similiar note above for which columns to group by
-vargenes.heatmap(rld, c('group'))
-```
 
 ## Size factors
 Size factors: ideally, all libraries were sequenced to identical depth, in
@@ -354,7 +357,6 @@ dds <- DESeq(dds,
 #    This is slightly different results than if you used betaPrior=TRUE when
 #    creating the DESeq object.
 
-
 # res.list is a named list. Each item should be a list with names c('res',
 # 'dds', 'label'). "res" is a DESeqResults object, "dds" is the corresponding
 # DESeq object the results were extracted from, and "label" is a nicer label to
@@ -438,6 +440,7 @@ for (name in names(res.list)){
   dds.i <- res.list[[name]][['dds']]
   res.i <- res.list[[name]][['res']]
   label <- res.list[[name]][['label']]
+
   mdcat('## ', label, ' {.tabset}')
   mdcat('### Summary of results')
   print(knitr::kable(my.summary(res.i, dds.i)))
@@ -445,8 +448,15 @@ for (name in names(res.list)){
   top.plots(padj.order(res.i), 3, my.counts, dds.i, add_cols)
   mdcat('### Normalized counts of top 3 downregulated genes')
   top.plots(padj.order(res.i, reverse=TRUE), 3, my.counts, dds.i, add_cols)
+
+  # NOTE: By default we plot the top 10 upregulated or downregulated genes, with the lowest padj
+  # To change this behavior edit the following lines
+  res.i <- res.i[order(res.i$padj),]
+  genes.to.label <- rownames(res.i)[1:10]
+
   mdcat('### M-A plot')
-  plotMA(res.i)
+  print(plotMA.label(res.i, genes.to.label=genes.to.label))
+
   mdcat('### P-value distribution')
   pval.hist(res.i)
 }
