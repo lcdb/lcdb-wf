@@ -44,8 +44,6 @@ rseqc:
 bigwig:
    pos: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.pos.bigwig'
    neg: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.neg.bigwig'
-   sense: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.sense.bigwig'
-   antisense: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.antisense.bigwig'
 downstream:
    rnaseq: 'downstream/rnaseq.html'
 patterns_by_aggregate:
