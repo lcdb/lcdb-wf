@@ -98,7 +98,7 @@ A sample is specified as paired-end using a separate column in the sampletable.
 That column can either be named `layout` (easiest if you're writing your own
 sample table) or `LibraryLayout` (if you're using an SRA sampletable, in which
 case you can leave it as-is). An error will be raised if both columns are
-provided. In cases where all data are single-end or paired end, no extra column is needed.
+provided.
 
 If one of these columns exists, the values of the column are converted to
 lowercase. For each sample, if the value is either `pe` or `paired`, the sample
