@@ -7,8 +7,8 @@
 #   snakemake --configfile ../../test/override.yaml --config sampletable=/path/to/tsv
 #
 merged_bigwigs:
-  control_sense:
-    sense: []
+  control_pos:
+    pos: []
   treatment_all:
-    sense: []
-    antisense: []
+    pos: []
+    neg: []

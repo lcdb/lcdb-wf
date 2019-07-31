@@ -3,8 +3,8 @@ aligner:
   tag: test
 
 merged_bigwigs:
-  control_sense:
-    sense: []
+  control_pos:
+    pos: []
   treatment_all:
-    sense: []
-    antisense: []
+    pos: []
+    neg: []
