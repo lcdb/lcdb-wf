@@ -76,6 +76,7 @@ ucsc-bedtobigbed
 ucsc-bigwigmerge
 ucsc-fetchchromsizes
 ucsc-gtftogenepred
+ucsc-genepredtobed
 ucsc-liftover
 ucsc-oligomatch
 ucsc-twobittofa
