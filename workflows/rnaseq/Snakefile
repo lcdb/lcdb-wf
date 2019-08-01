@@ -442,7 +442,7 @@ rule featurecounts:
         counts='{sample_dir}/rnaseq_aggregation/featurecounts.{stranded}.txt'
     log:
         '{sample_dir}/rnaseq_aggregation/featurecounts.{stranded}.txt.log'
-    shell:
+    run:
         # NOTE:
         # For paired-end reads, you probably want -p to count fragments rather
         # than individual reads (which may be on opposite strands from each
