@@ -442,23 +442,7 @@ rule featurecounts:
         counts='{sample_dir}/rnaseq_aggregation/featurecounts.{stranded}.txt'
     log:
         '{sample_dir}/rnaseq_aggregation/featurecounts.{stranded}.txt.log'
-    run:
-        # NOTE:
-        # For paired-end reads, you probably want -p to count fragments rather
-        # than individual reads (which may be on opposite strands from each
-        # other).
-        #
-        # By default, this is automatically detected based on the layout column
-        # of the sampletable. If you do not want `-p` added automatically for
-        # PE samples, change this to False:
-        #
-        if common.is_paired_end(c.sampletable, wildcards.sample):
-            p_arg = '-p'
-        else:
-            p_arg = ''
-
-        shell(
-
+    shell:
             'featureCounts '
 
             # NOTE:
@@ -472,7 +456,9 @@ rule featurecounts:
             # add '-t gene -g gene_id -f '
             '-{wildcards.stranded} '
 
-            '{p_arg} '
+            # NOTE:
+            # Paired-end data? You'll likely want to use the -p argument
+            # '-p '
             '-T {threads} '
             '-a {input.annotation} '
             '-o {output.counts} '
