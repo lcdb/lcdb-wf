@@ -801,7 +801,7 @@ rule rseqc_infer_experiment:
     output:
         txt=c.patterns['rseqc']['infer_experiment']
     shell:
-        'infer_experiment.py -r {input.refflat} -i {input.bam} > {output}'
+        'infer_experiment.py -r {input.bed12} -i {input.bam} > {output}'
 
 
 rule bigwig_neg:
