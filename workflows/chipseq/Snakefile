@@ -183,27 +183,30 @@ rule cutadapt:
         paired = len(input) == 2
 
         # NOTE: Change cutadapt params here
-        extra='-a file:../../include/adapters.fa -q 20 --minimum-length=25'
 
         if paired:
             shell(
                 "cutadapt "
-                "{extra} "
                 "{input.fastq[0]} "
                 "{input.fastq[1]} "
                 "-o {output[0]} "
                 "-p {output[1]} "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
+                '-q 20 '
+                '--minimum-length 25 '
                 "&> {log}"
             )
         else:
             shell(
                 "cutadapt "
-                "{extra} "
                 "{input.fastq[0]} "
                 "-o {output[0]} "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                '-q 20 '
+                '--minimum-length 25 '
                 "&> {log}"
             )
-            shell('touch {output[1]}')
 
 
 rule fastqc:

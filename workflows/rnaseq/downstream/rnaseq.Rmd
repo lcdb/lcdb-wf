@@ -724,7 +724,6 @@ for(comp in names(genes.df)){
             keyType=kegg.keytype, pvalueCutoff=pvalueCutoff,
             qvalueCutoff=qvalueCutoff)
 
-        all.enrich[[comp]][[sel]][['kegg']] <- kegg.res
 
         if (!is.null(kegg.res)){
             # convert uniprot IDs to readable symbols. This needs to be done separately
@@ -740,6 +739,8 @@ for(comp in names(genes.df)){
               }
             }
 
+
+            all.enrich[[comp]][[sel]][['kegg']] <- kegg.res
             enrich.files[[comp]][[sel]][['kegg']] <- write.clusterprofiler.results(kegg.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
         }
 
