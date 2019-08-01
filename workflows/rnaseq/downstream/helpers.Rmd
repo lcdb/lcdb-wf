@@ -102,6 +102,43 @@ mdcat <- function(...){
 }
 
 
+#' Load a single combined featureCounts table into a DESeq object.
+#'
+#' @param filename Filename containing featureCounts combined output
+#' @param sampletable data.frame containing at least sample names as first
+#' column
+#' @param design Model used for creating DESeq object
+#'
+#' @return DESeq object
+#'
+#' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
+DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable, design, ...){
+
+    m <- read.table(filename, header=TRUE, row.names=1)
+    m <- m[, 6:ncol(m)]
+
+    # The column names of the imported table are not guaranteed to match the
+    # samples in the metadata, so we need to make sure things match up
+    # correctly when renaming columns.
+
+    s <- as.character(sampletable[,1])
+
+    # If each sample matches exactly once, then sapply will simplify to an
+    # integer. Otherwise, it will be a list.
+    hits <- sapply(s, grep, colnames(m))
+    stopifnot(class(hits) == 'integer')
+
+    # In this case, we now have an integer vector showing which samplename
+    # should be used for which column in `m`:
+    #
+    #   sample1 sample2 sample3 sample4
+    #         2       1       4       3
+    colnames(m) <- names(hits)[hits]
+
+    object <- DESeqDataSetFromMatrix(countData=m, colData=sampletable, design=design, ...)
+    return(object)
+}
+
 #' Load featureCounts output into a DESeq object.
 #'
 #' Revised version of DESeq2::DESeqDataSetFromHTSeqCount to handle the
