@@ -431,9 +431,9 @@ rule featurecounts:
         annotation=c.refdict[c.organism][config['gtf']['tag']]['gtf'],
         bam=c.targets['bam']
     output:
-        counts='{sample_dir}/combined/cutadapt.bam.featurecounts.{stranded}.txt'
+        counts='{sample_dir}/rnaseq_aggregation/featurecounts.{stranded}.txt'
     log:
-        '{sample_dir}/combined/cutadapt.bam.featurecounts.{stranded}.txt.log'
+        '{sample_dir}/rnaseq_aggregation/featurecounts.{stranded}.txt.log'
     shell:
         'featureCounts '
 
