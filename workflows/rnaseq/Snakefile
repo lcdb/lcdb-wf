@@ -198,6 +198,7 @@ rule cutadapt:
         fastq=render_r1_r2(c.patterns['cutadapt'])
     log:
         render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
+    threads: 6
     run:
         paired = len(input) == 2
 
@@ -214,6 +215,7 @@ rule cutadapt:
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
                 '-q 20 '
+                '-j {threads} '
                 '--minimum-length 25 '
                 "&> {log}"
             )
@@ -744,6 +746,7 @@ rule salmon:
         outdir=os.path.dirname(c.patterns['salmon'])
     log:
         c.patterns['salmon'] + '.log'
+    threads: 6
     run:
         paired = len(input.fastq) == 2
         if paired:
