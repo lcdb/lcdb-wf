@@ -791,6 +791,19 @@ rule rseqc_bam_stat:
         'bam_stat.py -i {input.bam} > {output.txt}'
 
 
+rule rseqc_infer_experiment:
+    """
+    Infer strandedness of experiment
+    """
+    input:
+        bam=c.patterns['bam'],
+        bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12']
+    output:
+        txt=c.patterns['rseqc']['infer_experiment']
+    shell:
+        'infer_experiment.py -r {input.bed12} -i {input.bam} > {output}'
+
+
 rule bigwig_neg:
     """
     Create a bigwig for negative-strand reads
