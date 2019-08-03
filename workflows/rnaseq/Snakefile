@@ -464,7 +464,6 @@ rule featurecounts:
             '-o {output.counts} '
             '{input.bam} '
             '&> {log}'
-        )
 
 
 rule rrna_libsizes_table:
