@@ -178,6 +178,15 @@ rule conversion_refflat:
         '&& rm {output}.tmp '
 
 
+rule conversion_bed12:
+    input:
+        '{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf'
+    output:
+        protected('{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.bed12')
+    shell:
+        'gtfToGenePred {input} {output}.tmp '
+        '&& genePredToBed {output}.tmp {output}'
+
 rule conversion_gffutils:
     """Converts a GTF into a gffutils sqlite3 database
     """

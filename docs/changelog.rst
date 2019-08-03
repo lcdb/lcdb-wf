@@ -1,6 +1,19 @@
 Changelog
 =========
 
+v1.5
+----
+
+
+v1.4.2
+------
+
+Bugfixes
+~~~~~~~~
+
+- Don't require ChIP-seq configs to have at least one block for each supported
+  peak-caller
+
 v1.4.1
 ------
 

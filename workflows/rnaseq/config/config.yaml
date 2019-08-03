@@ -34,15 +34,15 @@ fastq_screen:
     tag: test
 
 merged_bigwigs:
-  control_sense:
-    sense:
+  control_pos:
+    pos:
       - sample1
       - sample2
   treatment_all:
-    sense:
+    pos:
       - sample3
       - sample4
-    antisense:
+    neg:
       - sample3
       - sample4
 

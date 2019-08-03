@@ -46,8 +46,6 @@ def wrapper_for(path):
 # ----------------------------------------------------------------------------
 
 
-localrules: symlink_bigwigs
-
 # See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
     c.targets['bam'],
@@ -782,6 +780,19 @@ rule rseqc_bam_stat:
         'bam_stat.py -i {input.bam} > {output.txt}'
 
 
+rule rseqc_infer_experiment:
+    """
+    Infer strandedness of experiment
+    """
+    input:
+        bam=c.patterns['bam'],
+        bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12']
+    output:
+        txt=c.patterns['rseqc']['infer_experiment']
+    shell:
+        'infer_experiment.py -r {input.bed12} -i {input.bam} > {output}'
+
+
 rule bigwig_neg:
     """
     Create a bigwig for negative-strand reads
@@ -834,30 +845,6 @@ rule bigwig_pos:
         '&> {log}'
 
 
-rule symlink_bigwigs:
-    input:
-        pos=c.patterns['bigwig']['pos'],
-        neg=c.patterns['bigwig']['neg'],
-    output:
-        sense=c.patterns['bigwig']['sense'],
-        antisense=c.patterns['bigwig']['antisense'],
-    run:
-        # NOTE:
-        #    In our test data, reads mapping to the positive strand correspond
-        #    to sense-strand transcripts. If your protocol is reversed (e.g.,
-        #    TruSeq kits), you can map negative-strand reads to "sense". The
-        #    track hub creation in rnaseq_trackhub.py only cares about the
-        #    `sense` and `antisense` versions, so it's cheap to mess around
-        #    with the symlinking here.
-        #
-        # E.g., use this for TruSeq:
-        # utils.make_relative_symlink(input.pos, output.antisense)
-        # utils.make_relative_symlink(input.neg, output.sense)
-
-        utils.make_relative_symlink(input.pos, output.sense)
-        utils.make_relative_symlink(input.neg, output.antisense)
-
-
 rule rnaseq_rmarkdown:
     """
     Run and render the RMarkdown file that performs differential expression
@@ -875,22 +862,22 @@ rule rnaseq_rmarkdown:
         'downstream/rnaseq.log'
     shell:
         'Rscript -e '
-        '''"rmarkdown::render('{input.rmd}', 'knitrBootstrap::bootstrap_document')" '''
+        '''"rmarkdown::render('{input.rmd}')" '''
         '> {log} 2>&1'
 
 
 def bigwigs_to_merge(wc):
     chunk = config['merged_bigwigs'][wc.merged_bigwig_label]
-    antisense_labels = chunk.get('antisense', [])
-    sense_labels = chunk.get('sense', [])
-    sense_bigwigs = expand(
-        c.patterns['bigwig']['sense'],
-        sample=sense_labels
+    neg_labels = chunk.get('neg', [])
+    pos_labels = chunk.get('pos', [])
+    pos_bigwigs = expand(
+        c.patterns['bigwig']['pos'],
+        sample=pos_labels
     )
-    antisense_bigwigs = expand(
-        c.patterns['bigwig']['antisense'],
-        sample=antisense_labels)
-    return sense_bigwigs + antisense_bigwigs
+    neg_bigwigs = expand(
+        c.patterns['bigwig']['neg'],
+        sample=neg_labels)
+    return pos_bigwigs + neg_bigwigs
 
 if 'merged_bigwigs' in config:
     rule merge_bigwigs:

@@ -444,6 +444,20 @@ The following conversions can be specified for GTF files:
 
       {references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.refflat
 
+:bed12:
+
+    .. code-block:: yaml
+
+        conversions:
+           - bed12
+
+   Converts GTF to BED12 format. See the ``conversion_bed12`` rule in
+   ``workflows/references/Snakefile``.
+
+   Output file::
+
+      {references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.refflat
+
 :gffutils:
     Converts GTF to gffutils database (typically used for downstream work). You
     can specify arbitrary kwargs to ``gffutils.create_db`` by including them as

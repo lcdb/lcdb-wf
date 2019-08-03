@@ -47,15 +47,21 @@ pytest-runner >=2.11
 pytest-xdist
 pyyaml >=3.12
 r-base >=3.5.1
+r-bindrcpp
 r-codetools
 r-dt
+r-ggrepel
+r-heatmaply
 r-kernsmooth
 r-knitr
 r-knitrbootstrap
 r-pheatmap
+r-plotly
+r-quantreg
 r-readr
 r-rmarkdown
 r-spp
+r-sparsem
 r-upsetr
 rseqc >=3.0
 salmon
@@ -73,6 +79,7 @@ ucsc-bedtobigbed
 ucsc-bigwigmerge
 ucsc-fetchchromsizes
 ucsc-gtftogenepred
+ucsc-genepredtobed
 ucsc-liftover
 ucsc-oligomatch
 ucsc-twobittofa
