@@ -742,9 +742,11 @@ rule salmon:
                 # NOTE: --libType=A auto-detects library type. Change if needed.
                 '--libType=A '
 
-                # NOTE: Docs suggest using --gcBias and --seqBias is a good idea
+                # NOTE: Docs suggest using --gcBias, --validateMappings, and
+                # --seqBias is a good idea
                 '--gcBias '
                 '--seqBias '
+                '--validateMappings '
                 '-1 {input.fastq[0]} '
                 '-2 {input.fastq[1]} '
                 '&> {log}'
@@ -760,9 +762,11 @@ rule salmon:
                 # NOTE: --libType=A auto-detects library type. Change if needed.
                 '--libType=A '
 
-                # NOTE: Docs suggest using --gcBias and --seqBias is a good idea
+                # NOTE: Docs suggest using --gcBias, --validateMappings, and
+                # --seqBias is a good idea
                 '--gcBias '
                 '--seqBias '
+                '--validateMappings '
                 '-r {input.fastq} '
                 '&> {log}'
             )
