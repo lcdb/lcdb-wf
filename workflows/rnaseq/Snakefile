@@ -439,22 +439,15 @@ rule featurecounts:
         annotation=c.refdict[c.organism][config['gtf']['tag']]['gtf'],
         bam=c.targets['bam']
     output:
-        counts='{sample_dir}/rnaseq_aggregation/featurecounts.{stranded}.txt'
+        counts='{sample_dir}/rnaseq_aggregation/featurecounts.txt'
     log:
-        '{sample_dir}/rnaseq_aggregation/featurecounts.{stranded}.txt.log'
+        '{sample_dir}/rnaseq_aggregation/featurecounts.txt.log'
     shell:
             'featureCounts '
 
             # NOTE:
-            # By default, this rule runs three times, using a different strand
-            # setting each time. The strand argument (-s0, -s1, -s2) to
-            # featureCounts is pulled straight from the wildcards, and the
-            # corresponding filenames have been set up in rnaseq_patterns.yaml.
-            #
-            # You probably do NOT want to add your own -s argument below, however
-            # other arguments might be useful. For example, for nascent RNA-seq,
-            # add '-t gene -g gene_id -f '
-            '-{wildcards.stranded} '
+            # Choose strandedness here
+            '-s0 '
 
             # NOTE:
             # Paired-end data? You'll likely want to use the -p argument
@@ -741,9 +734,11 @@ rule salmon:
                 # NOTE: --libType=A auto-detects library type. Change if needed.
                 '--libType=A '
 
-                # NOTE: Docs suggest using --gcBias and --seqBias is a good idea
+                # NOTE: Docs suggest using --gcBias, --validateMappings, and
+                # --seqBias is a good idea
                 '--gcBias '
                 '--seqBias '
+                '--validateMappings '
                 '-1 {input.fastq[0]} '
                 '-2 {input.fastq[1]} '
                 '&> {log}'
@@ -759,9 +754,11 @@ rule salmon:
                 # NOTE: --libType=A auto-detects library type. Change if needed.
                 '--libType=A '
 
-                # NOTE: Docs suggest using --gcBias and --seqBias is a good idea
+                # NOTE: Docs suggest using --gcBias, --validateMappings, and
+                # --seqBias is a good idea
                 '--gcBias '
                 '--seqBias '
+                '--validateMappings '
                 '-r {input.fastq} '
                 '&> {log}'
             )
