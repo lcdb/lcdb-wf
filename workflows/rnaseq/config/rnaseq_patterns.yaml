@@ -11,9 +11,9 @@ libsizes:
   bam:     'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.libsize'
 fastq_screen: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.screen.txt'
 featurecounts:
-  s0: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.featurecounts.s0.txt'
-  s1: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.featurecounts.s1.txt'
-  s2: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.featurecounts.s2.txt'
+  s0: 'data/rnaseq_aggregation/featurecounts.s0.txt'
+  s1: 'data/rnaseq_aggregation/featurecounts.s1.txt'
+  s2: 'data/rnaseq_aggregation/featurecounts.s2.txt'
 libsizes_table: 'data/rnaseq_aggregation/libsizes_table.tsv'
 libsizes_yaml: 'data/rnaseq_aggregation/libsizes_table_mqc.yaml'
 rrna_percentages_table: 'data/rnaseq_aggregation/rrna_percentages_table.tsv'

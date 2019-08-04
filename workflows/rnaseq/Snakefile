@@ -196,6 +196,7 @@ rule cutadapt:
         fastq=render_r1_r2(c.patterns['cutadapt'])
     log:
         render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
+    threads: 6
     run:
         paired = len(input) == 2
 
@@ -212,6 +213,7 @@ rule cutadapt:
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
                 '-q 20 '
+                '-j {threads} '
                 '--minimum-length 25 '
                 "&> {log}"
             )
@@ -435,28 +437,12 @@ rule featurecounts:
     """
     input:
         annotation=c.refdict[c.organism][config['gtf']['tag']]['gtf'],
-        bam=c.patterns['bam']
+        bam=c.targets['bam']
     output:
-        counts='{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt'
+        counts='{sample_dir}/rnaseq_aggregation/featurecounts.{stranded}.txt'
     log:
-        '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt.log'
-    run:
-        # NOTE:
-        # For paired-end reads, you probably want -p to count fragments rather
-        # than individual reads (which may be on opposite strands from each
-        # other).
-        #
-        # By default, this is automatically detected based on the layout column
-        # of the sampletable. If you do not want `-p` added automatically for
-        # PE samples, change this to False:
-        #
-        if common.is_paired_end(c.sampletable, wildcards.sample):
-            p_arg = '-p'
-        else:
-            p_arg = ''
-
-        shell(
-
+        '{sample_dir}/rnaseq_aggregation/featurecounts.{stranded}.txt.log'
+    shell:
             'featureCounts '
 
             # NOTE:
@@ -470,13 +456,14 @@ rule featurecounts:
             # add '-t gene -g gene_id -f '
             '-{wildcards.stranded} '
 
-            '{p_arg} '
+            # NOTE:
+            # Paired-end data? You'll likely want to use the -p argument
+            # '-p '
             '-T {threads} '
             '-a {input.annotation} '
             '-o {output.counts} '
             '{input.bam} '
             '&> {log}'
-        )
 
 
 rule rrna_libsizes_table:
@@ -740,6 +727,7 @@ rule salmon:
         outdir=os.path.dirname(c.patterns['salmon'])
     log:
         c.patterns['salmon'] + '.log'
+    threads: 6
     run:
         paired = len(input.fastq) == 2
         if paired:
