@@ -30,7 +30,7 @@ DOCHTML=$DOCSOURCE/_build/html
 STAGING=/tmp/${GITHUB_USERNAME}-docs
 
 # Build docs only if travis-ci is testing this branch:
-BUILD_DOCS_FROM_BRANCH="fix-182"
+BUILD_DOCS_FROM_BRANCH="master"
 
 # ----------------------------------------------------------------------------
 #
