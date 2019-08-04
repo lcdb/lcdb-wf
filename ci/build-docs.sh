@@ -30,7 +30,7 @@ DOCHTML=$DOCSOURCE/_build/html
 STAGING=/tmp/${GITHUB_USERNAME}-docs
 
 # Build docs only if travis-ci is testing this branch:
-BUILD_DOCS_FROM_BRANCH="master"
+BUILD_DOCS_FROM_BRANCH="fix-182"
 
 # ----------------------------------------------------------------------------
 #
@@ -72,7 +72,7 @@ if git diff --quiet; then
     exit 0
 fi
 
-if [[ $CIRCLE_BRANCH != master ]]; then
+if [[ $CIRCLE_BRANCH != $BUILD_DOCS_FROM_BRANCH ]]; then
     echo "Not pushing docs because not on branch '$BUILD_DOCS_FROM_BRANCH'"
     exit 0
 fi
