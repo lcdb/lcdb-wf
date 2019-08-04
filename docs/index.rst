@@ -1,6 +1,8 @@
 lcdb-wf
 =======
 
+See :ref:`changelog` for recent changes.
+
 `lcdb-wf` is a collection of Snakemake workflows for common high-throughput
 sequencing analysis.
 

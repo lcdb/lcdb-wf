@@ -236,61 +236,61 @@ workflows:
   test-suite:
     jobs:
       - initial-setup
-      - pytest:
-         requires:
-           - initial-setup
-      - chipseq:
-         requires:
-           - initial-setup
-           - pytest
-         filters:
-           branches:
-             ignore:
-               - master
-      - rnaseq:
-          requires:
-            - initial-setup
-            - pytest
-          filters:
-            branches:
-              ignore:
-                - master
-      - rnaseq-star:
-          requires:
-            - initial-setup
-            - pytest
-          filters:
-            branches:
-              ignore:
-                - master
-      - references:
-          requires:
-            - initial-setup
-            - pytest
-          filters:
-            branches:
-              ignore:
-                - master
-      - colocalization:
-          requires:
-            - initial-setup
-            - pytest
-          filters:
-            branches:
-              ignore:
-                - master
+        #      - pytest:
+        #         requires:
+        #           - initial-setup
+        #      - chipseq:
+        #         requires:
+        #           - initial-setup
+        #           - pytest
+        #         filters:
+        #           branches:
+        #             ignore:
+        #               - master
+        #      - rnaseq:
+        #          requires:
+        #            - initial-setup
+        #            - pytest
+        #          filters:
+        #            branches:
+        #              ignore:
+        #                - master
+        #      - rnaseq-star:
+        #          requires:
+        #            - initial-setup
+        #            - pytest
+        #          filters:
+        #            branches:
+        #              ignore:
+        #                - master
+        #      - references:
+        #          requires:
+        #            - initial-setup
+        #            - pytest
+        #          filters:
+        #            branches:
+        #              ignore:
+        #                - master
+        #      - colocalization:
+        #          requires:
+        #            - initial-setup
+        #            - pytest
+        #          filters:
+        #            branches:
+        #              ignore:
+        #                - master
       - build-docs:
           requires:
             - initial-setup
-
-      - report-env:
-          requires:
-            - rnaseq
-            - rnaseq-star
-            - chipseq
-            - references
-            - colocalization
-          filters:
-            branches:
-              ignore:
-                - master
+        #
+        #      - report-env:
+        #          requires:
+        #            - rnaseq
+        #            - rnaseq-star
+        #            - chipseq
+        #            - references
+        #            - colocalization
+        #          filters:
+        #            branches:
+        #              ignore:
+        #                - master
