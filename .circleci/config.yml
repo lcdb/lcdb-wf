@@ -162,7 +162,7 @@ jobs:
           command: yum install git -y
       - run:
           name: Build and upload docs
-          command: ci/build-docs.sh
+          command: source activate lcdb-wf-test && ci/build-docs.sh
 
 
 
