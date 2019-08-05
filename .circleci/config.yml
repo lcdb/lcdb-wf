@@ -45,82 +45,6 @@ variables:
       command: .circleci/setup.sh
   # --------------------------------------------------------------------------
 
-  get-data: &get-data
-    run:
-      name: Download example data
-      command: |
-        source activate lcdb-wf-test
-        python ci/get-data.py
-
-  pytest-step: &pytest-step
-    run:
-      name: Run pytest suite
-      command: |
-        source activate lcdb-wf-test
-        pytest --doctest-modules lib
-
-  chipseq-step: &chipseq-step
-      run:
-        name: chipseq workflow
-        command: |
-          cd workflows/chipseq
-          source activate lcdb-wf-test
-          ./run_test.sh --use-conda -j2 -k -p -r
-          python chipseq_trackhub.py config/config.yaml config/hub_config.yaml
-
-  references-step: &references-step
-      run:
-        name: references workflow
-        command: |
-          cd workflows/references
-          source activate lcdb-wf-test
-          ./run_test.sh  --use-conda -j2 -k -p -r
-
-  rnaseq-step: &rnaseq-step
-      run:
-        name: rnaseq workflow
-        command: |
-          cd workflows/rnaseq
-          source activate lcdb-wf-test
-          ./run_test.sh --use-conda -j2 -k -p -r
-          python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
-
-  rnaseq-star-step: &rnaseq-star-step
-      run:
-        name: rnaseq star aligner
-        command: |
-          cp -r workflows/rnaseq workflows/rnaseq-star
-          cd workflows/rnaseq-star
-          source activate lcdb-wf-test
-          ./run_test.sh --use-conda -k -p -r \
-            --forcerun star \
-            --configfile ../../test/test_configs/star_override.yaml \
-            --config sampletable=../../test/test_configs/two_samples.tsv \
-            --until star
-
-  rnaseq-sra-step: &rnaseq-sra-step
-      run:
-        name: rnaseq download from SRA
-        command: |
-          cp -r workflows/rnaseq workflows/rnaseq-sra-test
-          cd workflows/rnaseq-sra-test
-          source activate lcdb-wf-test
-
-          ./run_test.sh --use-conda -k -p -r --until cutadapt \
-            --configfile ../../test/test_configs/override.yaml \
-            --config sampletable=../../test/test_configs/test_sra_sampletable.tsv
-
-          ./run_test.sh --use-conda -k -p -r --until cutadapt \
-            --configfile ../../test/test_configs/override.yaml \
-            --config sampletable=../../test/test_configs/test_sra_sampletable_SE_only.tsv
-
-  colocalization-step: &colocalization-step
-      run:
-        name: colocalization workflow
-        command: |
-          cd workflows/colocalization
-          source activate lcdb-wf-test
-          ./run_test.sh --use-conda -j2 -k -p -r
 
   # The path needs to be set each time
   set-path: &set-path
@@ -141,13 +65,12 @@ jobs:
       - *setup
       - *save_cache
 
-
   build-docs:
     <<: *defaults
     steps:
       - add_ssh_keys:
           fingerprints:
-            - 99:b4:dd:2c:82:9a:27:07:ca:b4:eb:bf:9c:49:4a:72
+            - 2d:0c:b4:27:44:cf:f4:50:cc:14:a4:2b:c2:3c:09:06
       - checkout
       - *restore_cache
       - *set-path
@@ -163,7 +86,6 @@ jobs:
       - run:
           name: Build and upload docs
           command: source activate lcdb-wf-test && ci/build-docs.sh
-
 
 
 workflows:
