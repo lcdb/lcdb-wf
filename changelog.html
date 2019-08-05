@@ -98,7 +98,7 @@
           <div class="body" role="main">
             
   <div class="section" id="changelog">
-<span id="id1"></span><h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
+<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="v1-4-1">
 <h2>v1.4.1<a class="headerlink" href="#v1-4-1" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="rna-seq">
@@ -127,8 +127,8 @@ other species.</p></li>
 </div>
 <div class="section" id="v1-4">
 <h2>v1.4<a class="headerlink" href="#v1-4" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id2">
-<h3>RNA-seq<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id1">
+<h3>RNA-seq<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <p>Much-improved <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code>:</p>
 <ul class="simple">
 <li><p>tabbed PCA plot</p></li>
@@ -184,16 +184,16 @@ to track down what parameters are being used in each rule.</p></li>
 </div>
 <div class="section" id="v1-2">
 <h2>v1.2<a class="headerlink" href="#v1-2" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id3">
-<h3>RNA-seq<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id2">
+<h3>RNA-seq<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>First-class paired-end support, including mixing PE and SE samples in the
 same sampletable</p></li>
 <li><p>Support for STAR aligner</p></li>
 </ul>
 </div>
-<div class="section" id="id4">
-<h3>References<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id3">
+<h3>References<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <ul>
 <li><p>FASTA files are always symlinked into the directories of indexes that were
 created from it</p></li>
@@ -210,14 +210,14 @@ and Ensembl (see reference configs for examples of use)</p></li>
 </li>
 </ul>
 </div>
-<div class="section" id="id5">
-<h3>ChIP-seq and RNA-seq<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id4">
+<h3>ChIP-seq and RNA-seq<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Updates to dependencies and MultiQC config</p></li>
 </ul>
 </div>
-<div class="section" id="id6">
-<h3>Infrastructure<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id5">
+<h3>Infrastructure<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Updated requirements in <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> and in wrappers</p></li>
 <li><p>Changed all <code class="docutils literal notranslate"><span class="pre">pd.read_table()</span></code> to <code class="docutils literal notranslate"><span class="pre">pd.read_csv(sep=&quot;\t&quot;)</span></code> to prevent warnings</p></li>
@@ -256,8 +256,8 @@ pandas index errors</p></li>
 </div>
 <div class="section" id="v1-1">
 <h2>v1.1<a class="headerlink" href="#v1-1" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id7">
-<h3>Infrastructure<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id6">
+<h3>Infrastructure<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>The default settings in Snakefiles are for real-world use, rather than for
 testing. This reduces the amount of editing necessary before running actual
@@ -272,8 +272,8 @@ autodocs on the <code class="docutils literal notranslate"><span class="pre">lib
 <li><p>pytest test suite is run on the <code class="docutils literal notranslate"><span class="pre">lib</span></code> module</p></li>
 </ul>
 </div>
-<div class="section" id="id8">
-<h3>References<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id7">
+<h3>References<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>new <cite>metadata</cite> section in references config, which can be used to store
 additional information like mappable bases and genome size.</p></li>
@@ -317,8 +317,8 @@ filenames and how they are determined.</p></li>
 <li><p>macs2 and sicer can accept mappable genome size overrides</p></li>
 </ul>
 </div>
-<div class="section" id="id9">
-<h3>RNA-seq<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id8">
+<h3>RNA-seq<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <ul>
 <li><p>RNA-seq downstream:</p>
 <blockquote>
@@ -343,8 +343,8 @@ functions to use this new structure</p></li>
 <div class="section" id="v1-0-1">
 <h2>v1.0.1<a class="headerlink" href="#v1-0-1" title="Permalink to this headline">¶</a></h2>
 <p>Bugfixes, last release before references changes.</p>
-<div class="section" id="id10">
-<h3>Infrastructure<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id9">
+<h3>Infrastructure<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Transition to CircleCI for testing</p></li>
 <li><p>Use production settings by default; see <span class="xref std std-ref">note-on-test-settings</span> for
@@ -360,8 +360,8 @@ additional features in rnaseq.Rmd and track hubs.</p></li>
 vertical integration</p></li>
 </ul>
 </div>
-<div class="section" id="id11">
-<h3>RNA-seq<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id10">
+<h3>RNA-seq<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>remove kallisto indexing, use salmon</p></li>
 <li><p>improvements to how chipseq sampletables are parsed (with more informative
@@ -395,8 +395,8 @@ used for the contrast) as well as TPM estimates to the results tables</p></li>
 <li><p>trim the labels in GO enrichment plots when too long</p></li>
 </ul>
 </div>
-<div class="section" id="id12">
-<h3>ChIP-seq<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id11">
+<h3>ChIP-seq<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>sicer for chipseq domain calling</p></li>
 <li><p>pin snakemake &lt;4.5.0 so that subworkflows behave correctly</p></li>
@@ -408,8 +408,8 @@ depending on their format</p></li>
 <li><p>ChIP-seq track hub generation script</p></li>
 </ul>
 </div>
-<div class="section" id="id13">
-<h3>Both RNA-seq and ChIP-seq<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id12">
+<h3>Both RNA-seq and ChIP-seq<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>update deeptools calls to reflect &gt;v3.0 syntax</p></li>
 <li><p>support for SRA run tables so it’s trivial to re-run experiments
