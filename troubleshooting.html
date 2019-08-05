@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Troubleshooting &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -13,6 +11,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Module documentation" href="autodoc.html" />
@@ -72,13 +71,11 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -107,12 +104,12 @@ the cluster.  As described in the above section, by default stdout and stderr
 are sent to the <code class="docutils literal notranslate"><span class="pre">logs</span></code> directory, named after rule and job ID.</p>
 <p><strong>If a job fails on a cluster</strong>:</p>
 <ul class="simple">
-<li>Open <code class="docutils literal notranslate"><span class="pre">Snakefile.log</span></code> and search for <code class="docutils literal notranslate"><span class="pre">Error</span></code></li>
-<li>Recent versions of Snakemake report the <code class="docutils literal notranslate"><span class="pre">log:</span></code> file (if any) and the
-<code class="docutils literal notranslate"><span class="pre">cluster_jobid:</span></code>. Keep track of these.</li>
-<li>If <code class="docutils literal notranslate"><span class="pre">log:</span></code> was defined, check there first for info</li>
-<li>If not, or if more information is needed, check
-<code class="docutils literal notranslate"><span class="pre">logs/&lt;rulename&gt;.{e,o}.&lt;jobid&gt;</span></code>.</li>
+<li><p>Open <code class="docutils literal notranslate"><span class="pre">Snakefile.log</span></code> and search for <code class="docutils literal notranslate"><span class="pre">Error</span></code></p></li>
+<li><p>Recent versions of Snakemake report the <code class="docutils literal notranslate"><span class="pre">log:</span></code> file (if any) and the
+<code class="docutils literal notranslate"><span class="pre">cluster_jobid:</span></code>. Keep track of these.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">log:</span></code> was defined, check there first for info</p></li>
+<li><p>If not, or if more information is needed, check
+<code class="docutils literal notranslate"><span class="pre">logs/&lt;rulename&gt;.{e,o}.&lt;jobid&gt;</span></code>.</p></li>
 </ul>
 <p>For example, if we find the following error in <code class="docutils literal notranslate"><span class="pre">Snakefile.log</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Tue</span> <span class="n">Feb</span>  <span class="mi">6</span> <span class="mi">20</span><span class="p">:</span><span class="mi">06</span><span class="p">:</span><span class="mi">30</span> <span class="mi">2018</span><span class="p">]</span> <span class="n">Error</span> <span class="ow">in</span> <span class="n">rule</span> <span class="n">rnaseq_rmarkdown</span><span class="p">:</span>
@@ -136,7 +133,7 @@ are sent to the <code class="docutils literal notranslate"><span class="pre">log
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

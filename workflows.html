@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Overview of workflows &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -13,6 +11,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Configuration" href="config.html" />
@@ -75,13 +74,11 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -97,9 +94,9 @@
   <div class="section" id="overview-of-workflows">
 <h1>Overview of workflows<a class="headerlink" href="#overview-of-workflows" title="Permalink to this headline">¶</a></h1>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
+<p class="admonition-title">Note</p>
 <p>These workflows <strong>are intended to be edited and customized by the user</strong>.</p>
-<p class="last">The typical use-case is to clone the entire repository into a new directory
+<p>The typical use-case is to clone the entire repository into a new directory
 for each project. The Snakefiles and config files are then edited
 accordingly for that particular project.</p>
 </div>
@@ -119,21 +116,21 @@ accordingly for that particular project.</p>
 </pre></div>
 </div>
 <ol class="arabic simple">
-<li><code class="docutils literal notranslate"><span class="pre">ci</span></code> contains infrastructure for continuous integration testing. You don’t
-have to worry about this stuff unless you’re actively developing <cite>lcdb-wf</cite>.</li>
-<li><code class="docutils literal notranslate"><span class="pre">docs/</span></code> contains the source for documentation. You’re reading it.</li>
-<li><code class="docutils literal notranslate"><span class="pre">include/</span></code> has miscellaneous files and scripts that can be used by all
+<li><p><code class="docutils literal notranslate"><span class="pre">ci</span></code> contains infrastructure for continuous integration testing. You don’t
+have to worry about this stuff unless you’re actively developing <cite>lcdb-wf</cite>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">docs/</span></code> contains the source for documentation. You’re reading it.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">include/</span></code> has miscellaneous files and scripts that can be used by all
 workflows. Of particular note is the <code class="docutils literal notranslate"><span class="pre">WRAPPER_SLURM</span></code> script (see
 <a class="reference internal" href="cluster.html#cluster"><span class="std std-ref">Running on a cluster</span></a> for more) and the <code class="docutils literal notranslate"><span class="pre">reference_configs</span></code> directory (see
-<a class="reference internal" href="references.html#references"><span class="std std-ref">References workflow</span></a> and <a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration</span></a> for more).</li>
-<li><code class="docutils literal notranslate"><span class="pre">lib/</span></code> contains Python modules used by the workflows.</li>
-<li><code class="docutils literal notranslate"><span class="pre">README.md</span></code> contains top-level info.</li>
-<li><code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> contains the package dependencies needed to run the
-workflows, and is used to set up a conda environment.</li>
-<li><code class="docutils literal notranslate"><span class="pre">workflows/</span></code> contains one directory for each workflow; see below for details.</li>
-<li><code class="docutils literal notranslate"><span class="pre">wrappers/</span></code> contains Snakemake <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/snakefiles/modularization.html#wrappers">wrappers</a>,
+<a class="reference internal" href="references.html#references"><span class="std std-ref">References workflow</span></a> and <a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration</span></a> for more).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lib/</span></code> contains Python modules used by the workflows.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> contains top-level info.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> contains the package dependencies needed to run the
+workflows, and is used to set up a conda environment.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">workflows/</span></code> contains one directory for each workflow; see below for details.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wrappers/</span></code> contains Snakemake <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/snakefiles/modularization.html#wrappers">wrappers</a>,
 which are scripts that can use their own independent environment. See
-<a class="reference internal" href="wrappers.html#wrappers"><span class="std std-ref">Wrappers</span></a> for more.</li>
+<a class="reference internal" href="wrappers.html#wrappers"><span class="std std-ref">Wrappers</span></a> for more.</p></li>
 </ol>
 <div class="section" id="workflow-directories">
 <h3>Workflow directories<a class="headerlink" href="#workflow-directories" title="Permalink to this headline">¶</a></h3>
@@ -161,15 +158,15 @@ which are scripts that can use their own independent environment. See
 <p>There are two general classes of workflows, the primary analysis and the
 downstream analysis. The primary analysis workflows are:</p>
 <ul class="simple">
-<li><a class="reference internal" href="references.html#references"><span class="std std-ref">References workflow</span></a></li>
-<li><a class="reference internal" href="rnaseq.html#rnaseq"><span class="std std-ref">RNA-seq workflow</span></a></li>
-<li><a class="reference internal" href="chipseq.html#chipseq"><span class="std std-ref">ChIP-seq workflow</span></a></li>
+<li><p><a class="reference internal" href="references.html#references"><span class="std std-ref">References workflow</span></a></p></li>
+<li><p><a class="reference internal" href="rnaseq.html#rnaseq"><span class="std std-ref">RNA-seq workflow</span></a></p></li>
+<li><p><a class="reference internal" href="chipseq.html#chipseq"><span class="std std-ref">ChIP-seq workflow</span></a></p></li>
 </ul>
 <p>and the downstream workflows are:</p>
 <ul class="simple">
-<li><a class="reference internal" href="colocalization.html#colocalization"><span class="std std-ref">Colocalization workflow</span></a></li>
-<li><a class="reference internal" href="external.html#external"><span class="std std-ref">“External” workflow</span></a></li>
-<li><a class="reference internal" href="figures.html#figures"><span class="std std-ref">“Figures” workflow</span></a></li>
+<li><p><a class="reference internal" href="colocalization.html#colocalization"><span class="std std-ref">Colocalization workflow</span></a></p></li>
+<li><p><a class="reference internal" href="external.html#external"><span class="std std-ref">“External” workflow</span></a></p></li>
+<li><p><a class="reference internal" href="figures.html#figures"><span class="std std-ref">“Figures” workflow</span></a></p></li>
 </ul>
 <p>Each workflow is driven by a <code class="docutils literal notranslate"><span class="pre">Snakefile</span></code> and is configured by plain text
 <a class="reference external" href="https://en.wikipedia.org/wiki/YAML">YAML</a> and <a class="reference external" href="https://en.wikipedia.org/wiki/Tab-separated_values">TSV</a> format files (see
@@ -214,28 +211,28 @@ tools (examples include rules calling samtools, deepTools bamCoverage, picard,
 salmon).  However in some cases we use wrapper scripts. Situtations where we
 use wrappers:</p>
 <ul class="simple">
-<li>Aligners (HISAT2, Bowtie2). These wrappers call the aligner, followed by
-samtools sort and view such that FASTQs go in, and sorted BAM comes out.</li>
-<li>Tools with legacy dependencies like Python 2.7 that must be run in an
-independent environment (macs2, sicer, rseqc)</li>
-<li>R analyses (particularly spp and dupradar, which build up an R script
-incrementally before calling it).</li>
-<li>Tools that need complicated setup, or handling output files hard-coded by the
-tool (fastqc, fastq_screen).</li>
+<li><p>Aligners (HISAT2, Bowtie2). These wrappers call the aligner, followed by
+samtools sort and view such that FASTQs go in, and sorted BAM comes out.</p></li>
+<li><p>Tools with legacy dependencies like Python 2.7 that must be run in an
+independent environment (macs2, sicer, rseqc)</p></li>
+<li><p>R analyses (particularly spp and dupradar, which build up an R script
+incrementally before calling it).</p></li>
+<li><p>Tools that need complicated setup, or handling output files hard-coded by the
+tool (fastqc, fastq_screen).</p></li>
 </ul>
 <p>In all cases, search for the string <strong>NOTE:</strong> in the Snakefile to read notes on
 how to configure each rule, and make adjustments as necessary. You may see some
 comments that say <cite># [TEST SETTINGS]</cite>; you can ignore these, and see
 <a class="reference internal" href="tests.html#test-settings"><span class="std std-ref">A note about test settings</span></a> for more info.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
+<p class="admonition-title">Note</p>
 <p>You can copy entire directories and keep them separate. As an example,
 imagine you have two different RNA-seq experiments. They are from two
 different species, and so have to be run separately. But you would like to
 keep them in the same project because downstream analysis will use them
 both.  In this case, you can copy the <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq</span></code> directory to two
 other directories:</p>
-<div class="last highlight-bash notranslate"><div class="highlight"><pre><span></span>cp -r workflows/rnaseq workflows/genome1-rnaseq
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp -r workflows/rnaseq workflows/genome1-rnaseq
 cp -r workflows/rnaseq workflows/genome2-rnaseq
 </pre></div>
 </div>
@@ -255,7 +252,7 @@ cp -r workflows/rnaseq workflows/genome2-rnaseq
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

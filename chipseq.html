@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>ChIP-seq workflow &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -13,6 +11,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="“External” workflow" href="external.html" />
@@ -72,13 +71,11 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -96,20 +93,20 @@
 <p>The ChIP-seq workflow includes:</p>
 <blockquote>
 <div><ul class="simple">
-<li>trimming reads with cutadapt</li>
-<li>mapping reads with Bowtie2</li>
-<li>FastQC on raw, trimmed, and aligned reads</li>
-<li>Remove multimappers (samtools) and duplicates (Picard MarkDuplicates)</li>
-<li>fastq_screen on multiple configured genomes to look for evidence of
-cross-contamination</li>
-<li>QC aggregation using MultiQC, along with a custom table for library sizes</li>
-<li>merging and re-deduplicating to correctly handle technical replicates</li>
-<li>bigWigs created from unique, no-dups BAM files</li>
-<li>deepTools plotFingerprint run on grouped IP and input for QC and
-evaluation of enrichment</li>
-<li>peak-calling using macs2 and/or spp</li>
-<li>conversion of BED files into bigBed (or bigNarrowPeak where possible)</li>
-<li>track hub of bigWigs and bigBeds to visualize peak-calling in UCSC Genome Browser</li>
+<li><p>trimming reads with cutadapt</p></li>
+<li><p>mapping reads with Bowtie2</p></li>
+<li><p>FastQC on raw, trimmed, and aligned reads</p></li>
+<li><p>Remove multimappers (samtools) and duplicates (Picard MarkDuplicates)</p></li>
+<li><p>fastq_screen on multiple configured genomes to look for evidence of
+cross-contamination</p></li>
+<li><p>QC aggregation using MultiQC, along with a custom table for library sizes</p></li>
+<li><p>merging and re-deduplicating to correctly handle technical replicates</p></li>
+<li><p>bigWigs created from unique, no-dups BAM files</p></li>
+<li><p>deepTools plotFingerprint run on grouped IP and input for QC and
+evaluation of enrichment</p></li>
+<li><p>peak-calling using macs2 and/or spp</p></li>
+<li><p>conversion of BED files into bigBed (or bigNarrowPeak where possible)</p></li>
+<li><p>track hub of bigWigs and bigBeds to visualize peak-calling in UCSC Genome Browser</p></li>
 </ul>
 </div></blockquote>
 <img alt="_images/chipseq.png" src="_images/chipseq.png" />
@@ -126,7 +123,7 @@ evaluation of enrichment</li>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Running the tests &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -13,6 +11,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Deploying lcdb-wf and staying up-to-date" href="deploy.html" />
@@ -80,13 +79,11 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -107,8 +104,8 @@ that are performed during the automated tests on <a class="reference external" h
 <p>The example run takes up about 360 MB of space and runs in about 15 mins on
 2 cores.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The environment you created (see <a class="reference internal" href="getting-started.html#create-env"><span class="std std-ref">2. Create a new conda environment</span></a>) needs to be activated
+<p class="admonition-title">Note</p>
+<p>The environment you created (see <a class="reference internal" href="getting-started.html#create-env"><span class="std std-ref">2. Create a new conda environment</span></a>) needs to be activated
 for these steps.</p>
 </div>
 <div class="section" id="download-example-data">
@@ -122,8 +119,8 @@ for these steps.</p>
 <div class="section" id="a-note-about-test-settings">
 <span id="test-settings"></span><h2>A note about test settings<a class="headerlink" href="#a-note-about-test-settings" title="Permalink to this headline">¶</a></h2>
 <div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The default configuration assumes a machine with large amounts of RAM.
+<p class="admonition-title">Warning</p>
+<p>The default configuration assumes a machine with large amounts of RAM.
 Running the workflows as-is on a single machine with limited RAM may cause
 all RAM to be consumed! Use <code class="docutils literal notranslate"><span class="pre">run_test.sh</span></code> as described below to avoid
 this.</p>
@@ -184,11 +181,11 @@ more details.</p>
 <p>After the workflow runs, here are some useful points of interest in the output:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">data/rnaseq_samples/*</span></code>: sample-specific output. For example,
-individual BAMs and bigWig files can be found here</li>
-<li><code class="docutils literal notranslate"><span class="pre">data/aggregation/multiqc.html</span></code>:  MultiQC report.</li>
-<li><code class="docutils literal notranslate"><span class="pre">downstream/rnaseq.html</span></code>: Differential expression results generated
-from running the <code class="docutils literal notranslate"><span class="pre">downstream/rnaseq.Rmd</span></code> RMarkdown file.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/rnaseq_samples/*</span></code>: sample-specific output. For example,
+individual BAMs and bigWig files can be found here</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/aggregation/multiqc.html</span></code>:  MultiQC report.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">downstream/rnaseq.html</span></code>: Differential expression results generated
+from running the <code class="docutils literal notranslate"><span class="pre">downstream/rnaseq.Rmd</span></code> RMarkdown file.</p></li>
 </ul>
 </div></blockquote>
 <p>See <a class="reference internal" href="rnaseq.html#rnaseq"><span class="std std-ref">RNA-seq workflow</span></a> for details.</p>
@@ -221,13 +218,13 @@ workflow. The ChIP-seq workflow includes QC, mapping, and peak-calling.</p>
 <p>Points of interest:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">data/chipseq_samples/*</span></code>: sample-specific output. Individual BAM files
-for a sample can be found here.</li>
-<li><code class="docutils literal notranslate"><span class="pre">data/chipseq_merged/*</span></code>: technical replicates merged and re-deduped, or
-if only one tech rep, symlinked to the BAM in the samples directory</li>
-<li><code class="docutils literal notranslate"><span class="pre">data/chipseq_peaks/*</span></code>: peak-caller output, including BED files of
-called peaks and bedGraph files of signal as output by each algorithm</li>
-<li><code class="docutils literal notranslate"><span class="pre">data/chipseq_aggregation/multiqc.html</span></code>: MultiQC report</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/chipseq_samples/*</span></code>: sample-specific output. Individual BAM files
+for a sample can be found here.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/chipseq_merged/*</span></code>: technical replicates merged and re-deduped, or
+if only one tech rep, symlinked to the BAM in the samples directory</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/chipseq_peaks/*</span></code>: peak-caller output, including BED files of
+called peaks and bedGraph files of signal as output by each algorithm</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/chipseq_aggregation/multiqc.html</span></code>: MultiQC report</p></li>
 </ul>
 </div></blockquote>
 <p>See <a class="reference internal" href="chipseq.html#chipseq"><span class="std std-ref">ChIP-seq workflow</span></a> for details.</p>
@@ -243,7 +240,8 @@ RNA-seq workflows).</p>
 <p>From the top-level of the repo, change to the <code class="docutils literal notranslate"><span class="pre">workflows/references</span></code> directory:
 .. code-block:: bash</p>
 <blockquote>
-<div>cd workflows/references</div></blockquote>
+<div><p>cd workflows/references</p>
+</div></blockquote>
 <p>First, run in dry-run mode which will print out the jobs to be run.  The
 arguments will be described later, this is just to get things running:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./run_test.sh -n --use-conda --configfile ../../include/reference_configs/test.yaml
@@ -282,7 +280,7 @@ results.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Sample tables &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -13,6 +11,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Patterns and targets" href="patterns-targets.html" />
@@ -80,13 +79,11 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -199,12 +196,12 @@ must have an empty entry for <cite>orig_filename_R2</cite> (in the context of th
 tab-delimited sampletable, this means two tab characters next to
 each other with nothing in between).</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
+<p class="admonition-title">Note</p>
 <p>If the sample table contains both single- and paired-end samples, the
 <cite>fastq_dump</cite> and <cite>cutadapt</cite> rules will create empty R2 files.</p>
 <p>Once the BAM files are created (after alignment in a single- or paired-end
 fashion as appropriate for the sample), we operate mostly on the BAM.</p>
-<p class="last">After the alignment stage, remaining rules <strong>do not</strong> differentiate between
+<p>After the alignment stage, remaining rules <strong>do not</strong> differentiate between
 single- and paired-end reads. In particular, featureCounts and bamCoverage
 may need different parameters depending on the library layout.</p>
 </div>
@@ -223,33 +220,28 @@ may need different parameters depending on the library layout.</p>
 <span id="chipseq-sampletable"></span><h2>ChIP-seq sample table<a class="headerlink" href="#chip-seq-sample-table" title="Permalink to this headline">¶</a></h2>
 <p><strong>Three additional columns are required</strong> for ChIP-seq: <code class="docutils literal notranslate"><span class="pre">antibody</span></code>,
 <code class="docutils literal notranslate"><span class="pre">biological_material</span></code> and <code class="docutils literal notranslate"><span class="pre">label</span></code>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name"><code class="docutils literal notranslate"><span class="pre">antibody</span></code>:</th><td class="field-body"><p class="first">Used for differentiating between input and IP samples. Input samples should
+<dl class="field-list">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">antibody</span></code></dt>
+<dd class="field-odd"><p>Used for differentiating between input and IP samples. Input samples should
 be listed with an antibody of exactly <code class="docutils literal notranslate"><span class="pre">input</span></code>.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name" colspan="2"><code class="docutils literal notranslate"><span class="pre">biological_material</span></code>:</th></tr>
-<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first">Ties together which samples came from the same chromatin. This is how we
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">biological_material</span></code></dt>
+<dd class="field-even"><p>Ties together which samples came from the same chromatin. This is how we
 know a particular input sample is the matched control for a particular IP
 sample. This is primarily used in the <cite>fingerprint</cite> rule, where we collect
 all the input BAMs together for performing QC. See the
 <cite>lib.chipseq.merged_input_for_ip</cite> function for the technical details of how
 this is handled.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name"><code class="docutils literal notranslate"><span class="pre">label</span></code>:</th><td class="field-body"><p class="first">Used to tie together technical replicates, and <strong>used to configure the
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">label</span></code></dt>
+<dd class="field-odd"><p>Used to tie together technical replicates, and <strong>used to configure the
 ChIP-seq peak-calling runs</strong> (see <a class="reference internal" href="config-yaml.html#cfg-chipseq"><span class="std std-ref">chipseq config section</span></a>).</p>
-<p class="last">Technical replicates share the same label. If you don’t have technical
+<p>Technical replicates share the same label. If you don’t have technical
 replicates, then this column can be a copy of the first column containing
 sample names. Technical replicates will have their BAMs merged together
 and duplicates removed from the merged BAM.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p>The reason that the ChIP-seq sample table is more complicated than RNA-seq is
 because RNA-seq is often analyzed in R, and complicated sample handling (like
 summing technical replicates) can be performed very flexibly in R. In contrast,
@@ -268,10 +260,10 @@ this:</p>
 </pre></div>
 </div>
 <ul class="simple">
-<li>The input sample is required to have the antibody as “input”</li>
-<li>For an IP, its matched input is the sample with <code class="docutils literal notranslate"><span class="pre">antibody</span> <span class="pre">==</span> <span class="pre">input</span></code> that
+<li><p>The input sample is required to have the antibody as “input”</p></li>
+<li><p>For an IP, its matched input is the sample with <code class="docutils literal notranslate"><span class="pre">antibody</span> <span class="pre">==</span> <span class="pre">input</span></code> that
 also has the same biological material as the IP. Here, we know <cite>input1</cite> goes
-with <cite>ip1</cite> because they both have the same biological material.</li>
+with <cite>ip1</cite> because they both have the same biological material.</p></li>
 </ul>
 </div>
 <div class="section" id="chip-seq-sample-table-biological-replicates">
@@ -286,12 +278,12 @@ with <cite>ip1</cite> because they both have the same biological material.</li>
 </pre></div>
 </div>
 <ul class="simple">
-<li>As before, <cite>ip1</cite> and <cite>input1</cite> share the same biological material, indicating
-that <cite>input1</cite> is the matched input for <cite>ip1</cite>.</li>
-<li>The matched input for <cite>ip2</cite> is <cite>input2</cite> because they share the same
-biological material (<cite>s2cell-2</cite>) and <cite>input2</cite> has <code class="docutils literal notranslate"><span class="pre">antibody</span> <span class="pre">==</span> <span class="pre">input</span></code>.</li>
-<li>Each sample has a unique label because there are no technical replicates
-here.</li>
+<li><p>As before, <cite>ip1</cite> and <cite>input1</cite> share the same biological material, indicating
+that <cite>input1</cite> is the matched input for <cite>ip1</cite>.</p></li>
+<li><p>The matched input for <cite>ip2</cite> is <cite>input2</cite> because they share the same
+biological material (<cite>s2cell-2</cite>) and <cite>input2</cite> has <code class="docutils literal notranslate"><span class="pre">antibody</span> <span class="pre">==</span> <span class="pre">input</span></code>.</p></li>
+<li><p>Each sample has a unique label because there are no technical replicates
+here.</p></li>
 </ul>
 </div>
 <div class="section" id="chip-seq-sample-table-biological-and-technical-replicates">
@@ -307,13 +299,13 @@ here.</li>
 </pre></div>
 </div>
 <ul class="simple">
-<li><cite>ip1</cite> and <cite>ip1a</cite> are technical replicates because they share the label
+<li><p><cite>ip1</cite> and <cite>ip1a</cite> are technical replicates because they share the label
 <cite>s2cell-gaf-1</cite>. This is often the case when we need to sequence the same
-sample again for higher depth.</li>
-<li><cite>ip1</cite> and <cite>ip1a</cite> will be merged into one BAM file named after their common
+sample again for higher depth.</p></li>
+<li><p><cite>ip1</cite> and <cite>ip1a</cite> will be merged into one BAM file named after their common
 label, <cite>s2cell-gaf-1</cite> (described further below). The remaining <cite>ip2</cite>,
 <cite>input1</cite>, and <cite>input2</cite> do not have to be merged with anything, so they will
-be symlinked.</li>
+be symlinked.</p></li>
 </ul>
 </div>
 <div class="section" id="merging-technical-replicates-for-chip-seq">
@@ -364,7 +356,7 @@ example this file:</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

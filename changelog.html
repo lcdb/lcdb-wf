@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Changelog &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -13,6 +11,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Developers" href="developers.html" />
@@ -59,6 +58,7 @@
 <li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#v1-4-1">v1.4.1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v1-4">v1.4</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v1-3">v1.3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v1-2">v1.2</a></li>
@@ -80,13 +80,11 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -100,25 +98,50 @@
           <div class="body" role="main">
             
   <div class="section" id="changelog">
-<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="v1-4">
-<h2>v1.4<a class="headerlink" href="#v1-4" title="Permalink to this headline">¶</a></h2>
+<span id="id1"></span><h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="v1-4-1">
+<h2>v1.4.1<a class="headerlink" href="#v1-4-1" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="rna-seq">
 <h3>RNA-seq<a class="headerlink" href="#rna-seq" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>KEGG results were not being added to the <code class="docutils literal notranslate"><span class="pre">all.enrich</span></code> list in <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code></p></li>
+<li><p>symlinking bigWigs is now a local rule</p></li>
+<li><p>default cutadapt options have changed to reflect current recommendations from
+the author, and the cutadapt rule is now explicity using arguments rather
+than requiring a separate <code class="docutils literal notranslate"><span class="pre">adapters.fa</span></code> file.</p></li>
+<li><p>featureCounts now auto-detects whether it should be run with the <code class="docutils literal notranslate"><span class="pre">-p</span></code>
+argument in paired-end mode (previously it was up to the user to make sure
+this was added). The rule does have an override if this behavior is not wanted.</p></li>
+</ul>
+</div>
+<div class="section" id="references">
+<h3>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The reference config for <em>Drosophila</em> is now fixed. Previously it depended on
+<cite>chrom_convert</cite>. That script was a fly-specific script in lcdblib, but
+lcdblib is no longer a dependency since v1.3. This fix uses the
+<cite>convert_fastq_chroms</cite> and <cite>convert_gtf_chroms</cite> used in reference configs for
+other species.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="v1-4">
+<h2>v1.4<a class="headerlink" href="#v1-4" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id2">
+<h3>RNA-seq<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <p>Much-improved <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code>:</p>
 <ul class="simple">
-<li>tabbed PCA plot</li>
-<li>improved DEGpatterns chunk</li>
-<li>dramatically improved functional enrichment section, with tabbed clusterprofiler plots and exported data in two flavors (combined and split)</li>
-<li>improved upset plots, with exported files showing sets of genes</li>
-<li>improved comments to highlight where to make changes</li>
-<li><dl class="first docutils">
-<dt>add new helper functions to <code class="docutils literal notranslate"><span class="pre">helpers.R</span></code>:</dt>
-<dd><ul class="first last">
-<li><code class="docutils literal notranslate"><span class="pre">fromList.with.names</span></code>, for getting UpSet plot output</li>
-<li><code class="docutils literal notranslate"><span class="pre">rownames.first.col</span></code>, to make tidier dataframes</li>
-<li><code class="docutils literal notranslate"><span class="pre">nested.lapply</span></code>, for convenient 2-level nested list apply</li>
-<li>clusterprofiler helper functions</li>
+<li><p>tabbed PCA plot</p></li>
+<li><p>improved DEGpatterns chunk</p></li>
+<li><p>dramatically improved functional enrichment section, with tabbed clusterprofiler plots and exported data in two flavors (combined and split)</p></li>
+<li><p>improved upset plots, with exported files showing sets of genes</p></li>
+<li><p>improved comments to highlight where to make changes</p></li>
+<li><dl class="simple">
+<dt>add new helper functions to <code class="docutils literal notranslate"><span class="pre">helpers.R</span></code>:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">fromList.with.names</span></code>, for getting UpSet plot output</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rownames.first.col</span></code>, to make tidier dataframes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nested.lapply</span></code>, for convenient 2-level nested list apply</p></li>
+<li><p>clusterprofiler helper functions</p></li>
 </ul>
 </dd>
 </dl>
@@ -131,93 +154,94 @@
 <div class="section" id="bugfixes">
 <h3>Bugfixes<a class="headerlink" href="#bugfixes" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Fix broken paired-end support for RNA-seq. Previously, when using data from
+<li><p>Fix broken paired-end support for RNA-seq. Previously, when using data from
 elsewhere on disk and using the symlink rules, R2 would be symlinked to the
-same file as R1.</li>
-<li>Support for Snakemake 5.4.0 which changes behavior of the <code class="docutils literal notranslate"><span class="pre">expand()</span></code>
-function.</li>
+same file as R1.</p></li>
+<li><p>Support for Snakemake 5.4.0 which changes behavior of the <code class="docutils literal notranslate"><span class="pre">expand()</span></code>
+function.</p></li>
 </ul>
 </div>
 <div class="section" id="infrastructure">
 <h3>Infrastructure<a class="headerlink" href="#infrastructure" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>new deploy script to copy over only the files necessary for an analysis,
-avoiding the clutter of testing infrastructure.</li>
-<li>lcdblib, an external package, is no longer a dependency. In the interest of
+<li><p>new deploy script to copy over only the files necessary for an analysis,
+avoiding the clutter of testing infrastructure.</p></li>
+<li><p>lcdblib, an external package, is no longer a dependency. In the interest of
 better transparency and to make the code here easier to follow, the relevant
 code from lcdblib was copied over to the <code class="docutils literal notranslate"><span class="pre">lib</span></code> directory in this
-repository.</li>
+repository.</p></li>
 </ul>
 </div>
 <div class="section" id="chip-seq-and-rna-seq">
 <h3>ChIP-seq and RNA-seq<a class="headerlink" href="#chip-seq-and-rna-seq" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Bowtie2, HISAT2, and rRNA rules no longer use wrappers. This makes it easier
-to track down what parameters are being used in each rule.</li>
-<li>RSeQC is now available in Python 3 so wrappers have been removed.</li>
-<li>NextGenMap support removed</li>
+<li><p>Bowtie2, HISAT2, and rRNA rules no longer use wrappers. This makes it easier
+to track down what parameters are being used in each rule.</p></li>
+<li><p>RSeQC is now available in Python 3 so wrappers have been removed.</p></li>
+<li><p>NextGenMap support removed</p></li>
 </ul>
 </div>
 </div>
 <div class="section" id="v1-2">
 <h2>v1.2<a class="headerlink" href="#v1-2" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id1">
-<h3>RNA-seq<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id3">
+<h3>RNA-seq<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>First-class paired-end support, including mixing PE and SE samples in the
-same sampletable</li>
-<li>Support for STAR aligner</li>
+<li><p>First-class paired-end support, including mixing PE and SE samples in the
+same sampletable</p></li>
+<li><p>Support for STAR aligner</p></li>
 </ul>
 </div>
-<div class="section" id="references">
-<h3>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id4">
+<h3>References<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <ul>
-<li><p class="first">FASTA files are always symlinked into the directories of indexes that were
-created from it</p>
-</li>
-<li><p class="first">Reference configs:</p>
+<li><p>FASTA files are always symlinked into the directories of indexes that were
+created from it</p></li>
+<li><p>Reference configs:</p>
 <blockquote>
 <div><ul class="simple">
-<li>updated existing</li>
-<li>added more species</li>
-<li>new post-process for fasta or gtf: you can now use
+<li><p>updated existing</p></li>
+<li><p>added more species</p></li>
+<li><p>new post-process for fasta or gtf: you can now use
 NICHD-BSPC/chrom-name-mappings to convert chromosome names between UCSC
-and Ensembl (see reference configs for examples of use)</li>
+and Ensembl (see reference configs for examples of use)</p></li>
 </ul>
 </div></blockquote>
 </li>
 </ul>
 </div>
-<div class="section" id="id2">
-<h3>ChIP-seq and RNA-seq<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id5">
+<h3>ChIP-seq and RNA-seq<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Updates to dependencies and MultiQC config</li>
+<li><p>Updates to dependencies and MultiQC config</p></li>
 </ul>
 </div>
-<div class="section" id="id3">
-<h3>Infrastructure<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id6">
+<h3>Infrastructure<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Updated requirements in <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> and in wrappers</li>
-<li>Changed all <code class="docutils literal notranslate"><span class="pre">pd.read_table()</span></code> to <code class="docutils literal notranslate"><span class="pre">pd.read_csv(sep=&quot;\t&quot;)</span></code> to prevent warnings</li>
-<li>Changed all <code class="docutils literal notranslate"><span class="pre">yaml.load()</span></code> to <code class="docutils literal notranslate"><span class="pre">yaml.load(Loader=yaml.FullLoader)</span></code> to
-prevent warnings</li>
-<li>Using DeprecationWarning rather than UserWarning in the deprecation handler
-so there’s less spam in the logs</li>
-<li>Improved tests:<ul>
-<li>using data from pybedtools repo because modENCODE seems to be down</li>
-<li>append rather than prepend base conda to PATH on circleci</li>
-<li>separate isolated tests for STAR, ngm, and SRA</li>
-<li>updated conda</li>
+<li><p>Updated requirements in <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> and in wrappers</p></li>
+<li><p>Changed all <code class="docutils literal notranslate"><span class="pre">pd.read_table()</span></code> to <code class="docutils literal notranslate"><span class="pre">pd.read_csv(sep=&quot;\t&quot;)</span></code> to prevent warnings</p></li>
+<li><p>Changed all <code class="docutils literal notranslate"><span class="pre">yaml.load()</span></code> to <code class="docutils literal notranslate"><span class="pre">yaml.load(Loader=yaml.FullLoader)</span></code> to
+prevent warnings</p></li>
+<li><p>Using DeprecationWarning rather than UserWarning in the deprecation handler
+so there’s less spam in the logs</p></li>
+<li><p>Improved tests:</p>
+<ul>
+<li><p>using data from pybedtools repo because modENCODE seems to be down</p></li>
+<li><p>append rather than prepend base conda to PATH on circleci</p></li>
+<li><p>separate isolated tests for STAR, ngm, and SRA</p></li>
+<li><p>updated conda</p></li>
 </ul>
 </li>
-<li>Docs additions:<ul>
-<li>TMPDIR handling</li>
-<li>clusterconfig</li>
-<li>WRAPPER_SLURM</li>
-<li>docs for developers</li>
-<li>symlinking fastqs</li>
-<li>using SRA sampletables</li>
-<li>paired-end data</li>
+<li><p>Docs additions:</p>
+<ul>
+<li><p>TMPDIR handling</p></li>
+<li><p>clusterconfig</p></li>
+<li><p>WRAPPER_SLURM</p></li>
+<li><p>docs for developers</p></li>
+<li><p>symlinking fastqs</p></li>
+<li><p>using SRA sampletables</p></li>
+<li><p>paired-end data</p></li>
 </ul>
 </li>
 </ul>
@@ -225,91 +249,91 @@ so there’s less spam in the logs</li>
 <div class="section" id="colocalization">
 <h3>Colocalization<a class="headerlink" href="#colocalization" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>From colocalization, removed the GAT “fractions” heatmap due to unresolved
-pandas index errors</li>
+<li><p>From colocalization, removed the GAT “fractions” heatmap due to unresolved
+pandas index errors</p></li>
 </ul>
 </div>
 </div>
 <div class="section" id="v1-1">
 <h2>v1.1<a class="headerlink" href="#v1-1" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id4">
-<h3>Infrastructure<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id7">
+<h3>Infrastructure<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>The default settings in Snakefiles are for real-world use, rather than for
+<li><p>The default settings in Snakefiles are for real-world use, rather than for
 testing. This reduces the amount of editing necessary before running actual
 data. See <a class="reference internal" href="tests.html#test-settings"><span class="std std-ref">A note about test settings</span></a> for the extra step to take when testing
-locally.</li>
-<li>new <code class="docutils literal notranslate"><span class="pre">run_test.sh</span></code> script in each workflow directory to automatically run
-the preprocessor when running test data</li>
-<li>added extensive comments to Snakefiles with <code class="docutils literal notranslate"><span class="pre">NOTE:</span></code> string to make it
-obvious where and how to make changes.</li>
-<li>Documentation overhaul to bring everything up to v1.1. This includes Sphinx
-autodocs on the <code class="docutils literal notranslate"><span class="pre">lib</span></code> module.</li>
-<li>pytest test suite is run on the <code class="docutils literal notranslate"><span class="pre">lib</span></code> module</li>
+locally.</p></li>
+<li><p>new <code class="docutils literal notranslate"><span class="pre">run_test.sh</span></code> script in each workflow directory to automatically run
+the preprocessor when running test data</p></li>
+<li><p>added extensive comments to Snakefiles with <code class="docutils literal notranslate"><span class="pre">NOTE:</span></code> string to make it
+obvious where and how to make changes.</p></li>
+<li><p>Documentation overhaul to bring everything up to v1.1. This includes Sphinx
+autodocs on the <code class="docutils literal notranslate"><span class="pre">lib</span></code> module.</p></li>
+<li><p>pytest test suite is run on the <code class="docutils literal notranslate"><span class="pre">lib</span></code> module</p></li>
 </ul>
 </div>
-<div class="section" id="id5">
-<h3>References<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id8">
+<h3>References<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>new <cite>metadata</cite> section in references config, which can be used to store
-additional information like mappable bases and genome size.</li>
-<li>References can now be included from other YAML files into the main config
+<li><p>new <cite>metadata</cite> section in references config, which can be used to store
+additional information like mappable bases and genome size.</p></li>
+<li><p>References can now be included from other YAML files into the main config
 file. This dramatically simplifies individual configfiles, and allows
 multiple workflows to use identical references without having to do
 error-prone and hard-to-maintain copy/pastes between workflow configs. See
-<a class="reference internal" href="references-config.html#references-config"><span class="std std-ref">References config</span></a> for details.</li>
-<li>New GTF conversion, <code class="docutils literal notranslate"><span class="pre">mappings</span></code>. This is intended to replace the
+<a class="reference internal" href="references-config.html#references-config"><span class="std std-ref">References config</span></a> for details.</p></li>
+<li><p>New GTF conversion, <code class="docutils literal notranslate"><span class="pre">mappings</span></code>. This is intended to replace the
 <code class="docutils literal notranslate"><span class="pre">annotation_hub</span></code> conversion, which was problematic because 1) a particular
 annotation hub accession is not guaranteed to be found in new versions of
 AnnotationHub, resulting in lack of reproducibility, and 2) it was difficult
 to synchronize the results with a particular GTF annotation. The
 <code class="docutils literal notranslate"><span class="pre">annotation_hub</span></code> conversion is still supported, but if it’s used then
-a DeprecationWarning will be emitted, recommending <code class="docutils literal notranslate"><span class="pre">mappings</span></code> instead.</li>
+a DeprecationWarning will be emitted, recommending <code class="docutils literal notranslate"><span class="pre">mappings</span></code> instead.</p></li>
 </ul>
 </div>
 <div class="section" id="both-rna-seq-and-chip-seq">
 <h3>Both RNA-seq and ChIP-seq<a class="headerlink" href="#both-rna-seq-and-chip-seq" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><cite>fastq_screen</cite> is now configured via <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code>. This reduces the need
+<li><p><cite>fastq_screen</cite> is now configured via <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code>. This reduces the need
 to edit the Snakefile and coordinate between the config and the fastq_screen
-rule. Now everything is done within the config file.</li>
-<li><cite>fastq_screen</cite> wrapper now handles additional output files created when using
-the <code class="docutils literal notranslate"><span class="pre">--tag</span></code> and <code class="docutils literal notranslate"><span class="pre">--filter</span></code> arguments to <code class="docutils literal notranslate"><span class="pre">fastq_screen</span></code>.</li>
-<li>In the config file, <code class="docutils literal notranslate"><span class="pre">assembly</span></code> has been changed to the more-descriptive
+rule. Now everything is done within the config file.</p></li>
+<li><p><cite>fastq_screen</cite> wrapper now handles additional output files created when using
+the <code class="docutils literal notranslate"><span class="pre">--tag</span></code> and <code class="docutils literal notranslate"><span class="pre">--filter</span></code> arguments to <code class="docutils literal notranslate"><span class="pre">fastq_screen</span></code>.</p></li>
+<li><p>In the config file, <code class="docutils literal notranslate"><span class="pre">assembly</span></code> has been changed to the more-descriptive
 <code class="docutils literal notranslate"><span class="pre">organism</span></code>. The change is backwards compatible, but a DeprecationWarning is
 raised if <code class="docutils literal notranslate"><span class="pre">assembly:</span></code> is still used, and changed to <code class="docutils literal notranslate"><span class="pre">organism</span></code> (though
-only in memory, not on disk).</li>
-<li>Patterns no longer use <code class="docutils literal notranslate"><span class="pre">{sample_dir}</span></code>, <code class="docutils literal notranslate"><span class="pre">{agg_dir}</span></code>, etc placeholders that
+only in memory, not on disk).</p></li>
+<li><p>Patterns no longer use <code class="docutils literal notranslate"><span class="pre">{sample_dir}</span></code>, <code class="docutils literal notranslate"><span class="pre">{agg_dir}</span></code>, etc placeholders that
 need to be configured in the config YAML. Instead, these directories are
 hard-coded directly into the patterns. This simplifies the config files,
 simplifies the patterns, and removes one layer of disconnect between the
-filenames and how they are determined.</li>
-<li>removed 4C workflow since it used 4c-ker</li>
+filenames and how they are determined.</p></li>
+<li><p>removed 4C workflow since it used 4c-ker</p></li>
 </ul>
 </div>
 <div class="section" id="chip-seq">
 <h3>ChIP-seq<a class="headerlink" href="#chip-seq" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>macs2 and sicer can accept mappable genome size overrides</li>
+<li><p>macs2 and sicer can accept mappable genome size overrides</p></li>
 </ul>
 </div>
-<div class="section" id="id6">
-<h3>RNA-seq<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id9">
+<h3>RNA-seq<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <ul>
-<li><p class="first">RNA-seq downstream:</p>
+<li><p>RNA-seq downstream:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">downstream/help_docs.Rmd</span></code> can be included for first-time users to
-describe the sections of the RNA-seq analysis</li>
-<li><code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code> now uses the same <code class="docutils literal notranslate"><span class="pre">NOTE:</span></code> syntax as the Snakefiles for
-indicating where/what to change</li>
-<li>Easy swapping of which strand to use from the three featureCounts runs
-performed by the workflow</li>
-<li>Be explicit about using DESeq2::lfcShrink as is now the default in recent
-DESeq2 versions</li>
-<li>improved the mechanism for keeping together results objects, dds objects, and
+<li><p><code class="docutils literal notranslate"><span class="pre">downstream/help_docs.Rmd</span></code> can be included for first-time users to
+describe the sections of the RNA-seq analysis</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code> now uses the same <code class="docutils literal notranslate"><span class="pre">NOTE:</span></code> syntax as the Snakefiles for
+indicating where/what to change</p></li>
+<li><p>Easy swapping of which strand to use from the three featureCounts runs
+performed by the workflow</p></li>
+<li><p>Be explicit about using DESeq2::lfcShrink as is now the default in recent
+DESeq2 versions</p></li>
+<li><p>improved the mechanism for keeping together results objects, dds objects, and
 labels (list of lists, rather than individual list object; refactored
-functions to use this new structure</li>
+functions to use this new structure</p></li>
 </ul>
 </div></blockquote>
 </li>
@@ -319,78 +343,78 @@ functions to use this new structure</li>
 <div class="section" id="v1-0-1">
 <h2>v1.0.1<a class="headerlink" href="#v1-0-1" title="Permalink to this headline">¶</a></h2>
 <p>Bugfixes, last release before references changes.</p>
-<div class="section" id="id7">
-<h3>Infrastructure<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id10">
+<h3>Infrastructure<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Transition to CircleCI for testing</li>
-<li>Use production settings by default; see <span class="xref std std-ref">note-on-test-settings</span> for
-more.</li>
-<li>lots o’ docs</li>
-<li>new <code class="docutils literal notranslate"><span class="pre">include/references_configs</span></code> to help organize references. These are
-currently not used by the workflows directly.</li>
-<li>bugfix: use additional options when uncompressing downloaded reference files
-(<code class="docutils literal notranslate"><span class="pre">--no-same-owner</span></code> for <code class="docutils literal notranslate"><span class="pre">tar</span></code>, <code class="docutils literal notranslate"><span class="pre">-f</span></code> for <code class="docutils literal notranslate"><span class="pre">gunzip</span></code>)</li>
-<li>additional dependencies in the top-level environment to support the
-additional features in rnaseq.Rmd and track hubs.</li>
-<li>colocalization workflow, external workflow, figures workflow to demonstrate
-vertical integration</li>
+<li><p>Transition to CircleCI for testing</p></li>
+<li><p>Use production settings by default; see <span class="xref std std-ref">note-on-test-settings</span> for
+more.</p></li>
+<li><p>lots o’ docs</p></li>
+<li><p>new <code class="docutils literal notranslate"><span class="pre">include/references_configs</span></code> to help organize references. These are
+currently not used by the workflows directly.</p></li>
+<li><p>bugfix: use additional options when uncompressing downloaded reference files
+(<code class="docutils literal notranslate"><span class="pre">--no-same-owner</span></code> for <code class="docutils literal notranslate"><span class="pre">tar</span></code>, <code class="docutils literal notranslate"><span class="pre">-f</span></code> for <code class="docutils literal notranslate"><span class="pre">gunzip</span></code>)</p></li>
+<li><p>additional dependencies in the top-level environment to support the
+additional features in rnaseq.Rmd and track hubs.</p></li>
+<li><p>colocalization workflow, external workflow, figures workflow to demonstrate
+vertical integration</p></li>
 </ul>
 </div>
-<div class="section" id="id8">
-<h3>RNA-seq<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id11">
+<h3>RNA-seq<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>remove kallisto indexing, use salmon</li>
-<li>improvements to how chipseq sampletables are parsed (with more informative
-error messages)</li>
-<li>run preseq for RNA-seq library complexity QC</li>
-<li>support for merging bigwigs</li>
-<li>featureCounts is now run in all three strandedness modes, and results
-incorporated into MultiQC as separate modules.</li>
-<li>RNA-seq now symlinks “pos” and “neg” bigWigs, which describe how reads map to
+<li><p>remove kallisto indexing, use salmon</p></li>
+<li><p>improvements to how chipseq sampletables are parsed (with more informative
+error messages)</p></li>
+<li><p>run preseq for RNA-seq library complexity QC</p></li>
+<li><p>support for merging bigwigs</p></li>
+<li><p>featureCounts is now run in all three strandedness modes, and results
+incorporated into MultiQC as separate modules.</p></li>
+<li><p>RNA-seq now symlinks “pos” and “neg” bigWigs, which describe how reads map to
 the <em>reference</em>, to “sense” and “antisense” bigWigs, which describe the
-<em>originating RNA</em>. This makes it easy to swap strands depending on protocol.</li>
-<li>new <code class="docutils literal notranslate"><span class="pre">downstream/helpers.Rmd</span></code> which factors out a lot of the work previously
-done in <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code> into separate functions.</li>
-<li>track hub building respects new sense/antisense bigwig symlinks</li>
+<em>originating RNA</em>. This makes it easy to swap strands depending on protocol.</p></li>
+<li><p>new <code class="docutils literal notranslate"><span class="pre">downstream/helpers.Rmd</span></code> which factors out a lot of the work previously
+done in <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code> into separate functions.</p></li>
+<li><p>track hub building respects new sense/antisense bigwig symlinks</p></li>
 </ul>
 </div>
 <div class="section" id="downstream-rnaseq-rmd">
 <h3><code class="docutils literal notranslate"><span class="pre">downstream/rnaseq.Rmd</span></code><a class="headerlink" href="#downstream-rnaseq-rmd" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>AnnotationHub uses cache dir that will not clobber default home directory cache</li>
-<li>use varianceStabilizingTransform instead of rlog</li>
-<li>print a size factors table</li>
-<li>use multiple cores for computationally expensive DESeq2 operations</li>
-<li>using separate lists for results, dds objects, and nice labels for automated
-plots for each contrast</li>
-<li>UpSet plots for comparing gene lists across contrasts</li>
-<li>DEGpattern plots for showing clusters of expression patterns (from the
-DEGreport package)</li>
-<li>attach normalized counts per sample and per factor (parsed from the model
-used for the contrast) as well as TPM estimates to the results tables</li>
-<li>trim the labels in GO enrichment plots when too long</li>
+<li><p>AnnotationHub uses cache dir that will not clobber default home directory cache</p></li>
+<li><p>use varianceStabilizingTransform instead of rlog</p></li>
+<li><p>print a size factors table</p></li>
+<li><p>use multiple cores for computationally expensive DESeq2 operations</p></li>
+<li><p>using separate lists for results, dds objects, and nice labels for automated
+plots for each contrast</p></li>
+<li><p>UpSet plots for comparing gene lists across contrasts</p></li>
+<li><p>DEGpattern plots for showing clusters of expression patterns (from the
+DEGreport package)</p></li>
+<li><p>attach normalized counts per sample and per factor (parsed from the model
+used for the contrast) as well as TPM estimates to the results tables</p></li>
+<li><p>trim the labels in GO enrichment plots when too long</p></li>
 </ul>
 </div>
-<div class="section" id="id9">
-<h3>ChIP-seq<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id12">
+<h3>ChIP-seq<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>sicer for chipseq domain calling</li>
-<li>pin snakemake &lt;4.5.0 so that subworkflows behave correctly</li>
-<li>chipseq peak-calling rules (and therefore wrappers) now expect a chromsizes
-file as input</li>
-<li>bigbed files for narrowPeak and broadPeak files are created correctly
-depending on their format</li>
-<li>run multiBigWigSummary and plotCorrelation from deepTools for ChIP-seq QC</li>
-<li>ChIP-seq track hub generation script</li>
+<li><p>sicer for chipseq domain calling</p></li>
+<li><p>pin snakemake &lt;4.5.0 so that subworkflows behave correctly</p></li>
+<li><p>chipseq peak-calling rules (and therefore wrappers) now expect a chromsizes
+file as input</p></li>
+<li><p>bigbed files for narrowPeak and broadPeak files are created correctly
+depending on their format</p></li>
+<li><p>run multiBigWigSummary and plotCorrelation from deepTools for ChIP-seq QC</p></li>
+<li><p>ChIP-seq track hub generation script</p></li>
 </ul>
 </div>
-<div class="section" id="id10">
-<h3>Both RNA-seq and ChIP-seq<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id13">
+<h3>Both RNA-seq and ChIP-seq<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>update deeptools calls to reflect &gt;v3.0 syntax</li>
-<li>support for SRA run tables so it’s trivial to re-run experiments
-in SRA</li>
-<li>multiple FastQC runs are shown separately in MultiQC output</li>
+<li><p>update deeptools calls to reflect &gt;v3.0 syntax</p></li>
+<li><p>support for SRA run tables so it’s trivial to re-run experiments
+in SRA</p></li>
+<li><p>multiple FastQC runs are shown separately in MultiQC output</p></li>
 </ul>
 </div>
 </div>
@@ -411,7 +435,7 @@ in SRA</li>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Developers &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -13,6 +11,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Changelog" href="changelog.html" />
@@ -73,13 +72,11 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -99,41 +96,41 @@
 <div class="section" id="modules">
 <h3>Modules<a class="headerlink" href="#modules" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>in <cite>lib/common.py</cite>, there is a function <cite>references_dict</cite>. Within that is
+<li><p>in <cite>lib/common.py</cite>, there is a function <cite>references_dict</cite>. Within that is
 a <cite>index_extensions</cite> dictionary. You’ll need to add the name of the aligner
 and the extension of the index it creates. If it creates multiple index
 files, just one should be sufficient. The filename will be automatically
 created and will be used as the expected output file which can then be
 accessed from the references dict as
 <cite>references_dict[organism][tag][aligner]</cite> for use in various rules that need
-the index as input (that is, any mapping rules).</li>
+the index as input (that is, any mapping rules).</p></li>
 </ul>
 </div>
 <div class="section" id="configuration">
 <h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>add the aligner to the <cite>include/reference_configs/test.yaml</cite> config file,
-“indexes:” section.</li>
-<li>write a rule in <cite>workflows/references/Snakefile</cite> to build the index. Use the
-other index-building rules there as a guide.</li>
-<li>Depending on which type of workflow the aligner is appropriate for, add
+<li><p>add the aligner to the <cite>include/reference_configs/test.yaml</cite> config file,
+“indexes:” section.</p></li>
+<li><p>write a rule in <cite>workflows/references/Snakefile</cite> to build the index. Use the
+other index-building rules there as a guide.</p></li>
+<li><p>Depending on which type of workflow the aligner is appropriate for, add
 a rule there. Enclose it in an “if:” clause to only run if the config file
-has specified that aligner.</li>
-<li>add the name to the list of supported aligners in <cite>docs/config-yaml.rst</cite>, in
-the “Aligner config” section.</li>
-<li>add appropriate memory/time requirements to <cite>clusterconfig.yaml</cite> for that
-aligner.</li>
+has specified that aligner.</p></li>
+<li><p>add the name to the list of supported aligners in <cite>docs/config-yaml.rst</cite>, in
+the “Aligner config” section.</p></li>
+<li><p>add appropriate memory/time requirements to <cite>clusterconfig.yaml</cite> for that
+aligner.</p></li>
 </ul>
 </div>
 <div class="section" id="testing">
 <h3>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>For testing, create a copy of the config for any workflows it is used for,
-and change only the aligner.</li>
-<li>Modify <cite>.circleci/config.yml</cite> to include a new block in each of the
+<li><p>For testing, create a copy of the config for any workflows it is used for,
+and change only the aligner.</p></li>
+<li><p>Modify <cite>.circleci/config.yml</cite> to include a new block in each of the
 variables, jobs, and workflows sections. Use the <cite>rnaseq-star</cite> blocks
 a guide for this. The idea is to only run up through the aligner step in
-a parallel task (to save on CI build time).</li>
+a parallel task (to save on CI build time).</p></li>
 </ul>
 </div>
 </div>
@@ -150,7 +147,7 @@ a parallel task (to save on CI build time).</li>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

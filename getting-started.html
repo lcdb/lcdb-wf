@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Initial setup &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -13,6 +11,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Running the tests" href="tests.html" />
@@ -77,13 +76,11 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -99,11 +96,11 @@
   <div class="section" id="initial-setup">
 <span id="getting-started"></span><h1>Initial setup<a class="headerlink" href="#initial-setup" title="Permalink to this headline">¶</a></h1>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
+<p class="admonition-title">Note</p>
 <p><cite>lcdb-wf</cite> is tested and heavily used on Linux.</p>
 <p>It is likely to work on macOS as long as all relevant conda packages are
 available for macOS – though this is not tested.</p>
-<p class="last">It will <strong>not</strong> work on Windows due to a general lack of support of Windows
+<p>It will <strong>not</strong> work on Windows due to a general lack of support of Windows
 in bioinformatics tools.</p>
 </div>
 <div class="section" id="setup-required-once-per-system">
@@ -116,8 +113,9 @@ Otherwise, install <a class="reference external" href="https://conda.io/minicond
 <p><strong>Optional:</strong>
 - Run the following commands to set up your conda channels. This puts the</p>
 <blockquote>
-<div><cite>lcdb</cite> channel as lowest priority (this channel has the <cite>lcdblib</cite> package),
-and then matches the channel order required by <cite>bioconda</cite>.</div></blockquote>
+<div><p><cite>lcdb</cite> channel as lowest priority (this channel has the <cite>lcdblib</cite> package),
+and then matches the channel order required by <cite>bioconda</cite>.</p>
+</div></blockquote>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda config --add channels defaults
 conda config --add channels bioconda
 conda config --add channels conda-forge
@@ -167,10 +165,10 @@ You might want to hold off on this for now if you’ll be running the tests:</p>
 </pre></div>
 </div>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
+<p class="admonition-title">Note</p>
 <p>An alternative approach is to create an environment at a specific path, for
 example inside a project directory:</p>
-<div class="last highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -p ./env --file requirements.txt
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -p ./env --file requirements.txt
 <span class="nb">source</span> activate ./env
 </pre></div>
 </div>
@@ -196,7 +194,7 @@ the workflows for your particular experiment (see <a class="reference internal" 
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

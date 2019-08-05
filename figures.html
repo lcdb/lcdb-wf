@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>“Figures” workflow &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -13,6 +11,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Colocalization workflow" href="colocalization.html" />
@@ -72,13 +71,11 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -108,17 +105,17 @@ any figures that depended in some way on that GTF file will also be re-run.</p>
 applications, this workflow currently:</p>
 <blockquote>
 <div><ul class="simple">
-<li>counts the number of peaks in all configured peak-calling runs and stores
+<li><p>counts the number of peaks in all configured peak-calling runs and stores
 the output in a TSV report (work is performed in the script
-<code class="docutils literal notranslate"><span class="pre">scripts/peak_count.py</span></code>)</li>
-<li>identifies peaks at promoters of genes, reports a summary of how many
+<code class="docutils literal notranslate"><span class="pre">scripts/peak_count.py</span></code>)</p></li>
+<li><p>identifies peaks at promoters of genes, reports a summary of how many
 peaks from each run were found in a promoter, and creates BED files of
-these subsets (<code class="docutils literal notranslate"><span class="pre">scripts/peaks_at_promoters.py</span></code>)</li>
-<li>builds the DAG image for the ChIP-seq and RNA-seq workflows</li>
-<li>symlinks over the ChIP-seq peaks and RNA-seq differential expression results</li>
-<li>extracts the text from the README.txt files created by the scripts
-(usually from their docstrings), and compiles them into a summary report</li>
-<li>the <code class="docutils literal notranslate"><span class="pre">figures</span></code> directory can then be zipped up and distributed to collaborators</li>
+these subsets (<code class="docutils literal notranslate"><span class="pre">scripts/peaks_at_promoters.py</span></code>)</p></li>
+<li><p>builds the DAG image for the ChIP-seq and RNA-seq workflows</p></li>
+<li><p>symlinks over the ChIP-seq peaks and RNA-seq differential expression results</p></li>
+<li><p>extracts the text from the README.txt files created by the scripts
+(usually from their docstrings), and compiles them into a summary report</p></li>
+<li><p>the <code class="docutils literal notranslate"><span class="pre">figures</span></code> directory can then be zipped up and distributed to collaborators</p></li>
 </ul>
 </div></blockquote>
 </div>
@@ -134,7 +131,7 @@ these subsets (<code class="docutils literal notranslate"><span class="pre">scri
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

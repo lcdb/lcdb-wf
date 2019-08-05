@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>“External” workflow &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -13,6 +11,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="“Figures” workflow" href="figures.html" />
@@ -72,13 +71,11 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -98,10 +95,10 @@ that in practice, having a separate workflow to handle downloading and
 reformatting and various conversion tasks helps with organization.</p>
 <p>The test workflow is a working example that:</p>
 <ul class="simple">
-<li>downloads ChIP-seq data from modENCODE in an older fly genome organism (dm3)</li>
-<li>downloads the chainfile for liftover</li>
-<li>fixes the formatting of the downloaded files so they can be lifted over</li>
-<li>lifts over the files to the newer dm6 assembly.</li>
+<li><p>downloads ChIP-seq data from modENCODE in an older fly genome organism (dm3)</p></li>
+<li><p>downloads the chainfile for liftover</p></li>
+<li><p>fixes the formatting of the downloaded files so they can be lifted over</p></li>
+<li><p>lifts over the files to the newer dm6 assembly.</p></li>
 </ul>
 <p>The file is intended to be heavily edited for the particular experiment; it is
 here mostly as a placeholder and to be used as a template for integrative
@@ -121,7 +118,7 @@ downstream work.  It can then be incorporated into the <code class="docutils lit
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

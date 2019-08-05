@@ -1,5 +1,32 @@
+
+.. _changelog:
+
 Changelog
 =========
+
+v1.4.1
+------
+
+RNA-seq
+~~~~~~~
+
+- KEGG results were not being added to the ``all.enrich`` list in ``rnaseq.Rmd``
+- symlinking bigWigs is now a local rule
+- default cutadapt options have changed to reflect current recommendations from
+  the author, and the cutadapt rule is now explicity using arguments rather
+  than requiring a separate ``adapters.fa`` file.
+- featureCounts now auto-detects whether it should be run with the ``-p``
+  argument in paired-end mode (previously it was up to the user to make sure
+  this was added). The rule does have an override if this behavior is not wanted.
+
+References
+~~~~~~~~~~
+
+- The reference config for *Drosophila* is now fixed. Previously it depended on
+  `chrom_convert`. That script was a fly-specific script in lcdblib, but
+  lcdblib is no longer a dependency since v1.3. This fix uses the
+  `convert_fastq_chroms` and `convert_gtf_chroms` used in reference configs for
+  other species.
 
 v1.4
 ----
