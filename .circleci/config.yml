@@ -219,9 +219,6 @@ jobs:
   build-docs:
     <<: *defaults
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - 99:b4:dd:2c:82:9a:27:07:ca:b4:eb:bf:9c:49:4a:72
       - checkout
       - *restore_cache
       - *set-path
@@ -234,16 +231,16 @@ jobs:
       - run:
           name: Install git
           command: yum install git -y
+      - add_ssh_keys:
+          fingerprints:
+            - 2d:0c:b4:27:44:cf:f4:50:cc:14:a4:2b:c2:3c:09:06
       - run:
           name: Build and upload docs
-          command: ci/build-docs.sh
+          command: source activate lcdb-wf-test && ci/build-docs.sh
 
   report-env:
     <<: *defaults
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - 99:b4:dd:2c:82:9a:27:07:ca:b4:eb:bf:9c:49:4a:72
       - checkout
       - *restore_cache
       - *set-path
