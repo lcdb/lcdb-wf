@@ -1,6 +1,61 @@
 Changelog
 =========
 
+v1.5
+----
+
+
+v1.4.2
+------
+
+Bugfixes
+~~~~~~~~
+
+- Don't require ChIP-seq configs to have at least one block for each supported
+  peak-caller
+
+v1.4.1
+------
+
+RNA-seq
+~~~~~~~
+
+- KEGG results were not being added to the ``all.enrich`` list in ``rnaseq.Rmd``
+- symlinking bigWigs is now a local rule
+- default cutadapt options have changed to reflect current recommendations from
+  the author, and the cutadapt rule is now explicity using arguments rather
+  than requiring a separate ``adapters.fa`` file.
+- featureCounts now auto-detects whether it should be run with the ``-p``
+  argument in paired-end mode (previously it was up to the user to make sure
+  this was added). The rule does have an override if this behavior is not wanted.
+
+References
+~~~~~~~~~~
+
+- The reference config for *Drosophila* is now fixed. Previously it depended on
+  `chrom_convert`. That script was a fly-specific script in lcdblib, but
+  lcdblib is no longer a dependency since v1.3. This fix uses the
+  `convert_fastq_chroms` and `convert_gtf_chroms` used in reference configs for
+  other species.
+
+v1.4
+----
+RNA-seq
+~~~~~~~
+Much-improved ``rnaseq.Rmd``:
+
+- tabbed PCA plot
+- improved DEGpatterns chunk
+- dramatically improved functional enrichment section, with tabbed clusterprofiler plots and exported data in two flavors (combined and split)
+- improved upset plots, with exported files showing sets of genes
+- improved comments to highlight where to make changes
+- add new helper functions to ``helpers.R``:
+   - ``fromList.with.names``, for getting UpSet plot output
+   - ``rownames.first.col``, to make tidier dataframes
+   - ``nested.lapply``, for convenient 2-level nested list apply
+   - clusterprofiler helper functions
+
+
 v1.3
 ----
 Bugfixes

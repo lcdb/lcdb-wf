@@ -13,6 +13,7 @@ references:
         postprocess: 'lib.common.gzipped'
         conversions:
           - 'refflat'
+          - 'bed12'
           - gffutils: # kwargs below will be provided to `gffutils.create_db`
               merge_strategy: 'merge'
               id_spec:

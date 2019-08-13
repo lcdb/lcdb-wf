@@ -1,6 +1,6 @@
 references:
   spombe:
-    ucsc_41::
+    ucsc_41:
       metadata:
         reference_genome_build: 'pombe'
         reference_effective_genome_count: 1.2e7

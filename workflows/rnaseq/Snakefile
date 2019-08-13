@@ -45,6 +45,7 @@ def wrapper_for(path):
 # RULES
 # ----------------------------------------------------------------------------
 
+
 # See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
     c.targets['bam'],
@@ -195,28 +196,35 @@ rule cutadapt:
         fastq=render_r1_r2(c.patterns['cutadapt'])
     log:
         render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
+    threads: 6
     run:
         paired = len(input) == 2
 
         # NOTE: Change cutadapt params here
-        extra='-a file:../../include/adapters.fa -q 20 --minimum-length=25'
+
 
         if paired:
             shell(
                 "cutadapt "
-                "{extra} "
                 "{input.fastq[0]} "
                 "{input.fastq[1]} "
                 "-o {output[0]} "
                 "-p {output[1]} "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
+                '-q 20 '
+                '-j {threads} '
+                '--minimum-length 25 '
                 "&> {log}"
             )
         else:
             shell(
                 "cutadapt "
-                "{extra} "
                 "{input.fastq[0]} "
                 "-o {output[0]} "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                '-q 20 '
+                '--minimum-length 25 '
                 "&> {log}"
             )
             if not ALL_SE:
@@ -429,31 +437,26 @@ rule featurecounts:
     """
     input:
         annotation=c.refdict[c.organism][config['gtf']['tag']]['gtf'],
-        bam=c.patterns['bam']
+        bam=c.targets['bam']
     output:
-        counts='{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt'
+        counts='{sample_dir}/rnaseq_aggregation/featurecounts.txt'
     log:
-        '{sample_dir}/{sample}/{sample}.cutadapt.bam.featurecounts.{stranded}.txt.log'
+        '{sample_dir}/rnaseq_aggregation/featurecounts.txt.log'
     shell:
-        'featureCounts '
+            'featureCounts '
 
-        # NOTE:
-        # By default, this rule runs three times, using a different strand
-        # setting each time. The strand argument (-s0, -s1, -s2) to
-        # featureCounts is pulled straight from the wildcards, and the
-        # corresponding filenames have been set up in rnaseq_patterns.yaml.
-        #
-        # You probably do NOT want to add your own -s argument below, however
-        # other arguments might be useful. For example, for nascent RNA-seq,
-        # add '-t gene -g gene_id -f '
-        '-{wildcards.stranded} '
+            # NOTE:
+            # Choose strandedness here
+            '-s0 '
 
-        # NOTE: additional featureCounts args here
-        '-T {threads} '
-        '-a {input.annotation} '
-        '-o {output.counts} '
-        '{input.bam} '
-        '&> {log}'
+            # NOTE:
+            # Paired-end data? You'll likely want to use the -p argument
+            # '-p '
+            '-T {threads} '
+            '-a {input.annotation} '
+            '-o {output.counts} '
+            '{input.bam} '
+            '&> {log}'
 
 
 rule rrna_libsizes_table:
@@ -717,6 +720,7 @@ rule salmon:
         outdir=os.path.dirname(c.patterns['salmon'])
     log:
         c.patterns['salmon'] + '.log'
+    threads: 6
     run:
         paired = len(input.fastq) == 2
         if paired:
@@ -730,9 +734,11 @@ rule salmon:
                 # NOTE: --libType=A auto-detects library type. Change if needed.
                 '--libType=A '
 
-                # NOTE: Docs suggest using --gcBias and --seqBias is a good idea
+                # NOTE: Docs suggest using --gcBias, --validateMappings, and
+                # --seqBias is a good idea
                 '--gcBias '
                 '--seqBias '
+                '--validateMappings '
                 '-1 {input.fastq[0]} '
                 '-2 {input.fastq[1]} '
                 '&> {log}'
@@ -748,9 +754,11 @@ rule salmon:
                 # NOTE: --libType=A auto-detects library type. Change if needed.
                 '--libType=A '
 
-                # NOTE: Docs suggest using --gcBias and --seqBias is a good idea
+                # NOTE: Docs suggest using --gcBias, --validateMappings, and
+                # --seqBias is a good idea
                 '--gcBias '
                 '--seqBias '
+                '--validateMappings '
                 '-r {input.fastq} '
                 '&> {log}'
             )
@@ -766,6 +774,19 @@ rule rseqc_bam_stat:
         txt=c.patterns['rseqc']['bam_stat']
     shell:
         'bam_stat.py -i {input.bam} > {output.txt}'
+
+
+rule rseqc_infer_experiment:
+    """
+    Infer strandedness of experiment
+    """
+    input:
+        bam=c.patterns['bam'],
+        bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12']
+    output:
+        txt=c.patterns['rseqc']['infer_experiment']
+    shell:
+        'infer_experiment.py -r {input.bed12} -i {input.bam} > {output}'
 
 
 rule bigwig_neg:
@@ -820,30 +841,6 @@ rule bigwig_pos:
         '&> {log}'
 
 
-rule symlink_bigwigs:
-    input:
-        pos=c.patterns['bigwig']['pos'],
-        neg=c.patterns['bigwig']['neg'],
-    output:
-        sense=c.patterns['bigwig']['sense'],
-        antisense=c.patterns['bigwig']['antisense'],
-    run:
-        # NOTE:
-        #    In our test data, reads mapping to the positive strand correspond
-        #    to sense-strand transcripts. If your protocol is reversed (e.g.,
-        #    TruSeq kits), you can map negative-strand reads to "sense". The
-        #    track hub creation in rnaseq_trackhub.py only cares about the
-        #    `sense` and `antisense` versions, so it's cheap to mess around
-        #    with the symlinking here.
-        #
-        # E.g., use this for TruSeq:
-        # utils.make_relative_symlink(input.pos, output.antisense)
-        # utils.make_relative_symlink(input.neg, output.sense)
-
-        utils.make_relative_symlink(input.pos, output.sense)
-        utils.make_relative_symlink(input.neg, output.antisense)
-
-
 rule rnaseq_rmarkdown:
     """
     Run and render the RMarkdown file that performs differential expression
@@ -861,22 +858,22 @@ rule rnaseq_rmarkdown:
         'downstream/rnaseq.log'
     shell:
         'Rscript -e '
-        '''"rmarkdown::render('{input.rmd}', 'knitrBootstrap::bootstrap_document')" '''
+        '''"rmarkdown::render('{input.rmd}')" '''
         '> {log} 2>&1'
 
 
 def bigwigs_to_merge(wc):
     chunk = config['merged_bigwigs'][wc.merged_bigwig_label]
-    antisense_labels = chunk.get('antisense', [])
-    sense_labels = chunk.get('sense', [])
-    sense_bigwigs = expand(
-        c.patterns['bigwig']['sense'],
-        sample=sense_labels
+    neg_labels = chunk.get('neg', [])
+    pos_labels = chunk.get('pos', [])
+    pos_bigwigs = expand(
+        c.patterns['bigwig']['pos'],
+        sample=pos_labels
     )
-    antisense_bigwigs = expand(
-        c.patterns['bigwig']['antisense'],
-        sample=antisense_labels)
-    return sense_bigwigs + antisense_bigwigs
+    neg_bigwigs = expand(
+        c.patterns['bigwig']['neg'],
+        sample=neg_labels)
+    return pos_bigwigs + neg_bigwigs
 
 if 'merged_bigwigs' in config:
     rule merge_bigwigs:

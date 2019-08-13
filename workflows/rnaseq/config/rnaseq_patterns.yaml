@@ -10,10 +10,7 @@ libsizes:
   cutadapt: 'data/rnaseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize'
   bam:     'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.libsize'
 fastq_screen: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.screen.txt'
-featurecounts:
-  s0: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.featurecounts.s0.txt'
-  s1: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.featurecounts.s1.txt'
-  s2: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.featurecounts.s2.txt'
+featurecounts: 'data/rnaseq_aggregation/featurecounts.txt'
 libsizes_table: 'data/rnaseq_aggregation/libsizes_table.tsv'
 libsizes_yaml: 'data/rnaseq_aggregation/libsizes_table_mqc.yaml'
 rrna_percentages_table: 'data/rnaseq_aggregation/rrna_percentages_table.tsv'
@@ -41,11 +38,10 @@ preseq: 'data/rnaseq_samples/{sample}/{sample}_preseq_c_curve.txt'
 salmon: 'data/rnaseq_samples/{sample}/{sample}.salmon/quant.sf'
 rseqc:
    bam_stat: 'data/rnaseq_samples/{sample}/rseqc/{sample}_bam_stat.txt'
+   infer_experiment: 'data/rnaseq_samples/{sample}/rseqc/{sample}_infer_experiment.txt'
 bigwig:
    pos: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.pos.bigwig'
    neg: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.neg.bigwig'
-   sense: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.sense.bigwig'
-   antisense: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.antisense.bigwig'
 downstream:
    rnaseq: 'downstream/rnaseq.html'
 patterns_by_aggregate:

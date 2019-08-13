@@ -92,13 +92,12 @@ https://bioconductor.org/packages/3.7/bioc/vignettes/DESeq2/inst/doc/DESeq2.html
 
 To summarize:
 
-=============== ==== ==== ========
-log2FoldChange  pval padj Meaning
-=============== ==== ==== ========
-NA              NA   NA   Zero counts in all samples
-.               NA   NA   At least one replicate was an outlier and removed from analysis
-.               .    NA   Gene was removed by automatic independent filtering for having too little information
-=============== ==== ==== ========
+
+| log2FoldChange | pval | padj | Meaning                                                                               |
+|----------------+------+------+---------------------------------------------------------------------------------------|
+| NA             | NA   | NA   | Zero counts in all samples                                                            |
+| .              | NA   | NA   | At least one replicate was an outlier and removed from analysis                       |
+| .              | .    | NA   | Gene was removed by automatic independent filtering for having too little information |
 
 ### What is an MA plot?
 An MA plot is another name for a Bland-Altman plot or a mean-difference plot.
@@ -122,3 +121,56 @@ content (low counts or high variability across replicates) while the MLE
 version will show the unshrunken log2 fold change. Some contrasts, in
 particular those with interaction terms in the model, can't have their values
 shrunken for technical reasons (see the DESeq2 docs for details).
+
+### How do I interpret the functional enrichment section?
+
+Each contrast has a separate section (which you can quickly access from the
+table of contents). Each contrast's section has nested tabs.
+
+The top level of the tabs corresponds to the different databases used for
+functional enrichment analysis (e.g., GO, KEGG, Reactome etc).
+
+Each database's enrichment is available as a TSV file, in both condensed format
+(one line per term, multiple genes are separated by "/") or split (one gene per
+line; other information is duplicated). These files contain all the information
+that is plotted below. And, since the plots below only plot the top 10, 30, or
+5 categories by default, there may be a lot in these files that are not
+plotted.
+
+The second level of tabs corresponds to the different plots (described below).
+
+The analysis is visualized with 3 different plots, all showing the same results
+in different ways. For better comparison, we show each of the selected genes
+(typically, upregulated and downregulated though this can vary depending on the
+experiment) as side-by-side plots.
+
+#### dotplot
+
+This represents highly enriched terms from the analysis with the color corresponding to
+level of enrichment (adjusted p-value) and the size of the dots representing the
+number of genes associated with the GO term or pathway.
+
+This is the easiest plot to read the enriched terms. By default the top 10
+categories are shown.
+
+#### emapplot
+
+The enrichment map plot is a network visualization of the enrichment analysis. Nodes in
+the network represent GO terms or pathways and the connections (edges) between nodes
+represent shared genes between the terms/pathways. The color of the node corresponds
+to adjusted p-values, the size represent the number of genes associated with the term
+and the thickness of the edge represents the number or fraction of genes shared between
+the terms.
+
+This plot is good for identifying enriched pathways, since categories with
+similar genes will cluster together. By default the top 30 categories are
+shown.
+
+#### cnetplot
+
+This plot extracts the complex associations of genes with multiple functional terms or
+pathways. The size of the nodes for functional terms represent the number of associated
+genes and the gene nodes can also be overlayed with observed fold-changes.
+
+This plot is good for identifying which genes act as links between which
+categories. By default the top 5 categories are plotted.

@@ -1,0 +1,4 @@
+# Samplenames with the same "label" will be considered technical replicates
+samplename	antibody	biological_material	replicate	label	orig_filename
+input_1	input	wingdisc-1	1	input-wingdisc-1	data/example_data/chipseq_input1.fq.gz
+ip_1	gaf	wingdisc-1	1	gaf-wingdisc-1	data/example_data/chipseq_ip1.fq.gz
