@@ -461,7 +461,6 @@ for (name in names(res.list)){
 }
 ```
 
-```{r, fig.width=12, results='asis'}
 ```{r selections}
 sel.list <- list()
 for (name in names(res.list)){
@@ -487,57 +486,50 @@ for (name in names(res.list)){
 # Keep track of our sel.list entries, here just using the last one
 sel.names <- names(sel.list[[name]])
 ```
+
+```{r upsetplots, results='asis'}
 # UpSet plots only make sense for more than one set of genes. The Markdown
 # explanatory text and the plots themselves are only created if res.list has
 # multiple items in it.
+
+plot.upset <- function(sel.list.key, label) {
+    mdcat("## UpSet plot: ", label)
+    ll <- lapply(sel.list, function (x) rownames(x[[sel.list.key]]))
+    ll <- ll[lapply(ll, length) > 0]
+    if (length(ll) > 1) {
+        print(upset(fromList(ll), order.by='freq', nsets=length(ll)))
+        outfile <- file.path('upset_plots', paste0(label, '.tsv'))
+        lldf <- rownames.first.col(fromList.with.names(ll))
+        write.table(lldf, file=outfile, sep='\t', row.names=FALSE)
+        mdcat('- [', outfile, ']', '(', outfile, ')')
+        pdf.file <- file.path('upset_plots', paste0(label, '.pdf'))
+        dev.copy(pdf, file=pdf.file)
+        dev.off()
+        mdcat('- [', pdf.file, ']', '(', pdf.file, ')')
+
+    } else {
+        mdcat('not enough contrasts with upregulated genes')
+    }
+}
+
 
 if (length(res.list) > 1){
 
     dir.create('upset_plots', showWarnings=FALSE)
 
     mdcat("# UpSet plots {.tabset}")
-    mdcat("Gather together all the interesting gene sets into an ",
-          "['UpSet' plot](http://caleydo.org/tools/upset/). These plots show ",
-          "the combinatorial overlaps of genes found to be up, down, and any ",
-          "changed across the different contrasts performed.")
+    mdcat("Here we gather together all the interesting gene sets into an ",
+          "[UpSet plot](http://caleydo.org/tools/upset/). These plots show ",
+          "the combinatorial overlaps of genes found to be up or down ",
+          "across the different contrasts performed. It's much like a ",
+          "Venn diagram, but easier to interpret and can scale to many comparisons. ",
+          "A TSV file is linked under each plot. This file has rows for each ",
+          "gene and columns for each contrast. A `1` indicates that gene was found to be ",
+          "up/down/changed in that contrast. "
+    )
 
-    mdcat("## Upregulated UpSet plot")
-    ll <- lapply(res.list, function (x) get.sig(x[['res']], 'up'))
-    ll <- ll[lapply(ll, length) > 0]
-    if (length(ll) > 1) {
-        upset(fromList(ll), order.by='freq', nsets=length(ll))
-        outfile <- file.path('upset_plots', 'upregulated.tsv')
-        lldf <- rownames.first.col(fromList.with.names(ll))
-        write.table(lldf, file=outfile, sep='\t', row.names=FALSE)
-        mdcat('- [', outfile, ']', '(', outfile, ')')
-    } else {
-        mdcat('not enough contrasts with upregulated genes')
-    }
-
-    mdcat("## Downregulated UpSet plot")
-    ll <- lapply(res.list, function (x) get.sig(x[['res']], 'down'))
-    ll <- ll[lapply(ll, length) > 0]
-    if (length(ll) > 1) {
-        upset(fromList(ll), order.by='freq', nsets=length(ll))
-        outfile <- file.path('upset_plots', 'upregulated.tsv')
-        lldf <- rownames.first.col(fromList.with.names(ll))
-        write.table(lldf, file=outfile, sep='\t', row.names=FALSE)
-        mdcat('- [', outfile, ']', '(', outfile, ')')
-    } else {
-        mdcat('not enough contrasts with downregulated genes')
-    }
-
-    mdcat("## Changed genes UpSet plot")
-    ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed'))
-    ll <- ll[lapply(ll, length) > 0]
-    if (length(ll) > 1) {
-        upset(fromList(ll), order.by='freq', nsets=length(ll))
-        outfile <- file.path('upset_plots', 'upregulated.tsv')
-        lldf <- rownames.first.col(fromList.with.names(ll))
-        write.table(lldf, file=outfile, sep='\t', row.names=FALSE)
-        mdcat('- [', outfile, ']', '(', outfile, ')')
-    } else {
-        mdcat('not enough contrasts with changed genes')
+    for (name in names(sel.list[[1]])){
+        plot.upset(name, name)
     }
 }
 ```
