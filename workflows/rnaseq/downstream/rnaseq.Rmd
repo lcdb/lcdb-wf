@@ -34,7 +34,7 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 
 # Changelog
 
-Initial results
+**Initial results** 
 
 Last run: `r date()`
 
@@ -546,18 +546,33 @@ found in each cluster are reported below the plot.
 The default general flow is as follows:
 
 ```{r dpsettings}
+
 # NOTE: settings for DEGpatterns-----------------------------------------------
+#  These parameters are set up here because we will be providing them to
+#  multiple degPatterns calls.
 
 # NOTE:  Max number of genes to include----------------------------------------
-#   More will be downsampled to this many
+#   If more genes are differeentially expressed, they will be downsampled to
+#   this many
 lim <- 2000
 
 # NOTE:  Correlation coefficient above which to merge clusters-----------------
 cutoff <- 0.5
 
+# NOTE: x-axis for degPatterns ------------------------------------------------
+#   Should be a column in the colData metadata
+time <- "group"
+
+# NOTE: color for degPatterns.------------------------------------------------
+#   Use NULL for no color.
+col <- NULL
+
 # NOTE: This is set very low for test data. Default is 15.---------------------
 #   Minimum cluster size.
 minc <- 1
+
+# NOTE: This is a very low value used for getting the degPatterns to run -----
+low.minc <- 1
 ```
 
 - Take the union of all genes that are changed across all contrasts
@@ -593,15 +608,19 @@ for (name in names(ll)){
     # Print a nice Markdown header
     mdcat('## ', res.list[[name]][['label']])
     colData.i <- colData(res.list[[name]][['dds']])
+    colData.i <- colData.i[,!(colnames(colData.i) %in% exclude.for.printing)]
 
-    d <- degPatterns(
+
+    # Sometimes, if there are limited clusters, degPattern fails. The solution
+    # below is to reduce the `minc` to a very low number which allows it to run
+    # without error, disable plotting, then manually remove the clusters with
+    # low numbers of genes, then use the degPlotCluster function to re-plot
+    # them.
+    p <- degPatterns(
         ma,
         colData.i,
-
-        # NOTE: xaxis of plot -------------------------------------------------
-        #   "time" argument becomes the x-axis of the plot; change as
-        #   appropriate to your experiment
-        time='group',
+        time=time,
+        col=col,
 
         # NOTE: reduce and merge cutoff----------------------------------------
         #   Reduce will merge clusters that are similar; similarity determined
@@ -613,22 +632,42 @@ for (name in names(ll)){
         #   plot by another factor.
         # col="another.column",
 
-        # NOTE: increase min cluster size to 15
-        # This is purposely set low for test data; the DEGreport default is 15.
-        minc=minc
+        # NOTE: see above note
+        minc=low.minc,
+
+        plot=FALSE
+
         )
+
+    n <- p$normalized
+    cls <- unique(n$cluster)
+    names(cls) <- cls
+    cluster.counts <- sapply(cls, function (x) length(unique(n$genes[n$cluster==x])))
+    clusters.keep <- names(cluster.counts)[cluster.counts > minc]
+    n2 <- n[n$cluster %in% clusters.keep,]
+    print(degPlotCluster(
+        n2,
+        time=time,
+        col=col
+        )
+    )
+
 
     # In the final_clusters directory, this creates files containing lists of
     # the genes in each cluster, and adds a link to the Markdown.
     dir.create('final_clusters')
     mdcat('\n')
-    for (u in unique(d$df$cluster)){
+    for (u in unique(n2$cluster)){
         fn <- file.path('final_clusters',
                         paste0('final.', name, '.cluster.', u, '.txt'))
-        write.table(d$df[d$df$cluster==u, 'genes'], file=fn, quote=FALSE,
+        write.table(n2[n2$cluster==u, 'genes'], file=fn, quote=FALSE,
                     row.names=FALSE, col.names=FALSE)
         mdcat('- [', fn, '](', fn, '), cluster "', u, '" genes')
     }
+    pdf.file = file.path('final_clusters', paste0(name, '.pdf'))
+    dev.copy(pdf, file=pdf.file)
+    dev.off()
+    mdcat('- [', pdf.file, '](', pdf.file, '), PDF')
 }
 ```
 
