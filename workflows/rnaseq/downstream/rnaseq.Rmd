@@ -839,9 +839,9 @@ for(comp in names(all.enrich)){
 ```
 
 
-Below we show the results separately for each comparison: *mutant vs het*, *mutant vs wt*
-and *wt vs het*. Links to files containing analysis results are shown above each set of
-plots, with parsed files showing genes on separate lines.
+Below we show the results separately for each comparison. Links to files
+containing analysis results are shown above each set of plots, with parsed
+files showing genes on separate lines.
 
 ```{r plot_go, fig.width=15, fig.height=10, results='asis'}
 # go labels for file names
