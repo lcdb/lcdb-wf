@@ -34,7 +34,7 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 
 # Changelog
 
-Initial results
+**Initial results** 
 
 Last run: `r date()`
 
@@ -461,58 +461,75 @@ for (name in names(res.list)){
 }
 ```
 
-```{r, fig.width=12, results='asis'}
+```{r selections}
+sel.list <- list()
+for (name in names(res.list)){
+  res <- res.list[[name]][['res']]
+
+  # NOTE: significance level---------------------------------------------------
+  alpha <- 0.1
+
+  # NOTE: any other selections?------------------------------------------------
+  #    Here we just get the up- and downregulated genes, but any arbitrary
+  #    subsets of the results can be added.
+  #
+  #    For each selection:
+  #      - TSV of the subset of genes will be written to file and a link
+  #        created for it in the Markdown
+  #      - GO analysis will be performed on each group separately below.
+  sel.list[[name]] <- list(
+    up=res[get.sig(res, alpha=alpha, direction='up'),],
+    dn=res[get.sig(res, alpha=alpha, direction='dn'),]
+    )
+}
+
+# Keep track of our sel.list entries, here just using the last one
+sel.names <- names(sel.list[[name]])
+```
+
+```{r upsetplots, results='asis'}
 # UpSet plots only make sense for more than one set of genes. The Markdown
 # explanatory text and the plots themselves are only created if res.list has
 # multiple items in it.
+
+plot.upset <- function(sel.list.key, label) {
+    mdcat("## UpSet plot: ", label)
+    ll <- lapply(sel.list, function (x) rownames(x[[sel.list.key]]))
+    ll <- ll[lapply(ll, length) > 0]
+    if (length(ll) > 1) {
+        print(upset(fromList(ll), order.by='freq', nsets=length(ll)))
+        outfile <- file.path('upset_plots', paste0(label, '.tsv'))
+        lldf <- rownames.first.col(fromList.with.names(ll))
+        write.table(lldf, file=outfile, sep='\t', row.names=FALSE)
+        mdcat('- [', outfile, ']', '(', outfile, ')')
+        pdf.file <- file.path('upset_plots', paste0(label, '.pdf'))
+        dev.copy(pdf, file=pdf.file)
+        dev.off()
+        mdcat('- [', pdf.file, ']', '(', pdf.file, ')')
+
+    } else {
+        mdcat('not enough contrasts with upregulated genes')
+    }
+}
+
 
 if (length(res.list) > 1){
 
     dir.create('upset_plots', showWarnings=FALSE)
 
     mdcat("# UpSet plots {.tabset}")
-    mdcat("Gather together all the interesting gene sets into an ",
-          "['UpSet' plot](http://caleydo.org/tools/upset/). These plots show ",
-          "the combinatorial overlaps of genes found to be up, down, and any ",
-          "changed across the different contrasts performed.")
+    mdcat("Here we gather together all the interesting gene sets into an ",
+          "[UpSet plot](http://caleydo.org/tools/upset/). These plots show ",
+          "the combinatorial overlaps of genes found to be up or down ",
+          "across the different contrasts performed. It's much like a ",
+          "Venn diagram, but easier to interpret and can scale to many comparisons. ",
+          "A TSV file is linked under each plot. This file has rows for each ",
+          "gene and columns for each contrast. A `1` indicates that gene was found to be ",
+          "up/down/changed in that contrast. "
+    )
 
-    mdcat("## Upregulated UpSet plot")
-    ll <- lapply(res.list, function (x) get.sig(x[['res']], 'up'))
-    ll <- ll[lapply(ll, length) > 0]
-    if (length(ll) > 1) {
-        upset(fromList(ll), order.by='freq', nsets=length(ll))
-        outfile <- file.path('upset_plots', 'upregulated.tsv')
-        lldf <- rownames.first.col(fromList.with.names(ll))
-        write.table(lldf, file=outfile, sep='\t', row.names=FALSE)
-        mdcat('- [', outfile, ']', '(', outfile, ')')
-    } else {
-        mdcat('not enough contrasts with upregulated genes')
-    }
-
-    mdcat("## Downregulated UpSet plot")
-    ll <- lapply(res.list, function (x) get.sig(x[['res']], 'down'))
-    ll <- ll[lapply(ll, length) > 0]
-    if (length(ll) > 1) {
-        upset(fromList(ll), order.by='freq', nsets=length(ll))
-        outfile <- file.path('upset_plots', 'upregulated.tsv')
-        lldf <- rownames.first.col(fromList.with.names(ll))
-        write.table(lldf, file=outfile, sep='\t', row.names=FALSE)
-        mdcat('- [', outfile, ']', '(', outfile, ')')
-    } else {
-        mdcat('not enough contrasts with downregulated genes')
-    }
-
-    mdcat("## Changed genes UpSet plot")
-    ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed'))
-    ll <- ll[lapply(ll, length) > 0]
-    if (length(ll) > 1) {
-        upset(fromList(ll), order.by='freq', nsets=length(ll))
-        outfile <- file.path('upset_plots', 'upregulated.tsv')
-        lldf <- rownames.first.col(fromList.with.names(ll))
-        write.table(lldf, file=outfile, sep='\t', row.names=FALSE)
-        mdcat('- [', outfile, ']', '(', outfile, ')')
-    } else {
-        mdcat('not enough contrasts with changed genes')
+    for (name in names(sel.list[[1]])){
+        plot.upset(name, name)
     }
 }
 ```
@@ -529,18 +546,33 @@ found in each cluster are reported below the plot.
 The default general flow is as follows:
 
 ```{r dpsettings}
+
 # NOTE: settings for DEGpatterns-----------------------------------------------
+#  These parameters are set up here because we will be providing them to
+#  multiple degPatterns calls.
 
 # NOTE:  Max number of genes to include----------------------------------------
-#   More will be downsampled to this many
+#   If more genes are differeentially expressed, they will be downsampled to
+#   this many
 lim <- 2000
 
 # NOTE:  Correlation coefficient above which to merge clusters-----------------
 cutoff <- 0.5
 
+# NOTE: x-axis for degPatterns ------------------------------------------------
+#   Should be a column in the colData metadata
+time <- "group"
+
+# NOTE: color for degPatterns.------------------------------------------------
+#   Use NULL for no color.
+col <- NULL
+
 # NOTE: This is set very low for test data. Default is 15.---------------------
 #   Minimum cluster size.
 minc <- 1
+
+# NOTE: This is a very low value used for getting the degPatterns to run -----
+low.minc <- 1
 ```
 
 - Take the union of all genes that are changed across all contrasts
@@ -576,15 +608,19 @@ for (name in names(ll)){
     # Print a nice Markdown header
     mdcat('## ', res.list[[name]][['label']])
     colData.i <- colData(res.list[[name]][['dds']])
+    colData.i <- colData.i[,!(colnames(colData.i) %in% exclude.for.printing)]
 
-    d <- degPatterns(
+
+    # Sometimes, if there are limited clusters, degPattern fails. The solution
+    # below is to reduce the `minc` to a very low number which allows it to run
+    # without error, disable plotting, then manually remove the clusters with
+    # low numbers of genes, then use the degPlotCluster function to re-plot
+    # them.
+    p <- degPatterns(
         ma,
         colData.i,
-
-        # NOTE: xaxis of plot -------------------------------------------------
-        #   "time" argument becomes the x-axis of the plot; change as
-        #   appropriate to your experiment
-        time='group',
+        time=time,
+        col=col,
 
         # NOTE: reduce and merge cutoff----------------------------------------
         #   Reduce will merge clusters that are similar; similarity determined
@@ -596,52 +632,67 @@ for (name in names(ll)){
         #   plot by another factor.
         # col="another.column",
 
-        # NOTE: increase min cluster size to 15
-        # This is purposely set low for test data; the DEGreport default is 15.
-        minc=minc
+        # NOTE: see above note
+        minc=low.minc,
+
+        plot=FALSE
+
         )
+
+    n <- p$normalized
+    cls <- unique(n$cluster)
+    names(cls) <- cls
+    cluster.counts <- sapply(cls, function (x) length(unique(n$genes[n$cluster==x])))
+    clusters.keep <- names(cluster.counts)[cluster.counts > minc]
+    n2 <- n[n$cluster %in% clusters.keep,]
+    print(degPlotCluster(
+        n2,
+        time=time,
+        col=col
+        )
+    )
+
 
     # In the final_clusters directory, this creates files containing lists of
     # the genes in each cluster, and adds a link to the Markdown.
     dir.create('final_clusters')
     mdcat('\n')
-    for (u in unique(d$df$cluster)){
+    for (u in unique(n2$cluster)){
         fn <- file.path('final_clusters',
                         paste0('final.', name, '.cluster.', u, '.txt'))
-        write.table(d$df[d$df$cluster==u, 'genes'], file=fn, quote=FALSE,
+        write.table(n2[n2$cluster==u, 'genes'], file=fn, quote=FALSE,
                     row.names=FALSE, col.names=FALSE)
         mdcat('- [', fn, '](', fn, '), cluster "', u, '" genes')
     }
+    pdf.file = file.path('final_clusters', paste0(name, '.pdf'))
+    dev.copy(pdf, file=pdf.file)
+    dev.off()
+    mdcat('- [', pdf.file, '](', pdf.file, '), PDF')
 }
 ```
 
+
 # Exported results
 
-```{r selections}
-sel.list <- list()
+The files below are TSVs that can be opened in Excel:
+
+
+```{r, results='asis'}
+# Write out files for full and each selection, and create a link to them in the
+# HTML generated by this RMarkdown.
 for (name in names(res.list)){
-  res <- res.list[[name]][['res']]
+  mdcat('## ', res.list[[name]][['label']])
+  fn <- paste0(name, '.tsv')
+  write.table(res.list[[name]][['res']], file=fn, row.names=FALSE, sep='\t')
+  mdcat('- [', fn, '](', fn, '), results for ', res.list[[name]][['label']])
 
-  # NOTE: significance level---------------------------------------------------
-  alpha <- 0.1
-
-  # NOTE: any other selections?------------------------------------------------
-  #    Here we just get the up- and downregulated genes, but any arbitrary
-  #    subsets of the results can be added.
-  #
-  #    For each selection:
-  #      - TSV of the subset of genes will be written to file and a link
-  #        created for it in the Markdown
-  #      - GO analysis will be performed on each group separately below.
-  sel.list[[name]] <- list(
-    up=res[get.sig(res, alpha=alpha, direction='up'),],
-    dn=res[get.sig(res, alpha=alpha, direction='dn'),]
-    )
+  # Selections defined above written out to file, and a Markdown link created.
+  for (sel in names(sel.list[[name]])){
+    fn <- paste0(name, '.', sel, '.tsv')
+    write.table(sel.list[[name]][[sel]], file=fn, row.names=FALSE, sep='\t')
+    mdcat('- [', fn, '](', fn, '), just the "', sel, '" genes for ', res.list[[name]][['label']])
+  }
 }
-
-# Keep track of our sel.list entries, here just using the last one
-sel.names <- names(sel.list[[name]])
-
 ```
 
 
@@ -788,9 +839,9 @@ for(comp in names(all.enrich)){
 ```
 
 
-Below we show the results separately for each comparison: *mutant vs het*, *mutant vs wt*
-and *wt vs het*. Links to files containing analysis results are shown above each set of
-plots, with parsed files showing genes on separate lines.
+Below we show the results separately for each comparison. Links to files
+containing analysis results are shown above each set of plots, with parsed
+files showing genes on separate lines.
 
 ```{r plot_go, fig.width=15, fig.height=10, results='asis'}
 # go labels for file names
@@ -956,24 +1007,6 @@ for (name in names(res.list)) {
 ```
 
 
-```{r, results='asis', eval=FALSE}
-# Write out files for full and each selection, and create a link to them in the
-# HTML generated by this RMarkdown.
-for (name in names(res.list)){
-  mdcat('## ', res.list[[name]][['label']])
-  fn <- paste0(name, '.tsv')
-  write.table(res.list[[name]][['res']], file=fn, row.names=FALSE, sep='\t')
-  write.table(counts.list[[name]], file=paste(fn, ".counts", sep=""), row.names=FALSE, sep="\t")
-  mdcat('- [', fn, '](', fn, '), results for ', res.list[[name]][['label']])
-
-  # Selections defined above written out to file, and a Markdown link created.
-  for (sel in names(sel.list[[name]])){
-    fn <- paste0(name, '.', sel, '.tsv')
-    write.table(sel.list[[name]][[sel]], file=fn, row.names=FALSE, sep='\t')
-    mdcat('- [', fn, '](', fn, '), just the "', sel, '" genes for ', res.list[[name]][['label']])
-  }
-}
-```
 
 
 # Session info
