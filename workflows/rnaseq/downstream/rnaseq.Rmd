@@ -462,6 +462,31 @@ for (name in names(res.list)){
 ```
 
 ```{r, fig.width=12, results='asis'}
+```{r selections}
+sel.list <- list()
+for (name in names(res.list)){
+  res <- res.list[[name]][['res']]
+
+  # NOTE: significance level---------------------------------------------------
+  alpha <- 0.1
+
+  # NOTE: any other selections?------------------------------------------------
+  #    Here we just get the up- and downregulated genes, but any arbitrary
+  #    subsets of the results can be added.
+  #
+  #    For each selection:
+  #      - TSV of the subset of genes will be written to file and a link
+  #        created for it in the Markdown
+  #      - GO analysis will be performed on each group separately below.
+  sel.list[[name]] <- list(
+    up=res[get.sig(res, alpha=alpha, direction='up'),],
+    dn=res[get.sig(res, alpha=alpha, direction='dn'),]
+    )
+}
+
+# Keep track of our sel.list entries, here just using the last one
+sel.names <- names(sel.list[[name]])
+```
 # UpSet plots only make sense for more than one set of genes. The Markdown
 # explanatory text and the plots themselves are only created if res.list has
 # multiple items in it.
@@ -617,31 +642,9 @@ for (name in names(ll)){
 
 # Exported results
 
-```{r selections}
-sel.list <- list()
 for (name in names(res.list)){
-  res <- res.list[[name]][['res']]
 
-  # NOTE: significance level---------------------------------------------------
-  alpha <- 0.1
-
-  # NOTE: any other selections?------------------------------------------------
-  #    Here we just get the up- and downregulated genes, but any arbitrary
-  #    subsets of the results can be added.
-  #
-  #    For each selection:
-  #      - TSV of the subset of genes will be written to file and a link
-  #        created for it in the Markdown
-  #      - GO analysis will be performed on each group separately below.
-  sel.list[[name]] <- list(
-    up=res[get.sig(res, alpha=alpha, direction='up'),],
-    dn=res[get.sig(res, alpha=alpha, direction='dn'),]
-    )
 }
-
-# Keep track of our sel.list entries, here just using the last one
-sel.names <- names(sel.list[[name]])
-
 ```
 
 
