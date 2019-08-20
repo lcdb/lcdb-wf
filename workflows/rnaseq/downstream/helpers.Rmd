@@ -526,10 +526,10 @@ attach.info <- function(res, keytype='ENSEMBL', columns=c('SYMBOL', 'UNIPROT', '
 #'                 label to use.
 #'
 #' @return Dataframe
-summarize.res.list <- function(res.list, dds.list, res.list.lookup){
+summarize.res.list <- function(res.list, alpha, lfc.thresh){
     slist <- list()
     for (name in names(res.list)){
-        x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']])
+        x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']], alpha, lfc.thresh)
         rownames(x) <- res.list[[name]][['label']]
         slist[[name]] <- x
     }
