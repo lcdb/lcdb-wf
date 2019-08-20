@@ -25,9 +25,9 @@ get.orgdb <- function(species, cache, annotation_key_override=NA){
 
         # Cache location is specific to this instance of lcdb-wf so we don't
         # clobber old runs with new annotation data
-        '../../../include/AnnotationHubCache',
+        cache,
 
-        httr::use_proxy(Sys.getenv("http_proxy")),
+        Sys.getenv("http_proxy"),
         FALSE)
 
     find.annotationhub.name <- function(species.name, override.code) { #autodetect ah names based on loaded database
