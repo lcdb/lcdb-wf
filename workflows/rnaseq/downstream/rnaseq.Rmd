@@ -429,6 +429,12 @@ For each comparison there is a tab and under each tab are the following:
 
 See the [Background and help](#Help) section for details on these.
 
+```{r}
+# NOTE: significance level---------------------------------------------------
+alpha <- 0.1
+lfc.thresh <- 0
+```
+
 ```{r, results='asis'}
 # NOTE: Which columns to add to the top plots' titles?-------------------------
 #    This will add nicer titles to the plots. These may have come from the
@@ -466,8 +472,6 @@ sel.list <- list()
 for (name in names(res.list)){
   res <- res.list[[name]][['res']]
 
-  # NOTE: significance level---------------------------------------------------
-  alpha <- 0.1
 
   # NOTE: any other selections?------------------------------------------------
   #    Here we just get the up- and downregulated genes, but any arbitrary
@@ -478,8 +482,8 @@ for (name in names(res.list)){
   #        created for it in the Markdown
   #      - GO analysis will be performed on each group separately below.
   sel.list[[name]] <- list(
-    up=res[get.sig(res, alpha=alpha, direction='up'),],
-    dn=res[get.sig(res, alpha=alpha, direction='dn'),]
+    up=res[get.sig(res, alpha=alpha, lfc.thresh=lfc.thresh, direction='up'),],
+    dn=res[get.sig(res, alpha=alpha, lfc.thresh=lfc.thresh, direction='dn'),]
     )
 }
 
