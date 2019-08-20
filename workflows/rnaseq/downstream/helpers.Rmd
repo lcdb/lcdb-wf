@@ -413,13 +413,13 @@ pval.hist <- function(res){
 #' @param alpha Alpha level at which to call significantly changing genes
 #'
 #' @return Dataframe of summarized results
-my.summary <- function(res, dds, alpha, ...){
+my.summary <- function(res, dds, alpha, lfc.thresh, ...){
    if (missing(alpha)){
        alpha <- if (is.null(metadata(res)$alpha)){ 0.1 } else { metadata(res)$alpha }
    }
    notallzero <- sum(res$baseMean > 0)
-   up <- sum(res$padj < alpha & res$log2FoldChange > 0, na.rm=TRUE)
-   down <- sum(res$padj < alpha & res$log2FoldChange < 0, na.rm=TRUE)
+   up <- sum(res$padj < alpha & res$log2FoldChange > lfc.thresh, na.rm=TRUE)
+   down <- sum(res$padj < alpha & res$log2FoldChange < -lfc.thresh, na.rm=TRUE)
    filt <- sum(!is.na(res$pvalue) & is.na(res$padj))
    outlier <- sum(res$baseMean > 0 & is.na(res$pvalue))
    ft <- if(is.null(metadata(res)$filterThreshold)){ 0 } else { round(metadata(res)$filterThreshold) }
@@ -429,6 +429,7 @@ my.summary <- function(res, dds, alpha, ...){
                     total.annotated.genes=nrow(res),
                     total.nonzero.read.count=notallzero,
                     alpha=alpha,
+                    lfcThreshold=lfc.thresh,
                     up=up,
                     down=down,
                     outliers=outlier,
