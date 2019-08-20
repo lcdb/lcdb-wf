@@ -81,8 +81,15 @@ hub.cache <- '../../../include/AnnotationHubCache'
 # to tmp. This also should increase performance when running on a cluster -- we
 # avoid poor sqlite performance on shared filesystems by copying to local
 # scratch space.
-ok <- file.copy(hub.cache, tempdir(), recursive=TRUE)
-new.cache <- file.path(tempdir(), 'AnnotationHubCache')
+if(!exists(hub.cache)){
+    # create if cache directory does not exist
+    # this avoids the directory creation prompt
+    dir.create(hub.cache, showWarnings=FALSE, recursive=TRUE)
+    new.cache <- hub.cache
+} else {
+    ok <- file.copy(hub.cache, tempdir(), recursive=TRUE)
+    new.cache <- file.path(tempdir(), 'AnnotationHubCache')
+}
 
 orgdb <- get.orgdb(
     annotation_genus_species,
