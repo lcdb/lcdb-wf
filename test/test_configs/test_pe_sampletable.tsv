@@ -1,0 +1,2 @@
+samplename	group	layout	orig_filename	orig_filename_R2
+sample1pe	control	PE	data/example_data/rnaseq_sample1PE_1.fq.gz	data/example_data/rnaseq_sample1PE_2.fq.gz

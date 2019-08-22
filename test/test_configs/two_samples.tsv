@@ -1,3 +1,3 @@
-samplename	group	layout	orig_filename	orig_filename_R2
-sample1	control	PE	data/example_data/rnaseq_sample1PE_1.fq.gz	data/example_data/rnaseq_sample1PE_2.fq.gz
-sample2	control	SE	data/example_data/rnaseq_sample2.fq.gz	
+samplename	group	layout	orig_filename
+sample1	control	SE	data/example_data/rnaseq_sample1PE_1.fq.gz
+sample2	control	SE	data/example_data/rnaseq_sample2.fq.gz
