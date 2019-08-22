@@ -782,6 +782,10 @@ rule bigwig_neg:
         '--minMappingQuality 20 '
         '--ignoreDuplicates '
         '--smoothLength 10 '
+
+        # NOTE: --filterRNAstrand forward keeps minus-strand reads, which
+        # originally came from genes on the forward strand assuming
+        # a dUTP-based library prep.
         '--filterRNAstrand forward '
         '--normalizeUsing BPM '
         '&> {log}'
@@ -808,6 +812,10 @@ rule bigwig_pos:
         '--minMappingQuality 20 '
         '--ignoreDuplicates '
         '--smoothLength 10 '
+
+        # NOTE: --filterRNAstrand reverse keeps plus-strand reads, which
+        # originally came from genes on the reverse strand assuming
+        # a dUTP-based library prep.
         '--filterRNAstrand reverse '
         '--normalizeUsing BPM '
         '&> {log}'
