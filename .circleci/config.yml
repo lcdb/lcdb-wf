@@ -59,6 +59,14 @@ variables:
         source activate lcdb-wf-test
         pytest --doctest-modules lib
 
+  rnaseq-dryrun: &rnaseq-dryrun
+      run:
+        name: dry run
+        command: |
+          cd workflows/rnaseq
+          source activate lcdb-wf-test
+          ./run_test.sh --use-conda -n
+
   chipseq-step: &chipseq-step
       run:
         name: chipseq workflow
@@ -191,6 +199,15 @@ jobs:
       - *get-data
       - *chipseq-regression-step
 
+  rnaseq-dryrun:
+    <<: *defaults
+    steps:
+      - checkout
+      - *restore_cache
+      - *set-path
+      - *get-data
+      - *rnaseq-dryrun
+
   rnaseq:
     <<: *defaults
     steps:
@@ -303,10 +320,15 @@ workflows:
            branches:
              ignore:
                - master
+      - rnaseq-dryrun:
+         requires:
+           - initial-setup
+           - pytest
       - rnaseq:
           requires:
             - initial-setup
             - pytest
+            - rnaseq-dryrun
           filters:
             branches:
               ignore:
@@ -315,6 +337,25 @@ workflows:
           requires:
             - initial-setup
             - pytest
+            - rnaseq-dryrun
+          filters:
+            branches:
+              ignore:
+                - master
+      - rnaseq-sra:
+          requires:
+            - initial-setup
+            - pytest
+            - rnaseq-dryrun
+          filters:
+            branches:
+              ignore:
+                - master
+      - rnaseq-pe:
+          requires:
+            - initial-setup
+            - pytest
+            - rnaseq-dryrun
           filters:
             branches:
               ignore:
