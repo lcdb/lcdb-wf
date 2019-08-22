@@ -209,6 +209,15 @@ jobs:
       - *get-data
       - *rnaseq-star-step
 
+  rnaseq-sra:
+    <<: *defaults
+    steps:
+      - checkout
+      - *restore_cache
+      - *set-path
+      - *get-data
+      - *rnaseq-sra-step
+
 
   rnaseq-pe:
     <<: *defaults
