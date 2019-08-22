@@ -754,8 +754,11 @@ rule rseqc_infer_experiment:
         bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12']
     output:
         txt=c.patterns['rseqc']['infer_experiment']
+    log:
+        c.patterns['rseqc']['infer_experiment'] + '.log'
+
     shell:
-        'infer_experiment.py -r {input.bed12} -i {input.bam} > {output}'
+        'infer_experiment.py -r {input.bed12} -i {input.bam} > {output} &> {log}'
 
 
 rule bigwig_neg:
