@@ -126,6 +126,18 @@ variables:
             --configfile ../../test/test_configs/override.yaml \
             --config sampletable=../../test/test_configs/test_sra_sampletable_SE_only.tsv
 
+  rnaseq-pe-step: &rnaseq-pe-step
+      run:
+        name: rnaseq test PE
+        command: |
+          cp -r workflows/rnaseq workflows/rnaseq-pe-test
+          cd workflows/rnaseq-pe-test
+          source activate lcdb-wf-test
+
+          ./run_test.sh --use-conda -k -p -r --until multiqc \
+            --configfile ../../test/test_configs/override.yaml \
+            --config sampletable=../../test/test_configs/test_pe_sampletable.tsv
+
   colocalization-step: &colocalization-step
       run:
         name: colocalization workflow
@@ -197,6 +209,15 @@ jobs:
       - *get-data
       - *rnaseq-star-step
 
+
+  rnaseq-pe:
+    <<: *defaults
+    steps:
+      - checkout
+      - *restore_cache
+      - *set-path
+      - *get-data
+      - *rnaseq-pe-step
 
   colocalization:
     <<: *defaults
