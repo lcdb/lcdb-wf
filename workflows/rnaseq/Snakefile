@@ -70,14 +70,12 @@ final_targets = utils.flatten((
 if 'merged_bigwigs' in config:
     final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
 
-# Special case: all samples are single-end
-if all(c.sampletable.iloc[:, 0].apply(
-    lambda x: not common.is_paired_end(c.sampletable, x))
-):
-    ALL_SE = True
-    final_targets = [i.replace('{n}', '1') for i in final_targets]
-else:
-    ALL_SE = False
+
+def render_r1_r2(pattern, r1_only=False):
+    return expand(pattern, sample='{sample}', n=c.n)
+
+def r1_only(pattern):
+    return expand(pattern, sample='{sample}', n=1)
 
 rule targets:
     """
@@ -96,15 +94,9 @@ if 'orig_filename' in c.sampletable.columns:
         Given a sample, returns either one or two original fastq files
         depending on whether the library was single- or paired-end.
         """
-        row = _st.loc[wc.sample]
-        res = [row['orig_filename']]
-        try:
-            r2 = row['orig_filename_R2']
-            if isinstance(r2, str):
-                res.append(row['orig_filename_R2'])
-        except KeyError:
-            pass
-        return res
+        if c.is_paired:
+            return _st.loc[wc.sample, ['orig_filename', 'orig_filename_R2']]
+        return _st.loc[wc.sample, ['orig_filename']]
 
 
     rule symlinks:
@@ -114,30 +106,16 @@ if 'orig_filename' in c.sampletable.columns:
         input:
             orig_for_sample
         output:
-            c.patterns['fastq']
-        wildcard_constraints:
-            n="\d+"
+            render_r1_r2(c.patterns['fastq'])
         run:
 
-            assert len(output) == 1
-            if wildcards.n == '1':
-                src = input[0]
-            elif wildcards.n == '2':
-                src = input[1]
-            else:
-                raise ValueError("n={}, only 1 and 2 supported".format(wildcards.n))
-
-            utils.make_relative_symlink(src, output[0])
+            assert len(output) == len(input), (input, output)
+            for src, linkname in zip(input, output):
+                utils.make_relative_symlink(src, linkname)
 
 
     rule symlink_targets:
         input: c.targets['fastq']
-
-
-def render_r1_r2(pattern):
-    if ALL_SE:
-        return expand(pattern, sample='{sample}', n=[1])
-    return expand(pattern, sample='{sample}', n=[1, 2])
 
 
 if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('SRR')) > 0:
@@ -155,8 +133,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
             # Two different paths depending on the layout. In both cases, we
             # want to avoid creating the final output until the very end, to
             # avoid incomplete downloads.
-            if common.is_paired_end(c.sampletable, wildcards.sample):
-
+            if c.is_paired:
                 # For PE we need to use --split-files, which also means using
                 # the slower --gzip
                 shell(
@@ -167,7 +144,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     # '-X 100000 ' # [TEST SETTINGS]
                 )
 
-                # The filenames are predictable, so we can move them as needd.
+                # The filenames are predictable, so we can move them as needed.
                 shell('mv {srr}_1.fastq.gz {output[0]}')
                 shell('mv {srr}_2.fastq.gz {output[1]}')
 
@@ -182,8 +159,6 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     '| gzip -c > {output[0]}.tmp '
                     '&& mv {output[0]}.tmp {output[0]} '
                 )
-                if not ALL_SE:
-                    shell('touch {output[1]}')
 
 
 rule cutadapt:
@@ -191,19 +166,16 @@ rule cutadapt:
     Run cutadapt
     """
     input:
-        fastq=common.fill_r1_r2(c.sampletable, c.patterns['fastq'])
+        fastq=render_r1_r2(c.patterns['fastq'])
     output:
         fastq=render_r1_r2(c.patterns['cutadapt'])
     log:
         render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
     threads: 6
     run:
-        paired = len(input) == 2
 
         # NOTE: Change cutadapt params here
-
-
-        if paired:
+        if c.is_paired:
             shell(
                 "cutadapt "
                 "{input.fastq[0]} "
@@ -227,8 +199,6 @@ rule cutadapt:
                 '--minimum-length 25 '
                 "&> {log}"
             )
-            if not ALL_SE:
-                shell('touch {output[1]}')
 
 
 rule fastqc:
@@ -260,12 +230,12 @@ if config['aligner']['index'] == 'hisat2':
             prefix = aligners.prefix_from_bowtie2_index(input.index)
             sam = output.bam.replace('.bam', '.sam')
 
-            # If two fastqs were provided, assume paired-end mode; otherwise single-end
-            if isinstance(input.fastq, str) or len(input.fastq) == 1:
-                fastqs = '-U {0} '.format(input.fastq)
-            else:
+            if c.is_paired:
                 assert len(input.fastq) == 2
                 fastqs = '-1 {0} -2 {1} '.format(*input.fastq)
+            else:
+                assert len(input.fastq) == 1
+                fastqs = '-U {0} '.format(input.fastq)
 
             shell(
                 "hisat2 "
@@ -334,7 +304,7 @@ rule rRNA:
     Map reads with bowtie2 to the rRNA reference
     """
     input:
-        fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt'], r1_only=True),
+        fastq=r1_only(c.patterns['cutadapt']),
         index=[c.refdict[c.organism][config['rrna']['tag']]['bowtie2']]
     output:
         bam=c.patterns['rrna']['bam']
@@ -421,7 +391,7 @@ rule fastq_screen:
     """
     input:
         **fastq_screen_references(),
-        fastq=common.fill_r1_r2(c.sampletable, rules.cutadapt.output.fastq, r1_only=True),
+        fastq=r1_only(rules.cutadapt.output.fastq),
     output:
         txt=c.patterns['fastq_screen']
     log:
@@ -442,21 +412,25 @@ rule featurecounts:
         counts='{sample_dir}/rnaseq_aggregation/featurecounts.txt'
     log:
         '{sample_dir}/rnaseq_aggregation/featurecounts.txt.log'
-    shell:
+    run:
+        # NOTE: By default, we use -p for paired-end
+        p_arg = ''
+        if c.is_paired:
+            p_arg = '-p '
+        shell(
             'featureCounts '
 
             # NOTE:
-            # Choose strandedness here
+            # Choose strandedness here (s0 is unstranded, s1 is sense, s2 is
+            # antisense)
             '-s0 '
-
-            # NOTE:
-            # Paired-end data? You'll likely want to use the -p argument
-            # '-p '
+            '{p_arg} '
             '-T {threads} '
             '-a {input.annotation} '
             '-o {output.counts} '
             '{input.bam} '
             '&> {log}'
+        )
 
 
 rule rrna_libsizes_table:
@@ -603,6 +577,7 @@ rule multiqc:
             '&> {log} '
         )
 
+
 rule markduplicates:
     """
     Mark or remove PCR duplicates with Picard MarkDuplicates
@@ -722,8 +697,7 @@ rule salmon:
         c.patterns['salmon'] + '.log'
     threads: 6
     run:
-        paired = len(input.fastq) == 2
-        if paired:
+        if c.is_paired:
             shell(
                 # NOTE: adjust Salmon params as needed
                 'salmon quant '
