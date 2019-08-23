@@ -552,7 +552,7 @@ get.sig <- function(x, direction='up', alpha=0.1, thresh=0, return.names=TRUE){
     } else if (direction %in% c('down', 'dn')){
         idx <- (x$padj < alpha) & (x$log2FoldChange < -thresh) & (!is.na(x$padj))
     } else if (direction %in% c('changed', 'ch')){
-        idx <- (x$padj < alpha) & (!is.na(x$padj))
+        idx <- (x$padj < alpha) & (abs(x$log2FoldChange) > thresh) & (!is.na(x$padj))
     }
     if (return.names){
         return(rownames(x)[idx])
