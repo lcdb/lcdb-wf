@@ -121,7 +121,7 @@ colData$featurecounts.path <- sapply(
 #    you've changed anything there you will need to change it here as well.
 colData$salmon.path <- sapply(
     colData$samplename,
-    function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
+    function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), paste0(x, '_quant.sf'))
 )
 
 # NOTE: Factor columns.
