@@ -682,11 +682,11 @@ rule multiqc:
         ),
         config='config/multiqc_config.yaml'
     output: report(c.targets['multiqc']['pattern'], caption=final_rst['multiqc']['pattern'], category='QC')
-    log: c.targets['multiqc']['pattern'][0] + '.log'
+    log: c.targets['multiqc']['pattern'] + '.log'
     run:
         analysis_directory = set([os.path.dirname(i) for i in input])
-        outdir = os.path.dirname(c.targets['multiqc']['pattern'][0])
-        basename = os.path.basename(c.targets['multiqc']['pattern'][0])
+        outdir = os.path.dirname(c.targets['multiqc']['pattern'])
+        basename = os.path.basename(c.targets['multiqc']['pattern'])
         shell(
             'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
             'multiqc '
