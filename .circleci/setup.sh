@@ -34,8 +34,6 @@ if ! type conda > /dev/null; then
     #conda install -y r-base=3.4.1 bioconductor-genomeinfodbdata bioconductor-annotationhub
     conda update -y conda
     conda create -n lcdb-wf-test -y --file requirements.txt
-    conda remove -y r-base
-
     yum install -y git
 fi
 
