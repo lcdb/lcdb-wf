@@ -413,7 +413,7 @@ pval.hist <- function(res){
 #' @param alpha Alpha level at which to call significantly changing genes
 #'
 #' @return Dataframe of summarized results
-my.summary <- function(res, dds, alpha, lfc.thresh, ...){
+my.summary <- function(res, dds, alpha, lfc.thresh=0, ...){
    if (missing(alpha)){
        alpha <- if (is.null(metadata(res)$alpha)){ 0.1 } else { metadata(res)$alpha }
    }
