@@ -68,7 +68,7 @@ salmon
 samtools >=1.4.1
 scipy >=0.18.1
 seaborn >=0.7.1
-snakemake >=3.11.2
+snakemake==5.5.4
 sra-tools
 star
 subread
