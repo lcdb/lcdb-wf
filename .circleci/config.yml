@@ -5,7 +5,7 @@ variables:
   # default settings for all steps
   defaults: &defaults
     docker:
-      - image: bioconda/bioconda-utils-build-env
+      - image: continuumio/miniconda3
 
   # --------------------------------------------------------------------------
   # The caching dramatically speeds up testing time, because we can do the
@@ -28,7 +28,7 @@ variables:
     save_cache:
       key: v1-{{ checksum "requirements.txt" }}-{{ checksum ".circleci/setup.sh" }}
       paths:
-        - miniconda
+        - env
 
   restore_cache: &restore_cache
     restore_cache:
@@ -42,7 +42,12 @@ variables:
   setup: &setup
     run:
       name: Setup conda
-      command: .circleci/setup.sh
+      command: |
+        - conda config --system --add channels defaults
+        - conda config --system --add channels bioconda
+        - conda config --system --add channels conda-forge
+        - conda create -p ./env -y --file requirements.txt
+
   # --------------------------------------------------------------------------
 
   get-data: &get-data
