@@ -40,7 +40,7 @@ variables:
   # Run the setup script, which installs miniconda, sets up bioconda, and
   # installs the global env
   setup: &setup
-    run: 
+    run:
       name: Setup conda
       command: .circleci/setup.sh
   # --------------------------------------------------------------------------
@@ -96,6 +96,11 @@ variables:
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
           python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
+
+        name: show rnaseq.Rmd log
+        command: |
+          cd workflows/rnaseq/downstream
+          cat rnaseq.log
 
   rnaseq-star-step: &rnaseq-star-step
       run:

@@ -36,6 +36,7 @@ matplotlib
 multiqc
 nextgenmap
 numpy >1.15
+openssl
 pandas >=0.19.2
 pandoc
 picard
