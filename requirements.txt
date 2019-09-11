@@ -36,7 +36,6 @@ matplotlib
 multiqc
 nextgenmap
 numpy >1.15
-openssl
 pandas >=0.19.2
 pandoc
 picard
@@ -77,7 +76,7 @@ trackhub
 ucsc-bedgraphtobigwig
 ucsc-bedsort
 ucsc-bedtobigbed
-ucsc-bigwigmerge
+ucsc-bigwigmerge==357
 ucsc-fetchchromsizes
 ucsc-gtftogenepred
 ucsc-genepredtobed

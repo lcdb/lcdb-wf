@@ -96,12 +96,7 @@ variables:
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
           python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
-
-        name: show rnaseq.Rmd log
-        command: |
-          pwd
-          cd workflows/rnaseq/downstream
-          [[ -e rnaseq.log ]] && cat rnaseq.log
+          [[ -e downstream/rnaseq.log ]] && cat downstream/rnaseq.log
 
   rnaseq-star-step: &rnaseq-star-step
       run:
