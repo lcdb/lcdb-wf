@@ -76,7 +76,7 @@ trackhub
 ucsc-bedgraphtobigwig
 ucsc-bedsort
 ucsc-bedtobigbed
-ucsc-bigwigmerge==357
+ucsc-bigwigmerge ==377
 ucsc-fetchchromsizes
 ucsc-gtftogenepred
 ucsc-genepredtobed
