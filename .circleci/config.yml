@@ -99,8 +99,9 @@ variables:
 
         name: show rnaseq.Rmd log
         command: |
+          pwd
           cd workflows/rnaseq/downstream
-          cat rnaseq.log
+          [[ -e rnaseq.log ]] && cat rnaseq.log
 
   rnaseq-star-step: &rnaseq-star-step
       run:
