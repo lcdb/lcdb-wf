@@ -860,6 +860,7 @@ rule rnaseq_rmarkdown:
         'Rscript -e '
         '''"rmarkdown::render('{input.rmd}')" '''
         '> {log} 2>&1'
+        # [TEST_SETTINGS -1]
 
 
 def bigwigs_to_merge(wc):

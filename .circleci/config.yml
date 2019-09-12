@@ -94,7 +94,7 @@ variables:
         command: |
           cd workflows/rnaseq
           source activate lcdb-wf-test
-          ./run_test.sh --use-conda -j2 -k -p -r || [[ -e downstream/rnaseq.log ]] && cat downstream/rnaseq.log && exit 1
+          ./run_test.sh --use-conda -j2 -k -p -r
           python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
 
   rnaseq-star-step: &rnaseq-star-step
