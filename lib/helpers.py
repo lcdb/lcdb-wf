@@ -4,6 +4,28 @@ from itertools import product
 import pandas as pd
 from snakemake.shell import shell
 from snakemake.io import expand, regex
+from lib import common
+
+
+def detect_layout(sampletable):
+    """
+    Identifies whether a sampletable represents single-end or paired-end reads.
+
+    Raises NotImplementedError if there's a mixture.
+    """
+    is_pe = [common.is_paired_end(sampletable, s) for s in sampletable.iloc[:, 0]]
+    if all(is_pe):
+        return 'PE'
+    elif not any(is_pe):
+        return 'SE'
+    else:
+        p = sampletable.iloc[is_pe, 0].to_list()
+        s = sampletable.iloc[[not i for i in is_pe], 0].to_list()
+        if len(p) > len(s):
+            report = f'SE samples: {s}'
+        else:
+            report = f'PE samples: {p}'
+        raise ValueError(f"Only a single layout (SE or PE) is supported. {report}")
 
 
 def fill_patterns(patterns, fill, combination=product):

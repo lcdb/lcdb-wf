@@ -1,0 +1,79 @@
+#sampletable: 'config/sampletable.tsv'
+organism: 'dmel'
+references_dir: 'references_data'
+peaks_dir: 'data/chipseq_peaks'
+
+chipseq:
+  peak_calling:
+
+    - label: gaf-wingdisc-1
+      algorithm: macs2
+      ip:
+        - gaf-wingdisc-1
+      control:
+        - input-wingdisc-1
+      effective_genome_count: 7e7
+      extra: '--nomodel --extsize 147'
+
+
+fastq_screen:
+  - label: rRNA
+    organism: dmel
+    tag: test
+  - label: PhiX
+    organism: phix
+    tag: default
+  - label: Fly
+    organism: dmel
+    tag: test
+
+aligner:
+  index: 'bowtie2'
+  tag: 'test'
+
+
+merged_bigwigs: {}
+
+references:
+  dmel:
+    test:
+      fasta:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa"
+        postprocess: 'lib.common.gzipped'
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+      gtf:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf"
+        postprocess: 'lib.common.gzipped'
+        conversions:
+          - 'refflat'
+          - gffutils: # kwargs below will be provided to `gffutils.create_db`
+              merge_strategy: 'merge'
+              id_spec:
+                  transcript: ['transcript_id', 'transcript_symbol']
+                  gene: ['gene_id', 'gene_symbol']
+              gtf_transcript_key: 'transcript_id'
+              gtf_gene_key: 'gene_id'
+
+          # the attribute from the GTF to consider gene ID
+          - genelist:
+              gene_id: 'gene_id'
+
+          # a <- AnnotationHub()
+          # a[(a$rdataclass == 'OrgDb') & grepl('melanogaster', a$species),]
+          - annotation_hub:
+              ahkey: 'AH57972'
+              keytype: 'ENSEMBL'
+
+      metadata:
+        reference_genome_build: 'dm6'
+        reference_effective_genome_count: 1.2e8
+        reference_effective_genome_proportion: 0.88
+
+    test_transcriptome:
+      fasta:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.transcriptome.fa"
+        postprocess: 'lib.common.gzipped'
+        indexes:
+          - 'salmon'

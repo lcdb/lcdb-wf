@@ -1,23 +1,23 @@
 __default__:
-  prefix: "--gres=lscratch:20 --time=4:00:00"
+  prefix: "--gres=lscratch:20 --time=4:00:00 --partition=quick"
 
 bowtie2_index:
-  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g --partition=quick"
 
 hisat2_index:
-  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g --partition=quick"
 
 hisat2:
-  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g --partition=quick"
 
 fastq_screen:
-  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g --partition=quick"
 
 markduplicates:
-  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g --partition=quick"
 
 collectrnaseqmetrics:
-  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g --partition=quick"
 
 salmon_index:
   prefix: "--mem=32g"

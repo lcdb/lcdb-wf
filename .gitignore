@@ -18,3 +18,4 @@ docs/_build
 /workflows/chipseq/Snakefile.test
 /workflows/rnaseq/Snakefile.test
 workflows/rnaseq/staging/
+env

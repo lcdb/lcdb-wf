@@ -46,23 +46,29 @@ pytest >=3.0.5
 pytest-runner >=2.11
 pytest-xdist
 pyyaml >=3.12
-r-base >=3.5.1
+r-base ==3.5.1
+r-bindrcpp
 r-codetools
 r-dt
+r-ggrepel
+r-heatmaply
 r-kernsmooth
 r-knitr
 r-knitrbootstrap
 r-pheatmap
+r-plotly
+r-quantreg
 r-readr
 r-rmarkdown
 r-spp
+r-sparsem
 r-upsetr
 rseqc >=3.0
 salmon
 samtools >=1.4.1
 scipy >=0.18.1
 seaborn >=0.7.1
-snakemake >=3.11.2
+snakemake==5.5.4
 sra-tools
 star
 subread
@@ -70,9 +76,10 @@ trackhub
 ucsc-bedgraphtobigwig
 ucsc-bedsort
 ucsc-bedtobigbed
-ucsc-bigwigmerge
+ucsc-bigwigmerge ==377
 ucsc-fetchchromsizes
 ucsc-gtftogenepred
+ucsc-genepredtobed
 ucsc-liftover
 ucsc-oligomatch
 ucsc-twobittofa

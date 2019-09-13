@@ -410,6 +410,7 @@ def references_dict(config):
         'intergenic': '.intergenic.gtf',
         'refflat': '.refflat',
         'gffutils': '.gtf.db',
+        'bed12': '.bed12',
         'genelist': '.genelist',
         'annotation_hub': '.{keytype}.csv',
         'mappings': '.mapping.tsv.gz',
