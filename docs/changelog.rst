@@ -1,12 +1,50 @@
 Changelog
 =========
 
-v1.5
-----
+v1.5 (Sept 2019)
+----------------
+
+Major change: **it is no longer possible to mix single-end and paired-end
+samples within the same run of the workflow.** See `#208
+<https://github.com/lcdb/lcdb-wf/pull/208>`_ and the corresponding issue
+description at `#175 <https://github.com/lcdb/lcdb-wf/issues/175>`_.
+
+This version also has many improvements to the ``rnaseq.Rmd`` file for RNA-seq,
+as described below.
+
+RNA-seq
+~~~~~~~
+
+Many changes and improvements to ``rnaseq.Rmd``, including:
+
+- Differential analysis summaries now include labeled MA plots (`#192 <https://github.com/lcdb/lcdb-wf/pull/192/files>`_)
+- PCA plots now use plotly for improved insepction of samples (`#192 <https://github.com/lcdb/lcdb-wf/pull/192/files>`_
+- don't use knitrBootstrap any more (`#192 <https://github.com/lcdb/lcdb-wf/pull/192/files>`_
+- heatmaps use heatmaply package for better interaction (`#192 <https://github.com/lcdb/lcdb-wf/pull/192/files>`_
+- allow ``sel.list`` to be used for UpSet plots and fix some typos `#205 <https://github.com/lcdb/lcdb-wf/pull/205>`_
+- workaround for degPatterns for corner cases where there are few clusters because of the ``minc`` parameter (`#205 <https://github.com/lcdb/lcdb-wf/pull/205>`_)
+- alpha and lfc.thresh are now pulled out into a separate chunk (`#206 <https://github.com/lcdb/lcdb-wf/pull/206>`_)
+- Support AnnotationHub http proxy handling in new version of AnnotationHub (`#207 <https://github.com/lcdb/lcdb-wf/pull/207>`_).
+
+As well as the following changes to other parts of the RNA-seq workflow, such as:
+
+- better bigWig file nomenclature (`#194 <https://github.com/lcdb/lcdb-wf/pull/194/files>`_), uses "pos" and "neg".
+- featureCounts only runs once on all BAMs rather than individual samples (`#195 <https://github.com/lcdb/lcdb-wf/pull/195>`_)
+- support `rseqc infer_experiment`, which replaces running featureCounts in multiple stranded modes (`#199 <https://github.com/lcdb/lcdb-wf/pull/199>`_, `#203 <https://github.com/lcdb/lcdb-wf/pull/203>`_)
+- use ``--validateMappings`` for salmon (`#203 <https://github.com/lcdb/lcdb-wf/pull/203>`_)
+
+References
+~~~~~~~~~~
+- fix typo in *S. pombe* name
+
+All workflows
+~~~~~~~~~~~~~
+
+- Documentation now recommends creating an environment for each directory using the `-p` argument (`#195 <https://github.com/lcdb/lcdb-wf/pull/195>`_)
 
 
-v1.4.2
-------
+v1.4.2 (Jul 2019)
+-----------------
 
 Bugfixes
 ~~~~~~~~
@@ -14,8 +52,8 @@ Bugfixes
 - Don't require ChIP-seq configs to have at least one block for each supported
   peak-caller
 
-v1.4.1
-------
+v1.4.1 (Jul 2019)
+-----------------
 
 RNA-seq
 ~~~~~~~
@@ -38,8 +76,8 @@ References
   `convert_fastq_chroms` and `convert_gtf_chroms` used in reference configs for
   other species.
 
-v1.4
-----
+v1.4 (May 2019)
+---------------
 RNA-seq
 ~~~~~~~
 Much-improved ``rnaseq.Rmd``:
@@ -56,8 +94,8 @@ Much-improved ``rnaseq.Rmd``:
    - clusterprofiler helper functions
 
 
-v1.3
-----
+v1.3 (May 2019)
+---------------
 Bugfixes
 ~~~~~~~~
 - Fix broken paired-end support for RNA-seq. Previously, when using data from
@@ -83,8 +121,8 @@ ChIP-seq and RNA-seq
 - RSeQC is now available in Python 3 so wrappers have been removed.
 - NextGenMap support removed
 
-v1.2
-----
+v1.2 (Mar 2019)
+---------------
 
 RNA-seq
 ~~~~~~~
@@ -145,8 +183,8 @@ Colocalization
 - From colocalization, removed the GAT "fractions" heatmap due to unresolved
   pandas index errors
 
-v1.1
-----
+v1.1 (Aug 2018)
+---------------
 
 Infrastructure
 ~~~~~~~~~~~~~~
@@ -236,8 +274,8 @@ RNA-seq
       labels (list of lists, rather than individual list object; refactored
       functions to use this new structure
 
-v1.0.1
-------
+v1.0.1 (Jun 2018)
+-----------------
 Bugfixes, last release before references changes.
 
 Infrastructure
@@ -305,6 +343,6 @@ Both RNA-seq and ChIP-seq
   in SRA
 - multiple FastQC runs are shown separately in MultiQC output
 
-v1.0
-----
-First full release.
+v1.0 (May 2018)
+---------------
+First official full release.
