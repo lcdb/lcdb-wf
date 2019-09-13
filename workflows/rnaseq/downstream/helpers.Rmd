@@ -20,15 +20,15 @@ get.orgdb <- function(species, cache, annotation_key_override=NA){
     # Workaround to allow AnnotationHub to use proxy. See
     # https://github.com/Bioconductor/AnnotationHub/issues/4, and thanks
     # Wolfgang!
-    ah <- AnnotationHub::.Hub("AnnotationHub",
-        getAnnotationHubOption("URL"),
+    proxy <- Sys.getenv('http_proxy')
+    if (proxy == ""){
+        proxy <- NULL
+    }
 
-        # Cache location is specific to this instance of lcdb-wf so we don't
-        # clobber old runs with new annotation data
-        cache,
-
-        Sys.getenv("http_proxy"),
-        FALSE)
+    ah <- AnnotationHub(hub=getAnnotationHubOption('URL'),
+             cache='../../../include/AnnotationHubCache',
+             proxy=setAnnotationHubOption('PROXY', proxy),
+             localHub=FALSE)
 
     find.annotationhub.name <- function(species.name, override.code) { #autodetect ah names based on loaded database
         if (is.na(override.code)) {
