@@ -407,12 +407,12 @@ def references_dict(config):
 
     conversion_extensions = {
 
-        'intergenic': '.intergenic.gtf',
+        #'intergenic': '.intergenic.gtf',
         'refflat': '.refflat',
         'gffutils': '.gtf.db',
         'bed12': '.bed12',
-        'genelist': '.genelist',
-        'annotation_hub': '.{keytype}.csv',
+        #'genelist': '.genelist',
+        #'annotation_hub': '.{keytype}.csv',
         'mappings': '.mapping.tsv.gz',
     }
 
@@ -437,9 +437,13 @@ def references_dict(config):
                 )
 
                 # Add conversions if specified.
+
                 if type_ == 'gtf':
-                    conversions = block.get('conversions', [])
-                    for conversion in conversions:
+                    # First, do a pass to see if there are any conversion with
+                    # kwargs defined, and store those.
+                    configured_conversions = block.get('conversions', [])
+                    configured_conversion_kwargs = {}
+                    for conversion in configured_conversions:
                         kwargs = {}
                         if isinstance(conversion, dict):
                             # if conversion is specified as dict, we assume
@@ -451,16 +455,9 @@ def references_dict(config):
                             assert len(list(conversion.keys())) == 1
                             kwargs = list(conversion.values())[0]
                             conversion = list(conversion.keys())[0]
+                            configured_conversion_kwargs[conversion] = kwargs
 
-                        # While the full set of columns for annotation hub are
-                        # not known in advance, we can assume at least the
-                        # keytype provided will be an output file. Fill that in
-                        # here.
-                        if conversion == 'annotation_hub':
-                            keytype = kwargs['keytype']
-                            ext = conversion_extensions[conversion].format(keytype=keytype)
-                        else:
-                            ext = conversion_extensions[conversion]
+                    for conversion, ext in conversion_extensions.items():
                         output = (
                             '{references_dir}/'
                             '{organism}/'
@@ -470,6 +467,7 @@ def references_dict(config):
                         )
                         e[conversion] = output
 
+                        kwargs = configured_conversion_kwargs.get(conversion, {})
                         conversion_kwargs[output] = kwargs
 
                 if type_ == 'fasta':
