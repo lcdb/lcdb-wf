@@ -40,7 +40,7 @@ variables:
   # Run the setup script, which installs miniconda, sets up bioconda, and
   # installs the global env
   setup: &setup
-    run: 
+    run:
       name: Setup conda
       command: .circleci/setup.sh
   # --------------------------------------------------------------------------

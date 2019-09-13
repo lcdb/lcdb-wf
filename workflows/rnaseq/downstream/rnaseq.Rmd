@@ -81,8 +81,15 @@ hub.cache <- '../../../include/AnnotationHubCache'
 # to tmp. This also should increase performance when running on a cluster -- we
 # avoid poor sqlite performance on shared filesystems by copying to local
 # scratch space.
-ok <- file.copy(hub.cache, tempdir(), recursive=TRUE)
-new.cache <- file.path(tempdir(), 'AnnotationHubCache')
+if(!exists(hub.cache)){
+    # create if cache directory does not exist
+    # this avoids the directory creation prompt
+    dir.create(hub.cache, showWarnings=FALSE, recursive=TRUE)
+    new.cache <- hub.cache
+} else {
+    ok <- file.copy(hub.cache, tempdir(), recursive=TRUE)
+    new.cache <- file.path(tempdir(), 'AnnotationHubCache')
+}
 
 orgdb <- get.orgdb(
     annotation_genus_species,
@@ -410,12 +417,18 @@ for (name in names(res.list)){
 
 # Differential expression {.tabset}
 
+```{r}
+# NOTE: significance level---------------------------------------------------
+alpha <- 0.1
+lfc.thresh <- 0
+```
+
 Here is a table summarizing the comparisons. See the [Background and
 help](#Help) section for details.
 
 ```{r, results='asis'}
 # Summarize all experiments
-knitr::kable(summarize.res.list(res.list, dds.list, res.list.lookup))
+knitr::kable(summarize.res.list(res.list, alpha, lfc.thresh))
 ```
 
 For each comparison there is a tab and under each tab are the following:
@@ -429,11 +442,6 @@ For each comparison there is a tab and under each tab are the following:
 
 See the [Background and help](#Help) section for details on these.
 
-```{r}
-# NOTE: significance level---------------------------------------------------
-alpha <- 0.1
-lfc.thresh <- 0
-```
 
 ```{r, results='asis'}
 # NOTE: Which columns to add to the top plots' titles?-------------------------

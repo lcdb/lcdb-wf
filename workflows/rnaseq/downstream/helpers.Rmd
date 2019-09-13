@@ -20,15 +20,15 @@ get.orgdb <- function(species, cache, annotation_key_override=NA){
     # Workaround to allow AnnotationHub to use proxy. See
     # https://github.com/Bioconductor/AnnotationHub/issues/4, and thanks
     # Wolfgang!
-    ah <- AnnotationHub::.Hub("AnnotationHub",
-        getAnnotationHubOption("URL"),
+    proxy <- Sys.getenv('http_proxy')
+    if (proxy == ""){
+        proxy <- NULL
+    }
 
-        # Cache location is specific to this instance of lcdb-wf so we don't
-        # clobber old runs with new annotation data
-        '../../../include/AnnotationHubCache',
-
-        httr::use_proxy(Sys.getenv("http_proxy")),
-        FALSE)
+    ah <- AnnotationHub(hub=getAnnotationHubOption('URL'),
+             cache='../../../include/AnnotationHubCache',
+             proxy=setAnnotationHubOption('PROXY', proxy),
+             localHub=FALSE)
 
     find.annotationhub.name <- function(species.name, override.code) { #autodetect ah names based on loaded database
         if (is.na(override.code)) {
@@ -413,13 +413,13 @@ pval.hist <- function(res){
 #' @param alpha Alpha level at which to call significantly changing genes
 #'
 #' @return Dataframe of summarized results
-my.summary <- function(res, dds, alpha, ...){
+my.summary <- function(res, dds, alpha, lfc.thresh=0, ...){
    if (missing(alpha)){
        alpha <- if (is.null(metadata(res)$alpha)){ 0.1 } else { metadata(res)$alpha }
    }
    notallzero <- sum(res$baseMean > 0)
-   up <- sum(res$padj < alpha & res$log2FoldChange > 0, na.rm=TRUE)
-   down <- sum(res$padj < alpha & res$log2FoldChange < 0, na.rm=TRUE)
+   up <- sum(res$padj < alpha & res$log2FoldChange > lfc.thresh, na.rm=TRUE)
+   down <- sum(res$padj < alpha & res$log2FoldChange < -lfc.thresh, na.rm=TRUE)
    filt <- sum(!is.na(res$pvalue) & is.na(res$padj))
    outlier <- sum(res$baseMean > 0 & is.na(res$pvalue))
    ft <- if(is.null(metadata(res)$filterThreshold)){ 0 } else { round(metadata(res)$filterThreshold) }
@@ -429,6 +429,7 @@ my.summary <- function(res, dds, alpha, ...){
                     total.annotated.genes=nrow(res),
                     total.nonzero.read.count=notallzero,
                     alpha=alpha,
+                    lfcThreshold=lfc.thresh,
                     up=up,
                     down=down,
                     outliers=outlier,
@@ -525,10 +526,10 @@ attach.info <- function(res, keytype='ENSEMBL', columns=c('SYMBOL', 'UNIPROT', '
 #'                 label to use.
 #'
 #' @return Dataframe
-summarize.res.list <- function(res.list, dds.list, res.list.lookup){
+summarize.res.list <- function(res.list, alpha, lfc.thresh){
     slist <- list()
     for (name in names(res.list)){
-        x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']])
+        x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']], alpha, lfc.thresh)
         rownames(x) <- res.list[[name]][['label']]
         slist[[name]] <- x
     }
