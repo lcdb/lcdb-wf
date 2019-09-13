@@ -103,7 +103,9 @@ illustration.
     # EXAMPLE REFERENCES CONFIG SECTION
 
     # This configures the directory in which the prepared references will be
-    # saved (see below for directory structure):
+    # saved (see below for directory structure). If you already have reference
+    files saved in the lcdb-wf structure, point this to that directory to
+    avoid rebuilding a fresh set of references:
 
     references_dir: 'data/references'
 
@@ -439,6 +441,20 @@ The following conversions can be specified for GTF files:
     ``workflows/references/Snakefile``.
 
     Output file::
+
+      {references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.refflat
+
+:bed12:
+
+    .. code-block:: yaml
+
+        conversions:
+           - bed12
+
+   Converts GTF to BED12 format. See the ``conversion_bed12`` rule in
+   ``workflows/references/Snakefile``.
+
+   Output file::
 
       {references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.refflat
 

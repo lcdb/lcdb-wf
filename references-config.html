@@ -186,7 +186,9 @@ illustration.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># EXAMPLE REFERENCES CONFIG SECTION</span>
 
 <span class="c1"># This configures the directory in which the prepared references will be</span>
-<span class="c1"># saved (see below for directory structure):</span>
+<span class="c1"># saved (see below for directory structure). If you already have reference</span>
+<span class="l l-Scalar l-Scalar-Plain">files saved in the lcdb-wf structure, point this to that directory to</span>
+<span class="l l-Scalar l-Scalar-Plain">avoid rebuilding a fresh set of references</span><span class="p p-Indicator">:</span>
 
 <span class="nt">references_dir</span><span class="p">:</span> <span class="s">&#39;data/references&#39;</span>
 
@@ -500,8 +502,22 @@ be worth the additional space and time cost.</p>
 </pre></div>
 </div>
 </dd>
-<dt class="field-even">gffutils</dt>
-<dd class="field-even"><p>Converts GTF to gffutils database (typically used for downstream work). You
+<dt class="field-even">bed12</dt>
+<dd class="field-even"><blockquote>
+<div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">conversions</span><span class="p">:</span>
+   <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">bed12</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Converts GTF to BED12 format. See the <code class="docutils literal notranslate"><span class="pre">conversion_bed12</span></code> rule in
+<code class="docutils literal notranslate"><span class="pre">workflows/references/Snakefile</span></code>.</p>
+<p>Output file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">gtf</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.</span><span class="n">refflat</span>
+</pre></div>
+</div>
+</dd>
+<dt class="field-odd">gffutils</dt>
+<dd class="field-odd"><p>Converts GTF to gffutils database (typically used for downstream work). You
 can specify arbitrary kwargs to <code class="docutils literal notranslate"><span class="pre">gffutils.create_db</span></code> by including them as
 keys. For example, if the GTF file already contains features for genes and
 transcripts:</p>
@@ -516,8 +532,8 @@ transcripts:</p>
 </pre></div>
 </div>
 </dd>
-<dt class="field-odd">genelist</dt>
-<dd class="field-odd"><p>Reads the postprocessed GTF file, and extracts the set of gene IDs found,
+<dt class="field-even">genelist</dt>
+<dd class="field-even"><p>Reads the postprocessed GTF file, and extracts the set of gene IDs found,
 one ID per line. The GTF attribute to use is configured by the
 <code class="docutils literal notranslate"><span class="pre">gene_id:</span></code> key, for example, if the file contains gene IDs in the
 <code class="docutils literal notranslate"><span class="pre">Name</span></code> attribute of each line, use the following:</p>
@@ -531,8 +547,8 @@ one ID per line. The GTF attribute to use is configured by the
 </pre></div>
 </div>
 </dd>
-<dt class="field-even">mappings</dt>
-<dd class="field-even"><p>Reads the postprocesses GTF file, and outputs mappings between attributes
+<dt class="field-odd">mappings</dt>
+<dd class="field-odd"><p>Reads the postprocesses GTF file, and outputs mappings between attributes
 as a gzipped TSV.</p>
 <p>You can include/exclude featuretypes from being checked.  For example, if
 your GTF has genes and transcripts in addition to exons, the gene and
@@ -572,7 +588,7 @@ attribute that may happen to be called <code class="docutils literal notranslate
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

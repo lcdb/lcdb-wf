@@ -145,13 +145,17 @@ environment, it places that location at the beginning of your <code class="docut
 variable, so that any executables there are found first. It does not affect any
 existing installation of any software on your machine and does not need root
 privileges.</p>
-<p><strong>It is recommended that you use a different environment name for each
-project</strong>. That way you can update packages in each project independently of
-any others. Here we use the name “lcdb-wf” for the new environment, but you can
-use anything. Note that here we specify the channels to use, which include
-<code class="docutils literal notranslate"><span class="pre">bioconda</span></code> which depends on <code class="docutils literal notranslate"><span class="pre">conda-forge</span></code>, and <code class="docutils literal notranslate"><span class="pre">lcdb</span></code> which provides the
-<code class="docutils literal notranslate"><span class="pre">lcdblib</span></code> package used by these workflows.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">lcdb</span><span class="o">-</span><span class="n">wf</span> <span class="o">--</span><span class="n">file</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<p><strong>It is recommended that you create a separate environment directory for each
+project and include it with the project</strong>.
+That way you can update packages in each project independently of
+any others, and yet the environment will always be close at hand. This is
+especially good practice in shared space as others can easily find and activate
+the environment specific to the project.
+Here we use the name “env” for the new environment to clearly denote its contents,
+but you can use anything. Note that here we specify the channels to use, which
+include <code class="docutils literal notranslate"><span class="pre">bioconda</span></code> which depends on <code class="docutils literal notranslate"><span class="pre">conda-forge</span></code>, and <code class="docutils literal notranslate"><span class="pre">lcdb</span></code> which provides
+the <code class="docutils literal notranslate"><span class="pre">lcdblib</span></code> package used by these workflows.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">p</span> <span class="o">./</span><span class="n">env</span> <span class="o">--</span><span class="n">file</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 <p>Then activate the environment:</p>
@@ -194,7 +198,7 @@ the workflows for your particular experiment (see <a class="reference internal" 
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
