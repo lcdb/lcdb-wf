@@ -1,6 +1,8 @@
 import tempfile
 from snakemake.shell import shell
-from lcdblib.snakemake import helpers
+import os, sys
+sys.path.append(os.path.abspath('../..'))
+from lib import helpers
 
 extra = snakemake.params.get('extra', '')
 try:

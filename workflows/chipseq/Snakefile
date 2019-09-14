@@ -7,10 +7,7 @@ import tempfile
 import pandas as pd
 import numpy as np
 import pybedtools
-from lcdblib.snakemake import helpers, aligners
-from lcdblib.utils import utils
-from lib import common, chipseq
-from lib import cluster_specific
+from lib import common, cluster_specific, utils, helpers, aligners, chipseq
 from lib.patterns_targets import ChIPSeqConfig
 
 # ----------------------------------------------------------------------------
@@ -28,7 +25,10 @@ else:
     configfile: workflow.overwrite_configfile
 include: '../references/Snakefile'
 
-shell.prefix('set -euo pipefail; export TMPDIR={};'.format(cluster_specific.tempdir_for_biowulf()))
+shell.prefix(
+    'set -euo pipefail; export R_PROFILE_USER=; export TMPDIR={};'
+    .format(cluster_specific.tempdir_for_biowulf())
+)
 shell.executable('/bin/bash')
 
 config = common.load_config(config)
@@ -183,27 +183,30 @@ rule cutadapt:
         paired = len(input) == 2
 
         # NOTE: Change cutadapt params here
-        extra='-a file:../../include/adapters.fa -q 20 --minimum-length=25'
 
         if paired:
             shell(
                 "cutadapt "
-                "{extra} "
                 "{input.fastq[0]} "
                 "{input.fastq[1]} "
                 "-o {output[0]} "
                 "-p {output[1]} "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
+                '-q 20 '
+                '--minimum-length 25 '
                 "&> {log}"
             )
         else:
             shell(
                 "cutadapt "
-                "{extra} "
                 "{input.fastq[0]} "
                 "-o {output[0]} "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                '-q 20 '
+                '--minimum-length 25 '
                 "&> {log}"
             )
-            shell('touch {output[1]}')
 
 
 rule fastqc:
@@ -217,7 +220,6 @@ rule fastqc:
     script:
         wrapper_for('fastqc/wrapper.py')
 
-
 rule bowtie2:
     """
     Map reads with Bowtie2
@@ -229,14 +231,33 @@ rule bowtie2:
         bam=c.patterns['bam']
     log:
         c.patterns['bam'] + '.log'
-    params:
-        samtools_view_extra='-F 0x04'
-    # NOTE:
-    # When running on a cluster, number of threads here should match the
-    # resources requested in the cluster config.
     threads: 8
-    script:
-        wrapper_for('bowtie2/align/wrapper.py')
+    run:
+        prefix = aligners.prefix_from_bowtie2_index(input.index)
+        sam = output.bam.replace('.bam', '.sam')
+
+        # If two fastqs were provided, assume paired-end mode; otherwise single-end
+        if isinstance(input.fastq, str) or len(input.fastq) == 1:
+            fastqs = '-U {0} '.format(input.fastq)
+        else:
+            assert len(input.fastq) == 2
+            fastqs = '-1 {0} -2 {1} '.format(*input.fastq)
+
+        shell(
+            "bowtie2 "
+            "-x {prefix} "
+            "-U {input.fastq} "
+            '--no-unal '  # NOTE: suppress unaligned reads
+            "--threads {threads} "
+            "-S {sam} "
+            "> {log} 2>&1"
+        )
+
+        shell(
+            "samtools view -Sb {sam} "
+            "| samtools sort - -o {output.bam} -O BAM "
+            "&& rm {sam}"
+        )
 
 
 rule unique:
@@ -247,12 +268,10 @@ rule unique:
         c.patterns['bam']
     output:
         c.patterns['unique']
-    params:
+    shell:
         # NOTE: the quality score chosen here should reflect the scores output
         # by the aligner used. For example, STAR uses 255 as max mapping
         # quality.
-        extra="-b -q 20"
-    shell:
         'samtools view -b -q 20 {input} > {output}'
 
 
@@ -367,7 +386,7 @@ rule libsizes_table:
                 'title': 'Library size table',
                 'min': 0
             },
-            'data': yaml.load(df.transpose().to_json()),
+            'data': yaml.load(df.transpose().to_json(), Loader=yaml.FullLoader),
         }
         with open(output.json, 'w') as fout:
             yaml.dump(y, fout, default_flow_style=False)

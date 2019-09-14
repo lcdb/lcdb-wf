@@ -3,6 +3,9 @@ library(DESeq2)
 library(pheatmap)
 library(RColorBrewer)
 library(DEGreport)
+library(ggplot2)
+library(ggrepel)
+library(heatmaply)
 
 #' Get the OrgDb for the specified organism, using the cached AnnotationHub.
 #'
@@ -17,15 +20,15 @@ get.orgdb <- function(species, cache, annotation_key_override=NA){
     # Workaround to allow AnnotationHub to use proxy. See
     # https://github.com/Bioconductor/AnnotationHub/issues/4, and thanks
     # Wolfgang!
-    ah <- AnnotationHub::.Hub("AnnotationHub",
-        getAnnotationHubOption("URL"),
+    proxy <- Sys.getenv('http_proxy')
+    if (proxy == ""){
+        proxy <- NULL
+    }
 
-        # Cache location is specific to this instance of lcdb-wf so we don't
-        # clobber old runs with new annotation data
-        '../../../include/AnnotationHubCache',
-
-        httr::use_proxy(Sys.getenv("http_proxy")),
-        FALSE)
+    ah <- AnnotationHub(hub=getAnnotationHubOption('URL'),
+             cache='../../../include/AnnotationHubCache',
+             proxy=setAnnotationHubOption('PROXY', proxy),
+             localHub=FALSE)
 
     find.annotationhub.name <- function(species.name, override.code) { #autodetect ah names based on loaded database
         if (is.na(override.code)) {
@@ -47,6 +50,106 @@ get.orgdb <- function(species, cache, annotation_key_override=NA){
     return(orgdb)
 }
 
+#' Plot an interactive PCA plot
+#'
+#' @param rld DESeqTransform object output by varianceStabilizingTransformation() or rlog()
+#' @param intgroup character vector of names in colData(x) to use for grouping
+#'
+#' @return Handle to ggplot with added label field in aes_string() for plotting with ggplotly()
+plotPCA.ly <- function(rld, intgroup){
+  mat <- plotPCA(rld, intgroup, returnData=TRUE)
+  pv <- attr(mat, 'percentVar')
+  p <- ggplot(data=mat, aes_string(x='PC1', y='PC2', color='group', label='name')) +
+          geom_point(size=3) + xlab(paste0('PC1: ', round(pv[1]*100), '% variance')) +
+          ylab(paste0('PC2: ', round(pv[2]*100), '% variance')) + coord_fixed()
+  return(p)
+}
+
+#' Plot a MA plot labeled with selected genes
+#'
+#' @param res.list data.frame (or list) with log2FoldChange and padj columns (or elements).
+#'        Row names of the data.frame should be gene IDs/symbols and match the format of lab.genes
+#' @param fdr.thres FDR threshold for defining statistical significance
+#' @param fc.thres log2FoldChange cutoff for defining statistical significance
+#' @param fc.lim User-defined limits for y-axis (log2FC). If NULL, this is defined as
+#'        the (floor, ceiling) of range(res$log2FoldChange)
+#' @param genes.to.label Genes to label on the MA plot. NULL, by default
+#'
+#' @return Handle to ggplot
+plotMA.label <- function(res,
+                         fdr.thres=0.01,
+                         fc.thres=0,
+                         fc.lim=NULL,
+                         genes.to.label=NULL){
+  # TODO: Add ggrastr option for points
+
+  # convert res to data frame
+  res <- data.frame(res)
+
+  # if y limits not specified
+  if(is.null(fc.lim)){
+    fc.lim <- range(res$log2FoldChange, na.rm=TRUE)
+    fc.lim[1] <- floor(fc.lim[1])
+    fc.lim[2] <- ceiling(fc.lim[2])
+  }
+
+  # get data frame of genes outside plot limits
+  up.max <- res[res$log2FoldChange > fc.lim[2],]
+  up.max$log2FoldChange <- rep(fc.lim[2], dim(up.max)[1])
+  up.max <- data.frame(genes=rownames(up.max), up.max)
+
+  down.max <- res[res$log2FoldChange < fc.lim[1],]
+  down.max$log2FoldChange <- rep(fc.lim[1], dim(down.max)[1])
+  down.max <- data.frame(genes=rownames(down.max), down.max)
+
+  # get data frame of DE genes
+  de.list <- res[res$padj < fdr.thres &
+                 !is.na(res$padj) &
+                 abs(res$log2FoldChange) >= fc.thres,]
+  de.list <- data.frame(genes=rownames(de.list), de.list)
+
+  # get data frame of DE genes outside plot limits
+  up.max.de <- up.max[rownames(up.max) %in% rownames(de.list),]
+  down.max.de <- down.max[rownames(down.max) %in% rownames(de.list),]
+
+  # create ggplot with appropriate layers
+  p <- ggplot(res, aes(baseMean, log2FoldChange)) +
+    geom_point(col="gray40") + scale_x_log10() + ylim(fc.lim[1], fc.lim[2]) +
+    theme_bw() + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
+
+  p <- p + geom_hline(yintercept = 0, col="red", size=2, alpha=0.5)     # add horizontal line
+  p <- p + geom_point(data=up.max, col="gray40", pch=2)                 # add points above max y
+  p <- p + geom_point(data=down.max, col="gray40", pch=6)               # add points below min y
+
+  p <- p + geom_point(data=de.list, col="red")                          # add DE points
+  p <- p + geom_point(data=up.max.de, col="red", pch=2)                 # add DE points above max y
+  p <- p + geom_point(data=down.max.de, col="red", pch=6)               # add DE points below min y
+
+
+  if(!is.null(genes.to.label)){
+    # get data frame of genes to be labeled
+    label.list <- res[rownames(res) %in% genes.to.label,]
+    label.list <- data.frame(genes=rownames(label.list), label.list)
+
+    # label genes outside limits
+    up.max.idx <- rownames(label.list) %in% rownames(up.max)
+    down.max.idx <- rownames(label.list) %in% rownames(down.max)
+
+    if(sum(up.max.idx) > 0){
+      label.list$log2FoldChange[up.max.idx] <- rep(fc.lim[2], sum(up.max.idx))
+    }
+
+    if(sum(down.max.idx) > 0){
+      label.list$log2FoldChange[down.max.idx] <- rep(fc.lim[1], sum(down.max.idx))
+    }
+
+    # add labels
+    p <- p + geom_point(data=label.list, col="black", pch=1, size=3)
+    p <- p + geom_label_repel(data=label.list, aes(label=label.list$genes, fontface="italic"))
+  }
+  return(p)
+
+}
 
 #' Plot a clustered heatmap of samples
 #'
@@ -54,21 +157,20 @@ get.orgdb <- function(species, cache, annotation_key_override=NA){
 #' @param colData Dataframe of metadata, used for annotating heatmap
 #' @param cols.for.grouping Columns in colData to annotate heatmap with
 #'
-#' @return Side effect is to plot the heatmap
+#' @return matrix of sample distances
 plot.heatmap <- function(rld, colData, cols.for.grouping){
     sampleDists <- dist(t(assay(rld)))
     sampleDistMatrix <- as.matrix(sampleDists)
     rownames(sampleDistMatrix) <- colnames(rld)
-    colnames(sampleDistMatrix) <- NULL
     colors <- colorRampPalette(rev(brewer.pal(9, 'Blues')))(255)
     df <- as.data.frame(colData(rld)[, cols.for.grouping])
     colnames(df) <- cols.for.grouping
     rownames(df) <- colnames(rld)
-    pheatmap(sampleDistMatrix,
-             cluster_distance_rows=sampleDists,
-             cluster_distance_cols=sampleDists,
-             annotation_row=df,
-             col=colors)
+    heatmaply(sampleDistMatrix,
+              scale='none',
+              col=colors,
+              row_side_colors=df,
+              showticklabels=c(FALSE,TRUE))
 }
 
 
@@ -80,6 +182,8 @@ plot.heatmap <- function(rld, colData, cols.for.grouping){
 #'
 #' @return Side effect is to plot the heatmap
 vargenes.heatmap <- function(rld, cols.for.grouping, n=50){
+  # TODO: heatmaply?
+  # TODO: allow alternative gene IDs
   topVarGenes <- head(order(rowVars(assay(rld)), decreasing=TRUE), n)
   mat <- assay(rld)[topVarGenes,]
   mat <- mat - rowMeans(mat)
@@ -96,9 +200,46 @@ vargenes.heatmap <- function(rld, cols.for.grouping, n=50){
 #'
 #' Make sure you're in an R code chunk with `results="asis"` set.
 mdcat <- function(...){
-  cat('\n', ..., '\n', sep='', fill=1500)
+  cat('\n\n', ..., ' \n\n', sep='', fill=1500)
 }
 
+
+#' Load a single combined featureCounts table into a DESeq object.
+#'
+#' @param filename Filename containing featureCounts combined output
+#' @param sampletable data.frame containing at least sample names as first
+#' column
+#' @param design Model used for creating DESeq object
+#'
+#' @return DESeq object
+#'
+#' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
+DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable, design, ...){
+
+    m <- read.table(filename, header=TRUE, row.names=1)
+    m <- m[, 6:ncol(m)]
+
+    # The column names of the imported table are not guaranteed to match the
+    # samples in the metadata, so we need to make sure things match up
+    # correctly when renaming columns.
+
+    s <- as.character(sampletable[,1])
+
+    # If each sample matches exactly once, then sapply will simplify to an
+    # integer. Otherwise, it will be a list.
+    hits <- sapply(s, grep, colnames(m))
+    stopifnot(class(hits) == 'integer')
+
+    # In this case, we now have an integer vector showing which samplename
+    # should be used for which column in `m`:
+    #
+    #   sample1 sample2 sample3 sample4
+    #         2       1       4       3
+    colnames(m) <- names(hits)[hits]
+
+    object <- DESeqDataSetFromMatrix(countData=m, colData=sampletable, design=design, ...)
+    return(object)
+}
 
 #' Load featureCounts output into a DESeq object.
 #'
@@ -272,13 +413,13 @@ pval.hist <- function(res){
 #' @param alpha Alpha level at which to call significantly changing genes
 #'
 #' @return Dataframe of summarized results
-my.summary <- function(res, dds, alpha, ...){
+my.summary <- function(res, dds, alpha, lfc.thresh=0, ...){
    if (missing(alpha)){
        alpha <- if (is.null(metadata(res)$alpha)){ 0.1 } else { metadata(res)$alpha }
    }
    notallzero <- sum(res$baseMean > 0)
-   up <- sum(res$padj < alpha & res$log2FoldChange > 0, na.rm=TRUE)
-   down <- sum(res$padj < alpha & res$log2FoldChange < 0, na.rm=TRUE)
+   up <- sum(res$padj < alpha & res$log2FoldChange > lfc.thresh, na.rm=TRUE)
+   down <- sum(res$padj < alpha & res$log2FoldChange < -lfc.thresh, na.rm=TRUE)
    filt <- sum(!is.na(res$pvalue) & is.na(res$padj))
    outlier <- sum(res$baseMean > 0 & is.na(res$pvalue))
    ft <- if(is.null(metadata(res)$filterThreshold)){ 0 } else { round(metadata(res)$filterThreshold) }
@@ -288,6 +429,7 @@ my.summary <- function(res, dds, alpha, ...){
                     total.annotated.genes=nrow(res),
                     total.nonzero.read.count=notallzero,
                     alpha=alpha,
+                    lfcThreshold=lfc.thresh,
                     up=up,
                     down=down,
                     outliers=outlier,
@@ -295,49 +437,6 @@ my.summary <- function(res, dds, alpha, ...){
                     design=deparse(design(dds), width.cutoff=500L)
                     )
    return(df)
-}
-
-#-----------------------------------------------------------------------------
-# The following are some helper functions for working with clusterProfiler results.
-# While clusterProfiler does a great job of unifying the output of different
-# enrichment metrics into a single data structure, we need a couple more things
-# for very flexibly plotting with ggplot2. These functions handle the enrichment
-# and summary of results.
-
-#' Run enrichGO on each of the three top-level ontologies
-#'
-#' @param genes Gene IDs with format matching `keytype`
-#' @param univers Universe of genes assayed
-#' @param orgdb String or OrgDb object
-#' @param keytype ID type of genes
-#"
-#' @return  List of clusterProfiler output objects, length 3 where names are
-#' ontologies (BP, MF, CC)
-clusterprofiler.enrichgo <- function(genes, universe, orgdb, keytype='ENSEMBL'){
-    lst <- list()
-    if (length(genes) > 0 ){
-        for (ont in c('BP', 'MF', 'CC')){
-            ggo <- enrichGO(gene=genes, ont=ont, universe=universe,
-                            OrgDb=orgdb, keyType=keytype, pAdjustMethod='BH',
-                            pvalueCutoff=0.01, qvalueCutoff=0.05,
-                            readable=TRUE)
-            lst[[ont]] <- ggo
-        }
-    }
-    return(lst)
-}
-
-#' Run KEGG enrichment
-#'
-#' @param genes Gene IDs typically in UniProt format
-#' @param org 3-character KEGG species ID (dme, hsa, mmu)
-#' @param keytype ID type of genes
-#'
-#' @return clusterProfiler output object
-clusterprofiler.enrichkegg <- function(genes, org, keyType='uniprot'){
-    x <- enrichKEGG(gene=genes, organism=org, keyType='uniprot',
-                    pvalueCutoff=0.05)
-    return(x)
 }
 
 #' Convert "1/100" to 0.01.
@@ -427,10 +526,10 @@ attach.info <- function(res, keytype='ENSEMBL', columns=c('SYMBOL', 'UNIPROT', '
 #'                 label to use.
 #'
 #' @return Dataframe
-summarize.res.list <- function(res.list, dds.list, res.list.lookup){
+summarize.res.list <- function(res.list, alpha, lfc.thresh){
     slist <- list()
     for (name in names(res.list)){
-        x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']])
+        x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']], alpha, lfc.thresh)
         rownames(x) <- res.list[[name]][['label']]
         slist[[name]] <- x
     }
@@ -448,18 +547,111 @@ summarize.res.list <- function(res.list, dds.list, res.list.lookup){
 #' @param return.names If TRUE, returns the rownames of selected genes; if FALSE return boolean index of length(x)
 #'
 #' @return Character vector of rownames (if return.names=TRUE) or boolean vector of genes selected.
-get.sig <- function(x, direction='up', alpha=0.1, thresh=0, return.names=TRUE){
+get.sig <- function(x, direction='up', alpha=0.1, lfc.thresh=0, return.names=TRUE){
     if (direction == 'up'){
-        idx <- (x$padj < alpha) & (x$log2FoldChange > thresh) & (!is.na(x$padj))
+        idx <- (x$padj < alpha) & (x$log2FoldChange > lfc.thresh) & (!is.na(x$padj))
     } else if (direction %in% c('down', 'dn')){
-        idx <- (x$padj < alpha) & (x$log2FoldChange < -thresh) & (!is.na(x$padj))
+        idx <- (x$padj < alpha) & (x$log2FoldChange < -lfc.thresh) & (!is.na(x$padj))
     } else if (direction %in% c('changed', 'ch')){
-        idx <- (x$padj < alpha) & (!is.na(x$padj))
+        idx <- (x$padj < alpha) & (abs(x$log2FoldChange) > lfc.thresh) & (!is.na(x$padj))
     }
     if (return.names){
         return(rownames(x)[idx])
     } else {
         return(idx)
     }
+}
+
+#' Prepare list for UpSet plots, but include rownames
+#'
+#' @param x List of sets to compare (same input as to UpSetR::fromList)
+#'
+#' @return data.frame of 1 and 0 showing which genes are in which sets
+fromList.with.names <- function(lst){
+    elements <- unique(unlist(lst))
+    data <- unlist(lapply(lst, function(x) {
+        x <- as.vector(match(elements, x))
+    }))
+    data[is.na(data)] <- as.integer(0)
+    data[data != 0] <- as.integer(1)
+    data <- data.frame(matrix(data, ncol = length(lst), byrow = F))
+
+    # This is the only way in which this function differs from UpSetR::fromList
+    rownames(data) <- elements
+
+    data <- data[which(rowSums(data) != 0), ]
+    names(data) <- names(lst)
+    return(data)
+}
+
+
+#' Move rownames of data.frame to first column
+#'
+#' @param x data.frame
+#' @param name Name to use as the new first column
+#'
+#' @return data.frame with original rownames moved to new first column with
+#' optional name. rownames on the new data.frame are set to NULL.
+rownames.first.col <- function(x, name='names'){
+    orig.names <- colnames(x)
+    x <- data.frame(rownames(x), x, row.names=NULL)
+    colnames(x) <- c(name, orig.names)
+    return(x)
+}
+
+
+#' lapply over a nested list
+#'
+#' @param x Nested list. Expected 2 levels deep, and each item is the same type
+#' @param subfunc Function to apply over nested "leaf" items
+#' @param ... Additional arguments to be passed to subfunc
+#'
+#' @return Nested list with same structure but tranformed values
+nested.lapply <- function(x, subfunc, ...){
+    lapply(x, lapply, subfunc, ...)
+}
+
+#' Split clusterProfiler output into one line per gene
+#'
+#' @param x Results from clusterProfiler. It is expected that the
+#' clusterProfiler enrichment function was called with "readable=TRUE"
+#'
+#' @return data.frame with genes one per line instead of "/" separated in one
+#' line. The rest of the original line is repeated for each gene.
+#'
+split.clusterProfiler.results <- function(x){
+    df <- x@result
+    # loop over all rows
+    df.parse <- NULL
+    for(k in 1:dim(df)[1]){
+        g <- strsplit(as.character(df$geneID[k]), "/")[[1]]
+        gg <- df[rep(k, length(g)),]
+        gg$geneParse <- g
+        if(is.null(df.parse)){
+            df.parse <- gg
+        } else {
+            df.parse <- rbind(df.parse, gg)
+        }
+    }
+    return(df.parse)
+}
+
+
+#' Writes out original and split clusterprofiler results
+#'
+#' @param res clusterProfiler results
+#' @param cprof.folder Directory in which to save files. Will be created if needed.
+#' @param Label to use for the results. Will generate a filename
+#' cprof.folder/label.txt and cprof.folder/label_split.txt
+#'
+#' @return List of the two files that are created on disk.
+write.clusterprofiler.results <- function(res, cprof.folder, label){
+    dir.create(cprof.folder, showWarnings=FALSE, recursive=TRUE)
+    filename.orig <- file.path(cprof.folder, paste0(label, '.txt'))
+    write.table(res, file=filename.orig, sep='\t', quote=FALSE, row.names=FALSE)
+    filename.split <- file.path(cprof.folder, paste0(label, '_split.txt'))
+    res.split <- split.clusterProfiler.results(res)
+    write.table(res.split, file=filename.split, sep='\t', quote=FALSE, row.names=FALSE)
+    return(list(orig=filename.orig, split=filename.split))
 }
 ```

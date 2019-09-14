@@ -7,13 +7,13 @@ references:
         indexes:
           - 'bowtie2'
           - 'hisat2'
-          - 'ngm'
           - 'star'
       gtf:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf"
         postprocess: 'lib.common.gzipped'
         conversions:
           - 'refflat'
+          - 'bed12'
           - gffutils: # kwargs below will be provided to `gffutils.create_db`
               merge_strategy: 'merge'
               id_spec:

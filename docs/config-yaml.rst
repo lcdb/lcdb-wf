@@ -241,6 +241,10 @@ Required for references, RNA-seq and ChIP-seq
     If specified and ``REFERENCES_DIR`` also exists, ``REFERENCES_DIR`` takes
     precedence.
 
+    Can also be used when a references directory has already been created. Simply
+    point references_dir to an existing references directory to avoid having to
+    rebuild references.
+
 Required for RNA-seq and ChIP-seq
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. _cfg-sampletable:
@@ -283,8 +287,7 @@ Required for RNA-seq and ChIP-seq
     be built. For RNA-seq we would likely choose "hisat2"; for ChIP-seq
     "bowtie2".
 
-    Currently-configured options are ``hisat2``, ``bowtie2``, ``star``, and
-    ``ngm``.
+    Currently-configured options are ``hisat2``, ``bowtie2``, and ``star``.
 
     Example:
 

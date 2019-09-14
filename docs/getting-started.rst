@@ -29,10 +29,9 @@ Otherwise, install `Miniconda <https://conda.io/miniconda.html>`_.
 
 .. code-block:: bash
 
-    conda config --add channels lcdb
-    conda config --add channels defaults
-    conda config --add channels conda-forge
-    conda config --add channels bioconda
+   conda config --add channels defaults
+   conda config --add channels bioconda
+   conda config --add channels conda-forge
 
 
 Setup required once per project
@@ -68,20 +67,20 @@ variable, so that any executables there are found first. It does not affect any
 existing installation of any software on your machine and does not need root
 privileges.
 
-**It is recommended that you use a different environment name for each
-project**. That way you can update packages in each project independently of
-any others. Here we use the name "lcdb-wf" for the new environment, but you can
-use anything. Note that here we specify the channels to use, which include
-``bioconda`` which depends on ``conda-forge``, and ``lcdb`` which provides the
-``lcdblib`` package used by these workflows.
+**It is recommended that you create a separate environment directory for each 
+project and include it with the project**.
+That way you can update packages in each project independently of
+any others, and yet the environment will always be close at hand. This is 
+especially good practice in shared space as others can easily find and activate 
+the environment specific to the project.
+Here we use the name "env" for the new environment to clearly denote its contents, 
+but you can use anything. Note that here we specify the channels to use, which 
+include ``bioconda`` which depends on ``conda-forge``, and ``lcdb`` which provides 
+the ``lcdblib`` package used by these workflows.
 
 ::
 
-    conda create -n lcdb-wf \
-      --file requirements.txt \
-      --channel bioconda \
-      --channel conda-forge \
-      --channel lcdb
+    conda create -p ./env --file requirements.txt
 
 Then activate the environment::
 
@@ -92,6 +91,16 @@ environment location from your ``$PATH`` until the next time you activate it.
 You might want to hold off on this for now if you'll be running the tests::
 
     source deactivate
+
+.. note::
+
+   An alternative approach is to create an environment at a specific path, for
+   example inside a project directory:
+
+   .. code-block:: bash
+
+       conda create -p ./env --file requirements.txt
+       source activate ./env
 
 Next steps
 ----------

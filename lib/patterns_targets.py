@@ -8,7 +8,7 @@ import collections
 import yaml
 from . import common
 from . import chipseq
-from lcdblib.snakemake import helpers
+from . import helpers
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
@@ -62,6 +62,11 @@ class SeqConfig(object):
         self.refdict, self.conversion_kwargs = common.references_dict(self.config)
         self.organism = self.config['organism']
         self.patterns = yaml.load(open(patterns), Loader=yaml.FullLoader)
+        self.is_paired = helpers.detect_layout(self.sampletable) == 'PE'
+        if self.is_paired:
+            self.n = [1, 2]
+        else:
+            self.n = [1]
 
 
 class RNASeqConfig(SeqConfig):
@@ -86,28 +91,7 @@ class RNASeqConfig(SeqConfig):
         """
         SeqConfig.__init__(self, config, patterns, workdir)
 
-        # compose a list of samples and "n", which is either 1 or 2.
-        #
-        # Since we want to support SE and PE in the same experiment, then we
-        # can't use the standard fill method of "product" and instead need
-        # "zip". This in turn means that we need lists like:
-        #
-        #     ['sample1', 'sample1', 'sample2'], [1, 2, 1]
-        #
-        # for a case where sample1 is PE but sample 2 is SE.
-        #
-        _fill_samples = []
-        _fill_n = []
-        for sample in self.samples:
-            if common.is_paired_end(self.sampletable, sample):
-                n = [1, 2]
-            else:
-                n = [1]
-            for i in n:
-                _fill_samples.append(sample)
-                _fill_n.append(i)
-
-        self.fill = dict(sample=_fill_samples, n=_fill_n)
+        self.fill = dict(sample=self.samples, n=self.n)
         self.patterns_by_aggregation = self.patterns.pop('patterns_by_aggregate', None)
         self.targets = helpers.fill_patterns(self.patterns, self.fill, zip)
 
@@ -161,6 +145,7 @@ class ChIPSeqConfig(SeqConfig):
         # First, the samples...
         self.patterns_by_sample = self.patterns['patterns_by_sample']
         self.fill_by_sample = dict(
+            n=self.n,
             sample=self.samples.values,
             label=self.sampletable.label.values,
             ip_label=self.sampletable.label[
@@ -218,10 +203,17 @@ class ChIPSeqConfig(SeqConfig):
                 k: {pc: v[pc]} for k, v in self.patterns_by_peaks.items()
             }
 
-            _fill = {
-                pc + '_run': list(
-                    chipseq.peak_calling_dict(self.config, algorithm=pc).keys())
-            }
+
+            # Fix for issue #166, which was caused by commit 8a211122:
+            #
+            # If no runs for the peak-caller are configured, this will be
+            # empty and we should continue on.
+            peaks_to_fill = list(chipseq.peak_calling_dict(self.config, algorithm=pc).keys())
+
+            if not peaks_to_fill:
+                continue
+
+            _fill = {pc + '_run': peaks_to_fill}
 
             # The trick here is the recursive updating of targets_for_peaks.
             # We're adding the filled-in runs of each peak caller to the

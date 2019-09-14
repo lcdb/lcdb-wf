@@ -1,124 +1,143 @@
 fastq:
   pattern: 'data/rnaseq_samples/{sample}/{sample}_R{n}.fastq.gz'
   description: 'Raw sequence reads'
+
 cutadapt:
   pattern: 'data/rnaseq_samples/{sample}/{sample}_R{n}.cutadapt.fastq.gz'
   description: 'Sequence reads trimmed of adaptors'
+
 bam:
   pattern: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam'
   description: 'Binary file containing sequence alignment data'
+
 fastqc:
-  pattern:
-    raw: 'data/rnaseq_samples/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.zip'
-    cutadapt: 'data/rnaseq_samples/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip'
-    bam: 'data/rnaseq_samples/{sample}/fastqc/{sample}.cutadapt.bam_fastqc.zip'
-  description:
-    raw: 'Quality control analysis of raw sequence reads'
-    cutadapt: 'Quality control analysis of raw sequence reads post adaptor trimming'
-    bam: 'Quality control analysis of aligned reads'
+  raw:
+    pattern: 'data/rnaseq_samples/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.zip'
+    description: 'Quality control analysis of raw sequence reads'
+  cutadapt:
+    pattern: 'data/rnaseq_samples/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip'
+    description: 'Quality control analysis of raw sequence reads post adaptor trimming'
+  bam:
+    pattern: 'data/rnaseq_samples/{sample}/fastqc/{sample}.cutadapt.bam_fastqc.zip'
+    description: 'Quality control analysis of aligned reads'
+
 libsizes:
-  pattern:
-    fastq: 'data/rnaseq_samples/{sample}/{sample}_R1.fastq.gz.libsize'
-    cutadapt: 'data/rnaseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize'
-    bam: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.libsize'
-  description: 
-    fastq: 'Sample library size using raw sequence reads'
-    cutadapt: 'Sample library size using sequence reads post adaptor trimming'
-    bam: 'Sample library size using aligned reads'
+  fastq:
+    pattern: 'data/rnaseq_samples/{sample}/{sample}_R1.fastq.gz.libsize'
+    description: 'Sample library size using raw sequence reads'
+  cutadapt:
+    pattern: 'data/rnaseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize'
+    description: 'Sample library size using sequence reads post adaptor trimming'
+  bam:
+    pattern: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.libsize'
+    description: 'Sample library size using aligned reads'
+
 fastq_screen:
   pattern: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.screen.txt'
   description: 'fastq screen statistics'
+
 featurecounts:
-  pattern:
-    s0: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.featurecounts.s0.txt'
-    s1: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.featurecounts.s1.txt'
-    s2: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.featurecounts.s2.txt'
-  description: 
-    s0: 'Transcripts quantification using unstranded reads'
-    s1: 'Transcripts quantification using Read1 as sense reads'
-    s2: 'Transcripts quantification using Read2 as sense reads'
+  pattern: 'data/rnaseq_aggregation/featurecounts.txt'
+  description: 'Transcript quantification'
+
 libsizes_table: 
   pattern: 'data/rnaseq_aggregation/libsizes_table.tsv'
   description: 'Aggregated libraries size per chromosome'
+
 libsizes_yaml:
   pattern: 'data/rnaseq_aggregation/libsizes_table_mqc.yaml'
   description: 'Config for aggregation of libraries size per chromosome'
+
 rrna_percentages_table:
   pattern: 'data/rnaseq_aggregation/rrna_percentages_table.tsv'
   description: 'Aggregated rRNA percentage per library'
+
 rrna_percentages_yaml:
   pattern: 'data/rnaseq_aggregation/rrna_percentages_table_mqc.yaml'
   description: 'Config for aggregation of rRNA percentage per library'
+
 rrna:
-  pattern:
-    bam: 'data/rnaseq_samples/{sample}/rRNA/{sample}.cutadapt.rrna.bam'
-    libsize: 'data/rnaseq_samples/{sample}/rRNA/{sample}.cutadapt.rrna.bam.libsize'
-  description:
-    bam: 'Binary file containing sequence aligning to rRNA'
-    libsize: 'Sample library sizes aligning to rRNA'
+  bam:
+    pattern: 'data/rnaseq_samples/{sample}/rRNA/{sample}.cutadapt.rrna.bam'
+    description: 'Binary file containing sequence aligning to rRNA'
+  libsize:
+    pattern: 'data/rnaseq_samples/{sample}/rRNA/{sample}.cutadapt.rrna.bam.libsize'
+    description: 'Sample library sizes aligning to rRNA'
+
 multiqc:
   pattern: 'data/rnaseq_aggregation/multiqc.html'
   description: 'Aggregated Quality Control analysis'
+
 markduplicates:
-  pattern:
-    bam: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam'
-    metrics: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.metrics'
-  description:
-    bam: 'Binary file containing sequence alignment data for duplicate reads'
-    metrics: 'Metrics details of duplicate reads'
+  bam:
+    pattern: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam'
+    description: 'Binary file containing sequence alignment data for duplicate reads'
+  metrics:
+    pattern: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.metrics'
+    description: 'Metrics details of duplicate reads'
+
 collectrnaseqmetrics:
-  pattern:
-    metrics: 'data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.metrics'
-    pdf: 'data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.pdf'
-  description:
-    metrics: 'Details of RNAseq metrics'
-    pdf: 'Summary pdf of RNAseq metrics'
+  metrics:
+    pattern: 'data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.metrics'
+    description: 'Details of RNAseq metrics'
+  pdf:
+    pattern: 'data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.pdf'
+    description: 'Summary pdf of RNAseq metrics'
+
 dupradar:
-  pattern:
-    density_scatter: 'data/rnaseq_samples/{sample}/dupradar/{sample}_density_scatter.png'
-    expression_histogram: 'data/rnaseq_samples/{sample}/dupradar/{sample}_expression_histogram.png'
-    expression_boxplot: 'data/rnaseq_samples/{sample}/dupradar/{sample}_expression_boxplot.png'
-    expression_barplot: 'data/rnaseq_samples/{sample}/dupradar/{sample}_expression_barplot.png'
-    multimapping_histogram: 'data/rnaseq_samples/{sample}/dupradar/{sample}_multimapping_histogram.png'
-    dataframe: 'data/rnaseq_samples/{sample}/dupradar/{sample}_dataframe.tsv'
-    model: 'data/rnaseq_samples/{sample}/dupradar/{sample}_model.txt'
-    curve: 'data/rnaseq_samples/{sample}/dupradar/{sample}_curve.txt'
-  description:
-    density_scatter: 'Density scatterplot for Duplication rate quality control'
-    expression_histogram: 'Expression histogram for Duplication rate quality control'
-    expression_boxplot: 'Expression boxplot for Duplication rate quality control'
-    expression_barplot: 'Expression barplot for Duplication rate quality control'
-    multimapping_histogram: 'Histogram of multimapping for Duplication rate quality control'
-    dataframe: 'Results table for Duplication rate quality control'
-    model: 'Model used in Duplication rate quality control'
-    curve: 'Curve for Duplication rate quality control'
+  density_scatter:
+    pattern: 'data/rnaseq_samples/{sample}/dupradar/{sample}_density_scatter.png'
+    description: 'Density scatterplot for Duplication rate quality control'
+  expression_histogram:
+    pattern: 'data/rnaseq_samples/{sample}/dupradar/{sample}_expression_histogram.png'
+    description: 'Expression histogram for Duplication rate quality control'
+  expression_boxplot:
+    pattern: 'data/rnaseq_samples/{sample}/dupradar/{sample}_expression_boxplot.png'
+    description: 'Expression boxplot for Duplication rate quality control'
+  expression_barplot:
+    pattern: 'data/rnaseq_samples/{sample}/dupradar/{sample}_expression_barplot.png'
+    description: 'Expression barplot for Duplication rate quality control'
+  multimapping_histogram:
+    pattern: 'data/rnaseq_samples/{sample}/dupradar/{sample}_multimapping_histogram.png'
+    description: 'Histogram of multimapping for Duplication rate quality control'
+  dataframe:
+    pattern: 'data/rnaseq_samples/{sample}/dupradar/{sample}_dataframe.tsv'
+    description: 'Results table for Duplication rate quality control'
+  model:
+    pattern: 'data/rnaseq_samples/{sample}/dupradar/{sample}_model.txt'
+    description: 'Model used in Duplication rate quality control'
+  curve:
+    pattern: 'data/rnaseq_samples/{sample}/dupradar/{sample}_curve.txt'
+    description: 'Curve for Duplication rate quality control'
+
 preseq:
   pattern: 'data/rnaseq_samples/{sample}/{sample}_preseq_c_curve.txt'
   description: 'Preseq'
+
 salmon:
   pattern: 'data/rnaseq_samples/{sample}/{sample}.salmon/{sample}_quant.sf'
   description: 'Transcripts quantification using Salmon'
+
 rseqc:
-  pattern:
-    bam_stat: 'data/rnaseq_samples/{sample}/rseqc/{sample}_bam_stat.txt'
-  description:
-    bam_stat: 'RNAseq quality control analysis'
+  bam_stat:
+    pattern: 'data/rnaseq_samples/{sample}/rseqc/{sample}_bam_stat.txt'
+    description: 'RNAseq quality control analysis'
+  infer_experiment:
+    pattern: 'data/rnaseq_samples/{sample}/rseqc/{sample}_infer_experiment.txt'
+    description: 'Infer layout and strandedness of experiment'
+
 bigwig:
-  pattern:
-    pos: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.pos.bigwig'
-    neg: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.neg.bigwig'
-    sense: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.sense.bigwig'
-    antisense: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.antisense.bigwig'
-  description:
-    pos: 'bigwig file for positive strand relative to sequence reads'
-    neg: 'bigwig file for negative strand relative to sequence reads'
-    sense: 'bigwig file for sense strand relative to the transcript'
-    antisense: 'bigwig file for antisense strand relative to the transcript'
+  pos:
+    pattern: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.pos.bigwig'
+    description: 'bigwig file for positive strand relative to sequence reads'
+  neg:
+    pattern: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.neg.bigwig'
+    description: 'bigwig file for negative strand relative to sequence reads'
+
 downstream:
-  pattern:
-    rnaseq: 'downstream/rnaseq.html'
-  description:
-    rnaseq: 'Results summary'
+  rnaseq:
+    pattern: 'downstream/rnaseq.html'
+    description: 'Results summary'
 
 patterns_by_aggregate:
   merged_bigwig:

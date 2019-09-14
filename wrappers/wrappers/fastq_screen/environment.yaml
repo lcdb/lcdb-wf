@@ -1,9 +1,7 @@
 channels:
   - conda-forge
   - bioconda
-  - lcdb
 dependencies:
   - python=3
   - fastq-screen
   - bowtie2
-  - lcdblib

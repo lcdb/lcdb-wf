@@ -1,82 +1,190 @@
 Changelog
 =========
 
-v1.0
-----
-First full release.
+v1.5 (Sept 2019)
+----------------
 
-v1.0.1
-------
-Bugfixes, last release before references changes.
+Major change: **it is no longer possible to mix single-end and paired-end
+samples within the same run of the workflow.** See `#208
+<https://github.com/lcdb/lcdb-wf/pull/208>`_ and the corresponding issue
+description at `#175 <https://github.com/lcdb/lcdb-wf/issues/175>`_.
+
+This version also has many improvements to the ``rnaseq.Rmd`` file for RNA-seq,
+as described below.
+
+RNA-seq
+~~~~~~~
+
+Many changes and improvements to ``rnaseq.Rmd``, including:
+
+- Differential analysis summaries now include labeled MA plots (`#192 <https://github.com/lcdb/lcdb-wf/pull/192/files>`_)
+- PCA plots now use plotly for improved insepction of samples (`#192 <https://github.com/lcdb/lcdb-wf/pull/192/files>`_
+- don't use knitrBootstrap any more (`#192 <https://github.com/lcdb/lcdb-wf/pull/192/files>`_
+- heatmaps use heatmaply package for better interaction (`#192 <https://github.com/lcdb/lcdb-wf/pull/192/files>`_
+- allow ``sel.list`` to be used for UpSet plots and fix some typos `#205 <https://github.com/lcdb/lcdb-wf/pull/205>`_
+- workaround for degPatterns for corner cases where there are few clusters because of the ``minc`` parameter (`#205 <https://github.com/lcdb/lcdb-wf/pull/205>`_)
+- alpha and lfc.thresh are now pulled out into a separate chunk (`#206 <https://github.com/lcdb/lcdb-wf/pull/206>`_)
+- Support AnnotationHub http proxy handling in new version of AnnotationHub (`#207 <https://github.com/lcdb/lcdb-wf/pull/207>`_).
+
+As well as the following changes to other parts of the RNA-seq workflow, such as:
+
+- better bigWig file nomenclature (`#194 <https://github.com/lcdb/lcdb-wf/pull/194/files>`_), uses "pos" and "neg".
+- featureCounts only runs once on all BAMs rather than individual samples (`#195 <https://github.com/lcdb/lcdb-wf/pull/195>`_)
+- support `rseqc infer_experiment`, which replaces running featureCounts in multiple stranded modes (`#199 <https://github.com/lcdb/lcdb-wf/pull/199>`_, `#203 <https://github.com/lcdb/lcdb-wf/pull/203>`_)
+- use ``--validateMappings`` for salmon (`#203 <https://github.com/lcdb/lcdb-wf/pull/203>`_)
+
+References
+~~~~~~~~~~
+- fix typo in *S. pombe* name
+
+All workflows
+~~~~~~~~~~~~~
+
+- Documentation now recommends creating an environment for each directory using the `-p` argument (`#195 <https://github.com/lcdb/lcdb-wf/pull/195>`_)
+
+
+v1.4.2 (Jul 2019)
+-----------------
+
+Bugfixes
+~~~~~~~~
+
+- Don't require ChIP-seq configs to have at least one block for each supported
+  peak-caller
+
+v1.4.1 (Jul 2019)
+-----------------
+
+RNA-seq
+~~~~~~~
+
+- KEGG results were not being added to the ``all.enrich`` list in ``rnaseq.Rmd``
+- symlinking bigWigs is now a local rule
+- default cutadapt options have changed to reflect current recommendations from
+  the author, and the cutadapt rule is now explicity using arguments rather
+  than requiring a separate ``adapters.fa`` file.
+- featureCounts now auto-detects whether it should be run with the ``-p``
+  argument in paired-end mode (previously it was up to the user to make sure
+  this was added). The rule does have an override if this behavior is not wanted.
+
+References
+~~~~~~~~~~
+
+- The reference config for *Drosophila* is now fixed. Previously it depended on
+  `chrom_convert`. That script was a fly-specific script in lcdblib, but
+  lcdblib is no longer a dependency since v1.3. This fix uses the
+  `convert_fastq_chroms` and `convert_gtf_chroms` used in reference configs for
+  other species.
+
+v1.4 (May 2019)
+---------------
+RNA-seq
+~~~~~~~
+Much-improved ``rnaseq.Rmd``:
+
+- tabbed PCA plot
+- improved DEGpatterns chunk
+- dramatically improved functional enrichment section, with tabbed clusterprofiler plots and exported data in two flavors (combined and split)
+- improved upset plots, with exported files showing sets of genes
+- improved comments to highlight where to make changes
+- add new helper functions to ``helpers.R``:
+   - ``fromList.with.names``, for getting UpSet plot output
+   - ``rownames.first.col``, to make tidier dataframes
+   - ``nested.lapply``, for convenient 2-level nested list apply
+   - clusterprofiler helper functions
+
+
+v1.3 (May 2019)
+---------------
+Bugfixes
+~~~~~~~~
+- Fix broken paired-end support for RNA-seq. Previously, when using data from
+  elsewhere on disk and using the symlink rules, R2 would be symlinked to the
+  same file as R1.
+- Support for Snakemake 5.4.0 which changes behavior of the ``expand()``
+  function.
+
+Infrastructure
+~~~~~~~~~~~~~~
+- new deploy script to copy over only the files necessary for an analysis,
+  avoiding the clutter of testing infrastructure.
+- lcdblib, an external package, is no longer a dependency. In the interest of
+  better transparency and to make the code here easier to follow, the relevant
+  code from lcdblib was copied over to the ``lib`` directory in this
+  repository.
+
+ChIP-seq and RNA-seq
+~~~~~~~~~~~~~~~~~~~~
+
+- Bowtie2, HISAT2, and rRNA rules no longer use wrappers. This makes it easier
+  to track down what parameters are being used in each rule.
+- RSeQC is now available in Python 3 so wrappers have been removed.
+- NextGenMap support removed
+
+v1.2 (Mar 2019)
+---------------
+
+RNA-seq
+~~~~~~~
+- First-class paired-end support, including mixing PE and SE samples in the
+  same sampletable
+
+- Support for STAR aligner
+
+References
+~~~~~~~~~~
+- FASTA files are always symlinked into the directories of indexes that were
+  created from it
+
+- Reference configs:
+
+   - updated existing
+   - added more species
+   - new post-process for fasta or gtf: you can now use
+     NICHD-BSPC/chrom-name-mappings to convert chromosome names between UCSC
+     and Ensembl (see reference configs for examples of use)
+
+ChIP-seq and RNA-seq
+~~~~~~~~~~~~~~~~~~~~
+- Updates to dependencies and MultiQC config
 
 Infrastructure
 ~~~~~~~~~~~~~~
 
-- Transition to CircleCI for testing
-- Use production settings by default; see :ref:`note-on-test-settings` for
-  more.
-- lots o' docs
-- new ``include/references_configs`` to help organize references. These are
-  currently not used by the workflows directly.
-- bugfix: use additional options when uncompressing downloaded reference files
-  (``--no-same-owner`` for ``tar``, ``-f`` for ``gunzip``)
-- additional dependencies in the top-level environment to support the
-  additional features in rnaseq.Rmd and track hubs.
-- colocalization workflow, external workflow, figures workflow to demonstrate
-  vertical integration
+- Updated requirements in ``requirements.txt`` and in wrappers
 
-RNA-seq
-~~~~~~~
-- remove kallisto indexing, use salmon
-- improvements to how chipseq sampletables are parsed (with more informative
-  error messages)
-- run preseq for RNA-seq library complexity QC
-- support for merging bigwigs
-- featureCounts is now run in all three strandedness modes, and results
-  incorporated into MultiQC as separate modules.
-- RNA-seq now symlinks "pos" and "neg" bigWigs, which describe how reads map to
-  the *reference*, to "sense" and "antisense" bigWigs, which describe the
-  *originating RNA*. This makes it easy to swap strands depending on protocol.
-- new ``downstream/helpers.Rmd`` which factors out a lot of the work previously
-  done in ``rnaseq.Rmd`` into separate functions.
-- track hub building respects new sense/antisense bigwig symlinks
+- Changed all ``pd.read_table()`` to ``pd.read_csv(sep="\t")`` to prevent warnings
 
-``downstream/rnaseq.Rmd``
-~~~~~~~~~~~~~~~~~~~~~~~~~
-- AnnotationHub uses cache dir that will not clobber default home directory cache
-- use varianceStabilizingTransform instead of rlog
-- print a size factors table
-- use multiple cores for computationally expensive DESeq2 operations
-- using separate lists for results, dds objects, and nice labels for automated
-  plots for each contrast
-- UpSet plots for comparing gene lists across contrasts
-- DEGpattern plots for showing clusters of expression patterns (from the
-  DEGreport package)
-- attach normalized counts per sample and per factor (parsed from the model
-  used for the contrast) as well as TPM estimates to the results tables
-- trim the labels in GO enrichment plots when too long
+- Changed all ``yaml.load()`` to ``yaml.load(Loader=yaml.FullLoader)`` to
+  prevent warnings
 
+- Using DeprecationWarning rather than UserWarning in the deprecation handler
+  so there's less spam in the logs
 
-ChIP-seq
-~~~~~~~~
-- sicer for chipseq domain calling
-- pin snakemake <4.5.0 so that subworkflows behave correctly
-- chipseq peak-calling rules (and therefore wrappers) now expect a chromsizes
-  file as input
-- bigbed files for narrowPeak and broadPeak files are created correctly
-  depending on their format
-- run multiBigWigSummary and plotCorrelation from deepTools for ChIP-seq QC
-- ChIP-seq track hub generation script
+- Improved tests:
 
-Both RNA-seq and ChIP-seq
-~~~~~~~~~~~~~~~~~~~~~~~~~
-- update deeptools calls to reflect >v3.0 syntax
-- support for SRA run tables so it's trivial to re-run experiments
-  in SRA
-- multiple FastQC runs are shown separately in MultiQC output
+  - using data from pybedtools repo because modENCODE seems to be down
+  - append rather than prepend base conda to PATH on circleci
+  - separate isolated tests for STAR, ngm, and SRA
+  - updated conda
 
-v1.1
-----
+- Docs additions:
+
+  - TMPDIR handling
+  - clusterconfig
+  - WRAPPER_SLURM
+  - docs for developers
+  - symlinking fastqs
+  - using SRA sampletables
+  - paired-end data
+
+Colocalization
+~~~~~~~~~~~~~~
+- From colocalization, removed the GAT "fractions" heatmap due to unresolved
+  pandas index errors
+
+v1.1 (Aug 2018)
+---------------
 
 Infrastructure
 ~~~~~~~~~~~~~~
@@ -166,14 +274,75 @@ RNA-seq
       labels (list of lists, rather than individual list object; refactored
       functions to use this new structure
 
-v1.2
-----
+v1.0.1 (Jun 2018)
+-----------------
+Bugfixes, last release before references changes.
 
-- First-class paired-end support, including mixing PE and SE samples in the
-  same sampletable
-- Support for NextGenMap aligner and STAR aligner
-- FASTA files are always symlinked into the directories of indexes that were
-  created from it
-- Updates to dependencies and MultiQC config
+Infrastructure
+~~~~~~~~~~~~~~
 
+- Transition to CircleCI for testing
+- Use production settings by default; see :ref:`note-on-test-settings` for
+  more.
+- lots o' docs
+- new ``include/references_configs`` to help organize references. These are
+  currently not used by the workflows directly.
+- bugfix: use additional options when uncompressing downloaded reference files
+  (``--no-same-owner`` for ``tar``, ``-f`` for ``gunzip``)
+- additional dependencies in the top-level environment to support the
+  additional features in rnaseq.Rmd and track hubs.
+- colocalization workflow, external workflow, figures workflow to demonstrate
+  vertical integration
 
+RNA-seq
+~~~~~~~
+- remove kallisto indexing, use salmon
+- improvements to how chipseq sampletables are parsed (with more informative
+  error messages)
+- run preseq for RNA-seq library complexity QC
+- support for merging bigwigs
+- featureCounts is now run in all three strandedness modes, and results
+  incorporated into MultiQC as separate modules.
+- RNA-seq now symlinks "pos" and "neg" bigWigs, which describe how reads map to
+  the *reference*, to "sense" and "antisense" bigWigs, which describe the
+  *originating RNA*. This makes it easy to swap strands depending on protocol.
+- new ``downstream/helpers.Rmd`` which factors out a lot of the work previously
+  done in ``rnaseq.Rmd`` into separate functions.
+- track hub building respects new sense/antisense bigwig symlinks
+
+``downstream/rnaseq.Rmd``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+- AnnotationHub uses cache dir that will not clobber default home directory cache
+- use varianceStabilizingTransform instead of rlog
+- print a size factors table
+- use multiple cores for computationally expensive DESeq2 operations
+- using separate lists for results, dds objects, and nice labels for automated
+  plots for each contrast
+- UpSet plots for comparing gene lists across contrasts
+- DEGpattern plots for showing clusters of expression patterns (from the
+  DEGreport package)
+- attach normalized counts per sample and per factor (parsed from the model
+  used for the contrast) as well as TPM estimates to the results tables
+- trim the labels in GO enrichment plots when too long
+
+ChIP-seq
+~~~~~~~~
+- sicer for chipseq domain calling
+- pin snakemake <4.5.0 so that subworkflows behave correctly
+- chipseq peak-calling rules (and therefore wrappers) now expect a chromsizes
+  file as input
+- bigbed files for narrowPeak and broadPeak files are created correctly
+  depending on their format
+- run multiBigWigSummary and plotCorrelation from deepTools for ChIP-seq QC
+- ChIP-seq track hub generation script
+
+Both RNA-seq and ChIP-seq
+~~~~~~~~~~~~~~~~~~~~~~~~~
+- update deeptools calls to reflect >v3.0 syntax
+- support for SRA run tables so it's trivial to re-run experiments
+  in SRA
+- multiple FastQC runs are shown separately in MultiQC output
+
+v1.0 (May 2018)
+---------------
+First official full release.

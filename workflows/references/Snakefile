@@ -7,9 +7,9 @@ import importlib
 import tempfile
 import pandas
 from snakemake.utils import makedirs
-from lcdblib.utils.imports import resolve_name
-from lcdblib.utils import utils
-from lcdblib.snakemake import aligners, helpers
+from lib.imports import resolve_name
+from lib import utils
+from lib import aligners, helpers
 from lib import cluster_specific
 from lib import common
 
@@ -77,20 +77,6 @@ rule bowtie2_index:
             '{input} '
             '{prefix} '
             '&> {log}')
-
-
-rule ngm_index:
-    input:
-        '{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta'
-    output:
-        protected('{references_dir}/{organism}/{tag}/ngm/{organism}_{tag}.fasta-enc.2.ngm')
-    log:
-        '{references_dir}/logs/{organism}/{tag}/ngm/{organism}_{tag}.log'
-    run:
-        prefix = aligners.prefix_from_bowtie2_index(output)
-
-        shell('ngm ' '-r {input} ' '&> {log}')
-        shell('mv {input}-enc.2.ngm $(dirname {output})')
 
 
 rule star_index:
@@ -191,6 +177,15 @@ rule conversion_refflat:
         '''&& awk '{{print $1"\t"$0}}' {output}.tmp > {output} '''
         '&& rm {output}.tmp '
 
+
+rule conversion_bed12:
+    input:
+        '{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf'
+    output:
+        protected('{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.bed12')
+    shell:
+        'gtfToGenePred {input} {output}.tmp '
+        '&& genePredToBed {output}.tmp {output}'
 
 rule conversion_gffutils:
     """Converts a GTF into a gffutils sqlite3 database

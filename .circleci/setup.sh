@@ -27,16 +27,13 @@ if ! type conda > /dev/null; then
     bash miniconda.sh -b -p $WORKSPACE/miniconda
 
     conda config --system --add channels defaults
-    conda config --system --add channels conda-forge
     conda config --system --add channels bioconda
-    conda config --system --add channels lcdb
+    conda config --system --add channels conda-forge
 
     # After SSHing in, for some reason this seems to fix it...
-    conda install -y r-base=3.4.1 bioconductor-genomeinfodbdata bioconductor-annotationhub
+    #conda install -y r-base=3.4.1 bioconductor-genomeinfodbdata bioconductor-annotationhub
     conda update -y conda
     conda create -n lcdb-wf-test -y --file requirements.txt
-    conda remove -y r-base
-
     yum install -y git
 fi
 
