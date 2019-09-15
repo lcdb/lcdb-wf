@@ -1,7 +1,7 @@
 import os
 import contextlib
 import collections
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from snakemake.shell import shell
 
 
@@ -50,23 +50,56 @@ def flatten(iter, unlist=False):
     return results
 
 
-def test_flatten():
-    assert sorted(flatten({
-        'a': {
-            'b': {
-                'c': ['a', 'b', 'c'],
-            },
-        },
-        'x': ['e', 'f', 'g'],
-        'y': {
-            'z': 'd'
-        },
-    })) == ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+def map_nested_dicts(d, func):
+    """
+    Apply `func` to all values of a nested dictionary
 
-    assert flatten('a', True) == 'a'
-    assert flatten(['a'], True) == 'a'
-    assert flatten('a') == ['a']
-    assert flatten(['a']) == ['a']
+    Parameters
+    ----------
+    d : dict
+
+    func : callable
+
+    Examples
+    --------
+
+    >>> d = {'a': {'b': {'target': 1, 'ignore': 2}}, 'c': {'target': 3}}
+    >>> res = map_nested_dicts(d, lambda x: x < 3)
+    >>> assert res == {'a': {'b': {'target': True, 'ignore': True}}, 'c': {'target': False}}
+
+    """
+    if isinstance(d, Mapping):
+        return {k: map_nested_dicts(v, func) for k, v in d.items()}
+    else:
+        return func(d)
+
+
+def extract_nested(d, key):
+    """
+    From a nested dict, keep all nesting the same EXCEPT for the leaf dicts,
+    from which only the provided key will be returned.
+
+    Parameters
+    ----------
+    d : dict
+
+    key : str or hashable type
+        Key to extract. Effectively collapses leaf dictionaries containing this
+        key into just the value.
+
+    Examples
+    --------
+
+    >>> d = {'a': {'b': {'target': 1, 'ignore': 2}}, 'c': {'target': 3}}
+    >>> result = extract_nested(d, 'target')
+    >>> assert result == {'a': {'b': 1}, 'c': 3}, result
+    """
+    if not isinstance(d, Mapping):
+        return d
+    if key in d:
+        return d[key]
+    else:
+        return {k: extract_nested(v, key) for k,v in d.items()}
 
 
 def updatecopy(orig, update_with, keys=None, override=False):
@@ -186,3 +219,22 @@ def make_relative_symlink(target, linkname):
     if not os.path.exists(linkdir):
         shell('mkdir -p {linkdir}')
     shell('cd {linkdir}; ln -sf {relative_target} {linkbase}')
+
+
+def test_flatten():
+    assert sorted(flatten({
+        'a': {
+            'b': {
+                'c': ['a', 'b', 'c'],
+            },
+        },
+        'x': ['e', 'f', 'g'],
+        'y': {
+            'z': 'd'
+        },
+    })) == ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+
+    assert flatten('a', True) == 'a'
+    assert flatten(['a'], True) == 'a'
+    assert flatten('a') == ['a']
+    assert flatten(['a']) == ['a']
