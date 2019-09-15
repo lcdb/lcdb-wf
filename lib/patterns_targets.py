@@ -132,43 +132,20 @@ class SeqConfig(object):
         # }
         #
         #
-        _patterns = {}
-        _descriptions = {}
-        _rst_files = {}
 
         def pattern_to_rst_file(p):
-            return os.path.join('reports', p.replace('{', '').replace('}', '')) + '.rst'
+            """
+            Convert filename pattern containing wildcards into an RST filename
+            """
+            return os.path.join("reports", p.replace("{", "").replace("}", "")) + ".rst"
 
         loaded_patterns = yaml.load(open(patterns), Loader=yaml.FullLoader)
-        for k, v in loaded_patterns.items():
-            if 'pattern' in v:  # simple
-                _patterns[k] = v['pattern']
-                _rst_files[k] = pattern_to_rst_file(v['pattern'])
-                _descriptions[k] = v['description']
 
-            else:  # nested
-                _patterns[k] = {}
-                _descriptions[k] = {}
-                _rst_files[k] = {}
-                for k2, v2 in v.items():
-                    if 'pattern' in v2:
-                        _patterns[k][k2] = v2['pattern']
-                        _rst_files[k][k2] = pattern_to_rst_file(v2['pattern'])
-                        _descriptions[k][k2] = v2['description']
-                    else:
-                        _patterns[k][k2] = {}
-                        _descriptions[k][k2] = {}
-                        _rst_files[k][k2] = {}
-                        for k3, v3 in v2.items():
-                            _patterns[k][k2][k3] = v3['pattern']
-                            _rst_files[k][k2][k3] = pattern_to_rst_file(v3['pattern'])
-                            _descriptions[k][k2][k3] = v3['description']
+        self.patterns = utils.extract_nested(loaded_patterns, "pattern")
+        self.descriptions = utils.extract_nested(loaded_patterns, "description")
+        self.rst_files = utils.map_nested_dicts(self.patterns, pattern_to_rst_file)
 
-        self.patterns = _patterns
-        self.rst_files = _rst_files
-        self.descriptions = _descriptions
-
-        self.is_paired = helpers.detect_layout(self.sampletable) == 'PE'
+        self.is_paired = helpers.detect_layout(self.sampletable) == "PE"
         if self.is_paired:
             self.n = [1, 2]
         else:
