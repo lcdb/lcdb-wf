@@ -6,8 +6,16 @@ from snakemake.shell import shell
 from snakemake.io import expand
 
 
+def wrapper_for(path):
+    return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
+
+
 def render_r1_r2(pattern):
     return expand(pattern, sample='{sample}', n=[1,2])
+
+
+def r1_only(pattern):
+    return expand(pattern, sample='{sample}', n=1)
 
 
 @contextlib.contextmanager

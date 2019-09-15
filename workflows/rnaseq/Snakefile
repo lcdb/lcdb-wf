@@ -8,6 +8,8 @@ import tempfile
 import pandas as pd
 from lib import common, cluster_specific, utils, helpers, aligners
 from lib.patterns_targets import RNASeqConfig
+from lib.utils import render_r1_r2, r1_only, wrapper_for
+
 import copy
 
 # ----------------------------------------------------------------------------
@@ -39,10 +41,6 @@ wildcard_constraints:
     n = '[1,2]'
 
 
-def wrapper_for(path):
-    return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
-
-
 # ----------------------------------------------------------------------------
 # RULES
 # ----------------------------------------------------------------------------
@@ -72,13 +70,6 @@ final_targets = utils.flatten((
 
 if 'merged_bigwigs' in config:
     final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
-
-
-def render_r1_r2(pattern, r1_only=False):
-    return expand(pattern, sample='{sample}', n=c.n)
-
-def r1_only(pattern):
-    return expand(pattern, sample='{sample}', n=1)
 
 
 rule targets:

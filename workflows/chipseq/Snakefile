@@ -9,7 +9,7 @@ import numpy as np
 import pybedtools
 from lib import common, cluster_specific, utils, helpers, aligners, chipseq
 from lib.patterns_targets import ChIPSeqConfig
-from lib.utils import render_r1_r2
+from lib.utils import render_r1_r2, r1_only, wrapper_for
 
 # ----------------------------------------------------------------------------
 #
@@ -43,9 +43,6 @@ wildcard_constraints:
     n = '[1,2]'
 
 report: "workflow.rst"
-
-def wrapper_for(path):
-    return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
 
 
 # ----------------------------------------------------------------------------
