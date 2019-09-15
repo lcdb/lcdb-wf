@@ -133,17 +133,13 @@ class SeqConfig(object):
         #
         #
 
-        def pattern_to_rst_file(p):
-            """
-            Convert filename pattern containing wildcards into an RST filename
-            """
-            return os.path.join("reports", p.replace("{", "").replace("}", "")) + ".rst"
 
         loaded_patterns = yaml.load(open(patterns), Loader=yaml.FullLoader)
 
+        self._loaded_patterns = loaded_patterns
         self.patterns = utils.extract_nested(loaded_patterns, "pattern")
         self.descriptions = utils.extract_nested(loaded_patterns, "description")
-        self.rst_files = utils.map_nested_dicts(self.patterns, pattern_to_rst_file)
+        self.rst_files = utils.map_nested_dicts(self.patterns, utils.pattern_to_rst_file)
 
         self.is_paired = helpers.detect_layout(self.sampletable) == "PE"
         if self.is_paired:
@@ -247,6 +243,8 @@ class ChIPSeqConfig(SeqConfig):
 
         self.targets.update(self.targets_by_sample)
         self.patterns.update(self.patterns_by_sample)
+        self.descriptions.update(self.descriptions['patterns_by_sample'])
+        self.rst_files.update(self.rst_files['patterns_by_sample'])
 
         # Then the aggregation...
         self.patterns_by_aggregation = self.patterns.pop('patterns_by_aggregate', None)
@@ -319,3 +317,5 @@ class ChIPSeqConfig(SeqConfig):
 
         self.targets.update(self.targets_for_peaks)
         self.patterns.update(self.patterns_by_peaks)
+        self.descriptions.update(self.descriptions['patterns_by_peaks'])
+        self.rst_files.update(self.rst_files['patterns_by_peaks'])
