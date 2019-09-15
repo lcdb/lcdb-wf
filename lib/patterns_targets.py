@@ -9,6 +9,7 @@ import yaml
 from . import common
 from . import chipseq
 from . import helpers
+from . import utils
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
@@ -61,8 +62,86 @@ class SeqConfig(object):
         self.samples, self.sampletable = common.get_sampletable(self.config)
         self.refdict, self.conversion_kwargs = common.references_dict(self.config)
         self.organism = self.config['organism']
-        self.patterns = yaml.load(open(patterns), Loader=yaml.FullLoader)
-        self.is_paired = helpers.detect_layout(self.sampletable) == 'PE'
+
+        # Patterns have one of three structures:
+        #
+        # Structure 1 (simple):
+        #
+        #    salmon:
+        #      pattern: 'data/rnaseq_samples/{sample}/{sample}.salmon/{sample}_quant.sf'
+        #      description: 'Transcripts quantification using Salmon'
+        #
+        # Structure 2 (nested 1 deep):
+        #
+        #    rseqc:
+        #      bam_stat:
+        #        pattern: 'data/rnaseq_samples/{sample}/rseqc/{sample}_bam_stat.txt'
+        #        description: 'RNAseq quality control analysis'
+        #      infer_experiment:
+        #        pattern: 'data/rnaseq_samples/{sample}/rseqc/{sample}_infer_experiment.txt'
+        #        description: 'Infer layout and strandedness of experiment'
+        #
+        #
+        # Structure 3 (nested 2 deep):
+        #
+        #    patterns_by_peaks:
+        #      peaks:
+        #        macs2:
+        #          pattern: 'data/chipseq_peaks/macs2/{macs2_run}/peaks.bed'
+        #          description: 'BED file of peaks from macs2 peak-caller'
+        #
+        #
+        # Our job here is to create three objects:
+        #
+        # patterns = {
+        #   'salmon': 'data/rnaseq_samples/{sample}/{sample}.salmon/{sample}_quant.sf',
+        #   'rseqc': {
+        #       'bam_stat': 'data/rnaseq_samples/{sample}/rseqc/{sample}_bam_stat.txt',
+        #       'infer_experiment': 'data/rnaseq_samples/{sample}/rseqc/{sample}_infer_experiment.txt',
+        #   },
+        #   'patterns_by_peaks': {
+        #     'peaks': {
+        #       'macs2': 'data/chipseq_peaks/macs2/{macs2_run}/peaks.bed'
+        #     }
+        #   }
+        # }
+        #
+        # rst_files = {
+        #   'salmon': 'reports/data/rnaseq_samples/sample/sample.salmon/sample_quant.sf.rst',
+        #   'rseqc': {
+        #       'bam_stat': 'reports/data/rnaseq_samples/sample/rseqc/sample_bam_stat.txt',
+        #       'infer_experiment': 'reports/data/rnaseq_samples/sample/rseqc/sample_infer_experiment.txt.rst',
+        #   },
+        #   'patterns_by_peaks': {
+        #     'peaks': {
+        #       'macs2': 'reports/data/chipseq_peaks/macs2/macs2_run/peaks.bed.rst'
+        #     }
+        # }
+        #
+        # descriptions = {
+        #   'salmon': 'Transcripts quantification using Salmon'
+        #   'rseqc': {
+        #       'bam_stat': 'RNAseq quality control analysis',
+        #       'infer_experiment': 'Infer layout and strandedness of experiment',
+        #   },
+        #   'patterns_by_peaks': {
+        #     'peaks': {
+        #       'macs2': 'BED file of peaks from macs2 peak-caller'
+        #     }
+        #   }
+        # }
+        #
+        #
+
+
+        loaded_patterns = yaml.load(open(patterns), Loader=yaml.FullLoader)
+
+        self._loaded_patterns = loaded_patterns
+        self.patterns = utils.extract_nested(loaded_patterns, "pattern")
+        self.descriptions = utils.extract_nested(loaded_patterns, "description")
+        self.rst_files = utils.map_nested_dicts(self.patterns, utils.pattern_to_rst_file)
+
+        self.is_paired = helpers.detect_layout(self.sampletable) == "PE"
         if self.is_paired:
             self.n = [1, 2]
         else:
@@ -92,8 +171,13 @@ class RNASeqConfig(SeqConfig):
         SeqConfig.__init__(self, config, patterns, workdir)
 
         self.fill = dict(sample=self.samples, n=self.n)
+
+        # The merged bigwigs have different placeholders and therefore must be
+        # filled separately. They also only should be included if
+        # merged_bigwigs have been configured.
         self.patterns_by_aggregation = self.patterns.pop('patterns_by_aggregate', None)
         self.targets = helpers.fill_patterns(self.patterns, self.fill, zip)
+
 
         # Then the aggregation
         if self.patterns_by_aggregation is not None and 'merged_bigwigs' in self.config:
@@ -106,6 +190,9 @@ class RNASeqConfig(SeqConfig):
             )
             self.targets.update(self.targets_by_aggregation)
             self.patterns.update(self.patterns_by_aggregation)
+
+            self.rst_files.update(self.rst_files.pop('patterns_by_aggregate'))
+            self.descriptions.update(self.descriptions.pop('patterns_by_aggregate'))
 
 
 class ChIPSeqConfig(SeqConfig):
@@ -156,6 +243,8 @@ class ChIPSeqConfig(SeqConfig):
 
         self.targets.update(self.targets_by_sample)
         self.patterns.update(self.patterns_by_sample)
+        self.descriptions.update(self.descriptions['patterns_by_sample'])
+        self.rst_files.update(self.rst_files['patterns_by_sample'])
 
         # Then the aggregation...
         self.patterns_by_aggregation = self.patterns.pop('patterns_by_aggregate', None)
@@ -169,6 +258,9 @@ class ChIPSeqConfig(SeqConfig):
             )
             self.targets.update(self.targets_by_aggregation)
             self.patterns.update(self.patterns_by_aggregation)
+
+            self.rst_files.update(self.rst_files.pop('patterns_by_aggregate'))
+            self.descriptions.update(self.descriptions.pop('patterns_by_aggregate'))
 
         # Then the peaks...
         #
@@ -225,3 +317,5 @@ class ChIPSeqConfig(SeqConfig):
 
         self.targets.update(self.targets_for_peaks)
         self.patterns.update(self.patterns_by_peaks)
+        self.descriptions.update(self.descriptions['patterns_by_peaks'])
+        self.rst_files.update(self.rst_files['patterns_by_peaks'])

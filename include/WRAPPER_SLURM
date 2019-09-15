@@ -21,6 +21,7 @@ if [[ ! -e logs ]]; then mkdir -p logs; fi
     --use-conda \
     --configfile config/config.yaml \
     --latency-wait=300 \
+    --report report.html
     ) > "Snakefile.log" 2>&1
 
 SNAKE_PID=$!

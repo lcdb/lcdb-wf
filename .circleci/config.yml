@@ -74,6 +74,7 @@ variables:
           cd workflows/chipseq
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
+          ./run_test.sh --report
           python chipseq_trackhub.py config/config.yaml config/hub_config.yaml
 
   chipseq-regression-step: &chipseq-regression-step
@@ -103,6 +104,7 @@ variables:
           cd workflows/rnaseq
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
+          ./run_test.sh --report
           python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
 
   rnaseq-star-step: &rnaseq-star-step

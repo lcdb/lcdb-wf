@@ -1,8 +1,21 @@
 import os
 import contextlib
 import collections
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from snakemake.shell import shell
+from snakemake.io import expand
+
+
+def wrapper_for(path):
+    return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
+
+
+def render_r1_r2(pattern):
+    return expand(pattern, sample='{sample}', n=[1,2])
+
+
+def r1_only(pattern):
+    return expand(pattern, sample='{sample}', n=1)
 
 
 @contextlib.contextmanager
@@ -50,24 +63,130 @@ def flatten(iter, unlist=False):
     return results
 
 
-def test_flatten():
-    assert sorted(flatten({
-        'a': {
-            'b': {
-                'c': ['a', 'b', 'c'],
-            },
-        },
-        'x': ['e', 'f', 'g'],
-        'y': {
-            'z': 'd'
-        },
-    })) == ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+def map_nested_dicts(d, func, stop_condition=None):
+    """
+    Apply `func` to all values of a nested dictionary
 
-    assert flatten('a', True) == 'a'
-    assert flatten(['a'], True) == 'a'
-    assert flatten('a') == ['a']
-    assert flatten(['a']) == ['a']
+    Parameters
+    ----------
+    d : dict
 
+    func : callable
+        Function to apply to values of d, or, if `stop_condition` is provided,
+        function to apply to remainder when `stop_condition(d)` is True.
+
+    stop_condition : callable
+        Mechanism for stopping recursion at a particular level and sending the
+        results at that point to `func`. Function should accept a dict as its
+        only input argument.
+
+    Examples
+    --------
+
+    Convert leaf values into boolean indicating if they are less than three:
+
+    >>> d = {'a': {'b': {'target': 1, 'nontarget': 2}}, 'c': {'target': 3}}
+    >>> res = map_nested_dicts(d, lambda x: x < 3)
+    >>> assert res == {'a': {'b': {'target': True, 'nontarget': True}}, 'c': {'target': False}}
+
+
+    This function will sum values of provided dictionaries
+
+    >>> def sum_values(x):
+    ...     if isinstance(x, Mapping):
+    ...         return sum(x.values())
+
+    Since we don't specify a stopping condition which would send a dict to
+    `sum_values`, only the leaf integers get sent and the `sum_values` will
+    return None for those:
+
+    >>> res = map_nested_dicts(d, sum_values)
+    >>> assert res == {'a': {'b': {'target': None, 'nontarget': None}}, 'c': {'target': None}}, res
+
+    Here the stopping condition is whether "target" is in the keys, and if so,
+    the dict for which that is true is sent to `sum_values`:
+
+
+    >>> def stop1(x):
+    ...     return isinstance(x, Mapping) and 'target' in x.keys()
+
+    >>> res = map_nested_dicts(d, sum_values, stop_condition=stop1)
+    >>> assert res == {'a': {'b': 3}, 'c': 3}, res
+
+
+    Now if we only send dicts with "nontarget" in the keys, values in `b` are
+    summed but values in `c` are not because nothing there satisfied the
+    stopping condition:
+
+    >>> def stop2(x):
+    ...     return isinstance(x, Mapping) and 'nontarget' in x.keys()
+
+    >>> res = map_nested_dicts(d, sum_values, stop_condition=stop2)
+    >>> assert res == {'a': {'b': 3}, 'c': {'target': None}}, res
+
+    """
+    if stop_condition and stop_condition(d):
+        return func(d)
+    if isinstance(d, Mapping):
+        return {k: map_nested_dicts(v, func, stop_condition) for k, v in d.items()}
+    else:
+        return func(d)
+
+
+
+def extract_nested(d, key):
+    """
+    From a nested dict, keep all nesting the same EXCEPT for the leaf dicts,
+    from which only the provided key will be returned.
+
+    Parameters
+    ----------
+    d : dict
+
+    key : str or hashable type
+        Key to extract. Effectively collapses leaf dictionaries containing this
+        key into just the value.
+
+    Examples
+    --------
+
+    >>> d = {'a': {'b': {'target': 1, 'ignore': 2}}, 'c': {'target': 3}}
+    >>> result = extract_nested(d, 'target')
+    >>> assert result == {'a': {'b': 1}, 'c': 3}, result
+    """
+    if not isinstance(d, Mapping):
+        return d
+    if key in d:
+        return d[key]
+    else:
+        return {k: extract_nested(v, key) for k,v in d.items()}
+
+
+def pattern_to_rst_file(p):
+    """
+    Convert filename pattern containing wildcards into an RST filename
+    """
+    return os.path.join("reports", p.replace("{", "").replace("}", "")) + ".rst"
+
+
+def write_out_rsts(full_patterns):
+    """
+    Given the full patterns dictionary (containing patterns and descriptions),
+    write out a corresponding rst file containing the contents of the
+    description.
+
+    Returns None; the side effect is to create all the necessary rst files.
+    """
+    def stop_condition(x):
+        return isinstance(x, Mapping) and 'pattern' in x and 'description' in x
+
+    def writer(x):
+        rst = pattern_to_rst_file(x['pattern'])
+        desc = x['description']
+        with open(rst, 'w') as fout:
+            fout.write(desc + '\n')
+
+    map_nested_dicts(full_patterns, func=writer, stop_condition=stop_condition)
 
 def updatecopy(orig, update_with, keys=None, override=False):
     """
@@ -186,3 +305,22 @@ def make_relative_symlink(target, linkname):
     if not os.path.exists(linkdir):
         shell('mkdir -p {linkdir}')
     shell('cd {linkdir}; ln -sf {relative_target} {linkbase}')
+
+
+def test_flatten():
+    assert sorted(flatten({
+        'a': {
+            'b': {
+                'c': ['a', 'b', 'c'],
+            },
+        },
+        'x': ['e', 'f', 'g'],
+        'y': {
+            'z': 'd'
+        },
+    })) == ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+
+    assert flatten('a', True) == 'a'
+    assert flatten(['a'], True) == 'a'
+    assert flatten('a') == ['a']
+    assert flatten(['a']) == ['a']
