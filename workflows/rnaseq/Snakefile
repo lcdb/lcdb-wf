@@ -98,15 +98,7 @@ rule report_rst:
     output:
         utils.flatten(c.rst_files)
     run:
-
-        for k, v in c.rst_files.items():
-            if isinstance(v, str):
-                with open(v, 'w') as fout:
-                    fout.write(c.descriptions[k] + '\n')
-            else:
-                for k2, v2 in v.items():
-                    with open(v2, 'w') as fout:
-                        fout.write(c.descriptions[k][k2])
+        utils.write_out_rsts(c._loaded_patterns)
 
 
 if 'orig_filename' in c.sampletable.columns:
