@@ -9,6 +9,7 @@ import numpy as np
 import pybedtools
 from lib import common, cluster_specific, utils, helpers, aligners, chipseq
 from lib.patterns_targets import ChIPSeqConfig
+from lib.utils import render_r1_r2
 
 # ----------------------------------------------------------------------------
 #
@@ -76,7 +77,7 @@ rule targets:
     """
     Final targets to create
     """
-    input: final_targets
+    input: final_targets, utils.flatten(c.rst_files)
 
 
 rule report_rst:
@@ -86,22 +87,10 @@ rule report_rst:
     input:
         'config/chipseq_patterns.yaml'
     output:
-        utils.flatten(c.rst_files)
+        list(set(utils.flatten(c.rst_files)))
     run:
+        utils.write_out_rsts(c._loaded_patterns)
 
-        for k, v in c.rst_files.items():
-            if isinstance(v, str):
-                with open(v, 'w') as fout:
-                    fout.write(c.descriptions[k] + '\n')
-            else:
-                for k2, v2 in v.items():
-                    if isinstance(v2, str):
-                        with open(v2, 'w') as fout:
-                            fout.write(c.descriptions[k][k2])
-                    else:
-                        for k3, v3 in v2.items():
-                            with open(v3, 'w') as fout:
-                                fout.write(c.descriptions[k][k2][k3])
 
 if 'orig_filename' in c.sampletable.columns:
 
@@ -192,8 +181,6 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                 )
 
 
-def render_r1_r2(pattern):
-    return expand(pattern, sample='{sample}', n=[1,2])
 
 rule cutadapt:
     """
@@ -437,7 +424,7 @@ rule multiqc:
         ),
         config='config/multiqc_config.yaml'
     output:
-        c.targets['multiqc']
+        report(c.targets['multiqc'], caption=c.rst_files['multiqc'])
     log:
         c.targets['multiqc'][0] + '.log'
     run:
@@ -553,7 +540,7 @@ rule fingerprint:
         bais=lambda wc: expand(c.patterns['merged_techreps'] + '.bai', label=wc.ip_label),
         control_bais=lambda wc: expand(c.patterns['merged_techreps'] + '.bai', label=chipseq.merged_input_for_ip(c.sampletable, wc.ip_label)),
     output:
-        plot=c.patterns['fingerprint']['plot'],
+        plot=report(c.patterns['fingerprint']['plot']),
         raw_counts=c.patterns['fingerprint']['raw_counts'],
         metrics=c.patterns['fingerprint']['metrics']
     threads: 8
@@ -595,7 +582,7 @@ rule sicer:
             ),
         chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
     output:
-        bed=c.patterns['peaks']['sicer']
+        bed=report(c.patterns['peaks']['sicer'])
     log:
         c.patterns['peaks']['sicer'] + '.log'
     params:
@@ -620,7 +607,7 @@ rule macs2:
             ),
         chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
     output:
-        bed=c.patterns['peaks']['macs2']
+        bed=report(c.patterns['peaks']['macs2'])
     log:
         c.patterns['peaks']['macs2'] + '.log'
     params:
@@ -646,7 +633,7 @@ rule spp:
             ),
         chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
     output:
-        bed=c.patterns['peaks']['spp'],
+        bed=report(c.patterns['peaks']['spp']),
         enrichment_estimates=c.patterns['peaks']['spp'] + '.est.wig',
         smoothed_enrichment_mle=c.patterns['peaks']['spp'] + '.mle.wig',
         rdata=c.patterns['peaks']['spp'] + '.RData'
@@ -739,7 +726,7 @@ rule plotcorrelation:
     input:
         c.targets['multibigwigsummary']['npz']
     output:
-        heatmap=c.targets['plotcorrelation']['heatmap'],
+        heatmap=report(c.targets['plotcorrelation']['heatmap']),
         tab=c.targets['plotcorrelation']['tab']
     shell:
         'plotCorrelation '
