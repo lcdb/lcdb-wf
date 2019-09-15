@@ -41,6 +41,7 @@ c = ChIPSeqConfig(
 wildcard_constraints:
     n = '[1,2]'
 
+report: "workflow.rst"
 
 def wrapper_for(path):
     return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
@@ -50,6 +51,7 @@ def wrapper_for(path):
 # RULES
 # ----------------------------------------------------------------------------
 # See "patterns and targets" in the documentation for what's going on here.
+
 final_targets = utils.flatten((
     c.targets['bam'],
     utils.flatten(c.targets['fastqc']),
@@ -76,6 +78,30 @@ rule targets:
     """
     input: final_targets
 
+
+rule report_rst:
+    """
+    Create .rst containing captions for report
+    """
+    input:
+        'config/chipseq_patterns.yaml'
+    output:
+        utils.flatten(c.rst_files)
+    run:
+
+        for k, v in c.rst_files.items():
+            if isinstance(v, str):
+                with open(v, 'w') as fout:
+                    fout.write(c.descriptions[k] + '\n')
+            else:
+                for k2, v2 in v.items():
+                    if isinstance(v2, str):
+                        with open(v2, 'w') as fout:
+                            fout.write(c.descriptions[k][k2])
+                    else:
+                        for k3, v3 in v2.items():
+                            with open(v3, 'w') as fout:
+                                fout.write(c.descriptions[k][k2][k3])
 
 if 'orig_filename' in c.sampletable.columns:
 

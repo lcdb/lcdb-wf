@@ -1,56 +1,127 @@
 patterns_by_sample:
 
-  fastq: 'data/chipseq_samples/{sample}/{sample}_R1.fastq.gz'
-  cutadapt: 'data/chipseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz'
-  bam: 'data/chipseq_samples/{sample}/{sample}.cutadapt.bam'
+  fastq:
+    pattern: 'data/chipseq_samples/{sample}/{sample}_R1.fastq.gz'
+    description: 'Original FASTQ file'
+  cutadapt:
+    pattern: 'data/chipseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz'
+    description: 'Trimmed reads from cutadapt'
+
+  bam:
+    pattern: 'data/chipseq_samples/{sample}/{sample}.cutadapt.bam'
+    description: 'Sorted, aligned BAM'
 
   fastqc:
-    raw: 'data/chipseq_samples/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.zip'
-    cutadapt: 'data/chipseq_samples/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip'
-    bam: 'data/chipseq_samples/{sample}/fastqc/{sample}.cutadapt.unique.nodups.bam_fastqc.zip'
+    raw:
+      pattern: 'data/chipseq_samples/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.zip'
+      description: 'Quality control analysis of raw sequence reads'
+    cutadapt:
+      pattern: 'data/chipseq_samples/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip'
+      description: 'Quality control analysis of raw sequence reads post adaptor trimming'
+    bam:
+      pattern: 'data/chipseq_samples/{sample}/fastqc/{sample}.cutadapt.unique.nodups.bam_fastqc.zip'
+      description: 'Quality control analysis of aligned reads'
 
   libsizes:
-    fastq:   'data/chipseq_samples/{sample}/{sample}_R1.fastq.gz.libsize'
-    cutadapt: 'data/chipseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize'
-    bam:     'data/chipseq_samples/{sample}/{sample}.cutadapt.bam.libsize'
-    unique:     'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.bam.libsize'
-    nodups: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.libsize'
+    fastq:
+      pattern: 'data/chipseq_samples/{sample}/{sample}_R1.fastq.gz.libsize'
+      description: 'Sample library size using raw sequence reads'
+    cutadapt:
+      pattern: 'data/chipseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize'
+      description: 'Sample library size using sequence reads post adaptor trimming'
+    bam:
+      pattern: 'data/chipseq_samples/{sample}/{sample}.cutadapt.bam.libsize'
+      description: 'Sample library size using aligned reads'
+    unique:
+      pattern: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.bam.libsize'
+      description: 'Sample library size using unique aligned reads'
+    nodups:
+      pattern: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.libsize'
+      description: 'Sample library size using unique, non-duplicate reads'
 
-  fastq_screen: 'data/chipseq_samples/{sample}/{sample}.cutadapt.screen.txt'
-  libsizes_table: 'data/chipseq_aggregation/libsizes_table.tsv'
-  libsizes_yaml: 'data/chipseq_aggregation/libsizes_table_mqc.yaml'
-  multiqc: 'data/chipseq_aggregation/multiqc.html'
-  unique: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.bam'
+  fastq_screen:
+    pattern: 'data/chipseq_samples/{sample}/{sample}.cutadapt.screen.txt'
+    description: 'fastq screen statistics'
+  libsizes_table:
+    pattern: 'data/chipseq_aggregation/libsizes_table.tsv'
+    description: 'TSV of library sizes'
+  libsizes_yaml:
+    pattern: 'data/chipseq_aggregation/libsizes_table_mqc.yaml'
+    description: 'YAML file of library sizes, for MultiQC'
+  multiqc:
+    pattern: 'data/chipseq_aggregation/multiqc.html'
+    description: 'MultiQC output that aggregates many stages'
+
+  unique:
+    pattern: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.bam'
+    description: 'BAM file with multimappers removed'
 
   markduplicates:
-    bam: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam'
-    metrics: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.metrics'
+    bam:
+      pattern: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam'
+      description: 'BAM file with multimappers removed and duplicates removed'
 
-  merged_techreps: 'data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam'
+    metrics:
+      pattern: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.metrics'
+      description: 'Metrics file from MarkDuplicates'
 
-  bigwig: 'data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.bam.bigwig'
+  merged_techreps:
+    pattern: 'data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam'
+    description: 'BAM file of merged technical replicates'
+
+  bigwig:
+    pattern: 'data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.bam.bigwig'
+    description: 'bigwig of merged technical replicates'
 
   fingerprint:
-    plot: 'data/chipseq_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.png'
-    raw_counts: 'data/chipseq_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.tab'
-    metrics: 'data/chipseq_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.metrics'
+    plot:
+      pattern: 'data/chipseq_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.png'
+      description: 'Fingerprint plot'
+    raw_counts:
+      pattern: 'data/chipseq_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.tab'
+      description: 'TSV of results from fingerprint analysis'
+    metrics: 
+      pattern: 'data/chipseq_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.metrics'
+      description: 'Metrics file from fingerprint analysis'
 
   multibigwigsummary:
-    npz: 'data/chipseq_aggregation/deeptools/multibigwigsummary_matrix.npz'
-    tab: 'data/chipseq_aggregation/deeptools/multibigwigsummary.tab'
+    npz:
+      pattern: 'data/chipseq_aggregation/deeptools/multibigwigsummary_matrix.npz'
+      description: 'Compressed numpy array from multibigwigsummary output'
+    tab:
+      pattern: 'data/chipseq_aggregation/deeptools/multibigwigsummary.tab'
+      description: 'TSV of multibigwigsummary results'
   plotcorrelation:
-    tab: 'data/chipseq_aggregation/deeptools/plotcorrelation.tab'
-    heatmap: 'data/chipseq_aggregation/deeptools/correlation_heatmap.png'
+    tab:
+      pattern: 'data/chipseq_aggregation/deeptools/plotcorrelation.tab'
+      description: 'TSV of correlation results'
+    heatmap:
+      pattern: 'data/chipseq_aggregation/deeptools/correlation_heatmap.png'
+      description: 'Heatmap of correlations between samples'
 
 patterns_by_peaks:
   peaks:
-    macs2: 'data/chipseq_peaks/macs2/{macs2_run}/peaks.bed'
-    spp: 'data/chipseq_peaks/spp/{spp_run}/peaks.bed'
-    sicer: 'data/chipseq_peaks/sicer/{sicer_run}/peaks.bed'
+    macs2:
+      pattern: 'data/chipseq_peaks/macs2/{macs2_run}/peaks.bed'
+      description: 'BED file of peaks from macs2 peak-caller'
+    spp:
+      pattern: 'data/chipseq_peaks/spp/{spp_run}/peaks.bed'
+      description: 'BED file of peaks from spp peak-caller'
+    sicer:
+      pattern: 'data/chipseq_peaks/sicer/{sicer_run}/peaks.bed'
+      description: 'BED file of domains from SICER domain caller'
   bigbed:
-    macs2: 'data/chipseq_peaks/macs2/{macs2_run}/peaks.bigbed'
-    spp: 'data/chipseq_peaks/spp/{spp_run}/peaks.bigbed'
-    sicer: 'data/chipseq_peaks/sicer/{sicer_run}/peaks.bigbed'
+    macs2:
+      pattern: 'data/chipseq_peaks/macs2/{macs2_run}/peaks.bigbed'
+      description: 'bigBed file of peaks from macs2 peak-caller'
+    spp:
+      pattern: 'data/chipseq_peaks/spp/{spp_run}/peaks.bigbed'
+      description: 'bigBed file of peaks from spp peak-caller'
+    sicer:
+      pattern: 'data/chipseq_peaks/sicer/{sicer_run}/peaks.bigbed'
+      description: 'bigBed file of domains from SICER domain caller'
 
 patterns_by_aggregate:
-  merged_bigwig: 'data/chipseq_aggregation/merged_bigwigs/{merged_bigwig_label}.bigwig'
+  merged_bigwig:
+    pattern: 'data/chipseq_aggregation/merged_bigwigs/{merged_bigwig_label}.bigwig'
+    description: 'Merged bigwigs as specified in config'
