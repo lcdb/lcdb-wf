@@ -3,6 +3,11 @@ import contextlib
 import collections
 from collections.abc import Iterable, Mapping
 from snakemake.shell import shell
+from snakemake.io import expand
+
+
+def render_r1_r2(pattern):
+    return expand(pattern, sample='{sample}', n=[1,2])
 
 
 @contextlib.contextmanager
@@ -100,6 +105,13 @@ def extract_nested(d, key):
         return d[key]
     else:
         return {k: extract_nested(v, key) for k,v in d.items()}
+
+
+def pattern_to_rst_file(p):
+    """
+    Convert filename pattern containing wildcards into an RST filename
+    """
+    return os.path.join("reports", p.replace("{", "").replace("}", "")) + ".rst"
 
 
 def updatecopy(orig, update_with, keys=None, override=False):
