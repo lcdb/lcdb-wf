@@ -49,6 +49,12 @@ variables:
     run:
       name: Download example data
       command: |
+        python deploy.py --flavor full /tmp/lcdb-wf-test
+        cp workflows/chipseq/run_test.sh /tmp/lcdb-wf-test/workflows/chipseq
+        cp workflows/rnaseq/run_test.sh /tmp/lcdb-wf-test/workflows/rnaseq
+        cp workflows/references/run_test.sh /tmp/lcdb-wf-test/workflows/references
+        cp workflows/colocalization/run_test.sh /tmp/lcdb-wf-test/workflows/colocalization
+        cd /tmp/lcdb-wf-test
         source activate lcdb-wf-test
         python ci/get-data.py
 
@@ -63,7 +69,7 @@ variables:
       run:
         name: dry run
         command: |
-          cd workflows/rnaseq
+          cd /tmp/lcdb-wf-test/workflows/rnaseq
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -n
 
@@ -71,7 +77,7 @@ variables:
       run:
         name: chipseq workflow
         command: |
-          cd workflows/chipseq
+          cd /tmp/lcdb-wf-test/workflows/chipseq
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
           python chipseq_trackhub.py config/config.yaml config/hub_config.yaml
@@ -80,11 +86,12 @@ variables:
       run:
         name: chipseq regression test workflow
         command: |
-          cd workflows/chipseq
+          ORIG=$(pwd)
+          cd /tmp/lcdb-wf-test/workflows/chipseq
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r \
-            --configfile ../../test/test_configs/test_chipseq_regression.yaml \
-            --config sampletable=../../test/test_configs/chipseq_one_run.tsv \
+            --configfile $ORIG/test/test_configs/test_chipseq_regression.yaml \
+            --config sampletable=$ORIG/test/test_configs/chipseq_one_run.tsv \
             --config merged_bigwigs="{}" \
             --until bed_to_bigbed
 
@@ -92,7 +99,7 @@ variables:
       run:
         name: references workflow
         command: |
-          cd workflows/references
+          cd /tmp/lcdb-wf-test/workflows/references
           source activate lcdb-wf-test
           ./run_test.sh  --use-conda -j2 -k -p -r
 
@@ -100,7 +107,7 @@ variables:
       run:
         name: rnaseq workflow
         command: |
-          cd workflows/rnaseq
+          cd /tmp/lcdb-wf-test/workflows/rnaseq
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
           python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
@@ -109,48 +116,54 @@ variables:
       run:
         name: rnaseq star aligner
         command: |
+          ORIG=$(pwd)
+          cd /tmp/lcdb-wf-test
           cp -r workflows/rnaseq workflows/rnaseq-star
           cd workflows/rnaseq-star
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -k -p -r \
             --forcerun star \
-            --configfile ../../test/test_configs/star_override.yaml \
-            --config sampletable=../../test/test_configs/two_samples.tsv \
+            --configfile $ORIG/test/test_configs/star_override.yaml \
+            --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
             --until star
 
   rnaseq-sra-step: &rnaseq-sra-step
       run:
         name: rnaseq download from SRA
         command: |
+          ORIG=$(pwd)
+          cd /tmp/lcdb-wf-test
           cp -r workflows/rnaseq workflows/rnaseq-sra-test
           cd workflows/rnaseq-sra-test
           source activate lcdb-wf-test
 
           ./run_test.sh --use-conda -k -p -r --until cutadapt \
-            --configfile ../../test/test_configs/override.yaml \
-            --config sampletable=../../test/test_configs/test_sra_sampletable.tsv
+            --configfile $ORIG/test/test_configs/override.yaml \
+            --config sampletable=$ORIG/test/test_configs/test_sra_sampletable.tsv
 
           ./run_test.sh --use-conda -k -p -r --until cutadapt \
-            --configfile ../../test/test_configs/override.yaml \
-            --config sampletable=../../test/test_configs/test_sra_sampletable_SE_only.tsv
+            --configfile $ORIG/test/test_configs/override.yaml \
+            --config sampletable=$ORIG/test/test_configs/test_sra_sampletable_SE_only.tsv
 
   rnaseq-pe-step: &rnaseq-pe-step
       run:
         name: rnaseq test PE
         command: |
+          ORIG=$(pwd)
+          cd /tmp/lcdb-wf-test
           cp -r workflows/rnaseq workflows/rnaseq-pe-test
           cd workflows/rnaseq-pe-test
           source activate lcdb-wf-test
 
           ./run_test.sh --use-conda -k -p -r --until multiqc \
-            --configfile ../../test/test_configs/override.yaml \
-            --config sampletable=../../test/test_configs/test_pe_sampletable.tsv
+            --configfile $ORIG/test/test_configs/override.yaml \
+            --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
 
   colocalization-step: &colocalization-step
       run:
         name: colocalization workflow
         command: |
-          cd workflows/colocalization
+          cd /tmp/lcdb-wf-test/workflows/colocalization
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
 
