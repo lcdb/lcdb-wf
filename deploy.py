@@ -36,6 +36,26 @@ dest = args.dest
 flavor = args.flavor
 
 
+# Inclusions and exclusions:
+# Excluding files by name or by location is easy: --exclude=*~,
+# --exclude=/some/relative/location (relative to the source argument, e.g. this
+# excludes ~/LaTeX/some/relative/location).
+# If you only want to match a few files or locations, include them, include
+# every directory leading to them (for example with --include=*/), then exclude
+# the rest with --exclude='*'. This is because:
+# If you exclude a directory, this excludes everything below it. The excluded
+# files won't be considered at all.
+# If you include a directory, this doesn't automatically include its contents.
+# In recent versions, --include='directory/***' will do that.
+# For each file, the first matching rule applies (and anything never matched is
+# included).
+# Patterns:
+# If a pattern doesn't contain a /, it applies to the file name sans directory.
+# If a pattern ends with /, it applies to directories only.
+# If a pattern starts with /, it applies to the whole path from the directory
+# that was passed as an argument to rsync.
+# * any substring of a single directory component (i.e. never matches /); **
+# matches any path substring.
 flavors = {
     'all': {
         'include': [
@@ -47,37 +67,37 @@ flavors = {
         ],
         'exclude': [
 
-            '.buildkite/*',
-            'ci/*',
-            '.circleci/*',
-            'config/*',
-            'deploy.py',
-            'docs/*',
-            'include/AnnotationHubCache',
-            'lib/postprocess/__pycache__',
-            'lib/__pycache__',
+            '/.buildkite/*',
+            '/ci/*',
+            '/.circleci/*',
+            '/config/*',
+            '/deploy.py',
+            '/docs/***',
+            '/include/AnnotationHubCache',
+            '/lib/postprocess/__pycache__',
+            '/lib/__pycache__',
             '*/.pytest_cache/*',
-            'README.md',
-            'test/*',
-            '.travis.yml',
-            'workflows/colocalization/results',
-            'workflows/*/data',
-            'workflows/figures/*',
-            'workflows/*/references_data',
-            'workflows/*/references_dir',
-            'workflows/*/reports',
-            'workflows/rnaseq/downstream/final_clusters',
-            'workflows/rnaseq/downstream/*html',
-            'workflows/rnaseq/downstream/*log',
-            'workflows/rnaseq/downstream/rnaseq_cache',
-            'workflows/rnaseq/downstream/rnaseq_files',
-            'workflows/rnaseq/downstream/*.tsv*',
-            'workflows/*/run_test.sh',
-            'workflows/*/Snakefile.test',
-            'workflows/*/.snakemake',
-            'wrappers/demo/*',
-            'wrappers/test/*',
-            'wrappers/test_toy.py',
+            '/README.md',
+            '/test/*',
+            '/.travis.yml',
+            '/workflows/*/results',
+            '/workflows/*/data',
+            '/workflows/figures/*',
+            '/workflows/*/references_data',
+            '/workflows/*/references_dir',
+            '/workflows/*/reports',
+            '/workflows/rnaseq/downstream/final_clusters',
+            '/workflows/rnaseq/downstream/*html',
+            '/workflows/rnaseq/downstream/*log',
+            '/workflows/rnaseq/downstream/rnaseq_cache',
+            '/workflows/rnaseq/downstream/rnaseq_files',
+            '/workflows/rnaseq/downstream/*.tsv*',
+            '/workflows/*/run_test.sh',
+            '/workflows/*/Snakefile.test',
+            '/workflows/*/.snakemake',
+            '/wrappers/demo/*',
+            '/wrappers/test/*',
+            '/wrappers/test_toy.py',
 
         ],
     },
@@ -87,6 +107,7 @@ flavors = {
     ],
     'rnaseq': [
         'workflows/rnaseq/*',
+        'workflows/rnaseq/config/*',
         'workflows/rnaseq/downstream/*',
         'workflows/references/*',
     ],
