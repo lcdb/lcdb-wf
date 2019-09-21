@@ -52,7 +52,7 @@ variables:
         source activate lcdb-wf-test
 
         # container has a default python of 2.6, and we're using argparse.
-        python deploy.py --flavor full /tmp/lcdb-wf-test
+        python deploy.py --flavor full --dest /tmp/lcdb-wf-test
         cp workflows/chipseq/run_test.sh /tmp/lcdb-wf-test/workflows/chipseq
         cp workflows/rnaseq/run_test.sh /tmp/lcdb-wf-test/workflows/rnaseq
         cp workflows/references/run_test.sh /tmp/lcdb-wf-test/workflows/references
