@@ -49,13 +49,15 @@ variables:
     run:
       name: Download example data
       command: |
+        source activate lcdb-wf-test
+
+        # container has a default python of 2.6, and we're using argparse.
         python deploy.py --flavor full /tmp/lcdb-wf-test
         cp workflows/chipseq/run_test.sh /tmp/lcdb-wf-test/workflows/chipseq
         cp workflows/rnaseq/run_test.sh /tmp/lcdb-wf-test/workflows/rnaseq
         cp workflows/references/run_test.sh /tmp/lcdb-wf-test/workflows/references
         cp workflows/colocalization/run_test.sh /tmp/lcdb-wf-test/workflows/colocalization
         cd /tmp/lcdb-wf-test
-        source activate lcdb-wf-test
         python ci/get-data.py
 
   pytest-step: &pytest-step
