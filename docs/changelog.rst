@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v1.5.1rc
+~~~~~~~~
+
+- `deploy.py` deployment script now only pays attention to files checked in to
+  version control and optionally can create a conda environment in the target
+  directory.
+
 v1.5 (Sept 2019)
 ----------------
 
