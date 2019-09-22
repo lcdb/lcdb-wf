@@ -50,16 +50,23 @@ variables:
       name: Download example data
       command: |
         yum install -yy rsync
+        # container has a default python of 2.6, and we're using argparse, so
+        # we need to use the environment.
         source activate lcdb-wf-test
 
-        # container has a default python of 2.6, and we're using argparse.
-        python deploy.py --flavor full --dest /tmp/lcdb-wf-test
-        cp workflows/chipseq/run_test.sh /tmp/lcdb-wf-test/workflows/chipseq
-        cp workflows/rnaseq/run_test.sh /tmp/lcdb-wf-test/workflows/rnaseq
-        cp workflows/references/run_test.sh /tmp/lcdb-wf-test/workflows/references
-        cp workflows/colocalization/run_test.sh /tmp/lcdb-wf-test/workflows/colocalization
-        cp ci/get-data.py /tmp/lcdb-wf-test/ci/
-        cd /tmp/lcdb-wf-test
+        # Note that $DEPLOY is set in the "set-paths" step configured below.
+        python deploy.py --flavor full --dest $DEPLOY
+
+        # Separately copy over some test-specific files
+        cp workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq
+        cp workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq
+        cp workflows/colocalization/run_test.sh $DEPLOY/workflows/references
+        cp workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization
+        mkdir $DEPLOY/ci
+        cp ci/get-data.py $DEPLOY/ci
+
+        # download example data
+        cd $DEPLOY
         python ci/get-data.py
 
   pytest-step: &pytest-step
@@ -73,7 +80,7 @@ variables:
       run:
         name: dry run
         command: |
-          cd /tmp/lcdb-wf-test/workflows/rnaseq
+          cd $DEPLOY/workflows/rnaseq
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -n
 
@@ -81,7 +88,7 @@ variables:
       run:
         name: chipseq workflow
         command: |
-          cd /tmp/lcdb-wf-test/workflows/chipseq
+          cd $DEPLOY/workflows/chipseq
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
           python chipseq_trackhub.py config/config.yaml config/hub_config.yaml
@@ -91,7 +98,7 @@ variables:
         name: chipseq regression test workflow
         command: |
           ORIG=$(pwd)
-          cd /tmp/lcdb-wf-test/workflows/chipseq
+          cd $DEPLOY/workflows/chipseq
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r \
             --configfile $ORIG/test/test_configs/test_chipseq_regression.yaml \
@@ -103,7 +110,7 @@ variables:
       run:
         name: references workflow
         command: |
-          cd /tmp/lcdb-wf-test/workflows/references
+          cd $DEPLOY/workflows/references
           source activate lcdb-wf-test
           ./run_test.sh  --use-conda -j2 -k -p -r
 
@@ -111,7 +118,7 @@ variables:
       run:
         name: rnaseq workflow
         command: |
-          cd /tmp/lcdb-wf-test/workflows/rnaseq
+          cd $DEPLOY/workflows/rnaseq
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
           python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
@@ -121,7 +128,7 @@ variables:
         name: rnaseq star aligner
         command: |
           ORIG=$(pwd)
-          cd /tmp/lcdb-wf-test
+          cd $DEPLOY
           cp -r workflows/rnaseq workflows/rnaseq-star
           cd workflows/rnaseq-star
           source activate lcdb-wf-test
@@ -136,7 +143,7 @@ variables:
         name: rnaseq download from SRA
         command: |
           ORIG=$(pwd)
-          cd /tmp/lcdb-wf-test
+          cd $DEPLOY
           cp -r workflows/rnaseq workflows/rnaseq-sra-test
           cd workflows/rnaseq-sra-test
           source activate lcdb-wf-test
@@ -154,7 +161,7 @@ variables:
         name: rnaseq test PE
         command: |
           ORIG=$(pwd)
-          cd /tmp/lcdb-wf-test
+          cd $DEPLOY
           cp -r workflows/rnaseq workflows/rnaseq-pe-test
           cd workflows/rnaseq-pe-test
           source activate lcdb-wf-test
@@ -167,7 +174,7 @@ variables:
       run:
         name: colocalization workflow
         command: |
-          cd /tmp/lcdb-wf-test/workflows/colocalization
+          cd $DEPLOY/workflows/colocalization
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
 
@@ -177,6 +184,7 @@ variables:
         name: Set path
         command: |
           echo 'export PATH=$PATH:/root/project/miniconda/bin' >> $BASH_ENV
+          echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
           source $BASH_ENV
 jobs:
 
