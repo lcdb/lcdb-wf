@@ -49,6 +49,7 @@ variables:
     run:
       name: Download example data
       command: |
+        apt-get install -yy rsync
         source activate lcdb-wf-test
 
         # container has a default python of 2.6, and we're using argparse.
