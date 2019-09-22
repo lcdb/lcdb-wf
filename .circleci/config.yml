@@ -64,6 +64,7 @@ variables:
         cp workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization
         mkdir $DEPLOY/ci
         cp ci/get-data.py $DEPLOY/ci
+        cp ci/preprocessor.py $DEPLOY/ci
 
         # download example data
         cd $DEPLOY
