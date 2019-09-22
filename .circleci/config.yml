@@ -58,6 +58,7 @@ variables:
         cp workflows/rnaseq/run_test.sh /tmp/lcdb-wf-test/workflows/rnaseq
         cp workflows/references/run_test.sh /tmp/lcdb-wf-test/workflows/references
         cp workflows/colocalization/run_test.sh /tmp/lcdb-wf-test/workflows/colocalization
+        cp ci/get-data.py /tmp/lcdb-wf-test/ci/
         cd /tmp/lcdb-wf-test
         python ci/get-data.py
 
