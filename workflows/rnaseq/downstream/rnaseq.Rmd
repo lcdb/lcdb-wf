@@ -187,6 +187,10 @@ dds <- DESeqDataSetFromCombinedFeatureCounts(
     #   later for the actual contrasts of interest.
     design=~group)
 
+# NOTE: collapse technical replicates ---------------------------------------- 
+#   If collapsing technical replicates, do so here
+# dds <-collapseReplicates(dds, dds$biorep)
+
 if (strip.dotted.version){
     rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
 }
@@ -295,6 +299,10 @@ dds <- DESeqDataSetFromCombinedFeatureCounts(
 if (strip.dotted.version){
     rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
 }
+
+# NOTE: collapse technical replicates ----------------------------------------
+#  If collapsing technical replicates, do so (again) here
+# dds <-collapseReplicates(dds, dds$biorep)
 
 dds <- DESeq(dds,
     # NOTE: betaPrior----------------------------------------------------------
