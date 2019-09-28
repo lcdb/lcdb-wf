@@ -113,7 +113,7 @@ strip.dotted.version <- TRUE
 #   columns here.
 exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'orig_filename', 'orig_filename_R2')
 
-colData <- read.table(sample.table.filename, sep='\t', header=TRUE)
+colData <- read.table(sample.table.filename, sep='\t', header=TRUE, stringsAsFactors=FALSE))
 
 # NOTE: Specify which featureCounts strandedness to use.-----------------------
 #   All three are created by default in the workflow, but here is where you
