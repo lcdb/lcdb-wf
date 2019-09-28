@@ -136,6 +136,8 @@ for (col in factor.columns){
 #   For the test data, "control" is the base level for the "group" factor, but
 #   you will need to edit as appropriate for your experimenal design.
 colData$group <- relevel(colData$group, ref='control')
+
+rownames(colData) <- colData[,1]
 ```
 
 ## Experiment overview
