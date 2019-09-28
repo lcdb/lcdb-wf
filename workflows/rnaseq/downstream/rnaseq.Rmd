@@ -560,6 +560,11 @@ The default general flow is as follows:
 #   this many
 lim <- 2000
 
+
+# NOTE: Min number of genes to include----------------------------------------
+#   If fewer than this many genes, skip the clustering
+lower.lim <- 0
+
 # NOTE:  Correlation coefficient above which to merge clusters-----------------
 cutoff <- 0.5
 
@@ -596,6 +601,9 @@ ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed'))
 ll <- ll[lapply(ll, length) > 0]
 
 for (name in names(ll)){
+    # Print a nice Markdown header
+    mdcat('## ', res.list[[name]][['label']])
+
     genes <- ll[[name]]
 
     # Plotting a large number of genes will take a lot of time to perform the
@@ -603,6 +611,11 @@ for (name in names(ll)){
     # sample.
     if (length(genes) > lim){
         genes <- sample(genes, lim)
+    }
+
+    if (length(genes) < lower.lim){
+        mdcat('**Too few genes (', length(genes), ') to cluster**')
+        next
     }
 
     # Extract the normalized counts for these genes
