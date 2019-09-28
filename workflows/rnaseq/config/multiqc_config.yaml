@@ -70,7 +70,7 @@ module_order:
     - featureCounts:
         name: 'featureCounts'
         path_filters:
-            - '*.cutadapt.bam.featurecounts.txt.summary'
+            - 'featurecounts.txt.summary'
 
 # This organizes the FastQC general sample table columns so that the different
 # stages are right next to each other, making it easier to compare the effects
@@ -90,12 +90,3 @@ table_columns_placement:
     total_sequences: 22
     percent_duplicates: 32
     percent_gc: 42
-  featureCounts (unstranded):
-    percent_assigned: 100
-    Assigned: 106
-  featureCounts (sense):
-    percent_assigned: 101
-    Assigned: 107
-  featureCounts (antisense):
-    percent_assigned: 102
-    Assigned: 108
