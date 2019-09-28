@@ -235,9 +235,14 @@ DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable, design,
     #
     #   sample1 sample2 sample3 sample4
     #         2       1       4       3
-    colnames(m) <- names(hits)[hits]
+    #
+    # Sorting this list will give us the order of names that were in the counts
+    # table. So we can reorder the sampletable accordingly.
+    colnames(m) <- names(sort(hits))
+    sampletable.rearranged <- sampletable[colnames(m),]
 
-    object <- DESeqDataSetFromMatrix(countData=m, colData=sampletable, design=design, ...)
+
+    object <- DESeqDataSetFromMatrix(countData=m, colData=sampletable.rearranged, design=design, ...)
     return(object)
 }
 
