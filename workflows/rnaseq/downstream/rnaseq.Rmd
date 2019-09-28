@@ -113,26 +113,8 @@ strip.dotted.version <- TRUE
 #   columns here.
 exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'orig_filename', 'orig_filename_R2')
 
-colData <- read.table(sample.table.filename, sep='\t', header=TRUE, stringsAsFactors=FALSE))
+colData <- read.table(sample.table.filename, sep='\t', header=TRUE, stringsAsFactors=FALSE)
 
-# NOTE: Specify which featureCounts strandedness to use.-----------------------
-#   All three are created by default in the workflow, but here is where you
-#   specify which one to use for differential expression. This will be used to
-#   construct the paths to the correct featureCounts output files
-featurecounts.strandedness <- 's0'  # unstranded
-# featurecounts.strandedness <- 's1' # plus-strand reads correspond to sense-strand transcription (e.g., Ovation kits)
-# featurecounts.strandedness <- 's2' # minus-strand reads correspond to sense-strand transcription (e.g., TruSeq kits)
-
-# NOTE: Paths to featureCounts output---------------------------------------
-#   This is configured in the patterns and targets from the workflow; if you've
-#   changed anything there you will need to change it here as well.
-colData$featurecounts.path <- sapply(
-    colData$samplename,
-    function (x) file.path(
-        '..', 'data', 'rnaseq_samples', x,
-        paste0(x, '.cutadapt.bam.featurecounts.', featurecounts.strandedness, '.txt')
-        )
-    )
 
 # NOTE: Paths to Salmon output----------------------------------------------
 #    This is configured in the patterns and targets from the workflow; if
