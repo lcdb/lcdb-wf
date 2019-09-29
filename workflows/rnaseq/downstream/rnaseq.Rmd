@@ -34,7 +34,7 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 
 # Changelog
 
-**Initial results** 
+**Initial results**
 
 Last run: `r date()`
 
@@ -187,7 +187,7 @@ dds <- DESeqDataSetFromCombinedFeatureCounts(
     #   later for the actual contrasts of interest.
     design=~group)
 
-# NOTE: collapse technical replicates ---------------------------------------- 
+# NOTE: collapse technical replicates ----------------------------------------
 #   If collapsing technical replicates, do so here
 # dds <-collapseReplicates(dds, dds$biorep)
 
