@@ -454,13 +454,16 @@ for (name in names(res.list)){
   mdcat('### Normalized counts of top 3 downregulated genes')
   top.plots(padj.order(res.i, reverse=TRUE), 3, my.counts, dds.i, add_cols)
 
-  # NOTE: By default we plot the top 10 upregulated or downregulated genes, with the lowest padj
-  # To change this behavior edit the following lines
+  # NOTE: gene labels --------------------------------------------------------
+  #   By default we plot the symbols of the top 10 upregulated or downregulated
+  #   genes, with the lowest padj. To change this behavior edit the following
+  #   lines
   res.i <- res.i[order(res.i$padj),]
-  genes.to.label <- rownames(res.i)[1:10]
+
+  genes.to.label <- res.i[1:10, 'symbol']
 
   mdcat('### M-A plot')
-  print(plotMA.label(res.i, genes.to.label=genes.to.label))
+  print(plotMA.label(res.i, genes.to.label=genes.to.label, col='symbol'))
 
   mdcat('### P-value distribution')
   pval.hist(res.i)
