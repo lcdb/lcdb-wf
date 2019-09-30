@@ -393,13 +393,14 @@ padj.order <- function(res, reverse=FALSE){
 #'
 #' @param sorted DESeq2 results object
 #' @param n Number of top genes to plot
-#' @param func Plotting function to call on each gene
+#' @param func Plotting function to call on each gene. Signature is func(gene,
+#'             dds, label=label, ...)
 #' @param dds DESeq2 object
 #' @param label Vector of column names in `res` from which to add a label to
-#'   the gene (e.g., c('symbol', 'alias'))
-#'
+#'        the gene (e.g., c('symbol', 'alias'))
+#' @param ... Additional arguments that are passed to `func`
 #' @return Side effect is to create plot
-top.plots <- function(res, n, func, dds, add_cols=NULL){
+top.plots <- function(res, n, func, dds, add_cols=NULL, ...){
     ps <- list()
     for (i in seq(n)){
         gene <- rownames(res)[i]
@@ -409,7 +410,7 @@ top.plots <- function(res, n, func, dds, add_cols=NULL){
         if (length(label) == 0){
           label <- NULL
         }
-        ps[[gene]] <- func(gene, dds, label=label)
+        ps[[gene]] <- func(gene, dds, label=label, ...)
     }
     grid.arrange(grobs=ps)
 }
