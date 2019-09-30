@@ -187,24 +187,24 @@ rule cutadapt:
         if paired:
             shell(
                 "cutadapt "
-                "{input.fastq[0]} "
-                "{input.fastq[1]} "
                 "-o {output[0]} "
                 "-p {output[1]} "
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
                 '-q 20 '
                 '--minimum-length 25 '
+                "{input.fastq[0]} "
+                "{input.fastq[1]} "
                 "&> {log}"
             )
         else:
             shell(
                 "cutadapt "
-                "{input.fastq[0]} "
                 "-o {output[0]} "
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 '-q 20 '
                 '--minimum-length 25 '
+                "{input.fastq[0]} "
                 "&> {log}"
             )
 

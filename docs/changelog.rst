@@ -1,6 +1,51 @@
 Changelog
 =========
 
+v1.5.1rc
+--------
+
+Bug fixes
+~~~~~~~~~
+
+- DESeqDataSetFromCombinedFeatureCounts (added in v1.5) was incorrectly
+  assigning labels to samples when the order of the sampletable did not match
+  the order of the samples in the featureCounts table columns. This has been
+  fixed.
+
+General
+~~~~~~~
+
+- `deploy.py` deployment script now only pays attention to files checked in to
+  version control and optionally can create a conda environment in the target
+  directory.
+
+- tests now work out of a newly-deployed instance to better reflect real-world
+  usage
+
+
+ChIP-seq and RNA-seq
+~~~~~~~~~~~~~~~~~~~~
+- reorder cutadapt commands to avoid a MultQC parsing bug in the cutadapt
+  module (see https://github.com/ewels/MultiQC/issues/949)
+
+RNA-seq
+~~~~~~~
+The majority of these changes affect ``rnaseq.Rmd``:
+
+- modifications to MultiQC config to get back featureCounts output
+- `plotMA.label` function (in ``helpers.Rmd``) now defaults to FDR < 0.1
+  (instead of 0.01), and additionally supports labeling using different columns
+  of the results object (e.g., "symbol").
+- remove some now-redundant featureCounts code
+- add a comment showing where to collapse replicates
+- convert colData's first column to rownames
+- implement lower limit for DEGpatterns clustering (default is 0, but can
+  easily set to higher if you're getting issues)
+- expose arbitrary additional function arguments to ``top.plots``. This allows
+  different `intgroup` arguments to be passed to the `my.counts` function,
+  enabling different ways of plotting the gene dotplots.
+
+
 v1.5 (Sept 2019)
 ----------------
 

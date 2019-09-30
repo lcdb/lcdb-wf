@@ -74,15 +74,24 @@ plotPCA.ly <- function(rld, intgroup){
 #' @param fc.lim User-defined limits for y-axis (log2FC). If NULL, this is defined as
 #'        the (floor, ceiling) of range(res$log2FoldChange)
 #' @param genes.to.label Genes to label on the MA plot. NULL, by default
+#' @param col Column of `res` in which to look for `genes.to.label`. If NULL,
+#'        rownames are used.
 #'
 #' @return Handle to ggplot
 plotMA.label <- function(res,
-                         fdr.thres=0.01,
+                         fdr.thres=0.1,
                          fc.thres=0,
                          fc.lim=NULL,
-                         genes.to.label=NULL){
+                         genes.to.label=NULL,
+                         col=NULL
+                         ){
   # TODO: Add ggrastr option for points
-
+  genes.to.label <- as.character(genes.to.label)
+  nna <- sum(is.na(genes.to.label))
+  if (nna > 0){
+      warning(paste("Removing", nna, "NAs from gene list"))
+      genes.to.label <- genes.to.label[!is.na(genes.to.label)]
+  }
   # convert res to data frame
   res <- data.frame(res)
 
@@ -128,8 +137,14 @@ plotMA.label <- function(res,
 
   if(!is.null(genes.to.label)){
     # get data frame of genes to be labeled
-    label.list <- res[rownames(res) %in% genes.to.label,]
-    label.list <- data.frame(genes=rownames(label.list), label.list)
+    if (!is.null(col)){
+        res$gene.labels <- res[,col]
+    } else {
+        res$gene.labels <- rownames(res)
+    }
+
+    label.list <- res[res$gene.labels %in% genes.to.label,]
+    #label.list <- data.frame(genes=rownames(label.list), label.list)
 
     # label genes outside limits
     up.max.idx <- rownames(label.list) %in% rownames(up.max)
@@ -145,7 +160,7 @@ plotMA.label <- function(res,
 
     # add labels
     p <- p + geom_point(data=label.list, col="black", pch=1, size=3)
-    p <- p + geom_label_repel(data=label.list, aes(label=label.list$genes, fontface="italic"))
+    p <- p + geom_label_repel(data=label.list, aes(label=label.list$gene.labels, fontface="italic"))
   }
   return(p)
 
@@ -235,9 +250,14 @@ DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable, design,
     #
     #   sample1 sample2 sample3 sample4
     #         2       1       4       3
-    colnames(m) <- names(hits)[hits]
+    #
+    # Sorting this list will give us the order of names that were in the counts
+    # table. So we can reorder the sampletable accordingly.
+    colnames(m) <- names(sort(hits))
+    sampletable.rearranged <- sampletable[colnames(m),]
 
-    object <- DESeqDataSetFromMatrix(countData=m, colData=sampletable, design=design, ...)
+
+    object <- DESeqDataSetFromMatrix(countData=m, colData=sampletable.rearranged, design=design, ...)
     return(object)
 }
 
@@ -373,13 +393,14 @@ padj.order <- function(res, reverse=FALSE){
 #'
 #' @param sorted DESeq2 results object
 #' @param n Number of top genes to plot
-#' @param func Plotting function to call on each gene
+#' @param func Plotting function to call on each gene. Signature is func(gene,
+#'             dds, label=label, ...)
 #' @param dds DESeq2 object
 #' @param label Vector of column names in `res` from which to add a label to
-#'   the gene (e.g., c('symbol', 'alias'))
-#'
+#'        the gene (e.g., c('symbol', 'alias'))
+#' @param ... Additional arguments that are passed to `func`
 #' @return Side effect is to create plot
-top.plots <- function(res, n, func, dds, add_cols=NULL){
+top.plots <- function(res, n, func, dds, add_cols=NULL, ...){
     ps <- list()
     for (i in seq(n)){
         gene <- rownames(res)[i]
@@ -389,7 +410,7 @@ top.plots <- function(res, n, func, dds, add_cols=NULL){
         if (length(label) == 0){
           label <- NULL
         }
-        ps[[gene]] <- func(gene, dds, label=label)
+        ps[[gene]] <- func(gene, dds, label=label, ...)
     }
     grid.arrange(grobs=ps)
 }

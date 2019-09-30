@@ -34,7 +34,7 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 
 # Changelog
 
-**Initial results** 
+**Initial results**
 
 Last run: `r date()`
 
@@ -113,26 +113,8 @@ strip.dotted.version <- TRUE
 #   columns here.
 exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'orig_filename', 'orig_filename_R2')
 
-colData <- read.table(sample.table.filename, sep='\t', header=TRUE)
+colData <- read.table(sample.table.filename, sep='\t', header=TRUE, stringsAsFactors=FALSE)
 
-# NOTE: Specify which featureCounts strandedness to use.-----------------------
-#   All three are created by default in the workflow, but here is where you
-#   specify which one to use for differential expression. This will be used to
-#   construct the paths to the correct featureCounts output files
-featurecounts.strandedness <- 's0'  # unstranded
-# featurecounts.strandedness <- 's1' # plus-strand reads correspond to sense-strand transcription (e.g., Ovation kits)
-# featurecounts.strandedness <- 's2' # minus-strand reads correspond to sense-strand transcription (e.g., TruSeq kits)
-
-# NOTE: Paths to featureCounts output---------------------------------------
-#   This is configured in the patterns and targets from the workflow; if you've
-#   changed anything there you will need to change it here as well.
-colData$featurecounts.path <- sapply(
-    colData$samplename,
-    function (x) file.path(
-        '..', 'data', 'rnaseq_samples', x,
-        paste0(x, '.cutadapt.bam.featurecounts.', featurecounts.strandedness, '.txt')
-        )
-    )
 
 # NOTE: Paths to Salmon output----------------------------------------------
 #    This is configured in the patterns and targets from the workflow; if
@@ -154,6 +136,8 @@ for (col in factor.columns){
 #   For the test data, "control" is the base level for the "group" factor, but
 #   you will need to edit as appropriate for your experimenal design.
 colData$group <- relevel(colData$group, ref='control')
+
+rownames(colData) <- colData[,1]
 ```
 
 ## Experiment overview
@@ -202,6 +186,10 @@ dds <- DESeqDataSetFromCombinedFeatureCounts(
     #   factor that describes the samples. We'll be recreating another dds
     #   later for the actual contrasts of interest.
     design=~group)
+
+# NOTE: collapse technical replicates ----------------------------------------
+#   If collapsing technical replicates, do so here
+# dds <-collapseReplicates(dds, dds$biorep)
 
 if (strip.dotted.version){
     rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
@@ -311,6 +299,10 @@ dds <- DESeqDataSetFromCombinedFeatureCounts(
 if (strip.dotted.version){
     rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
 }
+
+# NOTE: collapse technical replicates ----------------------------------------
+#  If collapsing technical replicates, do so (again) here
+# dds <-collapseReplicates(dds, dds$biorep)
 
 dds <- DESeq(dds,
     # NOTE: betaPrior----------------------------------------------------------
@@ -462,13 +454,16 @@ for (name in names(res.list)){
   mdcat('### Normalized counts of top 3 downregulated genes')
   top.plots(padj.order(res.i, reverse=TRUE), 3, my.counts, dds.i, add_cols)
 
-  # NOTE: By default we plot the top 10 upregulated or downregulated genes, with the lowest padj
-  # To change this behavior edit the following lines
+  # NOTE: gene labels --------------------------------------------------------
+  #   By default we plot the symbols of the top 10 upregulated or downregulated
+  #   genes, with the lowest padj. To change this behavior edit the following
+  #   lines
   res.i <- res.i[order(res.i$padj),]
-  genes.to.label <- rownames(res.i)[1:10]
+
+  genes.to.label <- res.i[1:10, 'symbol']
 
   mdcat('### M-A plot')
-  print(plotMA.label(res.i, genes.to.label=genes.to.label))
+  print(plotMA.label(res.i, genes.to.label=genes.to.label, col='symbol'))
 
   mdcat('### P-value distribution')
   pval.hist(res.i)
@@ -568,6 +563,11 @@ The default general flow is as follows:
 #   this many
 lim <- 2000
 
+
+# NOTE: Min number of genes to include----------------------------------------
+#   If fewer than this many genes, skip the clustering
+lower.lim <- 0
+
 # NOTE:  Correlation coefficient above which to merge clusters-----------------
 cutoff <- 0.5
 
@@ -604,6 +604,9 @@ ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed'))
 ll <- ll[lapply(ll, length) > 0]
 
 for (name in names(ll)){
+    # Print a nice Markdown header
+    mdcat('## ', res.list[[name]][['label']])
+
     genes <- ll[[name]]
 
     # Plotting a large number of genes will take a lot of time to perform the
@@ -613,12 +616,15 @@ for (name in names(ll)){
         genes <- sample(genes, lim)
     }
 
+    if (length(genes) < lower.lim){
+        mdcat('**Too few genes (', length(genes), ') to cluster**')
+        next
+    }
+
     # Extract the normalized counts for these genes
     idx <- rownames(rld) %in% genes
     ma <- assay(rld)[idx,]
 
-    # Print a nice Markdown header
-    mdcat('## ', res.list[[name]][['label']])
     colData.i <- colData(res.list[[name]][['dds']])
     colData.i <- colData.i[,!(colnames(colData.i) %in% exclude.for.printing)]
 
