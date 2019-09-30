@@ -184,7 +184,7 @@ rule conversion_bed12:
     output:
         protected('{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.bed12')
     shell:
-        'gtfToGenePred {input} {output}.tmp '
+        'gtfToGenePred -ignoreGroupsWithoutExons {input} {output}.tmp '
         '&& genePredToBed {output}.tmp {output}'
 
 rule conversion_gffutils:
