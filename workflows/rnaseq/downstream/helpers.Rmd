@@ -6,6 +6,7 @@ library(DEGreport)
 library(ggplot2)
 library(ggrepel)
 library(heatmaply)
+library(readr)
 
 #' Get the OrgDb for the specified organism, using the cached AnnotationHub.
 #'
@@ -231,8 +232,12 @@ mdcat <- function(...){
 #' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
 DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable, design, ...){
 
-    m <- read.table(filename, header=TRUE, row.names=1)
-    m <- m[, 6:ncol(m)]
+    #read in with readr to allow for '-' in filename
+    m <- read_tsv(filename, col_names=TRUE, comment='#')
+    #convert to dataframe and assign rownames
+    m <- as.data.frame(m)
+    rownames(m) <- m[,1]
+    m <- m[, 7:ncol(m)]
 
     # The column names of the imported table are not guaranteed to match the
     # samples in the metadata, so we need to make sure things match up
