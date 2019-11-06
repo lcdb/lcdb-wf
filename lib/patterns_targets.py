@@ -89,10 +89,14 @@ class WESConfig(SeqConfig):
             as relative to `workdir`
         """
         SeqConfig.__init__(self, config, patterns, workdir)
-
-        self.fill = dict(sample=self.samples, n=self.n)
+        self.tumoronly = common.is_tumor_only(self.sampletable)
+        if self.tumoronly:
+            self.genotype = ['tumor']
+        else:
+            self.genotype = ['tumor', 'normal']
+        self.fill = dict(sample=self.samples, genotype=self.genotype, n=self.n)
         self.targets = helpers.fill_patterns(self.patterns, self.fill, zip)
-        self.tumoronly = self.config['tumor_only']
+
 
 class RNASeqConfig(SeqConfig):
     def __init__(self, config, patterns, workdir=None):

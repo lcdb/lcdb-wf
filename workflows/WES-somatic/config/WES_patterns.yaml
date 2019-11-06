@@ -1,11 +1,9 @@
-fastq:
-  combined: 'data/{sample}/{sample}.{genotype}.r{n}.fastq.gz'
-  tumor: 'data/{sample}/{sample}.tumor.r{n}.fastq.gz'
-  normal: 'data/{sample}/{sample}.normal.r{n}.fastq.gz'
+fastq: 'data/{sample}/{sample}.{genotype}.r{n}.fastq.gz'
 cutadapt: 'data/{sample}/{sample}.{genotype}.r{n}.cutadapt.fastq.gz'
 bam: 'data/{sample}/{sample}.{genotype}.cutadapt.bam'
 fastqc:
-  cutadapt: 'data//{sample}/fastqc/{sample}.{genotype}.R1.cutadapt.fastq.gz_fastqc.zip'
+  raw: 'data/{sample}/fastqc/{sample}.{genotype}.r1.fastq.gz_fastqc.zip'
+  cutadapt: 'data/{sample}/fastqc/{sample}.{genotype}.r1.cutadapt.fastq.gz_fastqc.zip'
   bam: 'data/{sample}/fastqc/{sample}.{genotype}.cutadapt.bam_fastqc.zip'
 #fastq_screen: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.screen.txt'
 #featurecounts: 'data/rnaseq_aggregation/featurecounts.txt'
@@ -39,7 +37,7 @@ strelka:
 somaticsniper:
   snp: 'data/{sample}/{sample}.somaticsniper.vcf'
   ambigremoved: 'data/{sample}/{sample}.somaticsniper.ambig_removed.vcf'
-  bgzipped: 'data/{sample}/{sample}.somaticsniper.ambig_removed.vcf'
+  bgzipped: 'data/{sample}/{sample}.somaticsniper.ambig_removed.vcf.gz'
 mutect2:
   snp: 'data/{sample}/{sample}.mutect2.vcf'
   contamination: 'data/{sample}/{sample}.contamination.table'
@@ -47,10 +45,10 @@ mutect2:
   sequencingmetrics: 'data/{sample}/{sample}.seqartifactmetrics.pre_adapter_detail_metrics'
   twicefiltered: 'data/{sample}/{sample}.mutect2.twicefiltered.vcf'
   passedonly: 'data/{sample}/{sample}.mutect2.passedonly.vcf'
-  bgzipped: 'data/{sample}/{sample}/mutect2.passedonly.vcf.gz'
+  bgzipped: 'data/{sample}/{sample}.mutect2.passedonly.vcf.gz'
 combinecallers:
   gatk: 'data/{sample}/{sample}.merged-callers.vcf.gz'
-  vcftools: 'data/{sample}/sample}.vcftools-merged-callers.vcf'
+  vcftools: 'data/{sample}/{sample}.vcftools-merged-callers.vcf'
 snpeff:
   stats: 'data/{sample}/{sample}.snpeff_stats.html'
   vcf: 'data/{sample}/{sample}.snpeff.vcf'

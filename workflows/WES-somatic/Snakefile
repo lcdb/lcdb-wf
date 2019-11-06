@@ -7,7 +7,7 @@ import yaml
 import tempfile
 import pandas as pd
 from lib import common, cluster_specific, utils, helpers, aligners
-from lib.patterns_targets import RNASeqConfig
+from lib.patterns_targets import WESConfig
 
 if not workflow.overwrite_configfile:
     configfile: 'config/config.yaml'
@@ -15,7 +15,7 @@ else:
     configfile: workflow.overwrite_configfile
 
 include: '../references/Snakefile'
-shell/prefix(
+shell.prefix(
     'set -euo pipefail; export R_PROFILE_USER=; export TMPDIR={}'
     .format(cluster_specific.tempdir_for_biowulf())
 )
@@ -23,107 +23,17 @@ shell.executable('/bin/bash')
 
 config = common.load_config(config)
 
-c = WESconfig(config, config.get('patterns', 'config/WES_patterns.yaml'))
+c = WESConfig(config, config.get('patterns', 'config/WES_patterns.yaml'))
 
 wildcard_constraints:
     n = '[1,2]'
 
-#sampletable = pd.read_csv('config/sampletable.tsv', sep='\t')
-#samples = sampletable.loc[:,'sample_id']
-#configfile: 'config/config.yaml'
-#known_sites_files=config['known_sites']
-#genotypes = ['tumor', 'normal']
-#if config['tumor_only']:
-#    genotypes=['tumor']
+def wrapper_for(path):
+    return 'file:' + os.path.join('../..','wrappers','wrappers',path)
 
-#prefix = os.path.basename(config['fasta'])
+known_sites_files=config['known_sites']
 
-def render_r1_r2(pattern, r1_only=False):
-    return expand(pattern, sample='{sample}', n=c.n).sort()
-
-if 'filename' in ''.join(c.sampletable.columns):
-    # Convert the sampletable to be indexed by the first column, for
-    # convenience in generating the input/output filenames.
-    _st = c.sampletable.set_index(c.sampletable.columns[0])
-    def filenames_for_sample(wc):
-        if c.is_paired:
-            if c.tumor_only:
-                return _st.loc[wc.sample, ['tumor_filename', 'tumor_R2_filename']]
-            else:
-                return _st.loc[wc.sample, ['normal_filename', 'normal_R2_filename', 'tumor_filename','tumor_R2_filename']]
-        else:
-            if c.tumor_only:
-                return _st.loc[wc.sample, ['tumor_filename']]
-            else:
-                return _st.loc[wc.sample, ['normal_filename', 'tumor_filename']]
-    
-    rule symlinks:
-        input:
-            filenames_for_sample
-        output:
-            render_r1_r2(c.patterns['fastq']['combined'])
-        run:
-            assert len(output) == len(input), (input, output)
-            for src, linkname in zip(input, output):
-                utils.make_relative_symlink(src, linkname)
-
-rule cutadapt:
-    input:
-        fastq = render_r1_r2(c.patterns['fastq'])
-    output:
-        fastq = render_r1_r2(c.patterns['cutadapt'])
-    log:
-        render_r1_r2(c.patterns['cutadapt'][0] + '.log')
-    threads: 6
-    run:
-        if c.is_paired:
-            shell(
-                'cutadapt '
-                '-o {output[0]}'
-                '-p {output[1]}'
-                '-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA '
-                '-A AGATCGGAAGAGCGTCGTGTAGGGAAACACTGT '
-                '-q 20 '
-                '-j {threads} '
-                '--minimum-length 25 '
-                '{input.fastq[0]} '
-                '{input.fastq[1]} '
-                '&> {log}"
-            )
-            if not c.tumor_only:
-                shell(
-                    'cutadapt '
-                    '-o {output[2]}'
-                    '-p {output[3]}'
-                    '-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA '
-                    '-A AGATCGGAAGAGCGTCGTGTAGGGAAACACTGT '
-                    '-q 20 '
-                    '-j {threads} '
-                    '--minimum-length 25 '
-                    '{input.fastq[2]} '
-                    '{input.fastq[3]} '
-                    '&> {log}"
-                )
-        else:
-            shell(
-                'cutadapt '
-                '-o {output[0]} '
-                '-a AGATCGGAAGAGCACGTCTGAACTCCAGTCA '
-                '-q 20 '
-                '--minimum-length 25 '
-                '{input.fastq[0]} '
-                '&> {log}'
-            )
-            if not c.tumor_only:
-                shell(
-                    'cutadapt '
-                    '-o {output[1]} '
-                    '-a AGATCGGAAGAGCACGTCTGAACTCCAGTCA '
-                    '-q 20 '
-                    '--minimum-length 25 '
-                    '{input.fastq[1]} '
-                    '&> {log}'
-                )
+fasta_prefix = os.path.basename(config['fasta'])
 
 final_targets = utils.flatten((
     utils.flatten(c.targets['baserecalibration']),
@@ -137,34 +47,83 @@ final_targets = utils.flatten((
 rule targets:
     input: final_targets
 
+def render_r1_r2(pattern, r1_only=False):
+    return sorted(expand(pattern, sample='{sample}', genotype='{genotype}', n=c.n))
+
+
+if 'filename' in ''.join(c.sampletable.columns):
+    # Convert the sampletable to be indexed by the first column, for
+    # convenience in generating the input/output filenames.
+    _st = c.sampletable.set_index(c.sampletable.columns[0])
+    def filenames_for_sample(wc):
+        if c.is_paired:
+            return _st.loc[wc.sample, [wc.genotype + '_filename', wc.genotype + '_R2_filename']]
+        else:
+            return _st.loc[wc.sample, [wc.genotype + '_filename']]
+
+    rule symlinks:
+        input:
+            filenames_for_sample
+        output:
+            render_r1_r2(c.patterns['fastq'])
+        run:
+            assert len(output) == len(input), (input, output)
+            for src, linkname in zip(input, output):
+                utils.make_relative_symlink(src, linkname)
+
+rule cutadapt:
+    input:
+        render_r1_r2(c.patterns['fastq'])
+    output:
+        render_r1_r2(c.patterns['cutadapt'])
+#    log:
+#        render_r1_r2(c.patterns['cutadapt'][0] + '.log')
+    threads: 6
+    run:
+        if c.is_paired:
+            shell(
+                'cutadapt '
+                '-o {output[0]} '
+                '-p {output[1]} '
+                '-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA '
+                '-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT '
+                '-q 20 '
+                '-j {threads} '
+                '--minimum-length 25 '
+                '{input[0]} '
+                '{input[1]} '
+#                '&> {log}'
+            )
+        else:
+            shell(
+                'cutadapt '
+                '-o {output[0]} '
+                '-a AGATCGGAAGAGCACGTCTGAACTCCAGTCA '
+                '-q 20 '
+                '--minimum-length 25 '
+                '{input[0]} '
+#                '&> {log}'
+            )
 rule fastqc:
     """
     Run FastQC
     """
-    input: 
-        'fastqs/{sample}.{genotype}.R1.cutadapt.fastq.gz'
+    input:
+        '{sample_dir}/{sample}/{sample}{suffix}'
     output:
-       html='data/{sample}/fastqc/{sample}.{genotype}.cutadapt.fastqc.html',
-       zip='data/{sample}/fastqc/{sample}.{genotype}.cutadapt.fastqc.zip',
-    threads: 6
-    shell:
-        'fastqc '
-        '--threads {threads} '
-        '--noextract '
-        '--quiet '
-        '{input} '
-        '&& mv fastqs/{wildcards.sample}.{wildcards.genotype}.R1.cutadapt_fastqc.html {output.html} '
-        '&& mv fastqs/{wildcards.sample}.{wildcards.genotype}.R1.cutadapt_fastqc.zip {output.zip}'
-
+       html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
+       zip='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
+    script:
+        wrapper_for('fastqc/wrapper.py')
 
 rule bwa_index:
     input:
         fasta=config['fasta'],
     output:
-        prefix + '.sa',
+        fasta_prefix + '.sa',
     params:
         algorithm='bwtsw',
-        prefix=prefix
+        prefix=fasta_prefix
     shell:
         'bwa index '
         '{params.prefix} '
@@ -176,14 +135,14 @@ rule bwa_alignment:
     bwa alignment
     """
     input:
-        sa = prefix + '.sa',
-        R1 = 'fastqs/{sample}.{genotype}.R1.cutadapt.fastq.gz',
-        R2 = 'fastqs/{sample}.{genotype}.R2.cutadapt.fastq.gz'
+        sa = fasta_prefix + '.sa',
+        R1 = 'data/{sample}/{sample}.{genotype}.r1.cutadapt.fastq.gz',
+        R2 = 'data/{sample}/{sample}.{genotype}.r2.cutadapt.fastq.gz'
     output:
         bam=temp(c.patterns['bam'])
     threads: 6
     params:
-        index=prefix
+        index=fasta_prefix
     run:
         sam=output.bam.replace('.bam', '.sam')
         gt = wildcards.genotype.upper()
@@ -207,16 +166,16 @@ rule bwa_alignment:
 
 rule index_bams:
     input:
-        c.patterns['bam']
+        '{prefix}.bam'
     output:
-        c.patterns['bam'] + '.bai'
+        '{prefix}.bam.bai'
     shell:
         'samtools index {input}'
 
 rule mark_duplicates:
     input:
         bam=c.patterns['bam'],
-        index=c.patterns['bam']
+        index=c.patterns['bam'] + '.bai'
     output:
         bam=temp(c.patterns['markduplicates']['bam']),
         metrics=c.patterns['markduplicates']['metrics']
@@ -254,9 +213,8 @@ rule index_population_variant_file:
     output:
         config['population_variant_file'] + '.tbi'
     shell:
-        'gatk IndexFeatureFile '
-        '--feature-file {input} '
-        '> {output}'
+        'tabix -p vcf '
+        '{input} '
 
 
 rule index_known_snp_files:
@@ -310,23 +268,20 @@ rule apply_base_recalibration:
         bqsr_table=c.patterns['baserecalibration']['bqsrtable']
     output:
         c.patterns['baserecalibration']['bam']
-    shell:
-        'gatk ApplyBQSR '
-        '-I {input.bam} '
-        '-O {output} '
-        '-R {input.fasta} '
-        '--bqsr-recal-file {input.bqsr_table} '
-        '--java-options "-Xmx8g -Djava.io.tmpdir=$TMPDIR"'
+    run:
+        shell(
+            'gatk ApplyBQSR '
+            '-I {input.bam} '
+            '-O {output} '
+            '-R {input.fasta} '
+            '--bqsr-recal-file {input.bqsr_table} '
+            '--java-options "-Xmx8g -Djava.io.tmpdir=$TMPDIR"'
+        )
+        # The created index doesn't work with downstream, and will be
+        # re-created later.
+        index = output[0].replace('.bam', '.bai')
+        shell('rm {index}')
 
-rule index_bams_2:
-    input:
-        bam=c.patterns['baserecalibration']['bam'],
-        old_index=c.patterns['baserecalibration']['bam'].replace('.bam', '.bai')
-    output:
-        c.patterns['baserecalibration']['bam'] + '.bai'
-    shell:
-        'samtools index {input.bam}'
-        '&& rm {input.old_index}'
 
 rule get_pileup_summaries:
     """
@@ -336,9 +291,10 @@ rule get_pileup_summaries:
         bam=c.patterns['baserecalibration']['bam'],
         index = c.patterns['baserecalibration']['bam'] + '.bai',
         PV=config['population_variant_file'],
+        PV_index=config['population_variant_file'] + '.tbi',
         exome_capture=config['exome_capture']
     output:
-        c.patterns['pileupsummaries']
+        c.patterns['pileupsummaries']['bam']
     shell:
         'gatk GetPileupSummaries '
         '-L {input.exome_capture} '
@@ -347,7 +303,7 @@ rule get_pileup_summaries:
         '--variant {input.PV} '
         '--java-options "-Xmx8g -Djava.io.tmpdir=$TMPDIR"'
 
-if config['tumor_only']:
+if c.tumoronly:
     rule tumoronly_mutect2:
         input:
             tumor=c.patterns['baserecalibration']['tumor'],
@@ -360,17 +316,17 @@ if config['tumor_only']:
         output:
             temp(c.patterns['mutect2']['snp'])
         run:
-            if config['tumor_only']:
-                shell(
-                    'gatk Mutect2 '
-                    '-R {input.fasta} '
-                    '-I {input.tumor} '
-                    '--intervals {input.exome_capture} '
-                    '-O {output} '
-                    '--germline-resource {input.PV} '
-    #                '--panel-of-normals {input.PoN} '
-                    '--java-options "-Xmx8g -Djava.io.tmpdir=$TMPDIR"'
-                )
+            shell(
+                'gatk Mutect2 '
+                '-R {input.fasta} '
+                '-I {input.tumor} '
+                '--intervals {input.exome_capture} '
+                '--independent-mates '
+                '-O {output} '
+                '--germline-resource {input.PV} '
+#                '--panel-of-normals {input.PoN} '
+                '--java-options "-Xmx8g -Djava.io.tmpdir=$TMPDIR"'
+            )
 
     rule tumoronly_calculate_contamination:
         input:
@@ -420,7 +376,9 @@ else:
     rule configure_strelka:
         input:
             normal=c.patterns['baserecalibration']['normal'],
+            normal_index=c.patterns['baserecalibration']['normal'] + '.bai',
             tumor=c.patterns['baserecalibration']['tumor'],
+            tumor_index=c.patterns['baserecalibration']['tumor'] + '.bai',
             fasta=config['fasta']
         output:
             c.patterns['strelka']['script']
@@ -499,6 +457,7 @@ else:
             '-R {input.fasta} '
             '-I {input.tumor} '
             '-I {input.normal} '
+            '--independent-mates '
             '--intervals {input.exome_capture} '
             '-O {output} '
             '--germline-resource {input.PV} '
@@ -595,7 +554,7 @@ rule get_mutect2_passed_only_variants:
                '> {output}')
 
 
-if not config['tumor_only']:
+if not c.tumoronly:
     # the varscan and somatic sniper vcfs have a common header line in slightly
     # different formats which is messing with the merging, so this rule creates
     # a varscan vcf with that header line replaced with the somatic sniper version.
@@ -653,8 +612,8 @@ if not config['tumor_only']:
             varscan_tbi=c.patterns['varscan']['bgzipped'] + '.tbi',
             strelka=c.patterns['strelka']['bgzipped'],
             strelka_tbi=c.patterns['strelka']['bgzipped'] + '.tbi',
-            somaticsniper= c.patterns['strelka']['bgzipped'],
-            somaticsniper_tbi=c.patterns['strelka']['bgzipped'] + '.tbi'
+            somaticsniper= c.patterns['somaticsniper']['bgzipped'],
+            somaticsniper_tbi=c.patterns['somaticsniper']['bgzipped'] + '.tbi'
         shell:
             'bgzip {input.mutect2} '
             '&& tabix -p vcf {output.mutect2} '
@@ -721,7 +680,7 @@ rule snpeff_annotation:
     """
     input:
         vcf=lambda wildcards: (c.patterns['mutect2']['passedonly'] 
-            if config['tumor_only']
+            if c.tumoronly
             else c.patterns['combinecallers']['gatk'])
     output:
         stats=c.patterns['snpeff']['stats'],
@@ -770,7 +729,8 @@ rule pull_LOH_calls:
 
 rule pull_intersect_calls:
     """
-    This rule pulls out calls that were called by all variant callers and puts them into their own file
+    This rule pulls out calls that were called by all variant callers and puts
+    them into their own file 
     """
     input:
         c.patterns['dbnsfp']
@@ -781,7 +741,7 @@ rule pull_intersect_calls:
 
 rule get_bed_from_gtf:
     input:
-        config['gtf']
+        c.refdict[c.organism][config['gtf']['tag']]['gtf']
     output:
         'bed_from_gtf.bed'
     shell:
@@ -794,7 +754,7 @@ rule filter_out_singlecalled:
     output:
         c.patterns['nosinglecalled']
     script:
-        'filter-out-singlecalled.py'
+        'scripts/filter-out-singlecalled.py'
 
 
 rule pull_somatic_calls:
@@ -826,7 +786,7 @@ rule graph_variant_distribution_across_genes:
         c.patterns['genedist']['histogram'],
         c.patterns['genedist']['somaticonlyhistogram']
     script:
-        'graph_snp_dist.py'
+        'scripts/graph_snp_dist.py'
 
 
 

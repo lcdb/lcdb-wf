@@ -1,4 +1,11 @@
-paired_end: True
+sampletable: 'config/sampletable.tsv'
+
+organism: 'human'
+
+references_dir: 'references_data'
+
+gtf:
+  tag: 'gencode-v28'
 
 genome: 'hg38'
 
@@ -16,10 +23,7 @@ population_variant_file: 'somatic-hg38_af-only-gnomad.hg38.vcf.gz'
 
 dbNSFP_file: 'dbNSFP2.9.txt.gz'
 
-gtf: '/data/NICHD-core0/references/human/gencode-v28/gtf/human_gencode-v28.gtf'
-
 sequencing_platform: 'Illumina'
 
-tumor_only: False
-
-
+include_references:
+  - '../../include/reference_configs/Homo_sapiens.yaml'

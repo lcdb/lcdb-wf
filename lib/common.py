@@ -677,6 +677,25 @@ def is_paired_end(sampletable, sample):
         pass
     return False
 
+def is_tumor_only(sampletable):
+    """
+    For somatic WES pipeline, inspects the sampletable to see if there are only
+    tumor files rather than paired tumor/normal. Assumes the presence of
+    a column named 'normal_filename' indicates that there are paired normal
+    samples for all tumor samples. Does not support mixing tumor/normal and
+    tumor only samples in the same sampletable.
+
+    Parameters
+    ----------
+    sampletable : pandas.DataFrame
+        Only contains columns called 'normal_filename' and (if paired end)
+        'normal_R2_filename' if there are paired normal samples for every tumor
+        sample. Does not support blank/NA 'normal_filename' columns. 
+    """
+    if 'normal_filename' in sampletable.columns:
+        return False
+    return True
+
 
 def fill_r1_r2(sampletable, pattern, r1_only=False):
     """
