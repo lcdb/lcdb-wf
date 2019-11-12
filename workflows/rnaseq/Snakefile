@@ -760,6 +760,20 @@ rule rseqc_infer_experiment:
     shell:
         'infer_experiment.py -r {input.bed12} -i {input.bam} > {output} &> {log}'
 
+rule rseqc_read_distribution:
+    """
+    read distribution plots
+    """
+    input:
+        bam=c.patterns['bam'],
+        bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12'],
+    output:
+        txt=c.patterns['rseqc']['read_distribution']
+    log:
+        c.patterns['rseqc']['infer_experiment'] + '.log'
+        
+    shell:
+        'read_distribution.py -i {input.bam} -r {input.bed12} > {output} &> {log}'
 
 rule bigwig_neg:
     """
