@@ -770,7 +770,7 @@ rule rseqc_read_distribution:
     output:
         txt=c.patterns['rseqc']['read_distribution']
     log:
-        c.patterns['rseqc']['infer_experiment'] + '.log'
+        c.patterns['rseqc']['read_distribution'] + '.log'
         
     shell:
         'read_distribution.py -i {input.bam} -r {input.bed12} > {output} &> {log}'
