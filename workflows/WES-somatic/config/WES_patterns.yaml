@@ -27,6 +27,8 @@ varscan:
   headingadjust: 'data/{sample}/{sample}.varscan.heading_adj.snp.vcf'
   ambigremoved: 'data/{sample}/{sample}.varscan.heading_adj.ambig_removed.vcf'
   bgzipped: 'data/{sample}/{sample}.varscan.heading_adj.ambig_removed.vcf.gz'
+  processed: 'data/{sample}/{sample}.varscan.heading_adj.ambig_removed.processed.vcf.gz'
+
 strelka:
   script: 'data/{sample}/runWorkflow.py'
   snp: 'data/{sample}/{sample}.strelka.snp.vcf'
@@ -34,10 +36,12 @@ strelka:
   passedonlysnp: 'data/{sample}/{sample}.strelka.passedonly.snp.vcf'
   passedonlyindel: 'data/{sample}/{sample}.strelka.passedonly.indel.vcf'
   bgzipped: 'data/{sample}/{sample}.strelka.passedonly.snp.vcf.gz'
+  processed: 'data/{sample}/{sample}.strelka.passedonly.processed.snp.vcf.gz'
 somaticsniper:
   snp: 'data/{sample}/{sample}.somaticsniper.vcf'
   ambigremoved: 'data/{sample}/{sample}.somaticsniper.ambig_removed.vcf'
   bgzipped: 'data/{sample}/{sample}.somaticsniper.ambig_removed.vcf.gz'
+  processed: 'data/{sample}/{sample}.somaticsniper.ambig_removed.processed.vcf.gz'
 mutect2:
   snp: 'data/{sample}/{sample}.mutect2.vcf'
   contamination: 'data/{sample}/{sample}.contamination.table'
@@ -46,17 +50,19 @@ mutect2:
   twicefiltered: 'data/{sample}/{sample}.mutect2.twicefiltered.vcf'
   passedonly: 'data/{sample}/{sample}.mutect2.passedonly.vcf'
   bgzipped: 'data/{sample}/{sample}.mutect2.passedonly.vcf.gz'
+  processed: 'data/{sample}/{sample}.mutect2.passedonly.processed.vcf.gz'
 combinecallers:
-  gatk: 'data/{sample}/{sample}.merged-callers.vcf.gz'
+  gatk: 'data/{sample}/{sample}.gatk-combine-variants.vcf.gz'
   vcftools: 'data/{sample}/{sample}.vcftools-merged-callers.vcf'
+  bcftools: 'data/{sample}/{sample}.bcftools-merged-callers.vcf'
+nosinglecalled: 'data/{sample}/{sample}.no_singlecalled.vcf'
 snpeff:
   stats: 'data/{sample}/{sample}.snpeff_stats.html'
   vcf: 'data/{sample}/{sample}.snpeff.vcf'
 dbnsfp: 'data/{sample}/{sample}.snpeff.dbnsfp.vcf'
 loh: 'data/{sample}/{sample}.snpeff.dbnsfp.LOH_only.vcf'
 intersect: 'data/{sample}/{sample}.snpeff.dbnsfp.intersect_only.vcf'
-nosinglecalled: 'data/{sample}/{sample}.snpeff.dbnsfp.no_singlecalled.vcf'
-somaticonly: 'data/{sample}/{sample}.snpeff.dbnsfp.no_singlecalled.somaticonly.vcf'
+somaticonly: 'data/{sample}/{sample}.snpeff.dbnsfp.somaticonly.vcf'
 genedist:
   bed: 'data/{sample}/{sample}.variants-per-gene.bed'
   somaticonlybed: 'data/{sample}/{sample}.somatic-variants-per-gene.bed'

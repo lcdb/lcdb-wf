@@ -8,6 +8,7 @@ import tempfile
 import pandas as pd
 from lib import common, cluster_specific, utils, helpers, aligners
 from lib.patterns_targets import WESConfig
+from cyvcf2 import VCF, Writer
 
 if not workflow.overwrite_configfile:
     configfile: 'config/config.yaml'
@@ -37,7 +38,7 @@ fasta_prefix = os.path.basename(config['fasta'])
 
 final_targets = utils.flatten((
     utils.flatten(c.targets['baserecalibration']),
-    utils.flatten(c.targets['combinecallers']),
+    c.targets['combinecallers']['bcftools'],
     utils.flatten(c.targets['fastqc']),
     [c.targets['loh']],
     [c.targets['intersect']],
@@ -172,6 +173,15 @@ rule index_bams:
     shell:
         'samtools index {input}'
 
+rule index_vcfs:
+    input:
+        '{prefix}.vcf.gz'
+    output:
+        '{prefix}.vcf.gz.tbi'
+    shell:
+        'tabix -p vcf {input}'
+
+
 rule mark_duplicates:
     input:
         bam=c.patterns['bam'],
@@ -207,24 +217,15 @@ rule get_fasta_dict:
     shell:
         'picard CreateSequenceDictionary REFERENCE={input} OUTPUT={output}'
 
-rule index_population_variant_file:
-    input:
-        config['population_variant_file']
-    output:
-        config['population_variant_file'] + '.tbi'
-    shell:
-        'tabix -p vcf '
-        '{input} '
 
-
-rule index_known_snp_files:
-    # NOTE: the known snp files need to be bgzipped rather than gzipped for this rule to work
-    input:
-        '{known_sites_file}'
-    output:
-        '{known_sites_file}.tbi'
-    shell:
-        'gatk IndexFeatureFile -F {input}'
+#rule index_known_snp_files:
+#   # NOTE: the known snp files need to be bgzipped rather than gzipped for this rule to work
+#    input:
+ #       '{known_sites_file}'
+ #   output:
+ #       '{known_sites_file}.tbi'
+ #   shell:
+ #       'gatk IndexFeatureFile -F {input}'
 
 def get_known_sites_str():
     known_sites_string=''
@@ -548,57 +549,87 @@ rule get_mutect2_passed_only_variants:
          c.patterns['mutect2']['twicefiltered']
      output:
          c.patterns['mutect2']['passedonly']
-     run:
-         shell('bcftools view -i "FILTER=\'PASS\'" ' 
-               '{input} '
-               '> {output}')
+     shell:
+         'bcftools view -i "FILTER=\'PASS\'" ' 
+         '{input} '
+         '> {output}'
 
-
-if not c.tumoronly:
-    # the varscan and somatic sniper vcfs have a common header line in slightly
-    # different formats which is messing with the merging, so this rule creates
-    # a varscan vcf with that header line replaced with the somatic sniper version.
-    rule adjust_varscan_heading:
+if c.tumoronly:
+    rule process_mutect2_calls:
+        """
+        Normalizes and left aligns the mutect2 calls, as well as splits out the
+        multiallelic calls. This is the tumor only counterpart to the rule
+        below called 'process_vcfs_for_merging'. The only difference is that
+        this rule doesn't prepend the caller name to the INFO and FORMAT fields
+        since the tumor only pipeline only has one caller so there's no caller
+        merging to be done.
+        """
         input:
-            varscan=c.patterns['varscan']['snp'],
-            somaticsniper=c.patterns['somaticsniper']['snp']
+            vcf=c.patterns['mutect2']['passedonly'],
+            fasta=config['fasta']
         output:
-            temp(c.patterns['varscan']['headingadjust'])
+            c.patterns['mutect2']['processed']
         shell:
-            'DP4_line=$(grep '
-            '\"FORMAT=<ID=DP4\" '
-            '{input.somaticsniper}) '
-            '&& sed '
-            '\"s/FORMAT=<ID=DP4.'
-            '*/${{DP4_line:2}}/\" '
-            '{input.varscan} '
-            '> {output} '
-    
-    rule remove_ambiguous_calls:
-        # varscan and somatic sniper will include ambiguous calls (e.g. ref
-        # column entry is 'W'). This rule removes those calls, as they cause
-        # issues in the 'combine_variants' rule
-        input:
-            varscan=c.patterns['varscan']['headingadjust'],
-            somaticsniper=c.patterns['somaticsniper']['snp']
-        output:
-            varscan=c.patterns['varscan']['ambigremoved'],
-            somaticsniper=c.patterns['somaticsniper']['ambigremoved']
-        shell:
-            'awk "\$1 ~ /^#/ {{print \$0;next}} '
-            '{{if (\$4 ~ /A|C|T|G/ '
-            '&& \$5 ~ /A|C|T|G/) '
-            'print \$0}}" '
-            '{input.varscan} '
-            '> {output.varscan} '
-            '&& awk "\$1 ~ /^#/ {{print \$0;next}} '
-            '{{if (\$4 ~ /A|C|T|G/ '
-            '&& \$5 ~ /A|C|T|G/) '
-            'print \$0}}" '
-            '{input.somaticsniper} '
-            '> {output.somaticsniper} '
+            'bcftools norm '
+            '-f {input.fasta} '
+            '--multiallelics -both '
+            '-o {output} '
+            '{input}'
 
 
+else:
+
+#NOTE: Commented out for now to see if these steps are still necessary when
+#using bcftools instead of combine variants
+
+#    rule adjust_varscan_heading:
+#       """
+#       the varscan and somatic sniper vcfs have a common header line in slightly
+#       different formats which is messing with the merging, so this rule creates
+#       a varscan vcf with that header line replaced with the somatic sniper version.
+#       """
+#        input:
+#            varscan=c.patterns['varscan']['snp'],
+#            somaticsniper=c.patterns['somaticsniper']['snp']
+#        output:
+#            temp(c.patterns['varscan']['headingadjust'])
+#        shell:
+#            'DP4_line=$(grep '
+#            '\"FORMAT=<ID=DP4\" '
+#            '{input.somaticsniper}) '
+#            '&& sed '
+#            '\"s/FORMAT=<ID=DP4.'
+#            '*/${{DP4_line:2}}/\" '
+#            '{input.varscan} '
+#            '> {output} '
+
+#    rule remove_ambiguous_calls:
+#       """
+#       varscan and somatic sniper will include ambiguous calls (e.g. ref
+#       column entry is 'W'). This rule removes those calls, as they cause
+#       issues in the 'combine_variants' rule
+#       """
+#        input:
+#            varscan=c.patterns['varscan']['headingadjust'],
+#            somaticsniper=c.patterns['somaticsniper']['snp']
+#        output:
+#            varscan=c.patterns['varscan']['ambigremoved'],
+#            somaticsniper=c.patterns['somaticsniper']['ambigremoved']
+#        shell:
+#            'awk "\$1 ~ /^#/ {{print \$0;next}} '
+#            '{{if (\$4 ~ /A|C|T|G/ '
+#            '&& \$5 ~ /A|C|T|G/) '
+#            'print \$0}}" '
+#            '{input.varscan} '
+#            '> {output.varscan} '
+#            '&& awk "\$1 ~ /^#/ {{print \$0;next}} '
+#            '{{if (\$4 ~ /A|C|T|G/ '
+#            '&& \$5 ~ /A|C|T|G/) '
+#            'print \$0}}" '
+#            '{input.somaticsniper} '
+#            '> {output.somaticsniper} '
+
+ 
     rule bgzip_vcfs:
         input:
             mutect2=c.patterns['mutect2']['passedonly'],
@@ -607,71 +638,195 @@ if not c.tumoronly:
             somaticsniper= c.patterns['somaticsniper']['ambigremoved']
         output:
             mutect2=c.patterns['mutect2']['bgzipped'],
-            mutect2_tbi=c.patterns['mutect2']['bgzipped'] + '.tbi',
             varscan=c.patterns['varscan']['bgzipped'],
-            varscan_tbi=c.patterns['varscan']['bgzipped'] + '.tbi',
             strelka=c.patterns['strelka']['bgzipped'],
-            strelka_tbi=c.patterns['strelka']['bgzipped'] + '.tbi',
             somaticsniper= c.patterns['somaticsniper']['bgzipped'],
-            somaticsniper_tbi=c.patterns['somaticsniper']['bgzipped'] + '.tbi'
         shell:
             'bgzip {input.mutect2} '
-            '&& tabix -p vcf {output.mutect2} '
             '&& bgzip {input.varscan} '
-            '&& tabix -p vcf {output.varscan} '
             '&& bgzip {input.strelka} '
-            '&& tabix -p vcf {output.strelka} '
-            '&& bgzip {input.somaticsniper} '
-            '&& tabix -p vcf {output.somaticsniper}'
+            '&& bgzip {input.somaticsniper} '           
 
-    rule combine_variants:
+    rule process_vcfs_for_merging:
+        """
+        Normalizes and left aligns the calls from strelka, varscan, and
+        somaticsniper (which are only run in non tumor-only mode), as well as
+        splits out the multiallelic calls. Also prepends the caller name to the
+        INFO and FORMAT fields for each vcf to prepare for merging.
+
+        NOTE: This might be better off in its own script, so I copied it into
+        a script called 'scripts/process_vcfs_for_merging.sh' which is all
+        ready to go in case that ends up being the better option.
+        """
         input:
-            mutect2=c.patterns['mutect2']['bgzipped'],
             varscan=c.patterns['varscan']['bgzipped'],
+            varscan_index=c.patterns['varscan']['bgzipped'] + '.tbi',
             strelka=c.patterns['strelka']['bgzipped'],
-            somaticsniper= c.patterns['strelka']['bgzipped'],
+            strelka_index=c.patterns['strelka']['bgzipped'] + '.tbi',
+            somaticsniper=c.patterns['somaticsniper']['bgzipped'],
+            somaticsniper_index=c.patterns['somaticsniper']['bgzipped'] + '.tbi',
+            mutect2=c.patterns['mutect2']['bgzipped'],
+            mutect2_index= c.patterns['mutect2']['bgzipped'] + '.tbi',
             fasta=config['fasta']
         output:
-            c.patterns['combinecallers']['gatk']
-        conda:
-            'envs/gatk3.yml'
-        shell:
-            'GenomeAnalysisTK '
-            '-Xmx4g '
-            '-T CombineVariants '
-            '-R {input.fasta} '
-            '--variant:mutect2 {input.mutect2} '
-            '--variant:varscan {input.varscan} '
-            '--variant:strelka {input.strelka} '
-            '--variant:somaticsniper {input.somaticsniper} '
-            '-o {output} '
-            '-genotypeMergeOptions PRIORITIZE '
-            '-priority mutect2,varscan,strelka,somaticsniper'
-            '|| gatk3-register GenomeAnalysisTK-3.8-0-ge9d806836.tar.bz2 '
-            '&& GenomeAnalysisTK '
-            '-Xmx4g '
-            '-T CombineVariants '
-            '-R {input.fasta} '
-            '--variant:mutect2 {input.mutect2} '
-            '--variant:varscan {input.varscan} '
-            '--variant:strelka {input.strelka} '
-            '--variant:somaticsniper {input.somaticsniper} '
-            '-o {output} '
-            '-genotypeMergeOptions PRIORITIZE '
-            '-priority mutect2,varscan,strelka,somaticsniper'
+            varscan=c.patterns['varscan']['processed'],
+            strelka=c.patterns['strelka']['processed'],
+            somaticsniper=c.patterns['somaticsniper']['processed'],
+            mutect2=c.patterns['mutect2']['processed']
+        run:
+            unzipped_varscan = output.varscan.rstrip('.gz')
+            unzipped_strelka = output.strelka.rstrip('.gz')
+            unzipped_somaticsniper = output.somaticsniper.rstrip('.gz')
+            unzipped_mutect2 = output.mutect2.rstrip('.gz')
+            shell(
+                # Normalize and prepend INFO and FORMAT fields for Varscan VCF
+                'bcftools norm '
+                '-f {input.fasta} '
+                '--multiallelics -both '
+                '{input.varscan} '
+                '| sed "s/INFO\tFORMAT\tNORMAL\tTUMOR'
+                '/VARSCAN_INFO\tVARSCAN_FORMAT\tVARSCAN_NORMAL\tVARSCAN_TUMOR/g" '
+    #            '| sed "s/FORMAT/VARSCAN_FORMAT/g" '
+                '> {unzipped_varscan} '
+                '&& bgzip {unzipped_varscan}'
+                # Normalize and prepend INFO and FORMAT fields for  Strelka VCF
+                '&& bcftools norm '
+                '-f {input.fasta} '
+                '--multiallelics -both '
+                '{input.strelka} '
+                '| sed "s/INFO\tFORMAT\tNORMAL\tTUMOR'
+                '/STRELKA_INFO\tSTRELKA_FORMAT\tSTRELKA_NORMAL\tSTRELKA_TUMOR/g" '
+    #            '| sed "s/FORMAT/STRELKA_INFO/g" '
+                '> {unzipped_strelka} '
+                '&& bgzip {unzipped_strelka}'
+                # Normalize and prepend INFO and FORMAT fields SomaticSniper VCF
+                '&& bcftools norm '
+                '-f {input.fasta} '
+                '--multiallelics -both '
+                '{input.somaticsniper} '
+                '| sed "s/INFO\tFORMAT\tNORMAL\tTUMOR'
+                '/SOMATICSNIPER_INFO\tSOMATICSNIPER_FORMAT\tSOMATICSNIPER_NORMAL\tSOMATICSNIPER_TUMOR/g" '
+    #            '| sed "s/FORMAT/SOMATICSNIPER_FORMAT/g" '
+                '> {unzipped_somaticsniper}'
+                '&& bgzip {unzipped_somaticsniper}'
+                # Normalize and prepend INFO and FORMAT fields Mutect2 VCF
+                '&& bcftools norm '
+                '-f {input.fasta} '
+                '--multiallelics -both '
+                '{input.mutect2} '
+                '| bcftools annotate -x FORMAT/OBAM,FORMAT/OBAMRC'
+                '| sed "s/INFO\tFORMAT\tNORMAL\tTUMOR'
+                '/MUTECT2_INFO\tMUTECT2_FORMAT\tMUTECT2_NORMAL\tMUTECT2_TUMOR/g" '
+    #            '| sed "s/FORMAT/MUTECT2_FORMAT/g" '
+                '> {unzipped_mutect2}'
+                '&& bgzip {unzipped_mutect2}'
+            )
 
-    rule vcftools_merge:
+
+
+
+#    rule combine_variants:
+#        input:
+#            mutect2=c.patterns['mutect2']['processed'],
+#            varscan=c.patterns['varscan']['processed'],
+#            strelka=c.patterns['strelka']['processed'],
+#            somaticsniper= c.patterns['strelka']['processed'],
+#            fasta=config['fasta']
+#        output:
+#            c.patterns['combinecallers']['gatk']
+#        conda:
+#            'envs/gatk3.yml'
+#        shell:
+#            'GenomeAnalysisTK '
+#            '-Xmx4g '
+#            '-T CombineVariants '
+#            '-R {input.fasta} '
+#            '--variant:mutect2 {input.mutect2} '
+#            '--variant:varscan {input.varscan} '
+#            '--variant:strelka {input.strelka} '
+#            '--variant:somaticsniper {input.somaticsniper} '
+#            '-o {output} '
+#            '-genotypeMergeOptions PRIORITIZE '
+#            '-priority mutect2,varscan,strelka,somaticsniper'
+#            '|| gatk3-register GenomeAnalysisTK-3.8-0-ge9d806836.tar.bz2 '
+#            '&& GenomeAnalysisTK '
+#            '-Xmx4g '
+#            '-T CombineVariants '
+#            '-R {input.fasta} '
+#            '--variant:mutect2 {input.mutect2} '
+#            '--variant:varscan {input.varscan} '
+#            '--variant:strelka {input.strelka} '
+#            '--variant:somaticsniper {input.somaticsniper} '
+#            '-o {output} '
+#            '-genotypeMergeOptions PRIORITIZE '
+#            '-priority mutect2,varscan,strelka,somaticsniper'
+#
+#    rule vcftools_merge:
+#        input:
+#            mutect2=c.patterns['mutect2']['processed'],
+#            varscan=c.patterns['varscan']['processed'],
+#            strelka=c.patterns['strelka']['processed'],
+#            somaticsniper= c.patterns['strelka']['processed']
+#        output:
+#            c.patterns['combinecallers']['vcftools']
+#        shell:
+#            'vcftools merge '
+#            '{input} '
+#            '> {output}'
+
+    rule bcftools_merge:
+        """
+        Merge the vcfs from all four callers, keeping the duplicate genotype
+        columns (each will be prepended with an index number) and maintaining
+        split multiallelics.
+        """
         input:
-            mutect2=c.patterns['mutect2']['bgzipped'],
-            varscan=c.patterns['varscan']['bgzipped'],
-            strelka=c.patterns['strelka']['bgzipped'],
-            somaticsniper= c.patterns['strelka']['bgzipped']
+            mutect2=c.patterns['mutect2']['processed'],
+            mutect2_index=c.patterns['mutect2']['processed'] + '.tbi',
+            varscan=c.patterns['varscan']['processed'],
+            varscan_index=c.patterns['varscan']['processed'] + '.tbi',
+            strelka=c.patterns['strelka']['processed'],
+            strelka_index=c.patterns['strelka']['processed'] + '.tbi',
+            somaticsniper= c.patterns['somaticsniper']['processed'],
+            somaticsniper_index= c.patterns['somaticsniper']['processed'] + '.tbi'
         output:
-            c.patterns['combinecallers']['vcftools']
+            c.patterns['combinecallers']['bcftools']
         shell:
-            'vcftools merge '
-            '{input} '
-            '> {output}'
+            'bcftools merge '
+#            '--force-samples '
+            '-m none '
+            '-o {output} '
+            '{input.mutect2} '
+            '{input.varscan} '
+            '{input.strelka} '
+            '{input.somaticsniper} '
+
+    rule filter_out_singlecalled:
+        "Filters out calls made by only one variant caller"
+        input:
+            c.patterns['combinecallers']['bcftools']
+        output:
+            c.patterns['nosinglecalled']
+        #script:
+        #    'scripts/filter-out-singlecalled.py'
+        run:
+            vcf_reader = VCF(input[0])
+            vcf_writer = Writer(output[0], vcf_reader)
+            for record in vcf_reader:
+                # the 'genotypes' attribute for a cyverse record lists '-1' for the
+                # alleles if the record was not called. This can help up filter out
+                # records that were called by only one caller.
+                try:
+                    record.genotypes
+                # Strelka doesn't output a genotype field, so for cases where
+                # only Strelka called a variant, cyVCF will complain that it
+                # can't find a genotype for it. These calls should get filtered
+                # out anyway since they've only been called by one caller.
+                except Exception:
+                    continue
+                if len([x for x in record.genotypes if x[:2] != [-1, -1]]) > 2:
+                    vcf_writer.write_record(record)
+            vcf_writer.close()
 
 
 rule snpeff_annotation:
@@ -679,9 +834,9 @@ rule snpeff_annotation:
     Add gene name and id and structural/functional predictions to the vcf
     """
     input:
-        vcf=lambda wildcards: (c.patterns['mutect2']['passedonly'] 
+        vcf=lambda wildcards: (c.patterns['mutect2']['processed'] 
             if c.tumoronly
-            else c.patterns['combinecallers']['gatk'])
+            else c.patterns['nosinglecalled'])
     output:
         stats=c.patterns['snpeff']['stats'],
         vcf=c.patterns['snpeff']['vcf']
@@ -727,17 +882,6 @@ rule pull_LOH_calls:
     shell:
         'grep -E "(#|SS=3)" {input} > {output}' 
 
-rule pull_intersect_calls:
-    """
-    This rule pulls out calls that were called by all variant callers and puts
-    them into their own file 
-    """
-    input:
-        c.patterns['dbnsfp']
-    output:
-        c.patterns['intersect']
-    shell:
-        'grep -E "(#|set=Intersection)" {input} > {output}'
 
 rule get_bed_from_gtf:
     input:
@@ -747,20 +891,11 @@ rule get_bed_from_gtf:
     shell:
         'grep -w "gene" {input} | cut -f 1,4,5 > {output}'
 
-rule filter_out_singlecalled:
-    "Filters out calls made by only one variant caller"
-    input:
-        c.patterns['dbnsfp']
-    output:
-        c.patterns['nosinglecalled']
-    script:
-        'scripts/filter-out-singlecalled.py'
-
 
 rule pull_somatic_calls:
     "pulls out calls deemed 'somatic' by the callers"
     input:
-        c.patterns['nosinglecalled']
+        c.patterns['dbnsfp']
     output:
         c.patterns['somaticonly']
     shell:
@@ -769,7 +904,7 @@ rule pull_somatic_calls:
 rule intersect_gtf_bed_and_vcf:
     input:
         gtf_bed='bed_from_gtf.bed',
-        vcf=c.patterns['nosinglecalled'],
+        vcf=c.patterns['dbnsfp'],
         somaticonly_vcf=c.patterns['somaticonly']
     output:
         bed=c.patterns['genedist']['bed'],
