@@ -30,8 +30,6 @@ if ! type conda > /dev/null; then
     conda config --system --add channels bioconda
     conda config --system --add channels conda-forge
 
-    # After SSHing in, for some reason this seems to fix it...
-    #conda install -y r-base=3.4.1 bioconductor-genomeinfodbdata bioconductor-annotationhub
     conda update -y conda
     conda create -n lcdb-wf-test -y --file requirements.txt
     yum install -y git
