@@ -50,7 +50,7 @@ variables:
       name: Download example data
       command: |
         source activate lcdb-wf-test
-
+        apt install rsync
         # Note that $DEPLOY is set in the "set-paths" step configured below.
         python deploy.py --flavor full --dest $DEPLOY
 
