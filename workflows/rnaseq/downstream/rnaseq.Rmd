@@ -29,7 +29,10 @@ output:
 ```
 
 ```{r global_options, include=FALSE}
-knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, autodep=TRUE, cache.extra_file_dep_1 = file.info('../config/sampletable.tsv')$mtime, cache.extra_file_dep_2 = file.info('../data/rnaseq_aggregation/featurecounts.txt')$mtime)
+
+#automatically identify cache dependencies
+knitr::dep_auto()
 ```
 
 # Changelog
@@ -54,6 +57,8 @@ library(UpSetR)
 library(ReactomePA)
 library(cowplot)
 library(plotly)
+library(tibble)
+library(dplyr)
 ```
 
 
@@ -602,7 +607,7 @@ low.minc <- 1
   more, they are merged together
 - Clusters with fewer than `r minc` genes are not shown.
 
-```{r, fig.width=12, results='asis', cache=TRUE}
+```{r final_clusters, fig.width=12, results='asis', cache=TRUE}
 # NOTE: which genes to cluster?------------------------------------------------
 #    By default, we get all the changed genes, but you may want only the up or
 #    down genes.
@@ -770,7 +775,6 @@ kegg.organism <- 'dme'
 RUN.REACTOME <- FALSE
 reactome.organism <- 'fly'
 
-
 # list to hold all enrichment results
 # will have structure:
 #
@@ -869,7 +873,7 @@ Below we show the results separately for each comparison. Links to files
 containing analysis results are shown above each set of plots, with parsed
 files showing genes on separate lines.
 
-```{r plot_go, fig.width=15, fig.height=10, results='asis'}
+```{r plot_go, fig.width=15, fig.height=10, results='asis', cache=TRUE}
 # go labels for file names
 go.label <- list(
     BP='GO Biological Process',
