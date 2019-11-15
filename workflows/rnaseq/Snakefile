@@ -561,7 +561,7 @@ rule multiqc:
         outdir = os.path.dirname(c.targets['multiqc'][0])
         basename = os.path.basename(c.targets['multiqc'][0])
         shell(
-            'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
+            'LC_ALL=en_US.utf8 LC_LANG=en_US.utf8 '
             'multiqc '
             '--quiet '
             '--outdir {outdir} '
