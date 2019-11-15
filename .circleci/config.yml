@@ -182,6 +182,8 @@ variables:
         name: Set path
         command: |
           echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
+          echo 'export LC_ALL=en_US.utf8' >> $BASH_ENV
+          echo 'export LANG=en_US.utf8' >> $BASH_ENV
           source $BASH_ENV
 jobs:
 
