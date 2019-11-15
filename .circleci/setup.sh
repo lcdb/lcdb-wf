@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-apt install -y locales-all locale
+apt install -y locales-all locales
 LC_ALL=en_US.utf8
 LANG=en_US.utf8
 if ! conda env list | grep -q "lcdb-wf-test"; then
