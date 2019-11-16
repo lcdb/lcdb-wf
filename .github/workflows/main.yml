@@ -11,11 +11,5 @@ jobs:
 
       - uses: ./.github/actions/docker
         with:
-          args: conda --info
-
-      - name: STAR available?
-        shell: bash
-        run: |
-          source activate lcdb-wf-test
-          STAR --version
+          args: source activate lcdb-wf-test; STAR
 
