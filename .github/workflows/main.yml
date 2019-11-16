@@ -3,8 +3,8 @@ name: CI
 on: [push]
 jobs:
 
-  runs-on: ubuntu-latest
   build:
+    runs-on: ubuntu-latest
     container:
       image: continuumio/miniconda3
 
