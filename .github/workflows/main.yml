@@ -27,6 +27,7 @@ jobs:
 
       - name: STAR available?
         run: |
+          conda init bash
           conda activate lcdb-wf-test
           STAR
 
