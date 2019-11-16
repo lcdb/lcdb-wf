@@ -1,0 +1,5 @@
+name: 'lcdb-wf container'
+description: 'build container'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
