@@ -5,8 +5,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    container:
-      image: continuumio/miniconda3
+    container: continuumio/miniconda3
 
     steps:
       - uses: actions/checkout@v1
@@ -18,8 +17,8 @@ jobs:
           path: /opt/conda/env
           key: v1
 
-      - name: Generate Prime Numbers
-        if: steps.cache-primes.outputs.cache-hit != 'true'
+      - name: Rebuild cache
+        if: steps.cache-conda.outputs.cache-hit != 'true'
         run: |
           conda config --add channels defaults
           conda config --add channels bioconda
@@ -28,3 +27,4 @@ jobs:
 
       - name: STAR available?
         run: STAR
+
