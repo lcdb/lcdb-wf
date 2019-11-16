@@ -26,5 +26,7 @@ jobs:
           conda create -n lcdb-wf-test python star
 
       - name: STAR available?
-        run: STAR
+        run: |
+          source activate lcdb-wf-test
+          STAR
 
