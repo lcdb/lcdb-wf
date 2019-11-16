@@ -9,8 +9,7 @@ jobs:
 
       - uses: actions/checkout@v1
 
-      - uses: ./
-      - uses: dockeraction.yml@v1
+      - uses: ./dockeraction.yml
 
       - name: STAR available?
         shell: bash
