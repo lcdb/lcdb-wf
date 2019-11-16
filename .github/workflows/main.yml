@@ -11,5 +11,5 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Run a one-line script
-        run: conda install --file requirements.txt
+        run: conda install --file requirements.txt -c conda-forge -c bioconda
 
