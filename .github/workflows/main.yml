@@ -10,6 +10,8 @@ jobs:
       - uses: actions/checkout@v1
 
       - uses: ./.github/actions/docker
+        with:
+          args: conda --info
 
       - name: STAR available?
         shell: bash
