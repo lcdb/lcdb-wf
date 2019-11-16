@@ -9,7 +9,7 @@ jobs:
 
       - uses: actions/checkout@v1
 
-      - uses: ./github/actions/docker
+      - uses: ./.github/actions/docker
 
       - name: STAR available?
         shell: bash
