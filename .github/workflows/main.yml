@@ -11,5 +11,4 @@ jobs:
 
       - uses: ./.github/actions/docker
         with:
-          args: STAR
-
+          args: STAR -version
