@@ -10,5 +10,5 @@ jobs:
 
     steps:
       - name: Run a one-line script
-        run: time conda install --file requirements.txt
+        run: conda install --file requirements.txt
 
