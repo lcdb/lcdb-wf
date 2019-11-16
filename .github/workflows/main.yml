@@ -5,10 +5,12 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    container: continuumio/miniconda3
     steps:
 
       - uses: actions/checkout@v1
+
+      - uses: ./
+      - uses: .github/actions/dockeraction.yaml
 
       - name: STAR available?
         shell: bash
