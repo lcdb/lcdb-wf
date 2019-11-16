@@ -181,6 +181,7 @@ variables:
       run:
         name: Set path
         command: |
+          apt install -y locales-all locales
           echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
           echo 'export LC_ALL=en_US.utf8' >> $BASH_ENV
           echo 'export LANG=en_US.utf8' >> $BASH_ENV
