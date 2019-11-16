@@ -29,5 +29,5 @@ jobs:
         shell: bash
         run: |
           source activate lcdb-wf-test
-          STAR
+          STAR --version
 
