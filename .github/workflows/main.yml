@@ -11,5 +11,5 @@ jobs:
 
       - uses: ./.github/actions/docker
         with:
-          args: source activate lcdb-wf-test; STAR
+          args: STAR
 
