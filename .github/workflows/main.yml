@@ -11,7 +11,7 @@ jobs:
 
       - name: build-docker
         run: |
-          docker login docker.pkg.github.com -u daler -p ${{ secrets.GITHUB_TOKEN }}
+          docker login docker.pkg.github.com -u  ${ GITHUB_ACTOR} -p ${{ secrets.GITHUB_TOKEN }}
           docker build -t docker.pkg.github.com/lcdb/lcdb-wf/main:0.1 .
           docker push docker.pkg.github.com/lcdb/lcdb-wf/main:0.1
 
