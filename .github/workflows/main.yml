@@ -15,7 +15,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: /opt/conda
-          key: v1
+          key: ${{ hashFiles('requirements.txt') }}
 
       - name: Rebuild cache
         if: steps.cache-conda.outputs.cache-hit != 'true'
@@ -23,7 +23,7 @@ jobs:
           conda config --add channels defaults
           conda config --add channels bioconda
           conda config --add channels conda-forge
-          conda create -n lcdb-wf-test python star
+          conda create -n lcdb-wf-test --file requirements.txt
 
       - name: STAR available?
         shell: bash
