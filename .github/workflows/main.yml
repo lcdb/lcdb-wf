@@ -26,5 +26,5 @@ jobs:
           conda config --add channels conda-forge
           conda install python star
 
-      - name: Where is Python
-        run: which python
+      - name: STAR available?
+        run: STAR
