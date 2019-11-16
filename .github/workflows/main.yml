@@ -15,5 +15,13 @@ jobs:
           docker build -t docker.pkg.github.com/lcdb/lcdb-wf/main:0.1 .
           docker push docker.pkg.github.com/lcdb/lcdb-wf/main:0.1
 
+      - name: pull-image
+        run: |
+          docker pull docker.pkg.github.com/lcdb/lcdb-wf/main:0.1
 
 
+  test:
+    container: docker://docker.pkg.github.com/lcdb/lcdb-wf/main:0.1
+    steps:
+      - name: testrun
+        run: conda --version
