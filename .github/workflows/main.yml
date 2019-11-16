@@ -17,3 +17,9 @@ jobs:
           conda config --add channels conda-forge
           conda install python star
 
+      - name: Cache conda env
+        id: cache-conda
+        uses: actions/cache@v1
+        with:
+          path: /opt/conda/env
+          key: v1
