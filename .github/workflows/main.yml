@@ -10,7 +10,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
-      - name: Run a one-line script
 
       - name: Cache conda env
         id: cache-conda
