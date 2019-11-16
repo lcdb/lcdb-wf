@@ -27,4 +27,4 @@ jobs:
           conda install python star
 
       - name: Where is Python
-        run: which Python
+        run: which python
