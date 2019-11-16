@@ -1,8 +1,18 @@
 Changelog
 =========
 
-v1.5.1rc
---------
+v1.5.2
+------
+
+Bug fixes
+~~~~~~~~~
+
+- When some samples were substrings of other samples (e.g., `WT_1_1` and
+  `WT_1_10`), DESeqDataSetFromCombinedFeatureCounts was assigning the wrong
+  names. This has now been fixed in `helpers.Rmd`.
+
+v1.5.1
+------
 
 Bug fixes
 ~~~~~~~~~
