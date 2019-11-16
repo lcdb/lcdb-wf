@@ -10,5 +10,5 @@ jobs:
     steps:
       - name: Run a one-line script
         uses: docker://continuumio/minicond3
-        run: echo Hello, world!
+        #run: echo Hello, world!
 
