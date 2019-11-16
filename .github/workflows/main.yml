@@ -9,6 +9,12 @@ jobs:
 
       - uses: actions/checkout@v1
 
+      - name: build container
+        run: |
+          docker build -t docker.pkg.github.com/lcdb/lcdb-wf/lcdb-wf-main:v1 .
+          docker push docker.pkg.github.com/lcdb/lcdb-wf/lcdb-wf-main:v1
+
+
       - uses: ./.github/actions/docker
         with:
           args: STAR -version
