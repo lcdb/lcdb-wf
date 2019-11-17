@@ -22,7 +22,6 @@ jobs:
   test:
     needs: build
     runs-on: ubuntu-latest
-    container: docker://docker.pkg.github.com/lcdb/lcdb-wf/main:0.1
     steps:
       - name: login
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
