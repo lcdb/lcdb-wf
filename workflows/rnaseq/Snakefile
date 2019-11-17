@@ -733,18 +733,6 @@ rule salmon:
             )
 
 
-rule rseqc_bam_stat:
-    """
-    Calculate various BAM stats with RSeQC
-    """
-    input:
-        bam=c.patterns['bam']
-    output:
-        txt=c.patterns['rseqc']['bam_stat']
-    shell:
-        'bam_stat.py -i {input.bam} > {output.txt}'
-
-
 rule rseqc_infer_experiment:
     """
     Infer strandedness of experiment

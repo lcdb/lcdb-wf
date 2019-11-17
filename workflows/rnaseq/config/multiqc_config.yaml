@@ -14,7 +14,6 @@ extra_fn_clean_exts:
   - '.salmon'
   - '_R1'
   - '_R2'
-  - '_bam_stat'
 
 
 # Modify the module search patterns to match what we're creating in the
