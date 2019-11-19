@@ -1,0 +1,376 @@
+import pandas
+import os
+
+sampletable = pandas.read_csv('sampletable.tsv', sep='\t', index_col=0, comment="#")
+modes = ['spikein', 'endogenous']
+
+# low cutoff for lenient peak calling
+threshold = 0.1
+
+rule targets:
+    input:
+        txt='data/merged/all.libsize.txt',
+        #fq=expand('data/unmapped/{sample}.unmapped.{mode}.fastq.1.gz', mode=modes, sample=sampletable.index),
+        agg=expand('data/merged/merged_bowtie2_percentages.tsv', mode=modes),
+        multiqc=expand('data/merged/multiqc_{mode}.html', mode=modes),
+        fastqc=expand('data/samples/{sample}_fastqc/{sample}.R1_fastqc.html', sample=sampletable.index),
+        #norm_bedgraph=expand('data/mapped/{sample}.mapped.norm.endogenous.bg', sample=sampletable.index),
+        bedgraph=expand('data/mapped/{sample}.mapped.endogenous.bg', sample=sampletable.index),
+        seacr=expand("data/mapped/{sample}_{threshold}.auc.threshold.merge.bed", 
+                sample=sampletable.index, threshold=threshold),
+        bigwigs = expand("data/mapped/{sample}.mapped.norm.endogenous.bw", sample=sampletable.index),
+        bigbeds = expand("data/mapped/{sample}_{threshold}.auc.threshold.merge.bb", 
+                sample=sampletable.index, threshold=threshold),
+        #trackdb="staging/mm10/trackDb.txt"
+        #overrep=expand('data/unmapped/{sample}_fastqc_overrep.tsv', sample=sampletable.index),
+
+bowtie2_parameters = {
+    'spikein':    "--local --very-sensitive-local --no-mixed --no-discordant --phred33 -I 10 -X 700 --no-overlap --no-dovetail ",
+    'endogenous': "--local --very-sensitive-local --no-mixed --no-discordant --phred33 -I 10 -X 700 --no-overlap --no-dovetail ",
+    #'ecoli':      "--local --very-sensitive-local --no-mixed --no-discordant --phred33 -I 10 -X 700 --no-overlap --no-dovetail ",
+}
+
+bowtie2_indexes = {
+    'spikein':    "/data/NICHD-core0/references/sacCer/sacCer3/bowtie2/sacCer_sacCer3",
+    #'endogenous': "/data/NICHD-core0/references/mouse/gencode_m18/bowtie2/mouse_gencode_m18",
+    'endogenous': "/data/NICHD-core0/references/dmel/r6-28/bowtie2/dmel_r6-28",
+    #'ecoli':      "/data/NICHD-core0/references/ecoli/default/bowtie2/ecoli_default",
+}
+
+exts = [
+    '.1.bt2',
+    '.2.bt2',
+    '.3.bt2',
+    '.4.bt2',
+    '.rev.1.bt2',
+    '.rev.2.bt2',
+]
+
+
+# Symlink over raw data into a uniform location
+def fastqs_for_sample(wc):
+    return [
+        sampletable.loc[wc.sample, 'r1'],
+        sampletable.loc[wc.sample, 'r2'],
+    ]
+
+
+rule symlinks:
+    input: fastqs_for_sample
+    output:
+        R1='data/samples/{sample}.R1.fastq.gz',
+        R2='data/samples/{sample}.R2.fastq.gz',
+    shell:
+        'ln -s {input[0]} {output.R1}; '
+        'ln -s {input[1]} {output.R2}; '
+
+# Run FastQC on raw reads
+rule fastqc:
+    input:
+        R1='data/samples/{sample}.R1.fastq.gz',
+    output:
+        'data/samples/{sample}_fastqc/{sample}.R1_fastqc.html',
+        'data/samples/{sample}_fastqc/{sample}.R1_fastqc/fastqc_data.txt',
+    run:
+        samplename = wildcards.sample
+        outdir = os.path.dirname(output[0])
+        shell(
+            'fastqc '
+            '--quiet '
+            '--extract '
+            '{input} '
+            '--outdir {outdir} '
+        )
+
+
+# Map reads with Bowtie2
+rule bowtie2:
+    input:
+        R1='data/samples/{sample}.R1.fastq.gz',
+        R2='data/samples/{sample}.R2.fastq.gz',
+        index=lambda wildcards: expand(bowtie2_indexes[wildcards.mode] + '{ext}', ext=exts)
+    output:
+        sam=temp('data/mapped/{sample}.mapped.{mode}.sam'),
+        fq='data/unmapped/{sample}.unmapped.{mode}.fastq.1.gz'
+    log:
+        'data/mapped/{sample}.mapped.{mode}.sam.log'
+    # NOTE:
+    # When running on a cluster, number of threads here should match the
+    # resources requested in the cluster config.
+    threads: 8
+    run:
+        index = input.index[0].replace('.1.bt2', '')
+        bowtie2_params = bowtie2_parameters[wildcards.mode]
+        unmapped = output.fq.replace('.1','')
+        shell(
+            "bowtie2 "
+            "-x {index} "
+            "-1 {input.R1} "
+            "-2 {input.R2} "
+            "--threads {threads} "
+            "{bowtie2_params} "
+            "-S {output.sam} "
+            "--un-conc-gz {unmapped} "
+            "2> {log}; "
+        )
+
+
+# Remove unmapped reads and sort results
+rule samtools_fix:
+    input:
+        sam='data/mapped/{sample}.mapped.{mode}.sam'
+    output:
+        bam='data/mapped/{sample}.mapped.{mode}.bam'
+    shell:
+        "samtools view -Sb -F 0x04 {input} "
+        "> {output}.tmp.bam "
+
+        # sort bam and clean up
+        "&& samtools sort "
+        "-o {output} "
+        "-O BAM "
+        "{output}.tmp.bam "
+        "&& rm {output}.tmp.bam "
+
+
+# Count mapped reads in BAM (will include multimappers)
+rule count_reads:
+    input:
+        bam='data/mapped/{sample}.mapped.{mode}.bam'
+    output:
+        txt='data/mapped/{sample}.mapped.{mode}.libsize.txt'
+    shell:
+        "samtools view -c {input} > {output}"
+
+
+# Extract a text file of read IDs from an unmapped FASTQ
+rule ids:
+    input:
+        fq='data/unmapped/{sample}.unmapped.{mode}.fastq.1.gz',
+    output:
+        txt=temp('data/unmapped/{sample}.unmapped.{mode}.ids.txt'),
+    shell:
+        'gunzip -c {input} | '
+        'paste - - - - | '
+        'cut -f1 -d \' \' | '
+        'sed s\'/\@//\' | '
+        'sort -u '
+        '> {output}'
+
+
+# Given multiple text files of read IDs, identify those in common
+rule common_ids:
+    input:
+        txt1='data/unmapped/{sample}.unmapped.endogenous.ids.txt',
+        txt2='data/unmapped/{sample}.unmapped.spikein.ids.txt',
+        #txt3='data/unmapped/{sample}.unmapped.ecoli.ids.txt',
+    output:
+        txt='data/unmapped/{sample}.unmapped.common.txt'
+    run:
+        reads = []
+        for fn in input:
+            reads.append(
+                set([i.strip() for i in open(fn)])
+            )
+            common = set.intersection(*reads)
+        with open(output[0], 'w') as fout:
+            for i in list(common):
+                fout.write(i + '\n')
+
+
+# From the original unmapped fastq, extract reads in the provided text file.
+#
+# Note that we could use the original FASTQ, but the unmapped-in-endogenous
+# FASTQ is most likely the smallest of the unmapped FASTQs and by definition
+# the reads in the common list will be in this file.
+#rule seqtk:
+#    input:
+#        fq='data/unmapped/{sample}.unmapped.endogenous.fastq.1.gz',
+#        txt='data/unmapped/{sample}.unmapped.common.txt',
+#    output:
+#        'data/unmapped/{sample}.unmapped.common.ids.fastq.gz',
+#    shell:
+#        'seqtk subseq {input.fq} {input.txt} | gzip > {output}'
+
+
+# Run FastQC on the reads unmapped in all
+#rule fastqc:
+#    input:
+#        R1='data/unmapped/{sample}.unmapped.common.ids.fastq.gz',
+#    output:
+#        'data/unmapped/{sample}_fastqc/{sample}.unmapped.common.ids_fastqc.html',
+#        'data/unmapped/{sample}_fastqc/{sample}.unmapped.common.ids_fastqc/fastqc_data.txt',
+#    run:
+#        samplename = wildcards.sample
+#        outdir = os.path.dirname(output[0])
+#        shell(
+#            'fastqc '
+#            '--quiet '
+#            '--extract '
+#            '{input} '
+#            '--outdir {outdir} '
+#        )
+
+
+# Combine the detected bowtie2 results across modes
+rule merge_counts:
+    input:
+        expand('data/mapped/{sample}.mapped.{mode}.libsize.txt',
+               sample=sampletable.index, mode=modes),
+    output:
+        txt='data/merged/all.libsize.txt'
+    run:
+        df = []
+
+        for fn in sorted(input):
+            toks = os.path.basename(fn).split('.')
+            sample = toks[0]
+            mode = toks[2]
+            d = dict(sample=sample, mode=mode, count=int(open(fn).read().strip()))
+            df.append(d)
+        df = pandas.DataFrame(df)
+        df.to_csv(output[0], sep='\t', index=False)
+
+
+rule multiqc:
+    input:
+        bam=expand('data/mapped/{sample}.mapped.{{mode}}.bam', sample=sampletable.index),
+        fastqc=expand(rules.fastqc.output, sample=sampletable.index),
+    output:
+        html='data/merged/multiqc_{mode}.html',
+        bowtie2='data/merged/multiqc_{mode}_data/multiqc_bowtie2.txt',
+    log:
+        'data/merged/multiqc_{mode}.html.log'
+    run:
+        fn = input[0]
+        analysis_directory = os.path.dirname(fn) + '/*{0}*'.format(wildcards.mode)
+        fastqc = 'data/samples'
+        outdir = os.path.dirname(output[0])
+        basename = os.path.basename(output[0])
+        shell(
+            #'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
+            'multiqc '
+            '--quiet '
+            '--outdir {outdir} '
+            '--force '
+            '--filename {basename} '
+            '{analysis_directory} '
+            '{fastqc} '
+            '2> {log}'
+        )
+
+rule aggregate_counts:
+    input:
+        expand('data/merged/multiqc_{mode}_data/multiqc_bowtie2.txt', mode=modes)
+    output:
+        'data/merged/merged_bowtie2_percentages.tsv'
+    run:
+        dfs = []
+        for i in input:
+            mode = i.split('/')[2].split('_')[1]
+            df = pandas.read_csv(i, sep='\t', index_col=0)
+            cols = df.columns
+            cols = [mode + '.' + c for c in cols]
+            df.columns = cols
+            dfs.append(df)
+        full = pandas.concat(dfs)
+        full.to_csv(output[0], sep='\t')
+
+rule make_bed:
+    input:
+        "data/mapped/{sample}.mapped.endogenous.bam"
+    output:
+        sorted_bed3=temp("data/mapped/{sample}.mapped_sorted.endogenous.BED3"),
+        #sorted_bam="data/mapped/{sample}.mapped_sorted.endogenous.BED3.bam"
+    threads: 8
+    shell:
+        'samtools sort -n --threads={threads} {input} > {output.sorted_bed3}.bam'
+        '&& bamToBed -bedpe -i {output.sorted_bed3}.bam '
+        '| cut -f 1,2,6 '
+        '| bedtools sort -i > {output.sorted_bed3}'
+        '&& rm {output.sorted_bed3}.bam'
+
+rule index_bam:
+    input:
+        "data/mapped/{sample}.mapped.endogenous.bam",
+    output:
+        bam="data/mapped/{sample}.mapped_sorted.endogenous.bam",
+        bai="data/mapped/{sample}.mapped_sorted.endogenous.bam.bai",
+    threads: 8
+    run:
+        shell('samtools sort --threads={threads} {input} > {output.bam}')
+        shell('samtools index {output.bam}')
+
+rule make_norm_bedgraph:
+    input:
+        #chrom_sizes ="mm10.chrom.sizes",
+        #sorted_bed3 = "data/mapped/{sample}.mapped_sorted.endogenous.BED3",
+        bam = "data/mapped/{sample}.mapped_sorted.endogenous.bam",
+        bai = "data/mapped/{sample}.mapped_sorted.endogenous.bam.bai",
+    output:
+        "data/mapped/{sample}.mapped.norm.endogenous.bg"
+    threads: 8
+    shell:
+        #"bedtools genomecov -bg -i {input.sorted_bed3} -g {input.chrom_sizes} > {output}"
+        'bamCoverage -b {input.bam} -of bedgraph -o {output} -p {threads} '
+        '-bs 5 --normalizeUsing BPM'
+
+rule make_bedgraph:
+    input:
+        #chrom_sizes ="chrom.sizes",
+        #sorted_bed3 = "data/mapped/{sample}.mapped_sorted.endogenous.BED3",
+        bam = "data/mapped/{sample}.mapped_sorted.endogenous.bam",
+        bai = "data/mapped/{sample}.mapped_sorted.endogenous.bam.bai",
+    output:
+        "data/mapped/{sample}.mapped.endogenous.bg"
+    threads: 8
+    run:
+        #"bedtools genomecov -bg -i {input.sorted_bed3} -g {input.chrom_sizes} > {output}"
+        shell('bamCoverage -b {input.bam} -of bedgraph -o {output}.tmp -p {threads} -bs 5')
+        shell("cat {output}.tmp | awk '{{if($4 > 0) print $0}}' > {output}")
+        shell('rm {output}.tmp')
+
+rule run_seacr:
+    input:
+        "data/mapped/{sample}.mapped.endogenous.bg"
+    output: 
+        "data/mapped/{sample}_{threshold}.auc.threshold.merge.bed"
+    shell:
+        "bash SEACR/SEACR_1.0.sh {input} {threshold} non AUC data/mapped/{wildcards.sample}_{threshold}"
+
+rule make_bigwigs:
+    input:
+        #bedgraph = "data/mapped/{sample}.mapped.norm.endogenous.bg",
+        #chrom_sizes = "mm10.chrom.sizes"
+        bam = 'data/mapped/{sample}.mapped_sorted.endogenous.bam',
+        bai = 'data/mapped/{sample}.mapped_sorted.endogenous.bam.bai',
+    output:
+        "data/mapped/{sample}.mapped.norm.endogenous.bw",
+    threads: 8
+    shell:
+        #"bedGraphToBigWig {input.bedgraph} {input.chrom_sizes} {output}"
+        'bamCoverage -b {input.bam} -of bigwig -o {output} -p {threads} -bs 5 --normalizeUsing BPM'
+
+
+rule make_bigbeds:
+    input:
+        bed = "data/mapped/{sample}_{threshold}.auc.threshold.merge.bed",
+        chrom_sizes="chrom.sizes",
+        as_file="seacrbeds.as"
+    output:
+       "data/mapped/{sample}_{threshold}.auc.threshold.merge.bb"
+    shell:
+        "bedToBigBed -as={input.as_file} -type=bed3+3 {input.bed} {input.chrom_sizes} {output}"
+
+rule make_trackhub:
+    input:
+        bigwigs = expand("data/mapped/{sample}.mapped.norm.endogenous.bw", sample=sampletable.index),
+        bigbeds = expand("data/mapped/{sample}_{threshold}.auc.threshold.merge.bb", 
+                sample=sampletable.index, threshold=threshold)
+    output:
+       "staging/mm10/trackDb.txt"
+    shell:
+       "python cut-and-run-trackhub.py hub_config.yaml"
+
+
+# vim: ft=python
