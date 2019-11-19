@@ -4,7 +4,7 @@ from snakemake.shell import shell
 from snakemake.utils import makedirs
 
 shell.executable('/bin/bash')
-BRANCH = 'master'
+BRANCH = 'cutnrun'
 URL = 'https://github.com/lcdb/lcdb-test-data/blob/{0}/data/{{}}?raw=true'.format(BRANCH)
 
 
@@ -35,3 +35,8 @@ _download_file('chipseq_samples/ip_2/ip_2.tiny_R1.fastq.gz', 'workflows/chipseq/
 _download_file('chipseq_samples/ip_3/ip_3.tiny_R1.fastq.gz', 'workflows/chipseq/data/example_data/chipseq_ip3.fq.gz')
 _download_file('chipseq_samples/ip_4/ip_4.tiny_R1.fastq.gz', 'workflows/chipseq/data/example_data/chipseq_ip4.fq.gz')
 _download_file('chipseq_samples/input_3/input_3.tiny_R1.fastq.gz', 'workflows/chipseq/data/example_data/chipseq_input3.fq.gz')
+
+_download_file('cutnrun_samples/cutnrun_ip_1/cutnrun_ip_1.small_R1.fastq.gz', 'workflows/cutnrun/data/example_data/cutnrun_ip1_1.fq.gz')
+_download_file('cutnrun_samples/cutnrun_ip_1/cutnrun_ip_1.small_R2.fastq.gz', 'workflows/cutnrun/data/example_data/cutnrun_ip1_2.fq.gz')
+_download_file('cutnrun_samples/cutnrun_ip_2/cutnrun_ip_2.small_R1.fastq.gz', 'workflows/cutnrun/data/example_data/cutnrun_ip2_1.fq.gz')
+_download_file('cutnrun_samples/cutnrun_ip_2/cutnrun_ip_2.small_R2.fastq.gz', 'workflows/cutnrun/data/example_data/cutnrun_ip2_2.fq.gz')
