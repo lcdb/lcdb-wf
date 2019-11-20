@@ -29,10 +29,7 @@ output:
 ```
 
 ```{r global_options, include=FALSE}
-knitr::opts_chunk$set(warning=FALSE, message=FALSE, autodep=TRUE, cache.extra_file_dep_1 = file.info('../config/sampletable.tsv')$mtime, cache.extra_file_dep_2 = file.info('../data/rnaseq_aggregation/featurecounts.txt')$mtime)
-
-#automatically identify cache dependencies
-knitr::dep_auto()
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, cache.extra_file_dep_1 = file.info('../config/sampletable.tsv')$mtime, cache.extra_file_dep_2 = file.info('../data/rnaseq_aggregation/featurecounts.txt')$mtime)
 ```
 
 # Changelog
@@ -217,7 +214,7 @@ we expect to see replicates clustering together and separation of treatments.
 
 ## Clustered heatmap
 
-```{r}
+```{r, cache=TRUE, dependson='dds_initial'}
 # NOTE: Which columns to use for grouping the heatmap?-------------------------
 #    Add as many columns as you want for the last argument. The test data uses
 #    just the "group" column to create colored boxes corresponding to values of
@@ -234,7 +231,7 @@ dimensions along which the samples vary the most. The amount of variance
 explained by each principal component is indicated in the axes label.
 
 
-```{r, results='asis'}
+```{r, results='asis', cache=TRUE, dependson='dds_initial'}
 # NOTE: Which columns to use for grouping the heatmap?-------------------------
 #    See similiar note above for which columns to group by. Here, each PCA plot
 #    will be in a separate tab.
@@ -280,7 +277,7 @@ sf <- sf[order(sf)] %>%
 trc <- colSums(counts(dds)) %>%
         enframe(value = 'Total Read Count')
 trc_vs_sf <- full_join(sf, trc, by = 'name')
-group_names = tibble(name=dds$samplename, group=dds$group)
+group_names <- tibble(name=dds$samplename, group=dds$group)
 trc_vs_sf <- full_join(trc_vs_sf, group_names, by = 'name')
 p <- ggplot(data=trc_vs_sf, aes_string(x="`Total Read Count`", y="`Size Factor`", color='group', label='name')) +
     geom_point(size=3)
@@ -483,7 +480,7 @@ for (name in names(res.list)){
 }
 ```
 
-```{r selections}
+```{r selections, cache=TRUE, dependson='attach'}
 sel.list <- list()
 for (name in names(res.list)){
   res <- res.list[[name]][['res']]
@@ -507,7 +504,7 @@ for (name in names(res.list)){
 sel.names <- names(sel.list[[name]])
 ```
 
-```{r upsetplots, results='asis'}
+```{r upsetplots, results='asis', cache=TRUE, dependson='selections'}
 # UpSet plots only make sense for more than one set of genes. The Markdown
 # explanatory text and the plots themselves are only created if res.list has
 # multiple items in it.
@@ -579,7 +576,7 @@ lim <- 2000
 
 # NOTE: Min number of genes to include----------------------------------------
 #   If fewer than this many genes, skip the clustering
-lower.lim <- 0
+lower.lim <- 5
 
 # NOTE:  Correlation coefficient above which to merge clusters-----------------
 cutoff <- 0.5
@@ -607,7 +604,7 @@ low.minc <- 1
   more, they are merged together
 - Clusters with fewer than `r minc` genes are not shown.
 
-```{r final_clusters, fig.width=12, results='asis', cache=TRUE}
+```{r final_clusters, fig.width=12, results='asis', cache=TRUE, dependson='selections'}
 # NOTE: which genes to cluster?------------------------------------------------
 #    By default, we get all the changed genes, but you may want only the up or
 #    down genes.
@@ -629,7 +626,7 @@ for (name in names(ll)){
         genes <- sample(genes, lim)
     }
 
-    if (length(genes) < lower.lim){
+    if (length(genes) <= lower.lim){
         mdcat('**Too few genes (', length(genes), ') to cluster**')
         next
     }
@@ -760,7 +757,7 @@ deg.list <- nested.lapply(sel.list, rownames)
 genes.df <- nested.lapply(deg.list, bitr, fromType=from.type, toType=types, OrgDb=orgdb)
 ```
 
-```{r enrich_all, results='hide', cache=TRUE}
+```{r enrich_all, results='hide', cache=TRUE, dependson='final_clusters'}
 
 # run enrichment for all gene lists over a loop
 
@@ -873,7 +870,7 @@ Below we show the results separately for each comparison. Links to files
 containing analysis results are shown above each set of plots, with parsed
 files showing genes on separate lines.
 
-```{r plot_go, fig.width=15, fig.height=10, results='asis', cache=TRUE}
+```{r plot_go, fig.width=15, fig.height=10, results='asis', cache=TRUE, dependson='enrich_all'}
 # go labels for file names
 go.label <- list(
     BP='GO Biological Process',
