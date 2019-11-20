@@ -47,6 +47,7 @@ pytest-runner >=2.11
 pytest-xdist
 pyyaml >=3.12
 r-base ==3.5.1
+r-batchjobs
 r-bindrcpp
 r-codetools
 r-dt
