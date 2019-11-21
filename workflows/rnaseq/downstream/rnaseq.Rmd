@@ -54,6 +54,10 @@ library(UpSetR)
 library(ReactomePA)
 library(cowplot)
 library(plotly)
+library(tibble)
+library(dplyr)
+
+#register(MulticoreParam(4))
 ```
 
 
@@ -114,7 +118,6 @@ strip.dotted.version <- TRUE
 exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'orig_filename', 'orig_filename_R2')
 
 colData <- read.table(sample.table.filename, sep='\t', header=TRUE, stringsAsFactors=FALSE)
-
 
 # NOTE: Paths to Salmon output----------------------------------------------
 #    This is configured in the patterns and targets from the workflow; if
@@ -259,7 +262,7 @@ ggplotly(p[[i]])
 ```
 
 
-## Size factors
+## Size factors {.tabset}
 Size factors: ideally, all libraries were sequenced to identical depth, in
 which case all size factors would be 1.0. In practice, this is almost never the
 case. These size factor estimates are DESeq2's way of showing how sequencing
@@ -270,8 +273,16 @@ careful about interpreting results.
 ```{r}
 dds <- estimateSizeFactors(dds)
 sf <- sizeFactors(dds)
-sf <- sf[order(sf)]
-knitr::kable(sf)
+sf <- sf[order(sf)] %>%
+        enframe(value = 'Size Factor')
+trc <- colSums(counts(dds)) %>%
+        enframe(value = 'Total Read Count')
+trc_vs_sf <- full_join(sf, trc, by = 'name')
+group_names <- tibble(name=dds$samplename, group=dds$group)
+trc_vs_sf <- full_join(trc_vs_sf, group_names, by = 'name')
+p <- ggplot(data=trc_vs_sf, aes_string(x="`Total Read Count`", y="`Size Factor`", color='group', label='name')) +
+    geom_point(size=3)
+ggplotly(p)
 ```
 
 ```{r}
