@@ -1,0 +1,5 @@
+# Samplenames with the same "label" will be considered technical replicates
+samplename	antibody	label	layout	orig_filename	orig_filename_R2
+ip1	h3k27me3	h3k27me3	PE	data/example_data/cutnrun_ip1_1.fq.gz	data/example_data/cutnrun_ip1_2.fq.gz
+ip2	anti-pc	anti-pc	PE	data/example_data/cutnrun_ip2_1.fq.gz	data/example_data/cutnrun_ip2_2.fq.gz
+

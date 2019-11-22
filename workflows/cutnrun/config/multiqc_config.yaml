@@ -1,0 +1,73 @@
+# Anything to the right of these extensions is removed when generating sample
+# names.  Note that removing .cutadapt (and therefore effectively merging
+# .cutadapt.bam with .cutadapt.fastq.gz and .fastq.gz) is OK because below
+# we're running FastQC on them separately
+#
+# See http://multiqc.info/docs/#sample-name-cleaning
+extra_fn_clean_exts:
+  - '.cutadapt'
+  - ']'
+  - '.log'
+  - '.bam.bowtie2'
+  - '.gz'
+  - '.fastq'
+  - '.salmon'
+  - '_R1'
+
+
+# Modify the module search patterns to match what we're creating in the
+# workflow.
+#
+# See http://multiqc.info/docs/#module-search-patterns
+sp:
+  fastq_screen:
+    fn: '*.screen.txt'
+
+# Set the module order to reflect the order of the workflow. Note that here
+# we're also running the FastQC module multiple times, and putting them in
+# their logical locations within the order of the workflow.
+#
+# Note that any modules not found on this list float
+# to the top, so if you add more to the workflow, might want to add them in the
+# right place here.
+#
+# See http://multiqc.info/docs/#order-of-modules
+module_order:
+    - fastqc:
+        name: 'FastQC (raw)'
+        path_filters:
+            - '*.fastq.gz_fastqc.zip'
+    - libsizes_table
+    - cutadapt
+    - fastqc:
+        name: 'FastQC (trimmed)'
+        target: ''
+        path_filters:
+            - '*.cutadapt.fastq.gz_fastqc.zip'
+    - fastq_screen
+    - bowtie2
+    - fastqc:
+        name: 'FastQC (aligned, unique, nodups)'
+        target: ''
+        path_filters:
+            - '*.cutadapt.unique.nodups.bam_fastqc.zip'
+    - deeptools
+
+# This organizes the FastQC general sample table columns so that the different
+# stages are right next to each other, making it easier to compare the effects
+# of the different stages on the stats.
+#
+# See http://multiqc.info/docs/#customising-tables
+table_columns_placement:
+  FastQC (raw):
+    total_sequences: 20
+    percent_duplicates: 30
+    percent_gc: 40
+  FastQC (trimmed):
+    total_sequences: 21
+    percent_duplicates: 31
+    percent_gc: 41
+  FastQC (aligned, unique, nodups):
+    total_sequences: 22
+    percent_duplicates: 32
+    percent_gc: 42

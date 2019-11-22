@@ -1,0 +1,134 @@
+# NOTE: all paths are relative to the calling Snakefile.
+#
+# sampletable: TSV file defining sample metadata.
+# First column must have header name "samplename".
+sampletable: 'config/sampletable.tsv'
+
+# Which key in the `references` dict below to use
+organism: 'dmel'
+
+# If not specified here, use the environment variable REFERENCES_DIR.
+references_dir: 'references_data'
+
+peaks_dir: 'data/cutnrun_peaks'
+
+cutnrun:
+  # The peak_calling section is a list of dicts, each one defining a single
+  # chipseq peak-calling run. The output will be created according to `label`
+  # and `algorithm`. There will be at least a file
+  # `<peaks_dir>/<algorithm>/<label>/peaks.bed`; other files may be created
+  # depending on the algorithm.
+  #
+  # Note that this directory structure means you can have the same label for
+  # different peak-callers to more easily compare them.
+  #
+  # The `ip` and `control` sections expect names found in the "label" column of
+  # the sampletable. This column describes the technical replicates, and the
+  # merging step of the workflow merges and de-dupes appropriately so that the
+  # peak callers only see BAMs with all duplicates removed.
+  #
+  # The "extra" block is used to pass extra information to the peak-caller in
+  # a run-specific manner. Check the wrapper README for details on this. For
+  # example, the macs2 wrapper passes `extra` verbatim to the command line, but
+  # the spp wrapper handles things differently.
+  #
+  # Each wrapper is built to accept either single or multiple BAMs and output
+  # at least a BED file of peaks.
+  #
+  peak_calling:
+    - label: h3k27me3
+      algorithm: seacr
+      ip:
+        - h3k27me3
+      threshold: 0.1
+    - label: anti-pc
+      algorithm: seacr
+      ip:
+        - anti-pc
+      threshold: 0.1
+
+fastq_screen:
+  - label: rRNA
+    organism: dmel
+    tag: test
+  - label: PhiX
+    organism: phix
+    tag: default
+  - label: Fly
+    organism: dmel
+    tag: test
+
+#merged_bigwigs:
+#  input-wingdisc:
+#    - input-wingdisc-1
+#    - input-wingdisc-2
+#  gaf-wingdisc:
+#    - gaf-wingdisc-1
+#    - gaf-wingdisc-2
+#  gaf-embryo:
+#    - gaf-embryo-1
+
+aligner:
+  index: 'bowtie2'
+  tag: 'test'
+
+# references has the structure:
+#
+#   organism:           [ used as top-level dir for references ]
+#     tag:              [ user-defined; often indicates version or release ]
+#       type:           [ must be either "gtf" or "fasta" ]
+#         url:          [ string or list of urls ]
+#         postprocess:  [ string of importable function or dict of function and args ]
+#         conversions:  [ list of gtf conversions; only if type == gtf ]
+#         indexes:      [ list of indexes to build; only if type == fasta ]
+
+# See the reference config files in the top level of the repo,
+# include/reference_configs, for inspiration for more species.
+references:
+  dmel:
+    test:
+      fasta:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa"
+        postprocess: 'lib.common.gzipped'
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+      gtf:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf"
+        postprocess: 'lib.common.gzipped'
+        conversions:
+          - 'refflat'
+          - gffutils: # kwargs below will be provided to `gffutils.create_db`
+              merge_strategy: 'merge'
+              id_spec:
+                  transcript: ['transcript_id', 'transcript_symbol']
+                  gene: ['gene_id', 'gene_symbol']
+              gtf_transcript_key: 'transcript_id'
+              gtf_gene_key: 'gene_id'
+
+          # the attribute from the GTF to consider gene ID
+          - genelist:
+              gene_id: 'gene_id'
+
+          # a <- AnnotationHub()
+          # a[(a$rdataclass == 'OrgDb') & grepl('melanogaster', a$species),]
+          - annotation_hub:
+              ahkey: 'AH57972'
+              keytype: 'ENSEMBL'
+
+      metadata:
+        reference_genome_build: 'dm6'
+        reference_effective_genome_count: 1.2e8
+        reference_effective_genome_proportion: 0.88
+
+    test_transcriptome:
+      fasta:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.transcriptome.fa"
+        postprocess: 'lib.common.gzipped'
+        indexes:
+          - 'salmon'
+
+
+include_references:
+  - '../../include/reference_configs/PhiX.yaml'
+  - '../../include/reference_configs/Drosophila_melanogaster.yaml'
