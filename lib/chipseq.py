@@ -40,7 +40,13 @@ def peak_calling_dict(config, algorithm=None):
         `label`.
     """
     d = {}
-    for block in config['chipseq']['peak_calling']:
+
+    if 'chipseq' in config:
+        assay = 'chipseq'
+    elif 'cutnrun' in config:
+        assay = 'cutnrun'
+
+    for block in config[assay]['peak_calling']:
         key = (block['label'], block['algorithm'])
         if algorithm:
             if key[1] != algorithm:

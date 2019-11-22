@@ -535,7 +535,7 @@ def get_sampletable(config):
     config : dict
     """
     config = resolve_config(config)
-    sampletable = pandas.read_csv(config['sampletable'], comment="#", sep='\t')
+    sampletable = pandas.read_csv(config['sampletable'], index_col=0, comment="#", sep='\t')
     samples = sampletable.iloc[:, 0]
     return samples, sampletable
 

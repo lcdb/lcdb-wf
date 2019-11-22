@@ -107,6 +107,116 @@ class RNASeqConfig(SeqConfig):
             self.targets.update(self.targets_by_aggregation)
             self.patterns.update(self.patterns_by_aggregation)
 
+class CutnRunConfig(SeqConfig):
+    def __init__(self, config, patterns, workdir=None):
+        """
+        Config object specific to cut-and-run workflows.
+
+        Fills in patterns to create targets by handling the by-sample and
+        by-aggregate sections separately.
+
+        This is similar to the ChIP-Seq config
+
+        Parameters
+        ----------
+
+        config : dict
+
+        patterns : str
+            Path to patterns YAML file
+
+        workdir : str
+            Config, patterns, and all paths in `config` should be interpreted
+            as relative to `workdir`
+        """
+        SeqConfig.__init__(self, config, patterns, workdir)
+
+        self.targets = {}
+        self.mode = ['endogenous', 'spikein']
+
+        self.patterns_by_sample = self.patterns['patterns_by_sample']
+        self.fill_by_sample = dict(
+            n=self.n,
+            sample=self.samples.values,
+            label=self.sampletable.label.values,
+            mode=self.mode,
+            ip_label=self.sampletable.label[
+                self.sampletable.antibody != 'input'].values
+        )
+        self.targets_by_sample = helpers.fill_patterns(
+            self.patterns_by_sample, self.fill_by_sample)
+
+        self.targets.update(self.targets_by_sample)
+        self.patterns.update(self.patterns_by_sample)
+
+        # Then the aggregation...
+        self.patterns_by_aggregation = self.patterns.pop('patterns_by_aggregate', None)
+        if self.patterns_by_aggregation is not None and 'merged_bigwigs' in self.config:
+            self.fill_by_aggregation = dict(
+                merged_bigwig_label=self.config['merged_bigwigs'].keys(),
+            )
+            self.targets_by_aggregation = helpers.fill_patterns(
+                self.patterns_by_aggregation,
+                self.fill_by_aggregation
+            )
+            self.targets.update(self.targets_by_aggregation)
+            self.patterns.update(self.patterns_by_aggregation)
+
+        # Then the peaks...
+        #
+        # Note: when adding support for new peak callers, add them here.
+        PEAK_CALLERS = ['seacr']
+
+        self.patterns_by_peaks = self.patterns['patterns_by_peaks']
+        self.targets_for_peaks = {}
+
+        # We need to fill in just those peak-calling runs that are specified
+        # for each peak-caller. For reference, here's an example
+        # `patterns_by_peaks` from the YAML:
+        #
+        #        peaks:
+        #           macs2: '{peak_calling}/macs2/{macs2_run}/peaks.bed'
+        #           spp: '{peak_calling}/spp/{spp_run}/peaks.bed'
+        #        bigbed:
+        #            macs2: '{peak_calling}/macs2/{macs2_run}/peaks.bigbed'
+        #            spp: '{peak_calling}/spp/{spp_run}/peaks.bigbed'
+
+        for pc in PEAK_CALLERS:
+            # Extract out just the subset of `patterns_by_peaks` for this
+            # peak-caller e.g., from the example above, if pc='macs2' this
+            # would only be:
+            #
+            #   peaks:
+            #      macs2: '{peak_calling}/macs2/{macs2_run}/peaks.bed'
+            #   bigbed:
+            #       macs2: '{peak_calling}/macs2/{macs2_run}/peaks.bigbed'
+            #
+            _peak_patterns = {
+                k: {pc: v[pc]} for k, v in self.patterns_by_peaks.items()
+            }
+
+            # Fix for issue #166, which was caused by commit 8a211122:
+            #
+            # If no runs for the peak-caller are configured, this will be
+            # empty and we should continue on.
+            peaks_to_fill = list(chipseq.peak_calling_dict(self.config, algorithm=pc).keys())
+
+            if not peaks_to_fill:
+                continue
+
+            _fill = {pc + '_run': peaks_to_fill}
+
+            # The trick here is the recursive updating of targets_for_peaks.
+            # We're adding the filled-in runs of each peak caller to the
+            # targets as they're built.
+            update_recursive(
+                self.targets_for_peaks,
+                helpers.fill_patterns(_peak_patterns, _fill)
+            )
+
+        self.targets.update(self.targets_for_peaks)
+        self.patterns.update(self.patterns_by_peaks)
+
 
 class ChIPSeqConfig(SeqConfig):
     def __init__(self, config, patterns, workdir=None):
