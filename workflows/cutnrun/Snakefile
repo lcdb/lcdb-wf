@@ -5,7 +5,6 @@ import os
 from lib import common, utils, chipseq
 from lib.patterns_targets import CutnRunConfig
 
-#sampletable = pandas.read_csv('config/sampletable.tsv', sep='\t', index_col=0, comment="#")
 modes = ['spikein', 'endogenous']
 
 if not workflow.overwrite_configfile:
@@ -54,25 +53,6 @@ for f in final_targets:
 rule targets:
     input: 
         final_targets,
-        #expand(c.targets['peaks']['seacr'], seacr_run=c.sampletable.loc[:,'label']),
-        #expand(c.targets['bigbed']['seacr'], seacr_run=c.sampletable.loc[:,'label'])
-
-#print(rules.targets.input)
-
-#rule targets:
-#    input:
-#        bam=expand('data/cutnrun_mapped/{sample}.mapped.{mode}.bam', sample=sampletable.index, mode=modes),
-#        txt='data/cutnrun_merged/all.libsize.txt',
-#        agg=expand('data/cutnrun_merged/merged_bowtie2_percentages.tsv'),
-#        multiqc=expand('data/cutnrun_merged/multiqc_{mode}.html', mode=modes),
-#        fastqc=expand('data/cutnrun_samples/{sample}_R1_fastqc.html', sample=sampletable.index),
-#        norm_bedgraph=expand('data/cutnrun_mapped/{sample}.mapped.norm.endogenous.bedgraph', sample=sampletable.index),
-#        bedgraph=expand('data/cutnrun_mapped/{sample}.mapped.endogenous.bedgraph', sample=sampletable.index),
-#        seacr=expand("data/cutnrun_peaks/seacr/{sample}_threshold{threshold}/peaks.bed", 
-#                sample=sampletable.index, threshold=threshold),
-#        bigwigs = expand("data/cutnrun_mapped/{sample}.mapped.norm.endogenous.bigwig", sample=sampletable.index),
-#        bigbeds = expand("data/cutnrun_peaks/seacr/{sample}_{threshold}/peaks.bigbed", 
-#                sample=sampletable.index, threshold=threshold),
 
 bowtie2_parameters = {
     'spikein':    "--local --very-sensitive-local --no-mixed --no-discordant --phred33 -I 10 -X 700 --no-overlap --no-dovetail ",
@@ -111,8 +91,6 @@ rule symlinks:
     input: orig_for_sample
     output:
         c.patterns['fastq'],
-        #R1='data/cutnrun_samples/{sample}_R1.fastq.gz',
-        #R2='data/cutnrun_samples/{sample}_R2.fastq.gz',
     wildcard_constraints:
         n="\d+"
     run:
@@ -146,16 +124,12 @@ rule fastqc:
 rule bowtie2:
     input:
         fq=render_r1_r2(c.patterns['fastq']),
-        #R1='data/cutnrun_samples/{sample}_R1.fastq.gz',
-        #R2='data/cutnrun_samples/{sample}_R2.fastq.gz',
         index=lambda wildcards: expand(bowtie2_indexes[wildcards.mode] + '{ext}', ext=exts)
     output:
         sam=temp(c.patterns['bam'] + '.sam'),
-        #sam=temp('data/cutnrun_mapped/{sample}.mapped.{mode}.sam'),
         fq='data/cutnrun_unmapped/{sample}/{sample}.unmapped.{mode}.fastq.1.gz'
     log:
         c.patterns['bam'] + '.sam' + '.log'
-        #'data/cutnrun_mapped/{sample}.mapped.{mode}.sam.log'
     # NOTE:
     # When running on a cluster, number of threads here should match the
     # resources requested in the cluster config.
@@ -183,12 +157,9 @@ print(c.targets['bam'])
 rule samtools_fix:
     input:
         rules.bowtie2.output.sam,
-        #sam='data/cutnrun_mapped/{sample}/{sample}.mapped.{mode}.sam'
     output:
         bam=c.patterns['bam'],
-        #bam='data/cutnrun_mapped/{sample}.mapped.{mode}.bam'
     run:
-        #print(wc)
         shell(
             "samtools view -Sb -F 0x04 {input} "
             "> {output}.tmp.bam "
@@ -206,79 +177,10 @@ rule samtools_fix:
 rule count_reads:
     input:
         c.patterns['bam'],
-        #bam='data/cutnrun_mapped/{sample}.mapped.{mode}.bam'
     output:
         temp('data/cutnrun_mapped/{sample}/{sample}.mapped.{mode}.libsize.txt')
     shell:
         "samtools view -c {input} > {output}"
-
-
-# Extract a text file of read IDs from an unmapped FASTQ
-#rule ids:
-#    input:
-#        fq='data/cutnrun_unmapped/{sample}.unmapped.{mode}.fastq.1.gz',
-#    output:
-#        txt=temp('data/cutnrun_unmapped/{sample}.unmapped.{mode}.ids.txt'),
-#    shell:
-#        'gunzip -c {input} | '
-#        'paste - - - - | '
-#        'cut -f1 -d \' \' | '
-#        'sed s\'/\@//\' | '
-#        'sort -u '
-#        '> {output}'
-
-
-# Given multiple text files of read IDs, identify those in common
-#rule common_ids:
-#    input:
-#        txt1='data/cutnrun_unmapped/{sample}.unmapped.endogenous.ids.txt',
-#        txt2='data/cutnrun_unmapped/{sample}.unmapped.spikein.ids.txt',
-#    output:
-#        txt='data/cutnrun_unmapped/{sample}.unmapped.common.txt'
-#    run:
-#        reads = []
-#        for fn in input:
-#            reads.append(
-#                set([i.strip() for i in open(fn)])
-#            )
-#            common = set.intersection(*reads)
-#        with open(output[0], 'w') as fout:
-#            for i in list(common):
-#                fout.write(i + '\n')
-
-
-# From the original unmapped fastq, extract reads in the provided text file.
-#
-# Note that we could use the original FASTQ, but the unmapped-in-endogenous
-# FASTQ is most likely the smallest of the unmapped FASTQs and by definition
-# the reads in the common list will be in this file.
-#rule seqtk:
-#    input:
-#        fq='data/unmapped/{sample}.unmapped.endogenous.fastq.1.gz',
-#        txt='data/unmapped/{sample}.unmapped.common.txt',
-#    output:
-#        'data/unmapped/{sample}.unmapped.common.ids.fastq.gz',
-#    shell:
-#        'seqtk subseq {input.fq} {input.txt} | gzip > {output}'
-
-
-# Run FastQC on the reads unmapped in all
-#rule fastqc:
-#    input:
-#        R1='data/unmapped/{sample}.unmapped.common.ids.fastq.gz',
-#    output:
-#        'data/unmapped/{sample}_fastqc/{sample}.unmapped.common.ids_fastqc.html',
-#        'data/unmapped/{sample}_fastqc/{sample}.unmapped.common.ids_fastqc/fastqc_data.txt',
-#    run:
-#        samplename = wildcards.sample
-#        outdir = os.path.dirname(output[0])
-#        shell(
-#            'fastqc '
-#            '--quiet '
-#            '--extract '
-#            '{input} '
-#            '--outdir {outdir} '
-#        )
 
 
 # Combine the detected bowtie2 results across modes
@@ -288,10 +190,8 @@ rule merge_counts:
                sample=_st.index, mode=modes),
     output:
         utils.flatten(c.targets['libsizes']),
-        #txt='data/cutnrun_merged/all.libsize.txt'
     run:
         df = []
-
         for fn in sorted(input):
             toks = os.path.basename(fn).split('.')
             sample = toks[0]
@@ -305,19 +205,23 @@ rule merge_counts:
 
 rule multiqc:
     input:
-        bam=c.targets['bam'],
+        files=(
+            utils.flatten(c.targets['bam']) +
+            utils.flatten(c.targets['fastqc']) +
+            utils.flatten(c.targets['peaks'])),
+
+        #bam=c.targets['bam'],
         #fastqc=c.targets['fastqc']
         #bam=expand('data/cutnrun_mapped/{sample}.mapped.{{mode}}.bam', sample=sampletable.index),
-        fastqc=expand(rules.fastqc.output, sample=_st.index, n=c.n),
+        #fastqc=expand(rules.fastqc.output, sample=_st.index, n=c.n),
+        config='config/multiqc_config.yaml', 
     output:
         html=c.patterns['multiqc'],
-        #html='data/cutnrun_merged/multiqc_{mode}.html',
         bowtie2='data/cutnrun_merged/multiqc_{mode}_data/multiqc_bowtie2.txt',
     log:
-        'data/cutnrun_merged/multiqc_{mode}.html.log'
+        c.patterns['multiqc'] + '.log'
     run:
         fn = input[0]
-        print(fn)
         analysis_directory = os.path.dirname(fn) + '/*{0}*'.format(wildcards.mode)
         fastqc = 'data/cutnrun_samples'
         outdir = os.path.dirname(output[0])
@@ -339,7 +243,6 @@ rule aggregate_counts:
         expand('data/cutnrun_merged/multiqc_{mode}_data/multiqc_bowtie2.txt', mode=modes)
     output:
         c.patterns['agg'],
-        #'data/cutnrun_merged/merged_bowtie2_percentages.tsv'
     run:
         dfs = []
         for i in input:
@@ -358,10 +261,8 @@ def get_endogenous(pattern):
 rule make_bed:
     input:
         get_endogenous('bam')
-        #"data/cutnrun_mapped/{sample}/{sample}.mapped.endogenous.bam"
     output:
         sorted_bed3=temp("data/cutnrun_mapped/{sample}/{sample}.mapped_sorted.endogenous.BED3"),
-        #sorted_bam="data/mapped/{sample}.mapped_sorted.endogenous.BED3.bam"
     threads: 8
     shell:
         'samtools sort -n --threads={threads} {input} > {output.sorted_bed3}.bam'
@@ -373,10 +274,9 @@ rule make_bed:
 rule index_bam:
     input:
         get_endogenous('bam')
-        #"data/cutnrun_mapped/{sample}/{sample}.mapped.endogenous.bam",
     output:
-        bam="data/cutnrun_mapped/{sample}/{sample}.mapped_sorted.endogenous.bam",
-        bai="data/cutnrun_mapped/{sample}/{sample}.mapped_sorted.endogenous.bam.bai",
+        bam=get_endogenous('sorted_bam'),
+        bai=[bam + '.bai' for bam in get_endogenous('sorted_bam')]
     threads: 8
     run:
         shell('samtools sort --threads={threads} {input} > {output.bam}')
@@ -386,10 +286,8 @@ rule make_norm_bedgraph:
     input:
         bam = rules.index_bam.output.bam,
         bai = rules.index_bam.output.bai,
-        #bam = "data/cutnrun_mapped/{sample}/{sample}.mapped_sorted.endogenous.bam",
-        #bai = "data/cutnrun_mapped/{sample}/{sample}.mapped_sorted.endogenous.bam.bai",
     output:
-        "data/cutnrun_mapped/{sample}.mapped.norm.endogenous.bedgraph"
+        c.patterns['bedgraph']['norm']
     threads: 8
     shell:
         'bamCoverage -b {input.bam} -of bedgraph -o {output} -p {threads} '
@@ -397,31 +295,22 @@ rule make_norm_bedgraph:
 
 rule make_bedgraph:
     input:
-        bam = "data/cutnrun_mapped/{sample}/{sample}.mapped_sorted.endogenous.bam",
-        bai = "data/cutnrun_mapped/{sample}/{sample}.mapped_sorted.endogenous.bam.bai",
+        bam = rules.index_bam.output.bam,
+        bai = rules.index_bam.output.bai,
     output:
-        #get_endogenous('bedgraph')
         c.patterns['bedgraph']['all']
-        #"data/cutnrun_mapped/{sample}/{sample}.mapped.endogenous.bedgraph"
     threads: 8
     run:
         shell('bamCoverage -b {input.bam} -of bedgraph -o {output}.tmp -p {threads} -bs 5')
         shell("cat {output}.tmp | awk '{{if($4 > 0) print $0}}' > {output}")
         shell('rm {output}.tmp')
 
-#def get_seacr_input(wc):
-#    return expand(c.patterns['bedgraph']['all'], sample=wc.sample)
-
 rule run_seacr:
     input:
         lambda wc: expand(c.patterns['bedgraph']['all'], 
                 sample=chipseq.samples_for_run(config, wc.seacr_run, 'seacr','ip'))
-        #"data/cutnrun_mapped/{sample}/{sample}.mapped.endogenous.bedgraph"
     output: 
-        #"data/cutnrun_peaks/{sample}_{threshold}.auc.threshold.merge.bed"
         utils.flatten(c.patterns['peaks']),
-        #touch('data/cutnrun_peaks/seacr/{sample}.done'),
-        #"data/cutnrun_peaks/seacr/{seacr_run}/peaks.bed"
     run:
         outdir = os.path.dirname(output[0])
         shell("bash SEACR/SEACR_1.0.sh {input} {threshold} non AUC {outdir}/peaks")
@@ -429,18 +318,17 @@ rule run_seacr:
 
 rule make_bigwigs:
     input:
-        bam = 'data/cutnrun_mapped/{sample}/{sample}.mapped_sorted.endogenous.bam',
-        bai = 'data/cutnrun_mapped/{sample}/{sample}.mapped_sorted.endogenous.bam.bai',
+        bam = rules.index_bam.output.bam,
+        bai = rules.index_bam.output.bai,
     output:
         c.patterns['bigwig']
-        #"data/cutnrun_mapped/{sample}.mapped.norm.endogenous.bigwig",
     threads: 8
     shell:
         'bamCoverage -b {input.bam} -of bigwig -o {output} -p {threads} -bs 5 --normalizeUsing BPM'
 
 rule make_chrom_sizes:
     input: 
-        "data/cutnrun_mapped/{sample}/{sample}.mapped.endogenous.bedgraph",
+        rules.make_bedgraph.output,
     output:
         "data/cutnrun_mapped/{sample}/{sample}.chrom.sizes",
     run:
@@ -468,27 +356,12 @@ rule make_chrom_sizes:
 rule make_bigbeds:
     input:
         bed = utils.flatten(c.patterns['peaks']),
-        #bed = "data/cutnrun_peaks/seacr/{seacr_run}/peaks.bed",
-        #bed = "data/cutnrun_peaks/{sample}_{threshold}.auc.threshold.merge.bed",
         chrom_sizes = lambda wc: expand(rules.make_chrom_sizes.output, 
                 sample=chipseq.samples_for_run(config, wc.seacr_run, 'seacr', 'ip')),
-        #chrom_sizes="data/cutnrun_mapped/{sample}/{seacr_run}.chrom.sizes",
         as_file="seacrbeds.as"
     output:
         utils.flatten(c.patterns['bigbed'])
-        #"data/cutnrun_peaks/seacr/{seacr_run}/peaks.bigbed"
     shell:
         "bedToBigBed -as={input.as_file} -type=bed3+3 {input.bed} {input.chrom_sizes} {output}"
-
-#rule make_trackhub:
-#    input:
-#        bigwigs = expand("data/cutnrun_mapped/{sample}.mapped.norm.endogenous.bw", sample=sampletable.index),
-#        bigbeds = expand("data/cutnrun_mapped/{sample}_{threshold}.auc.threshold.merge.bb", 
-#                sample=sampletable.index, threshold=threshold)
-#    output:
-#       "staging/mm10/trackDb.txt"
-#    shell:
-#       "python cut-and-run-trackhub.py hub_config.yaml"
-
 
 # vim: ft=python
