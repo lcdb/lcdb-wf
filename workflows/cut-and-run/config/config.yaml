@@ -8,11 +8,11 @@ sampletable: 'config/sampletable.tsv'
 organism: 'dmel'
 
 # If not specified here, use the environment variable REFERENCES_DIR.
-references_dir: 'references_data'
+references_dir: '../references/references_dir'
 
-peaks_dir: 'data/cutnrun_peaks'
+peaks_dir: 'data/cut-and-run_peaks'
 
-cutnrun:
+cut-and-run:
   # The peak_calling section is a list of dicts, each one defining a single
   # chipseq peak-calling run. The output will be created according to `label`
   # and `algorithm`. There will be at least a file
@@ -71,6 +71,10 @@ fastq_screen:
 aligner:
   index: 'bowtie2'
   tag: 'test'
+
+spikein:
+  species: 'sacCer'
+  tag: 'sacCer3'
 
 # references has the structure:
 #
@@ -132,3 +136,4 @@ references:
 include_references:
   - '../../include/reference_configs/PhiX.yaml'
   - '../../include/reference_configs/Drosophila_melanogaster.yaml'
+  - '../../include/reference_configs/Saccharomyces_cerevisiae.yaml'
