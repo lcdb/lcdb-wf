@@ -1,0 +1,68 @@
+patterns_by_sample:
+
+  fastq: 'data/cut-and-run_samples/{sample}/{sample}_R{n}.fastq.gz'
+  cutadapt: 'data/cut-and-run_samples/{sample}/{sample}_R{n}.cutadapt.fastq.gz'
+  bam: 'data/cut-and-run_samples/{sample}/{sample}.cutadapt.{mode}.bam'
+  #unmapped: 'data/cut-and-run_unmapped/{sample}/{sample}.cutadapt.{mode}.fastq.gz'
+
+  fastqc:
+    #html: 'data/cut-and-run_samples/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.html'
+    raw: 'data/cut-and-run_samples/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.zip'
+    cutadapt: 'data/cut-and-run_samples/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip'
+    bam: 'data/cut-and-run_samples/{sample}/fastqc/{sample}.cutadapt.{mode}.bam_fastqc.zip'
+    unique: 'data/cut-and-run_samples/{sample}/fastqc/{sample}.cutadapt.unique_nodups.endogenous.bam_fastqc.zip'
+
+  libsizes:
+    fastq:   'data/cut-and-run_samples/{sample}/{sample}_R1.fastq.gz.libsize'
+    cutadapt: 'data/cut-and-run_samples/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize'
+    bam:     'data/cut-and-run_samples/{sample}/{sample}.cutadapt.endogenous.bam.libsize'
+    unique:     'data/cut-and-run_samples/{sample}/{sample}.cutadapt.unique.endogenous.bam.libsize'
+    nodups: 'data/cut-and-run_samples/{sample}/{sample}.cutadapt.unique_nodups.endogenous.bam.libsize'
+    #txt: 'data/cut-and-run_merged/all.libsize.txt'
+
+  fastq_screen: 'data/cut-and-run_samples/{sample}/{sample}.cutadapt.screen.txt'
+  libsizes_table: 'data/cut-and-run_aggregation/libsizes_table.tsv'
+  libsizes_yaml: 'data/cut-and-run_aggregation/libsizes_table_mqc.yaml'
+  multiqc: 'data/cut-and-run_aggregation/multiqc.html'
+  #multiqc: 'data/cut-and-run_merged/multiqc_{mode}.html'
+  unique: 'data/cut-and-run_samples/{sample}/{sample}.cutadapt.unique.{mode}.bam'
+  agg: 'data/cut-and-run_merged/merged_bowtie2_percentages.tsv'
+
+  markduplicates:
+    bam: 'data/cut-and-run_samples/{sample}/{sample}.cutadapt.unique_nodups.{mode}.bam'
+    metrics: 'data/cut-and-run_samples/{sample}/{sample}.cutadapt.unique_nodups.{mode}.bam.metrics'
+
+  merged_techreps: 'data/cut-and-run_merged/{label}/{label}.cutadapt.unique_nodups.merged.{mode}.bam'
+
+  #bigwig: 'data/cut-and-run_merged/{label}/{label}.cutadapt.unique.nodups.bam.bigwig'
+  bigwig: 'data/cut-and-run_mapped/{sample}/{sample}.cutadapt.norm.endogenous.bigwig'
+  bedgraph: 
+    all: 'data/cut-and-run_mapped/{sample}/{sample}.cutadapt.endogenous.bedgraph'
+    norm: 'data/cut-and-run_mapped/{sample}/{sample}.cutadapt.norm.endogenous.bedgraph'
+
+#  fingerprint:
+#    plot: 'data/cut-and-run_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.png'
+#    raw_counts: 'data/cut-and-run_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.tab'
+#    metrics: 'data/cut-and-run_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.metrics'
+
+#  multibigwigsummary:
+#    npz: 'data/cut-and-run_aggregation/deeptools/multibigwigsummary_matrix.npz'
+#    tab: 'data/cut-and-run_aggregation/deeptools/multibigwigsummary.tab'
+#  plotcorrelation:
+#    tab: 'data/cut-and-run_aggregation/deeptools/plotcorrelation.tab'
+#    heatmap: 'data/cut-and-run_aggregation/deeptools/correlation_heatmap.png'
+
+patterns_by_peaks:
+  peaks:
+#    macs2: 'data/cut-and-run_peaks/macs2/{macs2_run}/peaks.bed'
+#    spp: 'data/cut-and-run_peaks/spp/{spp_run}/peaks.bed'
+#    sicer: 'data/cut-and-run_peaks/sicer/{sicer_run}/peaks.bed'
+    seacr: 'data/cut-and-run_peaks/seacr/{seacr_run}/peaks.bed'
+  bigbed:
+#    macs2: 'data/cut-and-run_peaks/macs2/{macs2_run}/peaks.bigbed'
+#    spp: 'data/cut-and-run_peaks/spp/{spp_run}/peaks.bigbed'
+#    sicer: 'data/cut-and-run_peaks/sicer/{sicer_run}/peaks.bigbed'
+    seacr: 'data/cut-and-run_peaks/seacr/{seacr_run}/peaks.bigbed'
+
+patterns_by_aggregate:
+  merged_bigwig: 'data/cut-and-run_aggregation/merged_bigwigs/{merged_bigwig_label}.bigwig'

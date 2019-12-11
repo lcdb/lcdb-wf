@@ -74,7 +74,6 @@ def fill_patterns(patterns, fill, combination=product):
                 d[k] = [u[k]]
         return d
     d = {}
-    print(patterns,'\n',fill,'\n')
     return update(d, patterns, combination)
 
 

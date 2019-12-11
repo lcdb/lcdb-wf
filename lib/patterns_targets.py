@@ -107,7 +107,7 @@ class RNASeqConfig(SeqConfig):
             self.targets.update(self.targets_by_aggregation)
             self.patterns.update(self.patterns_by_aggregation)
 
-class CutnRunConfig(SeqConfig):
+class CutAndRunConfig(SeqConfig):
     def __init__(self, config, patterns, workdir=None):
         """
         Config object specific to cut-and-run workflows.
