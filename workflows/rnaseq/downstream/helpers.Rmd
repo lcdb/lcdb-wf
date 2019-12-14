@@ -262,8 +262,8 @@ DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable, design,
     m <- read_tsv(filename, comment="#") %>%
         remove_rownames %>%
         column_to_rownames('Geneid') %>%
-        dplyr::select(-(1:5))
-
+        dplyr::select(-(1:5)) %>%
+        as.data.frame
 
     # The column names of the imported table are not guaranteed to match the
     # samples in the metadata, so we need to make sure things match up
