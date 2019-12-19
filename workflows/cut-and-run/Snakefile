@@ -1,9 +1,9 @@
 import sys
 sys.path.insert(0, srcdir('../..'))
-import pandas
+import pandas as pd
 import os
-from lib import common, utils, chipseq
-from lib.patterns_targets import CutnRunConfig
+from lib import common, utils, aligners, chipseq
+from lib.patterns_targets import CutAndRunConfig
 
 modes = ['spikein', 'endogenous']
 
@@ -11,42 +11,51 @@ if not workflow.overwrite_configfile:
     configfile: 'config/config.yaml'
 else:
     configfile: workflow.overwrite_configfile
+include: '../references/Snakefile'
+
+shell.prefix(
+    'set -euo pipefail; export R_PROFILE_USER=; export TMPDIR={};'
+    .format(cluster_specific.tempdir_for_biowulf())
+)
+shell.executable('/bin/bash')
 
 config = common.load_config(config)
 
-c = CutnRunConfig(
+c = CutAndRunConfig(
     config,
-    config.get('patterns', 'config/cutnrun_patterns.yaml')
+    config.get('patterns', 'config/cut-and-run_patterns.yaml')
 )
 
 wildcard_constraints:
     n = '[1,2]'
 
 # low cutoff for lenient peak calling
-peak_calling_dict = c.config['cutnrun']['peak_calling'][0]
+peak_calling_dict = c.config['cut-and-run']['peak_calling'][0]
 threshold = peak_calling_dict['threshold']
 
+def wrapper_for(path):
+    return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
+
 final_targets = utils.flatten((
-    c.targets['fastq'],
+    #c.targets['fastq'],
     c.targets['bam'],
     utils.flatten(c.targets['fastqc']),
     utils.flatten(c.targets['libsizes']),
-    #[c.targets['fastq_screen']],
-    #[c.targets['libsizes_table']],
+    [c.targets['fastq_screen']],
+    [c.targets['libsizes_table']],
     c.targets['multiqc'],
-    c.targets['agg'],
-    #utils.flatten(c.targets['markduplicates']),
+    utils.flatten(c.targets['markduplicates']),
     utils.flatten(c.targets['bigwig']),
     utils.flatten(c.targets['peaks']),
-    #utils.flatten(c.targets['merged_techreps']),
+    utils.flatten(c.targets['merged_techreps']),
     #utils.flatten(c.targets['fingerprint']),
     utils.flatten(c.targets['bigbed']),
     #utils.flatten(c.targets['multibigwigsummary']),
     #utils.flatten(c.targets['plotcorrelation']),
 ))
 
-for f in final_targets:
-    print(f)
+#for f in final_targets:
+#    print(f)
 
 #print(utils.flatten(c.patterns_by_peaks['peaks']))
 
@@ -54,32 +63,18 @@ rule targets:
     input: 
         final_targets,
 
-bowtie2_parameters = {
-    'spikein':    "--local --very-sensitive-local --no-mixed --no-discordant --phred33 -I 10 -X 700 --no-overlap --no-dovetail ",
-    'endogenous': "--local --very-sensitive-local --no-mixed --no-discordant --phred33 -I 10 -X 700 --no-overlap --no-dovetail ",
-}
-
+# create dictionary with bowtie indexes
 bowtie2_indexes = {
-    'spikein':    "/data/NICHD-core0/references/sacCer/sacCer3/bowtie2/sacCer_sacCer3",
-    'endogenous': "/data/NICHD-core0/references/dmel/r6-28/bowtie2/dmel_r6-28",
+    'endogenous': refdict[c.organism][config['aligner']['tag']]['bowtie2'],
+    'spikein': refdict[config['spikein']['species']][config['spikein']['tag']]['bowtie2'],
 }
 
-exts = [
-    '.1.bt2',
-    '.2.bt2',
-    '.3.bt2',
-    '.4.bt2',
-    '.rev.1.bt2',
-    '.rev.2.bt2',
-]
+#print(bowtie2_indexes)
 
 _st = c.sampletable.set_index(c.sampletable.columns[0])
-#_st = c.sampletable
-print(_st.index)
 
 # Symlink over raw data into a uniform location
 def orig_for_sample(wc):
-    #print(wc)
     if c.is_paired:
         return _st.loc[wc.sample, ['orig_filename', 'orig_filename_R2']]
     return _st.loc[wc.sample, 'orig_filename']
@@ -97,135 +92,248 @@ rule symlinks:
         for src, linkname in zip(input, output):
             utils.make_relative_symlink(src, linkname)
 
+rule cutadapt:
+    """
+    Run cutadapt
+    """
+    input:
+        fastq=common.fill_r1_r2(c.sampletable, c.patterns['fastq'])
+    output:
+        fastq=render_r1_r2(c.patterns['cutadapt'])
+    log:
+        render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
+    run:
+        paired = len(input) == 2
+
+        # NOTE: Change cutadapt params here
+
+        if paired:
+            shell(
+                "cutadapt "
+                "-o {output[0]} "
+                "-p {output[1]} "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
+                '-q 20 '
+                '--minimum-length 25 '
+                "{input.fastq[0]} "
+                "{input.fastq[1]} "
+                "&> {log}"
+            )
+        else:
+            shell(
+                "cutadapt "
+                "-o {output[0]} "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                '-q 20 '
+                '--minimum-length 25 '
+                "{input.fastq[0]} "
+                "&> {log}"
+            )
+
 # Run FastQC on raw reads
 rule fastqc:
-    input:
-        #c.patterns['fastq']
-        'data/cutnrun_samples/{sample}/{sample}_R1.fastq.gz',
+    """
+    Run FastQC
+    """
+    input: '{sample_dir}/{sample}/{sample}{suffix}'
     output:
-        #c.patterns['fastq'] + '_fastqc.html',
-        #c.patterns['fastq'] + '_fastqc.zip',
-        'data/cutnrun_samples/{sample}/fastqc/{sample}_R1_fastqc.html',
-        'data/cutnrun_samples/{sample}/fastqc/{sample}_R1_fastqc.zip',
-    run:
-        #samplename = wildcards.sample
-        #print(wc)
-        outdir = os.path.dirname(output[0])
-        shell(
-            'fastqc '
-            '--quiet '
-            '--extract '
-            '{input} '
-            '--outdir {outdir} '
-        )
-
+        html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
+        zip='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
+    script:
+        wrapper_for('fastqc/wrapper.py')
 
 # Map reads with Bowtie2
 rule bowtie2:
     input:
-        fq=render_r1_r2(c.patterns['fastq']),
-        index=lambda wildcards: expand(bowtie2_indexes[wildcards.mode] + '{ext}', ext=exts)
+        fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+        index=lambda wc: bowtie2_indexes[wc.mode]
     output:
-        sam=temp(c.patterns['bam'] + '.sam'),
-        fq='data/cutnrun_unmapped/{sample}/{sample}.unmapped.{mode}.fastq.1.gz'
+        bam=c.patterns['bam'],
     log:
-        c.patterns['bam'] + '.sam' + '.log'
+        c.patterns['bam'] + '.log'
     # NOTE:
     # When running on a cluster, number of threads here should match the
     # resources requested in the cluster config.
     threads: 8
     run:
-        index = input.index[0].replace('.1.bt2', '')
-        bowtie2_params = bowtie2_parameters[wildcards.mode]
-        unmapped = output.fq.replace('.1','')
+        prefix = aligners.prefix_from_bowtie2_index(input.index)
+        sam = output.bam.replace('.bam','.sam')
+        bowtie2_params = '--local --very-sensitive-local --no-mixed --no-discordant --phred33 -I 10 -X 700 --no-overlap --no-dovetail'
         shell(
-            "bowtie2 "
-            "-x {index} "
-            "-1 {input.fq[0]} "
-            "-2 {input.fq[1]} "
-            "--threads {threads} "
-            "{bowtie2_params} "
-            "-S {output.sam} "
-            "--un-conc-gz {unmapped} "
-            "2> {log}; "
+            'bowtie2 '
+            '-x {prefix} '
+            '-1 {input.fastq[0]} '
+            '-2 {input.fastq[1]} '
+            '-p {threads} '
+            '{bowtie2_params} '
+            '-S {sam} '
+            '> {log} 2>&1 '
         )
 
-print(rules.bowtie2.output.sam)
-print(c.targets['bam'])
-
-# Remove unmapped reads and sort results
-rule samtools_fix:
-    input:
-        rules.bowtie2.output.sam,
-    output:
-        bam=c.patterns['bam'],
-    run:
         shell(
-            "samtools view -Sb -F 0x04 {input} "
-            "> {output}.tmp.bam "
-            
-            # sort bam and clean up
-            "&& samtools sort "
-            "-o {output} "
-            "-O BAM "
-            "{output}.tmp.bam "
-            "&& rm {output}.tmp.bam "
-            )
+            "samtools view -Sb {sam} "
+            "| samtools sort - -o {output.bam} -O BAM "
+            "&& rm {sam}"
+        )
 
-
-# Count mapped reads in BAM (will include multimappers)
-rule count_reads:
+rule unique:
+    """
+    Remove multimappers
+    """
     input:
-        c.patterns['bam'],
+        c.patterns['bam']
     output:
-        temp('data/cutnrun_mapped/{sample}/{sample}.mapped.{mode}.libsize.txt')
+        c.patterns['unique']
     shell:
-        "samtools view -c {input} > {output}"
+        # NOTE: the quality score chosen here should reflect the scores output
+        # by the aligner used. For example, STAR uses 255 as max mapping
+        # quality.
+        'samtools view -b -q 20 {input} > {output}'
 
 
-# Combine the detected bowtie2 results across modes
-rule merge_counts:
+rule fastq_count:
+    """
+    Count reads in a FASTQ file
+    """
     input:
-        expand('data/cutnrun_mapped/{sample}/{sample}.mapped.{mode}.libsize.txt',
-               sample=_st.index, mode=modes),
+        fastq='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz'
     output:
-        utils.flatten(c.targets['libsizes']),
-    run:
-        df = []
-        for fn in sorted(input):
-            toks = os.path.basename(fn).split('.')
-            sample = toks[0]
-            mode = toks[2]
-            d = dict(sample=sample, mode=mode, count=int(open(fn).read().strip()))
-            df.append(d)
-        df = pandas.DataFrame(df)
-        df.to_csv(output[0], sep='\t', index=False)
+        count='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
+    shell:
+        'zcat {input} | echo $((`wc -l`/4)) > {output}'
 
-#print(rules.fastqc.output)
+
+rule bam_count:
+    """
+    Count reads in a BAM file
+    """
+    input:
+        bam='{sample_dir}/{sample}/{sample}{suffix}.bam'
+    output:
+        count='{sample_dir}/{sample}/{sample}{suffix}.bam.libsize'
+    shell:
+        'samtools view -c {input} > {output}'
+
+
+rule bam_index:
+    """
+    Index a BAM
+    """
+    input:
+        bam='{prefix}.bam'
+    output:
+        bai='{prefix}.bam.bai'
+    shell:
+        'samtools index {input} {output}'
+
+def fastq_screen_references():
+    """
+    Returns the Bowtie2 indexes for the configured references from the
+    `fastq_screen:` section of the config
+    """
+    refs = {}
+    for i in config['fastq_screen']:
+        refs[i['label']] = c.refdict[i['organism']][i['tag']]['bowtie2']
+    return refs
+
+
+rule fastq_screen:
+    """
+    Run fastq_screen to look for contamination from other genomes
+    """
+    input:
+        **fastq_screen_references(),
+        fastq=rules.cutadapt.output.fastq,
+    output:
+        txt=c.patterns['fastq_screen']
+    log:
+        c.patterns['fastq_screen'] + '.log'
+    params: subset=100000
+    script:
+        wrapper_for('fastq_screen/wrapper.py')
+
+
+rule libsizes_table:
+    """
+    Aggregate fastq and bam counts in to a single table
+    """
+    input:
+        utils.flatten(c.targets['libsizes'])
+    output:
+        json=c.patterns['libsizes_yaml'],
+        tsv=c.patterns['libsizes_table']
+    run:
+        def sample(f):
+            return os.path.basename(os.path.dirname(f))
+
+        def million(f):
+            return float(open(f).read()) / 1e6
+
+        def stage(f):
+            return os.path.basename(f).split('.', 1)[1].replace('.gz', '').replace('.count', '')
+
+        df = pd.DataFrame(dict(filename=list(map(str, input))))
+        df['sample'] = df.filename.apply(sample)
+        df['million'] = df.filename.apply(million)
+        df['stage'] = df.filename.apply(stage)
+        df = df.set_index('filename')
+        df = df.pivot('sample', columns='stage', values='million')
+
+        # make nicer column names
+        convert = {
+            'fastq.libsize': 'stage1_raw',
+            'cutadapt.fastq.libsize' : 'stage2_trimmed',
+            'cutadapt.endogenous.bam.libsize': 'stage3_aligned',
+            'cutadapt.unique.endogenous.bam.libsize': 'stage4_unique',
+            'cutadapt.unique_nodups.endogenous.bam.libsize': 'stage5_nodups',
+        }
+
+        df.columns = [convert[i] for i in df.columns]
+
+        df.to_csv(output.tsv, sep='\t')
+        y = {
+            'id': 'libsizes_table',
+            'section_name': 'Library sizes',
+            'description': 'Library sizes at various stages of the pipeline',
+            'plot_type': 'table',
+            'pconfig': {
+                'id': 'libsizes_table_table',
+                'title': 'Library size table',
+                'min': 0
+            },
+            'data': yaml.load(df.transpose().to_json(), Loader=yaml.FullLoader),
+        }
+        with open(output.json, 'w') as fout:
+            yaml.dump(y, fout, default_flow_style=False)
+
 
 rule multiqc:
+    """
+    Aggregate various QC stats and logs into a single HTML report with MultiQC
+    """
+    # NOTE: if you add more rules and want MultiQC to pick up the output, best
+    # to add outputs from those rules to the inputs here.
     input:
         files=(
-            utils.flatten(c.targets['bam']) +
             utils.flatten(c.targets['fastqc']) +
-            utils.flatten(c.targets['peaks'])),
-
-        #bam=c.targets['bam'],
-        #fastqc=c.targets['fastqc']
-        #bam=expand('data/cutnrun_mapped/{sample}.mapped.{{mode}}.bam', sample=sampletable.index),
-        #fastqc=expand(rules.fastqc.output, sample=_st.index, n=c.n),
-        config='config/multiqc_config.yaml', 
+            utils.flatten(c.targets['libsizes_yaml']) +
+            utils.flatten(c.targets['cutadapt']) +
+            utils.flatten(c.targets['bam']) +
+            utils.flatten(c.targets['markduplicates']) +
+            #utils.flatten(c.targets['fingerprint']) +
+            utils.flatten(c.targets['peaks']) +
+            utils.flatten(c.targets['fastq_screen'])
+        ),
+        config='config/multiqc_config.yaml'
     output:
-        html=c.patterns['multiqc'],
-        bowtie2='data/cutnrun_merged/multiqc_{mode}_data/multiqc_bowtie2.txt',
+        c.targets['multiqc']
     log:
-        c.patterns['multiqc'] + '.log'
+        c.targets['multiqc'][0] + '.log'
     run:
-        fn = input[0]
-        analysis_directory = os.path.dirname(fn) + '/*{0}*'.format(wildcards.mode)
-        fastqc = 'data/cutnrun_samples'
-        outdir = os.path.dirname(output[0])
-        basename = os.path.basename(output[0])
+        analysis_directory = set([os.path.dirname(i) for i in input])
+        outdir = os.path.dirname(c.targets['multiqc'][0])
+        basename = os.path.basename(c.targets['multiqc'][0])
         shell(
             'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
             'multiqc '
@@ -233,77 +341,115 @@ rule multiqc:
             '--outdir {outdir} '
             '--force '
             '--filename {basename} '
+            '--config {input.config} '
             '{analysis_directory} '
-            '{fastqc} '
-            '2> {log}'
+            '&> {log} '
         )
 
-rule aggregate_counts:
+print('\n'.join(rules.multiqc.input))
+
+rule markduplicates:
+    """
+    Mark or remove PCR duplicates with Picard MarkDuplicates
+    """
     input:
-        expand('data/cutnrun_merged/multiqc_{mode}_data/multiqc_bowtie2.txt', mode=modes)
+        bam=c.patterns['unique']
     output:
-        c.patterns['agg'],
-    run:
-        dfs = []
-        for i in input:
-            mode = i.split('/')[2].split('_')[1]
-            df = pandas.read_csv(i, sep='\t', index_col=0)
-            cols = df.columns
-            cols = [mode + '.' + c for c in cols]
-            df.columns = cols
-            dfs.append(df)
-        full = pandas.concat(dfs, sort=True)
-        full.to_csv(output[0], sep='\t')
+        bam=c.patterns['markduplicates']['bam'],
+        metrics=c.patterns['markduplicates']['metrics']
+    log:
+        c.patterns['markduplicates']['bam'] + '.log'
+    params:
+        # NOTE: Be careful with the memory here; make sure you have enough
+        # and/or it matches the resources you're requesting in the cluster
+        # config.
+        java_args='-Xmx20g'
+        # java_args='-Xmx2g'  # [TEST SETTINGS -1]
+    shell:
+        'picard '
+        '{params.java_args} '
+        'MarkDuplicates '
+        'INPUT={input.bam} '
+        'OUTPUT={output.bam} '
+        'REMOVE_DUPLICATES=true '
+        'METRICS_FILE={output.metrics} '
+        '&> {log}'
+
+
+rule merge_techreps:
+    """
+    Technical replicates are merged and then re-deduped.
+
+    If there's only one technical replicate, its unique, nodups bam is simply
+    symlinked.
+    """
+    input:
+        lambda wc: expand(
+            c.patterns['markduplicates']['bam'],
+            sample=common.get_techreps(c.sampletable, wc.label),
+            mode=wc.mode
+        )
+    output:
+        bam=c.patterns['merged_techreps'],
+        metrics=c.patterns['merged_techreps'] + '.metrics'
+    log:
+        c.patterns['merged_techreps'] + '.log'
+    params:
+        # NOTE: Be careful with the memory here; make sure you have enough
+        # and/or it matches the resources you're requesting in the cluster
+        # config.
+        java_args='-Xmx32g'
+        # java_args='-Xmx2g'  # [TEST SETTINGS -1]
+    script:
+        wrapper_for('combos/merge_and_dedup/wrapper.py')
+
 
 def get_endogenous(pattern):
     return expand(c.patterns[pattern], sample='{sample}', mode='endogenous')
 
-rule make_bed:
-    input:
-        get_endogenous('bam')
-    output:
-        sorted_bed3=temp("data/cutnrun_mapped/{sample}/{sample}.mapped_sorted.endogenous.BED3"),
-    threads: 8
-    shell:
-        'samtools sort -n --threads={threads} {input} > {output.sorted_bed3}.bam'
-        '&& bamToBed -bedpe -i {output.sorted_bed3}.bam '
-        '| cut -f 1,2,6 '
-        '| bedtools sort -i > {output.sorted_bed3}'
-        '&& rm {output.sorted_bed3}.bam'
+#rule make_bed:
+#    input:
+#        get_endogenous('bam')
+#    output:
+#        sorted_bed3=temp("data/cut-and-run_mapped/{sample}/{sample}.mapped_sorted.endogenous.BED3"),
+#    threads: 8
+#    shell:
+#        'samtools sort -n --threads={threads} {input} > {output.sorted_bed3}.bam'
+#        '&& bamToBed -bedpe -i {output.sorted_bed3}.bam '
+#        '| cut -f 1,2,6 '
+#        '| bedtools sort -i > {output.sorted_bed3}'
+#        '&& rm {output.sorted_bed3}.bam'
 
-rule index_bam:
-    input:
-        get_endogenous('bam')
-    output:
-        bam=get_endogenous('sorted_bam'),
-        bai=[bam + '.bai' for bam in get_endogenous('sorted_bam')]
-    threads: 8
-    run:
-        shell('samtools sort --threads={threads} {input} > {output.bam}')
-        shell('samtools index {output.bam}')
-
-rule make_norm_bedgraph:
-    input:
-        bam = rules.index_bam.output.bam,
-        bai = rules.index_bam.output.bai,
-    output:
-        c.patterns['bedgraph']['norm']
-    threads: 8
-    shell:
-        'bamCoverage -b {input.bam} -of bedgraph -o {output} -p {threads} '
-        '-bs 5 --normalizeUsing BPM'
+#rule make_norm_bedgraph:
+#    input:
+#        bam = get_endogenous('bam'),
+#        bai = [bam + '.bai' for bam in get_endogenous('bam')],
+#    output:
+#        c.patterns['bedgraph']['norm']
+#    threads: 8
+#    shell:
+#        'bamCoverage -b {input.bam} -of bedgraph -o {output} -p {threads} '
+#        '-bs 5 --normalizeUsing BPM'
 
 rule make_bedgraph:
     input:
-        bam = rules.index_bam.output.bam,
-        bai = rules.index_bam.output.bai,
+        bam = get_endogenous('bam'),
+        bai = [bam + '.bai' for bam in get_endogenous('bam')],
     output:
-        c.patterns['bedgraph']['all']
+        bg=c.patterns['bedgraph']['all'],
+        norm=c.patterns['bedgraph']['norm'],
     threads: 8
     run:
-        shell('bamCoverage -b {input.bam} -of bedgraph -o {output}.tmp -p {threads} -bs 5')
-        shell("cat {output}.tmp | awk '{{if($4 > 0) print $0}}' > {output}")
-        shell('rm {output}.tmp')
+        # create bedgraph for use with SEACR
+        shell('bamCoverage -b {input.bam} -of bedgraph -o {output.bg}.tmp -p {threads} -bs 5')
+        shell("cat {output.bg}.tmp | awk '{{if($4 > 0) print $0}}' > {output.bg}")
+        shell('rm {output.bg}.tmp')
+
+        # create normalized bedgraph
+        shell('bamCoverage -b {input.bam} -of bedgraph -o {output.norm}.tmp -p {threads} '
+            '-bs 5 --normalizeUsing BPM')
+        shell("cat {output.norm}.tmp | awk '{{if($4 > 0) print $0}}' > {output.norm}")
+        shell('rm {output.norm}.tmp')
 
 rule run_seacr:
     input:
@@ -318,50 +464,51 @@ rule run_seacr:
 
 rule make_bigwigs:
     input:
-        bam = rules.index_bam.output.bam,
-        bai = rules.index_bam.output.bai,
+        bam = get_endogenous('bam'),
+        bai = [bam + '.bai' for bam in get_endogenous('bam')],
     output:
         c.patterns['bigwig']
     threads: 8
     shell:
         'bamCoverage -b {input.bam} -of bigwig -o {output} -p {threads} -bs 5 --normalizeUsing BPM'
 
-rule make_chrom_sizes:
-    input: 
-        rules.make_bedgraph.output,
-    output:
-        "data/cutnrun_mapped/{sample}/{sample}.chrom.sizes",
-    run:
-        o = open(output[0], 'w')
-
-        chrom = None
-        end = None
-        
-        with open(input[0]) as f:
-            for line in f:
-                cols = line.strip().split('\t')
-                if not chrom:
-                    chrom = cols[0]
-                    end = cols[2]
-                elif chrom != cols[0]:
-                    o.write(chrom + '\t' + end + '\n')
-                    chrom = cols[0]
-                    end = cols[2]
-                else:
-                    end = cols[2]
-        o.write(chrom + '\t' + end + '\n')
-        o.close()
+#rule make_chrom_sizes:
+#    input: 
+#        rules.make_bedgraph.output,
+#    output:
+#        "data/cut-and-run_mapped/{sample}/{sample}.chrom.sizes",
+#    run:
+#        o = open(output[0], 'w')
+#
+#        chrom = None
+#        end = None
+#        
+#        with open(input[0]) as f:
+#            for line in f:
+#                cols = line.strip().split('\t')
+#                if not chrom:
+#                    chrom = cols[0]
+#                    end = cols[2]
+#                elif chrom != cols[0]:
+#                    o.write(chrom + '\t' + end + '\n')
+#                    chrom = cols[0]
+#                    end = cols[2]
+#                else:
+#                    end = cols[2]
+#        o.write(chrom + '\t' + end + '\n')
+#        o.close()
                 
 
 rule make_bigbeds:
     input:
         bed = utils.flatten(c.patterns['peaks']),
-        chrom_sizes = lambda wc: expand(rules.make_chrom_sizes.output, 
-                sample=chipseq.samples_for_run(config, wc.seacr_run, 'seacr', 'ip')),
+        #chrom_sizes = lambda wc: expand(rules.make_chrom_sizes.output, 
+        #        sample=chipseq.samples_for_run(config, wc.seacr_run, 'seacr', 'ip')),
+        chromsizes = refdict[c.organism][config['aligner']['tag']]['chromsizes'],
         as_file="seacrbeds.as"
     output:
         utils.flatten(c.patterns['bigbed'])
     shell:
-        "bedToBigBed -as={input.as_file} -type=bed3+3 {input.bed} {input.chrom_sizes} {output}"
+        "bedToBigBed -as={input.as_file} -type=bed3+3 {input.bed} {input.chromsizes} {output}"
 
 # vim: ft=python
