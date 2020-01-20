@@ -61,8 +61,6 @@ library(cowplot)
 library(plotly)
 library(tibble)
 library(dplyr)
-
-#register(MulticoreParam(4))
 ```
 
 
@@ -256,12 +254,10 @@ for(group in groups){
 
 i <- 1
 mdcat('### ', names(p)[i])
-#p <- plotPCA(rld, intgroup=groups[1])
 ggplotly(p[[i]])
 
 i <- 2
 mdcat('### ', names(p)[i])
-#p <- plotPCA(rld, intgroup=groups[2])
 ggplotly(p[[i]])
 
 ```
@@ -285,7 +281,7 @@ trc <- colSums(counts(dds)) %>%
 trc_vs_sf <- full_join(sf, trc, by = 'name')
 group_names <- tibble(name=dds$samplename, group=dds$group)
 trc_vs_sf <- full_join(trc_vs_sf, group_names, by = 'name')
-p <- ggplot(data=trc_vs_sf, aes_string(x="`Total Read Count`", y="`Size Factor`", color='group', label='name')) +
+p <- ggplot(data=trc_vs_sf, aes_string(x="`Total Read Count`", y="`Size Factor`", label='name')) +
     geom_point(size=3)
 ggplotly(p)
 ```
@@ -872,7 +868,6 @@ for(comp in names(all.enrich)){
 
 ```
 
-
 Below we show the results separately for each comparison. Links to files
 containing analysis results are shown above each set of plots, with parsed
 files showing genes on separate lines.
@@ -979,69 +974,6 @@ for(comp in names(all.enrich)){
     }
 }
 ```
-
-```{r groupcounts, cache=TRUE, eval=FALSE}
-# NOTE: optionally disable this chunk------------------------------------------
-#
-#    This chunk inspects the model matrix of the design, aggregates counts for
-#    each of the levels in the design, and attaches them to each set of
-#    results.
-#
-#    It also attaches normalized gene counts and Salmon TPM.
-#
-#    Requires transcript.tpm to be available, and therefore Salmon was run
-counts.list <- list()
-
-# Compute aggregate (by gene) normalized transcript counts from Salmon
-gene.tpm <- aggregate(transcript.tpm, list(transcript.geneids), sum)
-
-# Use normalized counts to get per-level mean counts. Attach Salmon aggregate
-# counts to each output file. This does *not* assume any particular model.
-for (name in names(res.list)) {
-
-    my.res <- res.list[[name]][['res']]
-    my.dds <- res.list[[name]][['dds']]
-
-    counts.list[[name]] <- my.res[,c("gene", "baseMean", "log2FoldChange", "lfcSE", "padj")]
-
-    # get the DESeq2 normalized per-gene count data
-    my.normalized.counts <- counts(my.dds, TRUE)
-    colnames(gene.tpm) <- c("Gene", colnames(my.normalized.counts))
-
-    # report per-sample Salmon counts to output files
-    merged.results.deseq.counts <- merge(data.frame(my.res), my.normalized.counts, by.x="gene", by.y="row.names", all.x=TRUE, sort=FALSE)
-    merged.results.salmon.tpm <- merge(data.frame(my.res), gene.tpm, by.x="gene", by.y="Gene", all.x=TRUE, sort=FALSE)
-    rownames(merged.results.deseq.counts) <- merged.results.deseq.counts$gene
-    rownames(merged.results.salmon.tpm)   <- merged.results.salmon.tpm$gene
-    merged.results.deseq.counts           <- merged.results.deseq.counts[rownames(my.res),]
-    merged.results.salmon.tpm <- merged.results.salmon.tpm[rownames(my.res),]
-    rownames(merged.results.deseq.counts) <- NULL
-    rownames(merged.results.salmon.tpm) <- NULL
-    for (colname in colnames(my.normalized.counts)) {
-        my.res[,paste('deseq2.counts', colname, sep='.')] <- merged.results.deseq.counts[,colname]
-        my.res[,paste('avg.salmon.tpm', colname, sep='.')] <- merged.results.salmon.tpm[,colname]
-    }
-
-    # extract the design matrix
-    my.model <- model.matrix(design(my.dds), colData(my.dds))
-
-    # unique rows correspond to groups
-    my.unique.patterns <- unique(my.model)
-
-    # for each unique pattern
-    for (i in 1:nrow(my.unique.patterns)) {
-        # determine which samples conform to that pattern
-        in.pattern <- apply(my.model, 1, function(row) {all(row == my.unique.patterns[i,])})
-    # get counts just in those samples
-    in.counts <- rowMeans(my.normalized.counts[,in.pattern])
-    counts.list[[name]] <- cbind(counts.list[[name]], in.counts)
-    colnames(counts.list[[name]])[ncol(counts.list[[name]])] <- format.group.name(my.unique.patterns[i,])
-    }
-}
-```
-
-
-
 
 # Session info
 For reproducibility purposes, here is the output of `sessionInfo()` showing the
