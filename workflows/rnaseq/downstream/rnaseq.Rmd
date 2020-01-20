@@ -271,11 +271,22 @@ depth varies across libraries. If some libraries are much higher or lower than
 1 then those libraries had dramatically different coverage and we should be
 careful about interpreting results.
 
+These diagnostic plots show the size factors (as a ranked bar plot) and the
+relationship between the size factors and the total read count (as
+a scatterplot).
+
 ```{r}
 dds <- estimateSizeFactors(dds)
 sf <- sizeFactors(dds)
 sf <- sf[order(sf)] %>%
         enframe(value = 'Size Factor')
+
+p <- ggplot(sf) +
+    aes(x=reorder(name, `Size Factor`), y=`Size Factor`) +
+    geom_col()
+
+ggplotly(p)
+
 trc <- colSums(counts(dds)) %>%
         enframe(value = 'Total Read Count')
 trc_vs_sf <- full_join(sf, trc, by = 'name')
