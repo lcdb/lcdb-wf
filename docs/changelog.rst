@@ -1,6 +1,39 @@
 Changelog
 =========
 
+v1.5.3
+------
+
+RNA-seq
+~~~~~~~
+
+- ``dds`` objects can now be created from a full featureCounts input file plus
+  a *subsetted* colData table. This makes it easy to re-run analyses after
+  removing outliers from the colData table. Note that ``subset.counts=TRUE``
+  must be set, otherwise an error will be raised if the colData rows don't
+  match the featureCounts columns.
+- `rnaseq.Rmd` now better tracks the dependencies across chunks for hopefully improved caching behavior
+- added diagnostic size factor plots in `rnaseq.Rmd`
+- using rseqc instead of CollectRnaSeqMetrics
+
+
+
+General
+~~~~~~~
+- bugfix: the presence of ``orig_filename_R2`` in the sampletable is sufficient to consider the experiment paired-end.
+- default 12-hr wall time in WRAPPER_SLURM
+- add bed12 conversion for human references
+- .gitignore now ignores many downstream RNA-seq files that should not be tracked
+
+
+Tests
+~~~~~
+
+- now using the `continuumio/miniconda3` docker container for testing (and go
+  through the various hoops required to get ``en_US.utf8`` to work in that
+  container...)
+
+
 v1.5.2
 ------
 
