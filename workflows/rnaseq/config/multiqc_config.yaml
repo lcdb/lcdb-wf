@@ -49,6 +49,8 @@ module_order:
         name: 'FastQC (raw)'
         path_filters:
             - '*.fastq.gz_fastqc.zip'
+        fastqc_status_checks:
+          remove
     - libsizes_table
     - rrna_percentages_table
     - cutadapt
@@ -57,6 +59,8 @@ module_order:
         target: ''
         path_filters:
             - '*.cutadapt.fastq.gz_fastqc.zip'
+        fastqc_status_checks:
+          remove
     - fastq_screen
     - bowtie2
     - fastqc:
@@ -64,6 +68,8 @@ module_order:
         target: ''
         path_filters:
             - '*.cutadapt.bam_fastqc.zip'
+        fastqc_status_checks:
+          remove
     - picard
     - rseqc
     - salmon
