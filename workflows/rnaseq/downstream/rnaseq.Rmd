@@ -364,6 +364,7 @@ res.list <- list()
 # NOTE: Example contrast #1----------------------------------------------------
 #   Using the example data, this compares treatment group to control group.
 #   Change to reflect your experiment.
+# IMPORTANT: Control must always be last
 res.list[['all']] <- list(
     res=lfcShrink(dds, contrast=c('group', 'treatment', 'control')),
     dds=dds,
