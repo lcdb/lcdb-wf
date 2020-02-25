@@ -566,6 +566,7 @@ attach.info <- function(res, keytype='ENSEMBL', columns=c('SYMBOL', 'UNIPROT', '
     for (column in columns){
       label <- tolower(column)
       res[label] <- mapIds(orgdb, keys=keys, column=column, keytype=keytype, multiVal='first')
+      res[[label]] <- ifelse(is.na(res[[label]], keys, res[[label]])
     }
     # Put "gene" column as the first
     cn <- colnames(res)
