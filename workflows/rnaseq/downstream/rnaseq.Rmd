@@ -264,18 +264,24 @@ ggplotly(p[[i]])
 
 
 ## Size factors {.tabset}
-Size factors: ideally, all libraries were sequenced to identical depth, in
-which case all size factors would be 1.0. In practice, this is almost never the
-case. These size factor estimates are DESeq2's way of showing how sequencing
-depth varies across libraries. If some libraries are much higher or lower than
+Ideally, all libraries were sequenced to identical depth, in which case all
+size factors would be 1.0. In practice, this is almost never the case due to
+the difficulties of accurately measuring low concentrations of cDNA. These size
+factor estimates are DESeq2's way of showing how sequencing depth varies across
+libraries. If some libraries are much higher or lower than
 1 then those libraries had dramatically different coverage and we should be
 careful about interpreting results.
+
+Size factors are calculated according to the median-ratio method (equation 5 of
+[Anders & Huber
+2010](http://dx.doi.org/10.1186/gb-2010-11-10-r106)).
 
 These diagnostic plots show the size factors (as a ranked bar plot) and the
 relationship between the size factors and the total read count (as
 a scatterplot).
 
-```{r}
+```{r, results='asis'}
+mdcat('### Size factors')
 dds <- estimateSizeFactors(dds)
 sf <- sizeFactors(dds)
 sf <- sf[order(sf)] %>%
@@ -283,10 +289,11 @@ sf <- sf[order(sf)] %>%
 
 p <- ggplot(sf) +
     aes(x=reorder(name, `Size Factor`), y=`Size Factor`) +
+    xlab('sample name') +
     geom_col()
-
 ggplotly(p)
 
+mdcat('### Size factors vs total read count')
 trc <- colSums(counts(dds)) %>%
         enframe(value = 'Total Read Count')
 trc_vs_sf <- full_join(sf, trc, by = 'name')
