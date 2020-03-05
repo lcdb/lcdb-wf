@@ -746,7 +746,7 @@ id.convert <- TRUE
 from.type <- "FLYBASE"
 
 deg.list <- nested.lapply(sel.list, rownames)
-genes.df <- nested.lapply(deg.list, bitr, fromType=from.type, toType=types, OrgDb=orgdb)
+genes.df <- nested.lapply(deg.list, bitr_override, fromType=from.type, toType=types, OrgDb=orgdb)
 ```
 
 ```{r enrich_all, results='hide', cache=TRUE}
