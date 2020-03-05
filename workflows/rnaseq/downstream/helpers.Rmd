@@ -712,4 +712,65 @@ write.clusterprofiler.results <- function(res, cprof.folder, label){
     write.table(res.split, file=filename.split, sep='\t', quote=FALSE, row.names=FALSE)
     return(list(orig=filename.orig, split=filename.split))
 }
+
+#' Loads the orgdb for other functions
+#' Copied from the DOSE package by Guangchuang Yu
+#' @param OrgDb object or OrgDb name.
+#'
+#' @return orgdb object
+load_OrgDb <- function(OrgDb){
+    if (is(OrgDb, "character")) {
+        require(OrgDb, character.only = TRUE)
+        OrgDb <- eval(parse(text=OrgDb))
+    }
+    return(OrgDb) 
+ }
+
+#' Biological Id TRanslator copied from the clusterProfiler package by Guangchuang Yu
+#' This version is altered so no error will be returned if a given key does not find a match
+#' in the orgdb.
+#' @param geneID input gene id
+#' @param fromType input id type
+#' @param toType output id type(s)
+#' @param OrgDb annotation db
+#' @param drop drop NA or not
+#' 
+#' @return data.frame mapiing input IDs with output IDs of the selected types
+bitr_override <- function(geneID, fromType, toType, OrgDb, drop=TRUE) {
+    idTypes <- idType(OrgDb)
+    msg <-  paste0("should be one of ", paste(idTypes, collapse=", "), ".")
+    if (! fromType %in% idTypes) {
+        stop("'fromType' ", msg)
+    }
+    if (! all(toType %in% idTypes)) {
+        stop("'toType' ", msg)
+    }
+
+    geneID %<>% as.character %>% unique
+    db <- load_OrgDb(OrgDb)
+
+    # Create an empty vector the same as typical output
+    # if the try fails, replace with an empty dataframe
+    name_vec <- c(fromType, toType)
+    tmp <- length(name_vec)
+    res <- data.frame(matrix(ncol=tmp, nrow=0))
+    colnames(res) <- name_vec
+    try({res <- suppressWarnings(select(db,
+                                   keys = geneID,
+                                   keytype = fromType,
+                                   columns=c(fromType, toType)))
+     })
+    ii <- which(is.na(res[,2]))
+    if (length(ii)) {
+        n <- res[ii, 1] %>% unique %>% length
+        if (n) {
+            warning(paste0(round(n/length(geneID)*100, 2), "%"), " of input gene IDs are fail to map...")
+        }
+        if (drop) {
+            res <- res[-ii, ]
+        }
+    }
+    return(res)
+}
+
 ```
