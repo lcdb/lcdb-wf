@@ -16,6 +16,9 @@ fastq_screen:
 markduplicates:
   prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g --partition=quick"
 
+rnaseq_rmarkdown:
+  prefix: "--partition=quick --mem=16g --time=1:30:00"
+
 collectrnaseqmetrics:
   prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g --partition=quick"
 
