@@ -17,6 +17,9 @@ Bugs
 - add bed12 conversion for all species with default reference configs
 - presence of an orig_filename_R2 in sampletable is sufficient to consider the
   experiment PE
+- ensure DEGpattern output only contains unique genes
+- bring back featurecounts in multiqc report
+- "attach" chunk in rnaseq.Rmd was not properly set to depend on the "results" chunk
 
 RNA-seq
 ~~~~~~~
@@ -31,13 +34,13 @@ RNA-seq
 - when converting Ensembl to symbol, if there is no symbol then fall back to
   the Ensembl ID to avoid NA (`#246
   <https://github.com/lcdb/lcdb-wf/issues/246>`_)
+- in rnaseq.Rmd, all caches will be invalidated if the sampletable or the
+  featurecounts table have changed.
 
 Tests
 ~~~~~
 - using continuumio/miniconda3 container; finally got en_US.utf8 locale
   installed and working correctly in that container so that multiqc works.
-
->>>>>>> v1.5.3.rc
 
 
 v1.5.2
