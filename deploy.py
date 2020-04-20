@@ -91,7 +91,7 @@ ap.add_argument(
     default="full",
     help="""Options are {0}. Default is full.""".format(list(flavors.keys())),
 )
-ap.add_argument("--dest", help="""Destination directory in which to copy files""")
+ap.add_argument("--dest", help="""Destination directory in which to copy files""", required=True)
 ap.add_argument(
     "--build-env",
     action="store_true",

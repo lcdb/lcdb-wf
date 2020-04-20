@@ -394,6 +394,7 @@ res.list <- list()
 # NOTE: Example contrast #1----------------------------------------------------
 #   Using the example data, this compares treatment group to control group.
 #   Change to reflect your experiment.
+# IMPORTANT: Control must always be last
 res.list[['all']] <- list(
     res=lfcShrink(dds, contrast=c('group', 'treatment', 'control')),
     dds=dds,
@@ -405,6 +406,7 @@ res.list[['all']] <- list(
 #    Using the example data, this compares treatment group to control group but
 #    requiring genes to have >4-fold differences (log2(4) = 2). Change to
 #    reflect your experiment.
+#    If using an lfcThreshold, must update elsewhere throughout the code.
 res.lfcthresh.2 <- results(
     dds,
     contrast=c('group', 'treatment', 'control'),
@@ -442,7 +444,7 @@ for (name in names(res.list)){
 ```{r}
 # NOTE: significance level---------------------------------------------------
 alpha <- 0.1
-lfc.thresh <- 0
+lfc.thresh <- 0 # Must change if using an lfcThreshold other than 0
 ```
 
 Here is a table summarizing the comparisons. See the [Background and

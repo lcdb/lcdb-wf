@@ -4,34 +4,40 @@ Changelog
 v1.5.3
 ------
 
+General
+~~~~~~~
+- default 12-hr wall time in WRAPPER_SLURM
+- update .gitignore (`#223 <https://github.com/lcdb/lcdb-wf/issues/223>`_)
+- remove the FastQC status checks section from the MultiQC report (which shows
+  up in recent MultiQC versions) (`#246 <https://github.com/lcdb/lcdb-wf/issues/246>`_
+
+Bugs
+~~~~
+
+- add bed12 conversion for all species with default reference configs
+- presence of an orig_filename_R2 in sampletable is sufficient to consider the
+  experiment PE
+
 RNA-seq
 ~~~~~~~
 
-- ``dds`` objects can now be created from a full featureCounts input file plus
-  a *subsetted* colData table. This makes it easy to re-run analyses after
-  removing outliers from the colData table. Note that ``subset.counts=TRUE``
-  must be set, otherwise an error will be raised if the colData rows don't
-  match the featureCounts columns.
-- `rnaseq.Rmd` now better tracks the dependencies across chunks for hopefully improved caching behavior
-- added diagnostic size factor plots in `rnaseq.Rmd`
-- using rseqc instead of CollectRnaSeqMetrics
-
-
-
-General
-~~~~~~~
-- bugfix: the presence of ``orig_filename_R2`` in the sampletable is sufficient to consider the experiment paired-end.
-- default 12-hr wall time in WRAPPER_SLURM
-- add bed12 conversion for human references
-- .gitignore now ignores many downstream RNA-seq files that should not be tracked
-
+- dds objects can now be created from a full featureCounts input file and
+  a subsetted colData table, if subset.counts=TRUE
+- improve the dependencies between rnaseq.Rmd chunks so that cache=TRUE behaves
+  as expected: (`#232 <https://github.com/lcdb/lcdb-wf/issues/232>`_)
+- add plots for rnaseq.Rmd size factors (`#222 <https://github.com/lcdb/lcdb-wf/issues/222>`_)
+- run rseqc instead of CollectRnaSeqMetrics (the multiqc output is nicer for
+  it, and it's pretty much doing the same thing) (`#218 <https://github.com/lcdb/lcdb-wf/issues/218>`_)
+- when converting Ensembl to symbol, if there is no symbol then fall back to
+  the Ensembl ID to avoid NA (`#246
+  <https://github.com/lcdb/lcdb-wf/issues/246>`_)
 
 Tests
 ~~~~~
+- using continuumio/miniconda3 container; finally got en_US.utf8 locale
+  installed and working correctly in that container so that multiqc works.
 
-- now using the `continuumio/miniconda3` docker container for testing (and go
-  through the various hoops required to get ``en_US.utf8`` to work in that
-  container...)
+>>>>>>> v1.5.3.rc
 
 
 v1.5.2
