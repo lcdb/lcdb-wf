@@ -407,6 +407,7 @@ rule featurecounts:
         counts='{sample_dir}/rnaseq_aggregation/featurecounts.txt'
     log:
         '{sample_dir}/rnaseq_aggregation/featurecounts.txt.log'
+    threads: 4
     run:
         # NOTE: By default, we use -p for paired-end
         p_arg = ''
