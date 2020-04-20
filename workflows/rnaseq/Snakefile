@@ -407,6 +407,7 @@ rule featurecounts:
         counts='{sample_dir}/rnaseq_aggregation/featurecounts.txt'
     log:
         '{sample_dir}/rnaseq_aggregation/featurecounts.txt.log'
+    threads: 4
     run:
         # NOTE: By default, we use -p for paired-end
         p_arg = ''
@@ -561,7 +562,7 @@ rule multiqc:
         outdir = os.path.dirname(c.targets['multiqc'][0])
         basename = os.path.basename(c.targets['multiqc'][0])
         shell(
-            'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
+            'LC_ALL=en_US.utf8 LC_LANG=en_US.utf8 '
             'multiqc '
             '--quiet '
             '--outdir {outdir} '
@@ -733,18 +734,6 @@ rule salmon:
             )
 
 
-rule rseqc_bam_stat:
-    """
-    Calculate various BAM stats with RSeQC
-    """
-    input:
-        bam=c.patterns['bam']
-    output:
-        txt=c.patterns['rseqc']['bam_stat']
-    shell:
-        'bam_stat.py -i {input.bam} > {output.txt}'
-
-
 rule rseqc_infer_experiment:
     """
     Infer strandedness of experiment
@@ -760,6 +749,19 @@ rule rseqc_infer_experiment:
     shell:
         'infer_experiment.py -r {input.bed12} -i {input.bam} > {output} &> {log}'
 
+rule rseqc_read_distribution:
+    """
+    read distribution plots
+    """
+    input:
+        bam=c.patterns['bam'],
+        bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12'],
+    output:
+        txt=c.patterns['rseqc']['read_distribution']
+    log:
+        c.patterns['rseqc']['read_distribution'] + '.log'
+    shell:
+        'read_distribution.py -i {input.bam} -r {input.bed12} > {output} &> {log}'
 
 rule bigwig_neg:
     """

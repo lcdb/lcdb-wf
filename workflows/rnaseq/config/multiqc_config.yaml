@@ -14,7 +14,6 @@ extra_fn_clean_exts:
   - '.salmon'
   - '_R1'
   - '_R2'
-  - '_bam_stat'
 
 
 # Modify the module search patterns to match what we're creating in the
@@ -67,10 +66,14 @@ module_order:
     - picard
     - rseqc
     - salmon
-    - featureCounts:
+    - featurecounts:
         name: 'featureCounts'
         path_filters:
             - 'featurecounts.txt.summary'
+
+remove_sections:
+  - fastqc_status_checks
+
 
 # This organizes the FastQC general sample table columns so that the different
 # stages are right next to each other, making it easier to compare the effects
