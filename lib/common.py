@@ -664,6 +664,8 @@ def is_paired_end(sampletable, sample):
         Assumed to be found in the first column of `sampletable`
     """
     row = sampletable.set_index(sampletable.columns[0]).loc[sample]
+    if 'orig_filename_R2' in row:
+        return True
     if 'layout' in row and 'LibraryLayout' in row:
         raise ValueError("Expecting column 'layout' or 'LibraryLayout', "
                          "not both")

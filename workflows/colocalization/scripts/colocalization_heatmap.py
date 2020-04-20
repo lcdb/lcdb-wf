@@ -43,7 +43,7 @@ def dataframe_for_domain(domain, algorithm):
         _df['query'] = query
         _df['reference'] = reference
         df.append(
-            _df.ix[0].to_dict()
+            _df.iloc[0].to_dict()
         )
     return pd.DataFrame(df)
 
@@ -197,7 +197,7 @@ def plot_heatmap(fill_piv, vmin, vmax, title, units, metric='euclidean',
     fill_piv = fill_piv.astype(float)
     # subset if requested
     if idx is not None:
-        fill_piv = fill_piv.ix[idx, idx]
+        fill_piv = fill_piv.loc[idx, idx]
 
     # Distance matrix, setting NaN to zero if necessary
     dist = distance.pdist(fill_piv.values, metric=metric)

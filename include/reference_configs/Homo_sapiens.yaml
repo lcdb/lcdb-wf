@@ -23,6 +23,7 @@ references:
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/human/gencode_GRCh38.28_to_ucsc_hg38/mappings_gencode_GRCh38.28_to_ucsc_hg38.tsv'
         conversions:
           - 'refflat'
+          - 'bed12'
 
     gencode-v28-transcriptome:
       fasta:

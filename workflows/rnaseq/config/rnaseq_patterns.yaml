@@ -37,7 +37,6 @@ dupradar:
 preseq: 'data/rnaseq_samples/{sample}/{sample}_preseq_c_curve.txt'
 salmon: 'data/rnaseq_samples/{sample}/{sample}.salmon/quant.sf'
 rseqc:
-   bam_stat: 'data/rnaseq_samples/{sample}/rseqc/{sample}_bam_stat.txt'
    infer_experiment: 'data/rnaseq_samples/{sample}/rseqc/{sample}_infer_experiment.txt'
    read_distribution: 'data/rnaseq_samples/{sample}/rseqc/{sample}_read_distribution.txt'
 bigwig:

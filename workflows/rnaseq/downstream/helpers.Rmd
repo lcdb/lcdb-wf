@@ -6,6 +6,9 @@ library(DEGreport)
 library(ggplot2)
 library(ggrepel)
 library(heatmaply)
+library(readr)
+library(stringr)
+library(tibble)
 
 #' Get the OrgDb for the specified organism, using the cached AnnotationHub.
 #'
@@ -219,45 +222,78 @@ mdcat <- function(...){
 }
 
 
+#' Convert a vector of BAM filenames into a vector of samplenames.
+#'
+#' @param x Character vector of BAM filenames (e.g., from the header of
+#'        featureCounts)
+#'
+lcdbwf.samplename <- function(x) {
+    x <- x %>%
+        str_remove_all('data/rnaseq_samples/') %>%
+        str_remove_all('.cutadapt.bam') %>%
+        str_split(fixed('/'), simplify=TRUE)
+    x[,1]
+}
+
+
 #' Load a single combined featureCounts table into a DESeq object.
 #'
 #' @param filename Filename containing featureCounts combined output
 #' @param sampletable data.frame containing at least sample names as first
-#' column
+#'        column
 #' @param design Model used for creating DESeq object
+#' @param sample.func Function that will be applied to each column name
+#'        to align it to the input sampletable. Takes a character vector as
+#'        input and returns a character vector of adjusted strings.
+#' @param subset.counts If TRUE, then counts are subsetted by the provided
+#'        sampletable. That is, only the counts columns that match a rowname of
+#'        the provided sampletable are included. If FALSE (default), an error
+#'        is raised reporting the differences in sampletable and counts data.
+#'        It is always an error if counts data does not have an entry for
+#'        a sample in the sampletable.
 #'
 #' @return DESeq object
 #'
 #' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
-DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable, design, ...){
+DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable, design, sample.func=lcdbwf.samplename, subset.counts=FALSE, ...){
 
-    m <- read.table(filename, header=TRUE, row.names=1)
-    m <- m[, 6:ncol(m)]
+    # Read in the TSV, use gene ID as rownames, and get rid of the Chr, Start,
+    # End, Strand, Length columns
+    m <- read_tsv(filename, comment="#") %>%
+        remove_rownames %>%
+        column_to_rownames('Geneid') %>%
+        dplyr::select(-(1:5)) %>%
+        as.data.frame
 
     # The column names of the imported table are not guaranteed to match the
     # samples in the metadata, so we need to make sure things match up
     # correctly when renaming columns.
 
-    s <- as.character(sampletable[,1])
+    x <- colnames(m) %>% sample.func
 
-    # If each sample matches exactly once, then sapply will simplify to an
-    # integer. Otherwise, it will be a list.
-    hits <- sapply(s, grep, colnames(m))
-    stopifnot(class(hits) == 'integer')
-
-    # In this case, we now have an integer vector showing which samplename
-    # should be used for which column in `m`:
-    #
-    #   sample1 sample2 sample3 sample4
-    #         2       1       4       3
-    #
-    # Sorting this list will give us the order of names that were in the counts
-    # table. So we can reorder the sampletable accordingly.
-    colnames(m) <- names(sort(hits))
-    sampletable.rearranged <- sampletable[colnames(m),]
+    counts.not.sampletable <- setdiff(x, rownames(sampletable))
+    sampletable.not.counts <- setdiff(rownames(sampletable), x)
 
 
-    object <- DESeqDataSetFromMatrix(countData=m, colData=sampletable.rearranged, design=design, ...)
+    if (!all(x %in% rownames(sampletable))){
+        # sampletable is missing:
+        if (!subset.counts){
+            stop(paste('The following samples are in the counts data but not the sampletable. If this is intended, consider using `subset.counts=TRUE` to remove them from the counts:', paste(counts.not.sampletable, collapse=', ')))
+        }
+    }
+    if (!all(rownames(sampletable) %in% x)){
+        stop(
+           paste(
+             'The following samples are in the sampletable but not in the counts data. Check sample.func?',
+             paste(sampletable.not.counts, collapse=', '))
+        )
+    }
+
+    colnames(m) <- x
+
+    # We should be good -- so reorder columns in `m` to match sampletable
+    m <- m[, sampletable[,1]]
+    object <- DESeqDataSetFromMatrix(countData=m, colData=sampletable, design=design, ...)
     return(object)
 }
 
@@ -530,6 +566,7 @@ attach.info <- function(res, keytype='ENSEMBL', columns=c('SYMBOL', 'UNIPROT', '
     for (column in columns){
       label <- tolower(column)
       res[label] <- mapIds(orgdb, keys=keys, column=column, keytype=keytype, multiVal='first')
+      res[[label]] <- ifelse(is.na(res[[label]]), keys, res[[label]])
     }
     # Put "gene" column as the first
     cn <- colnames(res)
