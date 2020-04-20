@@ -185,7 +185,7 @@ rule cutadapt:
                 '-q 20 '
                 '-j {threads} '
                 '--minimum-length 25 '
-                "{input.c[0]} "
+                "{input.fastq[0]} "
                 "{input.fastq[1]} "
                 "&> {log}"
             )
