@@ -164,7 +164,7 @@ transcript.tpm <- txi$abundance
 colnames(transcript.tpm) <- colData$samplename
 ```
 
-```{r ddstxi, cache=TRUE, eval=TRUE}
+```{r ddstxi, cache=TRUE, eval=FALSE}
 dds.txi <- DESeqDataSetFromTximport(
     txi, colData=colData[, -grepl('path', colnames(colData)), drop=FALSE],
 
@@ -424,7 +424,7 @@ res.list[['lfc2']] <- list(
 ```
 
 
-```{r attach, cache=TRUE, depends='results'}
+```{r attach, cache=TRUE, dependson='results'}
 # NOTE: Assumes Ensembl Ids----------------------------------------------------
 keytype <- 'ENSEMBL'
 
