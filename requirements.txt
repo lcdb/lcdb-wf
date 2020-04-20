@@ -19,7 +19,7 @@ deeptools >=3.0.1
 fastqc
 fastq-screen
 
-# for fastqc running on circleci 
+# for fastqc running on circleci
 font-ttf-dejavu-sans-mono
 
 gat
