@@ -1,17 +1,17 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
     <title>References config &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Sample tables" href="sampletable.html" />
@@ -87,7 +87,7 @@
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -391,10 +391,10 @@ this:</p>
 
 <span class="k">def</span> <span class="nf">add_chr</span><span class="p">(</span><span class="n">origfn</span><span class="p">,</span> <span class="n">newfn</span><span class="p">):</span>
     <span class="n">shell</span><span class="p">(</span>
-        <span class="s1">&#39;zcat {origfn} &#39;</span>       <span class="c1"># input is always gzipped</span>
+        <span class="s1">&#39;zcat </span><span class="si">{origfn}</span><span class="s1"> &#39;</span>       <span class="c1"># input is always gzipped</span>
         <span class="s1">&#39;| sed &quot;s/&gt;/&gt;chr/g&quot; &#39;</span>  <span class="c1"># add chr to names</span>
-        <span class="s1">&#39;| gzip -c &gt; {newfn} &#39;</span> <span class="c1"># re-zip</span>
-        <span class="s1">&#39;&amp;&amp; rm {origfn}&#39;</span>       <span class="c1"># clean up</span>
+        <span class="s1">&#39;| gzip -c &gt; </span><span class="si">{newfn}</span><span class="s1"> &#39;</span> <span class="c1"># re-zip</span>
+        <span class="s1">&#39;&amp;&amp; rm </span><span class="si">{origfn}</span><span class="s1">&#39;</span>       <span class="c1"># clean up</span>
     <span class="p">)</span>
 </pre></div>
 </div>
@@ -588,7 +588,7 @@ attribute that may happen to be called <code class="docutils literal notranslate
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

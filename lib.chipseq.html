@@ -1,17 +1,17 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
     <title>Module lib.chipseq &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Module lib.patterns_targets" href="lib.patterns_targets.html" />
@@ -86,7 +86,7 @@
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -126,32 +126,32 @@ it more easily in the ChIP-seq workflow without cluttering the Snakefile.</p>
 <div class="section" id="module-lib.chipseq">
 <span id="details"></span><h2>Details<a class="headerlink" href="#module-lib.chipseq" title="Permalink to this headline">¶</a></h2>
 <p>Helpers for ChIP-seq.</p>
-<dl class="function">
+<dl class="py function">
 <dt id="lib.chipseq.block_for_run">
-<code class="sig-prename descclassname">lib.chipseq.</code><code class="sig-name descname">block_for_run</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">label</em>, <em class="sig-param">algorithm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#block_for_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.chipseq.block_for_run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">lib.chipseq.</code><code class="sig-name descname">block_for_run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">label</span></em>, <em class="sig-param"><span class="n">algorithm</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#block_for_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.chipseq.block_for_run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the block for the (label, algorithm) run.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – </p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – </p></li>
 <li><p><strong>algorithm</strong> (<em>label</em><em>,</em>) – </p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="lib.chipseq.detect_peak_format">
-<code class="sig-prename descclassname">lib.chipseq.</code><code class="sig-name descname">detect_peak_format</code><span class="sig-paren">(</span><em class="sig-param">fn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#detect_peak_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.chipseq.detect_peak_format" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">lib.chipseq.</code><code class="sig-name descname">detect_peak_format</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#detect_peak_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.chipseq.detect_peak_format" title="Permalink to this definition">¶</a></dt>
 <dd><p>Figure out if a BED file is narrowPeak or broadPeak.</p>
 <p>Returns None if undetermined.</p>
 <p>This is useful for figuring out which autoSql file we should use or which
 bigBed 6+4 or bigBed 6+3 format to use.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="lib.chipseq.merged_input_for_ip">
-<code class="sig-prename descclassname">lib.chipseq.</code><code class="sig-name descname">merged_input_for_ip</code><span class="sig-paren">(</span><em class="sig-param">sampletable</em>, <em class="sig-param">merged_ip</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#merged_input_for_ip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.chipseq.merged_input_for_ip" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">lib.chipseq.</code><code class="sig-name descname">merged_input_for_ip</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sampletable</span></em>, <em class="sig-param"><span class="n">merged_ip</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#merged_input_for_ip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.chipseq.merged_input_for_ip" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the merged input label for a merged IP label.</p>
 <p>This is primarily used for the <cite>fingerprint</cite> rule, where we collect all the
 available input BAMs together.</p>
@@ -159,7 +159,7 @@ available input BAMs together.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>sampletable</strong> (<em>pandas.DataFrame</em>) – </p></li>
-<li><p><strong>merged_ip</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Label of IP to use, must be present in the <cite>label</cite> column of the
+<li><p><strong>merged_ip</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Label of IP to use, must be present in the <cite>label</cite> column of the
 sampletable.</p></li>
 </ul>
 </dd>
@@ -174,7 +174,7 @@ it shares the same biological material.</p>
 <p>Compare input1 and input9. They are not technical replicates (since they
 do not share the same <cite>label</cite>) but they are biological replicates because
 they share the same biological material.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">StringIO</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
 <span class="gp">... </span><span class="s1">samplename  antibody   biological_material  label</span>
@@ -187,25 +187,25 @@ they share the same biological material.</p>
 <span class="gp">... </span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">merged_input_for_ip</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s1">&#39;s2cell-gaf-1&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">merged_input_for_ip</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s1">&#39;s2cell-gaf-1&#39;</span><span class="p">)</span>
 <span class="go">[&#39;s2cell-input-1&#39;]</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">merged_input_for_ip</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s1">&#39;s2cell-ctcf-1&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">merged_input_for_ip</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s1">&#39;s2cell-ctcf-1&#39;</span><span class="p">)</span>
 <span class="go">[&#39;s2cell-input-3&#39;]</span>
 </pre></div>
 </div>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="lib.chipseq.peak_calling_dict">
-<code class="sig-prename descclassname">lib.chipseq.</code><code class="sig-name descname">peak_calling_dict</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">algorithm=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#peak_calling_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.chipseq.peak_calling_dict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">lib.chipseq.</code><code class="sig-name descname">peak_calling_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">algorithm</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#peak_calling_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.chipseq.peak_calling_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dictionary of peak-calling runs from the config.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – </p></li>
-<li><p><strong>algorithm</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a>) – If <cite>algorithm</cite> is None, dictionary is keyed by (label, algorithm).
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – </p></li>
+<li><p><strong>algorithm</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – If <cite>algorithm</cite> is None, dictionary is keyed by (label, algorithm).
 Otherwise, only the runs for <cite>algorithm</cite> are returned, keyed by
 <cite>label</cite>.</p></li>
 </ul>
@@ -213,14 +213,14 @@ Otherwise, only the runs for <cite>algorithm</cite> are returned, keyed by
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="lib.chipseq.samples_for_run">
-<code class="sig-prename descclassname">lib.chipseq.</code><code class="sig-name descname">samples_for_run</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">label</em>, <em class="sig-param">algorithm</em>, <em class="sig-param">treatment</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#samples_for_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.chipseq.samples_for_run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">lib.chipseq.</code><code class="sig-name descname">samples_for_run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">label</span></em>, <em class="sig-param"><span class="n">algorithm</span></em>, <em class="sig-param"><span class="n">treatment</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#samples_for_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.chipseq.samples_for_run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the sample names configured for a particular peak-calling run</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – </p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – </p></li>
 <li><p><strong>algorithm</strong> (<em>label</em><em>,</em>) – Used as keys into peak_calling_dict()</p></li>
 <li><p><strong>treatment</strong> (<em>ip | input</em>) – </p></li>
 </ul>
@@ -242,7 +242,7 @@ Otherwise, only the runs for <cite>algorithm</cite> are returned, keyed by
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

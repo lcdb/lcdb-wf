@@ -1,17 +1,17 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
     <title>Changelog &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Developers" href="developers.html" />
@@ -58,7 +58,9 @@
 <li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#v1-5-1rc">v1.5.1rc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v1-5-3">v1.5.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v1-5-2">v1.5.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v1-5-1">v1.5.1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v1-5-sept-2019">v1.5 (Sept 2019)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v1-4-2-jul-2019">v1.4.2 (Jul 2019)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v1-4-1-jul-2019">v1.4.1 (Jul 2019)</a></li>
@@ -91,7 +93,7 @@
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -102,10 +104,67 @@
             
   <div class="section" id="changelog">
 <h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="v1-5-1rc">
-<h2>v1.5.1rc<a class="headerlink" href="#v1-5-1rc" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="v1-5-3">
+<h2>v1.5.3<a class="headerlink" href="#v1-5-3" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="general">
+<h3>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>default 12-hr wall time in WRAPPER_SLURM</p></li>
+<li><p>update .gitignore (<a class="reference external" href="https://github.com/lcdb/lcdb-wf/issues/223">#223</a>)</p></li>
+<li><p>remove the FastQC status checks section from the MultiQC report (which shows
+up in recent MultiQC versions) (<a class="reference external" href="https://github.com/lcdb/lcdb-wf/issues/246">#246</a></p></li>
+</ul>
+</div>
+<div class="section" id="bugs">
+<h3>Bugs<a class="headerlink" href="#bugs" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>add bed12 conversion for all species with default reference configs</p></li>
+<li><p>presence of an orig_filename_R2 in sampletable is sufficient to consider the
+experiment PE</p></li>
+<li><p>ensure DEGpattern output only contains unique genes</p></li>
+<li><p>bring back featurecounts in multiqc report</p></li>
+<li><p>“attach” chunk in rnaseq.Rmd was not properly set to depend on the “results” chunk</p></li>
+</ul>
+</div>
+<div class="section" id="rna-seq">
+<h3>RNA-seq<a class="headerlink" href="#rna-seq" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>dds objects can now be created from a full featureCounts input file and
+a subsetted colData table, if subset.counts=TRUE</p></li>
+<li><p>improve the dependencies between rnaseq.Rmd chunks so that cache=TRUE behaves
+as expected: (<a class="reference external" href="https://github.com/lcdb/lcdb-wf/issues/232">#232</a>)</p></li>
+<li><p>add plots for rnaseq.Rmd size factors (<a class="reference external" href="https://github.com/lcdb/lcdb-wf/issues/222">#222</a>)</p></li>
+<li><p>run rseqc instead of CollectRnaSeqMetrics (the multiqc output is nicer for
+it, and it’s pretty much doing the same thing) (<a class="reference external" href="https://github.com/lcdb/lcdb-wf/issues/218">#218</a>)</p></li>
+<li><p>when converting Ensembl to symbol, if there is no symbol then fall back to
+the Ensembl ID to avoid NA (<a class="reference external" href="https://github.com/lcdb/lcdb-wf/issues/246">#246</a>)</p></li>
+<li><p>in rnaseq.Rmd, all caches will be invalidated if the sampletable or the
+featurecounts table have changed.</p></li>
+</ul>
+</div>
+<div class="section" id="tests">
+<h3>Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>using continuumio/miniconda3 container; finally got en_US.utf8 locale
+installed and working correctly in that container so that multiqc works.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="v1-5-2">
+<h2>v1.5.2<a class="headerlink" href="#v1-5-2" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="bug-fixes">
 <h3>Bug fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>When some samples were substrings of other samples (e.g., <cite>WT_1_1</cite> and
+<cite>WT_1_10</cite>), DESeqDataSetFromCombinedFeatureCounts was assigning the wrong
+names. This has now been fixed in <cite>helpers.Rmd</cite>.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="v1-5-1">
+<h2>v1.5.1<a class="headerlink" href="#v1-5-1" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id7">
+<h3>Bug fixes<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>DESeqDataSetFromCombinedFeatureCounts (added in v1.5) was incorrectly
 assigning labels to samples when the order of the sampletable did not match
@@ -113,8 +172,8 @@ the order of the samples in the featureCounts table columns. This has been
 fixed.</p></li>
 </ul>
 </div>
-<div class="section" id="general">
-<h3>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id8">
+<h3>General<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><cite>deploy.py</cite> deployment script now only pays attention to files checked in to
 version control and optionally can create a conda environment in the target
@@ -130,8 +189,8 @@ usage</p></li>
 module (see <a class="reference external" href="https://github.com/ewels/MultiQC/issues/949">https://github.com/ewels/MultiQC/issues/949</a>)</p></li>
 </ul>
 </div>
-<div class="section" id="rna-seq">
-<h3>RNA-seq<a class="headerlink" href="#rna-seq" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id9">
+<h3>RNA-seq<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <p>The majority of these changes affect <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code>:</p>
 <ul class="simple">
 <li><p>modifications to MultiQC config to get back featureCounts output</p></li>
@@ -156,8 +215,8 @@ samples within the same run of the workflow.</strong> See <a class="reference ex
 description at <a class="reference external" href="https://github.com/lcdb/lcdb-wf/issues/175">#175</a>.</p>
 <p>This version also has many improvements to the <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code> file for RNA-seq,
 as described below.</p>
-<div class="section" id="id3">
-<h3>RNA-seq<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id12">
+<h3>RNA-seq<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
 <p>Many changes and improvements to <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code>, including:</p>
 <ul class="simple">
 <li><p>Differential analysis summaries now include labeled MA plots (<a class="reference external" href="https://github.com/lcdb/lcdb-wf/pull/192/files">#192</a>)</p></li>
@@ -202,8 +261,8 @@ peak-caller</p></li>
 </div>
 <div class="section" id="v1-4-1-jul-2019">
 <h2>v1.4.1 (Jul 2019)<a class="headerlink" href="#v1-4-1-jul-2019" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id18">
-<h3>RNA-seq<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id27">
+<h3>RNA-seq<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>KEGG results were not being added to the <code class="docutils literal notranslate"><span class="pre">all.enrich</span></code> list in <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code></p></li>
 <li><p>symlinking bigWigs is now a local rule</p></li>
@@ -215,8 +274,8 @@ argument in paired-end mode (previously it was up to the user to make sure
 this was added). The rule does have an override if this behavior is not wanted.</p></li>
 </ul>
 </div>
-<div class="section" id="id19">
-<h3>References<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id28">
+<h3>References<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>The reference config for <em>Drosophila</em> is now fixed. Previously it depended on
 <cite>chrom_convert</cite>. That script was a fly-specific script in lcdblib, but
@@ -228,8 +287,8 @@ other species.</p></li>
 </div>
 <div class="section" id="v1-4-may-2019">
 <h2>v1.4 (May 2019)<a class="headerlink" href="#v1-4-may-2019" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id20">
-<h3>RNA-seq<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id29">
+<h3>RNA-seq<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h3>
 <p>Much-improved <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code>:</p>
 <ul class="simple">
 <li><p>tabbed PCA plot</p></li>
@@ -252,8 +311,8 @@ other species.</p></li>
 </div>
 <div class="section" id="v1-3-may-2019">
 <h2>v1.3 (May 2019)<a class="headerlink" href="#v1-3-may-2019" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id21">
-<h3>Bugfixes<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id30">
+<h3>Bugfixes<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Fix broken paired-end support for RNA-seq. Previously, when using data from
 elsewhere on disk and using the symlink rules, R2 would be symlinked to the
@@ -273,8 +332,8 @@ code from lcdblib was copied over to the <code class="docutils literal notransla
 repository.</p></li>
 </ul>
 </div>
-<div class="section" id="id22">
-<h3>ChIP-seq and RNA-seq<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id31">
+<h3>ChIP-seq and RNA-seq<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Bowtie2, HISAT2, and rRNA rules no longer use wrappers. This makes it easier
 to track down what parameters are being used in each rule.</p></li>
@@ -285,16 +344,16 @@ to track down what parameters are being used in each rule.</p></li>
 </div>
 <div class="section" id="v1-2-mar-2019">
 <h2>v1.2 (Mar 2019)<a class="headerlink" href="#v1-2-mar-2019" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id23">
-<h3>RNA-seq<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id32">
+<h3>RNA-seq<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>First-class paired-end support, including mixing PE and SE samples in the
 same sampletable</p></li>
 <li><p>Support for STAR aligner</p></li>
 </ul>
 </div>
-<div class="section" id="id24">
-<h3>References<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id33">
+<h3>References<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h3>
 <ul>
 <li><p>FASTA files are always symlinked into the directories of indexes that were
 created from it</p></li>
@@ -311,14 +370,14 @@ and Ensembl (see reference configs for examples of use)</p></li>
 </li>
 </ul>
 </div>
-<div class="section" id="id25">
-<h3>ChIP-seq and RNA-seq<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id34">
+<h3>ChIP-seq and RNA-seq<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Updates to dependencies and MultiQC config</p></li>
 </ul>
 </div>
-<div class="section" id="id26">
-<h3>Infrastructure<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id35">
+<h3>Infrastructure<a class="headerlink" href="#id35" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Updated requirements in <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> and in wrappers</p></li>
 <li><p>Changed all <code class="docutils literal notranslate"><span class="pre">pd.read_table()</span></code> to <code class="docutils literal notranslate"><span class="pre">pd.read_csv(sep=&quot;\t&quot;)</span></code> to prevent warnings</p></li>
@@ -357,8 +416,8 @@ pandas index errors</p></li>
 </div>
 <div class="section" id="v1-1-aug-2018">
 <h2>v1.1 (Aug 2018)<a class="headerlink" href="#v1-1-aug-2018" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id27">
-<h3>Infrastructure<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id36">
+<h3>Infrastructure<a class="headerlink" href="#id36" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>The default settings in Snakefiles are for real-world use, rather than for
 testing. This reduces the amount of editing necessary before running actual
@@ -373,8 +432,8 @@ autodocs on the <code class="docutils literal notranslate"><span class="pre">lib
 <li><p>pytest test suite is run on the <code class="docutils literal notranslate"><span class="pre">lib</span></code> module</p></li>
 </ul>
 </div>
-<div class="section" id="id28">
-<h3>References<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id37">
+<h3>References<a class="headerlink" href="#id37" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>new <cite>metadata</cite> section in references config, which can be used to store
 additional information like mappable bases and genome size.</p></li>
@@ -418,8 +477,8 @@ filenames and how they are determined.</p></li>
 <li><p>macs2 and sicer can accept mappable genome size overrides</p></li>
 </ul>
 </div>
-<div class="section" id="id29">
-<h3>RNA-seq<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id38">
+<h3>RNA-seq<a class="headerlink" href="#id38" title="Permalink to this headline">¶</a></h3>
 <ul>
 <li><p>RNA-seq downstream:</p>
 <blockquote>
@@ -444,8 +503,8 @@ functions to use this new structure</p></li>
 <div class="section" id="v1-0-1-jun-2018">
 <h2>v1.0.1 (Jun 2018)<a class="headerlink" href="#v1-0-1-jun-2018" title="Permalink to this headline">¶</a></h2>
 <p>Bugfixes, last release before references changes.</p>
-<div class="section" id="id30">
-<h3>Infrastructure<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id39">
+<h3>Infrastructure<a class="headerlink" href="#id39" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Transition to CircleCI for testing</p></li>
 <li><p>Use production settings by default; see <span class="xref std std-ref">note-on-test-settings</span> for
@@ -461,8 +520,8 @@ additional features in rnaseq.Rmd and track hubs.</p></li>
 vertical integration</p></li>
 </ul>
 </div>
-<div class="section" id="id31">
-<h3>RNA-seq<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id40">
+<h3>RNA-seq<a class="headerlink" href="#id40" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>remove kallisto indexing, use salmon</p></li>
 <li><p>improvements to how chipseq sampletables are parsed (with more informative
@@ -496,8 +555,8 @@ used for the contrast) as well as TPM estimates to the results tables</p></li>
 <li><p>trim the labels in GO enrichment plots when too long</p></li>
 </ul>
 </div>
-<div class="section" id="id32">
-<h3>ChIP-seq<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id41">
+<h3>ChIP-seq<a class="headerlink" href="#id41" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>sicer for chipseq domain calling</p></li>
 <li><p>pin snakemake &lt;4.5.0 so that subworkflows behave correctly</p></li>
@@ -509,8 +568,8 @@ depending on their format</p></li>
 <li><p>ChIP-seq track hub generation script</p></li>
 </ul>
 </div>
-<div class="section" id="id33">
-<h3>Both RNA-seq and ChIP-seq<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id42">
+<h3>Both RNA-seq and ChIP-seq<a class="headerlink" href="#id42" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>update deeptools calls to reflect &gt;v3.0 syntax</p></li>
 <li><p>support for SRA run tables so it’s trivial to re-run experiments
@@ -536,7 +595,7 @@ in SRA</p></li>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

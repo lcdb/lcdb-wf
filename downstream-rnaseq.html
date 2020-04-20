@@ -1,17 +1,17 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
     <title>Downstream RNA-seq in R &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="ChIP-seq workflow" href="chipseq.html" />
@@ -83,7 +83,7 @@
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -148,12 +148,12 @@ and you can decide which to use for any particular analysis.</p>
 <h3>Easy support for multiple contrasts, and comparing them<a class="headerlink" href="#easy-support-for-multiple-contrasts-and-comparing-them" title="Permalink to this headline">¶</a></h3>
 <p>For complex experimental designs, populate the <code class="docutils literal notranslate"><span class="pre">res.list</span></code> list with lists
 containing the results, the DESeq object, and a nice label. For example:</p>
-<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">res.list[[</span><span class="s">&#39;mut1&#39;</span><span class="n">]]</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">res.list</span><span class="p">[[</span><span class="s">&#39;mut1&#39;</span><span class="p">]]</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span>
     <span class="n">res</span><span class="o">=</span><span class="nf">lfcShrink</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="s">&#39;group&#39;</span><span class="p">,</span> <span class="s">&#39;mutant1&#39;</span><span class="p">,</span> <span class="s">&#39;control&#39;</span><span class="p">)),</span>
     <span class="n">dds</span><span class="o">=</span><span class="n">dds</span><span class="p">,</span>
     <span class="n">label</span><span class="o">=</span><span class="s">&#39;Effect of mutant 1&#39;</span>
 <span class="p">)</span>
-<span class="n">res.list[[</span><span class="s">&#39;time&#39;</span><span class="n">]]</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span>
+<span class="n">res.list</span><span class="p">[[</span><span class="s">&#39;time&#39;</span><span class="p">]]</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span>
     <span class="n">res</span><span class="o">=</span><span class="nf">lfcShrink</span><span class="p">(</span><span class="n">dds.with.different.design</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="s">&#39;time&#39;</span><span class="p">,</span> <span class="s">&#39;t1&#39;</span><span class="p">,</span> <span class="s">&#39;t0&#39;</span><span class="p">)),</span>
     <span class="n">dds</span><span class="o">=</span><span class="n">dds.with.different.design</span><span class="p">,</span>
     <span class="n">label</span><span class="o">=</span><span class="s">&#39;Effect of time in WT&#39;</span>
@@ -202,7 +202,7 @@ enrichment can be compared between contrasts on the same plot.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
