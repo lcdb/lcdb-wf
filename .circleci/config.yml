@@ -5,7 +5,7 @@ variables:
   # default settings for all steps
   defaults: &defaults
     docker:
-      - image: bioconda/bioconda-utils-build-env
+      - image: continuumio/miniconda3
 
   # --------------------------------------------------------------------------
   # The caching dramatically speeds up testing time, because we can do the
@@ -28,7 +28,7 @@ variables:
     save_cache:
       key: v1-{{ checksum "requirements.txt" }}-{{ checksum ".circleci/setup.sh" }}
       paths:
-        - miniconda
+        - /opt/conda
 
   restore_cache: &restore_cache
     restore_cache:
@@ -49,11 +49,8 @@ variables:
     run:
       name: Download example data
       command: |
-        yum install -yy rsync
-        # container has a default python of 2.6, and we're using argparse, so
-        # we need to use the environment.
         source activate lcdb-wf-test
-
+        apt install -y rsync
         # Note that $DEPLOY is set in the "set-paths" step configured below.
         python deploy.py --flavor full --dest $DEPLOY
 
@@ -184,8 +181,10 @@ variables:
       run:
         name: Set path
         command: |
-          echo 'export PATH=$PATH:/root/project/miniconda/bin' >> $BASH_ENV
+          apt install -y locales-all locales
           echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
+          echo 'export LC_ALL=en_US.utf8' >> $BASH_ENV
+          echo 'export LANG=en_US.utf8' >> $BASH_ENV
           source $BASH_ENV
 jobs:
 
@@ -301,9 +300,6 @@ jobs:
       - run:
           name: OK for unknown github host
           command: mkdir -p ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
-      - run:
-          name: Install git
-          command: yum install git -y
       - add_ssh_keys:
           fingerprints:
             - 2d:0c:b4:27:44:cf:f4:50:cc:14:a4:2b:c2:3c:09:06
