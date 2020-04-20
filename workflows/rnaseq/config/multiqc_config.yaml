@@ -48,8 +48,6 @@ module_order:
         name: 'FastQC (raw)'
         path_filters:
             - '*.fastq.gz_fastqc.zip'
-        fastqc_status_checks:
-          remove
     - libsizes_table
     - rrna_percentages_table
     - cutadapt
@@ -58,8 +56,6 @@ module_order:
         target: ''
         path_filters:
             - '*.cutadapt.fastq.gz_fastqc.zip'
-        fastqc_status_checks:
-          remove
     - fastq_screen
     - bowtie2
     - fastqc:
@@ -67,23 +63,17 @@ module_order:
         target: ''
         path_filters:
             - '*.cutadapt.bam_fastqc.zip'
-        fastqc_status_checks:
-          remove
     - picard
     - rseqc
     - salmon
-    - featureCounts:
+    - featurecounts:
         name: 'featureCounts'
         path_filters:
             - 'featurecounts.txt.summary'
 
-# Changes the order in which modules and sections appear, not when they are 
-# executed as does module_order.
-#
-# See http://multiqc.info/docs/#order-of-modules
-report_section_order:
-  fastqc_status_checks:
-    remove
+remove_sections:
+  - fastqc_status_checks
+
 
 # This organizes the FastQC general sample table columns so that the different
 # stages are right next to each other, making it easier to compare the effects
