@@ -6,15 +6,17 @@ v1.5.3
 
 General
 ~~~~~~~
-- presence of an orig_filename_R2 in sampletable is sufficient to consider the
-  experiment PE
 - default 12-hr wall time in WRAPPER_SLURM
-- add bed12 conversion for all species with default reference configs
-- using continuumio/miniconda3 container; finally got en_US.utf8 locale
-  installed and working correctly in that container so that multiqc works.
 - update .gitignore (`#223 <https://github.com/lcdb/lcdb-wf/issues/223>`_)
 - remove the FastQC status checks section from the MultiQC report (which shows
   up in recent MultiQC versions) (`#246 <https://github.com/lcdb/lcdb-wf/issues/246>`_
+
+Bugs
+~~~~
+
+- add bed12 conversion for all species with default reference configs
+- presence of an orig_filename_R2 in sampletable is sufficient to consider the
+  experiment PE
 
 RNA-seq
 ~~~~~~~
@@ -30,6 +32,12 @@ RNA-seq
   the Ensembl ID to avoid NA (`#246
   <https://github.com/lcdb/lcdb-wf/issues/246>`_)
 
+Tests
+~~~~~
+- using continuumio/miniconda3 container; finally got en_US.utf8 locale
+  installed and working correctly in that container so that multiqc works.
+
+>>>>>>> v1.5.3.rc
 
 
 v1.5.2

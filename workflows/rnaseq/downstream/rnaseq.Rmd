@@ -29,7 +29,12 @@ output:
 ```
 
 ```{r global_options, include=FALSE}
-knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(
+    warning=FALSE,
+    message=FALSE,
+    cache.extra_file_dep_1=file.info('../config/sampletable.tsv')$mtime,
+    cache.extra_file_dep_2 = file.info('../data/rnaseq_aggregation/featurecounts.txt')$mtime
+)
 ```
 
 # Changelog
@@ -54,6 +59,8 @@ library(UpSetR)
 library(ReactomePA)
 library(cowplot)
 library(plotly)
+library(tibble)
+library(dplyr)
 ```
 
 
@@ -114,7 +121,6 @@ strip.dotted.version <- TRUE
 exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'orig_filename', 'orig_filename_R2')
 
 colData <- read.table(sample.table.filename, sep='\t', header=TRUE, stringsAsFactors=FALSE)
-
 
 # NOTE: Paths to Salmon output----------------------------------------------
 #    This is configured in the patterns and targets from the workflow; if
@@ -212,7 +218,7 @@ we expect to see replicates clustering together and separation of treatments.
 
 ## Clustered heatmap
 
-```{r}
+```{r, cache=TRUE, dependson='dds_initial'}
 # NOTE: Which columns to use for grouping the heatmap?-------------------------
 #    Add as many columns as you want for the last argument. The test data uses
 #    just the "group" column to create colored boxes corresponding to values of
@@ -229,7 +235,7 @@ dimensions along which the samples vary the most. The amount of variance
 explained by each principal component is indicated in the axes label.
 
 
-```{r, results='asis'}
+```{r, results='asis', cache=TRUE, dependson='dds_initial'}
 # NOTE: Which columns to use for grouping the heatmap?-------------------------
 #    See similiar note above for which columns to group by. Here, each PCA plot
 #    will be in a separate tab.
@@ -248,30 +254,54 @@ for(group in groups){
 
 i <- 1
 mdcat('### ', names(p)[i])
-#p <- plotPCA(rld, intgroup=groups[1])
 ggplotly(p[[i]])
 
 i <- 2
 mdcat('### ', names(p)[i])
-#p <- plotPCA(rld, intgroup=groups[2])
 ggplotly(p[[i]])
 
 ```
 
 
-## Size factors
-Size factors: ideally, all libraries were sequenced to identical depth, in
-which case all size factors would be 1.0. In practice, this is almost never the
-case. These size factor estimates are DESeq2's way of showing how sequencing
-depth varies across libraries. If some libraries are much higher or lower than
+## Size factors {.tabset}
+Ideally, all libraries were sequenced to identical depth, in which case all
+size factors would be 1.0. In practice, this is almost never the case due to
+the difficulties of accurately measuring low concentrations of cDNA. These size
+factor estimates are DESeq2's way of showing how sequencing depth varies across
+libraries. If some libraries are much higher or lower than
 1 then those libraries had dramatically different coverage and we should be
 careful about interpreting results.
 
-```{r}
+Size factors are calculated according to the median-ratio method (equation 5 of
+[Anders & Huber
+2010](http://dx.doi.org/10.1186/gb-2010-11-10-r106)).
+
+These diagnostic plots show the size factors (as a ranked bar plot) and the
+relationship between the size factors and the total read count (as
+a scatterplot).
+
+```{r, results='asis'}
+mdcat('### Size factors')
 dds <- estimateSizeFactors(dds)
 sf <- sizeFactors(dds)
-sf <- sf[order(sf)]
-knitr::kable(sf)
+sf <- sf[order(sf)] %>%
+        enframe(value = 'Size Factor')
+
+p <- ggplot(sf) +
+    aes(x=reorder(name, `Size Factor`), y=`Size Factor`) +
+    xlab('sample name') +
+    geom_col()
+ggplotly(p)
+
+mdcat('### Size factors vs total read count')
+trc <- colSums(counts(dds)) %>%
+        enframe(value = 'Total Read Count')
+trc_vs_sf <- full_join(sf, trc, by = 'name')
+group_names <- tibble(name=dds$samplename, group=dds$group)
+trc_vs_sf <- full_join(trc_vs_sf, group_names, by = 'name')
+p <- ggplot(data=trc_vs_sf, aes_string(x="`Total Read Count`", y="`Size Factor`", label='name')) +
+    geom_point(size=3)
+ggplotly(p)
 ```
 
 ```{r}
@@ -472,7 +502,7 @@ for (name in names(res.list)){
 }
 ```
 
-```{r selections}
+```{r selections, cache=TRUE, dependson='attach'}
 sel.list <- list()
 for (name in names(res.list)){
   res <- res.list[[name]][['res']]
@@ -496,7 +526,7 @@ for (name in names(res.list)){
 sel.names <- names(sel.list[[name]])
 ```
 
-```{r upsetplots, results='asis'}
+```{r upsetplots, results='asis', cache=TRUE, dependson='selections'}
 # UpSet plots only make sense for more than one set of genes. The Markdown
 # explanatory text and the plots themselves are only created if res.list has
 # multiple items in it.
@@ -596,7 +626,7 @@ low.minc <- 1
   more, they are merged together
 - Clusters with fewer than `r minc` genes are not shown.
 
-```{r, fig.width=12, results='asis', cache=TRUE}
+```{r final_clusters, fig.width=12, results='asis', cache=TRUE, dependson='selections'}
 # NOTE: which genes to cluster?------------------------------------------------
 #    By default, we get all the changed genes, but you may want only the up or
 #    down genes.
@@ -749,7 +779,7 @@ deg.list <- nested.lapply(sel.list, rownames)
 genes.df <- nested.lapply(deg.list, bitr, fromType=from.type, toType=types, OrgDb=orgdb)
 ```
 
-```{r enrich_all, results='hide', cache=TRUE}
+```{r enrich_all, results='hide', cache=TRUE, dependson='final_clusters'}
 
 # run enrichment for all gene lists over a loop
 
@@ -858,12 +888,11 @@ for(comp in names(all.enrich)){
 
 ```
 
-
 Below we show the results separately for each comparison. Links to files
 containing analysis results are shown above each set of plots, with parsed
 files showing genes on separate lines.
 
-```{r plot_go, fig.width=15, fig.height=10, results='asis'}
+```{r plot_go, fig.width=15, fig.height=10, results='asis', cache=TRUE, dependson='enrich_all'}
 # go labels for file names
 go.label <- list(
     BP='GO Biological Process',
@@ -965,69 +994,6 @@ for(comp in names(all.enrich)){
     }
 }
 ```
-
-```{r groupcounts, cache=TRUE, eval=FALSE}
-# NOTE: optionally disable this chunk------------------------------------------
-#
-#    This chunk inspects the model matrix of the design, aggregates counts for
-#    each of the levels in the design, and attaches them to each set of
-#    results.
-#
-#    It also attaches normalized gene counts and Salmon TPM.
-#
-#    Requires transcript.tpm to be available, and therefore Salmon was run
-counts.list <- list()
-
-# Compute aggregate (by gene) normalized transcript counts from Salmon
-gene.tpm <- aggregate(transcript.tpm, list(transcript.geneids), sum)
-
-# Use normalized counts to get per-level mean counts. Attach Salmon aggregate
-# counts to each output file. This does *not* assume any particular model.
-for (name in names(res.list)) {
-
-    my.res <- res.list[[name]][['res']]
-    my.dds <- res.list[[name]][['dds']]
-
-    counts.list[[name]] <- my.res[,c("gene", "baseMean", "log2FoldChange", "lfcSE", "padj")]
-
-    # get the DESeq2 normalized per-gene count data
-    my.normalized.counts <- counts(my.dds, TRUE)
-    colnames(gene.tpm) <- c("Gene", colnames(my.normalized.counts))
-
-    # report per-sample Salmon counts to output files
-    merged.results.deseq.counts <- merge(data.frame(my.res), my.normalized.counts, by.x="gene", by.y="row.names", all.x=TRUE, sort=FALSE)
-    merged.results.salmon.tpm <- merge(data.frame(my.res), gene.tpm, by.x="gene", by.y="Gene", all.x=TRUE, sort=FALSE)
-    rownames(merged.results.deseq.counts) <- merged.results.deseq.counts$gene
-    rownames(merged.results.salmon.tpm)   <- merged.results.salmon.tpm$gene
-    merged.results.deseq.counts           <- merged.results.deseq.counts[rownames(my.res),]
-    merged.results.salmon.tpm <- merged.results.salmon.tpm[rownames(my.res),]
-    rownames(merged.results.deseq.counts) <- NULL
-    rownames(merged.results.salmon.tpm) <- NULL
-    for (colname in colnames(my.normalized.counts)) {
-        my.res[,paste('deseq2.counts', colname, sep='.')] <- merged.results.deseq.counts[,colname]
-        my.res[,paste('avg.salmon.tpm', colname, sep='.')] <- merged.results.salmon.tpm[,colname]
-    }
-
-    # extract the design matrix
-    my.model <- model.matrix(design(my.dds), colData(my.dds))
-
-    # unique rows correspond to groups
-    my.unique.patterns <- unique(my.model)
-
-    # for each unique pattern
-    for (i in 1:nrow(my.unique.patterns)) {
-        # determine which samples conform to that pattern
-        in.pattern <- apply(my.model, 1, function(row) {all(row == my.unique.patterns[i,])})
-    # get counts just in those samples
-    in.counts <- rowMeans(my.normalized.counts[,in.pattern])
-    counts.list[[name]] <- cbind(counts.list[[name]], in.counts)
-    colnames(counts.list[[name]])[ncol(counts.list[[name]])] <- format.group.name(my.unique.patterns[i,])
-    }
-}
-```
-
-
-
 
 # Session info
 For reproducibility purposes, here is the output of `sessionInfo()` showing the
