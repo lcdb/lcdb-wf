@@ -680,7 +680,7 @@ for (name in names(ll)){
     for (u in unique(n2$cluster)){
         fn <- file.path('final_clusters',
                         paste0('final.', name, '.cluster.', u, '.txt'))
-        write.table(n2[n2$cluster==u, 'genes'], file=fn, quote=FALSE,
+        write.table(unique(n2[n2$cluster==u, 'genes']), file=fn, quote=FALSE,
                     row.names=FALSE, col.names=FALSE)
         mdcat('- [', fn, '](', fn, '), cluster "', u, '" genes')
     }
