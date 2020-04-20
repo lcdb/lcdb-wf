@@ -29,7 +29,11 @@ output:
 ```
 
 ```{r global_options, include=FALSE}
-knitr::opts_chunk$set(warning=FALSE, message=FALSE, cache.extra_file_dep_1 = file.info('../config/sampletable.tsv')$mtime, cache.extra_file_dep_2 = file.info('../data/rnaseq_aggregation/featurecounts.txt')$mtime)
+knitr::opts_chunk$set(
+    warning=FALSE,
+    message=FALSE,
+    cache.extra_file_dep_1=file.info('../config/sampletable.tsv')$mtime,
+    cache.extra_file_dep_2=file.info('../data/rnaseq_aggregation/featurecounts.txt')$mtime)
 ```
 
 # Changelog
@@ -214,7 +218,7 @@ we expect to see replicates clustering together and separation of treatments.
 
 ## Clustered heatmap
 
-```{r, cache=TRUE, dependson='dds_initial'}
+```{r}
 # NOTE: Which columns to use for grouping the heatmap?-------------------------
 #    Add as many columns as you want for the last argument. The test data uses
 #    just the "group" column to create colored boxes corresponding to values of
@@ -231,7 +235,7 @@ dimensions along which the samples vary the most. The amount of variance
 explained by each principal component is indicated in the axes label.
 
 
-```{r, results='asis', cache=TRUE, dependson='dds_initial'}
+```{r, results='asis'}
 # NOTE: Which columns to use for grouping the heatmap?-------------------------
 #    See similiar note above for which columns to group by. Here, each PCA plot
 #    will be in a separate tab.
