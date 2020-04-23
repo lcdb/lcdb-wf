@@ -1,0 +1,29 @@
+sampletable: 'config/sampletable.tsv'
+
+organism: 'human'
+
+references_dir: 'references_data'
+
+gtf:
+  tag: 'gencode-v28'
+
+genome: 'hg38'
+
+fasta: 'hg38.fa'
+
+# Vcf of known variants. Can list multiple files if needed
+known_sites:
+  - 'common_all_20170710.vcf.gz'
+
+panel_of_normals: 'None'
+
+exome_capture: 'S07604514_Covered.interval_list'
+
+population_variant_file: 'somatic-hg38_af-only-gnomad.hg38.vcf.gz'
+
+dbNSFP_file: 'dbNSFP2.9.txt.gz'
+
+sequencing_platform: 'Illumina'
+
+include_references:
+  - '../../include/reference_configs/Homo_sapiens.yaml'

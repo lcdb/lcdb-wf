@@ -1,0 +1,77 @@
+fastq: 'data/{sample}/{sample}.{genotype}.r{n}.fastq.gz'
+cutadapt: 'data/{sample}/{sample}.{genotype}.r{n}.cutadapt.fastq.gz'
+bam: 'data/{sample}/{sample}.{genotype}.cutadapt.bam'
+fastqc:
+  raw: 'data/{sample}/fastqc/{sample}.{genotype}.r1.fastq.gz_fastqc.zip'
+  cutadapt: 'data/{sample}/fastqc/{sample}.{genotype}.r1.cutadapt.fastq.gz_fastqc.zip'
+  bam: 'data/{sample}/fastqc/{sample}.{genotype}.cutadapt.bam_fastqc.zip'
+#fastq_screen: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.screen.txt'
+#featurecounts: 'data/rnaseq_aggregation/featurecounts.txt'
+#multiqc: 'data/rnaseq_aggregation/multiqc.html'
+markduplicates:
+   bam: 'data/{sample}/{sample}.{genotype}.cutadapt.markdups.bam'
+   metrics: 'data/{sample}/{sample}.{genotype}.cutadapt.markdups.bam.metrics'
+baserecalibration:
+  bqsrtable: 'data/{sample}/{sample}.{genotype}.bqsr.table'
+  bam: 'data/{sample}/{sample}.{genotype}.cutadapt.markdups.recal.bam'
+  tumor: 'data/{sample}/{sample}.tumor.cutadapt.markdups.recal.bam'
+  normal: 'data/{sample}/{sample}.normal.cutadapt.markdups.recal.bam'
+pileupsummaries:
+  bam: 'data/{sample}/{sample}.{genotype}.pileups.table'
+  tumor: 'data/{sample}/{sample}.tumor.pileups.table'
+  normal: 'data/{sample}/{sample}.normal.pileups.table'
+varscan:
+  samtoolsmpileup: 'data/varscan/{sample}/{sample}.pileup'
+  snp: 'data/{sample}/{sample}.varscan.snp.vcf'
+  indel: 'data/{sample}/{sample}.varscan.indel.vcf'
+  headingadjust: 'data/{sample}/{sample}.varscan.heading_adj.snp.vcf'
+  ambigremoved: 'data/{sample}/{sample}.varscan.heading_adj.ambig_removed.vcf'
+  bgzipped: 'data/{sample}/{sample}.varscan.heading_adj.ambig_removed.vcf.gz'
+  processed: 'data/{sample}/{sample}.varscan.heading_adj.ambig_removed.processed.vcf.gz'
+
+strelka:
+  script: 'data/{sample}/runWorkflow.py'
+  snp: 'data/{sample}/{sample}.strelka.snp.vcf'
+  indel: 'data/{sample}/{sample}.strelka.indel.vcf'
+  passedonlysnp: 'data/{sample}/{sample}.strelka.passedonly.snp.vcf'
+  passedonlyindel: 'data/{sample}/{sample}.strelka.passedonly.indel.vcf'
+  bgzipped: 'data/{sample}/{sample}.strelka.passedonly.snp.vcf.gz'
+  processed: 'data/{sample}/{sample}.strelka.passedonly.processed.snp.vcf.gz'
+somaticsniper:
+  snp: 'data/{sample}/{sample}.somaticsniper.vcf'
+  ambigremoved: 'data/{sample}/{sample}.somaticsniper.ambig_removed.vcf'
+  bgzipped: 'data/{sample}/{sample}.somaticsniper.ambig_removed.vcf.gz'
+  processed: 'data/{sample}/{sample}.somaticsniper.ambig_removed.processed.vcf.gz'
+mutect2:
+  snp: 'data/{sample}/{sample}.mutect2.vcf'
+  contamination: 'data/{sample}/{sample}.contamination.table'
+  filtered: 'data/{sample}/{sample}.mutect2.oncefiltered.vcf'
+  sequencingmetrics: 'data/{sample}/{sample}.seqartifactmetrics.pre_adapter_detail_metrics'
+  twicefiltered: 'data/{sample}/{sample}.mutect2.twicefiltered.vcf'
+  passedonly: 'data/{sample}/{sample}.mutect2.passedonly.vcf'
+  bgzipped: 'data/{sample}/{sample}.mutect2.passedonly.vcf.gz'
+  processed: 'data/{sample}/{sample}.mutect2.passedonly.processed.vcf.gz'
+combinecallers:
+  gatk: 'data/{sample}/{sample}.gatk-combine-variants.vcf.gz'
+  vcftools: 'data/{sample}/{sample}.vcftools-merged-callers.vcf'
+  bcftools: 'data/{sample}/{sample}.bcftools-merged-callers.vcf'
+nosinglecalled: 'data/{sample}/{sample}.no_singlecalled.vcf'
+snpeff:
+  stats: 'data/{sample}/{sample}.snpeff_stats.html'
+  vcf: 'data/{sample}/{sample}.snpeff.vcf'
+dbnsfp: 'data/{sample}/{sample}.snpeff.dbnsfp.vcf'
+loh: 'data/{sample}/{sample}.snpeff.dbnsfp.LOH_only.vcf'
+intersect: 'data/{sample}/{sample}.snpeff.dbnsfp.intersect_only.vcf'
+somaticonly: 'data/{sample}/{sample}.snpeff.dbnsfp.somaticonly.vcf'
+genedist:
+  bed: 'data/{sample}/{sample}.variants-per-gene.bed'
+  somaticonlybed: 'data/{sample}/{sample}.somatic-variants-per-gene.bed'
+  histogram: 'data/{sample}/{sample}.histogram_of_variant-gene_distribution.png'
+  somaticonlyhistogram: 'data/{sample}/{sample}.histogram_of_somatic_variant-gene_distribution.png'
+
+
+
+
+
+
+

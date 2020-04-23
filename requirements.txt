@@ -1,4 +1,5 @@
 atropos
+bcftools
 bedtools
 bioconductor-annotationhub
 bioconductor-biocparallel
@@ -14,6 +15,7 @@ bioconductor-sva
 bioconductor-tximport
 biopython >=1.68
 bowtie2
+bwa
 cutadapt
 deeptools >=3.0.1
 fastqc
@@ -23,6 +25,7 @@ fastq-screen
 font-ttf-dejavu-sans-mono
 
 gat
+gatk4
 gffutils >=0.8.7.1
 ghostscript
 git
@@ -69,6 +72,8 @@ samtools >=1.4.1
 scipy >=0.18.1
 seaborn >=0.7.1
 snakemake==5.5.4
+snpeff
+somatic-sniper
 sra-tools
 star
 subread
@@ -84,3 +89,5 @@ ucsc-liftover
 ucsc-oligomatch
 ucsc-twobittofa
 ucsc-wigtobigwig
+varscan
+vcftools

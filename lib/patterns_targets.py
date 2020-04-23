@@ -69,6 +69,35 @@ class SeqConfig(object):
             self.n = [1]
 
 
+class WESConfig(SeqConfig):
+    def __init__(self, config, patterns, workdir=None):
+        """
+        Config object specific to WES workflows.
+
+        Fills in patterns to create targets
+
+        Parameters
+        ----------
+
+        config : dict
+
+        patterns : str
+            Path to patterns YAML file
+
+        workdir : str
+            Config, patterns, and all paths in `config` should be interpreted
+            as relative to `workdir`
+        """
+        SeqConfig.__init__(self, config, patterns, workdir)
+        self.tumoronly = common.is_tumor_only(self.sampletable)
+        if self.tumoronly:
+            self.genotype = ['tumor']
+        else:
+            self.genotype = ['tumor', 'normal']
+        self.fill = dict(sample=self.samples, genotype=self.genotype, n=self.n)
+        self.targets = helpers.fill_patterns(self.patterns, self.fill, zip)
+
+
 class RNASeqConfig(SeqConfig):
     def __init__(self, config, patterns, workdir=None):
         """
