@@ -27,6 +27,7 @@ gffutils >=0.8.7.1
 ghostscript
 git
 graphviz
+gffread
 hisat2
 intervalstats
 ipython >=5.1.0

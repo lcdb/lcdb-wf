@@ -1,14 +1,14 @@
 references:
   dmel:
     test:
-      fasta:
+      genome:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa"
         postprocess: 'lib.common.gzipped'
         indexes:
           - 'bowtie2'
           - 'hisat2'
           - 'star'
-      gtf:
+      annotation:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf"
         postprocess: 'lib.common.gzipped'
         conversions:
@@ -35,25 +35,29 @@ references:
           #
           - mappings
 
+      transcriptome:
+        indexes:
+          - 'salmon'
+
       metadata:
         reference_genome_build: 'dm6'
         reference_effective_genome_count: 1.2e8
         reference_effective_genome_proportion: 0.88
 
     chrom_test:
-      gtf:
+      annotation:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf.gz"
         postprocess:
           function: 'lib.postprocess.utils.convert_gtf_chroms'
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/893cb5bdf84c2d6f5c6d48fe74c791646383f189/mappings/test/test_to_ucsc.tsv'
-      fasta:
+      genome:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/fasta_long_header/data/seq/dm6.small.longheader.fa"
         postprocess:
           function: 'lib.postprocess.utils.convert_fasta_chroms'
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/893cb5bdf84c2d6f5c6d48fe74c791646383f189/mappings/test/test_to_ucsc.tsv'
 
     test_exclude_gtf_pattern:
-      gtf:
+      annotation:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf.gz"
         postprocess:
           function: 'lib.postprocess.utils.match_gtf_9th'
@@ -61,15 +65,9 @@ references:
             - 'FBgn0002121'
             - '-'
 
-    test_transcriptome:
-      fasta:
-        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.transcriptome.fa"
-        postprocess: 'lib.common.gzipped'
-        indexes:
-          - 'salmon'
 
     rRNA:
-      fasta:
+      genome:
         url:
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
@@ -81,12 +79,12 @@ references:
           - 'bowtie2'
 
     gtf_no_postproc:
-      gtf:
+      annotation:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf.gz"
 
   phix:
     default:
-      fasta:
+      genome:
         url: 'ftp://igenome:G3nom3s4u@ussd-ftp.illumina.com/PhiX/Illumina/RTA/PhiX_Illumina_RTA.tar.gz'
         postprocess: "lib.postprocess.phix.fasta_postprocess"
         indexes:
@@ -95,7 +93,7 @@ references:
 
   multiple_postprocess_funcs:
     default:
-        gtf:
+        annotation:
           url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf.gz"
           postprocess:
             - function: 'lib.postprocess.utils.match_gtf_9th'
