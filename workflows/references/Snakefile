@@ -166,7 +166,7 @@ rule transcriptome_fasta:
 rule salmon_index:
     "Build salmon index"
     output:
-        protected('{references_dir}/{organism}/{tag}/transcriptome/salmon/{organism}_{tag}/hash.bin')
+        protected('{references_dir}/{organism}/{tag}/transcriptome/salmon/{organism}_{tag}/versionInfo.json')
     input:
         fasta='{references_dir}/{organism}/{tag}/transcriptome/{organism}_{tag}.fasta'
     log:
