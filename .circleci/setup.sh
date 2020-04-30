@@ -9,6 +9,7 @@ if ! conda env list | grep -q "lcdb-wf-test"; then
     conda config --system --add channels defaults
     conda config --system --add channels bioconda
     conda config --system --add channels conda-forge
-    conda create -n lcdb-wf-test -y --file requirements.txt
+    conda create -n lcdb-wf-test -y --file requirements-non-r.txt
+    conda create -n lcdb-wf-test-r -y --file requirements-r.txt
 fi
 

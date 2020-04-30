@@ -26,14 +26,14 @@ variables:
 
   save_cache: &save_cache
     save_cache:
-      key: v1-{{ checksum "requirements.txt" }}-{{ checksum ".circleci/setup.sh" }}
+      key: v1-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}-{{ checksum ".circleci/setup.sh" }}
       paths:
         - /opt/conda
 
   restore_cache: &restore_cache
     restore_cache:
       keys:
-        - v1-{{ checksum "requirements.txt" }}-{{ checksum ".circleci/setup.sh" }}
+        - v1-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-non-r.txt" }}{{ checksum ".circleci/setup.sh" }}
 
 
   # --------------------------------------------------------------------------
@@ -42,7 +42,19 @@ variables:
   setup: &setup
     run:
       name: Setup conda
-      command: .circleci/setup.sh
+      command: |
+        set -e
+        apt install -y locales-all locales
+        export LC_ALL=en_US.utf8
+        export LANG=en_US.utf8
+        if ! conda env list | grep -q "lcdb-wf-test"; then
+            echo "Setting up conda..."
+            conda config --system --add channels defaults
+            conda config --system --add channels bioconda
+            conda config --system --add channels conda-forge
+            conda create -n lcdb-wf-test -y --file requirements-non-r.txt
+            conda create -n lcdb-wf-test-r -y --file requirements-r.txt
+        fi
   # --------------------------------------------------------------------------
 
   get-data: &get-data
@@ -120,6 +132,8 @@ variables:
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
           python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
+          source activate lcdb-wf-test-r
+          Rscript -e "rmarkdown::render('downstream/rnaseq.Rmd')"
 
   rnaseq-star-step: &rnaseq-star-step
       run:

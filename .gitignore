@@ -24,8 +24,5 @@ docs/_build
 workflows/rnaseq/staging/
 env
 include/AnnotationHubCache
-
-requirements-r.txt
-requirements-pinned.txt
-requirements-non-r.txt
-requirements-non-r-specced.txt
+env*
+references_dir/
