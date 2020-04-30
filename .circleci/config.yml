@@ -44,7 +44,7 @@ variables:
       name: Setup conda
       command: |
         set -e
-        apt install -y locales-all locales
+        apt install -y locales-all locales make
         export LC_ALL=en_US.utf8
         export LANG=en_US.utf8
         if ! conda env list | grep -q "lcdb-wf-test"; then
