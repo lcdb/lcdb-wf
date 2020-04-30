@@ -33,7 +33,7 @@ variables:
   restore_cache: &restore_cache
     restore_cache:
       keys:
-        - v1-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-non-r.txt" }}{{ checksum ".circleci/setup.sh" }}
+        - v1-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}-{{ checksum ".circleci/setup.sh" }}
 
 
   # --------------------------------------------------------------------------
