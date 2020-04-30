@@ -144,7 +144,7 @@ variables:
           cp -r workflows/rnaseq workflows/rnaseq-star
           cd workflows/rnaseq-star
           source activate lcdb-wf-test
-          ./run_test.sh --use-conda -k -p -r \
+          ./run_test.sh -j 1 --use-conda -k -p -r \
             --forcerun star \
             --configfile $ORIG/test/test_configs/star_override.yaml \
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
@@ -160,11 +160,11 @@ variables:
           cd workflows/rnaseq-sra-test
           source activate lcdb-wf-test
 
-          ./run_test.sh --use-conda -k -p -r --until cutadapt \
+          ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
             --configfile $ORIG/test/test_configs/override.yaml \
             --config sampletable=$ORIG/test/test_configs/test_sra_sampletable.tsv
 
-          ./run_test.sh --use-conda -k -p -r --until cutadapt \
+          ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
             --configfile $ORIG/test/test_configs/override.yaml \
             --config sampletable=$ORIG/test/test_configs/test_sra_sampletable_SE_only.tsv
 
@@ -178,7 +178,7 @@ variables:
           cd workflows/rnaseq-pe-test
           source activate lcdb-wf-test
 
-          ./run_test.sh --use-conda -k -p -r --until multiqc \
+          ./run_test.sh -j 1 --use-conda -k -p -r --until multiqc \
             --configfile $ORIG/test/test_configs/override.yaml \
             --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
 
@@ -188,7 +188,7 @@ variables:
         command: |
           cd $DEPLOY/workflows/colocalization
           source activate lcdb-wf-test
-          ./run_test.sh --use-conda -j2 -k -p -r
+          ./run_test.sh -j 1 --use-conda -j2 -k -p -r
 
   # The path needs to be set each time
   set-path: &set-path
