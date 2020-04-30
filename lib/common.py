@@ -393,7 +393,7 @@ def references_dict(config):
     ...          'hisat2':        '/data/dm6/r6-11/genome/hisat2/dm6_r6-11.1.ht2',
     ...          'hisat2_fasta':  '/data/dm6/r6-11/genome/hisat2/dm6_r6-11.fasta',
     ...          'refflat':       '/data/dm6/r6-11/annotation/dm6_r6-11.refflat',
-    ...          'salmon':        '/data/dm6/r6-11/transcriptome/salmon/dm6_r6-11/hash.bin',
+    ...          'salmon':        '/data/dm6/r6-11/transcriptome/salmon/dm6_r6-11/versionInfo.json',
     ...          'salmon_fasta':  '/data/dm6/r6-11/transcriptome/salmon/dm6_r6-11.fasta',
     ...          'transcriptome': '/data/dm6/r6-11/transcriptome/dm6_r6-11.fasta',
     ...          },
