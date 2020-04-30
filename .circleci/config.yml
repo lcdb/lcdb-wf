@@ -26,14 +26,14 @@ variables:
 
   save_cache: &save_cache
     save_cache:
-      key: v1-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}-{{ checksum ".circleci/setup.sh" }}
+      key: v1-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}
       paths:
         - /opt/conda
 
   restore_cache: &restore_cache
     restore_cache:
       keys:
-        - v1-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}-{{ checksum ".circleci/setup.sh" }}
+        - v1-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}
 
 
   # --------------------------------------------------------------------------
