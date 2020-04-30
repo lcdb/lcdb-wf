@@ -1,27 +1,23 @@
 references:
   dicty:
     ensembl_2.7.41:
-      fasta:
+      genome:
         url: 'ftp://ftp.ensemblgenomes.org/pub/protists/release-41/fasta/dictyostelium_discoideum/dna/Dictyostelium_discoideum.dicty_2.7.dna_sm.toplevel.fa.gz'
         indexes:
             - 'bowtie2'
             - 'hisat2'
-      gtf:
+      annotation:
         url: 'ftp://ftp.ensemblgenomes.org/pub/protists/release-41/gff3/dictyostelium_discoideum/Dictyostelium_discoideum.dicty_2.7.41.gff3.gz'
         conversions:
           - 'refflat'
 
     ensembl_transcriptome_2.7.41:
-      fasta:
-        url:
-            - "ftp://ftp.ensemblgenomes.org/pub/protists/release-41/fasta/dictyostelium_discoideum/cds/Dictyostelium_discoideum.dicty_2.7.cds.all.fa.gz"
-            - "ftp://ftp.ensemblgenomes.org/pub/protists/release-41/fasta/dictyostelium_discoideum/ncrna/Dictyostelium_discoideum.dicty_2.7.ncrna.fa.gz"
-        postprocess: "lib.common.cat"
+      transcriptome:
         indexes:
             - "salmon"
 
     rRNA:
-      fasta:
+      genome:
         url:
             - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
             - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'

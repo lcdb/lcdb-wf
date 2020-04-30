@@ -5,12 +5,12 @@ references:
       metadata:
         reference_genome_build: 'rn6'
 
-      fasta:
+      genome:
         url: 'ftp://hgdownload.soe.ucsc.edu/goldenPath/rn6/bigZips/rn6.fa.gz'
         indexes:
           - 'hisat2'
           - 'bowtie2'
-      gtf:
+      annotation:
         url: 'ftp://ftp.ensembl.org/pub/release-94/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.94.gtf.gz'
         postprocess:
           function: 'lib.postprocess.utils.convert_gtf_chroms'
@@ -18,15 +18,12 @@ references:
         conversions:
           - 'refflat'
 
-
-    ucsc_rn6_transcriptome:
-      fasta:
-        url: 'ftp://hgdownload.soe.ucsc.edu/goldenPath/rn6/bigZips/mrna.fa.gz'
+      transcriptome:
         indexes:
           - 'salmon'
 
     rRNA:
-      fasta:
+      genome:
         url:
             - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
             - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'

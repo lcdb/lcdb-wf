@@ -401,7 +401,7 @@ rule featurecounts:
     Count reads in annotations with featureCounts from the subread package
     """
     input:
-        annotation=c.refdict[c.organism][config['gtf']['tag']]['gtf'],
+        annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
         bam=c.targets['bam']
     output:
         counts='{sample_dir}/rnaseq_aggregation/featurecounts.txt'
@@ -662,7 +662,7 @@ rule dupRadar:
     """
     input:
         bam=rules.markduplicates.output.bam,
-        annotation=c.refdict[c.organism][config['gtf']['tag']]['gtf'],
+        annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
     output:
         density_scatter=c.patterns['dupradar']['density_scatter'],
         expression_histogram=c.patterns['dupradar']['expression_histogram'],

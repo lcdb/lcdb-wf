@@ -20,7 +20,7 @@ gtf:
   tag: "test"
 
 salmon:
-  tag: "test_transcriptome"
+  tag: "test"
 
 fastq_screen:
   - label: rRNA

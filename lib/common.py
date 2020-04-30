@@ -445,7 +445,20 @@ def references_dict(config):
             for type_, block in merged_references[organism][tag].items():
                 if type_ == 'metadata':
                     continue
-                type_extension = type_extensions[type_]
+                try:
+                    type_extension = type_extensions[type_]
+
+                except KeyError:
+                    raise ValueError(
+
+                        "KeyError: " + type_ + "\n"
+                        "\nConfig file format has changed:\n"
+                        "  - 'fasta:' -> 'genome:'\n"
+                        "  - 'gtf:' -> 'annotation:'\n"
+                        "  - new 'transcriptome:' section\n"
+                        "\nSee docs for details\n\n"
+
+                    )
                 e[type_] = (
                     '{references_dir}/'
                     '{organism}/'
