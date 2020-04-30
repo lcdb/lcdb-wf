@@ -413,7 +413,16 @@ def references_dict(config):
         'bowtie2': aligners.bowtie2_index_from_prefix('')[0],
         'hisat2': aligners.hisat2_index_from_prefix('')[0],
         'star': '/Genome',
-        'salmon': '/hash.bin',
+
+        # Notes on salmon indexing:
+        #   - pre-1.0 versions had hash.bin
+        #   - post-1.0 versions do not have hash.bin but do have several other
+        #     different .bin files
+        #   - both appear to have versionInfo.json
+        #
+        # In order to support both, we use a filename found in common between
+        # the version.
+        'salmon': '/versionInfo.json',
     }
 
     conversion_extensions = {
