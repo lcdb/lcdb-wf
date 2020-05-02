@@ -63,7 +63,6 @@ final_targets = utils.flatten((
     utils.flatten(c.targets['rseqc']),
     utils.flatten(c.targets['collectrnaseqmetrics']),
     utils.flatten(c.targets['bigwig']),
-    utils.flatten(c.targets['downstream']),
 ))
 
 if 'merged_bigwigs' in config:
@@ -800,28 +799,6 @@ rule bigwig_pos:
         '&> {log}'
 
 
-rule rnaseq_rmarkdown:
-    """
-    Run and render the RMarkdown file that performs differential expression
-    """
-    input:
-        featurecounts=utils.flatten(c.targets['featurecounts']),
-        salmon=utils.flatten(c.targets['salmon']),
-
-        # NOTE: the Rmd will likely need heavy editing depending on the project.
-        rmd='downstream/rnaseq.Rmd',
-        sampletable=config['sampletable']
-    output:
-        'downstream/rnaseq.html'
-    log:
-        'downstream/rnaseq.log'
-    shell:
-        'Rscript -e '
-        '''"rmarkdown::render('{input.rmd}')" '''
-        '> {log} 2>&1'
-        # [TEST_SETTINGS -1]
-
-
 def bigwigs_to_merge(wc):
     chunk = config['merged_bigwigs'][wc.merged_bigwig_label]
     neg_labels = chunk.get('neg', [])
@@ -850,5 +827,27 @@ if 'merged_bigwigs' in config:
             c.patterns['merged_bigwig'] + '.log'
         script:
             wrapper_for('average-bigwigs/wrapper.py')
+
+
+rule rnaseq_rmarkdown:
+    """
+    Run and render the RMarkdown file that performs differential expression
+    """
+    input:
+        featurecounts=utils.flatten(c.targets['featurecounts']),
+        salmon=utils.flatten(c.targets['salmon']),
+
+        # NOTE: the Rmd will likely need heavy editing depending on the project.
+        rmd='downstream/rnaseq.Rmd',
+        sampletable=config['sampletable']
+    output:
+        'downstream/rnaseq.html'
+    log:
+        'downstream/rnaseq.log'
+    shell:
+        'Rscript -e '
+        '''"rmarkdown::render('{input.rmd}')" '''
+        '> {log} 2>&1'
+        # [TEST_SETTINGS -1]
 
 # vim: ft=python
