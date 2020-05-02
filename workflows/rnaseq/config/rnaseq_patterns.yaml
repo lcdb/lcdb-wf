@@ -25,15 +25,6 @@ markduplicates:
 collectrnaseqmetrics:
    metrics: 'data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.metrics'
    pdf: 'data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.pdf'
-dupradar:
-   density_scatter: 'data/rnaseq_samples/{sample}/dupradar/{sample}_density_scatter.png'
-   expression_histogram: 'data/rnaseq_samples/{sample}/dupradar/{sample}_expression_histogram.png'
-   expression_boxplot: 'data/rnaseq_samples/{sample}/dupradar/{sample}_expression_boxplot.png'
-   expression_barplot: 'data/rnaseq_samples/{sample}/dupradar/{sample}_expression_barplot.png'
-   multimapping_histogram: 'data/rnaseq_samples/{sample}/dupradar/{sample}_multimapping_histogram.png'
-   dataframe: 'data/rnaseq_samples/{sample}/dupradar/{sample}_dataframe.tsv'
-   model: 'data/rnaseq_samples/{sample}/dupradar/{sample}_model.txt'
-   curve: 'data/rnaseq_samples/{sample}/dupradar/{sample}_curve.txt'
 preseq: 'data/rnaseq_samples/{sample}/{sample}_preseq_c_curve.txt'
 salmon: 'data/rnaseq_samples/{sample}/{sample}.salmon/quant.sf'
 rseqc:
