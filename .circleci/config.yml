@@ -44,7 +44,7 @@ variables:
       name: Setup conda
       command: |
         set -e
-        apt install -y locales-all locales make
+        apt install -y locales-all locales
         export LC_ALL=en_US.utf8
         export LANG=en_US.utf8
         if ! conda env list | grep -q "lcdb-wf-test"; then
@@ -310,7 +310,7 @@ jobs:
       - *set-path
       - run:
           name: Install sphinx
-          command: conda install sphinx -y
+          command: conda install -y sphinx make
       - run:
           name: OK for unknown github host
           command: mkdir -p ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
