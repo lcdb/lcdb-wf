@@ -16,6 +16,7 @@ r-ggrepel
 r-heatmaply
 r-knitr
 r-plotly
+r-pheatmap
 r-readr
 r-rmarkdown
 r-spp
