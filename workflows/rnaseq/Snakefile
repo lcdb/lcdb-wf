@@ -605,7 +605,6 @@ rule collectrnaseqmetrics:
         refflat=c.refdict[c.organism][config['gtf']['tag']]['refflat']
     output:
         metrics=c.patterns['collectrnaseqmetrics']['metrics'],
-        pdf=c.patterns['collectrnaseqmetrics']['pdf']
     params:
         # NOTE: Be careful with the memory here; make sure you have enough
         # and/or it matches the resources you're requesting in the cluster
@@ -629,7 +628,6 @@ rule collectrnaseqmetrics:
         #
         'STRAND=NONE '
 
-        'CHART_OUTPUT={output.pdf} '
         'REF_FLAT={input.refflat} '
         'INPUT={input.bam} '
         'OUTPUT={output.metrics} '

@@ -24,7 +24,6 @@ markduplicates:
    metrics: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.metrics'
 collectrnaseqmetrics:
    metrics: 'data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.metrics'
-   pdf: 'data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.pdf'
 preseq: 'data/rnaseq_samples/{sample}/{sample}_preseq_c_curve.txt'
 salmon: 'data/rnaseq_samples/{sample}/{sample}.salmon/quant.sf'
 rseqc:
