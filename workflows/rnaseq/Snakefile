@@ -59,7 +59,6 @@ final_targets = utils.flatten((
     utils.flatten(c.targets['rrna']),
     utils.flatten(c.targets['markduplicates']),
     utils.flatten(c.targets['salmon']),
-    utils.flatten(c.targets['dupradar']),
     utils.flatten(c.targets['preseq']),
     utils.flatten(c.targets['rseqc']),
     utils.flatten(c.targets['collectrnaseqmetrics']),
@@ -550,7 +549,6 @@ rule multiqc:
             utils.flatten(c.targets['salmon']) +
             utils.flatten(c.targets['rseqc']) +
             utils.flatten(c.targets['fastq_screen']) +
-            utils.flatten(c.targets['dupradar']) +
             utils.flatten(c.targets['preseq']) +
             utils.flatten(c.targets['collectrnaseqmetrics'])
         ),
@@ -654,27 +652,6 @@ rule preseq:
         'c_curve '
         '-B {input} '
         '-o {output} '
-
-
-rule dupRadar:
-    """
-    Assess the library complexity with dupRadar
-    """
-    input:
-        bam=rules.markduplicates.output.bam,
-        annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
-    output:
-        density_scatter=c.patterns['dupradar']['density_scatter'],
-        expression_histogram=c.patterns['dupradar']['expression_histogram'],
-        expression_boxplot=c.patterns['dupradar']['expression_boxplot'],
-        expression_barplot=c.patterns['dupradar']['expression_barplot'],
-        multimapping_histogram=c.patterns['dupradar']['multimapping_histogram'],
-        dataframe=c.patterns['dupradar']['dataframe'],
-        model=c.patterns['dupradar']['model'],
-        curve=c.patterns['dupradar']['curve'],
-    log: c.patterns['dupradar']['dataframe'] + '.log'
-    script:
-        wrapper_for('dupradar/wrapper.py')
 
 
 rule salmon:
