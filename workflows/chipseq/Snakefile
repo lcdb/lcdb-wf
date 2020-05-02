@@ -21,8 +21,7 @@ from lib.patterns_targets import ChIPSeqConfig
 # --configfile
 if not workflow.overwrite_configfiles:
     configfile: 'config/config.yaml'
-else:
-    configfile: workflow.overwrite_configfiles
+
 include: '../references/Snakefile'
 
 shell.prefix(
