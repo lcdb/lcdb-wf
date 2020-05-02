@@ -11,10 +11,10 @@ if 'memory' in snakemake.params:
 else:
     mem_arg = ''
 
+log = snakemake.log_fmt_shell()
+
 if len(snakemake.input.bigwigs) == 1:
     utils.make_relative_symlink(snakemake.input.bigwigs[0], snakemake.output[0])
-
-log = snakemake.log_fmt_shell()
 
 else:
 
