@@ -10,7 +10,7 @@ variables:
   # --------------------------------------------------------------------------
   # The caching dramatically speeds up testing time, because we can do the
   # time-consuming step of conda environment creation once and then use that
-  # for subsequent steps.
+  # for subsequent steps. It works like this:
   #
   # The `initial-setup` job (defined in workflows below) saves the cache when
   # it's done. Here the cache is the miniconda directory. Later jobs
@@ -35,10 +35,24 @@ variables:
       keys:
         - v1-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}
 
-
+  # --------------------------------------------------------------------------
+  # The path needs to be set each time; in jobs below this will be called as
+  # one of the first steps in each job.
+  set-path: &set-path
+      run:
+        name: Set path
+        command: |
+          apt install -y locales-all locales
+          echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
+          echo 'export LC_ALL=en_US.utf8' >> $BASH_ENV
+          echo 'export LANG=en_US.utf8' >> $BASH_ENV
+          source $BASH_ENV
   # --------------------------------------------------------------------------
   # Run the setup script, which installs miniconda, sets up bioconda, and
   # installs the global env
+  #
+  # Note the "&setup" construct. This allows us to re-use it in multiple jobs
+  # below.
   setup: &setup
     run:
       name: Setup conda
@@ -47,6 +61,8 @@ variables:
         apt install -y locales-all locales
         export LC_ALL=en_US.utf8
         export LANG=en_US.utf8
+        # We only do the installation if the conda environment does not already
+        # exist.
         if ! conda env list | grep -q "lcdb-wf-test"; then
             echo "Setting up conda..."
             conda config --system --add channels defaults
@@ -55,14 +71,19 @@ variables:
             conda create -n lcdb-wf-test -y --file requirements-non-r.txt
             conda create -n lcdb-wf-test-r -y --file requirements-r.txt
         fi
-  # --------------------------------------------------------------------------
 
+  # --------------------------------------------------------------------------
+  # Deploy into a new directory and get the test data.
   get-data: &get-data
     run:
       name: Download example data
       command: |
         source activate lcdb-wf-test
+
+        # rsync is required for the deployment process
         apt install -y rsync
+
+        # Deploy to the new directory, so we are testing the real-world case of post-deployment.
         # Note that $DEPLOY is set in the "set-paths" step configured below.
         python deploy.py --flavor full --dest $DEPLOY
 
@@ -73,19 +94,25 @@ variables:
         cp workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization
         mkdir $DEPLOY/ci
         cp ci/get-data.py $DEPLOY/ci
+
+        # the ./run_test.sh scripts run this
         cp ci/preprocessor.py $DEPLOY/ci
 
         # download example data
         cd $DEPLOY
         python ci/get-data.py
 
+  # --------------------------------------------------------------------------
+  # Run the doctests across the included modules
   pytest-step: &pytest-step
     run:
       name: Run pytest suite
       command: |
         source activate lcdb-wf-test
         pytest --doctest-modules lib
-
+  # --------------------------------------------------------------------------
+  # Other downstream jobs depend on this so that we can catch trivial errors
+  # quickly
   rnaseq-dryrun: &rnaseq-dryrun
       run:
         name: dry run
@@ -93,7 +120,8 @@ variables:
           cd $DEPLOY/workflows/rnaseq
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -n
-
+  # --------------------------------------------------------------------------
+  # Standard chipseq workflow
   chipseq-step: &chipseq-step
       run:
         name: chipseq workflow
@@ -102,7 +130,10 @@ variables:
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
           python chipseq_trackhub.py config/config.yaml config/hub_config.yaml
-
+  # --------------------------------------------------------------------------
+  # Previous versions had an error where chipseq peaks needed to be defined for
+  # every caller. This does a (relatively) quick test to only run a single
+  # sample through a single peak-caller to prevent regression of that error
   chipseq-regression-step: &chipseq-regression-step
       run:
         name: chipseq regression test workflow
@@ -115,7 +146,8 @@ variables:
             --config sampletable=$ORIG/test/test_configs/chipseq_one_run.tsv \
             --config merged_bigwigs="{}" \
             --until bed_to_bigbed
-
+  # --------------------------------------------------------------------------
+  # Standard references workflow.
   references-step: &references-step
       run:
         name: references workflow
@@ -123,7 +155,8 @@ variables:
           cd $DEPLOY/workflows/references
           source activate lcdb-wf-test
           ./run_test.sh  --use-conda -j2 -k -p -r
-
+  # --------------------------------------------------------------------------
+  # Standard RNA-seq workflow
   rnaseq-step: &rnaseq-step
       run:
         name: rnaseq workflow
@@ -132,9 +165,14 @@ variables:
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
           python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
+
+          # Starting in v1.6, we separate out the non-R from the
+          # R environments. So we need to test the rnaseq.Rmd separately
+          # outside the context of the Snakefile.
           source activate lcdb-wf-test-r
           Rscript -e "rmarkdown::render('downstream/rnaseq.Rmd')"
-
+  # --------------------------------------------------------------------------
+  # Quick test on just two samples to make sure STAR works OK
   rnaseq-star-step: &rnaseq-star-step
       run:
         name: rnaseq star aligner
@@ -149,7 +187,8 @@ variables:
             --configfile $ORIG/test/test_configs/star_override.yaml \
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
             --until star
-
+  # --------------------------------------------------------------------------
+  # Quick test just to download SRA data
   rnaseq-sra-step: &rnaseq-sra-step
       run:
         name: rnaseq download from SRA
@@ -167,7 +206,8 @@ variables:
           ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
             --configfile $ORIG/test/test_configs/override.yaml \
             --config sampletable=$ORIG/test/test_configs/test_sra_sampletable_SE_only.tsv
-
+  # --------------------------------------------------------------------------
+  # Quick test to ensure PE sampletables work correctly
   rnaseq-pe-step: &rnaseq-pe-step
       run:
         name: rnaseq test PE
@@ -181,7 +221,8 @@ variables:
           ./run_test.sh -j 1 --use-conda -k -p -r --until multiqc \
             --configfile $ORIG/test/test_configs/override.yaml \
             --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
-
+  # --------------------------------------------------------------------------
+  # Standard colocalization workflow
   colocalization-step: &colocalization-step
       run:
         name: colocalization workflow
@@ -190,26 +231,42 @@ variables:
           source activate lcdb-wf-test
           ./run_test.sh -j 1 --use-conda -j2 -k -p -r
 
-  # The path needs to be set each time
-  set-path: &set-path
-      run:
-        name: Set path
-        command: |
-          apt install -y locales-all locales
-          echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
-          echo 'export LC_ALL=en_US.utf8' >> $BASH_ENV
-          echo 'export LANG=en_US.utf8' >> $BASH_ENV
-          source $BASH_ENV
+# --------------------------------------------------------------------------
+# Syntax note: All of the steps above, with their "&step-name" labels, can be
+# referred to by a corresponding "*step-name" below. The "<<: *defaults"
+# construct is a similar mechanism (YAML anchor) but extends rather than just
+# referencing.  https://blog.daemonl.com/2016/02/yaml.html has a nice
+# description of the difference.
+#
+# Here we define jobs as multiple steps by composing what we have defined
+# above. These will show up as nodes in the CircleCI workflow DAG.
 jobs:
 
-  # Builds the global conda environment, lcdb-wf-test, and then saves the
-  # `miniconda` dir to the cache which can be restored in later jobs.
+  # This is the only job in which the cache is created. It also blocks all
+  # other jobs until it's complete (it is a dependency of all other jobs,
+  # configured in the workflows in the last section of this config).
   initial-setup:
     <<: *defaults
     steps:
       - checkout
+
+      # Check the hashes of requirements files. If they match a cache, load it.
+      # The cache is set up to be the entire miniconda installation, so that
+      # includes the lcdb-wf-test environment.
+      #
+      # If the hashes do not match the cache, then nothing is loaded and we do
+      # not have the lcdb-wf-test environment.
       - *restore_cache
+
+      # This step checks to see if lcdb-wf-test environment exists. Since the
+      # only way it could get there at this point is by loading the cache, if
+      # it's present then do nothing. Otherwise re-build the environments
       - *setup
+
+      # When done, save the entire miniconda directory to the cache. Since
+      # nothing else will run until this job is complete, we ensure that
+      # subsequent jobs can load the latest cache without needing to rebuild it
+      # themselves.
       - *save_cache
 
   pytest:
@@ -331,7 +388,8 @@ jobs:
           name: Report environment
           command: conda env export -n lcdb-wf-test
 
-
+# ----------------------------------------------------------------------------
+# This section configures the dependencies across jobs.
 workflows:
   version: 2
   test-suite:
