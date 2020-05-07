@@ -183,7 +183,7 @@ variables:
           cd workflows/rnaseq-star
           source activate lcdb-wf-test
           ./run_test.sh -j 1 --use-conda -k -p -r \
-            --forcerun star \
+            --forcerun star_pass1 \
             --configfile $ORIG/test/test_configs/star_override.yaml \
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
             --until star_pass2
