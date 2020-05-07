@@ -271,6 +271,7 @@ jobs:
 
   pytest:
     <<: *defaults
+    resource_class: small
     steps:
       - checkout
       - *restore_cache
@@ -297,6 +298,7 @@ jobs:
 
   rnaseq-dryrun:
     <<: *defaults
+    resource_class: small
     steps:
       - checkout
       - *restore_cache
@@ -361,6 +363,7 @@ jobs:
 
   build-docs:
     <<: *defaults
+    resource_class: small
     steps:
       - checkout
       - *restore_cache
@@ -380,6 +383,7 @@ jobs:
 
   report-env:
     <<: *defaults
+    resource_class: small
     steps:
       - checkout
       - *restore_cache
