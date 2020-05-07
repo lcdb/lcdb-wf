@@ -186,7 +186,7 @@ variables:
             --forcerun star \
             --configfile $ORIG/test/test_configs/star_override.yaml \
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
-            --until star
+            --until star_pass2
   # --------------------------------------------------------------------------
   # Quick test just to download SRA data
   rnaseq-sra-step: &rnaseq-sra-step
