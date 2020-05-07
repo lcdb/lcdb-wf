@@ -252,12 +252,11 @@ if config['aligner']['index'] == 'hisat2':
                 "&& rm {sam}"
             )
 
-if config['aligner']['index'] == 'star':
+if config['aligner']['index'].startswith('star'):
 
-    # STAR is configured to run in two passes. Since we will be running it
-    # twice in almost the same way, we pull out the shell command here and use
-    # it in both rules below.
-
+    # STAR can be run in 1-pass or 2-pass modes. Since we may be running it
+    # more than once in almost the same way, we pull out the shell command here
+    # and use it below.
     STAR_CMD = (
         'STAR '
         '--runThreadN {threads} '
@@ -281,6 +280,42 @@ if config['aligner']['index'] == 'star':
         '--outSAMunmapped None '                 # do not report aligned reads in output
     )
     logfile_extensions = ['Log.progress.out', 'Log.out', 'Log.final.out']
+
+if config['aligner']['index'] == 'star':
+
+    rule star:
+        """
+        Align with STAR (1-pass mode)
+        """
+        input:
+            fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            index=[c.refdict[c.organism][config['aligner']['tag']]['star']],
+            annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
+        output:
+            bam=c.patterns['bam'],
+            sjout=temporary(c.patterns['bam'].replace('.bam', '.star.SJ.out.tab')),
+        log:
+            c.patterns['bam'].replace('.bam', '.star.bam.log')
+        threads: 16
+        run:
+            genomedir = os.path.dirname(input.index[0])
+            outdir = os.path.dirname(output[0])
+            prefix = output.bam.replace('.bam', '.star.')
+            shell(
+                STAR_CMD + (
+                    # In contrast to pass 1, we will be keeping these BAMs --
+                    # so sort them
+                    '--outSAMtype BAM SortedByCoordinate '
+                    '&> {log} '
+                )
+            )
+            shell('mv {prefix}Aligned.sortedByCoord.out.bam {output.bam}')
+
+            logfiles = expand(prefix + '{ext}', ext=logfile_extensions)
+            shell('mkdir -p {outdir}/star_log '
+                  '&& mv {logfiles} {outdir}/star_log')
+
+if config['aligner']['index'] == 'star-twopass':
 
     rule star_pass1:
         """
