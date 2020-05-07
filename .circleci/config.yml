@@ -47,9 +47,10 @@ variables:
           echo 'export LC_ALL=en_US.utf8' >> $BASH_ENV
           echo 'export LANG=en_US.utf8' >> $BASH_ENV
           source $BASH_ENV
+
   # --------------------------------------------------------------------------
-  # Run the setup script, which installs miniconda, sets up bioconda, and
-  # installs the global env
+  # Set up channels and create the environments -- but only if they don't
+  # already exist
   #
   # Note the "&setup" construct. This allows us to re-use it in multiple jobs
   # below.
@@ -95,7 +96,7 @@ variables:
         mkdir $DEPLOY/ci
         cp ci/get-data.py $DEPLOY/ci
 
-        # the ./run_test.sh scripts run this
+        # the ./run_test.sh scripts run the preprocesor, so we need it
         cp ci/preprocessor.py $DEPLOY/ci
 
         # download example data
@@ -163,7 +164,7 @@ variables:
         command: |
           cd $DEPLOY/workflows/rnaseq
           source activate lcdb-wf-test
-          ./run_test.sh --use-conda -j2 -k -p -r
+          ./run_test.sh --use-conda -j8 -k -p -r
           python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
 
           # Starting in v1.6, we separate out the non-R from the
@@ -182,7 +183,7 @@ variables:
           cp -r workflows/rnaseq workflows/rnaseq-star
           cd workflows/rnaseq-star
           source activate lcdb-wf-test
-          ./run_test.sh -j 1 --use-conda -k -p -r \
+          ./run_test.sh -j 4 --use-conda -k -p -r \
             --forcerun star \
             --configfile $ORIG/test/test_configs/star_override.yaml \
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
@@ -271,6 +272,7 @@ jobs:
 
   pytest:
     <<: *defaults
+    resource_class: small
     steps:
       - checkout
       - *restore_cache
@@ -306,6 +308,7 @@ jobs:
 
   rnaseq:
     <<: *defaults
+    resource_class: xlarge
     steps:
       - checkout
       - *restore_cache
@@ -315,6 +318,7 @@ jobs:
 
   rnaseq-star:
     <<: *defaults
+    resource_class: large
     steps:
       - checkout
       - *restore_cache
