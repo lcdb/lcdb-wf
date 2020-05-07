@@ -291,7 +291,7 @@ if config['aligner']['index'] == 'star':
             index=[c.refdict[c.organism][config['aligner']['tag']]['star']],
             annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
         output:
-            sjout=c.patterns['bam'].replace('.bam', '.star-pass1.SJ.out.tab'),
+            sjout=temporary(c.patterns['bam'].replace('.bam', '.star-pass1.SJ.out.tab')),
         log:
             c.patterns['bam'].replace('.bam', '.star-pass1.bam.log')
         threads: 16
@@ -331,7 +331,8 @@ if config['aligner']['index'] == 'star':
             index=[c.refdict[c.organism][config['aligner']['tag']]['star']],
             annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
         output:
-            bam=c.patterns['bam']
+            bam=c.patterns['bam'],
+            sjout=temporary(c.patterns['bam'].replace('.bam', '.star-pass2.SJ.out.tab')),
         log:
             c.patterns['bam'].replace('.bam', '.star-pass2.bam.log')
         threads: 16
