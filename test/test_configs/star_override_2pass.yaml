@@ -1,5 +1,5 @@
 aligner:
-  index: star
+  index: 'star-twopass'
   tag: test
 
 merged_bigwigs:
