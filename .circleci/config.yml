@@ -182,9 +182,15 @@ variables:
           cp -r workflows/rnaseq workflows/rnaseq-star
           cd workflows/rnaseq-star
           source activate lcdb-wf-test
-          ./run_test.sh -j 1 --use-conda -k -p -r \
+          ./run_test.sh -j 2 --use-conda -k -p -r \
+            --forcerun star_pass1 \
+            --configfile $ORIG/test/test_configs/star_override_2pass.yaml \
+            --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
+            --until star_pass2
+
+          ./run_test.sh -j 2 --use-conda -k -p -r \
             --forcerun star \
-            --configfile $ORIG/test/test_configs/star_override.yaml \
+            --configfile $ORIG/test/test_configs/star_override_1pass.yaml \
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
             --until star
   # --------------------------------------------------------------------------
@@ -271,6 +277,7 @@ jobs:
 
   pytest:
     <<: *defaults
+    resource_class: small
     steps:
       - checkout
       - *restore_cache
@@ -297,6 +304,7 @@ jobs:
 
   rnaseq-dryrun:
     <<: *defaults
+    resource_class: small
     steps:
       - checkout
       - *restore_cache
@@ -361,6 +369,7 @@ jobs:
 
   build-docs:
     <<: *defaults
+    resource_class: small
     steps:
       - checkout
       - *restore_cache
@@ -380,6 +389,7 @@ jobs:
 
   report-env:
     <<: *defaults
+    resource_class: small
     steps:
       - checkout
       - *restore_cache
