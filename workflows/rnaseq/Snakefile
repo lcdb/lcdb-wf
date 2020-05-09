@@ -279,7 +279,7 @@ if config['aligner']['index'].startswith('star'):
         '--alignMatesGapMax 1000000 '            # max distance between mates
         '--outSAMunmapped None '                 # do not report aligned reads in output
     )
-    logfile_extensions = ['Log.progress.out', 'Log.out', 'Log.final.out']
+    logfile_extensions = ['Log.progress.out', 'Log.out', 'Log.final.out', 'Log.std.out']
 
 if config['aligner']['index'] == 'star':
 
@@ -303,17 +303,16 @@ if config['aligner']['index'] == 'star':
             prefix = output.bam.replace('.bam', '.star.')
             shell(
                 STAR_CMD + (
-                    # In contrast to pass 1, we will be keeping these BAMs --
-                    # so sort them
                     '--outSAMtype BAM SortedByCoordinate '
-                    '&> {log} '
+                    '--outStd BAM_SortedByCoordinate > {output.bam} '
+                    '2> {log} '
                 )
             )
-            shell('mv {prefix}Aligned.sortedByCoord.out.bam {output.bam}')
 
+            # move various hard-coded log files to log directory
             logfiles = expand(prefix + '{ext}', ext=logfile_extensions)
-            shell('mkdir -p {outdir}/star_log '
-                  '&& mv {logfiles} {outdir}/star_log')
+            shell('mkdir -p {outdir}/star_logs '
+                  '&& mv {logfiles} {outdir}/star_logs')
 
 if config['aligner']['index'] == 'star-twopass':
 
@@ -345,14 +344,10 @@ if config['aligner']['index'] == 'star-twopass':
                 )
             )
 
-            # STAR clutters the directory with log files -- move them to
-            # a subdirectory.
-            #
+            # move various hard-coded log files to log directory
             logfiles = expand(prefix + '{ext}', ext=logfile_extensions)
-            shell('mkdir -p {outdir}/star-pass1_log '
-                  '&& mv {logfiles} {outdir}/star-pass1_log')
-
-            shell('cat {prefix}Log.std.out >> {log} && rm {prefix}Log.std.out')
+            shell('mkdir -p {outdir}/star-pass1_logs '
+                  '&& mv {logfiles} {outdir}/star-pass1_logs')
 
 
     rule star_pass2:
@@ -384,14 +379,17 @@ if config['aligner']['index'] == 'star-twopass':
                     # Splice junction databases from all samples in the first
                     # pass.
                     '--sjdbFileChrStartEnd {input.sjout} '
-                    '&> {log} '
+                    '--outStd BAM_SortedByCoordinate > {output.bam} '
+                    '2> {log} '
                 )
             )
-            shell('mv {prefix}Aligned.sortedByCoord.out.bam {output.bam}')
 
+            # move various hard-coded log files to log directory
             logfiles = expand(prefix + '{ext}', ext=logfile_extensions)
-            shell('mkdir -p {outdir}/star-pass2_log '
-                  '&& mv {logfiles} {outdir}/star-pass2_log')
+            shell('mkdir -p {outdir}/star-pass2_logs '
+                  '&& mv {logfiles} {outdir}/star-pass2_logs')
+
+            shell('rm -r {prefix}_STARgenome')
 
 
 rule rRNA:
