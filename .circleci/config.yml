@@ -506,7 +506,7 @@ workflows:
             - rnaseq
             - rnaseq-star
             - rnaseq-pe
-            - rnaseq-sra
+            - rnaseq-misc
             - chipseq
             - references
             - colocalization
