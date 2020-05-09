@@ -194,15 +194,16 @@ variables:
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
             --until star
   # --------------------------------------------------------------------------
-  # Quick test just to download SRA data
-  rnaseq-sra-step: &rnaseq-sra-step
+  # Various tests on RNA-seq workflow that don't warrant the overhead of a new
+  # cache load
+  rnaseq-misc-step: &rnaseq-misc-step
       run:
         name: rnaseq download from SRA
         command: |
           ORIG=$(pwd)
           cd $DEPLOY
-          cp -r workflows/rnaseq workflows/rnaseq-sra-test
-          cd workflows/rnaseq-sra-test
+          cp -r workflows/rnaseq workflows/rnaseq-misc-test
+          cd workflows/rnaseq-misc-test
           source activate lcdb-wf-test
 
           ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
@@ -224,8 +225,9 @@ variables:
             --configfile $ORIG/test/test_configs/override.yaml \
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
             && cat strandedness.tsv
+
   # --------------------------------------------------------------------------
-  # Quick test to ensure PE sampletables work correctly
+  # Quick (ish) test for PE data
   rnaseq-pe-step: &rnaseq-pe-step
       run:
         name: rnaseq test PE
@@ -236,9 +238,12 @@ variables:
           cd workflows/rnaseq-pe-test
           source activate lcdb-wf-test
 
-          ./run_test.sh -j 1 --use-conda -k -p -r --until multiqc \
+          # test PE reads
+          ./run_test.sh -j 2 --use-conda -k -p -r --until multiqc \
             --configfile $ORIG/test/test_configs/override.yaml \
             --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
+
+
   # --------------------------------------------------------------------------
   # Standard colocalization workflow
   colocalization-step: &colocalization-step
@@ -342,14 +347,14 @@ jobs:
       - *get-data
       - *rnaseq-star-step
 
-  rnaseq-sra:
+  rnaseq-misc:
     <<: *defaults
     steps:
       - checkout
       - *restore_cache
       - *set-path
       - *get-data
-      - *rnaseq-sra-step
+      - *rnaseq-misc-step
 
 
   rnaseq-pe:
@@ -458,7 +463,7 @@ workflows:
             branches:
               ignore:
                 - master
-      - rnaseq-sra:
+      - rnaseq-misc:
           requires:
             - initial-setup
             - pytest
@@ -500,6 +505,8 @@ workflows:
           requires:
             - rnaseq
             - rnaseq-star
+            - rnaseq-pe
+            - rnaseq-sra
             - chipseq
             - references
             - colocalization
