@@ -429,18 +429,10 @@ workflows:
          requires:
            - initial-setup
            - pytest
-         filters:
-           branches:
-             ignore:
-               - master
       - chipseq-regression:
          requires:
            - initial-setup
            - pytest
-         filters:
-           branches:
-             ignore:
-               - master
       - rnaseq-dryrun:
          requires:
            - initial-setup
@@ -450,53 +442,29 @@ workflows:
             - initial-setup
             - pytest
             - rnaseq-dryrun
-          filters:
-            branches:
-              ignore:
-                - master
       - rnaseq-star:
           requires:
             - initial-setup
             - pytest
             - rnaseq-dryrun
-          filters:
-            branches:
-              ignore:
-                - master
       - rnaseq-misc:
           requires:
             - initial-setup
             - pytest
             - rnaseq-dryrun
-          filters:
-            branches:
-              ignore:
-                - master
       - rnaseq-pe:
           requires:
             - initial-setup
             - pytest
             - rnaseq-dryrun
-          filters:
-            branches:
-              ignore:
-                - master
       - references:
           requires:
             - initial-setup
             - pytest
-          filters:
-            branches:
-              ignore:
-                - master
       - colocalization:
           requires:
             - initial-setup
             - pytest
-          filters:
-            branches:
-              ignore:
-                - master
       - build-docs:
           requires:
             - initial-setup
@@ -510,7 +478,3 @@ workflows:
             - chipseq
             - references
             - colocalization
-          filters:
-            branches:
-              ignore:
-                - master
