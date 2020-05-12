@@ -739,7 +739,7 @@ write.clusterprofiler.results <- function(res, cprof.folder, label){
 removebatchEffect <-
 function(x, batches=c(), covariates=NULL, design=matrix(1,ncol(x),1),...)
 {
-    if(length(batches) == 0 & (is.null(covariates)){
+    if(length(batches) == 0 & is.null(covariates)){
         return(as.matrix(x))
     }
     batches_processed <- c()
