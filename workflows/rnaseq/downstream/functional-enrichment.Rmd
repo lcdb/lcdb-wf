@@ -2,7 +2,10 @@
 
 Here we perform gene ontology, KEGG pathway and Reactome pathway enrichment using the
 [clusterProfiler](https://bioconductor.org/packages/release/bioc/vignettes/clusterProfiler/inst/doc/clusterProfiler.html)
-package with some custom plotting functions.
+package with some custom plotting functions. We can perform overrepresentation analysis (overrep) 
+or gene set enrichment analysis (gsea).
+
+**Analysis mode:** `r analysis.mode`
 
 ```{r cprof_setup, results='hide'}
 
@@ -21,17 +24,24 @@ types <- c("ENTREZID","SYMBOL","UNIPROT")
 
 # NOTE: convert IDs to symbols for KEGG?---------------------------------------
 id.convert <- TRUE
+
 ```
 
 ```{r bitr_genes, results='hide'}
 # NOTE: Gene IDs are provided in what format?----------------------------------
 from.type <- "FLYBASE"
 
-deg.list <- nested.lapply(sel.list, rownames)
-genes.df <- nested.lapply(deg.list, bitr, fromType=from.type, toType=types, OrgDb=orgdb)
+if(analysis.mode == 'overrep'){
+    func <- nested.lapply
+} else if(analysis.mode == 'gsea'){
+    func <- nested.lapply
+}
+
+deg.list <- func(sel.list, rownames)
+genes.df <- func(deg.list, bitr, fromType=from.type, toType=types, OrgDb=orgdb)
 ```
 
-```{r enrich_all, results='hide', cache=TRUE, dependson='final_clusters'}
+```{r enrich_all, results='hide'}
 
 # run enrichment for all gene lists over a loop
 
@@ -40,17 +50,18 @@ go.keytype <- 'ENTREZID'
 kegg.keytype <- 'ncbi-geneid'
 pvalueCutoff <- 1
 qvalueCutoff <- 1
+pAdjustMethod <- 'BH'
 go.uni <- NULL
 path.uni <- NULL
 kegg.organism <- 'dme'
 RUN.REACTOME <- FALSE
 reactome.organism <- 'fly'
 
-
 # list to hold all enrichment results
 # will have structure:
 #
-#   all.enrich[[contrast]][[direction]][[enrichment label]]
+#   all.enrich[[contrast]][[selection]][[enrichment label]]
+#
 all.enrich <- list()
 enrich.files <- list()
 # loop over each contrast
@@ -59,71 +70,131 @@ for(comp in names(genes.df)){
     all.enrich[[comp]] <- list()
     enrich.files[[comp]] <- list()
 
-    # loop over selection list
     for(sel in sel.names){
-
         all.enrich[[comp]][[sel]] <- list()
         enrich.files[[comp]][[sel]] <- list()
 
-        gene <- genes.df[[comp]][[sel]][[go.keytype]]
+        if(analysis.mode == 'gsea'){
+            # for 'gsea' we create a decreasing ranked named vector of values
 
-        for (ont in c('CC', 'BP', 'MF')){
-            go.res <- enrichGO(
-                gene=gene, universe=go.uni, keyType=go.keytype, OrgDb=orgdb,
-                ont=ont, pvalueCutoff=pvalueCutoff, qvalueCutoff=qvalueCutoff,
-                readable = TRUE)
+            # named vector with ID -> entrezID mapping
+            idmap <- genes.df[[comp]][[sel]][[go.keytype]]
+            names(idmap) <- genes.df[[comp]][[sel]][[from.type]]
+    
+            # we use the 'stat' column as the ranking metric
+            gene <- sel.list[[comp]][[sel]]$stat
+            names(gene) <- idmap[rownames(sel.list[[comp]][[sel]])]
+            gene <- gene[order(gene, decreasing=TRUE)]
 
-            res.label <- paste('GO', ont, sep='_')
+            # removing NA's
+            gene <- gene[!is.na(gene)]
+            gene <- gene[!is.na(names(gene))]
+        } else if(analysis.mode == 'overrep'){
+            # for 'overrep' we supply the gene list
+            gene <- genes.df[[comp]][[sel]][[go.keytype]]
+        }
+
+        # perform GO analysis
+        for(ont in c('CC', 'BP', 'MF')){
+            res.label <- paste('GO', ont, analysis.mode, sep='_')
+
+            if(analysis.mode == 'gsea'){
+                go.res <- gseGO(
+                    geneList=gene, keyType=go.keytype, OrgDb=orgdb,
+                    ont=ont, pvalueCutoff=pvalueCutoff, pAdjustMethod=pAdjustMethod)
+            } else if(analysis.mode == 'overrep'){
+                go.res <- enrichGO(
+                    gene=gene, universe=go.uni, keyType=go.keytype, OrgDb=orgdb,
+                    ont=ont, pvalueCutoff=pvalueCutoff, qvalueCutoff=qvalueCutoff,
+                    readable = TRUE)
+            }
+
             all.enrich[[comp]][[sel]][[ont]] <- go.res
             if (!is.null(go.res)){
-                enrich.files[[comp]][[sel]][[ont]] <- write.clusterprofiler.results(go.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
+                enrich.files[[comp]][[sel]][[ont]] <- write.clusterprofiler.results(go.res, cprof.folder,
+                                                        paste0(res.label, '_', comp, '_', sel),
+                                                        analysis.mode=analysis.mode)
             }
         }
 
-        # perform KEGG enrichment
-        res.label <- 'KEGG'
-        kegg.res <- enrichKEGG(
-            gene=gene, universe=path.uni, organism=kegg.organism,
-            keyType=kegg.keytype, pvalueCutoff=pvalueCutoff,
-            qvalueCutoff=qvalueCutoff)
+        # perform KEGG analysis
+        res.label <- paste('KEGG', analysis.mode, sep='_')
+        if(analysis.mode == 'gsea'){
+            kegg.res <- gseKEGG(
+                geneList=gene, organism=kegg.organism,
+                keyType=kegg.keytype, pvalueCutoff=pvalueCutoff,
+                pAdjustMethod=pAdjustMethod)
+        } else if(analysis.mode == 'overrep'){
+            kegg.res <- enrichKEGG(
+                gene=gene, universe=path.uni, organism=kegg.organism,
+                keyType=kegg.keytype, pvalueCutoff=pvalueCutoff,
+                qvalueCutoff=qvalueCutoff)
 
+        }
 
-        if (!is.null(kegg.res)){
-            # convert uniprot IDs to readable symbols. This needs to be done separately
-            # in the case of KEGG
-            if(id.convert){
-              id.vec <- genes.df[[comp]][[sel]]$SYMBOL
-              names(id.vec) <- genes.df[[comp]][[sel]]$ENTREZID
-              kegg.res.genes <- kegg.res@result$geneID
-              for(j in 1:length(kegg.res.genes)){
-                id.split <- strsplit(kegg.res.genes[j], "/")[[1]]
-                temp <- paste(id.vec[id.split], collapse="/")
-                kegg.res@result$geneID[j] <- temp
-              }
-            }
-
-
-            all.enrich[[comp]][[sel]][['kegg']] <- kegg.res
-            enrich.files[[comp]][[sel]][['kegg']] <- write.clusterprofiler.results(kegg.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
+        all.enrich[[comp]][[sel]][['kegg']] <- kegg.res
+        if(!is.null(kegg.res) && nrow(kegg.res) > 0){
+            enrich.files[[comp]][[sel]][['kegg']] <- write.clusterprofiler.results(kegg.res, cprof.folder,
+                                                    paste0(res.label, '_', comp, '_', sel),
+                                                    analysis.mode=analysis.mode)
         }
 
         if (RUN.REACTOME) {
             # NOTE: Install OrgDb--------------------------------------------------
             #   ReactomePA requires the relevant OrgDb package to be installed
             #   and so is disabled by default.
-            res.label <- 'Reactome'
-            reactome.res <-enrichPathway(
-                gene=gene, universe=path.uni, organism=reactome.organism,
-                pvalueCutoff=pvalueCutoff, qvalueCutoff=qvalueCutoff, readable=TRUE)
+            res.label <- paste('Reactome', analysis.mode, sep='_')
+            if(analysis.mode == 'overrep'){
+                reactome.res <-enrichPathway(
+                    gene=gene, universe=path.uni, organism=reactome.organism,
+                    pvalueCutoff=pvalueCutoff, qvalueCutoff=qvalueCutoff, readable=TRUE)
+            } else if(analysis.mode == 'gsea'){
+                reactome.res <- gsePathway(
+                    gene=gene, organism=reactome.organism,
+                    pvalueCutoff=pvalueCutoff, pAdjustMethod=pAdjustMethod)
+            }
             all.enrich[[comp]][[sel]][['reactome']] <- reactome.res
 
             if (!is.null(reactome.res)){
-                enrich.files[[comp]][[sel]][['reactome']] <- write.clusterprofiler.results(reactome.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
+                enrich.files[[comp]][[sel]][['reactome']] <- write.clusterprofiler.results(reactome.res, cprof.folder,
+                                                                paste0(res.label, '_', comp, '_', sel),
+                                                                analysis.mode=analysis.mode)
             }
         }
     }
 }
 
+# convert IDs to symbols for readable plots
+# for 'gsea' this conversion is done for all pathway results
+# for 'overrep' only kegg result needs conversion
+if(id.convert){
+    for(comp in names(all.enrich)){
+        for(sel in names(all.enrich[[comp]])){
+            all.go <- names(all.enrich[[comp]][[sel]])
+    
+            # for 'overrep' do conversion only for KEGG
+            if(analysis.mode == 'overrep'){
+                if('kegg' %in% all.go){
+                    all.go <- c('kegg')
+                    id.col <- 'geneID'
+                } else {
+                    next
+                }
+            } else if(analysis.mode == 'gsea'){
+                id.col <- 'core_enrichment'
+            }
+    
+            for(go in all.go){
+                res <- all.enrich[[comp]][[sel]][[go]]
+                if(!is.null(res) && nrow(res) > 0){
+                    res <- set.readable(res, genes.df=genes.df, id.col=id.col)
+                    all.enrich[[comp]][[sel]][[go]] <- res
+                }
+            }
+        }
+    }
+}
+                
 ```
 
 ```{r adjust_catlen}
@@ -133,7 +204,7 @@ maxcatlen <- 50
 for(comp in names(all.enrich)){
   for(name in names(all.enrich[[comp]])){
     for(go in names(all.enrich[[comp]][[name]])){
-      all.enrich[[comp]][[name]][[go]]@result$Description <- substr(all.enrich[[comp]][[name]][[go]]@result$Description, 1, maxcatlen)
+            all.enrich[[comp]][[name]][[go]]@result$Description <- substr(all.enrich[[comp]][[name]][[go]]@result$Description, 1, maxcatlen)
     }
   }
 }
@@ -144,7 +215,7 @@ Below we show the results separately for each comparison. Links to files
 containing analysis results are shown above each set of plots, with parsed
 files showing genes on separate lines.
 
-```{r plot_go, fig.width=15, fig.height=10, results='asis', cache=TRUE, dependson='enrich_all'}
+```{r plot_go, fig.width=15, fig.height=10, results='asis'}
 # go labels for file names
 go.label <- list(
     BP='GO Biological Process',
@@ -168,10 +239,9 @@ for(comp in names(all.enrich)){
         cnetplots <- list()
 
         for (sel in sel.names){
-
             res <- all.enrich[[comp]][[sel]][[go]]
 
-            if (is.null(res))
+            if (is.null(res) || nrow(res) == 0)
             {
                 cat('\n\n\nNo genes enriched for:', comp, sel, go, '\n\n\n')
                 next
