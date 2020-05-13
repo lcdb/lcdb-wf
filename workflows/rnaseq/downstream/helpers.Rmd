@@ -686,16 +686,25 @@ nested.lapply <- function(x, subfunc, ...){
 #'
 #' @param x Results from clusterProfiler. It is expected that the
 #' clusterProfiler enrichment function was called with "readable=TRUE"
+#' @param analysis.mode Type of analysis 'overrep' or 'gsea'
 #'
 #' @return data.frame with genes one per line instead of "/" separated in one
 #' line. The rest of the original line is repeated for each gene.
 #'
-split.clusterProfiler.results <- function(x){
+split.clusterProfiler.results <- function(x, analysis.mode){
     df <- x@result
+
+    # set column name based on analysis.mode
+    if(analysis.mode == 'overrep'){
+        id.col <- 'geneID'
+    } else if(analysis.mode == 'gsea'){
+        id.col <- 'core_enrichment'
+    }
+
     # loop over all rows
     df.parse <- NULL
     for(k in 1:dim(df)[1]){
-        g <- strsplit(as.character(df$geneID[k]), "/")[[1]]
+        g <- strsplit(as.character(df[k, id.col]), "/")[[1]]
         gg <- df[rep(k, length(g)),]
         gg$geneParse <- g
         if(is.null(df.parse)){
@@ -708,20 +717,42 @@ split.clusterProfiler.results <- function(x){
 }
 
 
+#' Converts entrezID to symbol in enrichResult or gseaResult objects
+#'
+#' @param res clusterProfiler results. Can be enrichResult or gseaResult objects
+#' @param genes.df Data frame with gene ID to symbol mapping. Must have SYMBOL
+#'        and ENTREZID columns
+#' @param id.col Column name with IDs to be converted. This is 'geneID' for
+#'        enrichResult and 'core_enrichment' for gseaResult 
+#'
+#' @result enrichResult or gseaResult object with IDs converted to symbol
+set.readable <- function(res, genes.df, id.col){
+    id.vec <- genes.df[[comp]][[sel]]$SYMBOL
+    names(id.vec) <- genes.df[[comp]][[sel]]$ENTREZID
+    res.genes <- res@result[,id.col]
+    for(j in 1:length(res.genes)){
+        id.split <- strsplit(res.genes[j], "/")[[1]]
+        temp <- paste(id.vec[id.split], collapse="/")
+        res@result[j, id.col] <- temp
+    }
+    return(res)
+}
+
 #' Writes out original and split clusterprofiler results
 #'
 #' @param res clusterProfiler results
 #' @param cprof.folder Directory in which to save files. Will be created if needed.
-#' @param Label to use for the results. Will generate a filename
+#' @param label Label to use for the results. Will generate a filename
 #' cprof.folder/label.txt and cprof.folder/label_split.txt
+#' @param analysis.mode Type of analysis 'overrep' or 'gsea'
 #'
 #' @return List of the two files that are created on disk.
-write.clusterprofiler.results <- function(res, cprof.folder, label){
+write.clusterprofiler.results <- function(res, cprof.folder, label, analysis.mode){
     dir.create(cprof.folder, showWarnings=FALSE, recursive=TRUE)
     filename.orig <- file.path(cprof.folder, paste0(label, '.txt'))
     write.table(res, file=filename.orig, sep='\t', quote=FALSE, row.names=FALSE)
     filename.split <- file.path(cprof.folder, paste0(label, '_split.txt'))
-    res.split <- split.clusterProfiler.results(res)
+    res.split <- split.clusterProfiler.results(res, analysis.mode)
     write.table(res.split, file=filename.split, sep='\t', quote=FALSE, row.names=FALSE)
     return(list(orig=filename.orig, split=filename.split))
 }
