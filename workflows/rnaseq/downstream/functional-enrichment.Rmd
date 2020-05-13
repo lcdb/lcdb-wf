@@ -31,14 +31,8 @@ id.convert <- TRUE
 # NOTE: Gene IDs are provided in what format?----------------------------------
 from.type <- "FLYBASE"
 
-if(analysis.mode == 'overrep'){
-    func <- nested.lapply
-} else if(analysis.mode == 'gsea'){
-    func <- nested.lapply
-}
-
-deg.list <- func(sel.list, rownames)
-genes.df <- func(deg.list, bitr, fromType=from.type, toType=types, OrgDb=orgdb)
+deg.list <- nested.lapply(sel.list, rownames)
+genes.df <- nested.lapply(deg.list, bitr, fromType=from.type, toType=types, OrgDb=orgdb)
 ```
 
 ```{r enrich_all, results='hide'}
@@ -70,6 +64,7 @@ for(comp in names(genes.df)){
     all.enrich[[comp]] <- list()
     enrich.files[[comp]] <- list()
 
+    # loop over selection list
     for(sel in sel.names){
         all.enrich[[comp]][[sel]] <- list()
         enrich.files[[comp]][[sel]] <- list()
