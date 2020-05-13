@@ -593,8 +593,32 @@ for (name in names(res.list)){
 }
 ```
 
+```{r}
+# NOTE: set analysis mode, choose 'overrep' or 'gsea'
+analysis.mode <- 'gsea'
+
+# NOTE: comparisons to analyze
+comps.to.analyze <- c('all')
+
+# prepare sel.list before functional enrichment
+# 1. for 'gsea', we just send the entire res object
+# 2. for 'overrep', we send the gene lists
+if(analysis.mode == 'gsea'){
+    sel.list <- list()
+    for(name in comps.to.analyze){
+        sel.list[[name]] <- list(all=res.list[[name]][['res']])
+    }
+    sel.names <- names(sel.list[[1]])
+} else if(analysis.mode == 'overrep'){
+    sel.list <- sel.list[names(sel.list) %in% comps.to.analyze]
+}
+```
+
 ```{r child='functional-enrichment.Rmd', eval=TRUE}
-rmarkdown::render('functional-enrichment.Rmd', run_pandoc=FALSE)
+
+rmarkdown::render('functional-enrichment.Rmd',
+                  run_pandoc=FALSE)
+                  #params=list(analysis.mode=analysis.mode))
 ```
 
 # Session info
