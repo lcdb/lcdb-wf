@@ -63,6 +63,7 @@ r-rmarkdown
 r-spp
 r-sparsem
 r-upsetr
+r-purrr
 rseqc >=3.0
 salmon
 samtools >=1.4.1
