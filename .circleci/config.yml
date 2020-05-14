@@ -84,7 +84,7 @@ variables:
         apt install -y rsync
 
         # Deploy to the new directory, so we are testing the real-world case of post-deployment.
-        # Note that $DEPLOY is set in the "set-paths" step configured below.
+        # Note that $DEPLOY is set in the "set-paths" step configured above.
         python deploy.py --flavor full --dest $DEPLOY
 
         # Separately copy over some test-specific files
@@ -322,7 +322,8 @@ jobs:
       - *get-data
       - *rnaseq-step
       - store_artifacts:
-          path: $DEPLOY/workflows/rnaseq/downstream
+          # env vars not availabe here, but $DEPLOY is /tmp/lcdb-wf-test
+          path: /tmp/lcdb-wf-test/workflows/rnaseq/downstream
 
   rnaseq-star:
     <<: *defaults
