@@ -171,6 +171,9 @@ variables:
           # outside the context of the Snakefile.
           source activate lcdb-wf-test-r
           Rscript -e "rmarkdown::render('downstream/rnaseq.Rmd')"
+
+      store_artifacts:
+        path: $DEPLOY/workflows/rnaseq/downstream
   # --------------------------------------------------------------------------
   # Quick test on just two samples to make sure STAR works OK
   rnaseq-star-step: &rnaseq-star-step
