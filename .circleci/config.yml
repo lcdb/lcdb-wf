@@ -158,7 +158,7 @@ variables:
   # --------------------------------------------------------------------------
   # Standard RNA-seq workflow
   rnaseq-step: &rnaseq-step
-    - run:
+      run:
         name: rnaseq workflow
         command: |
           cd $DEPLOY/workflows/rnaseq
@@ -172,8 +172,6 @@ variables:
           source activate lcdb-wf-test-r
           Rscript -e "rmarkdown::render('downstream/rnaseq.Rmd')"
 
-    - store_artifacts:
-        path: $DEPLOY/workflows/rnaseq/downstream
   # --------------------------------------------------------------------------
   # Quick test on just two samples to make sure STAR works OK
   rnaseq-star-step: &rnaseq-star-step
@@ -323,6 +321,8 @@ jobs:
       - *set-path
       - *get-data
       - *rnaseq-step
+      - store_artifacts:
+          path: $DEPLOY/workflows/rnaseq/downstream
 
   rnaseq-star:
     <<: *defaults
