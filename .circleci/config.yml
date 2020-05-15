@@ -408,7 +408,11 @@ jobs:
       - *set-path
       - run:
           name: Report environment
-          command: conda env export -n lcdb-wf-test
+          command: |
+            conda env export -n lcdb-wf-test > /tmp/env.yaml
+            cat /tmp/env.yaml
+      - store_artifacts:
+          path: /tmp/env.yaml
 
 # ----------------------------------------------------------------------------
 # This section configures the dependencies across jobs.
