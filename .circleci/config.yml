@@ -172,6 +172,9 @@ variables:
           source activate lcdb-wf-test-r
           Rscript -e "rmarkdown::render('downstream/rnaseq.Rmd')"
 
+          # zip up the entire directory to be used as an artifact
+          zip -r downstream.zip downstream/
+
   # --------------------------------------------------------------------------
   # Quick test on just two samples to make sure STAR works OK
   rnaseq-star-step: &rnaseq-star-step
@@ -322,8 +325,11 @@ jobs:
       - *get-data
       - *rnaseq-step
       - store_artifacts:
-          # env vars not availabe here, but $DEPLOY is /tmp/lcdb-wf-test
-          path: /tmp/lcdb-wf-test/workflows/rnaseq/downstream
+          path: /tmp/lcdb-wf-test/workflows/rnaseq/downstream.zip
+      - store_artifacts:
+          path: /tmp/lcdb-wf-test/workflows/rnaseq/downstream/rnaseq.html
+      - store_artifacts:
+          path: /tmp/lcdb-wf-test/workflows/rnaseq/data/rnaseq_aggregation/multiqc.html
 
   rnaseq-star:
     <<: *defaults
