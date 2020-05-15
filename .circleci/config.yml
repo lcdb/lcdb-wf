@@ -173,7 +173,7 @@ variables:
           Rscript -e "rmarkdown::render('downstream/rnaseq.Rmd')"
 
           # bundle up the entire directory to be used as an artifact
-          tar -zrcf downstream.tar.gz downstream/
+          tar -zcf downstream.tar.gz downstream/
 
   # --------------------------------------------------------------------------
   # Quick test on just two samples to make sure STAR works OK
