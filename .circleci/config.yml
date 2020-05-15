@@ -296,6 +296,8 @@ jobs:
       - *set-path
       - *get-data
       - *chipseq-step
+      - store_artifacts:
+          path: /tmp/lcdb-wf-test/workflows/chipseq/data/chipseq_aggregation/multiqc.html
 
   chipseq-regression:
     <<: *defaults
