@@ -411,8 +411,11 @@ jobs:
           command: |
             conda env export -n lcdb-wf-test > /tmp/env.yaml
             cat /tmp/env.yaml
+            conda env export -n lcdb-wf-test-r > /tmp/env-r.yaml
       - store_artifacts:
           path: /tmp/env.yaml
+      - store_artifacts:
+          path: /tmp/env-r.yaml
 
 # ----------------------------------------------------------------------------
 # This section configures the dependencies across jobs.
