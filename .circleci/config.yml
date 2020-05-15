@@ -58,7 +58,7 @@ variables:
       name: Setup conda
       command: |
         set -e
-        apt install -y locales-all locales
+        apt install -y locales-all locales zip
         export LC_ALL=en_US.utf8
         export LANG=en_US.utf8
         # We only do the installation if the conda environment does not already
