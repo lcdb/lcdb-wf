@@ -1,0 +1,24 @@
+bioconductor-annotationhub
+bioconductor-biocparallel
+bioconductor-clusterprofiler
+bioconductor-degreport
+bioconductor-deseq2
+bioconductor-dupradar
+bioconductor-genomeinfodbdata
+bioconductor-genomicfeatures
+bioconductor-reactomepa
+bioconductor-s4vectors
+bioconductor-sva
+bioconductor-tximport
+r-base >3.5
+r-dt
+r-ggrepel
+r-heatmaply
+r-knitr
+r-plotly
+r-pheatmap
+r-readr
+r-rmarkdown
+r-spp
+r-sparsem
+r-upsetr

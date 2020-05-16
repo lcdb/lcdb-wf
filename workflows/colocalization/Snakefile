@@ -150,6 +150,7 @@ rule intervalstats:
         query=lambda wc: config['beds'][getattr(wc, 'query')],
         reference=lambda wc: config['beds'][getattr(wc, 'reference')],
     output: '{outdir}/IntervalStats/{domain}/{query}/{query}_vs_{reference}.txt'
+    log: '{outdir}/IntervalStats/{domain}/{query}/{query}_vs_{reference}.log'
     run:
         if input.query == input.reference:
             run_self = '--self'
@@ -161,7 +162,7 @@ rule intervalstats:
             '--reference {input.reference} '
             '--output {output}.full '
             '--domain {input.domain} '
-            '{run_self}'
+            '{run_self} &> {log}'
         )
 
         # Summarize the output into a faster-to-parse file used by downstream

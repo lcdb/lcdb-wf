@@ -258,8 +258,12 @@ lcdbwf.samplename <- function(x) {
 #' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
 DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable, design, sample.func=lcdbwf.samplename, subset.counts=FALSE, ...){
 
-    # Read in the TSV, use gene ID as rownames, and get rid of the Chr, Start,
-    # End, Strand, Length columns
+    # The sampletable may be data.frame or tibble; if it's a tibble then it
+    # likely doesn't have rownames. So in this function we assume that it's the
+    # first column that contains the samplenames.
+
+    # Read in the counts TSV, use gene ID as rownames, and get rid of the Chr,
+    # Start, End, Strand, Length columns
     m <- read_tsv(filename, comment="#") %>%
         remove_rownames %>%
         column_to_rownames('Geneid') %>%
@@ -269,20 +273,23 @@ DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable, design,
     # The column names of the imported table are not guaranteed to match the
     # samples in the metadata, so we need to make sure things match up
     # correctly when renaming columns.
-
+    #
+    # sample.func should convert filenames (which are columns in featurecounts
+    # table) with samples (as listed in the sampletable)
     x <- colnames(m) %>% sample.func
 
-    counts.not.sampletable <- setdiff(x, rownames(sampletable))
-    sampletable.not.counts <- setdiff(rownames(sampletable), x)
+    samplenames <- sampletable[,1]
+    counts.not.sampletable <- setdiff(x, samplenames)
+    sampletable.not.counts <- setdiff(samplenames, x)
 
 
-    if (!all(x %in% rownames(sampletable))){
+    if (!all(x %in% samplenames)){
         # sampletable is missing:
         if (!subset.counts){
             stop(paste('The following samples are in the counts data but not the sampletable. If this is intended, consider using `subset.counts=TRUE` to remove them from the counts:', paste(counts.not.sampletable, collapse=', ')))
         }
     }
-    if (!all(rownames(sampletable) %in% x)){
+    if (!all(samplenames %in% x)){
         stop(
            paste(
              'The following samples are in the sampletable but not in the counts data. Check sample.func?',
@@ -294,6 +301,12 @@ DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable, design,
 
     # We should be good -- so reorder columns in `m` to match sampletable
     m <- m[, sampletable[,1]]
+
+    # Before creating the dds object, we will drop levels from factors, in case
+    # that was not done before sending in the (possibly subsetted) sampletable.
+
+    sampletable <- droplevels(as.data.frame(sampletable))
+
     object <- DESeqDataSetFromMatrix(countData=m, colData=sampletable, design=design, ...)
     return(object)
 }

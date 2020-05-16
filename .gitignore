@@ -24,3 +24,5 @@ docs/_build
 workflows/rnaseq/staging/
 env
 include/AnnotationHubCache
+env*
+references_dir/
