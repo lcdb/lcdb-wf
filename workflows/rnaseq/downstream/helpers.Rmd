@@ -19,7 +19,7 @@ library(purrr)
 #'        accession. Use this when you know exactly which OrgDb to use.
 #'
 #' @return OrgDb object
-get.orgdb <- function(species, cache, annotation_key_override=NA){
+get.orgdb <- function(species, cache_choice, annotation_key_override=NA){
 
     # Workaround to allow AnnotationHub to use proxy. See
     # https://github.com/Bioconductor/AnnotationHub/issues/4, and thanks
@@ -30,7 +30,7 @@ get.orgdb <- function(species, cache, annotation_key_override=NA){
     }
 
     ah <- AnnotationHub(hub=getAnnotationHubOption('URL'),
-             cache=cache,
+             cache=cache_choice,
              proxy=setAnnotationHubOption('PROXY', proxy),
              localHub=FALSE)
 
