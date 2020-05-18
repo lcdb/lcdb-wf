@@ -592,15 +592,17 @@ attach.info <- function(res, keytype='ENSEMBL', columns=c('SYMBOL', 'UNIPROT', '
 #' Combine everything in the results list into a single table
 #'
 #' @param res.list Named list of lists, where each sublist contains the following
-#'                 names: c('res', 'dds', 'label'). "res" is a DESeqResults object,
-#'                 "dds" is a DESeq object, and "label" is a nicer-looking
-#'                 label to use.
+#'                 names: c('res', 'dds', 'label', 'alpha', 'lfc.thresh').
+#'                 "res" is a DESeqResults object, "dds" is a DESeq object, 
+#'                 "label" is a nicer-looking label to use, 'alpha' is the FDR
+#'                 threshold and 'lfc.thresh' is the LFC threshold.
 #'
 #' @return Dataframe
-summarize.res.list <- function(res.list, alpha, lfc.thresh){
+summarize.res.list <- function(res.list){
     slist <- list()
     for (name in names(res.list)){
-        x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']], alpha, lfc.thresh)
+        x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']],
+                        res.list[[name]][['alpha']], res.list[[name]][['lfc.thresh']])
         rownames(x) <- res.list[[name]][['label']]
         slist[[name]] <- x
     }
