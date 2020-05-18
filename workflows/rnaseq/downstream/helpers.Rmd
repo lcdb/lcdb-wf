@@ -735,7 +735,7 @@ write.clusterprofiler.results <- function(res, cprof.folder, label){
 #' @param n Number of top and bottom genes to include in heatmap
 #' @param ... Other arguments to are passed to heatmaply
 
-create.noreplicate.heatmap <- function(rld, cond.A, cond.B symbol.mappings, n=50){
+create.noreplicate.heatmap <- function(rld, cond.A, cond., symbol.mappings, n=50){
 
 m <- assay(rld)
 
@@ -762,5 +762,5 @@ rownames(m) <- symbol.mappings
 
 heatmaply(m[c(top, bot),], scale='row', ...)
 
-
+}
 ```
