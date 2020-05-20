@@ -1,4 +1,5 @@
 bioconductor-annotationhub
+bioconductor-apeglm
 bioconductor-biocparallel
 bioconductor-clusterprofiler
 bioconductor-degreport
