@@ -1,4 +1,4 @@
-# Gene patterns {.tabset}
+# Gene patterns
 
 We can roughly group genes into expression patterns. This uses the [DEGreport
 package](https://www.bioconductor.org/packages/release/bioc/html/DEGreport.html),
@@ -60,11 +60,13 @@ ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed'))
 # Filter out results where there were zero genes detected.
 ll <- ll[lapply(ll, length) > 0]
 
+# list to hold degpatterns results
+dp.list <- list()
 for (name in names(ll)){
-    # Print a nice Markdown header
-    mdcat('## ', res.list[[name]][['label']])
+    dp.list[[name]] <- list()
 
     genes <- ll[[name]]
+    dp.list[[name]][['genes']] <- genes
 
     # Plotting a large number of genes will take a lot of time to perform the
     # clustering. If there are more than this limit, then we take a random
@@ -91,7 +93,7 @@ for (name in names(ll)){
     # without error, disable plotting, then manually remove the clusters with
     # low numbers of genes, then use the degPlotCluster function to re-plot
     # them.
-    p <- degPatterns(
+    dp.list[[name]][['clusters']] <- degPatterns(
         ma,
         colData.i,
         time=time,
@@ -108,18 +110,41 @@ for (name in names(ll)){
         # col="another.column",
 
         # NOTE: see above note
-        minc=low.minc,
+        minc=minc,
 
         plot=FALSE
 
         )
+}
+```
+
+```{r plot_degpatterns, cache=TRUE, fig.width=12, results='asis', dependson='final_clusters'}
+# unique list of genes in clusters
+uniq.genes <- unique(unlist(lapply(dp.list, function(x) x[['genes']])))
+
+# data frame to hold cluster memberships
+# NOTE: here we assume that all genes are present in any 'res' object.
+#       - this should be replaced by the geneid -> symbol mapping df
+cluster.df <- data.frame(row.names = uniq.genes,
+                         genes = uniq.genes,
+                         symbol = res.list[[1]][['res']]$symbol[uniq.genes])
+
+mdcat('## Cluster plots {.tabset}')
+for(name in names(dp.list)){
+    # print nice Markdown header
+    mdcat('### ', res.list[[name]][['label']])
+
+    p <- dp.list[[name]][['clusters']]
 
     n <- p$normalized
-    cls <- unique(n$cluster)
-    names(cls) <- cls
-    cluster.counts <- sapply(cls, function (x) length(unique(n$genes[n$cluster==x])))
+
+    # keep clusters with counts > minc
+    n.uniq <- n[,c('genes','cluster')] %>% distinct()
+    cluster.counts <- table(n.uniq$cluster)
     clusters.keep <- names(cluster.counts)[cluster.counts > minc]
     n2 <- n[n$cluster %in% clusters.keep,]
+
+    if(nrow(n2) > minc){
     print(degPlotCluster(
         n2,
         time=time,
@@ -127,22 +152,29 @@ for (name in names(ll)){
         col=col
         )
     )
-
+    } else {
+        cat('No clusters to plot!\n')
+    }
+    mdcat('\n')
 
     # In the final_clusters directory, this creates files containing lists of
     # the genes in each cluster, and adds a link to the Markdown.
     dir.create('final_clusters')
-    mdcat('\n')
-    for (u in unique(n2$cluster)){
-        fn <- file.path('final_clusters',
-                        paste0('final.', name, '.cluster.', u, '.txt'))
-        write.table(unique(n2[n2$cluster==u, 'genes']), file=fn, quote=FALSE,
-                    row.names=FALSE, col.names=FALSE)
-        mdcat('- [', fn, '](', fn, '), cluster "', u, '" genes')
-    }
     pdf.file = file.path('final_clusters', paste0(name, '.pdf'))
     dev.copy(pdf, file=pdf.file)
     dev.off()
     mdcat('- [', pdf.file, '](', pdf.file, '), PDF')
+
+    # add cluster membership column to cluster.df
+    n2.uniq <- n2[,c('genes','cluster')] %>% distinct()
+    cluster.col <- paste0(name,'.cluster')
+    cluster.df[[cluster.col]] <- NA
+    cluster.df[n2.uniq$genes, cluster.col] <- n2.uniq$cluster
 }
+
+# output file with cluster membership
+fn <- file.path('final_clusters','final_clusters.tsv')
+write.table(cluster.df, file=fn, quote=FALSE, sep='\t', row.names=FALSE)
+mdcat('## Exported file')
+mdcat('TSV with cluster membership: [', fn, '](', fn, ')')
 ```
