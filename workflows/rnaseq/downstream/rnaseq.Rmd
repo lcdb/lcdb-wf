@@ -113,8 +113,6 @@ orgdb <- get.orgdb(
 )
 ```
 
-
-
 ```{r coldata_setup}
 # NOTE: path name to sampletable-----------------------------------------------
 #   Path is relative to the directory of this Rmd
@@ -415,7 +413,8 @@ res.list[['all']] <- list(
     res=lfcShrink(dds,
                   contrast=c('group', 'treatment', 'control'),
                   alpha=metadata(res.all)[['alpha']],
-                  res=res.all
+                  res=res.all,
+                  type='normal'
                   ),
     dds=dds,
     label='Using a log2FoldChange threshold of 0',
@@ -439,8 +438,9 @@ res.list[['lfc_cutoff']] <- list(
         dds,
         contrast=c('group', 'treatment', 'control'),
         alpha=metadata(res.lfcthresh)[['alpha']],
-        res=res.lfcthresh
-        ),
+        res=res.lfcthresh,
+        type='normal'
+    ),
     dds=dds,
     label=paste0('Using a log2FoldChange threshold of >', lfc.thresh),
     alpha=metadata(res.lfcthresh)[['alpha']],
@@ -621,7 +621,7 @@ for (name in names(res.list)){
 }
 ```
 
-```{r child='functional-enrichment.Rmd', eval=FALSE}
+```{r child='functional-enrichment.Rmd', eval=TRUE}
 rmarkdown::render('functional-enrichment.Rmd', run_pandoc=FALSE)
 ```
 

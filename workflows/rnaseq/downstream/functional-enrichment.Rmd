@@ -197,13 +197,17 @@ for(comp in names(all.enrich)){
                 ggtitle(title) +
                 theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
 
-            emapplots[[sel]] <- emapplot(
-                res,
-                showCategory=30,
-                color='p.adjust'
-            ) +
-                ggtitle(title) +
-                theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+            # If there is only one gene, then we don't have a directed graph --
+            # "Error in graph_to_tree(graph, mode = direction) : Graph must be directed"
+            if (nrow(res@result) > 1){
+                emapplots[[sel]] <- emapplot(
+                    res,
+                    showCategory=30,
+                    color='p.adjust'
+                ) +
+                    ggtitle(title) +
+                    theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+            }
 
             cnetplots[[sel]] <- cnetplot(
                 res,
@@ -229,16 +233,17 @@ for(comp in names(all.enrich)){
         # then skip creating the tabs and plots
         skip <- (length(dotplots) == 0) & (length(emapplots) == 0) & (length(cnetplots) == 0)
 
-
-        if (!skip){
+        if (length(dotplots) > 0){
             mdcat('#### Dotplot')
             print(plot_grid(plotlist=dotplots, align='hv'))
             save.and.link('dotplot')
-
+        }
+        if (length(emapplots) > 0){
             mdcat('#### Emapplot')
             print(plot_grid(plotlist=emapplots, align='hv'))
             save.and.link('emapplot')
-
+        }
+        if (length(cnetplots) > 0){
             mdcat('#### Cnetplot')
             print(plot_grid(plotlist=cnetplots, align='hv'))
             save.and.link('cnetplot')
