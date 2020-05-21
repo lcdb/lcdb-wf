@@ -33,6 +33,9 @@ sp:
 fn_ignore_files:
   - '*rrna.bam*'
 
+  # ignore log files from the first pass of STAR 2-pass alignment
+  - '*pass1*'
+
 
 # Set the module order to reflect the order of the workflow. Note that here
 # we're also running the FastQC module multiple times, and putting them in

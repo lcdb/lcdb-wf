@@ -30,7 +30,7 @@ get.orgdb <- function(species, cache, annotation_key_override=NA){
 
     ah <- AnnotationHub(hub=getAnnotationHubOption('URL'),
              cache='../../../include/AnnotationHubCache',
-             proxy=setAnnotationHubOption('PROXY', proxy),
+             proxy=proxy,
              localHub=FALSE)
 
     find.annotationhub.name <- function(species.name, override.code) { #autodetect ah names based on loaded database
