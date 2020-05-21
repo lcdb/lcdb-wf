@@ -416,7 +416,8 @@ res.list[['lfc2']] <- list(
     res=lfcShrink(
         dds,
         contrast=c('group', 'treatment', 'control'),
-        res=res.lfcthresh.2
+        res=res.lfcthresh.2,
+        type='normal'
     ),
     dds=dds,
     label='Using a log2FoldChange threshold of >2'
