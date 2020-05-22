@@ -315,32 +315,15 @@ parallel <- FALSE
 ```
 
 ```{r dds_models, cache=TRUE}
-# NOTE: gene rather than transcript counts-------------------------------------
-    By default we use gene counts rather than transcript counts. See code
-    above where the `dds.txi` object is created for how to modify this for
-    transcript counts.
-dds <- DESeqDataSetFromCombinedFeatureCounts(
-    '../data/rnaseq_aggregation/featurecounts.txt',
-    sampletable=colData,
-    # NOTE: What design to use?------------------------------------------------
-    #   This will be used for contrasts below.
-    design=~group)
+# NOTE: Select salmon rather than FeatureCounts by setting salmon.files=TRUE. 
+# Create lists to represent each future dds object. The third object in each 
+# list is an optional list of arguments passed to the DESeqDataSet contructor.
+# Ex. the subset.counts argument. Arguments to DESeq, such as parallel, should
+# be passed to the make.dds.list function
+#
 
-if (strip.dotted.version){
-    rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
-}
-
-# NOTE: collapse technical replicates ----------------------------------------
-#  If collapsing technical replicates, do so (again) here
-# dds <-collapseReplicates(dds, dds$biorep)
-
-dds <- DESeq(dds,
-    # NOTE: betaPrior----------------------------------------------------------
-    #    betaPrior=FALSE is the default in DESeq2 >1.16, but here we set it
-    #    explicitly for consistency across different versions.
-    betaPrior=FALSE,
-    parallel=parallel
-    )
+lst <- list(colData, ~group, list(subset.counts=FALSE))
+dds.list <- make.dds.list(lst, salmon.files=FALSE, parallel=parallel)
 ```
 
 
