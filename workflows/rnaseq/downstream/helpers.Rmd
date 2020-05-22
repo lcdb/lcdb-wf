@@ -373,7 +373,7 @@ DESeqDataSetFromSalmon <- function (sampleTable, directory='.', design,
 #' @return A list of dds objects.
 #' 
 make.dds.list <- function(deseq_obj_list, salmon.files=FALSE, 
-                          combine.by=FALSE, remove.version=TRUE, parallel=FALSE, ...){
+                          combine.by=FALSE, remove.version=TRUE, ...){
     make.dds <- function(design_data, salmon.files, combine.by, remove.version, ...)
     {
         
