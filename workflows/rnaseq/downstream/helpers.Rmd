@@ -363,8 +363,9 @@ DESeqDataSetFromSalmon <- function (sampleTable, directory='.', design,
 #' This function takes a list of sample, design pairs, plus other info, to output
 #' a list of DESeq object. 
 #'
-#' @param deseq_obj_list A named list of lists. Each list should have two elements:
-#'       1 should be a sampletable, 2 should be a design.
+#' @param deseq_obj_list A named list of lists. Each list should have two to three elements:
+#'       1 should be a sampletable, 2 should be a design. The 3rd is an optional list of arguments
+#'       to pass to the DESeqDataSet constructor.
 #' @param salmon.files Boolean for whether to use salmon; Files will automagically come from 
 #'         the sample table if the incoming colData has been set up as required in DESeqDataSetFromSalmon.
 #' @param combine.by The column to collapse technical replicates by.
@@ -372,39 +373,44 @@ DESeqDataSetFromSalmon <- function (sampleTable, directory='.', design,
 #' @return A list of dds objects.
 #' 
 make.dds.list <- function(deseq_obj_list, salmon.files=FALSE, 
-                          combine.by=FALSE, remove.version=TRUE, parallel=FALSE){
-    make.dds <- function(design_data, salmon.files, combine.by, remove.version)
+                          combine.by=FALSE, remove.version=TRUE, parallel=FALSE, ...){
+    make.dds <- function(design_data, salmon.files, combine.by, remove.version, ...)
     {
+        
         subset.counts <- FALSE
         colData <- pluck(design_data, 1)
         design <- pluck(design_data, 2)
-        subset.counts <- pluck(design_data, 'subset.counts')
-    
+        # arg list passes args to either the CombinedFeatureCounts or FromSalmon constructor
+        arg_list <- pluck(design_data, 3)
+
         if(!salmon.files){
             # Load gene-level counts
-            dds <- DESeqDataSetFromCombinedFeatureCounts(
+           dds<- exec(DESeqDataSetFromCombinedFeatureCounts,
                 '../data/rnaseq_aggregation/featurecounts.txt',
                 sampletable=colData,
-                subset.counts=subset.counts,
                 # NOTE: What design to use?------------------------------------------------
                 #   This object will be used for EDA, so it's recommended to use a single
                 #   factor that describes the samples. We'll be recreating another dds
                 #   later for the actual contrasts of interest.
-                design=design)
+                design=design,
+                !!!arg_list)
                 if (remove.version){
                     rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
                 }
         } else {
-            dds <- DESeqDataSetFromSalmon(colData, design=design)
+            dds <- exec(DESeqDataSetFromSalmon, colData, design=design, !!!arg_list)
         }
 
         if(combine.by != FALSE){
             dds <-collapseReplicates(dds, dds$biorep)
         }
+
+        # Constructs the dds object and passes any arguments such as parallel
+        dds <- DESeq(dds, ...)     
     
         return(dds)
     }
-    dds_list <- map(deseq_obj_list, make.dds, salmon.files, combine.by, remove.version)
+    dds_list <- map(deseq_obj_list, make.dds, salmon.files, combine.by, remove.version, ...)
     
     return(dds_list)
 }
