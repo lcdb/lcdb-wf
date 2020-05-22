@@ -322,7 +322,17 @@ parallel <- FALSE
 # be passed to the make.dds.list function
 #
 
-lst <- list(colData, ~group, list(subset.counts=FALSE))
+#lst <- list(
+#            main=list(colData, ~group, list(subset.counts=FALSE) ),
+#            no.rep.2=list(colData %>% filter(replicate!=2), ~group, list(subset.counts=TRUE) ),
+#            interaction=list(colData %>% filter(replicate!=2), 
+#                             ~genotype + time + genotype:time, list(subset.counts=TRUE) )
+#            )
+#
+
+lst <- list(
+            main=list(colData, ~group),
+            )
 dds.list <- make.dds.list(lst, salmon.files=FALSE, parallel=parallel)
 ```
 
