@@ -379,7 +379,7 @@ res.list <- list()
 #   Change to reflect your experiment.
 # IMPORTANT: Control must always be last
 res.list[['all']] <- list(
-    res=lfcShrink(dds, contrast=c('group', 'treatment', 'control')),
+    res=lfcShrink(dds, contrast=c('group', 'treatment', 'control'), type='normal'),
     dds=dds,
     label='Using a log2FoldChange threshold of 0'
 )
@@ -399,7 +399,8 @@ res.list[['lfc2']] <- list(
     res=lfcShrink(
         dds,
         contrast=c('group', 'treatment', 'control'),
-        res=res.lfcthresh.2
+        res=res.lfcthresh.2,
+        type='normal'
     ),
     dds=dds,
     label='Using a log2FoldChange threshold of >2'

@@ -159,6 +159,27 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     '&& mv {output[0]}.tmp {output[0]} '
                 )
 
+rule strand_check:
+    input:
+        expand('{sample}.strandedness', sample=SAMPLES)
+    output:
+        'strandedness.tsv'
+    run:
+        ds = []
+        for f in list(input):
+            d = {}
+            sample = f.split('.')[0]
+            d['sample'] = sample
+            for line in open(f):
+                line = line.strip()
+                toks = line.split(': ')
+                if 'explained by' in line:
+                    d[toks[0].split()[-1].replace('"', '')] = toks[-1]
+                if 'failed to determine' in line:
+                    d['undetermined'] = toks[-1]
+            ds.append(d)
+        pd.DataFrame(ds).to_csv(output[0], sep='\t', index=False)
+
 
 rule cutadapt:
     """

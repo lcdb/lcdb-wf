@@ -42,7 +42,8 @@ variables:
       run:
         name: Set path
         command: |
-          apt install -y locales-all locales
+          # x11-utils required to avoid R::png() segfaulting
+          apt install -y locales-all locales x11-utils
           echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
           echo 'export LC_ALL=en_US.utf8' >> $BASH_ENV
           echo 'export LANG=en_US.utf8' >> $BASH_ENV
@@ -84,7 +85,7 @@ variables:
         apt install -y rsync
 
         # Deploy to the new directory, so we are testing the real-world case of post-deployment.
-        # Note that $DEPLOY is set in the "set-paths" step configured below.
+        # Note that $DEPLOY is set in the "set-paths" step configured above.
         python deploy.py --flavor full --dest $DEPLOY
 
         # Separately copy over some test-specific files
@@ -171,6 +172,10 @@ variables:
           # outside the context of the Snakefile.
           source activate lcdb-wf-test-r
           Rscript -e "rmarkdown::render('downstream/rnaseq.Rmd')"
+
+          # bundle up the entire directory to be used as an artifact
+          tar -zcf downstream.tar.gz downstream/
+
   # --------------------------------------------------------------------------
   # Quick test on just two samples to make sure STAR works OK
   rnaseq-star-step: &rnaseq-star-step
@@ -292,6 +297,8 @@ jobs:
       - *set-path
       - *get-data
       - *chipseq-step
+      - store_artifacts:
+          path: /tmp/lcdb-wf-test/workflows/chipseq/data/chipseq_aggregation/multiqc.html
 
   chipseq-regression:
     <<: *defaults
@@ -320,6 +327,12 @@ jobs:
       - *set-path
       - *get-data
       - *rnaseq-step
+      - store_artifacts:
+          path: /tmp/lcdb-wf-test/workflows/rnaseq/downstream.tar.gz
+      - store_artifacts:
+          path: /tmp/lcdb-wf-test/workflows/rnaseq/downstream/rnaseq.html
+      - store_artifacts:
+          path: /tmp/lcdb-wf-test/workflows/rnaseq/data/rnaseq_aggregation/multiqc.html
 
   rnaseq-star:
     <<: *defaults
@@ -396,7 +409,14 @@ jobs:
       - *set-path
       - run:
           name: Report environment
-          command: conda env export -n lcdb-wf-test
+          command: |
+            conda env export -n lcdb-wf-test > /tmp/env.yaml
+            cat /tmp/env.yaml
+            conda env export -n lcdb-wf-test-r > /tmp/env-r.yaml
+      - store_artifacts:
+          path: /tmp/env.yaml
+      - store_artifacts:
+          path: /tmp/env-r.yaml
 
 # ----------------------------------------------------------------------------
 # This section configures the dependencies across jobs.
