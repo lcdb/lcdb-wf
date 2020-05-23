@@ -154,7 +154,7 @@ Here is the sample table with metadata used for this analysis:
 knitr::kable(colData[, colnames(colData)[!colnames(colData) %in% exclude.for.printing]])
 ```
 
-```{r salmon}
+```{r salmon, eval=FALSE}
 # NOTE: Disable salmon?--------------------------------------------------------
 #   If you are not intending on using Salmon, set this chunk to eval=FALSE
 #
@@ -162,9 +162,7 @@ knitr::kable(colData[, colnames(colData)[!colnames(colData) %in% exclude.for.pri
 txi <- tximport(colData[, 'salmon.path'], type='salmon', txOut=TRUE)
 transcript.tpm <- txi$abundance
 colnames(transcript.tpm) <- colData$samplename
-```
 
-```{r ddstxi, cache=TRUE, eval=FALSE}
 dds.txi <- DESeqDataSetFromTximport(
     txi, colData=colData[, -grepl('path', colnames(colData)), drop=FALSE],
 
