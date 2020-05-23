@@ -349,10 +349,10 @@ DESeqDataSetFromFeatureCounts <- function (sampleTable, directory='.', design,
 #' @return DESeq object with transcript-level counts
 #'
 #' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
-DESeqDataSetFromSalmon <- function (sampleTable, directory='.', design,
+DESeqDataSetFromSalmon <- function (sampleTable, design,
                                            ignoreRank=FALSE,  ...)
 {
-    txi <- tximport(sampleTable[, 'salmon.path'], type='salmon', txOut=TRUE, ignoreTxVersion=TRUE)
+    txi <- tximport(sampleTable[, 'salmon.path'], type='salmon', txOut=TRUE)
     object <- DESeqDataSetFromTximport(txi, colData=sampleTable[, -grepl('path', colnames(sampleTable)),
                                        drop=FALSE], design=design, ignoreRank, ...)
     return(object)
@@ -366,13 +366,13 @@ DESeqDataSetFromSalmon <- function (sampleTable, directory='.', design,
 #' @param deseq_obj_list A named list of lists. Each list should have two to three elements:
 #'       1 should be a sampletable, 2 should be a design. The 3rd is an optional list of arguments
 #'       to pass to the DESeqDataSet constructor.
-#' @param salmon.files Boolean for whether to use salmon; Files will automagically come from 
-#'         the sample table if the incoming colData has been set up as required in DESeqDataSetFromSalmon.
+#' @param salmon.files txi object from tximport if transcript-level counts desired; NULL forces featurecounts; 
+#'        shared by all dds.
 #' @param combine.by The column to collapse technical replicates by.
 #' @param remove.version Boolean to decide whether to remove version information 
 #' @return A list of dds objects.
 #' 
-make.dds.list <- function(deseq_obj_list, salmon.files=FALSE, 
+make.dds.list <- function(deseq_obj_list, salmon.files=NULL, 
                           combine.by=FALSE, remove.version=TRUE, ...){
     make.dds <- function(design_data, salmon.files, combine.by, remove.version, ...)
     {
@@ -383,7 +383,7 @@ make.dds.list <- function(deseq_obj_list, salmon.files=FALSE,
         # arg list passes args to either the CombinedFeatureCounts or FromSalmon constructor
         arg_list <- pluck(design_data, 3)
 
-        if(!salmon.files){
+        if(is.null(salmon.files)){
             # Load gene-level counts
            dds<- exec(DESeqDataSetFromCombinedFeatureCounts,
                 '../data/rnaseq_aggregation/featurecounts.txt',
@@ -398,7 +398,8 @@ make.dds.list <- function(deseq_obj_list, salmon.files=FALSE,
                     rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
                 }
         } else {
-            dds <- exec(DESeqDataSetFromSalmon, colData, design=design, !!!arg_list)
+            dds <- DESEqDataSetFromTximport(salmon.files, colData=colData[, -grepl('path', colnames(colData)),
+                                            drop=FALSE], design=design, ignoreRank, !!!arg_list)
         }
 
         if(combine.by != FALSE){
