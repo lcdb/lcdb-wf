@@ -100,7 +100,7 @@ for (name in names(ll)){
         # NOTE: reduce and merge cutoff----------------------------------------
         #   Reduce will merge clusters that are similar; similarity determined
         #   by cutoff
-        reduce=TRUE, cutoff=cutoff,
+        reduce=TRUE,
 
         # NOTE: color----------------------------------------------------------
         #   For more complicated designs, try the `col` argument to color the
@@ -123,6 +123,7 @@ for (name in names(ll)){
     print(degPlotCluster(
         n2,
         time=time,
+        min_genes=minc,
         col=col
         )
     )
