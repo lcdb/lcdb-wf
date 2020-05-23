@@ -313,7 +313,8 @@ parallel <- FALSE
 ```
 
 ```{r dds_models, cache=TRUE}
-# NOTE: Select salmon rather than FeatureCounts by setting salmon.files=TRUE. 
+# NOTE: Select salmon rather than FeatureCounts by setting salmon.files=txi (from the 
+# earlier tximport) Select FeatureCounts by setting salmon.files=NULL. 
 # Create lists to represent each future dds object. The third object in each 
 # list is an optional list of arguments passed to the DESeqDataSet contructor.
 # Ex. the subset.counts argument. Arguments to DESeq, such as parallel, should
@@ -332,7 +333,7 @@ lst <- list(
             main=list(colData, ~group),
             r = list(colData %>% filter(samplename!='sample4'), ~group, list(subset.counts=TRUE))
             )
-dds.list <- make.dds.list(lst, salmon.files=FALSE, parallel=parallel)
+dds.list <- make.dds.list(lst, salmon.files=NULL, parallel=parallel)
 ```
 
 
