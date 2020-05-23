@@ -332,6 +332,7 @@ parallel <- FALSE
 
 lst <- list(
             main=list(colData, ~group),
+            r = list(colData %>% filter(samplename!='sample4'), ~group, list(subset.counts=TRUE))
             )
 dds.list <- make.dds.list(lst, salmon.files=FALSE, parallel=parallel)
 ```
@@ -388,9 +389,9 @@ res.list <- list()
 #   Using the example data, this compares treatment group to control group.
 #   Change to reflect your experiment.
 # IMPORTANT: Control must always be last
-res.list[['all']] <- list(
-    res=lfcShrink(dds, contrast=c('group', 'treatment', 'control'), type='normal'),
-    dds=dds,
+res.list[['main']] <- list(
+    res=lfcShrink(dds.list[['main']], contrast=c('group', 'treatment', 'control'), type='normal'),
+    dds='main',
     label='Using a log2FoldChange threshold of 0'
 )
 
@@ -401,18 +402,18 @@ res.list[['all']] <- list(
 #    reflect your experiment.
 #    If using an lfcThreshold, must update elsewhere throughout the code.
 res.lfcthresh.2 <- results(
-    dds,
+    dds.list[['main']],
     contrast=c('group', 'treatment', 'control'),
     lfcThreshold=2)
 
 res.list[['lfc2']] <- list(
     res=lfcShrink(
-        dds,
+        dds.list[['main']],
         contrast=c('group', 'treatment', 'control'),
         res=res.lfcthresh.2,
         type='normal'
     ),
-    dds=dds,
+    dds='main',
     label='Using a log2FoldChange threshold of >2'
 )
 ```
@@ -468,7 +469,7 @@ See the [Background and help](#Help) section for details on these.
 add_cols <- c('symbol', 'alias')
 
 for (name in names(res.list)){
-  dds.i <- res.list[[name]][['dds']]
+  dds.i <- dds.list[[ res.list[[name]][['dds']] ]]
   res.i <- res.list[[name]][['res']]
   label <- res.list[[name]][['label']]
 
