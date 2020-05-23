@@ -333,7 +333,7 @@ lst <- list(
             main=list(colData, ~group),
             r = list(colData %>% filter(samplename!='sample4'), ~group, list(subset.counts=TRUE))
             )
-dds.list <- make.dds.list(lst, salmon.files=NULL, parallel=parallel)
+dds.list <- make.dds.list(lst, salmon.files=txi, parallel=parallel, remove.version=strip.dotted.version)
 ```
 
 

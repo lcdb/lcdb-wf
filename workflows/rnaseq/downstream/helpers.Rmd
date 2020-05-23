@@ -398,8 +398,8 @@ make.dds.list <- function(deseq_obj_list, salmon.files=NULL,
                     rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
                 }
         } else {
-            dds <- DESEqDataSetFromTximport(salmon.files, colData=colData[, -grepl('path', colnames(colData)),
-                                            drop=FALSE], design=design, ignoreRank, !!!arg_list)
+            dds <- exec(DESeqDataSetFromTximport, salmon.files, colData=colData[, -grepl('path', colnames(colData)),
+                                            drop=FALSE], design=design, !!!arg_list)
         }
 
         if(combine.by != FALSE){
