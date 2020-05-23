@@ -651,14 +651,19 @@ attach.info <- function(res, keytype='ENSEMBL', columns=c('SYMBOL', 'UNIPROT', '
 #'
 #' @param res.list Named list of lists, where each sublist contains the following
 #'                 names: c('res', 'dds', 'label'). "res" is a DESeqResults object,
-#'                 "dds" is a DESeq object, and "label" is a nicer-looking
-#'                 label to use.
+#'                 "dds" is either the indexing label for the dds.list object or
+#'                  the DESeq object, and "label" is a nicer-looking
+#'                 label to use. NOTE: backwards compatibility with older versions
+#'                  of lcdb-wf depends on no dds.list object being passed.
 #'
 #' @return Dataframe
-summarize.res.list <- function(res.list, alpha, lfc.thresh){
+summarize.res.list <- function(res.list, alpha, lfc.thresh, dds.list=NULL){
     slist <- list()
     for (name in names(res.list)){
-        x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']], alpha, lfc.thresh)
+        if(!is.null(dds.list)){
+            x <- my.summary(res.list[[name]][['res']], dds.list[[ res.list[[name]][['dds']] ]], alpha, lfc.thresh)
+        } else { x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']], alpha, lfc.thresh)
+        }
         rownames(x) <- res.list[[name]][['label']]
         slist[[name]] <- x
     }
