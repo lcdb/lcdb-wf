@@ -447,7 +447,8 @@ help](#Help) section for details.
 
 ```{r, results='asis'}
 # Summarize all experiments
-knitr::kable(summarize.res.list(res.list, alpha, lfc.thresh))
+# NOTE: for backwards compatibility with previous versions of lcdb-wf, remove the dds.list argument.
+knitr::kable(summarize.res.list(res.list, alpha, lfc.thresh, dds.list))
 ```
 
 For each comparison there is a tab and under each tab are the following:
