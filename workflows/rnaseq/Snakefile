@@ -159,6 +159,43 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     '&& mv {output[0]}.tmp {output[0]} '
                 )
 
+# This can be set at the command line with --config strand_check_reads=1000
+config.setdefault('strand_check_reads', 1e5)
+
+rule sample_strand_check:
+    input:
+        fastq=common.fill_r1_r2(c.sampletable, c.patterns['fastq']),
+        index=[c.refdict[c.organism][config['aligner']['tag']]['bowtie2']],
+        bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12']
+    output:
+        temporary('{sample}.strandedness')
+    threads: 6
+    run:
+        prefix = aligners.prefix_from_bowtie2_index(input.index)
+        nreads = int(config['strand_check_reads']) * 4
+        if c.is_paired:
+            assert len(input.fastq) == 2
+            shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output}.small_R1.fastq')
+            shell('set +o pipefail; zcat {input.fastq[1]} | head -n {nreads} > {output}.small_R2.fastq')
+            fastqs = f'-1 {output}.small_R1.fastq -2 {output}.small_R2.fastq '
+        else:
+            assert len(input.fastq) == 1
+            shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output}.small_R1.fastq')
+            fastqs = f'-U {output}.small_R1.fastq '
+        shell(
+            "bowtie2 "
+            "-x {prefix} "
+            "{fastqs} "
+            '--no-unal '
+            "--threads {threads} "
+            "| samtools view -Sb - "
+            "| samtools sort - -o {output}.bam "
+        )
+        shell(
+            'infer_experiment.py -r {input.bed12} -i {output}.bam > {output} '
+            '&& rm {output}.bam {output}.small_R?.fastq'
+        )
+
 rule strand_check:
     input:
         expand('{sample}.strandedness', sample=SAMPLES)
