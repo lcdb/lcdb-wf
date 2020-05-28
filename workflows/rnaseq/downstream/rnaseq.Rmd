@@ -315,25 +315,28 @@ parallel <- FALSE
 ```{r dds_models, cache=TRUE}
 # NOTE: Select salmon rather than FeatureCounts by setting salmon.files=txi (from the 
 # earlier tximport) Select FeatureCounts by setting salmon.files=NULL. 
-# Create lists to represent each future dds object. The third object in each 
-# list is an optional list of arguments passed to the DESeqDataSet contructor.
+# Create lists to represent each future dds object. Edit featurecounts file location
+# with file=location. Each list allows an optional list of arguments passed to 
+# the DESeqDataSet contructor.
 # Ex. the subset.counts argument. Arguments to DESeq, such as parallel, should
 # be passed to the make.dds.list function
 #
 
 #lst <- list(
-#            main=list(colData, ~group, list(subset.counts=FALSE) ),
-#            no.rep.2=list(colData %>% filter(replicate!=2), ~group, list(subset.counts=TRUE) ),
+#            main=list(colData, ~group, args=list(subset.counts=FALSE) ),
+#            no.rep.2=list(colData %>% filter(replicate!=2), ~group, args=list(subset.counts=TRUE) ),
 #            interaction=list(colData %>% filter(replicate!=2), 
-#                             ~genotype + time + genotype:time, list(subset.counts=TRUE) )
+#                             ~genotype + time + genotype:time, 
+#                             file='../newlocation/featurecounts.txt',
+#                             args=list(subset.counts=TRUE) )
 #            )
 #
 
 lst <- list(
             main=list(colData, ~group),
-            r = list(colData %>% filter(samplename!='sample4'), ~group, list(subset.counts=TRUE))
+            no_rep4 = list(colData %>% filter(samplename!='sample4'), ~group, args=list(subset.counts=TRUE))
             )
-dds.list <- make.dds.list(lst, salmon.files=txi, parallel=parallel, remove.version=strip.dotted.version)
+dds.list <- make.dds.list(lst, salmon.files=NULL, parallel=parallel, remove.version=strip.dotted.version)
 ```
 
 
