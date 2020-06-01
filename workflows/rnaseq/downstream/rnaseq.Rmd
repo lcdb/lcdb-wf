@@ -415,7 +415,8 @@ res.list[['all']] <- list(
     res=lfcShrink(dds,
                   contrast=c('group', 'treatment', 'control'),
                   alpha=metadata(res.all)[['alpha']],
-                  res=res.all
+                  res=res.all,
+                  type='normal'
                   ),
     dds=dds,
     label='Using a log2FoldChange threshold of 0',
@@ -440,7 +441,8 @@ res.list[['lfc_cutoff']] <- list(
         contrast=c('group', 'treatment', 'control'),
         alpha=metadata(res.lfcthresh)[['alpha']],
         res=res.lfcthresh
-        ),
+        type='normal'
+    ),
     dds=dds,
     label=paste0('Using a log2FoldChange threshold of >', lfc.thresh),
     alpha=metadata(res.lfcthresh)[['alpha']],
