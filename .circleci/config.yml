@@ -84,7 +84,7 @@ variables:
         apt install -y rsync
 
         # Deploy to the new directory, so we are testing the real-world case of post-deployment.
-        # Note that $DEPLOY is set in the "set-paths" step configured below.
+        # Note that $DEPLOY is set in the "set-paths" step configured above.
         python deploy.py --flavor full --dest $DEPLOY
 
         # Separately copy over some test-specific files
@@ -171,6 +171,10 @@ variables:
           # outside the context of the Snakefile.
           source activate lcdb-wf-test-r
           Rscript -e "rmarkdown::render('downstream/rnaseq.Rmd')"
+
+          # bundle up the entire directory to be used as an artifact
+          tar -zcf downstream.tar.gz downstream/
+
   # --------------------------------------------------------------------------
   # Quick test on just two samples to make sure STAR works OK
   rnaseq-star-step: &rnaseq-star-step
@@ -182,9 +186,15 @@ variables:
           cp -r workflows/rnaseq workflows/rnaseq-star
           cd workflows/rnaseq-star
           source activate lcdb-wf-test
-          ./run_test.sh -j 1 --use-conda -k -p -r \
+          ./run_test.sh -j 2 --use-conda -k -p -r \
+            --forcerun star_pass1 \
+            --configfile $ORIG/test/test_configs/star_override_2pass.yaml \
+            --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
+            --until star_pass2
+
+          ./run_test.sh -j 2 --use-conda -k -p -r \
             --forcerun star \
-            --configfile $ORIG/test/test_configs/star_override.yaml \
+            --configfile $ORIG/test/test_configs/star_override_1pass.yaml \
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
             --until star
   # --------------------------------------------------------------------------
@@ -271,6 +281,7 @@ jobs:
 
   pytest:
     <<: *defaults
+    resource_class: small
     steps:
       - checkout
       - *restore_cache
@@ -285,6 +296,8 @@ jobs:
       - *set-path
       - *get-data
       - *chipseq-step
+      - store_artifacts:
+          path: /tmp/lcdb-wf-test/workflows/chipseq/data/chipseq_aggregation/multiqc.html
 
   chipseq-regression:
     <<: *defaults
@@ -297,6 +310,7 @@ jobs:
 
   rnaseq-dryrun:
     <<: *defaults
+    resource_class: small
     steps:
       - checkout
       - *restore_cache
@@ -312,6 +326,12 @@ jobs:
       - *set-path
       - *get-data
       - *rnaseq-step
+      - store_artifacts:
+          path: /tmp/lcdb-wf-test/workflows/rnaseq/downstream.tar.gz
+      - store_artifacts:
+          path: /tmp/lcdb-wf-test/workflows/rnaseq/downstream/rnaseq.html
+      - store_artifacts:
+          path: /tmp/lcdb-wf-test/workflows/rnaseq/data/rnaseq_aggregation/multiqc.html
 
   rnaseq-star:
     <<: *defaults
@@ -361,6 +381,7 @@ jobs:
 
   build-docs:
     <<: *defaults
+    resource_class: small
     steps:
       - checkout
       - *restore_cache
@@ -380,13 +401,21 @@ jobs:
 
   report-env:
     <<: *defaults
+    resource_class: small
     steps:
       - checkout
       - *restore_cache
       - *set-path
       - run:
           name: Report environment
-          command: conda env export -n lcdb-wf-test
+          command: |
+            conda env export -n lcdb-wf-test > /tmp/env.yaml
+            cat /tmp/env.yaml
+            conda env export -n lcdb-wf-test-r > /tmp/env-r.yaml
+      - store_artifacts:
+          path: /tmp/env.yaml
+      - store_artifacts:
+          path: /tmp/env-r.yaml
 
 # ----------------------------------------------------------------------------
 # This section configures the dependencies across jobs.
