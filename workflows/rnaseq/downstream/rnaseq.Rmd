@@ -61,6 +61,7 @@ library(cowplot)
 library(plotly)
 library(tibble)
 library(dplyr)
+library(purrr)
 ```
 
 
@@ -308,10 +309,11 @@ ggplotly(p)
 # NOTE: Run DESeq2 on multiple cores.------------------------------------------
 #    By default, we do not run in parallel, however this can be very useful in
 #    experiments with many samples and complex designs.  To run in parallel,
-#    comment out the line below and set cores appropriately. Then, add the
+#    set `nthreads` to the number of available cores and `parallel <- TRUE`. Then, add the
 #    argument `parallel=TRUE` whenever you call DESeq()
-#    register(MulticoreParam(4))
+nworkers <- 24
 parallel <- FALSE
+if(parallel) register(MulticoreParam(nworkers))
 ```
 
 ```{r dds_models, cache=TRUE}
