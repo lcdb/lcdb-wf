@@ -311,7 +311,7 @@ ggplotly(p)
 #    experiments with many samples and complex designs.  To run in parallel,
 #    set `nthreads` to the number of available cores and `parallel <- TRUE`. Then, add the
 #    argument `parallel=TRUE` whenever you call DESeq()
-nworkers <- 4
+nworkers <- 2
 parallel <- TRUE
 if(parallel) register(MulticoreParam(nworkers))
 ```
