@@ -29,6 +29,7 @@ from.type <- "FLYBASE"
 
 deg.list <- nested.lapply(sel.list, rownames)
 genes.df <- nested.lapply(deg.list, bitr, fromType=from.type, toType=types, OrgDb=orgdb)
+
 ```
 
 ```{r}
@@ -42,44 +43,42 @@ enrichGO.fun <- function(ont,
                          pvalueCutoff,
                          qvalueCutoff,
                          orgdb,
-                         ...){
-                         #annotation_genus_species,
-                         #annotation_key_override,
-                         #hub.cache){
 
-    #ah <- AnnotationHub::AnnotationHub(
-    #            hub=AnnotationHub::getAnnotationHubOption('URL'),
-    #            cache=hub.cache,
-    #            proxy=AnnotationHub::setAnnotationHubOption('PROXY', Sys.getenv('http_proxy')),
-    #            localHub=FALSE)
-    #ah.query <- AnnotationHub::query(ah, 'OrgDb')
-    #idx <- grep(paste0('^', annotation_genus_species, '$'),
-    #            ah.query$species)
-    #orgdb <- ah[[names(ah.query)[idx]]]
+                         annotation_genus_species=NULL,
+                         annotation_key_override=NULL,
+                         cache=NULL){
+    # NOTE: orgdb is specified for non-parallel operation
 
-    # orgdb is specified for non-parallel operation
     if(missing(orgdb)){
-        # get OrgDb
         # this is necessary since a new connection to the database
         # is needed within the scope of the function passed to bplapply
-        # for the parallelization to work
-        orgdb <- get.orgdb(
-            annotation_genus_species=annotation_genus_species,
-            cache=new.cache,
-            annotation_key_override=annotation_key_override
-        )
+        # for the parallelization to work, so here we recreate a minimal
+        # version of get.orgdb
+
+        # NOTE: Instead of querying the database again to find species
+        # name, the original get.orgdb function, can also return the
+        # species name being used
+        proxy <- Sys.getenv('http_proxy')
+        if(proxy == "") proxy <- NULL
+        ah <- AnnotationHub::AnnotationHub(
+                hub=AnnotationHub::getAnnotationHubOption('URL'),
+                cache=cache,
+                proxy=proxy,
+                localHub=FALSE)
+        ah.query <- AnnotationHub::query(ah, 'OrgDb')
+        idx <- grep(paste0('^', annotation_genus_species, '$'),
+                    ah.query$species)
+        orgdb <- ah[[names(ah.query)[idx]]]
     }
 
-    if(ont %in% c('BP','CC','MF')){
-        res <- enrichGO(gene=gene,
-                        universe=universe,
-                        keyType=keytype,
-                        OrgDb=orgdb,
-                        ont=ont,
-                        pvalueCutoff=pvalueCutoff,
-                        qvalueCutoff=qvalueCutoff,
-                        readable=TRUE)
-    }
+    res <- clusterProfiler::enrichGO(gene=gene,
+                    universe=universe,
+                    keyType=keytype,
+                    OrgDb=orgdb,
+                    ont=ont,
+                    pvalueCutoff=pvalueCutoff,
+                    qvalueCutoff=qvalueCutoff,
+                    readable=TRUE)
     res
 }
 
@@ -93,7 +92,7 @@ enrichPathway.fun <- function(gene,
                               qvalueCutoff){
 
     if(pathway == 'KEGG'){
-        res <- enrichKEGG(
+        res <- clusterProfiler::enrichKEGG(
                         gene=gene,
                         universe=universe,
                         keyType=keytype,
@@ -101,7 +100,7 @@ enrichPathway.fun <- function(gene,
                         pvalueCutoff=pvalueCutoff,
                         qvalueCutoff=qvalueCutoff)
     } else if(pathway == 'Reactome'){
-        res <- enrichPathway(
+        res <- ReactomePA::enrichPathway(
                         gene=gene,
                         universe=universe,
                         organism=organism,
@@ -113,7 +112,19 @@ enrichPathway.fun <- function(gene,
 }
 ```
 
-```{r enrich_all, results='hide', cache=TRUE, dependson='final_clusters'}
+```{r enrich_all, results='hide', cache=TRUE, dependson=c('parallel','final_clusters')}
+# creating longer list to test effect of parallelizing
+ngenes <- 150
+g1 <- list(up=sample(rownames(res.list[[1]][['res']]), ngenes),
+           dn=sample(rownames(res.list[[1]][['res']]), ngenes))
+deg.list <- list(a=g1, b=g1,
+                 c=g1, d=g1,
+                 e=g1, f=g1,
+                 g=g1, h=g1,
+                 i=g1, j=g1)
+genes.df <- nested.lapply(deg.list, bitr, fromType=from.type, toType=types, OrgDb=orgdb)
+
+time.list <- list()
 
 # run enrichment for all gene lists over a loop
 
@@ -135,28 +146,17 @@ reactome.organism <- 'fly'
 #   all.enrich[[contrast]][[direction]][[enrichment label]]
 all.enrich <- list()
 enrich.files <- list()
-# loop over each contrast
-#for(comp in names(genes.df)){
-
-go.onts <- c('CC','BP','MF')
 
 # loop over selection list
 for(sel in sel.names){
 
-    #all.enrich[[sel]] <- list()
-    #enrich.files[[sel]] <- list()
+    start_time <- proc.time()
+    gene <- lapply(genes.df, pluck, sel, go.keytype)
 
-    # loop over selection list
-    #for(sel in sel.names){
-
-        #all.enrich[[comp]][[sel]] <- list()
-        #enrich.files[[comp]][[sel]] <- list()
-
-        #gene <- genes.df[[comp]][[sel]][[go.keytype]]
-        gene <- lapply(genes.df, pluck, sel, go.keytype)
-
-        go.res <- list()
-        for (ont in c('CC', 'BP', 'MF')){
+    # list to hold results from GO enrichment
+    go.res <- list()
+    for (ont in c('CC', 'BP', 'MF')){
+        if(!parallel){
             go.res[[ont]] <- lapply(gene, enrichGO.fun,
                                     ont=ont,
                                     keytype=go.keytype,
@@ -164,25 +164,27 @@ for(sel in sel.names){
                                     orgdb=orgdb,
                                     pvalueCutoff=pvalueCutoff,
                                     qvalueCutoff=qvalueCutoff)
-            #go.res[[ont]] <- enrichGO.fun(gene=gene,
-            #                              ont=ont,
-            #                              keytype=go.keytype,
-            #                              universe=go.uni,
-            #                              orgdb=orgdb,
-            #                              pvalueCutoff=pvalueCutoff,
-            #                              qvalueCutoff=qvalueCutoff)
-            #go.res <- enrichGO(
-            #    gene=gene, universe=go.uni, keyType=go.keytype, OrgDb=orgdb,
-            #    ont=ont, pvalueCutoff=pvalueCutoff, qvalueCutoff=qvalueCutoff,
-            #    readable = TRUE)
+        } else {
+            go.res[[ont]] <- bplapply(gene, enrichGO.fun,
+                                      ont=ont,
+                                      keytype=go.keytype,
+                                      universe=go.uni,
+                                      pvalueCutoff=pvalueCutoff,
+                                      qvalueCutoff=qvalueCutoff,
 
-            #res.label <- paste('GO', ont, sep='_')
-            #all.enrich[[comp]][[sel]][[ont]] <- go.res
+                                      # some extra params for orgdb
+                                      annotation_genus_species=annotation_genus_species,
+                                      cache=new.cache,
+                                      annotation_key_override=annotation_key_override,
+
+                                      BPPARAM=SnowParam(nworkers,
+                                                        stop.on.error=FALSE))
         }
+    }
 
-        # perform KEGG enrichment
-        #res.label <- 'KEGG'
-        pathway.res <- list()
+    # perform KEGG enrichment
+    pathway.res <- list()
+    if(!parallel){
         pathway.res[['KEGG']] <- lapply(gene, enrichPathway.fun,
                                         pathway='KEGG',
                                         universe=path.uni,
@@ -190,29 +192,23 @@ for(sel in sel.names){
                                         keytype=kegg.keytype,
                                         pvalueCutoff=pvalueCutoff,
                                         qvalueCutoff=qvalueCutoff)
+    } else {
+        pathway.res[['KEGG']] <- bplapply(gene, enrichPathway.fun,
+                                          pathway='KEGG',
+                                          universe=path.uni,
+                                          organism=kegg.organism,
+                                          keytype=kegg.keytype,
+                                          pvalueCutoff=pvalueCutoff,
+                                          qvalueCutoff=qvalueCutoff,
+                                          BPPARAM=SnowParam(nworkers,
+                                                            stop.on.error=FALSE))
+    }
 
-#        if (!is.null(kegg.res)){
-#            # convert uniprot IDs to readable symbols. This needs to be done separately
-#            # in the case of KEGG
-#            if(id.convert){
-#              id.vec <- genes.df[[comp]][[sel]]$SYMBOL
-#              names(id.vec) <- genes.df[[comp]][[sel]]$ENTREZID
-#              kegg.res.genes <- kegg.res@result$geneID
-#              for(j in 1:length(kegg.res.genes)){
-#                id.split <- strsplit(kegg.res.genes[j], "/")[[1]]
-#                temp <- paste(id.vec[id.split], collapse="/")
-#                kegg.res@result$geneID[j] <- temp
-#              }
-#            }
-#
-#            all.enrich[[comp]][[sel]][['kegg']] <- kegg.res
-#        }
-
-        if (RUN.REACTOME) {
-            # NOTE: Install OrgDb--------------------------------------------------
-            #   ReactomePA requires the relevant OrgDb package to be installed
-            #   and so is disabled by default.
-            #res.label <- 'Reactome'
+    if (RUN.REACTOME) {
+        # NOTE: Install OrgDb--------------------------------------------------
+        #   ReactomePA requires the relevant OrgDb package to be installed
+        #   and so is disabled by default.
+        if(!parallel){
             pathway.res[['Reactome']] <- lapply(gene, enrichPathway.fun,
                                                 pathway='Reactome',
                                                 universe=path.uni,
@@ -220,25 +216,61 @@ for(sel in sel.names){
                                                 pvalueCutoff=pvalueCutoff,
                                                 qvalueCutoff=qvalueCutoff,
                                                 readable=TRUE)
-            #all.enrich[[comp]][[sel]][['Reactome']] <- reactome.res
-
+        } else {
+            pathway.res[['Reactome']] <- bplapply(gene, enrichPathway.fun,
+                                                  pathway='Reactome',
+                                                  universe=path.uni,
+                                                  organism=reactome.organism,
+                                                  pvalueCutoff=pvalueCutoff,
+                                                  qvalueCutoff=qvalueCutoff,
+                                                  readable=TRUE,
+                                                  BPPARAM=SnowParam(nworkers,
+                                                                    stop.on.error=FALSE))
         }
-    
-    #}
+
+    }
+    end_time <- proc.time()
+    time.list[[sel]] <- end_time - start_time
+
     # read the enrichment objects into the all.enrich list structure
     for(comp in names(genes.df)){
-        all.enrich[[comp]] <- list()
-        all.enrich[[comp]][[sel]] <- list()
+        if(!comp %in% names(all.enrich)) all.enrich[[comp]] <- list()
+        if(!sel %in% names(all.enrich[[comp]])) all.enrich[[comp]][[sel]] <- list()
         for(ont in c('CC', 'BP', 'MF')){
             all.enrich[[comp]][[sel]][[ont]] <- go.res[[ont]][[comp]]
         }
 
         for(pathway in c('KEGG','Reactome')){
-            all.enrich[[comp]][[sel]][[pathway]] <- pathway.res[[pathway]][[comp]]
+            res <- pathway.res[[pathway]][[comp]]
+
+            # NOTE: here we convert the ENTREZID to symbols for KEGG
+            # enrichment results. Chunk to be replaced with helper function
+            if(pathway == 'KEGG' && !is.null(res)){
+                if(id.convert){
+                  id.vec <- genes.df[[comp]][[sel]]$SYMBOL
+                  names(id.vec) <- genes.df[[comp]][[sel]]$ENTREZID
+                  res.genes <- res@result$geneID
+                  for(j in 1:length(res.genes)){
+                    id.split <- strsplit(res.genes[j], "/")[[1]]
+                    temp <- paste(id.vec[id.split], collapse="/")
+                    res@result$geneID[j] <- temp
+                  }
+                }  
+            }
+            all.enrich[[comp]][[sel]][[pathway]] <- res
         }
     }
 }
 
+```
+
+```{r results='asis'}
+mdcat('Time taken for ', ifelse(parallel, 'parallel', 'non-parallel'), ' run: ')
+
+for(sel in names(time.list)){
+    cat(' - ', sel, ': ', time.list[[sel]][[3]], ' s\n')       
+}
+mdcat('\n')
 ```
 
 ```{r output_go, cache=TRUE, dependson='enrich_all'}
