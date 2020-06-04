@@ -113,6 +113,7 @@ enrichPathway.fun <- function(gene,
 ```
 
 ```{r enrich_all, results='hide', cache=TRUE, dependson=c('parallel','final_clusters')}
+
 # creating longer list to test effect of parallelizing
 ngenes <- 150
 g1 <- list(up=sample(rownames(res.list[[1]][['res']]), ngenes),
