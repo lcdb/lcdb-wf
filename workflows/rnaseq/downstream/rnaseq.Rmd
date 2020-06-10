@@ -623,7 +623,7 @@ for (name in names(res.list)){
 }
 ```
 
-```{r child='functional-enrichment.Rmd', eval=FALSE}
+```{r child='functional-enrichment.Rmd', eval=TRUE}
 rmarkdown::render('functional-enrichment.Rmd', run_pandoc=FALSE)
 ```
 
