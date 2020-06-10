@@ -491,7 +491,7 @@ rule fastq_count:
     input:
         fastq='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz'
     output:
-        count='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
+        '{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
     shell:
         'zcat {input} | echo $((`wc -l`/4)) > {output}'
 
@@ -503,7 +503,7 @@ rule bam_count:
     input:
         bam='{sample_dir}/{sample}/{suffix}.bam'
     output:
-        count='{sample_dir}/{sample}/{suffix}.bam.libsize'
+        '{sample_dir}/{sample}/{suffix}.bam.libsize'
     shell:
         'samtools view -c {input} > {output}'
 
@@ -748,6 +748,7 @@ rule markduplicates:
         'INPUT={input.bam} '
         'OUTPUT={output.bam} '
         'METRICS_FILE={output.metrics} '
+        'VALIDATION_STRINGENCY=LENIENT '
         '&> {log}'
 
 
@@ -782,7 +783,7 @@ rule collectrnaseqmetrics:
         #     SECOND_READ_TRANSCRIPTION_STRAND}
         #
         'STRAND=NONE '
-
+        'VALIDATION_STRINGENCY=LENIENT '
         'REF_FLAT={input.refflat} '
         'INPUT={input.bam} '
         'OUTPUT={output.metrics} '
