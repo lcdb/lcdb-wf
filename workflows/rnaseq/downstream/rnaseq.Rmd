@@ -356,9 +356,10 @@ dds <- DESeq(dds,
 # NOTE: lots of editing likely needed in this chunk!---------------------------
 #    This chunk builds a data structure like this:
 #
-#       res.list[[contrast]][[res]]   <- results object for this contrast
-#       res.list[[contrast]][[dds]]   <- the dds object for this contrast
-#       res.list[[contrast]][[label]] <- a nice label for this contrast
+#       res.list[[contrast]][[res]]        <- results object for this contrast
+#       res.list[[contrast]][[dds]]        <- the dds object for this contrast
+#       res.list[[contrast]][[label]]      <- a nice label for this contrast
+#       res.list[[contrast]][[lfc.thresh]] <- lfc threshold used for this contrast
 #
 #    This is the block that performs the contrasts, filling out the `res.list`
 #    named list, which ties together the results, the DESeq object from which the
@@ -418,9 +419,11 @@ res.list[['all']] <- list(
                   ),
     dds=dds,
     label='Using a log2FoldChange threshold of 0',
-    alpha=metadata(res.all)[['alpha']],
-    lfc.thresh=metadata(res.all)[['lfcThreshold']]
+    # lfcShrink does not record the res lfcThreshold in the metadata(),
+    # indicate it here to use in subsequent plotting
+    lfc.thresh=0
 )
+
 
 
 # NOTE: Example contrast #2----------------------------------------------------
@@ -443,8 +446,9 @@ res.list[['lfc_cutoff']] <- list(
     ),
     dds=dds,
     label=paste0('Using a log2FoldChange threshold of >', lfc.thresh),
-    alpha=metadata(res.lfcthresh)[['alpha']],
-    lfc.thresh=metadata(res.lfcthresh)[['lfcThreshold']]
+    # lfcShrink does not record the res lfcThreshold in the metadata(),
+    # indicate it here to use in subsequent plotting
+    lfc.thresh=lfc.thresh
 )
 ```
 
@@ -498,12 +502,11 @@ for (name in names(res.list)){
   dds.i <- res.list[[name]][['dds']]
   res.i <- res.list[[name]][['res']]
   label <- res.list[[name]][['label']]
-  alpha.i <- res.list[[name]][['alpha']]
   lfc.thresh.i <- res.list[[name]][['lfc.thresh']]
 
   mdcat('## ', label, ' {.tabset}')
   mdcat('### Summary of results')
-  print(knitr::kable(my.summary(res.i, dds.i, alpha.i, lfc.thresh=lfc.thresh.i)))
+  print(knitr::kable(my.summary(res.i, dds.i, lfc.thresh=lfc.thresh.i)))
   mdcat('### Normalized counts of top 3 upregulated genes')
   top.plots(padj.order(res.i), 3, my.counts, dds.i, add_cols)
   mdcat('### Normalized counts of top 3 downregulated genes')
@@ -519,7 +522,6 @@ for (name in names(res.list)){
 
   mdcat('### M-A plot')
   print(plotMA.label(res.i,
-                     fdr.thres=alpha.i,
                      fc.thres=lfc.thresh.i,
                      genes.to.label=genes.to.label,
                      col='symbol')
@@ -534,7 +536,7 @@ for (name in names(res.list)){
 sel.list <- list()
 for (name in names(res.list)){
   res <- res.list[[name]][['res']]
-
+  lfc.thresh.i <- res.list[[name]][['lfc.thresh']]
 
   # NOTE: any other selections?------------------------------------------------
   #    Here we just get the up- and downregulated genes, but any arbitrary
@@ -545,8 +547,8 @@ for (name in names(res.list)){
   #        created for it in the Markdown
   #      - GO analysis will be performed on each group separately below.
   sel.list[[name]] <- list(
-    up=res[get.sig(res, alpha=alpha, lfc.thresh=lfc.thresh, direction='up'),],
-    dn=res[get.sig(res, alpha=alpha, lfc.thresh=lfc.thresh, direction='dn'),]
+    up=res[get.sig(res, lfc.thresh=lfc.thresh.i, direction='up'),],
+    dn=res[get.sig(res, lfc.thresh=lfc.thresh.i, direction='dn'),]
     )
 }
 
