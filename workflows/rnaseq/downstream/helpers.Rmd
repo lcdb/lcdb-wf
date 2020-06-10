@@ -665,7 +665,7 @@ get.sig <- function(x, direction='up', alpha=NULL, lfc.thresh=NULL, return.names
             if(is.null(alpha)){
                 alpha <- metadata(x)[['alpha']]
             } else if(alpha != metadata(x)[['alpha']]) {
-                print(past0('WARNING:',
+                print(paste0('WARNING:',
                             warning('Supplied alpha and DESeqResults object FDR threshold are different.')))
             }
             # get lfc.thresh
