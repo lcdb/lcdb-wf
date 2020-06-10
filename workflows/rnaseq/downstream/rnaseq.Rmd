@@ -603,7 +603,7 @@ if (length(res.list) > 1){
 }
 ```
 
-```{r child='gene-patterns.Rmd', eval=FALSE}
+```{r child='gene-patterns.Rmd', eval=TRUE}
 rmarkdown::render('gene-patterns.Rmd', run_pandoc=FALSE)
 ```
 
