@@ -74,17 +74,6 @@ variables:
             conda create -n lcdb-wf-test-r -y --file requirements-r.txt
         fi
 
-        /LIBS/GUID = "b906015e-52d9-4afb-9410-3e94a2dba498"
-        /config/default = "false"
-        /repository/user/ad/public/apps/file/volumes/flatAd = "."
-        /repository/user/ad/public/apps/refseq/volumes/refseqAd = "."
-        /repository/user/ad/public/apps/sra/volumes/sraAd = "."
-        /repository/user/ad/public/apps/sraPileup/volumes/ad = "."
-        /repository/user/ad/public/apps/sraRealign/volumes/ad = "."
-        /repository/user/ad/public/root = "."
-        /repository/user/default-path = "/root/ncbi"
-
-
   # --------------------------------------------------------------------------
   # Deploy into a new directory and get the test data.
   get-data: &get-data
