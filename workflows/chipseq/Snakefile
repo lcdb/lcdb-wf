@@ -455,6 +455,7 @@ rule markduplicates:
         'OUTPUT={output.bam} '
         'REMOVE_DUPLICATES=true '
         'METRICS_FILE={output.metrics} '
+        'VALIDATION_STRINGENCY=LENIENT '
         '&> {log}'
 
 
