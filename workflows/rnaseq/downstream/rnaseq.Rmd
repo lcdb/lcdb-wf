@@ -72,7 +72,7 @@ library(dplyr)
 ```
 
 
-```{r child='helpers.Rmd'}
+```{r run_helpers, child='helpers.Rmd'}
 # When running interactively, run the following to load helper functions.
 # When rendering this file, the contents of this code block will be skipped
 # since it is a "child" block for which all contents are expected to be in
