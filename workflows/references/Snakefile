@@ -121,7 +121,7 @@ rule star_index:
         # STAR writes a hard-coded Log.out file to the current working
         # directory. So put that on the end of the log file for the rule and
         # then clean up.
-        shell('cat Log.out >> {log} && rm Log.out')
+        shell('cat {genomedir}/Log.out >> {log} && rm {genomedir}/Log.out')
 
 
 rule hisat2_index:
