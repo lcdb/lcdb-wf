@@ -450,7 +450,7 @@ jobs:
       - run:
           name: check that Rmd chunks are documented in .rst
           command: |
-            cd ci && python ci/ensure_docs.py
+            cd ci && python ensure_docs.py
 
 # ----------------------------------------------------------------------------
 # This section configures the dependencies across jobs.
