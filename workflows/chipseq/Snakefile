@@ -281,7 +281,7 @@ rule fastq_count:
     input:
         fastq='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz'
     output:
-        count='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
+        '{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
     shell:
         'zcat {input} | echo $((`wc -l`/4)) > {output}'
 
@@ -293,7 +293,7 @@ rule bam_count:
     input:
         bam='{sample_dir}/{sample}/{sample}{suffix}.bam'
     output:
-        count='{sample_dir}/{sample}/{sample}{suffix}.bam.libsize'
+        '{sample_dir}/{sample}/{sample}{suffix}.bam.libsize'
     shell:
         'samtools view -c {input} > {output}'
 
@@ -455,6 +455,7 @@ rule markduplicates:
         'OUTPUT={output.bam} '
         'REMOVE_DUPLICATES=true '
         'METRICS_FILE={output.metrics} '
+        'VALIDATION_STRINGENCY=LENIENT '
         '&> {log}'
 
 
