@@ -55,7 +55,7 @@ low.minc <- 1
 # NOTE: which genes to cluster?------------------------------------------------
 #    By default, we get all the changed genes, but you may want only the up or
 #    down genes.
-ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed', lfc.thresh=x[['lfc.thresh']]))
+ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed'))
 
 # Filter out results where there were zero genes detected.
 ll <- ll[lapply(ll, length) > 0]
