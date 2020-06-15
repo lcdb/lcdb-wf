@@ -37,6 +37,14 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r cutoffs, include=FALSE, cache=TRUE}
+# NOTE: significance level---------------------------------------------------
+# set the FDR threshold alpha
+alpha <- 0.1
+# set the log2 fold-change. An lfc.thresh of 2 is equivalent to a 4-fold change (log2(4)=2)
+lfc.thresh <- 2
+```
+
 # Changelog
 
 **Initial results**
@@ -64,7 +72,7 @@ library(dplyr)
 ```
 
 
-```{r child='helpers.Rmd'}
+```{r run_helpers, child='helpers.Rmd'}
 # When running interactively, run the following to load helper functions.
 # When rendering this file, the contents of this code block will be skipped
 # since it is a "child" block for which all contents are expected to be in
@@ -344,13 +352,14 @@ dds <- DESeq(dds,
 ```
 
 
-```{r results, cache=TRUE}
+```{r results, cache=TRUE, dependson=c('cutoffs', 'dds_models')}
 # NOTE: lots of editing likely needed in this chunk!---------------------------
 #    This chunk builds a data structure like this:
 #
-#       res.list[[contrast]][[res]]   <- results object for this contrast
-#       res.list[[contrast]][[dds]]   <- the dds object for this contrast
-#       res.list[[contrast]][[label]] <- a nice label for this contrast
+#       res.list[[contrast]][[res]]        <- results object for this contrast
+#       res.list[[contrast]][[dds]]        <- the dds object for this contrast
+#       res.list[[contrast]][[label]]      <- a nice label for this contrast
+#       res.list[[contrast]][[lfc.thresh]] <- lfc threshold used for this contrast
 #
 #    This is the block that performs the contrasts, filling out the `res.list`
 #    named list, which ties together the results, the DESeq object from which the
@@ -395,32 +404,51 @@ res.list <- list()
 #   Using the example data, this compares treatment group to control group.
 #   Change to reflect your experiment.
 # IMPORTANT: Control must always be last
+res.all <- results(
+    dds,
+    contrast=c('group', 'treatment', 'control'),
+    alpha=alpha,
+    lfcThreshold=0)
+
 res.list[['all']] <- list(
-    res=lfcShrink(dds, contrast=c('group', 'treatment', 'control'), type='normal'),
+    res=lfcShrink(dds,
+                  contrast=c('group', 'treatment', 'control'),
+                  alpha=metadata(res.all)[['alpha']],
+                  res=res.all,
+                  type='normal'
+                  ),
     dds=dds,
-    label='Using a log2FoldChange threshold of 0'
+    label='Using a log2FoldChange threshold of 0',
+    # lfcShrink does not record the res lfcThreshold in the metadata(),
+    # indicate it here to use in subsequent plotting
+    lfc.thresh=0
 )
+
 
 
 # NOTE: Example contrast #2----------------------------------------------------
 #    Using the example data, this compares treatment group to control group but
-#    requiring genes to have >4-fold differences (log2(4) = 2). Change to
+#    requiring genes to have >2^lfc.thresh-fold differences. Change to
 #    reflect your experiment.
-#    If using an lfcThreshold, must update elsewhere throughout the code.
-res.lfcthresh.2 <- results(
+res.lfcthresh <- results(
     dds,
     contrast=c('group', 'treatment', 'control'),
-    lfcThreshold=2)
+    alpha=alpha,
+    lfcThreshold=lfc.thresh)
 
-res.list[['lfc2']] <- list(
+res.list[['lfc_cutoff']] <- list(
     res=lfcShrink(
         dds,
         contrast=c('group', 'treatment', 'control'),
-        res=res.lfcthresh.2,
+        alpha=metadata(res.lfcthresh)[['alpha']],
+        res=res.lfcthresh,
         type='normal'
     ),
     dds=dds,
-    label='Using a log2FoldChange threshold of >2'
+    label=paste0('Using a log2FoldChange threshold of >', lfc.thresh),
+    # lfcShrink does not record the res lfcThreshold in the metadata(),
+    # indicate it here to use in subsequent plotting
+    lfc.thresh=lfc.thresh
 )
 ```
 
@@ -442,18 +470,14 @@ for (name in names(res.list)){
 
 # Differential expression {.tabset}
 
-```{r}
-# NOTE: significance level---------------------------------------------------
-alpha <- 0.1
-lfc.thresh <- 0 # Must change if using an lfcThreshold other than 0
-```
 
 Here is a table summarizing the comparisons. See the [Background and
 help](#Help) section for details.
 
-```{r, results='asis'}
+
+```{r, results='asis', dependson=c('cutoffs', 'attach')}
 # Summarize all experiments
-knitr::kable(summarize.res.list(res.list, alpha, lfc.thresh))
+knitr::kable(summarize.res.list(res.list))
 ```
 
 For each comparison there is a tab and under each tab are the following:
@@ -468,7 +492,7 @@ For each comparison there is a tab and under each tab are the following:
 See the [Background and help](#Help) section for details on these.
 
 
-```{r, results='asis'}
+```{r, results='asis', dependson=c('cutoffs', 'attach')}
 # NOTE: Which columns to add to the top plots' titles?-------------------------
 #    This will add nicer titles to the plots. These may have come from the
 #    `attach.info` call above.
@@ -478,10 +502,11 @@ for (name in names(res.list)){
   dds.i <- res.list[[name]][['dds']]
   res.i <- res.list[[name]][['res']]
   label <- res.list[[name]][['label']]
+  lfc.thresh.i <- res.list[[name]][['lfc.thresh']]
 
   mdcat('## ', label, ' {.tabset}')
   mdcat('### Summary of results')
-  print(knitr::kable(my.summary(res.i, dds.i)))
+  print(knitr::kable(my.summary(res.i, dds.i, lfc.thresh=lfc.thresh.i)))
   mdcat('### Normalized counts of top 3 upregulated genes')
   top.plots(padj.order(res.i), 3, my.counts, dds.i, add_cols)
   mdcat('### Normalized counts of top 3 downregulated genes')
@@ -496,18 +521,22 @@ for (name in names(res.list)){
   genes.to.label <- res.i[1:10, 'symbol']
 
   mdcat('### M-A plot')
-  print(plotMA.label(res.i, genes.to.label=genes.to.label, col='symbol'))
+  print(plotMA.label(res.i,
+                     fc.thres=lfc.thresh.i,
+                     genes.to.label=genes.to.label,
+                     col='symbol')
+  )
 
   mdcat('### P-value distribution')
   pval.hist(res.i)
 }
 ```
 
-```{r selections, cache=TRUE, dependson='attach'}
+```{r selections, cache=TRUE, dependson=c('attach', 'cutoffs')}
 sel.list <- list()
 for (name in names(res.list)){
   res <- res.list[[name]][['res']]
-
+  lfc.thresh.i <- res.list[[name]][['lfc.thresh']]
 
   # NOTE: any other selections?------------------------------------------------
   #    Here we just get the up- and downregulated genes, but any arbitrary
@@ -518,8 +547,8 @@ for (name in names(res.list)){
   #        created for it in the Markdown
   #      - GO analysis will be performed on each group separately below.
   sel.list[[name]] <- list(
-    up=res[get.sig(res, alpha=alpha, lfc.thresh=lfc.thresh, direction='up'),],
-    dn=res[get.sig(res, alpha=alpha, lfc.thresh=lfc.thresh, direction='dn'),]
+    up=res[get.sig(res, lfc.thresh=lfc.thresh.i, direction='up'),],
+    dn=res[get.sig(res, lfc.thresh=lfc.thresh.i, direction='dn'),]
     )
 }
 

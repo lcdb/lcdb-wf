@@ -82,8 +82,8 @@ plotPCA.ly <- function(rld, intgroup){
 #'
 #' @return Handle to ggplot
 plotMA.label <- function(res,
-                         fdr.thres=0.1,
-                         fc.thres=0,
+                         fdr.thres=NULL,
+                         fc.thres=NULL,
                          fc.lim=NULL,
                          genes.to.label=NULL,
                          col=NULL
@@ -95,8 +95,37 @@ plotMA.label <- function(res,
       warning(paste("Removing", nna, "NAs from gene list"))
       genes.to.label <- genes.to.label[!is.na(genes.to.label)]
   }
-  # convert res to data frame
-  res <- data.frame(res)
+
+  # evaluate whether res is a data.frame or DESeqResults object
+  tryCatch(
+    expr = {
+      metadata(res)
+      # get fdr.thresh
+      if(is.null(fdr.thres)){
+        fdr.thres <- metadata(res)[['alpha']]
+      } else if(fdr.thres != metadata(res)[['alpha']]) {
+        print(paste0('WARNING:',
+              warning('Supplied fdr.thresh and DESeqResults object FDR threshold are different.')))
+      }
+      # get fc.thresh
+      if(is.null(fc.thres)){
+        fc.thres <- metadata(res)[['lfcThreshold']]
+      } else if(fc.thres != metadata(res)[['lfcThreshold']]) {
+        print(paste0('WARNING:',
+                     warning('Supplied fc.thresh and DESeqResults object LFC threshold are different.')))
+      }
+      # convert res to data frame
+      res <- data.frame(res)
+    }
+  )
+
+  # if thresholds not specified
+  if(is.null(fdr.thres)){
+    fdr.thres <- 1
+  }
+  if(is.null(fc.thres)){
+    fc.thres <- 0
+  }
 
   # if y limits not specified
   if(is.null(fc.lim)){
@@ -481,11 +510,15 @@ pval.hist <- function(res){
 #' @param res DESeq2 results object
 #' @param dds DEseq2 object
 #' @param alpha Alpha level at which to call significantly changing genes
+#' @param lfc.threshold LFC threshold level at which to call significantly changing genes
 #'
 #' @return Dataframe of summarized results
-my.summary <- function(res, dds, alpha, lfc.thresh=0, ...){
+my.summary <- function(res, dds, alpha, lfc.thresh, ...){
    if (missing(alpha)){
        alpha <- if (is.null(metadata(res)$alpha)){ 0.1 } else { metadata(res)$alpha }
+   }
+   if (missing(lfc.thresh)){
+       lfc.thresh <- if (is.null(metadata(res)$lfcThreshold)){ 0 } else { metadata(res)$lfcThreshold }
    }
    notallzero <- sum(res$baseMean > 0)
    up <- sum(res$padj < alpha & res$log2FoldChange > lfc.thresh, na.rm=TRUE)
@@ -592,15 +625,20 @@ attach.info <- function(res, keytype='ENSEMBL', columns=c('SYMBOL', 'UNIPROT', '
 #' Combine everything in the results list into a single table
 #'
 #' @param res.list Named list of lists, where each sublist contains the following
-#'                 names: c('res', 'dds', 'label'). "res" is a DESeqResults object,
-#'                 "dds" is a DESeq object, and "label" is a nicer-looking
-#'                 label to use.
+#'                 names: c('res', 'dds', 'label', 'alpha', 'lfc.thresh').
+#'                 "res" is a DESeqResults object, "dds" is a DESeq object, 
+#'                 "label" is a nicer-looking label to use, 'alpha' is the FDR
+#'                 threshold and 'lfc.thresh' is the LFC threshold.
 #'
 #' @return Dataframe
-summarize.res.list <- function(res.list, alpha, lfc.thresh){
+summarize.res.list <- function(res.list){
     slist <- list()
     for (name in names(res.list)){
-        x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']], alpha, lfc.thresh)
+        lfc.thresh <- if (is.null(res.list[[name]]$lfc.thresh)) {
+            if (is.null(metadata(res.list[[name]][['res']])$lfcThreshold)){ 0 } else { metadata(res.list[[name]][['res']])$lfcThreshold }
+        } else { res.list[[name]]$lfc.thresh }
+        x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']],
+                        metadata(res.list[[name]][['res']])$alpha, lfc.thresh)
         rownames(x) <- res.list[[name]][['label']]
         slist[[name]] <- x
     }
@@ -618,7 +656,34 @@ summarize.res.list <- function(res.list, alpha, lfc.thresh){
 #' @param return.names If TRUE, returns the rownames of selected genes; if FALSE return boolean index of length(x)
 #'
 #' @return Character vector of rownames (if return.names=TRUE) or boolean vector of genes selected.
-get.sig <- function(x, direction='up', alpha=0.1, lfc.thresh=0, return.names=TRUE){
+get.sig <- function(x, direction='up', alpha=NULL, lfc.thresh=NULL, return.names=TRUE){
+    tryCatch(
+        # check whether x is a DESeq2 object or data.frame
+        expr = {
+            metadata(x)
+            # get alpha
+            if(is.null(alpha)){
+                alpha <- metadata(x)[['alpha']]
+            } else if(alpha != metadata(x)[['alpha']]) {
+                print(paste0('WARNING:',
+                            warning('Supplied alpha and DESeqResults object FDR threshold are different.')))
+            }
+            # get lfc.thresh
+            if(is.null(lfc.thresh)){
+                lfc.thresh <- metadata(x)[['lfcThreshold']]
+            } else if(lfc.thresh != metadata(x)[['lfcThreshold']]) {
+                print(paste0('WARNING:',
+                             warning('Supplied lfc.thresh and DESeqResults object LFC threshold are different.')))
+            }
+        }
+    )
+    # if thresholds not supplied
+    if (is.null(alpha)) {
+        alpha <- 1
+    }
+    if (is.null(lfc.thresh)) {
+        lfc.thresh <- 0
+    }
     if (direction == 'up'){
         idx <- (x$padj < alpha) & (x$log2FoldChange > lfc.thresh) & (!is.na(x$padj))
     } else if (direction %in% c('down', 'dn')){
