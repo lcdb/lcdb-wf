@@ -73,6 +73,8 @@ variables:
             conda create -n lcdb-wf-test -y --file requirements-non-r.txt
             conda create -n lcdb-wf-test-r -y --file requirements-r.txt
         fi
+        conda env export -n lcdb-wf-test > env.yaml
+        conda env export -n lcdb-wf-test-r > env-r.yaml
 
   # --------------------------------------------------------------------------
   # Deploy into a new directory and get the test data.
@@ -305,6 +307,10 @@ jobs:
       # themselves.
       - *save_cache
 
+      - store_artifacts:
+          path: /tmp/lcdb-wf-test/env.yaml
+      - store_artifacts:
+          path: /tmp/lcdb-wf-test/env-r.yaml
   pytest:
     <<: *defaults
     resource_class: small
