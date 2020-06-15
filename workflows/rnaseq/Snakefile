@@ -491,7 +491,7 @@ rule fastq_count:
     input:
         fastq='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz'
     output:
-        '{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
+        count='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
     shell:
         'zcat {input} | echo $((`wc -l`/4)) > {output}'
 
@@ -503,7 +503,7 @@ rule bam_count:
     input:
         bam='{sample_dir}/{sample}/{suffix}.bam'
     output:
-        '{sample_dir}/{sample}/{suffix}.bam.libsize'
+        count='{sample_dir}/{sample}/{suffix}.bam.libsize'
     shell:
         'samtools view -c {input} > {output}'
 

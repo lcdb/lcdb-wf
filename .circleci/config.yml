@@ -443,26 +443,13 @@ jobs:
       - store_artifacts:
           path: /tmp/env-r.yaml
 
-  check-rmd-docs:
-    <<: *defaults
-    resource_class: small
-    steps:
-      - checkout
-      - run:
-          name: check that Rmd chunks are documented in .rst
-          command: |
-            cd ci && python ensure_docs.py
-
 # ----------------------------------------------------------------------------
 # This section configures the dependencies across jobs.
 workflows:
   version: 2
   test-suite:
     jobs:
-      - check-rmd-docs
-      - initial-setup:
-         requires:
-           - check-rmd-docs
+      - initial-setup
       - pytest:
          requires:
            - initial-setup

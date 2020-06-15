@@ -102,10 +102,6 @@ See :ref:`getting-started` to get started.
    wrappers
    cluster
    troubleshooting
-   rnaseq-rmarkdown-docs
-   gene-patterns-rmarkdown-docs
-   functional-enrichment-rmarkdown-docs
    autodoc
    changelog
    developers
-
