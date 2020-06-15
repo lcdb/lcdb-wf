@@ -759,6 +759,7 @@ rule markduplicates:
         'INPUT={input.bam} '
         'OUTPUT={output.bam} '
         'METRICS_FILE={output.metrics} '
+        'VALIDATION_STRINGENCY=LENIENT '
         '&> {log}'
 
 
@@ -793,7 +794,7 @@ rule collectrnaseqmetrics:
         #     SECOND_READ_TRANSCRIPTION_STRAND}
         #
         'STRAND=NONE '
-
+        'VALIDATION_STRINGENCY=LENIENT '
         'REF_FLAT={input.refflat} '
         'INPUT={input.bam} '
         'OUTPUT={output.metrics} '

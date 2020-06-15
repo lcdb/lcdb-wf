@@ -26,14 +26,19 @@ variables:
 
   save_cache: &save_cache
     save_cache:
-      key: v1-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}
+      key: v2-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}
       paths:
         - /opt/conda
+
+        # this file is created by sra-tools upon installation by conda, and so
+        # needs to be included in the cache otherwise fastq-dump thinks it's
+        # mis-configured.
+        - /root/.ncbi/user-settings.mkfg
 
   restore_cache: &restore_cache
     restore_cache:
       keys:
-        - v1-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}
+        - v2-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}
 
   # --------------------------------------------------------------------------
   # The path needs to be set each time; in jobs below this will be called as
@@ -49,11 +54,7 @@ variables:
           echo 'export LANG=en_US.utf8' >> $BASH_ENV
           source $BASH_ENV
   # --------------------------------------------------------------------------
-  # Run the setup script, which installs miniconda, sets up bioconda, and
-  # installs the global env
-  #
-  # Note the "&setup" construct. This allows us to re-use it in multiple jobs
-  # below.
+  # Set up conda if the environments do not already exist
   setup: &setup
     run:
       name: Setup conda
