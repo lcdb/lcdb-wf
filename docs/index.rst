@@ -91,6 +91,7 @@ See :ref:`getting-started` to get started.
    tests
    deploy
    workflows
+   guide
    config
    references
    rnaseq
