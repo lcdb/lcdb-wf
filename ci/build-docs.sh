@@ -61,7 +61,7 @@ cd ${DOCSOURCE}
 make clean html SPHINXOPTS="-j2" 2>&1 | grep -v "WARNING: nonlocal image URL found:"
 cp -r ${DOCHTML}/* $STAGING
 
-zip -r /tmp/docs.zip ${DOCHTML}
+tar -zcf /tmp/docs.tar.gz ${DOCHTML}
 
 # commit and push
 cd $STAGING

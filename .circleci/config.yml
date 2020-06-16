@@ -431,7 +431,7 @@ jobs:
           name: Build and upload docs
           command: source activate lcdb-wf-test && ci/build-docs.sh
       - store_artifacts:
-          path: /tmp/docs.zip
+          path: /tmp/docs.tar.gz
 
 
   report-env:
