@@ -61,6 +61,7 @@ library(cowplot)
 library(plotly)
 library(tibble)
 library(dplyr)
+library(tidyr)
 ```
 
 
@@ -483,9 +484,9 @@ for (name in names(res.list)){
   mdcat('### Summary of results')
   print(knitr::kable(my.summary(res.i, dds.i)))
   mdcat('### Normalized counts of top 3 upregulated genes')
-  top.plots(padj.order(res.i), 3, my.counts, dds.i, add_cols)
+  print(counts.plot(counts.df(dds.i, res.i, lfc.filter(res.i), 'symbol'), 3))
   mdcat('### Normalized counts of top 3 downregulated genes')
-  top.plots(padj.order(res.i, reverse=TRUE), 3, my.counts, dds.i, add_cols)
+  print(counts.plot(counts.df(dds.i, res.i, lfc.filter(res.i, reverse=TRUE), 'symbol'), 3))
 
   # NOTE: gene labels --------------------------------------------------------
   #   By default we plot the symbols of the top 10 upregulated or downregulated
