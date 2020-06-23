@@ -291,7 +291,9 @@ sf <- sf[order(sf)] %>%
 p <- ggplot(sf) +
     aes(x=reorder(name, `Size Factor`), y=`Size Factor`) +
     xlab('sample name') +
-    geom_col()
+    geom_col() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ggplotly(p)
 
 mdcat('### Size factors vs total read count')
@@ -301,7 +303,9 @@ trc_vs_sf <- full_join(sf, trc, by = 'name')
 group_names <- tibble(name=dds$samplename, group=dds$group)
 trc_vs_sf <- full_join(trc_vs_sf, group_names, by = 'name')
 p <- ggplot(data=trc_vs_sf, aes_string(x="`Total Read Count`", y="`Size Factor`", label='name')) +
-    geom_point(size=3)
+    geom_point(size=3) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ggplotly(p)
 ```
 
@@ -484,9 +488,13 @@ for (name in names(res.list)){
   mdcat('### Summary of results')
   print(knitr::kable(my.summary(res.i, dds.i)))
   mdcat('### Normalized counts of top 3 upregulated genes')
-  print(counts.plot(counts.df(dds.i, res.i, lfc.filter(res.i), 'symbol'), 3))
+  print(counts.plot(counts.df(dds.i, res.i, sel.genes=lfc.filter(res.i),
+                              label='symbol', rank.col='padj'),
+                    3))
   mdcat('### Normalized counts of top 3 downregulated genes')
-  print(counts.plot(counts.df(dds.i, res.i, lfc.filter(res.i, reverse=TRUE), 'symbol'), 3))
+  print(counts.plot(counts.df(dds.i, res.i, sel.genes=lfc.filter(res.i, reverse=TRUE),
+                              label='symbol', rank.col='padj'),
+                    3))
 
   # NOTE: gene labels --------------------------------------------------------
   #   By default we plot the symbols of the top 10 upregulated or downregulated
