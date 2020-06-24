@@ -5,7 +5,8 @@ package](https://www.bioconductor.org/packages/release/bioc/html/DEGreport.html)
 which in turn uses the
 [ConsensusClusterPlus](https://www.bioconductor.org/packages/release/bioc/html/ConsensusClusterPlus.html)
 algorithm to cluster genes into similar expression patterns. The lists of genes
-found in each cluster are reported below the plot.
+found in each cluster are reported below the plot. Cluster IDs are also reported in
+the exported results TSVs in the section below.
 
 The default general flow is as follows:
 
@@ -59,6 +60,20 @@ ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed'))
 
 # Filter out results where there were zero genes detected.
 ll <- ll[lapply(ll, length) > 0]
+
+add.cluster.id <- function(clusters, res, label){
+    # Merges the degPattern cluster IDs `cluster` with DESeqresults `res`
+    # `label` will be used to create a cluster column with a unique column name 
+    # returns a DESeqresults with cluster IDs
+    unq <- unique(clusters[, c('genes', 'cluster')])
+    names(unq)[names(unq) == 'genes'] <- 'gene'
+    merged <- merge(as.data.frame(res), unq, by='gene', all.x=TRUE) %>%
+        mutate(gene = factor(gene, levels=res[['gene']])) %>%
+        arrange(gene)
+    rownames(merged) <- merged[['gene']]
+    res[[paste0(label, '_cluster')]] <- merged[['cluster']]
+    return(res)
+}
 
 for (name in names(ll)){
     # Print a nice Markdown header
@@ -144,5 +159,8 @@ for (name in names(ll)){
     dev.copy(pdf, file=pdf.file)
     dev.off()
     mdcat('- [', pdf.file, '](', pdf.file, '), PDF')
+
+    # merge the degPattern cluster IDs with res.list
+    res.list[[name]][['res']] <- add.cluster.id(clusters=n2, res=res.list[[name]][['res']], label=name)
 }
 ```
