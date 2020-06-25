@@ -99,11 +99,28 @@ if(!exists(hub.cache)){
     new.cache <- file.path(tempdir(), 'AnnotationHubCache')
 }
 
-orgdb <- get.orgdb(
-    annotation_genus_species,
-    cache=new.cache,
-    annotation_key_override=annotation_key_override
-)
+# get annotation hub
+ah <- get.ah(annotation_genus_species,
+             cache=new.cache)
+
+# get species accession
+species_accession <- ifelse(is.na(annotation_key_override),
+                            find.annotationhub.name(ah, annotation_genus_species),
+                            annotation_key_override)
+
+# get orgdb
+orgdb <- ah[[species_accession]]
+```
+
+```{r parallel, cache=TRUE}
+# NOTE: Run DESeq2 on multiple cores.------------------------------------------
+#    By default, we do not run in parallel, however this can be very useful in
+#    experiments with many samples and complex designs.  To run in parallel,
+#    set `nworkers` to the number of available cores and `parallel <- TRUE`.
+#    Then, add the argument `parallel=TRUE` whenever you call DESeq()
+nworkers <- 2
+parallel <- FALSE
+if(parallel) register(MulticoreParam(nworkers))
 ```
 
 ```{r coldata_setup}
@@ -305,16 +322,6 @@ p <- ggplot(data=trc_vs_sf, aes_string(x="`Total Read Count`", y="`Size Factor`"
 ggplotly(p)
 ```
 
-```{r parallel, cache=TRUE}
-# NOTE: Run DESeq2 on multiple cores.------------------------------------------
-#    By default, we do not run in parallel, however this can be very useful in
-#    experiments with many samples and complex designs.  To run in parallel,
-#    set `nthreads` to the number of available cores and `parallel <- TRUE`. Then, add the
-#    argument `parallel=TRUE` whenever you call DESeq()
-nworkers <- 2
-parallel <- TRUE
-if(parallel) register(MulticoreParam(nworkers))
-```
 
 ```{r dds_models, cache=TRUE}
 # NOTE: gene rather than transcript counts-------------------------------------
