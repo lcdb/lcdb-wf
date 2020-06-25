@@ -10,16 +10,13 @@ library(readr)
 library(stringr)
 library(tibble)
 
-#' Get the OrgDb for the specified organism, using the cached AnnotationHub.
+#' Function to get AnnotationHub object
 #'
-#' @param species Case-sensitive genus and species
-#' @param cache Directory in which the AnnotationHub cache is stored
-#' @param annotation_key_override If not NA, forces the hub to use this
-#'        accession. Use this when you know exactly which OrgDb to use.
+#' @param species species name, e.g. 'Homo sapiens' or 'Mus musculus'
+#' @param cache location of AnnotationHub cache.
 #'
-#' @return OrgDb object
-get.orgdb <- function(species, cache, annotation_key_override=NA){
-
+#' @return AnnotationHub object
+get.ah <- function(species, cache){
     # Workaround to allow AnnotationHub to use proxy. See
     # https://github.com/Bioconductor/AnnotationHub/issues/4, and thanks
     # Wolfgang!
@@ -29,28 +26,127 @@ get.orgdb <- function(species, cache, annotation_key_override=NA){
     }
 
     ah <- AnnotationHub(hub=getAnnotationHubOption('URL'),
-             cache='../../../include/AnnotationHubCache',
+             cache=cache,
              proxy=proxy,
              localHub=FALSE)
 
-    find.annotationhub.name <- function(species.name, override.code) { #autodetect ah names based on loaded database
-        if (is.na(override.code)) {
-        ah.query <- query(ah, "OrgDb")
-        ah.query.speciesmatch <- grepl(paste("^", species.name, "$", sep=""), ah.query$species)
-        ah.query.which <- which(ah.query.speciesmatch)
-        stopifnot(length(ah.query.which) > 0) #require at least one match
-        if (length(ah.query.which) > 1) { #warn of duplicate matches
-           print("WARNING: found multiple candidate species in AnnotationHub: ");
-           print(ah.query.speciesmatch)
-        }
-        names(ah.query)[ah.query.which[1]]
-        } else {
-        override.code
-        }
+    return(ah)
+}
+
+#' Function to find AnnotationHub species accession for specified annotation db
+#'
+#' @param ah AnnotationHub object
+#' @param species.name name of species, e.g. 'Homo sapiens' or 'Mus musculus'
+#' @param db.type type of annotation db to use, e.g. 'OrgDb' or 'TxDb'
+#'
+#' @return AnnotationHub species accession key
+find.annotationhub.name <- function(ah, species.name, db.type='OrgDb') {
+    ah.query <- query(ah, db.type)
+    ah.query.which <- grep(paste("^", species.name, "$", sep=""),
+                           ah.query$species)
+
+    # require at least one match
+    stopifnot(length(ah.query.which) > 0)
+    
+    # warn of duplicate matches
+    if (length(ah.query.which) > 1) {
+       print("WARNING: found multiple candidate species in AnnotationHub: ");
+       print(ah.query$species[ah.query.which])
     }
-    annotation_key <- find.annotationhub.name(annotation_genus_species, annotation_key_override)
-    orgdb <- ah[[annotation_key]]
-    return(orgdb)
+
+    # return first match
+    return(names(ah.query)[ah.query.which[1]])
+}
+
+#' Function to perform GO enrichment, with optional parameters allowing parallel operation.
+#'
+#' @param gene gene list tested for enrichment
+#' @param ont gene ontology tested for enrichment. Can be 'BP', 'CC' or 'MF'
+#' @param keytype type of gene IDs
+#' @param universe background list of genes to compare to the gene list
+#' @param pvalueCutoff p-value threshold to determine statistical significance
+#' @param qvalueCutoff FDR (q-value) threshold to determine statistical significance
+#' @param orgdb OrgDb object from AnnotationHub (optional). Used only for non-parallel operation
+#' @param species_accession OrgDb accession for species being tested. Used only for parallel operation.
+#' @param cache location of AnnotationHub cache. Used only for parallel operation.
+#'
+#' @return clusterProfiler enrichResult object
+enrichGO.fun <- function(gene,
+                         ont,
+                         keytype,
+                         universe,
+                         pvalueCutoff,
+                         qvalueCutoff,
+                         orgdb,
+                         species_accession=NULL,
+                         cache=NULL){
+    # NOTE: orgdb is specified for non-parallel operation
+
+    if(missing(orgdb)){
+        # this is necessary since a new connection to the database
+        # is needed within the scope of the function passed to bplapply
+        # for the parallelization to work, so here we recreate a minimal
+        # version of get.ah
+        proxy <- Sys.getenv('http_proxy')
+        if(proxy == "") proxy <- NULL
+        ah <- AnnotationHub::AnnotationHub(
+                hub=AnnotationHub::getAnnotationHubOption('URL'),
+                cache=cache,
+                proxy=proxy,
+                localHub=FALSE)
+
+        orgdb <- ah[[species_accession]]
+    }
+
+    res <- clusterProfiler::enrichGO(gene=gene,
+                    universe=universe,
+                    keyType=keytype,
+                    OrgDb=orgdb,
+                    ont=ont,
+                    pvalueCutoff=pvalueCutoff,
+                    qvalueCutoff=qvalueCutoff,
+                    readable=TRUE)
+    res
+}
+
+#' Function to perform KEGG/Reactome enrichment.
+#'
+#' @param gene gene list tested for enrichment
+#' @param pathway type of pathway enrichment to perform. Can be 'KEGG' or 'Reactome'
+#' @param organism abbreviation of species name. For example, if 'Homo sapiens', for KEGG enrichment it 
+#'        should be 'hsa', for Reactome it should be 'human'.
+#' @param keytype type of gene IDs. This is only used for KEGG and is usually 'ncbi-geneid'.
+#' @param universe background list of genes to compare to the gene list
+#' @param pvalueCutoff p-value threshold to determine statistical significance
+#' @param qvalueCutoff FDR (q-value) threshold to determine statistical significance
+#'
+#' @return clusterProfiler enrichResult object
+enrichPathway.fun <- function(gene,
+                              pathway,
+                              organism,
+                              keytype,
+                              universe,
+                              pvalueCutoff,
+                              qvalueCutoff){
+
+    if(pathway == 'KEGG'){
+        res <- clusterProfiler::enrichKEGG(
+                        gene=gene,
+                        universe=universe,
+                        keyType=keytype,
+                        organism=organism,
+                        pvalueCutoff=pvalueCutoff,
+                        qvalueCutoff=qvalueCutoff)
+    } else if(pathway == 'Reactome'){
+        res <- ReactomePA::enrichPathway(
+                        gene=gene,
+                        universe=universe,
+                        organism=organism,
+                        pvalueCutoff=pvalueCutoff,
+                        qvalueCutoff=qvalueCutoff,
+                        readable=TRUE)
+    }
+    res
 }
 
 #' Plot an interactive PCA plot
