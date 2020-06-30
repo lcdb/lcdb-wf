@@ -22,7 +22,8 @@ machine.
 If you have the Anaconda Python distribution, you already have conda.
 Otherwise, install `Miniconda <https://conda.io/miniconda.html>`_.
 
-**Optional:** 
+**Optional:**
+
 - Run the following commands to set up your conda channels. This puts the
   `lcdb` channel as lowest priority (this channel has the `lcdblib` package),
   and then matches the channel order required by `bioconda`.
@@ -67,15 +68,15 @@ variable, so that any executables there are found first. It does not affect any
 existing installation of any software on your machine and does not need root
 privileges.
 
-**It is recommended that you create a separate environment directory for each 
+**It is recommended that you create a separate environment directory for each
 project and include it with the project**.
 That way you can update packages in each project independently of
-any others, and yet the environment will always be close at hand. This is 
-especially good practice in shared space as others can easily find and activate 
+any others, and yet the environment will always be close at hand. This is
+especially good practice in shared space as others can easily find and activate
 the environment specific to the project.
-Here we use the name "env" for the new environment to clearly denote its contents, 
-but you can use anything. Note that here we specify the channels to use, which 
-include ``bioconda`` which depends on ``conda-forge``, and ``lcdb`` which provides 
+Here we use the name "env" for the new environment to clearly denote its contents,
+but you can use anything. Note that here we specify the channels to use, which
+include ``bioconda`` which depends on ``conda-forge``, and ``lcdb`` which provides
 the ``lcdblib`` package used by these workflows.
 
 ::

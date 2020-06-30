@@ -379,7 +379,7 @@ Infrastructure
 ~~~~~~~~~~~~~~
 
 - Transition to CircleCI for testing
-- Use production settings by default; see :ref:`note-on-test-settings` for
+- Use production settings by default; see :ref:`test-settings` for
   more.
 - lots o' docs
 - new ``include/references_configs`` to help organize references. These are
