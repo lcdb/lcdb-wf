@@ -46,6 +46,8 @@ def wrapper_for(path):
 # RULES
 # ----------------------------------------------------------------------------
 
+# Verify configuration of config and sampletable files
+helpers.preflight(config)
 
 # See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
@@ -87,17 +89,6 @@ if 'orig_filename' in c.sampletable.columns:
     # Convert the sampletable to be indexed by the first column, for
     # convenience in generating the input/output filenames.
     _st = c.sampletable.set_index(c.sampletable.columns[0])
-
-    def check_unique_fn(df):
-        """
-        Raises an error if the fastq filenames are not unique
-        """
-        fns = _st['orig_filename']
-        if 'orig_filename_R2' in _st.columns:
-            fns = fns.append(_st['orig_filename_R2'])
-        if len(fns.unique()) < len(fns):
-            raise ValueError('Non unique filenames, check the sampletable\n')
-    check_unique_fn(_st)
 
     def orig_for_sample(wc):
         """
