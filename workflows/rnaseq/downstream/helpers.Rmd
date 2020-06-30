@@ -9,6 +9,7 @@ library(heatmaply)
 library(readr)
 library(stringr)
 library(tibble)
+library(tidyr)
 
 #' Get the OrgDb for the specified organism, using the cached AnnotationHub.
 #'
@@ -518,24 +519,30 @@ lfc.filter <- function(res, reverse=FALSE){
 #'
 #' @param df dataframe from which to extract genes normalized_counts
 #' @param rank.nb rank number less or equal used to filter the genes to be plotted
+#' @param no.aes whether to include the default aes or return the ggplot object
+#' without aes
+#' @param facet name of column to use for faceting
 #'
 #' @return ggplot object
-counts.plot <- function(df, rank.nb=NULL) {
+counts.plot <- function(df, rank.nb=NULL, no.aes=FALSE, facet='label') {
     if (!is.null(rank.nb)) {
         df <- df %>%
             filter(rank <= rank.nb)
     }
     df <- df %>%
         arrange(rank) %>%
-        mutate(label = factor(label, levels = unique(label)))
+        mutate(facet = factor(!!!syms(facet), levels = unique(!!!syms(facet))))
     plt <- ggplot(df) +
-        aes(y=normalized_counts, x=group, color=group) +
         scale_y_log10() +
         geom_point(position=position_jitter(width=.1, height=0),  size=3) +
         geom_line(color='#000000') +
         theme_bw() +
         theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-        facet_wrap(.~label, ncol=1, scales='free_y')
+        facet_wrap(.~facet, ncol=1, scales='free_y')
+    if (!no.aes) {
+        plt <- plt +
+            aes(y=normalized_counts, x=group, color=group)
+    }
     return(plt)
 }
 

@@ -61,7 +61,6 @@ library(cowplot)
 library(plotly)
 library(tibble)
 library(dplyr)
-library(tidyr)
 ```
 
 
