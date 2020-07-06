@@ -725,4 +725,42 @@ write.clusterprofiler.results <- function(res, cprof.folder, label){
     write.table(res.split, file=filename.split, sep='\t', quote=FALSE, row.names=FALSE)
     return(list(orig=filename.orig, split=filename.split))
 }
+
+#' Creates heatmap for ranking raw foldchange for no-replicate studies
+#' 
+#' @param rld DESeqTransform object output by varianceStabilizingTransformation() or rlog()
+#' @param cond.A Vector of sample or samples corresponding to first condition of desired contrast
+#' @param cond.B Vector of sample or samples corresponding to second condition of desired contrast
+#' @param symbol.mappings named character vector mapping gene symbols to each gene in rld
+#' @param n Number of top and bottom genes to include in heatmap
+#' @param ... Other arguments to are passed to heatmaply
+
+create.noreplicate.heatmap <- function(rld, cond.A, cond., symbol.mappings, n=50){
+
+m <- assay(rld)
+
+# if more than one replicate for cond.A or cond.B, use the rowMeans of those samples
+
+if (length(cond.A) == 1){
+    x <- m[,cond.A]
+} else {
+    x <- rowMeans(m[,cond.A])
+}
+
+if (length(cond.B) == 1){
+    mn <- m[,cond.B]
+} else {
+    mn <- rowMeans(m[,cond.B])
+}
+
+fc <- x/mn
+o <- order(fc)
+top <- o[1:n]
+bot <- rev(o)[1:n]
+
+rownames(m) <- symbol.mappings
+
+heatmaply(m[c(top, bot),], scale='row', ...)
+
+}
 ```
