@@ -9,6 +9,7 @@ library(heatmaply)
 library(readr)
 library(stringr)
 library(tibble)
+library(tidyr)
 
 #' Get the OrgDb for the specified organism, using the cached AnnotationHub.
 #'
@@ -462,6 +463,87 @@ top.plots <- function(res, n, func, dds, add_cols=NULL, ...){
         ps[[gene]] <- func(gene, dds, label=label, ...)
     }
     grid.arrange(grobs=ps)
+}
+
+#' Make dataframe of normalized gene counts
+#'
+#' @param dds DESeq2 object
+#' @param res DESeq2 results object
+#' @param sel.genes list of genes to consider
+#' @param label column(s) to be included to the plot labels
+#' @param pc count number to be added to the normalized counts
+#'        Typically a pc of 0.5 is added to allow plotting in log scale
+#'
+#' @return dataframe
+counts.df <- function(dds, res, sel.genes=NULL, label=NULL, rank.col='padj', pc=0.5) {
+    # getting normalized counts copied from plotCounts()
+    cnts <- counts(dds, normalized = TRUE, replaced = FALSE)
+    # add 0.5 like plotCounts to plot 0 on log scale
+    cnts <- cnts + pc
+    # merge with res.i and colData
+    df <- as.data.frame(cbind(cnts, res))
+    # add label for plotting
+    df <- df %>% mutate(label = paste(gene, !!!syms(label), sep=' | '))
+    # subset to sel.genes if not NULL (then keep all)
+    if (!is.null(sel.genes)) {
+        df <- df %>%
+            filter(gene %in% sel.genes)
+    }
+    # add rank
+    df <- df %>%
+        mutate(rank = rank(!!sym(rank.col), ties.method='first', na.last='keep')) %>%
+        pivot_longer(colnames(cnts), names_to='samplename', values_to='normalized_counts')
+    # add colData
+    df <- merge(df, colData(dds), by='samplename') %>%
+        as.data.frame()
+    return(df)
+}
+
+#' Filter results by log2FoldChange sign
+#'
+#' @param res DESeq2 results object
+#' @param reverse If TRUE then filter negative lfc
+#'
+#' @return filtered genes
+lfc.filter <- function(res, reverse=FALSE){
+    res.na <- res[!is.na(res$log2FoldChange),]
+    if (!reverse){
+        res.na <- res.na[res.na$log2FoldChange > 0,]
+    } else {
+        res.na <- res.na[res.na$log2FoldChange < 0,]
+    }
+    return(res.na[,'gene'])
+}
+
+#' Plot genes' normalized counts across samples
+#'
+#' @param df dataframe from which to extract genes normalized_counts
+#' @param rank.nb rank number less or equal used to filter the genes to be plotted
+#' @param no.aes whether to include the default aes or return the ggplot object
+#' without aes
+#' @param facet name of column to use for faceting
+#'
+#' @return ggplot object
+counts.plot <- function(df, rank.nb=NULL, no.aes=FALSE, facet='label') {
+    if (!is.null(rank.nb)) {
+        df <- df %>%
+            filter(rank <= rank.nb)
+    }
+    df <- df %>%
+        arrange(rank) %>%
+        mutate(facet = factor(!!!syms(facet), levels = unique(!!!syms(facet))))
+    plt <- ggplot(df) +
+        scale_y_log10() +
+        geom_point(position=position_jitter(width=.1, height=0),  size=3) +
+        geom_line(color='#000000') +
+        theme_bw() +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+        facet_wrap(.~facet, ncol=1, scales='free_y')
+    if (!no.aes) {
+        plt <- plt +
+            aes(y=normalized_counts, x=group, color=group)
+    }
+    return(plt)
 }
 
 #' Plot a histogram of raw pvals
