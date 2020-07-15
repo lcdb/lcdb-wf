@@ -94,8 +94,8 @@ for (name in names(ll)){
     }
 
     # Extract the normalized counts for these genes
-    idx <- rownames(rld) %in% genes
-    ma <- assay(rld)[idx,]
+    idx <- rownames(vsd) %in% genes
+    ma <- assay(vsd)[idx,]
 
     colData.i <- colData(res.list[[name]][['dds']])
     colData.i <- colData.i[,!(colnames(colData.i) %in% exclude.for.printing)]

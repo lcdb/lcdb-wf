@@ -178,7 +178,7 @@ dds.txi <- DESeqDataSetFromTximport(
 #
 # Since this is for exploratory data analysis, we use blind=TRUE
 # to ignore the design.
-rld.txi <- varianceStabilizingTransformation(dds.txi, blind=TRUE)
+vsd.txi <- varianceStabilizingTransformation(dds.txi, blind=TRUE)
 ```
 
 
@@ -207,7 +207,7 @@ if (strip.dotted.version){
 #
 # Since this is for exploratory data analysis, we use blind=TRUE
 # to ignore the design.
-rld <- varianceStabilizingTransformation(dds, blind=TRUE)
+vsd <- varianceStabilizingTransformation(dds, blind=TRUE)
 ```
 
 ## Sample clustering and QC
@@ -224,7 +224,7 @@ we expect to see replicates clustering together and separation of treatments.
 #    just the "group" column to create colored boxes corresponding to values of
 #    "group" alongside the heatmap.
 #
-plot.heatmap(rld, colData, c('group'))
+lcdbwf::plot.heatmap(vsd, colData, cols.for.grouping=c('group'))
 ```
 
 ## PCA {.tabset}
@@ -249,7 +249,7 @@ groups <- list(
 #    the following lines, updating the variable 'i'.
 p <- list()
 for(group in groups){
-    p[[group]] <- plotPCA.ly(rld, intgroup=group)
+    p[[group]] <- lcdbwf::plotPCA.ly(vsd, intgroup=group)
 }
 
 i <- 1
