@@ -14,7 +14,6 @@ Functions for handling configuration
 
     resolve_config
     references_dict
-    tempdir_for_biowulf
     get_references_dir
     get_sampletable
 
