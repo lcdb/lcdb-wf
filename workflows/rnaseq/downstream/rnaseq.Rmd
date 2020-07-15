@@ -328,7 +328,9 @@ For each comparison there is a tab and under each tab are the following:
 See the [Background and help](#Help) section for details on these.
 
 
-```{r, results='asis'}
+```{r reportresults, results='asis'}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#reportresults
+
 # NOTE: Which columns to add to the top plots' titles?-------------------------
 #    This will add nicer titles to the plots. These may have come from the
 #    `attach.info` call above.
