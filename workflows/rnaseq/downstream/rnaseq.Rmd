@@ -143,13 +143,9 @@ we expect to see replicates clustering together and separation of treatments.
 
 ## Clustered heatmap
 
-```{r, cache=TRUE, dependson='dds_initial'}
-# NOTE: Which columns to use for grouping the heatmap?-------------------------
-#    Add as many columns as you want for the last argument. The test data uses
-#    just the "group" column to create colored boxes corresponding to values of
-#    "group" alongside the heatmap.
-#
-plot.heatmap(rld, colData, c('group'))
+```{r sample_heatmap, cache=TRUE, dependson='dds_initial'}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#sample_heatmap
+lcdbwf::plot.heatmap(vsd, colData, cols.for.grouping=c('group'))
 ```
 
 ## PCA {.tabset}
