@@ -25,28 +25,33 @@ d = {
 regex = re.compile(r"```\{r (?P<chunk>.*?)[\}, ]")
 
 
+link_regex = re.compile(r"https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#(?P<name>)")
+
 def get_chunk_names(rmd):
-    for line in open(rmd):
+    lines = open(rmd).readlines()
+    for i, line in enumerate(lines):
         m = regex.search(line)
         if not m:
             continue
-        yield m["chunk"]
+        yield m["chunk"], lines[i+1].strip()
 
 
 def get_headings(rst, underline="-"):
     last = None
     for line in open(rst):
         if set(line.strip()) == set("-"):
-            yield last
+            yield last.replace('`', '')
         last = line.strip()
 
+# H2 headings defined in this list are OK to not be present in the Rmd
+ok_headings = ['Glossary']
 
 errors = []
 
 for rmd, rst in d.items():
-    chunks = set(get_chunk_names(rmd))
-    headings = set(get_headings(rst))
-    chunks_without_headings = chunks.difference(headings)
+    chunks, links = zip(*get_chunk_names(rmd))
+    headings = set(get_headings(rst)).difference(ok_headings)
+    chunks_without_headings = set(chunks).difference(headings)
     headings_without_chunks = headings.difference(chunks)
     if chunks_without_headings:
         errors.append(
@@ -62,6 +67,15 @@ for rmd, rst in d.items():
             + "\n   - ".join(headings_without_chunks)
             + "\n"
         )
+
+    for chunk, link in zip(chunks, links):
+        if link_regex.search(link) is None:
+            errors.append(
+                f"In {rmd}, for chunk {chunk} the first line is:\n" +
+                f"{link}\n" +
+                f"Please change it to:\n" +
+                f"# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#{chunk}\n")
+
 
 if errors:
     print("Identified chunks:")
