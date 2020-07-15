@@ -15,7 +15,7 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 # Keys are Rmd that have "```{r chunkname"; values are the corresponding .rst
 # documentation.
 d = {
-    "../workflows/rnaseq/downstream/rnaseq.Rmd": "../docs/rnaseq-rmarkdown-docs.rst",
+    "../workflows/rnaseq/downstream/rnaseq.Rmd": "../docs/rnaseq-rmd.rst",
     "../workflows/rnaseq/downstream/functional-enrichment.Rmd": "../docs/functional-enrichment-rmarkdown-docs.rst",
     "../workflows/rnaseq/downstream/gene-patterns.Rmd": "../docs/gene-patterns-rmarkdown-docs.rst",
 }
