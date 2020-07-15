@@ -4,13 +4,7 @@
 \alias{DESeqDataSetFromSalmon}
 \title{Load Salmon quantification data into a DESeq object}
 \usage{
-DESeqDataSetFromSalmon(
-  sampleTable,
-  directory = ".",
-  design,
-  ignoreRank = FALSE,
-  ...
-)
+DESeqDataSetFromSalmon(sampleTable, design, ignoreRank = FALSE, ...)
 }
 \arguments{
 \item{sampleTable}{data.frame containing at least "salmon.path" column}
