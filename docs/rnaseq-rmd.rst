@@ -195,20 +195,9 @@ created here will be used for differential expression detection.
 
 This chunk is where the bulk of the differential expression analysis takes place.
 
-The end result of this chunk is a list, with one item per contrast. Each of
-those items in turn is a list of objects that together compose the contrast
-(dds, results object, and label). This list-of-lists, which we call the
-:term:`res.list` for short, is used by functions in the `lcdbwf` R package for
-more downstream work.
-
-For a single contrast, it might look something like this:
-
-.. code-block:: r
-
-   res.list[['contrast1']][['dds']] <- dds
-   res.list[['contrast1']][['res']] <- res
-   res.list[['contrast1']][['label']] <- 'Treatment vs control'
-
+The end result of this chunk is a list of listes that is used by functions in
+the `lcdbwf` R package for more downstream work. For more details, see
+:term:`res.list`.
 
 For each contrast (that is, each entry in `res.list`) the below chunks will
 automatically create a DE results section including:
@@ -264,6 +253,12 @@ information to the results objects.
 | columns | what additional gene IDs to add? Must be columns in the OrgDb                    |
 +---------+----------------------------------------------------------------------------------+
 
+``reportresults``
+-----------------
+
+This is the section that creates multiple, tabbed outputs for each of the
+contrasts in the :term:`res.list`.
+
 ``selections``
 --------------
 
@@ -298,4 +293,18 @@ Glossary
    vsd
       The variance-stabilized transformed version of the counts. Used for PCA,
       clustered heatmaps, and gene patterns.
+
+   res.list
+      A list, with one item per contrast. Each of those items in turn is a list
+      of objects that together compose the contrast (dds, results object, and
+      label). This list-of-lists, which we call `res.list` for short, is used
+      by functions in the `lcdbwf` R package for more downstream work.
+
+      For a single contrast, it might look something like this:
+
+      .. code-block:: r
+
+         res.list[['contrast1']][['dds']] <- dds
+         res.list[['contrast1']][['res']] <- res
+         res.list[['contrast1']][['label']] <- 'Treatment vs control'
 
