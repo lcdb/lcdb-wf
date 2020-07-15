@@ -11,6 +11,7 @@ the exported results TSVs in the section below.
 The default general flow is as follows:
 
 ```{r dpsettings}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#dpsettings
 
 # NOTE: settings for DEGpatterns-----------------------------------------------
 #  These parameters are set up here because we will be providing them to
@@ -52,7 +53,8 @@ low.minc <- 1
   more, they are merged together
 - Clusters with fewer than `r minc` genes are not shown.
 
-```{r final_clusters, fig.width=12, results='asis', cache=TRUE, dependson='selections'}
+```{r finalclusters, fig.width=12, results='asis', cache=TRUE, dependson='selections'}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#finalclusters
 # NOTE: which genes to cluster?------------------------------------------------
 #    By default, we get all the changed genes, but you may want only the up or
 #    down genes.
@@ -94,8 +96,8 @@ for (name in names(ll)){
     }
 
     # Extract the normalized counts for these genes
-    idx <- rownames(rld) %in% genes
-    ma <- assay(rld)[idx,]
+    idx <- rownames(vsd) %in% genes
+    ma <- assay(vsd)[idx,]
 
     colData.i <- colData(res.list[[name]][['dds']])
     colData.i <- colData.i[,!(colnames(colData.i) %in% exclude.for.printing)]

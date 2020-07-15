@@ -1,18 +1,18 @@
 ``functional-enrichment.Rmd`` code documentation
 ================================================
 
-bitr_genes
+bitrgenes
+---------
+
+cprofsetup
 ----------
 
-cprof_setup
------------
+enrichall
+---------
 
-enrich_all
-----------
+plotgo
+------
 
-plot_go
--------
-
-adjust_catlen
--------------
+adjustcatlen
+------------
 

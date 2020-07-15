@@ -16,3 +16,7 @@ code {
     font-size: 0.8em;
     color: #444;
 }
+
+code.file {
+    font-style: italic;
+}
