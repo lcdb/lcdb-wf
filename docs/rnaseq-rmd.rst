@@ -275,11 +275,11 @@ information to the results objects.
 ``helpdocs``
 ------------
 
-``child='gene-patterns.Rmd'``
------------------------------
+``genepatterns``
+----------------
 
-``child='functional-enrichment.Rmd'``
--------------------------------------
+``functionalenrichment``
+------------------------
 
 
 Glossary

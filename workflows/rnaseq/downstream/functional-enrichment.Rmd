@@ -4,7 +4,8 @@ Here we perform gene ontology, KEGG pathway and Reactome pathway enrichment usin
 [clusterProfiler](https://bioconductor.org/packages/release/bioc/vignettes/clusterProfiler/inst/doc/clusterProfiler.html)
 package with some custom plotting functions.
 
-```{r cprof_setup, results='hide'}
+```{r cprofsetup, results='hide'}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#cprofsetup
 
 # output directory for clusterProfiler results
 cprof.folder <- "clusterprofiler"
@@ -23,7 +24,8 @@ types <- c("ENTREZID","SYMBOL","UNIPROT")
 id.convert <- TRUE
 ```
 
-```{r bitr_genes, results='hide'}
+```{r bitrgenes, results='hide'}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#bitrgenes
 # NOTE: Gene IDs are provided in what format?----------------------------------
 from.type <- "FLYBASE"
 
@@ -31,7 +33,8 @@ deg.list <- nested.lapply(sel.list, rownames)
 genes.df <- nested.lapply(deg.list, bitr, fromType=from.type, toType=types, OrgDb=orgdb)
 ```
 
-```{r enrich_all, results='hide', cache=TRUE, dependson='final_clusters'}
+```{r enrichall, results='hide', cache=TRUE, dependson='final_clusters'}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#enrichall
 
 # run enrichment for all gene lists over a loop
 
@@ -126,7 +129,8 @@ for(comp in names(genes.df)){
 
 ```
 
-```{r adjust_catlen}
+```{r adjustcatlen}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#adjustcatlen
 
 # This shortens the names of functional terms for better visualization
 maxcatlen <- 50
@@ -144,7 +148,9 @@ Below we show the results separately for each comparison. Links to files
 containing analysis results are shown above each set of plots, with parsed
 files showing genes on separate lines.
 
-```{r plot_go, fig.width=15, fig.height=10, results='asis', cache=TRUE, dependson='enrich_all'}
+```{r plotgo, fig.width=15, fig.height=10, results='asis', cache=TRUE, dependson='enrich_all'}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#plotgo
+
 # go labels for file names
 go.label <- list(
     BP='GO Biological Process',
