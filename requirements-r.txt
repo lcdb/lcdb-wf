@@ -12,6 +12,7 @@ bioconductor-s4vectors
 bioconductor-sva
 bioconductor-tximport
 r-base >3.5
+r-devtools
 r-dt
 r-ggrepel
 r-heatmaply
