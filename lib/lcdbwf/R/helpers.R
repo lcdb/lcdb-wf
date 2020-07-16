@@ -359,21 +359,6 @@ DESeqDataSetFromSalmon <- function (sampleTable, design,
     return(object)
 }
 
-make.dds.list <- function(deseq_obj_list, salmon.files=NULL,
-                          combine.by=FALSE, remove.version=TRUE, ...){
-    make.dds <- function(design_data, salmon.files, combine.by, remove.version, ...)
-    {
-
-        subset.counts <- FALSE
-        colData <- pluck(design_data, 1)
-        design <- pluck(design_data, 2)
-        location <- pluck(design_data, 'file', .default='../data/rnaseq_aggregation/featurecounts.txt')
-        # arg list passes args to either the CombinedFeatureCounts or FromSalmon constructor
-        arg_list <- pluck(design_data, 'args')
-
-        if(is.null(salmon.files)){
-            # Load gene-level counts
-           dds<- exec(DESeqDataSetFromCombinedFeatureCounts,
 #' Make a single dds object
 #'
 #' This function is intended to be applied to a list of design data.
@@ -397,6 +382,8 @@ make.dds.list <- function(deseq_obj_list, salmon.files=NULL,
 #'           parallel, fitType, etc)
 #' @param remove.version If TRUE, gene (or transcript) version information --
 #'           the ".1" in "ENSG0000102345.1" -- will be stripped off.
+make.dds <- function(design_data, salmon.files=NULL, combine.by=NULL,
+                     remove.version=FALSE, ...){
                 location,
                 sampletable=colData,
                 design=design,
@@ -420,6 +407,22 @@ make.dds.list <- function(deseq_obj_list, salmon.files=NULL,
     }
     dds_list <- map(deseq_obj_list, make.dds, salmon.files, combine.by, remove.version, ...)
 
+#' Make a list of dds objects
+#'
+#' Helper function to construct a list of dds objects. The `make.dds` function
+#' does all the work; this just sets up some sane defaults and does the map()
+#' call.
+#'
+#' @param deseq_obj_list A named list of lists. Each list is used as the first
+#'           argument to `make.dds`; see the documentation of that function for
+#'           details.
+#'
+#' @return A list of dds objects.
+#'
+make.dds.list <- function(deseq_obj_list, salmon.files=NULL, combine.by=FALSE,
+                          remove.version=TRUE, ...){
+    dds_list <- map(deseq_obj_list, make.dds, salmon.files, combine.by,
+                    remove.version, ...)
     return(dds_list)
 }
 
