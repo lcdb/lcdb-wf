@@ -32,8 +32,11 @@ config = common.load_config(config)
 
 c = RNASeqConfig(config, config.get('patterns', 'config/rnaseq_patterns.yaml'))
 
+SAMPLES = c.sampletable.iloc[:, 0].values
+
 wildcard_constraints:
-    n = '[1,2]'
+    n = '[1,2]',
+    sample = '|'.join(SAMPLES)
 
 
 def wrapper_for(path):
@@ -43,6 +46,8 @@ def wrapper_for(path):
 # RULES
 # ----------------------------------------------------------------------------
 
+# Verify configuration of config and sampletable files
+helpers.preflight(config)
 
 # See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
@@ -156,6 +161,64 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     '&& mv {output[0]}.tmp {output[0]} '
                 )
 
+# This can be set at the command line with --config strand_check_reads=1000
+config.setdefault('strand_check_reads', 1e5)
+
+rule sample_strand_check:
+    input:
+        fastq=common.fill_r1_r2(c.sampletable, c.patterns['fastq']),
+        index=[c.refdict[c.organism][config['aligner']['tag']]['bowtie2']],
+        bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12']
+    output:
+        temporary('{sample}.strandedness')
+    threads: 6
+    run:
+        prefix = aligners.prefix_from_bowtie2_index(input.index)
+        nreads = int(config['strand_check_reads']) * 4
+        if c.is_paired:
+            assert len(input.fastq) == 2
+            shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output}.small_R1.fastq')
+            shell('set +o pipefail; zcat {input.fastq[1]} | head -n {nreads} > {output}.small_R2.fastq')
+            fastqs = f'-1 {output}.small_R1.fastq -2 {output}.small_R2.fastq '
+        else:
+            assert len(input.fastq) == 1
+            shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output}.small_R1.fastq')
+            fastqs = f'-U {output}.small_R1.fastq '
+        shell(
+            "bowtie2 "
+            "-x {prefix} "
+            "{fastqs} "
+            '--no-unal '
+            "--threads {threads} "
+            "| samtools view -Sb - "
+            "| samtools sort - -o {output}.bam "
+        )
+        shell(
+            'infer_experiment.py -r {input.bed12} -i {output}.bam > {output} '
+            '&& rm {output}.bam {output}.small_R?.fastq'
+        )
+
+rule strand_check:
+    input:
+        expand('{sample}.strandedness', sample=SAMPLES)
+    output:
+        'strandedness.tsv'
+    run:
+        ds = []
+        for f in list(input):
+            d = {}
+            sample = f.split('.')[0]
+            d['sample'] = sample
+            for line in open(f):
+                line = line.strip()
+                toks = line.split(': ')
+                if 'explained by' in line:
+                    d[toks[0].split()[-1].replace('"', '')] = toks[-1]
+                if 'failed to determine' in line:
+                    d['undetermined'] = toks[-1]
+            ds.append(d)
+        pd.DataFrame(ds).to_csv(output[0], sep='\t', index=False)
+
 
 rule cutadapt:
     """
@@ -249,50 +312,144 @@ if config['aligner']['index'] == 'hisat2':
                 "&& rm {sam}"
             )
 
+if config['aligner']['index'].startswith('star'):
+
+    # STAR can be run in 1-pass or 2-pass modes. Since we may be running it
+    # more than once in almost the same way, we pull out the shell command here
+    # and use it below.
+    STAR_CMD = (
+        'STAR '
+        '--runThreadN {threads} '
+        '--genomeDir {genomedir} '
+        '--readFilesIn {input.fastq} '
+        '--readFilesCommand zcat '
+        '--outFileNamePrefix {prefix} '
+
+        # NOTE: The STAR docs indicate that the following parameters are
+        # standard options for ENCODE long-RNA-seq pipeline.  Comments are from
+        # the STAR docs.
+        '--outFilterType BySJout '               # reduces number of spurious junctions
+        '--outFilterMultimapNmax 20 '            # if more than this many multimappers, consider unmapped
+        '--alignSJoverhangMin 8 '                # min overhang for unannotated junctions
+        '--alignSJDBoverhangMin 1 '              # min overhang for annotated junctions
+        '--outFilterMismatchNmax 999 '           # max mismatches per pair
+        '--outFilterMismatchNoverReadLmax 0.04 ' # max mismatches per pair relative to read length
+        '--alignIntronMin 20 '                   # min intron length
+        '--alignIntronMax 1000000 '              # max intron length
+        '--alignMatesGapMax 1000000 '            # max distance between mates
+        '--outSAMunmapped None '                 # do not report aligned reads in output
+    )
+    logfile_extensions = ['Log.progress.out', 'Log.out', 'Log.final.out', 'Log.std.out']
+
 if config['aligner']['index'] == 'star':
+
     rule star:
         """
-        Map reads with STAR
+        Align with STAR (1-pass mode)
         """
         input:
             fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
-            index=[c.refdict[c.organism][config['aligner']['tag']]['star']]
+            index=[c.refdict[c.organism][config['aligner']['tag']]['star']],
+            annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
         output:
-            bam=c.patterns['bam']
+            bam=c.patterns['bam'],
+            sjout=temporary(c.patterns['bam'].replace('.bam', '.star.SJ.out.tab')),
         log:
-            c.patterns['bam'] + '.log'
-        threads: 6
+            c.patterns['bam'].replace('.bam', '.star.bam.log')
+        threads: 16
         run:
             genomedir = os.path.dirname(input.index[0])
-            prefix = os.path.dirname(output[0]) + '.star.'
+            outdir = os.path.dirname(output[0])
+            prefix = output.bam.replace('.bam', '.star.')
             shell(
-                'STAR '
-                '--runThreadN {threads} '
-                '--genomeDir {genomedir} '
-                '--readFilesIn {input.fastq} '
-                '--readFilesCommand zcat '
-                '--outFileNamePrefix {prefix} '
-                # NOTE: The STAR docs indicate that the following parameters
-                # are standard options for ENCODE long-RNA-seq pipeline.
-                # Comments are from the STAR docs.
-                '--outFilterType BySJout '     # reduces number of spurious junctions
-                '--outFilterMultimapNmax 20 '  # if more than this many multimappers, consider unmapped
-                '--alignSJoverhangMin 8 '      # min overhang for unannotated junctions
-                '--alignSJDBoverhangMin 1 '    # min overhang for annotated junctions
-                '--outFilterMismatchNmax 999 ' # max mismatches per pair
-                '--outFilterMismatchNoverReadLmax 0.04 ' # max mismatches per pair relative to read length
-                '--alignIntronMin 20 '         # min intron length
-                '--alignIntronMax 1000000 '    # max intron length
-                '--alignMatesGapMax 1000000 '  # max distance between mates
-                '--outSAMunmapped None '       # do not report aligned reads in output
-                 '&> {log} '
+                STAR_CMD + (
+                    '--outSAMtype BAM SortedByCoordinate '
+                    '--outStd BAM_SortedByCoordinate > {output.bam} '
+                    '2> {log} '
+                )
             )
 
+            # move various hard-coded log files to log directory
+            logfiles = expand(prefix + '{ext}', ext=logfile_extensions)
+            shell('mkdir -p {outdir}/star_logs '
+                  '&& mv {logfiles} {outdir}/star_logs')
+
+if config['aligner']['index'] == 'star-twopass':
+
+    rule star_pass1:
+        """
+        First pass of alignment with STAR to get the junctions
+        """
+        input:
+            fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            index=[c.refdict[c.organism][config['aligner']['tag']]['star']],
+            annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
+        output:
+            sjout=temporary(c.patterns['bam'].replace('.bam', '.star-pass1.SJ.out.tab')),
+        log:
+            c.patterns['bam'].replace('.bam', '.star-pass1.bam.log')
+        threads: 16
+        run:
+            genomedir = os.path.dirname(input.index[0])
+            outdir = os.path.dirname(output[0])
+            prefix = output.sjout.replace('SJ.out.tab', '')
             shell(
-                'samtools view -Sb {prefix}Aligned.out.sam '
-                '| samtools sort - -O BAM -o {output.bam} '
-                '&& rm {prefix}Aligned.out.sam '
+                STAR_CMD +
+                (
+                    # In this first pass, we don't actually care about the
+                    # alignment -- just the detected junctions. So we output
+                    # the SAM to /dev/null.
+                    '--outStd SAM > /dev/null '
+                    '2> {log} '
+                )
             )
+
+            # move various hard-coded log files to log directory
+            logfiles = expand(prefix + '{ext}', ext=logfile_extensions)
+            shell('mkdir -p {outdir}/star-pass1_logs '
+                  '&& mv {logfiles} {outdir}/star-pass1_logs')
+
+
+    rule star_pass2:
+        """
+        Second pass of alignment with STAR using splice junctions across all
+        samples to get the final BAM
+        """
+        input:
+            sjout=expand(c.patterns['bam'].replace('.bam', '.star-pass1.SJ.out.tab'), sample=SAMPLES),
+            fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            index=[c.refdict[c.organism][config['aligner']['tag']]['star']],
+            annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
+        output:
+            bam=c.patterns['bam'],
+            sjout=temporary(c.patterns['bam'].replace('.bam', '.star-pass2.SJ.out.tab')),
+        log:
+            c.patterns['bam'].replace('.bam', '.star-pass2.bam.log')
+        threads: 16
+        run:
+            genomedir = os.path.dirname(input.index[0])
+            outdir = os.path.dirname(output[0])
+            prefix = output.bam.replace('.bam', '.star-pass2.')
+            shell(
+                STAR_CMD + (
+                    # In contrast to pass 1, we will be keeping these BAMs --
+                    # so sort them
+                    '--outSAMtype BAM SortedByCoordinate '
+
+                    # Splice junction databases from all samples in the first
+                    # pass.
+                    '--sjdbFileChrStartEnd {input.sjout} '
+                    '--outStd BAM_SortedByCoordinate > {output.bam} '
+                    '2> {log} '
+                )
+            )
+
+            # move various hard-coded log files to log directory
+            logfiles = expand(prefix + '{ext}', ext=logfile_extensions)
+            shell('mkdir -p {outdir}/star-pass2_logs '
+                  '&& mv {logfiles} {outdir}/star-pass2_logs')
+
+            shell('rm -r {prefix}_STARgenome')
 
 
 rule rRNA:
@@ -593,6 +750,7 @@ rule markduplicates:
         'INPUT={input.bam} '
         'OUTPUT={output.bam} '
         'METRICS_FILE={output.metrics} '
+        'VALIDATION_STRINGENCY=LENIENT '
         '&> {log}'
 
 
@@ -627,7 +785,7 @@ rule collectrnaseqmetrics:
         #     SECOND_READ_TRANSCRIPTION_STRAND}
         #
         'STRAND=NONE '
-
+        'VALIDATION_STRINGENCY=LENIENT '
         'REF_FLAT={input.refflat} '
         'INPUT={input.bam} '
         'OUTPUT={output.metrics} '

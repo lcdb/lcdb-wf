@@ -13,7 +13,7 @@ configuration. If you are running the workflows on NIH's Biowulf cluster, you
 don't need to change anything. If you are running on a different cluster, you
 should inspect the following files:
 
-- `include/WRAPPER_SLURM` (see :ref:`wrapper`)
+- `include/WRAPPER_SLURM`
 - the `config/clusterconfig.yaml` files in each workflow directory you will be
   using (see :ref:`clusterconfig`)
 - `lib/cluster_specific.py`. This module currently has a single function that,
@@ -63,7 +63,7 @@ directory.
 Note that the default behavior -- if the ``SLURM_JOBID`` env var is not set --
 is to set ``$TMPDIR`` to the default temp directory as documented in Python's
 `tempfile module
-< https://docs.python.org/3/library/tempfile.html#tempfile.gettempdir>`_.
+<https://docs.python.org/3/library/tempfile.html#tempfile.gettempdir>`_.
 However if you use these workflows on a different cluster, you may need to
 provide a different function to return the job-specific temp directory.
 

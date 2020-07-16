@@ -1,6 +1,48 @@
 Changelog
 =========
 
+v1.6
+----
+
+References
+~~~~~~~~~~
+- overhaul the way transcriptome fastas are created. Instead of requiring separate download, they are now created out of the provided GTF and fasta files.
+- **backwards-incompatible change:** reference config files are updated to reflect the changes in the references workflow
+
+RNA-seq workflow
+~~~~~~~~~~~~~~~~
+- if colData is a tibble this no longer causes issues for importing counts
+- dupRadar removed from RNA-seq workflow. We ended up never using it, and it
+  depends on R which we've since removed from the main environment.
+- new ``strand_test`` rule, which can be run explicitly with ``snakemake -j2
+  strand_check``. This generates ``strandedness.tsv`` in the current directory,
+  which is the summarize output of RSeQC's ``infer_experiment.py`` across all
+  samples.
+- implement STAR two-pass alignment. Default is still single-pass.
+
+RNA-seq downstream
+~~~~~~~~~~~~~~~~~~
+
+- functional enrichment and gene patterns are now separate child documents.
+  This makes it easier to turn them on/off by only needing to adjust the chunk
+  options of the child chunk
+- new documentation method for rnaseq.Rmd. Now there is a separate, dedicated
+  documentation page with sections that exactly correspond to each named chunk
+  in the Rmd.
+- New ``counts.df`` and ``counts.plot`` functions to make it much easier to
+  make custom dotplots of top counts by melting and joining the counts table
+  with the metadata in colData.
+- DEGpatterns cluster IDs are now added as additional columns in the output
+  TSVs for each contrast
+
+General
+~~~~~~~
+- split environments into non-R and R. This, along with a loose pinning of
+  versions (``>=``), dramatically speeds up environment creation.
+- updates to support latest Snakemake versions
+- improvements to testing: environment YAML files are stored as artifacts on
+  CircleCI as well as rendered HTML files from the rnaseq.Rmd.
+
 v1.5.3
 ------
 
@@ -379,7 +421,7 @@ Infrastructure
 ~~~~~~~~~~~~~~
 
 - Transition to CircleCI for testing
-- Use production settings by default; see :ref:`note-on-test-settings` for
+- Use production settings by default; see :ref:`test-settings` for
   more.
 - lots o' docs
 - new ``include/references_configs`` to help organize references. These are

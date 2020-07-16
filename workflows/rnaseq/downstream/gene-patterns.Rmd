@@ -5,11 +5,13 @@ package](https://www.bioconductor.org/packages/release/bioc/html/DEGreport.html)
 which in turn uses the
 [ConsensusClusterPlus](https://www.bioconductor.org/packages/release/bioc/html/ConsensusClusterPlus.html)
 algorithm to cluster genes into similar expression patterns. The lists of genes
-found in each cluster are reported below the plot.
+found in each cluster are reported below the plot. Cluster IDs are also reported in
+the exported results TSVs in the section below.
 
 The default general flow is as follows:
 
 ```{r dpsettings}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#dpsettings
 
 # NOTE: settings for DEGpatterns-----------------------------------------------
 #  These parameters are set up here because we will be providing them to
@@ -51,7 +53,8 @@ low.minc <- 1
   more, they are merged together
 - Clusters with fewer than `r minc` genes are not shown.
 
-```{r final_clusters, fig.width=12, results='asis', cache=TRUE, dependson='selections'}
+```{r finalclusters, fig.width=12, results='asis', cache=TRUE, dependson='selections'}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#finalclusters
 # NOTE: which genes to cluster?------------------------------------------------
 #    By default, we get all the changed genes, but you may want only the up or
 #    down genes.
@@ -59,6 +62,20 @@ ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed'))
 
 # Filter out results where there were zero genes detected.
 ll <- ll[lapply(ll, length) > 0]
+
+add.cluster.id <- function(clusters, res, label){
+    # Merges the degPattern cluster IDs `cluster` with DESeqresults `res`
+    # `label` will be used to create a cluster column with a unique column name 
+    # returns a DESeqresults with cluster IDs
+    unq <- unique(clusters[, c('genes', 'cluster')])
+    names(unq)[names(unq) == 'genes'] <- 'gene'
+    merged <- merge(as.data.frame(res), unq, by='gene', all.x=TRUE) %>%
+        mutate(gene = factor(gene, levels=res[['gene']])) %>%
+        arrange(gene)
+    rownames(merged) <- merged[['gene']]
+    res[[paste0(label, '_cluster')]] <- merged[['cluster']]
+    return(res)
+}
 
 for (name in names(ll)){
     # Print a nice Markdown header
@@ -79,10 +96,10 @@ for (name in names(ll)){
     }
 
     # Extract the normalized counts for these genes
-    idx <- rownames(rld) %in% genes
-    ma <- assay(rld)[idx,]
+    idx <- rownames(vsd) %in% genes
+    ma <- assay(vsd)[idx,]
 
-    colData.i <- colData(res.list[[name]][['dds']])
+    colData.i <- colData(dds.list[[ res.list[[name]][['dds']] ]])
     colData.i <- colData.i[,!(colnames(colData.i) %in% exclude.for.printing)]
 
 
@@ -100,7 +117,7 @@ for (name in names(ll)){
         # NOTE: reduce and merge cutoff----------------------------------------
         #   Reduce will merge clusters that are similar; similarity determined
         #   by cutoff
-        reduce=TRUE, cutoff=cutoff,
+        reduce=TRUE,
 
         # NOTE: color----------------------------------------------------------
         #   For more complicated designs, try the `col` argument to color the
@@ -123,6 +140,7 @@ for (name in names(ll)){
     print(degPlotCluster(
         n2,
         time=time,
+        min_genes=minc,
         col=col
         )
     )
@@ -143,5 +161,8 @@ for (name in names(ll)){
     dev.copy(pdf, file=pdf.file)
     dev.off()
     mdcat('- [', pdf.file, '](', pdf.file, '), PDF')
+
+    # merge the degPattern cluster IDs with res.list
+    res.list[[name]][['res']] <- add.cluster.id(clusters=n2, res=res.list[[name]][['res']], label=name)
 }
 ```

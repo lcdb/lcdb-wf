@@ -1,4 +1,4 @@
-```{r}
+## -----------------------------------------------------------------------------
 library(DESeq2)
 library(pheatmap)
 library(RColorBrewer)
@@ -328,7 +328,7 @@ DESeqDataSetFromFeatureCounts <- function (sampleTable, directory='.', design,
                                            ignoreRank=FALSE,  ...)
 {
   l <- lapply(
-    as.character(sampleTable[,'featurecounts.path']),
+    as.character(sampleTable[, 'featurecounts.path']),
     function(fn) read.table(file.path(directory, fn), stringsAsFactors=FALSE, skip=2)
   )
   if (!all(sapply(l, function(a) all(a$V1 == l[[1]]$V1))))
@@ -359,58 +359,82 @@ DESeqDataSetFromSalmon <- function (sampleTable, design,
     return(object)
 }
 
-#' Make a list of dds objects
+#' Make a single dds object
 #'
-#' This function takes a list of sample, design pairs, plus other info, to output
-#' a list of DESeq object.
+#' This function is intended to be applied to a list of design data.
 #'
-#' @param deseq_obj_list A named list of lists. Each list should have two to three elements:
-#'       1 should be a sampletable, 2 should be a design. The 3rd is an optional list of arguments
-#'       to pass to the DESeqDataSet constructor.
-#' @param salmon.files txi object from tximport if transcript-level counts desired; NULL forces featurecounts;
-#'        shared by all dds.
-#' @param combine.by The column to collapse technical replicates by.
-#' @param remove.version Boolean to decide whether to remove version information
-#' @return A list of dds objects.
-#'
-make.dds.list <- function(deseq_obj_list, salmon.files=NULL,
-                          combine.by=FALSE, remove.version=TRUE, ...){
-    make.dds <- function(design_data, salmon.files, combine.by, remove.version, ...)
-    {
+#' @param design_data Named list of 2 to 4 items. At least "sampletable" (the
+#'           colData, as a data.frame or tibble) and "design" (e.g., `~group`)
+#'           are required. The optional named items are "file", which is the
+#'           featureCounts file containing counts for all samples, and "args"
+#'           which is a list of arguments to be passed to the constructor
+#'           (e.g., `args=list(subset.counts=TRUE))`.
+#' @param salmon.files If you want the dds objects to be generated from salmon
+#'           counts, then provide the txi object from tximport. Otherwise,
+#'           leave as NULL to use featureCounts. The value of this argument is
+#'           used for all dds objects in the returned list (that is, the
+#'           returned list cannot have a mix of salmon and featureCounts; if
+#'           you want both you'll need to call this function twice).
+#' @param combine.by The column to collapse technical replicates by. Rows in
+#'           the sampletable that share the same value of this column will be
+#'           combined using DESeq2::collapseReplicates.
+#' @param ... Additional arguments will be passed on to the DESeq() call (e.g.,
+#'           parallel, fitType, etc)
+#' @param remove.version If TRUE, gene (or transcript) version information --
+#'           the ".1" in "ENSG0000102345.1" -- will be stripped off.
+make.dds <- function(design_data, salmon.files=NULL, combine.by=NULL,
+                     remove.version=FALSE, ...){
+    colData <- pluck(design_data, 'sampletable')
+    design <- pluck(design_data, 'design')
+    location <- pluck(design_data, 'file',
+                      .default='../data/rnaseq_aggregation/featurecounts.txt')
+    arg_list <- pluck(design_data, 'args')
 
-        subset.counts <- FALSE
-        colData <- pluck(design_data, 1)
-        design <- pluck(design_data, 2)
-        location <- pluck(design_data, 'file', .default='../data/rnaseq_aggregation/featurecounts.txt')
-        # arg list passes args to either the CombinedFeatureCounts or FromSalmon constructor
-        arg_list <- pluck(design_data, 'args')
-
-        if(is.null(salmon.files)){
-            # Load gene-level counts
-           dds<- exec(DESeqDataSetFromCombinedFeatureCounts,
+    if (is.null(salmon.files)) {
+        dds <- exec(
+            DESeqDataSetFromCombinedFeatureCounts,
                 location,
                 sampletable=colData,
                 design=design,
                 !!!arg_list)
-                if (remove.version){
-                    rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
-                }
-        } else {
-            dds <- exec(DESeqDataSetFromTximport, salmon.files, colData=colData[, -grepl('path', colnames(colData)),
-                                            drop=FALSE], design=design, !!!arg_list)
-        }
-
-        if(combine.by != FALSE){
-            dds <-collapseReplicates(dds, dds$biorep)
-        }
-
-        # Constructs the dds object and passes any arguments such as parallel
-        dds <- DESeq(dds, ...)
-
-        return(dds)
+    } else {
+        dds <- exec(
+            DESeqDataSetFromTximport,
+            salmon.files,
+            colData=colData[, -grepl('path', colnames(colData)), drop=FALSE],
+            design=design,
+            !!!arg_list)
     }
-    dds_list <- map(deseq_obj_list, make.dds, salmon.files, combine.by, remove.version, ...)
 
+    if (remove.version){
+        rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE),
+                                function (x) x[1])
+    }
+
+    if(!is.null(combine.by)){
+        dds <-collapseReplicates(dds, dds$biorep)
+    }
+
+    dds <- DESeq(dds, ...)
+    return(dds)
+}
+
+#' Make a list of dds objects
+#'
+#' Helper function to construct a list of dds objects. The `make.dds` function
+#' does all the work; this just sets up some sane defaults and does the map()
+#' call.
+#'
+#' @param deseq_obj_list A named list of lists. Each list is used as the first
+#'           argument to `make.dds`; see the documentation of that function for
+#'           details.
+#'
+#' @return A list of dds objects.
+#'
+make.dds.list <- function(deseq_obj_list, salmon.files=NULL, combine.by=FALSE,
+                          remove.version=TRUE, ...){
+    dds_list <- map(deseq_obj_list, make.dds, salmon.files, combine.by,
+                    remove.version, ...)
     return(dds_list)
 }
 
@@ -868,4 +892,4 @@ write.clusterprofiler.results <- function(res, cprof.folder, label){
     write.table(res.split, file=filename.split, sep='\t', quote=FALSE, row.names=FALSE)
     return(list(orig=filename.orig, split=filename.split))
 }
-```
+
