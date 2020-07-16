@@ -13,11 +13,12 @@ make.dds(
 )
 }
 \arguments{
-\item{design_data}{List of 2 to 4 items. The first item must be the
-sampletable. The second item must be the design. The remaining
-items are optional, named arguments: \code{file} is the featureCounts
-file for all samples, and/or \code{args} is a list of arguments to be
-passed to the constructor.}
+\item{design_data}{Named list of 2 to 4 items. At least "sampletable" (the
+colData, as a data.frame or tibble) and "design" (e.g., \code{~group})
+are required. The optional named items are "file", which is the
+featureCounts file containing counts for all samples, and "args"
+which is a list of arguments to be passed to the constructor
+(e.g., \verb{args=list(subset.counts=TRUE))}.}
 
 \item{salmon.files}{If you want the dds objects to be generated from salmon
 counts, then provide the txi object from tximport. Otherwise,
