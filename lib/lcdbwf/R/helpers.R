@@ -393,9 +393,6 @@ make.dds <- function(design_data, salmon.files=NULL, combine.by=NULL,
                 sampletable=colData,
                 design=design,
                 !!!arg_list)
-                if (remove.version){
-                    rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
-                }
         } else {
             dds <- exec(DESeqDataSetFromTximport, salmon.files, colData=colData[, -grepl('path', colnames(colData)),
                                             drop=FALSE], design=design, !!!arg_list)
@@ -407,6 +404,10 @@ make.dds <- function(design_data, salmon.files=NULL, combine.by=NULL,
 
         # Constructs the dds object and passes any arguments such as parallel
         dds <- DESeq(dds, ...)
+    if (remove.version){
+        rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE),
+                                function (x) x[1])
+    }
 
         return(dds)
     }
