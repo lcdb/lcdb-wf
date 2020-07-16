@@ -389,29 +389,35 @@ make.dds <- function(design_data, salmon.files=NULL, combine.by=NULL,
     location <- pluck(design_data, 'file',
                       .default='../data/rnaseq_aggregation/featurecounts.txt')
     arg_list <- pluck(design_data, 'args')
+
+    if (is.null(salmon.files)) {
+        dds <- exec(
+            DESeqDataSetFromCombinedFeatureCounts,
                 location,
                 sampletable=colData,
                 design=design,
                 !!!arg_list)
-        } else {
-            dds <- exec(DESeqDataSetFromTximport, salmon.files, colData=colData[, -grepl('path', colnames(colData)),
-                                            drop=FALSE], design=design, !!!arg_list)
-        }
+    } else {
+        dds <- exec(
+            DESeqDataSetFromTximport,
+            salmon.files,
+            colData=colData[, -grepl('path', colnames(colData)), drop=FALSE],
+            design=design,
+            !!!arg_list)
+    }
 
-        if(combine.by != FALSE){
-            dds <-collapseReplicates(dds, dds$biorep)
-        }
-
-        # Constructs the dds object and passes any arguments such as parallel
-        dds <- DESeq(dds, ...)
     if (remove.version){
         rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE),
                                 function (x) x[1])
     }
 
-        return(dds)
+    if(!is.null(combine.by)){
+        dds <-collapseReplicates(dds, dds$biorep)
     }
-    dds_list <- map(deseq_obj_list, make.dds, salmon.files, combine.by, remove.version, ...)
+
+    dds <- DESeq(dds, ...)
+    return(dds)
+}
 
 #' Make a list of dds objects
 #'
