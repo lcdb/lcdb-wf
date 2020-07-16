@@ -384,6 +384,11 @@ DESeqDataSetFromSalmon <- function (sampleTable, design,
 #'           the ".1" in "ENSG0000102345.1" -- will be stripped off.
 make.dds <- function(design_data, salmon.files=NULL, combine.by=NULL,
                      remove.version=FALSE, ...){
+    colData <- pluck(design_data, 'sampletable')
+    design <- pluck(design_data, 'design')
+    location <- pluck(design_data, 'file',
+                      .default='../data/rnaseq_aggregation/featurecounts.txt')
+    arg_list <- pluck(design_data, 'args')
                 location,
                 sampletable=colData,
                 design=design,
