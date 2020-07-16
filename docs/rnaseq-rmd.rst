@@ -285,7 +285,153 @@ automatically create a DE results section including:
 - exported results tables with links
 
 
-NOTE: Here are some notes on using lfcShrink...
+``res.list`` is a named list. Each item should be a list with names c('res',
+'dds', 'label'). "res" is a DESeqResults object, "dds" is the corresponding
+DESeq object the results were extracted from, and "label" is a nicer label to
+use for headers and other text.
+
+Specifying contrasts
+~~~~~~~~~~~~~~~~~~~~
+
+Contrasts can be specified in three different ways.
+
+.. note::
+
+   In these examples, "control" and "treatment" are factor levels in the
+   "group" factor (which was in the :term:`colData`), and the :term:`dds`
+   object was created with the design ``~group``:
+
+1. A character vector to the `contrast` parameter.
+
+   This should be a three element vector:
+
+   - the name of a factor in the design formula
+   - name of the numerator for the fold change
+   - the name of the denominator for the fold change. E.g.,
+
+   .. code-block:: r
+
+      res <- results(dds, contrast=c('group', 'treatment', 'control')
+
+2. `name` parameter for ``results()`` function call or `coef` parameter for
+   ``lfcShrink()`` call
+
+   `name` or `coef` should be one of the values returned by
+   ``resultsNames(dds)`` that corresponds to the precomputed results. E.g.
+
+   .. code-block:: r
+
+      resultsNames(dds)
+      # [1] "Intercept"  "group_treatment_vs_control"
+
+      res <- results(dds, name='group_treatment_vs_control')
+
+3. A numeric contrast vector with one element for each element in the
+   ``resultsNames()`` function call. This is useful for arbitrary comparisons
+   in multi-factor designs with a grouping variable.
+
+   .. code-block:: r
+
+      resultsNames(dds)
+      # [1] "Intercept"  "group_treatment_vs_control"
+
+      res <- results(dds, contrast=c(0, 1))
+
+
+The most general way to specify contrasts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The most general way to specify contrasts is with a numeric vector (third
+option above).
+
+Here is a worked example, using a two-factor experiment.
+
+`group` encodes all combinations of a two-factor experiment, so we construct
+a sampletable that looks like the following (here, showing 2 replicates per
+group):
+
+.. code-block::
+
+   sample   genotype   condition   group
+   1        A          I           IA
+   2        A          I           IA
+   3        B          I           IB
+   4        B          I           IB
+   5        A          II          IIA
+   6        A          II          IIA
+   7        B          II          IIB
+   8        B          II          IIB
+
+
+
+We can make arbitrary comparisons by fitting an 'intercept-less' model, e.g.
+``design=~group + 0``, and numeric contrast vectors:
+
+.. code-block:: r
+
+   dds <- DESeqDataSetFromCombinedFeatureCounts(
+       '../data/rnaseq_aggregation/featurecounts.txt',
+       sampletable=colData,
+       # NOTE: the design is now different
+       design=~group + 0
+   )
+   dds <- DESeq(dds)
+
+Check ``resultsNames``:
+
+.. code-block::
+
+   resultsNames(dds)
+   # [1] "groupIA"  "groupIB"  "groupIIA"  "groupIIB"
+
+So any numeric vectors we provide must be 4 items long. Here is how we can make
+various contrasts with this experimental design. In each example, the
+coefficients are indicated above the resultsNames to make it easier to see.
+
+To compare IA and IB (that is, the genotype effect only in condition I):
+
+.. code-block:: r
+
+   #     1          -1         0           0
+   # "groupIA"  "groupIB"  "groupIIA"  "groupIIB"
+
+   res <- results(dds, contrast=c(1, -1, 0, 0)
+
+
+Effect of genotype B (that is, disregard information about condition):
+
+.. code-block:: r
+
+   #     1          -1         1           -1
+   # "groupIA"  "groupIB"  "groupIIA"  "groupIIB"
+
+   res <- results(dds, contrast=c(1, -1, 1, -1)
+
+
+Effect of condition II (that is, disregard information about genotype):
+
+.. code-block:: r
+
+   #     1           1         -1          -1
+   # "groupIA"  "groupIB"  "groupIIA"  "groupIIB"
+
+   res <- results(dds, contrast=c(1, 1, -1, -1)
+
+
+
+Interaction term, that is, (IA vs IB) vs (IIA vs IIB). This is effectively ``(IA
+- IB) - (IIA - IIB)``, which in turn becomes ``IA - IB - IIA + IIB``:
+
+.. code-block:: r
+
+   #     1          -1         -1          1
+   # "groupIA"  "groupIB"  "groupIIA"  "groupIIB"
+
+   res <- results(dds, contrast=c(1, -1, -1, 1)
+
+
+Notes on using lfcShrink
+~~~~~~~~~~~~~~~~~~~~~~~~
 As currently implemented (05 apr 2018), lfcShrink checks its arguments for an
 existing results table. If it exists, it applies shrinkage to the lfc and se
 in that table. If it *doesn't* exist, it calls results on dds with the syntax
@@ -307,10 +453,6 @@ the lfc shrinkage is performed in a separate step, so that's what we do here.
 This is slightly different results than if you used betaPrior=TRUE when
 creating the DESeq object.
 
-res.list is a named list. Each item should be a list with names c('res',
-'dds', 'label'). "res" is a DESeqResults object, "dds" is the corresponding
-DESeq object the results were extracted from, and "label" is a nicer label to
-use for headers and other text.
 
 
 ``attach``
