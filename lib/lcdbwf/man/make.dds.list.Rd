@@ -13,21 +13,15 @@ make.dds.list(
 )
 }
 \arguments{
-\item{deseq_obj_list}{A named list of lists. Each list should have two to three elements:
-1 should be a sampletable, 2 should be a design. The 3rd is an optional list of arguments
-to pass to the DESeqDataSet constructor.}
-
-\item{salmon.files}{txi object from tximport if transcript-level counts desired; NULL forces featurecounts;
-shared by all dds.}
-
-\item{combine.by}{The column to collapse technical replicates by.}
-
-\item{remove.version}{Boolean to decide whether to remove version information}
+\item{deseq_obj_list}{A named list of lists. Each list is used as the first
+argument to \code{make.dds}; see the documentation of that function for
+details.}
 }
 \value{
 A list of dds objects.
 }
 \description{
-This function takes a list of sample, design pairs, plus other info, to output
-a list of DESeq object.
+Helper function to construct a list of dds objects. The \code{make.dds} function
+does all the work; this just sets up some sane defaults and does the map()
+call.
 }
