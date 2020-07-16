@@ -33,7 +33,7 @@ deg.list <- nested.lapply(sel.list, rownames)
 genes.df <- nested.lapply(deg.list, bitr, fromType=from.type, toType=types, OrgDb=orgdb)
 ```
 
-```{r enrichall, results='hide', cache=TRUE, dependson='final_clusters'}
+```{r enrichall, results='hide', cache=TRUE, dependson='selections'}
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#enrichall
 
 # run enrichment for all gene lists over a loop
