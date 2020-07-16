@@ -249,56 +249,6 @@ dds.list <- map(lst, lcdbwf::make.dds, salmon.files=NULL, remove.version=TRUE,
 
 res.list <- list()
 
-# contrasts can be specified in three different ways
-# 1. a character vector to the 'contrast' parameter
-#
-#    This should be a three element vector, the name of a factor in the
-#    design formula, name of the numerator for the fold change, and the
-#    name of the denominator for the fold change. E.g.
-#    > res <- results(dds, contrast=c('group', 'treatment', 'control')
-#
-# 2. using the 'name' parameter in the results() function call or 'coef'
-#    in lfcShrink()
-#
-#    'name' should be one of the values returned by the resultsNames(dds)
-#    denoting the precomputed results. E.g.
-#    > resultsNames(dds)
-#    [1] "Intercept"  "group_treatment_vs_control"
-#    > res <- results(dds, name='group_treatment_vs_control')
-#
-# 3. a numeric contrast vector with one element for each element in
-#    the resultsNames() function call. This is useful for arbitrary
-#    comparisons in multi-factor designs with a grouping variable.
-#
-#    > resultsNames(dds)
-#    [1] "Intercept"  "group_treatment_vs_control"
-#    > res <- results(dds, contrast=c(0, 1))
-#
-
-###  Most general case of specifying contrasts with numeric vector
-#
-#    If 'group' encodes all combinations of a two-factor experiment,
-#    genotype: A, B, condition: I, II, group: IA, IB, IIA, IIB
-#
-#    Then you can make arbitrary comparisons by fitting an 'intercept-less'
-#    model, e.g. design=~group + 0, and numeric contrast vectors.
-#
-#    > dds <- DESeqDataSetFromCombinedFeatureCounts(
-#    >     '../data/rnaseq_aggregation/featurecounts.txt',
-#    >     sampletable=colData,
-#    >     # NOTE: the design is now different---------------------------------------
-#    >     design=~group + 0)
-#    > dds <- DESeq(dds)
-#    > resultsNames(dds)
-#    [1] "groupIA"  "groupIB"  "groupIIA"  "groupIIB"
-#
-#    1. compare IA and IB
-#    > res <- results(dds, contrast=c(1, -1, 0, 0)
-#
-#    2. interaction term: (IA vs IB) vs (IIA vs IIB)
-#    > res <- results(dds, contrast=c(1, -1, -1, 1)
-
-
 # NOTE: Example contrast #1----------------------------------------------------
 #   Using the example data, this compares treatment group to control group.
 #   Change to reflect your experiment.
