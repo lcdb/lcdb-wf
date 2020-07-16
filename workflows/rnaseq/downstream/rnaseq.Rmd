@@ -226,26 +226,25 @@ parallel <- FALSE
 # register(MulticoreParam(4))
 ```
 
-```{r dds_models, cache=TRUE}
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#dds_models
-dds <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
-    '../data/rnaseq_aggregation/featurecounts.txt',
-    sampletable=colData,
-    design=~group)
+```{r dds_list, cache=TRUE}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#dds_list
 
 lst <- list(
-            main=list(colData, ~group),
-            no_rep4 = list(colData %>% filter(samplename!='sample4'), ~group, args=list(subset.counts=TRUE))
+            main=list(
+                sampletable=colData,
+                design=~group),
+            no_rep4=list(
+                sampletable=colData %>% filter(samplename != 'sample4'),
+                design=~group,
+                args=list(subset.counts=TRUE)
             )
-dds.list <- make.dds.list(lst, salmon.files=NULL, parallel=parallel, remove.version=strip.dotted.version)
-dds <- DESeq(dds,
-    betaPrior=FALSE,
-    parallel=parallel
-    )
+)
+dds.list <- map(lst, lcdbwf::make.dds, salmon.files=NULL, remove.version=TRUE,
+                combine.by=NULL, parallel=parallel)
 ```
 
 
-```{r results, cache=TRUE}
+```{r results, dependson='dds_list', cache=TRUE}
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#results
 
 res.list <- list()
