@@ -226,29 +226,25 @@ parallel <- FALSE
 # register(MulticoreParam(4))
 ```
 
-```{r dds_models, cache=TRUE}
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#dds_models
-dds <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
-    '../data/rnaseq_aggregation/featurecounts.txt',
-    sampletable=colData,
-    design=~group)
+```{r dds_list, cache=TRUE}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#dds_list
 
-if (strip.dotted.version){
-    rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
-}
-
-# NOTE: collapse technical replicates ----------------------------------------
-#  If collapsing technical replicates, do so (again) here
-# dds <-collapseReplicates(dds, dds$biorep)
-
-dds <- DESeq(dds,
-    betaPrior=FALSE,
-    parallel=parallel
-    )
+lst <- list(
+            main=list(
+                sampletable=colData,
+                design=~group),
+            no_rep4=list(
+                sampletable=colData %>% filter(samplename != 'sample4'),
+                design=~group,
+                args=list(subset.counts=TRUE)
+            )
+)
+dds.list <- map(lst, lcdbwf::make.dds, salmon.files=NULL, remove.version=TRUE,
+                combine.by=NULL, parallel=parallel)
 ```
 
 
-```{r results, cache=TRUE}
+```{r results, dependson='dds_list', cache=TRUE}
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#results
 
 res.list <- list()
@@ -257,9 +253,9 @@ res.list <- list()
 #   Using the example data, this compares treatment group to control group.
 #   Change to reflect your experiment.
 # IMPORTANT: Control must always be last
-res.list[['all']] <- list(
-    res=lfcShrink(dds, contrast=c('group', 'treatment', 'control'), type='normal'),
-    dds=dds,
+res.list[['main']] <- list(
+    res=lfcShrink(dds.list[['main']], contrast=c('group', 'treatment', 'control'), type='normal'),
+    dds='main',
     label='Using a log2FoldChange threshold of 0'
 )
 
@@ -270,18 +266,18 @@ res.list[['all']] <- list(
 #    reflect your experiment.
 #    If using an lfcThreshold, must update elsewhere throughout the code.
 res.lfcthresh.2 <- results(
-    dds,
+    dds.list[['main']],
     contrast=c('group', 'treatment', 'control'),
     lfcThreshold=2)
 
 res.list[['lfc2']] <- list(
     res=lfcShrink(
-        dds,
+        dds.list[['main']],
         contrast=c('group', 'treatment', 'control'),
         res=res.lfcthresh.2,
         type='normal'
     ),
-    dds=dds,
+    dds='main',
     label='Using a log2FoldChange threshold of >2'
 )
 ```
@@ -312,8 +308,7 @@ Here is a table summarizing the comparisons. See the [Background and
 help](#Help) section for details.
 
 ```{r, results='asis'}
-# Summarize all experiments
-knitr::kable(summarize.res.list(res.list, alpha, lfc.thresh))
+knitr::kable(summarize.res.list(res.list, alpha, lfc.thresh, dds.list))
 ```
 
 For each comparison there is a tab and under each tab are the following:
@@ -337,7 +332,7 @@ See the [Background and help](#Help) section for details on these.
 add_cols <- c('symbol', 'alias')
 
 for (name in names(res.list)){
-  dds.i <- res.list[[name]][['dds']]
+  dds.i <- dds.list[[ res.list[[name]][['dds']] ]]
   res.i <- res.list[[name]][['res']]
   label <- res.list[[name]][['label']]
 

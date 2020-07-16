@@ -99,7 +99,7 @@ for (name in names(ll)){
     idx <- rownames(vsd) %in% genes
     ma <- assay(vsd)[idx,]
 
-    colData.i <- colData(res.list[[name]][['dds']])
+    colData.i <- colData(dds.list[[ res.list[[name]][['dds']] ]])
     colData.i <- colData.i[,!(colnames(colData.i) %in% exclude.for.printing)]
 
 

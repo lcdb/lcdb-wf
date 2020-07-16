@@ -183,12 +183,87 @@ TRUE:
 Calls to ``DESeq()`` below will provide the argument ``parallel=parallel`` so no
 other changes should be needed.
 
-``dds_models``
---------------
+``dds_list``
+------------
 
-In contrast to the ``dds_initial`` object above, the :term:`dds` object(s)
-created here will be used for differential expression detection.
+This chunk sets up the :term:`dds` objects to be used in the `results` section
+below for differential expression detection.
 
+You may need different ``dds`` objects for testing different models, or perhaps
+removing outlier samples. If you have technical replicates you might need to
+combine them, and you might need to remove gene version identifiers. You might
+want to use salmon instead of featureCounts. These would need to be done for
+each ``dds``, requiring code duplication.
+
+After working on many complex and/or messy experimental designs, we have
+settled on the approach of a named list of ``dds`` objects.
+
+**The** ``results`` **chunk below expects a list, one item per** ``dds`` **object.**
+
+The simplest example is the following where we create a single ``dds`` and put
+it into a list.
+
+.. code-block:: r
+
+   dds <- DESeqFromCombinedFeatureCounts(
+      '../data/rnaseq_aggregation/featurecounts.txt',
+      sampletable=colData,
+      design=~group)
+   dds <- DESeq(dds, parallel=parallel)
+
+   dds.list <- list(main=dds)
+
+
+Here is a modified example where we now want to remove replicate 4. We also want to collapse technical replicates:
+
+.. code-block:: r
+
+   dds1 <- DESeqFromCombinedFeatureCounts(
+      '../data/rnaseq_aggregation/featurecounts.txt',
+      sampletable=colData,
+      design=~group)
+   dds1 <- collapseReplicates(dds1, 'biorep')
+   dds1 <- DESeq(dds1, parallel=parallel)
+
+   dds2 <- DESeqFromCombinedFeatureCounts(
+      '../data/rnaseq_aggregation/featurecounts.txt',
+      sampletable=colData %>% filter(replicate!='rep4'),
+      design=~group,
+      subset.counts=TRUE  # need this to subset the featureCounts to match the colData
+      )
+   dds2 <- collapseReplicates(dds, 'biorep')
+   dds2 <- DESeq(dds2, parallel=parallel)
+
+   dds.list <- list(main=dds1, no.rep.4=dds2)
+
+Based on our experience, as we add more ``dds`` objects the code gets more
+error-prone. So for more complex use-cases, we have a function
+``lcdbwf::make.dds``. This takes as its first argument a list of sampletable
+(:term:`colData`) and a design and additional arguments can configure the
+object further.
+
+The above example becomes the following:
+
+.. code-block:: r
+
+   lst <- list(
+      main=list(sampletable=colData, design=~group),
+      no.rep.4=list(
+         sampletable=colData %>% filter(replicate!='rep4),
+         design=~group,
+         args=list(subset.counts=TRUE))
+   )
+
+   dds.list <- map(lst, make.dds, combine.by='biorep', parallel=parallel)
+
+Note the following:
+
+- the file is set by default to be :file:`../data/rnaseq_aggregation/featurecounts.txt`
+- we can supply additional args, like ``subset.counts=TRUE``, on a per-``dds`` basis.
+- the `combine.by` is applied to everything in the list
+- the ``parallel`` argument is also used for everything in the list
+
+See the help for ``lcdbwf::make.dds`` for more details.
 
 ``results``
 -----------

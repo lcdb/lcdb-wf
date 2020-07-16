@@ -9,6 +9,7 @@ library(heatmaply)
 library(readr)
 library(stringr)
 library(tibble)
+library(purrr)
 library(tidyr)
 
 #' Get the OrgDb for the specified organism, using the cached AnnotationHub.
@@ -349,13 +350,92 @@ DESeqDataSetFromFeatureCounts <- function (sampleTable, directory='.', design,
 #' @return DESeq object with transcript-level counts
 #'
 #' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
-DESeqDataSetFromSalmon <- function (sampleTable, directory='.', design,
+DESeqDataSetFromSalmon <- function (sampleTable, design,
                                            ignoreRank=FALSE,  ...)
 {
     txi <- tximport(sampleTable[, 'salmon.path'], type='salmon', txOut=TRUE)
     object <- DESeqDataSetFromTximport(txi, colData=sampleTable[, -grepl('path', colnames(sampleTable)),
                                        drop=FALSE], design=design, ignoreRank, ...)
     return(object)
+}
+
+#' Make a single dds object
+#'
+#' This function is intended to be applied to a list of design data.
+#'
+#' @param design_data Named list of 2 to 4 items. At least "sampletable" (the
+#'           colData, as a data.frame or tibble) and "design" (e.g., `~group`)
+#'           are required. The optional named items are "file", which is the
+#'           featureCounts file containing counts for all samples, and "args"
+#'           which is a list of arguments to be passed to the constructor
+#'           (e.g., `args=list(subset.counts=TRUE))`.
+#' @param salmon.files If you want the dds objects to be generated from salmon
+#'           counts, then provide the txi object from tximport. Otherwise,
+#'           leave as NULL to use featureCounts. The value of this argument is
+#'           used for all dds objects in the returned list (that is, the
+#'           returned list cannot have a mix of salmon and featureCounts; if
+#'           you want both you'll need to call this function twice).
+#' @param combine.by The column to collapse technical replicates by. Rows in
+#'           the sampletable that share the same value of this column will be
+#'           combined using DESeq2::collapseReplicates.
+#' @param ... Additional arguments will be passed on to the DESeq() call (e.g.,
+#'           parallel, fitType, etc)
+#' @param remove.version If TRUE, gene (or transcript) version information --
+#'           the ".1" in "ENSG0000102345.1" -- will be stripped off.
+make.dds <- function(design_data, salmon.files=NULL, combine.by=NULL,
+                     remove.version=FALSE, ...){
+    colData <- pluck(design_data, 'sampletable')
+    design <- pluck(design_data, 'design')
+    location <- pluck(design_data, 'file',
+                      .default='../data/rnaseq_aggregation/featurecounts.txt')
+    arg_list <- pluck(design_data, 'args')
+
+    if (is.null(salmon.files)) {
+        dds <- exec(
+            DESeqDataSetFromCombinedFeatureCounts,
+                location,
+                sampletable=colData,
+                design=design,
+                !!!arg_list)
+    } else {
+        dds <- exec(
+            DESeqDataSetFromTximport,
+            salmon.files,
+            colData=colData[, -grepl('path', colnames(colData)), drop=FALSE],
+            design=design,
+            !!!arg_list)
+    }
+
+    if (remove.version){
+        rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE),
+                                function (x) x[1])
+    }
+
+    if(!is.null(combine.by)){
+        dds <-collapseReplicates(dds, dds$biorep)
+    }
+
+    dds <- DESeq(dds, ...)
+    return(dds)
+}
+
+#' Make a list of dds objects
+#'
+#' Helper function to construct a list of dds objects. The `make.dds` function
+#' does all the work; this just sets up some sane defaults and does the map()
+#' call.
+#'
+#' @param deseq_obj_list A named list of lists. Each list is used as the first
+#'           argument to `make.dds`; see the documentation of that function for
+#'           details.
+#'
+#' @return A list of dds objects.
+#'
+make.dds.list <- function(deseq_obj_list, salmon.files=NULL, combine.by=FALSE,
+                          remove.version=TRUE, ...){
+    dds_list <- map(deseq_obj_list, make.dds, salmon.files, combine.by,
+                    remove.version, ...)
+    return(dds_list)
 }
 
 #' Compute label for one component of an arbitrary design matrix
@@ -675,14 +755,19 @@ attach.info <- function(res, keytype='ENSEMBL', columns=c('SYMBOL', 'UNIPROT', '
 #'
 #' @param res.list Named list of lists, where each sublist contains the following
 #'                 names: c('res', 'dds', 'label'). "res" is a DESeqResults object,
-#'                 "dds" is a DESeq object, and "label" is a nicer-looking
-#'                 label to use.
+#'                 "dds" is either the indexing label for the dds.list object or
+#'                  the DESeq object, and "label" is a nicer-looking
+#'                 label to use. NOTE: backwards compatibility with older versions
+#'                  of lcdb-wf depends on no dds.list object being passed.
 #'
 #' @return Dataframe
-summarize.res.list <- function(res.list, alpha, lfc.thresh){
+summarize.res.list <- function(res.list, alpha, lfc.thresh, dds.list=NULL){
     slist <- list()
     for (name in names(res.list)){
-        x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']], alpha, lfc.thresh)
+        if(!is.null(dds.list)){
+            x <- my.summary(res.list[[name]][['res']], dds.list[[ res.list[[name]][['dds']] ]], alpha, lfc.thresh)
+        } else { x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']], alpha, lfc.thresh)
+        }
         rownames(x) <- res.list[[name]][['label']]
         slist[[name]] <- x
     }
