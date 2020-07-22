@@ -166,7 +166,7 @@ plotPCA.ly <- function(rld, intgroup){
 
 #' Plot a MA plot labeled with selected genes
 #'
-#' @param res.list data.frame (or list) with log2FoldChange and padj columns (or elements).
+#' @param res.list data.frame or DESeqResults with log2FoldChange and padj columns (or elements).
 #'        Row names of the data.frame should be gene IDs/symbols and match the format of lab.genes
 #' @param fdr.thres FDR threshold for defining statistical significance
 #' @param fc.thres log2FoldChange cutoff for defining statistical significance
@@ -178,12 +178,15 @@ plotPCA.ly <- function(rld, intgroup){
 #'
 #' @return Handle to ggplot
 plotMA.label <- function(res,
-                         fdr.thres=0.1,
-                         fc.thres=0,
+                         alpha,
+                         lfc.thresh,
                          fc.lim=NULL,
-                         genes.to.label=NULL,
-                         col=NULL
+                         genes.to.label=NULL
                          ){
+  # set default alpha and lfc.thresh
+  if(missing(alpha)) alpha <- 0.1
+  if(missing(lfc.thresh)) lfc.thresh <- 0
+
   # TODO: Add ggrastr option for points
   genes.to.label <- as.character(genes.to.label)
   nna <- sum(is.na(genes.to.label))
@@ -191,8 +194,20 @@ plotMA.label <- function(res,
       warning(paste("Removing", nna, "NAs from gene list"))
       genes.to.label <- genes.to.label[!is.na(genes.to.label)]
   }
-  # convert res to data frame
+  # get alpha and lfc thresh from metadata of DESeqResults object
+  if(class(res) == 'DESeqResults'){
+      alpha.i <- metadata(res)$alpha
+      lfc.thresh.i <- metadata(res)$lfcThreshold
+      if(alpha.i != alpha)
+        warning('FDR threshold from metadata(res) does not match specified alpha')
+      if(lfc.thresh.i != lfc.thresh)
+        warning('lfc threshold from metadata(res) does not match specified lfc threshold')
+  }
   res <- data.frame(res)
+  
+  # set alpha and lfc thresholds
+  alpha <- ifelse(is.null(alpha), alpha.i, alpha)
+  lfc.thresh <- ifelse(is.null(lfc.thresh), lfc.thresh.i, lfc.thresh)
 
   # if y limits not specified
   if(is.null(fc.lim)){
@@ -201,67 +216,117 @@ plotMA.label <- function(res,
     fc.lim[2] <- ceiling(fc.lim[2])
   }
 
-  # get data frame of genes outside plot limits
-  up.max <- res[res$log2FoldChange > fc.lim[2],]
-  up.max$log2FoldChange <- rep(fc.lim[2], dim(up.max)[1])
-  up.max <- data.frame(genes=rownames(up.max), up.max)
+  # change NA symbols to gene ID
+  if('symbol' %in% colnames(res)){
+    df <- res %>%
+      mutate(geneid=rownames(res)) %>%
+      mutate(symbol=as.character(symbol)) %>%
+      mutate(symbol = replace(symbol, is.na(symbol), geneid[is.na(symbol)]))
+  } else {
+    df$symbol <- rownames(res)
+  }
+  # create column with plotting character based on fc.lim
+  # change plotted values for those outside plot limits
+  # to the limits
+  df$shape <- 'in'
+  df <- df %>%
+    mutate(log2FoldChange = replace(log2FoldChange, is.na(log2FoldChange), 0)) %>%
+    mutate(log2FoldChange = replace(log2FoldChange, log2FoldChange > fc.lim[2], fc.lim[2])) %>%
+    mutate(log2FoldChange = replace(log2FoldChange, log2FoldChange < fc.lim[1], fc.lim[1])) %>%
+    mutate(shape = replace(shape, log2FoldChange == fc.lim[2], 'above')) %>%
+    mutate(shape = replace(shape, log2FoldChange == fc.lim[1], 'below')) %>%
+    mutate(shape = as.factor(shape))
 
-  down.max <- res[res$log2FoldChange < fc.lim[1],]
-  down.max$log2FoldChange <- rep(fc.lim[1], dim(down.max)[1])
-  down.max <- data.frame(genes=rownames(down.max), down.max)
+  # change colors for DE genes
+  df$significant <- 'no'
+  df <- df %>%
+    mutate(significant = replace(significant,
+                                 padj < alpha & !is.na(padj) & abs(log2FoldChange) >= fc.thres,
+                                 'yes')) %>%
+    mutate(significant=as.factor(significant))
 
-  # get data frame of DE genes
-  de.list <- res[res$padj < fdr.thres &
-                 !is.na(res$padj) &
-                 abs(res$log2FoldChange) >= fc.thres,]
-  de.list <- data.frame(genes=rownames(de.list), de.list)
-
-  # get data frame of DE genes outside plot limits
-  up.max.de <- up.max[rownames(up.max) %in% rownames(de.list),]
-  down.max.de <- down.max[rownames(down.max) %in% rownames(de.list),]
-
-  # create ggplot with appropriate layers
-  p <- ggplot(res, aes(baseMean, log2FoldChange)) +
-    geom_point(col="gray40") + scale_x_log10() + ylim(fc.lim[1], fc.lim[2]) +
-    theme_bw() + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
-
-  p <- p + geom_hline(yintercept = 0, col="red", size=2, alpha=0.5)     # add horizontal line
-  p <- p + geom_point(data=up.max, col="gray40", pch=2)                 # add points above max y
-  p <- p + geom_point(data=down.max, col="gray40", pch=6)               # add points below min y
-
-  p <- p + geom_point(data=de.list, col="red")                          # add DE points
-  p <- p + geom_point(data=up.max.de, col="red", pch=2)                 # add DE points above max y
-  p <- p + geom_point(data=down.max.de, col="red", pch=6)               # add DE points below min y
-
+  p <- ggplot(df, aes(baseMean, log2FoldChange, color=significant, shape=shape)) +
+    geom_point(alpha=0.8) + scale_x_log10()
+  p <- p + scale_color_manual(breaks=c('no','yes'),
+                              values=c('gray40','red'), guide='legend')
+  p <- p + scale_shape_manual(breaks=c('in','above','below'),
+                              values=c(16, 2, 6), guide=FALSE)
+  p <- p + theme_bw() +
+    theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
+  p <- p + geom_hline(yintercept = 0, col="red", size=2, alpha=0.5)
 
   if(!is.null(genes.to.label)){
-    # get data frame of genes to be labeled
-    if (!is.null(col)){
-        res$gene.labels <- res[,col]
-    } else {
-        res$gene.labels <- rownames(res)
-    }
-
-    label.list <- res[res$gene.labels %in% genes.to.label,]
-    #label.list <- data.frame(genes=rownames(label.list), label.list)
-
-    # label genes outside limits
-    up.max.idx <- rownames(label.list) %in% rownames(up.max)
-    down.max.idx <- rownames(label.list) %in% rownames(down.max)
-
-    if(sum(up.max.idx) > 0){
-      label.list$log2FoldChange[up.max.idx] <- rep(fc.lim[2], sum(up.max.idx))
-    }
-
-    if(sum(down.max.idx) > 0){
-      label.list$log2FoldChange[down.max.idx] <- rep(fc.lim[1], sum(down.max.idx))
-    }
+    # data frame with labels
+    label.list <- df %>% filter(symbol %in% genes.to.label)
 
     # add labels
     p <- p + geom_point(data=label.list, col="black", pch=1, size=3)
-    p <- p + geom_label_repel(data=label.list, aes(label=label.list$gene.labels, fontface="italic"))
+    p <- p + geom_label_repel(data=label.list, aes(label=symbol),
+                              fontface="italic", size=6, show.legend=FALSE)
   }
   return(p)
+
+#  # get data frame of genes outside plot limits
+#  up.max <- res[res$log2FoldChange > fc.lim[2],]
+#  up.max$log2FoldChange <- rep(fc.lim[2], dim(up.max)[1])
+#  up.max <- data.frame(genes=rownames(up.max), up.max)
+#
+#  down.max <- res[res$log2FoldChange < fc.lim[1],]
+#  down.max$log2FoldChange <- rep(fc.lim[1], dim(down.max)[1])
+#  down.max <- data.frame(genes=rownames(down.max), down.max)
+#
+#  # get data frame of DE genes
+#  de.list <- res[res$padj < fdr.thres &
+#                 !is.na(res$padj) &
+#                 abs(res$log2FoldChange) >= fc.thres,]
+#  de.list <- data.frame(genes=rownames(de.list), de.list)
+#
+#  # get data frame of DE genes outside plot limits
+#  up.max.de <- up.max[rownames(up.max) %in% rownames(de.list),]
+#  down.max.de <- down.max[rownames(down.max) %in% rownames(de.list),]
+#
+#  # create ggplot with appropriate layers
+#  p <- ggplot(res, aes(baseMean, log2FoldChange)) +
+#    geom_point(col="gray40") + scale_x_log10() + ylim(fc.lim[1], fc.lim[2]) +
+#    theme_bw() + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
+#
+#  p <- p + geom_hline(yintercept = 0, col="red", size=2, alpha=0.5)     # add horizontal line
+#  p <- p + geom_point(data=up.max, col="gray40", pch=2)                 # add points above max y
+#  p <- p + geom_point(data=down.max, col="gray40", pch=6)               # add points below min y
+#
+#  p <- p + geom_point(data=de.list, col="red")                          # add DE points
+#  p <- p + geom_point(data=up.max.de, col="red", pch=2)                 # add DE points above max y
+#  p <- p + geom_point(data=down.max.de, col="red", pch=6)               # add DE points below min y
+#
+#
+#  if(!is.null(genes.to.label)){
+#    # get data frame of genes to be labeled
+#    if (!is.null(col)){
+#        res$gene.labels <- res[,col]
+#    } else {
+#        res$gene.labels <- rownames(res)
+#    }
+#
+#    label.list <- res[res$gene.labels %in% genes.to.label,]
+#    #label.list <- data.frame(genes=rownames(label.list), label.list)
+#
+#    # label genes outside limits
+#    up.max.idx <- rownames(label.list) %in% rownames(up.max)
+#    down.max.idx <- rownames(label.list) %in% rownames(down.max)
+#
+#    if(sum(up.max.idx) > 0){
+#      label.list$log2FoldChange[up.max.idx] <- rep(fc.lim[2], sum(up.max.idx))
+#    }
+#
+#    if(sum(down.max.idx) > 0){
+#      label.list$log2FoldChange[down.max.idx] <- rep(fc.lim[1], sum(down.max.idx))
+#    }
+#
+#    # add labels
+#    p <- p + geom_point(data=label.list, col="black", pch=1, size=3)
+#    p <- p + geom_label_repel(data=label.list, aes(label=label.list$gene.labels, fontface="italic"))
+#  }
+#  return(p)
 
 }
 
