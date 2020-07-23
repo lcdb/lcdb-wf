@@ -28,7 +28,7 @@ id.convert <- TRUE
 from.type <- "FLYBASE"
 
 deg.list <- nested.lapply(sel.list, rownames)
-genes.df <- nested.lapply(deg.list, bitr, fromType=from.type, toType=types, OrgDb=orgdb)
+genes.df <- nested.lapply(deg.list, function (x) AnnotationDbi::select(orgdb, keys=x, columns=types, keytype=from.type))
 ```
 
 ```{r enrich_all, results='hide', cache=TRUE, dependson='final_clusters'}
