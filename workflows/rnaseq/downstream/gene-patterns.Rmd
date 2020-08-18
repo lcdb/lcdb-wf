@@ -98,6 +98,9 @@ for (name in names(ll)){
     idx <- rownames(vsd) %in% genes
     ma <- assay(vsd)[idx,]
 
+    # Remove genes with identical normalized counts across all samples
+    ma <- ma[apply(as.data.frame(ma), 1, n_distinct) > 1, ]
+
     colData.i <- colData(dds.list[[ res.list[[name]][['dds']] ]])
     colData.i <- colData.i[,!(colnames(colData.i) %in% exclude.for.printing)]
 
