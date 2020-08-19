@@ -95,8 +95,9 @@ for (name in names(ll)){
     }
 
     # Extract the normalized counts for these genes
-    idx <- rownames(vsd) %in% genes
-    ma <- assay(vsd)[idx,]
+    vsd.i <- varianceStabilizingTransformation(dds.list[[ res.list[[name]][['dds']] ]], blind=TRUE)
+    idx <- rownames(vsd.i) %in% genes
+    ma <- assay(vsd.i)[idx,]
 
     # Remove genes with identical normalized counts across all samples
     ma <- ma[apply(as.data.frame(ma), 1, n_distinct) > 1, ]
