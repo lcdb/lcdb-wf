@@ -401,7 +401,7 @@ make.dds.list <- function(deseq_obj_list, salmon.files=NULL,
         }
 
         if(combine.by != FALSE){
-            dds <-collapseReplicates(dds, dds$biorep)
+            dds <-collapseReplicates(dds, dds[[combine.by]])
         }
 
         # Constructs the dds object and passes any arguments such as parallel
