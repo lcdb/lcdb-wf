@@ -26,14 +26,19 @@ variables:
 
   save_cache: &save_cache
     save_cache:
-      key: v1-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}
+      key: v2-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}
       paths:
         - /opt/conda
+
+        # this file is created by sra-tools upon installation by conda, and so
+        # needs to be included in the cache otherwise fastq-dump thinks it's
+        # mis-configured.
+        - /root/.ncbi/user-settings.mkfg
 
   restore_cache: &restore_cache
     restore_cache:
       keys:
-        - v1-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}
+        - v2-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}
 
   # --------------------------------------------------------------------------
   # The path needs to be set each time; in jobs below this will be called as
@@ -49,11 +54,7 @@ variables:
           echo 'export LANG=en_US.utf8' >> $BASH_ENV
           source $BASH_ENV
   # --------------------------------------------------------------------------
-  # Run the setup script, which installs miniconda, sets up bioconda, and
-  # installs the global env
-  #
-  # Note the "&setup" construct. This allows us to re-use it in multiple jobs
-  # below.
+  # Set up conda if the environments do not already exist
   setup: &setup
     run:
       name: Setup conda
@@ -72,6 +73,8 @@ variables:
             conda create -n lcdb-wf-test -y --file requirements-non-r.txt
             conda create -n lcdb-wf-test-r -y --file requirements-r.txt
         fi
+        conda env export -n lcdb-wf-test > env.yaml
+        conda env export -n lcdb-wf-test-r > env-r.yaml
 
   # --------------------------------------------------------------------------
   # Deploy into a new directory and get the test data.
@@ -199,26 +202,47 @@ variables:
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
             --until star
   # --------------------------------------------------------------------------
-  # Quick test just to download SRA data
-  rnaseq-sra-step: &rnaseq-sra-step
+  # Various tests on RNA-seq workflow that don't warrant the overhead of a new
+  # cache load
+  rnaseq-misc-step: &rnaseq-misc-step
       run:
-        name: rnaseq download from SRA
+        name: misc RNA-seq tests
         command: |
           ORIG=$(pwd)
           cd $DEPLOY
-          cp -r workflows/rnaseq workflows/rnaseq-sra-test
-          cd workflows/rnaseq-sra-test
+          cp -r workflows/rnaseq workflows/rnaseq-misc-test
+          cp -r workflows/rnaseq/data /tmp/data
+          cd workflows/rnaseq-misc-test
           source activate lcdb-wf-test
 
           ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
             --configfile $ORIG/test/test_configs/override.yaml \
             --config sampletable=$ORIG/test/test_configs/test_sra_sampletable.tsv
 
+          rm -r data
+          cp -r /tmp/data data
           ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
             --configfile $ORIG/test/test_configs/override.yaml \
             --config sampletable=$ORIG/test/test_configs/test_sra_sampletable_SE_only.tsv
+
+          # test strandedness, PE
+          rm -r data
+          cp -r /tmp/data data
+          ./run_test.sh -j 2 --use-conda -k -p -r --until strand_check \
+            --configfile $ORIG/test/test_configs/override.yaml \
+            --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv \
+            && cat strandedness.tsv
+
+          # test strandedness, SE
+          rm -r data
+          cp -r /tmp/data data
+          ./run_test.sh -j 2 --use-conda -k -p -r --until strand_check \
+            --configfile $ORIG/test/test_configs/override.yaml \
+            --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
+            && cat strandedness.tsv
+
   # --------------------------------------------------------------------------
-  # Quick test to ensure PE sampletables work correctly
+  # Quick (ish) test for PE data
   rnaseq-pe-step: &rnaseq-pe-step
       run:
         name: rnaseq test PE
@@ -229,9 +253,12 @@ variables:
           cd workflows/rnaseq-pe-test
           source activate lcdb-wf-test
 
-          ./run_test.sh -j 1 --use-conda -k -p -r --until multiqc \
+          # test PE reads
+          ./run_test.sh -j 2 --use-conda -k -p -r --until multiqc \
             --configfile $ORIG/test/test_configs/override.yaml \
             --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
+
+
   # --------------------------------------------------------------------------
   # Standard colocalization workflow
   colocalization-step: &colocalization-step
@@ -280,6 +307,10 @@ jobs:
       # themselves.
       - *save_cache
 
+      - store_artifacts:
+          path: /tmp/lcdb-wf-test/env.yaml
+      - store_artifacts:
+          path: /tmp/lcdb-wf-test/env-r.yaml
   pytest:
     <<: *defaults
     resource_class: small
@@ -343,14 +374,14 @@ jobs:
       - *get-data
       - *rnaseq-star-step
 
-  rnaseq-sra:
+  rnaseq-misc:
     <<: *defaults
     steps:
       - checkout
       - *restore_cache
       - *set-path
       - *get-data
-      - *rnaseq-sra-step
+      - *rnaseq-misc-step
 
 
   rnaseq-pe:
@@ -399,6 +430,9 @@ jobs:
       - run:
           name: Build and upload docs
           command: source activate lcdb-wf-test && ci/build-docs.sh
+      - store_artifacts:
+          path: /tmp/docs.tar.gz
+
 
   report-env:
     <<: *defaults
@@ -432,18 +466,10 @@ workflows:
          requires:
            - initial-setup
            - pytest
-         filters:
-           branches:
-             ignore:
-               - master
       - chipseq-regression:
          requires:
            - initial-setup
            - pytest
-         filters:
-           branches:
-             ignore:
-               - master
       - rnaseq-dryrun:
          requires:
            - initial-setup
@@ -453,53 +479,29 @@ workflows:
             - initial-setup
             - pytest
             - rnaseq-dryrun
-          filters:
-            branches:
-              ignore:
-                - master
       - rnaseq-star:
           requires:
             - initial-setup
             - pytest
             - rnaseq-dryrun
-          filters:
-            branches:
-              ignore:
-                - master
-      - rnaseq-sra:
+      - rnaseq-misc:
           requires:
             - initial-setup
             - pytest
             - rnaseq-dryrun
-          filters:
-            branches:
-              ignore:
-                - master
       - rnaseq-pe:
           requires:
             - initial-setup
             - pytest
             - rnaseq-dryrun
-          filters:
-            branches:
-              ignore:
-                - master
       - references:
           requires:
             - initial-setup
             - pytest
-          filters:
-            branches:
-              ignore:
-                - master
       - colocalization:
           requires:
             - initial-setup
             - pytest
-          filters:
-            branches:
-              ignore:
-                - master
       - build-docs:
           requires:
             - initial-setup
@@ -508,10 +510,8 @@ workflows:
           requires:
             - rnaseq
             - rnaseq-star
+            - rnaseq-pe
+            - rnaseq-misc
             - chipseq
             - references
             - colocalization
-          filters:
-            branches:
-              ignore:
-                - master

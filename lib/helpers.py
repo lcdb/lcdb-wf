@@ -126,3 +126,35 @@ def rscript(string, scriptname, log=None):
     else:
         _log = ""
     shell('Rscript {scriptname} {_log}')
+
+
+def check_unique_fn(df):
+    """
+    Raises an error if the fastq filenames are not unique
+    """
+    fns = df['orig_filename']
+    if 'orig_filename_R2' in df.columns:
+        fns = fns.append(df['orig_filename_R2'])
+    if len(fns.unique()) < len(fns):
+        raise ValueError('Fastq filenames non unique, check the sampletable\n')
+
+def check_unique_samplename(df):
+    """
+    Raises an error if the samplenames are not unique
+    """
+    ns = df.index
+    if len(ns.unique()) < len(ns):
+        raise ValueError('Samplenames non unique, check the sampletable\n')
+
+def preflight(config):
+    """
+    Performs verifications on config and sampletable files
+
+    Parameters
+    ----------
+    config: yaml config object
+    """
+    sampletable = pd.read_table(config['sampletable'], index_col='samplename', comment='#')
+    check_unique_samplename(sampletable)
+    if 'orig_filename' in sampletable.columns:
+        check_unique_fn(sampletable)
