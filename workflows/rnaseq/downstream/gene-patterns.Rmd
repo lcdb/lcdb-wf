@@ -69,10 +69,9 @@ add.cluster.id <- function(clusters, res, label){
     # returns a DESeqresults with cluster IDs
     unq <- unique(clusters[, c('genes', 'cluster')])
     names(unq)[names(unq) == 'genes'] <- 'gene'
-    merged <- merge(as.data.frame(res), unq, by='gene', all.x=TRUE) %>%
-        mutate(gene = factor(gene, levels=res[['gene']])) %>%
-        arrange(gene)
-    rownames(merged) <- merged[['gene']]
+    merged <- merge(as.data.frame(res) %>% tibble::rowid_to_column("ID"),
+                    unq, by='gene', all.x=TRUE) %>%
+        arrange(ID)
     res[[paste0(label, '_cluster')]] <- merged[['cluster']]
     return(res)
 }
@@ -96,8 +95,12 @@ for (name in names(ll)){
     }
 
     # Extract the normalized counts for these genes
-    idx <- rownames(vsd) %in% genes
-    ma <- assay(vsd)[idx,]
+    vsd.i <- varianceStabilizingTransformation(dds.list[[ res.list[[name]][['dds']] ]], blind=TRUE)
+    idx <- rownames(vsd.i) %in% genes
+    ma <- assay(vsd.i)[idx,]
+
+    # Remove genes with identical normalized counts across all samples
+    ma <- ma[apply(as.data.frame(ma), 1, n_distinct) > 1, ]
 
     colData.i <- colData(dds.list[[ res.list[[name]][['dds']] ]])
     colData.i <- colData.i[,!(colnames(colData.i) %in% exclude.for.printing)]
