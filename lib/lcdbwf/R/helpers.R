@@ -9,6 +9,7 @@ library(heatmaply)
 library(readr)
 library(stringr)
 library(tibble)
+library(limma)
 library(purrr)
 library(tidyr)
 
@@ -893,3 +894,36 @@ write.clusterprofiler.results <- function(res, cprof.folder, label){
     return(list(orig=filename.orig, split=filename.split))
 }
 
+
+#' Remove batch effect
+#'
+#' based on the [removeBatchEffect](rdrr.io/bio/limma/src/R/removeBatchEffect.R) function from limma (Gordan Smyth et al.)
+#' @param x Numeric matrix containing log-expression values for a series of samples
+#' @param batches Vector of batch factors/vectors
+#' @param covariates Matrix or vector of numeric covariates to be adjusted for
+#' @param design Design matrix relating to treatment conditions to be preserved, usually the design matrix with all experimental factors other than the batch effects
+#' @param ... Other arguments are passed to lmFit
+removebatchEffect <-
+function(x, batches=c(), covariates=NULL, design=matrix(1,ncol(x),1),...)
+{
+    if(length(batches) == 0 & is.null(covariates)){
+        return(as.matrix(x))
+    }
+    batches_processed <- c()
+    if(length(batches) != 0){
+        for(batch in batches){
+            batch <- as.factor(batch)
+            contrasts(batch) <- contr.sum(levels(batch))
+            batch <- model.matrix(~batch)[,-1,drop=FALSE]
+            batches_processed <- rbind(batches_processed, batch)
+        }
+    }
+    if(!is.null(covariates)) {
+        covariates <- as.matrix(covariates)
+    }
+    X.batch <- cbind(batches_processed, covariates)
+    fit <- lmFit(x, cbind(design, X.batch),...)
+    beta <- fit$coefficients[,-(1:ncol(design)),drop=FALSE]
+    beta[is.na(beta)] <- 0
+    as.matrix(x) - beta %*% t(X.batch)
+}
