@@ -30,7 +30,7 @@ plotPCA(rld, 'cell')
 
 4. Load helpers
 
-```{r child='helpers.Rmd'}
+```{r child='helpers.Rmd', include=FALSE}
 rmarkdown::render('helpers.Rmd', run_pandoc=FALSE)
 ```
 
@@ -39,6 +39,8 @@ rmarkdown::render('helpers.Rmd', run_pandoc=FALSE)
 
 ```{r}
 coldata <- colData(rld)
-no.cell <- removebatchEffect(rld, batches=coldata$cell, design=model.matrix(~dex, data=coldata))
-plotPCA(no.cell, 'cell')
+no.cell <- removebatchEffect(assay(rld), batches=list(coldata$cell), design=model.matrix(~dex, data=coldata))
+rld.nocell <- rld
+assay(rld.nocell) <- no.cell
+plotPCA(rld.nocell, 'cell')
 ```
