@@ -1,0 +1,46 @@
+# Test removebatchEffects function
+
+1. Install `airway` package, which has counts data for an experiment described
+   at
+   http://bioconductor.org/packages/release/data/experiment/html/airway.html:
+
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("airway")
+```
+
+2. Load data, show colData
+
+```{r}
+library(airway)
+library(DESeq2)
+data(airway)
+knitr::kable(colData(airway))
+```
+
+
+3. dds object; run vst; plot PCA:
+
+```{r}
+dds <- DESeqDataSet(airway, design = ~ cell + dex)
+rld <- vst(dds, blind=TRUE)
+plotPCA(rld, 'cell')
+```
+
+4. Load helpers
+
+```{r child='helpers.Rmd', include=FALSE}
+rmarkdown::render('helpers.Rmd', run_pandoc=FALSE)
+```
+
+
+5. Attempted usage here...imagine we want to remove the effect of cell type:
+
+```{r}
+coldata <- colData(rld)
+no.cell <- removebatchEffect(assay(rld), batches=list(coldata$cell), design=model.matrix(~dex, data=coldata))
+rld.nocell <- rld
+assay(rld.nocell) <- no.cell
+plotPCA(rld.nocell, 'cell')
+```
