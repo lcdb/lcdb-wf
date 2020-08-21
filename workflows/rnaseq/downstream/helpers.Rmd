@@ -891,7 +891,7 @@ function(x, batches=c(), covariates=NULL, design=matrix(1,ncol(x),1),...)
             batch <- as.factor(batch)
             contrasts(batch) <- contr.sum(levels(batch))
             batch <- model.matrix(~batch)[,-1,drop=FALSE]
-            batches_processed <- append(batches_processed, batch)
+            batches_processed <- rbind(batches_processed, batch)
         }
     }
     if(!is.null(covariates)) {
