@@ -413,7 +413,7 @@ make.dds <- function(design_data, salmon.files=NULL, combine.by=NULL,
     }
 
     if(!is.null(combine.by)){
-        dds <-collapseReplicates(dds, dds$biorep)
+        dds <-collapseReplicates(dds, dds[[combine.by]])
     }
 
     dds <- DESeq(dds, ...)
