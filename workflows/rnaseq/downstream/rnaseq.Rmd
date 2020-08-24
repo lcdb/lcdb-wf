@@ -129,7 +129,11 @@ dds <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
 # dds <-collapseReplicates(dds, dds$biorep)
 
 if (strip.dotted.version){
-    rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
+    rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE),
+                            function (x) {ifelse(grepl('_', x[2]),
+                                                 paste(x[1], x[2], sep='.'),
+                                                 x[1])}
+                            )
 }
 
 vsd <- varianceStabilizingTransformation(dds, blind=TRUE)
