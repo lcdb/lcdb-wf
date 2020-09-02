@@ -1,0 +1,491 @@
+---
+title: Differential ChIP-seq peaks
+output:
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+## Changelog
+
+**Initial results**
+
+Last run: `r date()`
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(sep=TRUE, warning=FALSE, message=FALSE,
+                      bootstrap.show.code=FALSE, bootstrap.show.output=FALSE,
+                      cache.extra_file_dep_1=file.info('../config/sampletable.tsv')$mtime,
+                      # try disabling this when running locally for nicer figures
+                      #dev='bitmap',
+                      fig.ext='png')
+```
+
+```{r, results='asis'}
+subchunkify <- function(g) {
+  g_deparsed <- paste0(deparse(
+    function() {g}
+  ), collapse = '')
+
+  sub_chunk <- paste0("
+  `","``{r sub_chunk_", floor(runif(1) * 10000), ", fig.height=10, echo=FALSE}",
+  "\n(", 
+    g_deparsed
+    , ")()",
+  "\n`","``
+  ")
+
+  cat(knitr::knit(text = knitr::knit_expand(text = sub_chunk), quiet = TRUE))
+  }
+```
+
+```{r imports, include=FALSE}
+library(DiffBind)
+library(ggplot2)
+library(BiocParallel)
+library(AnnotationHub)
+library(ChIPseeker)
+library(dplyr)
+```
+
+```{r limit_cpus}
+register(MulticoreParam(workers=future::availableCores()))
+```
+
+```{r load_helpers}
+devtools::document('../../../lib/lcdbwf')
+devtools::load_all('../../../lib/lcdbwf')
+```
+
+```{r annotationhub_setup}
+annotation_genus_species <- 'Homo sapiens'
+annotation_key_override <- NA
+hub.cache <- '../../../include/AnnotationHubCache'
+orgdb <- get.orgdb(
+    annotation_genus_species,
+    cache=hub.cache,
+    annotation_key_override=annotation_key_override
+)
+```
+
+```{r txdb}
+get.txdb <- function(species, cache, annotation_key_override=NA){
+
+    # Workaround to allow AnnotationHub to use proxy. See
+    # https://github.com/Bioconductor/AnnotationHub/issues/4, and thanks
+    # Wolfgang!
+    proxy <- Sys.getenv('http_proxy')
+    if (proxy == ""){
+        proxy <- NULL
+    }
+
+    ah <- AnnotationHub(hub=getAnnotationHubOption('URL'),
+             cache=cache,
+             proxy=proxy,
+             localHub=FALSE)
+
+    find.annotationhub.name <- function(species.name, override.code) { #autodetect ah names based on loaded database
+        if (is.na(override.code)) {
+            ah.query <- query(ah, c("TxDb", "UCSC"))
+            ah.query.speciesmatch <- grepl(paste("^", species.name, "$", sep=""), ah.query$species)
+        ah.query.which <- which(ah.query.speciesmatch)
+        stopifnot(length(ah.query.which) > 0) #require at least one match
+        if (length(ah.query.which) > 1) { #warn of duplicate matches
+            print("WARNING: found multiple candidate species in AnnotationHub: ");
+            print(ah.query.speciesmatch)
+        }
+        names(ah.query)[ah.query.which[length(ah.query.which)]]
+        } else {
+        override.code
+        }
+    }
+    annotation_key <- find.annotationhub.name(annotation_genus_species, annotation_key_override)
+    txdb <- ah[[annotation_key]]
+    return(txdb)
+}
+
+txdb <- get.txdb(
+    annotation_genus_species,
+    cache=hub.cache,
+    annotation_key_override=annotation_key_override
+)
+```
+
+```{r coldata_setup}
+threshold <- 0.01
+use_pval <- TRUE
+sample.table.filename <- '../config/sampletable.tsv'
+# PeakCaller is the peak file format for diffBind dba function
+PeakCaller <- 'bed'
+exclude.for.printing <- c('orig_filename', 'orig_filename_R2', 'bamReads', 'bamControl', 'Peaks', 'PeakCaller')
+bam.path.func <- function (x) file.path('..', 'data', 'chipseq_merged', x, paste0(x, '.cutadapt.unique.nodups.merged.bam'))
+peak.path.func <- function (x) file.path('..', 'data', 'chipseq_peaks', 'macs2', x, 'peaks.bed')
+
+colData <- read.table(sample.table.filename, sep='\t', header=TRUE, stringsAsFactors=FALSE)
+
+colData$bamReads <- sapply(colData$label, bam.path.func)
+colData$Peaks <- sapply(colData$label, peak.path.func)
+colData$PeakCaller <- PeakCaller
+
+factor.columns <- c('Treatment')
+for (col in factor.columns){
+    colData[[col]] <- as.factor(colData[[col]])
+}
+
+colData$Treatment <- relevel(colData$Treatment, ref='DMSO')
+rownames(colData) <- colData[,1]
+
+# split by input vs. antibody
+ab_ref <- 'mockIgG'
+colDataInput <- colData %>%
+    filter(antibody == ab_ref) %>%
+    mutate(bamControl = bamReads, ControlID = label) %>%
+    distinct(label, .keep_all=TRUE)
+colDataAB <- colData %>% filter(!antibody %in% c(ab_ref, 'input')) %>%
+#colDataAB <- colData %>% filter(antibody == 'BRD4') %>%
+    distinct(label, .keep_all=TRUE) %>%
+    mutate(SampleID = samplename)
+
+# make sampletables for diffBind
+st <- list()
+for (ab in unique(colDataAB[['antibody']])) {
+    st[[ab]] <- merge(colDataAB %>% filter(antibody == ab),
+                    colDataInput %>% dplyr::select(biological_material, bamControl, ControlID),
+                    by='biological_material')
+}
+
+```
+
+## Experiment overview {.tabset}
+
+The ChIPseq samples analyzed here come from the SRA study [SRP120974](https://trace.ncbi.nlm.nih.gov/Traces/sra/?study=SRP120974),
+published in [Sdelci et al., 2019](https://www.nature.com/articles/s41588-019-0413-z).
+
+HAP1 cells were treated with dBET6 or DMSO and ChIPseq was performed using histone acetyl-reader BRD4 or
+the folate pathway enzyme MTHFD1.
+ChIP-seq with mock IgG antibody were used as background.
+
+ChIPseq fastq files were processed through [lcdb-wf](https://github.com/lcdb/lcdb-wf) chipseq pipeline.
+
+Called peaks were then processed though [DiffBind](https://bioconductor.org/packages/release/bioc/html/DiffBind.html)
+for differential binding analysis using the method `DBA_DESEQ2`.
+
+```{r, results='asis'}
+if (use_pval) {
+    pval_attr <- 'pvalue'
+} else {
+    pval_attr <- 'FDR'
+}
+cat(paste0('\n\nHere we use a **', pval_attr, '** threshold of ', threshold,
+           ' to determine peak significance.\n\n'))
+```
+
+For each antibody, a separate sampletable was used as `diffBind` input to identify differential binding.
+
+```{r setup, results='asis'}
+data <- list()
+for (ab in names(st)){
+    data[[ab]] <- dba(sampleSheet=st[[ab]], 
+                     config=data.frame(th=threshold, bUsePval=use_pval))
+    cat(paste0('\n\n### ', ab, '\n\n'))
+    subchunkify(knitr::kable(st[[ab]][, colnames(st[[ab]])[!colnames(st[[ab]]) %in% exclude.for.printing]]))
+}
+params <- list('args2'='diffPeaks_deseq2.tsv',
+               'args3'='diffPeaks_deseq2.bed')
+```
+
+```{r deseq2, cache=TRUE, dependson='setup'}
+# DiffBind count of reads and analysis of differential number of reads 
+# using the DESeq2 method
+DBs <- list()
+beds <- list()
+for (ab in names(st)){
+    lvls <- levels(st[[ab]]$Treatment)
+    data[[ab]] <- dba.count(data[[ab]], bParallel=TRUE)
+    data[[ab]] <- dba.contrast(data[[ab]],
+                               group1=data[[ab]]$mask[[lvls[2]]], 
+                               group2=data[[ab]]$mask[[lvls[1]]],
+                               name1=lvls[2], name2=lvls[1], minMembers=2)
+    data[[ab]] <- dba.analyze(data[[ab]], method=DBA_DESEQ2)
+
+# Generate a report
+# specifying threshold, th=1, to include all peaks
+    DBs[[ab]] <- dba.report(data[[ab]], method=DBA_DESEQ2, th=1)
+
+# Write output table
+    write.table(DBs[[ab]], 
+                file = paste(ab, '_', params$args2, sep=""), 
+                sep = "\t", quote=FALSE, row.names=FALSE)
+
+# Write output in bed format
+    beds[[ab]] <- data.frame(iranges = DBs[[ab]])
+    beds[[ab]]$newcol <- paste("Fold", beds[[ab]]$iranges.Fold, "FDR",
+                            beds[[ab]]$iranges.FDR, sep="_")
+
+    write.table(beds[[ab]][,c(1,2,3,12,9,10,11)], 
+                file = paste(ab, '_',params$args3, sep=""), 
+                quote=FALSE, row.names=FALSE, col.names=FALSE, sep = "\t")
+}
+```
+
+
+## Correlation between samples {.tabset}
+
+```{r deseq2plots, results='asis'}
+# plot data
+for(ab in names(data)){
+    cat('\n\n### ', ab, '\n\n')
+    plot(data[[ab]], contrast=1)
+}
+```
+
+
+## Overlap of peaks between replicates {.tabset}
+
+Please note that the Venn diagram areas are not to scale.
+
+```{r venn, results='asis'}
+for (ab in names(data)) {
+    cat('\n\n\n### ', ab, '{.tabset}\n\n')
+    for (lvl in levels(st[[ab]]$Treatment)) {
+        cat('\n\n#### ', lvl, ' samples\n\n')
+        dba.plotVenn(data[[ab]], data[[ab]]$masks[[lvl]])
+    }
+}
+```
+
+
+## Analysis with DBA DESeq2
+
+### Summary of results
+
+```{r}
+thres = list()
+diff_num = list()
+for (ab in names(DBs)){
+    thres[[ab]] <- data[[ab]]$config$th
+    diff_num[[ab]] <- sum(DBs[[ab]]$`p-value` < thres[[ab]])
+}
+```
+
+```{r}
+thres <- list()
+up <- list()
+down <- list()
+changed <- list()
+for(ab in names(DBs)){
+        thres[[ab]] <- data[[ab]]$config$th
+        if (use_pval) {
+            up[[ab]] <- sum(DBs[[ab]]$`p-value` < thres[[ab]] & DBs[[ab]]$Fold > 0)
+            down[[ab]] <- sum(DBs[[ab]]$`p-value` < thres[[ab]] & DBs[[ab]]$Fold < 0)
+        } else {
+            up[[ab]] <- sum(DBs[[ab]]$FDR < thres[ab] & DBs[[ab]]$Fold > 0)
+            down[[ab]] <- sum(DBs[[ab]]$FDR < thres[ab] & DBs[[ab]]$Fold < 0)
+        } 
+        changed[[ab]] <- up[[ab]] + down[[ab]]
+}
+df <- data.frame(antibody = names(DBs),
+                 threshold = unlist(thres),
+                 up=unlist(up),
+                 down=unlist(down),
+                 changed=unlist(changed))
+knitr::kable(df, row.names=FALSE)
+cat('\n')
+
+```
+
+
+## Overlap of differentially bound peaks
+
+```{r upset, results='asis'}
+sel.list <- list()
+sel.list[['up']] <- list()
+sel.list[['down']] <- list()
+
+if (use_pval == TRUE) {
+    for (ab in names(DBs)){
+        sel.list[['up']][[ab]] <- DBs[[ab]][DBs[[ab]]$`p-value` < thres[[ab]] & DBs[[ab]]$Fold > 0]
+        sel.list[['down']][[ab]] <- DBs[[ab]][DBs[[ab]]$`p-value` < thres[[ab]] & DBs[[ab]]$Fold < 0]
+    }
+} else {
+    for (ab in names(DBs)){
+        sel.list[['up']][[ab]] <- DBs[[ab]][DBs[[ab]]$`p-value` < thres[[ab]] & DBs[[ab]]$Fold > 0]
+        sel.list[['down']][[ab]] <- DBs[[ab]][DBs[[ab]]$`p-value` < thres[[ab]] & DBs[[ab]]$Fold < 0]
+    }
+}
+
+# TODO: upset plots would be better here, but need to compute the overlap of peaks between contrasts
+# vennplot from CHiPseeker accept a list of object, can be a list of GRanges or a list of vector,
+# and returns a Venn plot of the overlap
+cat('\n\n### Overlap of peaks with increased affinity\n\n')
+if (length(sel.list[['up']]) > 1) {
+    vennplot(sel.list[['up']])
+} else {
+    cat('\n\nNot enough groups to plot overlap.\n\n')
+}
+cat('\n\n### Overlap of peaks with decreased affinity\n\n')
+if (length(sel.list[['down']]) > 1) {
+    vennplot(sel.list[['down']])
+} else {
+    cat('\n\nNot enough groups to plot overlap.\n\n')
+}
+
+```
+
+
+### Links to results
+
+```{r, results='asis'}
+for (ab in names(DBs)){
+    lvls <- levels(st[[ab]]$Treatment)
+    cat(paste0('\n\n#### **', lvls[2], ' vs. ', lvls[1], '**\n\n'))
+    cat(paste0('\n\n- TSV: [', lvls[2], '_diffPeaks_deseq2.tsv](', lvls[2], '_diffPeaks_deseq2.tsv)\n\n'))
+    cat(paste0('\n\n- BED: [', lvls[2], '_diffPeaks_deseq2.bed](', lvls[2], '_diffPeaks_deseq2.bed)\n\n'))
+}
+```
+
+### Visualization of differential binding {.tabset}
+
+```{r plotting, results='asis', fig.height=10, fig.width=10}
+for (ab in names(data)) {
+    cat('\n\n#### ', ab, '{.tabset}\n')
+    # plot PCA
+    cat('\n\n##### PCA plot\n')
+    dba.plotPCA(data[[ab]], contrast=1, label=DBA_ID)
+    # plot MA
+    cat('\n\n##### MA plot\n')
+    dba.plotMA(data[[ab]])
+    # volcano plot
+    cat('\n\n##### Volcano plot\n')
+    dba.plotVolcano(data[[ab]])
+    cat('\n\n##### Boxplot\n')
+    cat('\n\nThis is a boxplot of normalized reads in peaks.\n')
+    cat("\n\n- `+` indicates peaks with higher", ab, "in", data[[ab]][['contrasts']][[1]][['name2']], ".\n")
+    cat("\n- `-` indicates peaks with higher ", ab, "in", data[[ab]][['contrasts']][[1]][['name1']], ".\n")
+    pvals <- dba.plotBox(data[[ab]], bDBIncreased=FALSE,bDBDecreased=FALSE)
+    cat('\n\n##### Heatmap\n')
+    cat('\n\n\nThis is a heatmap of the differential peaks detected by our analysis.\n')
+    cat('\n- The color key shows the color map used to plot the heatmap.\n')
+    cat('\n- The histogram in the color key shows the distribution of scores shown in the heatmap.\n\n')
+    corvals <- dba.plotHeatmap(data[[ab]], contrast=1, correlations=FALSE)
+}
+```
+
+
+## Annotation to nearest gene {.tabset}
+
+Annotation was performed using `annotatePeak` from [CHiPseeker](http://bioconductor.org/packages/release/bioc/html/ChIPseeker.html). 
+Peaks were annotated to the nearest gene in [UCSC hg38 transcript-related features](http://bioconductor.org/packages/release/data/annotation/html/TxDb.Hsapiens.UCSC.hg38.knownGene.html). For promoters, the default TSS (transcription start site) region defined from -3kb to +3kb was used.
+
+According to CHiPseeker's documentation, the following features are reported:
+
+> The position and strand information of nearest genes are reported. The distance from peak to the TSS of its nearest gene is also reported. The genomic region of the peak is reported in annotation column. Since some annotation may overlap, ChIPseeker adopted the following priority in genomic annotation.
+> 
+>  - Promoter
+>  - 5’ UTR
+>  - 3’ UTR
+>  - Exon
+>  - Intron
+>  - Downstream
+>  - Intergenic
+>
+> Downstream is defined as the downstream of gene end.
+
+Only the gene corresponding to the annotation with the highest priority is reported in the output tables,
+and the presence of the peak in the other annotation as TRUE/FALSE.
+The order of priority can be modified in the code chunk below to obtain the genes from 
+other annotation categories.
+
+
+```{r}
+annot_order <- c("Promoter", "5UTR", "3UTR", "Exon",
+       "Intron", "Downstream", "Intergenic")
+```
+
+
+
+```{r chipseeker, results='asis', eval=TRUE}
+annocols <- c("seqnames", "end", "annotation", "geneStart", "geneEnd",
+              "geneLength", "geneStrand", "geneId", "transcriptId",
+              "distanceToTSS") #, "ENSEMBL", "SYMBOL", "GENENAME")
+
+if (use_pval == TRUE) {
+    thcol <- 'iranges.p.value'
+} else {
+    thcol <- 'iranges.FDR'
+}
+
+for (ab in names(DBs)){
+    cat(paste0('\n\n### ', ab, ' {.tabset}\n\n'))
+    # all peaks
+    bedfn <- paste0(ab, '_',params$args3)
+    cat('\n\n#### All\n\n')
+    peakAnno <- list()
+    peakAnno['all'] <- annotatePeak(bedfn, tssRegion=c(-3000, 3000), TxDb=txdb, verbose=FALSE, genomicAnnotationPriority = annot_order) # removed annoDb="hs....
+    plotAnnoPie(peakAnno[['all']])
+    print(upsetplot(peakAnno[['all']]))
+    # write bed with annotations for all peaks
+    write.table(as.data.frame(peakAnno['all']), 
+                file = paste0(ab, '_annot_', params$args3), 
+                quote=FALSE, row.names=FALSE, col.names=FALSE, sep = "\t")
+    # write tsv with annotations
+    tmpannot <- cbind(as.data.frame(peakAnno[['all']])[annocols], as.data.frame(peakAnno[['all']]@detailGenomicAnnotation))
+    tsvannot <- merge(as.data.frame(DBs[[ab]]), tmpannot,
+                      by=c('seqnames', 'end'), all.x=TRUE)
+    write.table(tsvannot, 
+                file = paste0(ab, '_annot_', params$args2), 
+                quote=FALSE, row.names=FALSE, sep = "\t")
+
+    # peaks up
+    cat('\n\n#### Up\n\n')
+    write.table(beds[[ab]][beds[[ab]][[thcol]] < thres[[ab]] & beds[[ab]][['iranges.Fold']] > 0,
+                          c(1,2,3,12,9,10,11)], 
+                file = paste(ab, '_up_',params$args3, sep=""), 
+                quote=FALSE, row.names=FALSE, col.names=FALSE, sep = "\t")
+    tryCatch(
+        {
+           peakAnno['up'] <- annotatePeak(paste(ab, '_up_',params$args3, sep=""),
+                               tssRegion=c(-3000, 3000), TxDb=txdb,
+                               verbose=FALSE, genomicAnnotationPriority = annot_order)
+            plotAnnoPie(peakAnno[['up']])
+            print(upsetplot(peakAnno[['up']]))
+        }, 
+        error = function(e){
+            print('No line available in input')
+        })
+
+    # peaks down
+    cat('\n\n#### Down\n\n')
+    write.table(beds[[ab]][beds[[ab]][[thcol]] < thres[[ab]] & beds[[ab]][['iranges.Fold']] < 0,
+                          c(1,2,3,12,9,10,11)], 
+                file = paste(ab, '_down_',params$args3, sep=""), 
+                quote=FALSE, row.names=FALSE, col.names=FALSE, sep = "\t")
+    tryCatch({
+            peakAnno['down'] <- annotatePeak(paste(ab, '_down_',params$args3, sep=""),
+                               tssRegion=c(-3000, 3000), TxDb=txdb,
+                               verbose=FALSE, genomicAnnotationPriority = annot_order)
+            plotAnnoPie(peakAnno[['down']])
+            print(upsetplot(peakAnno[['down']]))
+    },
+    error = function(e){
+            print('No line available in input')
+        })
+
+
+    # compare the all/up/down distributions
+    cat('\n\n#### Pie charts comparison\n\n')
+    print(plotAnnoBar(peakAnno))
+}
+```
+
+
+## sessionInfo
+
+For reproducibility purposes, here is the output of `sessionInfo` listing all packages
+used in the analysis.
+
+```{r}
+sessionInfo()
+```
