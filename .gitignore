@@ -12,6 +12,12 @@ workflows/rnaseq/downstream/final_clusters
 workflows/rnaseq/downstream/rnaseq.log
 workflows/rnaseq/downstream/*tsv
 workflows/chipseq/data
+workflows/chipseq/*.log
+workflows/chipseq/downstream/*.tsv
+workflows/chipseq/downstream/*.html
+workflows/chipseq/downstream/*.bed
+workflows/chipseq/downstream/*_cache
+workflows/chipseq/downstream/*_files
 workflows/rnaseq/data
 workflows/colocalization/results
 work
