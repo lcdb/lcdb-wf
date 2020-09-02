@@ -1,11 +1,17 @@
-# Samplenames with the same "label" will be considered technical replicates
-samplename	antibody	biological_material	replicate	label	orig_filename
-input_1	input	wingdisc-1	1	input-wingdisc-1	data/example_data/chipseq_input1.fq.gz
-input_2	input	wingdisc-2	2	input-wingdisc-2	data/example_data/chipseq_input2.fq.gz
-ip_1	gaf	wingdisc-1	1	gaf-wingdisc-1	data/example_data/chipseq_ip1.fq.gz
-ip_2	gaf	wingdisc-2	2	gaf-wingdisc-2	data/example_data/chipseq_ip2.fq.gz
-
-# Note here we are treating ip_3 and ip_4 as technical replicates for the sake of testing
-ip_3	gaf	embryo-1	1	gaf-embryo-1	data/example_data/chipseq_ip3.fq.gz
-ip_4	gaf	embryo-1	1	gaf-embryo-1	data/example_data/chipseq_ip4.fq.gz
-input_3	input	embryo-1	1	input-embryo-1	data/example_data/chipseq_input3.fq.gz
+samplename	label	biological_material	group	GEO_Run	LibraryLayout	source_name	Treatment	antibody	replicate	orig_filename
+BRD4_dBET6_1	BRD4_dBET6_1	HAP1_B1	BRD4_dBET6	SRR6202977	SINGLE	ChIP-seq for BRD4 in HAP1 cell line treated with dBET6	dBET6	BRD4	1	../../raw_files/SRR6202977.fastq.gz
+BRD4_dBET6_2	BRD4_dBET6_2	HAP1_B2	BRD4_dBET6	SRR6202978	SINGLE	ChIP-seq for BRD4 in HAP1 cell line treated with dBET6	dBET6	BRD4	2	../../raw_files/SRR6202978.fastq.gz
+BRD4_DMSO_1	BRD4_DMSO_1	HAP1_D1	BRD4_DMSO	SRR6202979	SINGLE	ChIP-seq for BRD4 in HAP1 cell line treated with DMSO	DMSO	BRD4	1	../../raw_files/SRR6202979.fastq.gz
+BRD4_DMSO_2	BRD4_DMSO_2	HAP1_D2	BRD4_DMSO	SRR6202980	SINGLE	ChIP-seq for BRD4 in HAP1 cell line treated with DMSO	DMSO	BRD4	2	../../raw_files/SRR6202980.fastq.gz
+mockIgG_dBET6_1	mockIgG_dBET6_1	HAP1_B1	mockIgG_dBET6	SRR6202981	SINGLE	ChIP-seq with mock IgG antibody in HAP1 cell line treated with dBET6	dBET6	mockIgG	1	../../raw_files/SRR6202981.fastq.gz
+mockIgG_dBET6_2	mockIgG_dBET6_2	HAP1_B2	mockIgG_dBET6	SRR6202982	SINGLE	ChIP-seq with mock IgG antibody in HAP1 cell line treated with dBET6	dBET6	mockIgG	2	../../raw_files/SRR6202982.fastq.gz
+mockIgG_DMSO_1	mockIgG_DMSO_1	HAP1_D1	mockIgG_DMSO	SRR6202983	SINGLE	ChIP-seq with mock IgG antibody in HAP1 cell line treated with DMSO	DMSO	mockIgG	1	../../raw_files/SRR6202983.fastq.gz
+mockIgG_DMSO_2	mockIgG_DMSO_2	HAP1_D2	mockIgG_DMSO	SRR6202984	SINGLE	ChIP-seq with mock IgG antibody in HAP1 cell line treated with DMSO	DMSO	mockIgG	2	../../raw_files/SRR6202984.fastq.gz
+input_dBET6_1	input_dBET6_1	HAP1_B1	input_dBET6	SRR6202985	SINGLE	ChIP-seq for Input in HAP1 cell line treated with dBET6	dBET6	input	1	../../raw_files/SRR6202985.fastq.gz
+input_dBET6_2	input_dBET6_2	HAP1_B2	input_dBET6	SRR6202986	SINGLE	ChIP-seq for Input in HAP1 cell line treated with dBET6	dBET6	input	2	../../raw_files/SRR6202986.fastq.gz
+input_DMSO_1	input_DMSO_1	HAP1_D1	input_DMSO	SRR6202987	SINGLE	ChIP-seq for Input in HAP1 cell line treated with DMSO	DMSO	input	1	../../raw_files/SRR6202987.fastq.gz
+input_DMSO_2	input_DMSO_2	HAP1_D2	input_DMSO	SRR6202988	SINGLE	ChIP-seq for Input in HAP1 cell line treated with DMSO	DMSO	input	2	../../raw_files/SRR6202988.fastq.gz
+MTHFD1_dBET6_1	MTHFD1_dBET6_1	HAP1_B1	MTHFD1_dBET6	SRR6202989	SINGLE	ChIP-seq for MTHFD1 in HAP1 cell line treated with dBET6	dBET6	MTHFD1	1	../../raw_files/SRR6202989.fastq.gz
+MTHFD1_dBET6_2	MTHFD1_dBET6_2	HAP1_B2	MTHFD1_dBET6	SRR6202990	SINGLE	ChIP-seq for MTHFD1 in HAP1 cell line treated with dBET6	dBET6	MTHFD1	2	../../raw_files/SRR6202990.fastq.gz
+MTHFD1_DMSO_1	MTHFD1_DMSO_1	HAP1_D1	MTHFD1_DMSO	SRR6202991	SINGLE	ChIP-seq for MTHFD1 in HAP1 cell line treated with DMSO	DMSO	MTHFD1	1	../../raw_files/SRR6202991.fastq.gz
+MTHFD1_DMSO_2	MTHFD1_DMSO_2	HAP1_D2	MTHFD1_DMSO	SRR6202992	SINGLE	ChIP-seq for MTHFD1 in HAP1 cell line treated with DMSO	DMSO	MTHFD1	2	../../raw_files/SRR6202992.fastq.gz<Paste>
