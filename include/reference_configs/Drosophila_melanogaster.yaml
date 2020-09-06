@@ -6,12 +6,12 @@ references:
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
         postprocess:
-            function: 'lib.common.filter_fastas'
-            args: 'Drosophila melanogaster'
+          function: 'lib.common.filter_fastas'
+          args: 'Drosophila melanogaster'
         indexes:
-            - 'hisat2'
-            - 'bowtie2'
-
+          - 'hisat2'
+          - 'bowtie2'
+          - 'star'
     r6-24:
       annotation:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.24_FB2018_05/gtf/dmel-all-r6.24.gtf.gz'
@@ -34,6 +34,7 @@ references:
         indexes:
           - 'bowtie2'
           - 'hisat2'
+          - 'star'
 
       transcriptome:
         indexes:
@@ -62,6 +63,7 @@ references:
         indexes:
           - 'bowtie2'
           - 'hisat2'
+          - 'star'
 
       transcriptome:
         indexes:

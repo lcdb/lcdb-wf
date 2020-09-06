@@ -15,6 +15,7 @@ references:
         indexes:
           - 'hisat2'
           - 'bowtie2'
+          - 'star'
 
       annotation:
         url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/gencode.v28.primary_assembly.annotation.gtf.gz'
@@ -42,6 +43,7 @@ references:
         indexes:
           - 'hisat2'
           - 'bowtie2'
+          - 'star'
 
       annotation:
         url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz'
@@ -75,6 +77,7 @@ references:
         indexes:
           - 'bowtie2'
           - 'hisat2'
+          - 'star'
 
       annotation:
         url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.annotation.gtf.gz'
@@ -97,4 +100,4 @@ references:
         indexes:
           - 'hisat2'
           - 'bowtie2'
-
+          - 'star'
