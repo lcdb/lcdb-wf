@@ -7,6 +7,7 @@ references:
         indexes:
           - 'bowtie2'
           - 'hisat2'
+          - 'star'
       annotation:
         url: 'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
         postprocess: "lib.postprocess.ercc.gtf_postprocess"
@@ -18,6 +19,7 @@ references:
         indexes:
           - 'bowtie2'
           - 'hisat2'
+          - 'star'
       annotation:
         url: 'https://tools.thermofisher.com/content/sfs/manuals/ERCC92.zip'
         postprocess: "lib.postprocess.erccFisher.gtf_postprocess"
