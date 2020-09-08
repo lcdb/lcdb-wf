@@ -408,7 +408,10 @@ make.dds <- function(design_data, salmon.files=NULL, combine.by=NULL,
 
     if (remove.version){
         rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE),
-                                function (x) x[1])
+                                function (x) {ifelse(grepl('_', x[2]),
+                                              paste(x[1], x[2], sep='.'),
+                                              x[1])}
+                                )
     }
 
     if(!is.null(combine.by)){
