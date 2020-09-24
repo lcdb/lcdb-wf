@@ -27,7 +27,7 @@ id.convert <- TRUE
 ```{r bitrgenes, results='hide'}
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#bitrgenes
 # NOTE: Gene IDs are provided in what format?----------------------------------
-from.type <- "FLYBASE"
+from.type <- "ENSEMBL"
 
 deg.list <- nested.lapply(sel.list, rownames)
 genes.df <- nested.lapply(deg.list, bitr, fromType=from.type, toType=types, OrgDb=orgdb)
