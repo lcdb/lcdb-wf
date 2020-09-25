@@ -354,7 +354,6 @@ jobs:
 
   rnaseq:
     <<: *defaults
-    resource_class: medium+
     steps:
       - checkout
       - *restore_cache
