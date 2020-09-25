@@ -87,6 +87,10 @@ for (col in factor.columns){
 
 colData$group <- relevel(colData$group, ref='DMSO_1h')
 rownames(colData) <- colData[,1]
+
+# remove JQ1 samples
+colData <- colData %>%
+    filter(treatment != 'JQ1')
 ```
 
 ## Experiment overview
@@ -122,7 +126,8 @@ vsd.txi <- varianceStabilizingTransformation(dds.txi, blind=TRUE)
 dds <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
     '../data/rnaseq_aggregation/featurecounts.txt',
     sampletable=colData,
-    design=~group)
+    design=~group,
+    subset.counts=TRUE)
 
 # NOTE: collapse technical replicates ----------------------------------------
 #   If collapsing technical replicates, do so here
@@ -280,11 +285,11 @@ lst <- list(
                 design=~treatment,
                 args=list(subset.counts=TRUE)
             ),
-            jq_cell_line=list(
-                sampletable=colData %>% filter(treatment %in% c('DMSO', 'JQ1'), !samplename %in% outliers),
-                design=~cell_line_group + 0,
-                args=list(subset.counts=TRUE)
-            ),
+            #jq_cell_line=list(
+            #    sampletable=colData %>% filter(treatment %in% c('DMSO', 'JQ1'), !samplename %in% outliers),
+            #    design=~cell_line_group + 0,
+            #    args=list(subset.counts=TRUE)
+            #),
             dbet_cell_line=list(
                 sampletable=colData %>% filter(treatment %in% c('DMSO', 'dBet6'), !samplename %in% outliers),
                 design=~cell_line_group + 0,
@@ -308,32 +313,32 @@ res.list <- list()
 # IMPORTANT: Control must always be last
 
 # including only treatment in the contrast
-res.list[['main_jq']] <- list(
-    res=results(dds.list[['main']], contrast=c('treatment', 'JQ1', 'DMSO')),
-    dds='main',
-    label='JQ1 vs. DMSO (LFC > 0); dds main; cts treatment'
-)
+#res.list[['main_jq']] <- list(
+#    res=results(dds.list[['main']], contrast=c('treatment', 'JQ1', 'DMSO')),
+#    dds='main',
+#    label='JQ1 vs. DMSO (LFC > 0); dds main; cts treatment'
+#)
 
 # JQ1 vs. DMSO at 1h
-res.list[['jq1h-batch']] <- list(
-    res=results(dds.list[['jq_cell_line']], contrast=c(-1,0,1,0,-1,0,1,0,-1,0,1,0)),
-    dds='jq_cell_line',
-    label='JQ1 vs. DMSO 1h (LFC>0); dds jq_cell_line; cts cell_Line_group; batch effect'
-)
+#res.list[['jq1h-batch']] <- list(
+#    res=results(dds.list[['jq_cell_line']], contrast=c(-1,0,1,0,-1,0,1,0,-1,0,1,0)),
+#    dds='jq_cell_line',
+#    label='JQ1 vs. DMSO 1h (LFC>0); dds jq_cell_line; cts cell_Line_group; batch effect'
+#)
 
 # JQ1 vs. DMSO at 6h
-res.list[['jq6h-batch']] <- list(
-    res=results(dds.list[['jq_cell_line']], contrast=c(0,-1,0,1,0,-1,0,1,0,-1,0,1)),
-    dds='jq_cell_line',
-    label='JQ1 vs. DMSO 6h (LFC>0); dds jq_cell_line; cts cell_Line_group; batch effect'
-)
+#res.list[['jq6h-batch']] <- list(
+#    res=results(dds.list[['jq_cell_line']], contrast=c(0,-1,0,1,0,-1,0,1,0,-1,0,1)),
+#    dds='jq_cell_line',
+#    label='JQ1 vs. DMSO 6h (LFC>0); dds jq_cell_line; cts cell_Line_group; batch effect'
+#)
 
 # JQ1 vs. DMSO 6h vs. 1h
-res.list[['jq6h.vs.1h-batch']] <- list(
-    res=results(dds.list[['jq_cell_line']], contrast=c(1,-1,-1,1,1,-1,-1,1,1,-1,-1,1)),
-    dds='jq_cell_line',
-    label='JQ1 vs. DMSO 6h vs. 1h (LFC>0); dds jq_cell_line; cts cell_Line_group; batch effect'
-)
+#res.list[['jq6h.vs.1h-batch']] <- list(
+#    res=results(dds.list[['jq_cell_line']], contrast=c(1,-1,-1,1,1,-1,-1,1,1,-1,-1,1)),
+#    dds='jq_cell_line',
+#    label='JQ1 vs. DMSO 6h vs. 1h (LFC>0); dds jq_cell_line; cts cell_Line_group; batch effect'
+#)
 
 # dBet6 ---------------------------
 
