@@ -1,3 +1,3 @@
 samplename	group	layout	orig_filename
-sample1	control	SE	data/example_data/rnaseq_sample1PE_1.fq.gz
-sample2	control	SE	data/example_data/rnaseq_sample2.fq.gz
+A549_dBet6_1h_1	dBet6_1h	SE	data/example_data/A549_dBet6_1h_1.small_R1.fastq.gz
+A549_dBet6_1h_2	dBet6_1h	SE	data/example_data/A549_dBet6_1h_2.small_R1.fastq.gz
