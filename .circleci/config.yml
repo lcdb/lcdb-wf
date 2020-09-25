@@ -257,7 +257,7 @@ variables:
 
           # test PE reads
           ./run_test.sh -j 2 --use-conda -k -p -r --until multiqc \
-            --configfile $ORIG/test/test_configs/override.yaml \
+            --configfile $ORIG/test/test_configs/override_PE.yaml \
             --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
 
 
@@ -354,6 +354,7 @@ jobs:
 
   rnaseq:
     <<: *defaults
+    resource_class: large
     steps:
       - checkout
       - *restore_cache
