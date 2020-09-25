@@ -1,9 +1,11 @@
 bioconductor-annotationhub
 bioconductor-apeglm
 bioconductor-biocparallel
+bioconductor-chipseeker
 bioconductor-clusterprofiler
 bioconductor-degreport
 bioconductor-deseq2
+bioconductor-diffbind
 bioconductor-dupradar
 bioconductor-genomeinfodbdata
 bioconductor-genomicfeatures
@@ -24,3 +26,4 @@ r-rmarkdown
 r-spp
 r-sparsem
 r-upsetr
+r-ggupset
