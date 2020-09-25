@@ -280,36 +280,14 @@ lst <- list(
                 design=~treatment,
                 args=list(subset.counts=TRUE)
             ),
-            jq=list(
-                sampletable=colData %>% filter(treatment %in% c('DMSO', 'JQ1'), !samplename %in% outliers),
-                design=~group + 0,
-                args=list(subset.counts=TRUE)
-            ),
             jq_cell_line=list(
                 sampletable=colData %>% filter(treatment %in% c('DMSO', 'JQ1'), !samplename %in% outliers),
                 design=~cell_line_group + 0,
                 args=list(subset.counts=TRUE)
             ),
-            jq_interact_term=list(
-                sampletable=colData %>% filter(treatment %in% c('DMSO', 'JQ1'), !samplename %in% outliers),
-                design=~treatment + cell_Line + timepoint + treatment:timepoint,
-                args=list(subset.counts=TRUE)
-            ),
-            dbet=list(
-                sampletable=colData %>% filter(treatment %in% c('DMSO', 'dBet6'), !samplename %in% outliers),
-                design=~group + 0,
-                args=list(subset.counts=TRUE)
-            ),
             dbet_cell_line=list(
                 sampletable=colData %>% filter(treatment %in% c('DMSO', 'dBet6'), !samplename %in% outliers),
                 design=~cell_line_group + 0,
-                args=list(subset.counts=TRUE)
-            ),
-            dbet_interact_term=list(
-                sampletable=colData %>%
-                    filter(treatment %in% c('DMSO', 'dBet6'), !samplename %in% outliers) %>%
-                    mutate(treatment=factor(treatment, levels=c('DMSO', 'dBet6'))),
-                design=~treatment + cell_Line + timepoint + treatment:timepoint,
                 args=list(subset.counts=TRUE)
             )
 )
@@ -337,12 +315,6 @@ res.list[['main_jq']] <- list(
 )
 
 # JQ1 vs. DMSO at 1h
-res.list[['jq1h']] <- list(
-    res=results(dds.list[['jq']], contrast=c(-1,0,1,0)),
-    dds='jq',
-    label='JQ1 vs. DMSO 1h (LFC>0); dds jq; cts group'
-)
-
 res.list[['jq1h-batch']] <- list(
     res=results(dds.list[['jq_cell_line']], contrast=c(-1,0,1,0,-1,0,1,0,-1,0,1,0)),
     dds='jq_cell_line',
@@ -350,12 +322,6 @@ res.list[['jq1h-batch']] <- list(
 )
 
 # JQ1 vs. DMSO at 6h
-res.list[['jq6h']] <- list(
-    res=results(dds.list[['jq']], contrast=c(0,-1,0,1)),
-    dds='jq',
-    label='JQ1 vs. DMSO 6h (LFC>0); dds jq; cts group'
-)
-
 res.list[['jq6h-batch']] <- list(
     res=results(dds.list[['jq_cell_line']], contrast=c(0,-1,0,1,0,-1,0,1,0,-1,0,1)),
     dds='jq_cell_line',
@@ -363,33 +329,10 @@ res.list[['jq6h-batch']] <- list(
 )
 
 # JQ1 vs. DMSO 6h vs. 1h
-res.list[['jq6h.vs.1h']] <- list(
-    res=results(dds.list[['jq']], contrast=c(1,-1,-1,1)),
-    dds='jq',
-    label='JQ1 vs. DMSO 6h vs. 1h (LFC>0); dds jq; cts group'
-)
-
 res.list[['jq6h.vs.1h-batch']] <- list(
     res=results(dds.list[['jq_cell_line']], contrast=c(1,-1,-1,1,1,-1,-1,1,1,-1,-1,1)),
     dds='jq_cell_line',
     label='JQ1 vs. DMSO 6h vs. 1h (LFC>0); dds jq_cell_line; cts cell_Line_group; batch effect'
-)
-
-res.list[['jq6h.vs.1h-interactdesign']] <- list(
-    res=results(dds.list[['jq_interact_term']]),
-    dds='jq_cell_line',
-    label='JQ1 vs. DMSO 6h vs. 1h (LFC>0); dds jq_interact_term; cts cell_Line_group; batch effect'
-)
-
-res.list[['jq_lfc2']] <- list(
-    res=lfcShrink(
-        dds.list[['jq_interact_term']],
-        coef='treatmentJQ1.timepoint6h',
-        #lfcThreshold=2,    # no padj if lfcThreshold
-        type='apeglm'
-    ),
-    dds='main',
-    label='JQ1 vs. DMSO 6h vs. 1h (LFC>2); dds jq_interact_term; cts treat+cell_Line+timepoint+treat:timepoint; batch effect'
 )
 
 # dBet6 ---------------------------
@@ -401,12 +344,6 @@ res.list[['main_dbet']] <- list(
 )
 
 # dBET6 vs. DMSO at 1h
-res.list[['dbet1h']] <- list(
-    res=results(dds.list[['dbet']], contrast=c(-1,0,1,0)),
-    dds='dbet',
-    label='dBet6 vs. DMSO 1h (LFC>0); dds dbet; cts group'
-)
-
 res.list[['dbet1h-batch']] <- list(
     res=results(dds.list[['dbet_cell_line']], contrast=c(-1,0,1,0,-1,0,1,0,-1,0,1,0)),
     dds='dbet_cell_line',
@@ -414,12 +351,6 @@ res.list[['dbet1h-batch']] <- list(
 )
 
 # dBet6 vs. DMSO at 6h
-res.list[['dbet6h']] <- list(
-    res=results(dds.list[['dbet']], contrast=c(0,-1,0,1)),
-    dds='dbet',
-    label='dBet6 vs. DMSO 6h (LFC>0); dds dbet; cts group'
-)
-
 res.list[['dbet6h-batch']] <- list(
     res=results(dds.list[['dbet_cell_line']], contrast=c(0,-1,0,1,0,-1,0,1,0,-1,0,1)),
     dds='dbet_cell_line',
@@ -427,33 +358,10 @@ res.list[['dbet6h-batch']] <- list(
 )
 
 # dBet6 vs. DMSO 6h vs. 1h
-res.list[['dbet6h.vs.1h']] <- list(
-    res=results(dds.list[['dbet']], contrast=c(1,-1,-1,1)),
-    dds='dbet',
-    label='dBet6 vs. DMSO 6h vs. 1h (LFC>0); dds dbet; cts group'
-)
-
 res.list[['dbet6h.vs.1h-batch']] <- list(
     res=results(dds.list[['dbet_cell_line']], contrast=c(1,-1,-1,1,1,-1,-1,1,1,-1,-1,1)),
     dds='dbet_cell_line',
     label='dBet6 vs. DMSO 6h vs. 1h (LFC>0); dds dbet_cell_line; cts cell_Line_group; batch effect'
-)
-
-res.list[['dbet6h.vs.1h-interactdesign']] <- list(
-    res=results(dds.list[['dbet_interact_term']]),
-    dds='dbet_cell_line',
-    label='dBet6 vs. DMSO 6h vs. 1h (LFC>0); dds dbet_interact_term; cts cell_Line_group; batch effect'
-)
-
-res.list[['dbet_lfc2']] <- list(
-    res=lfcShrink(
-        dds.list[['dbet_interact_term']],
-        coef='treatmentdBet6.timepoint6h',
-        #lfcThreshold=2,
-        type='apeglm'
-    ),
-    dds='main',
-    label='dBet6 vs. DMSO 6h vs. 1h (LFC>2); dds dbet_interact_term; cts treat+cell_Line+timepoint+treat:timepoint; batch effect'
 )
 
 ```
