@@ -134,6 +134,8 @@ variables:
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r
           python chipseq_trackhub.py config/config.yaml config/hub_config.yaml
+          source activate lcdb-wf-test-r
+          Rscript -e "rmarkdown::render('downstream/diffbind.Rmd')"
   # --------------------------------------------------------------------------
   # Previous versions had an error where chipseq peaks needed to be defined for
   # every caller. This does a (relatively) quick test to only run a single
