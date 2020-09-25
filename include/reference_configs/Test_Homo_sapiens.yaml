@@ -15,6 +15,7 @@ references:
         indexes:
           - 'hisat2'
           - 'bowtie2'
+          - 'star'
 
       annotation:
         url: 'https://github.com/lcdb/lcdb-test-data-human/raw/master/annotation/hg38.small.gtf'
