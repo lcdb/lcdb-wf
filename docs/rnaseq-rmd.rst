@@ -1,3 +1,5 @@
+.. _rnaseqrmd:
+
 ``rnaseq.Rmd`` code documentation
 =================================
 
@@ -183,6 +185,8 @@ TRUE:
 Calls to ``DESeq()`` below will provide the argument ``parallel=parallel`` so no
 other changes should be needed.
 
+.. _dds_list:
+
 ``dds_list``
 ------------
 
@@ -312,6 +316,8 @@ Contrasts can be specified in three different ways.
    .. code-block:: r
 
       res <- results(dds, contrast=c('group', 'treatment', 'control')
+
+   That is, **the control must be last**.
 
 2. `name` parameter for ``results()`` function call or `coef` parameter for
    ``lfcShrink()`` call
