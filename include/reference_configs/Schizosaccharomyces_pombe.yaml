@@ -11,6 +11,7 @@ references:
         indexes:
           - 'bowtie2'
           - 'hisat2'
+          - 'star'
       annotation:
         url: 'ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/gff3/schizosaccharomyces_pombe/Schizosaccharomyces_pombe.ASM294v2.41.gff3.gz'
 
@@ -24,8 +25,9 @@ references:
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
         postprocess:
-            function: 'lib.common.filter_fastas'
-            args: 'Schizosaccharomyces pombe'
+          function: 'lib.common.filter_fastas'
+          args: 'Schizosaccharomyces pombe'
         indexes:
-            - 'hisat2'
-            - 'bowtie2'
+          - 'hisat2'
+          - 'bowtie2'
+          - 'star'

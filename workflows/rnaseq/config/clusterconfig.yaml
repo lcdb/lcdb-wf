@@ -33,3 +33,6 @@ bigwig_pos:
 
 star:
   prefix: "--time=8:00:00 --mem=64g"
+
+star_index:
+  prefix: "--time=8:00:00 --mem=64g"

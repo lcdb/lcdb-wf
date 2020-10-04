@@ -6,3 +6,5 @@ references:
         postprocess: "lib.postprocess.phix.fasta_postprocess"
         indexes:
           - 'bowtie2'
+          - 'hisat2'
+          - 'star'

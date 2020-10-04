@@ -408,11 +408,14 @@ make.dds <- function(design_data, salmon.files=NULL, combine.by=NULL,
 
     if (remove.version){
         rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE),
-                                function (x) x[1])
+                                function (x) {ifelse(grepl('_', x[2]),
+                                                     paste(x[1], x[2], sep='.'),
+                                                     x[1])}
+                                )
     }
 
     if(!is.null(combine.by)){
-        dds <-collapseReplicates(dds, dds$biorep)
+        dds <-collapseReplicates2(dds, dds[[combine.by]])
     }
 
     dds <- DESeq(dds, ...)
@@ -556,12 +559,21 @@ top.plots <- function(res, n, func, dds, add_cols=NULL, ...){
 #'
 #' @return dataframe
 counts.df <- function(dds, res, sel.genes=NULL, label=NULL, rank.col='padj', pc=0.5) {
+
     # getting normalized counts copied from plotCounts()
     cnts <- counts(dds, normalized = TRUE, replaced = FALSE)
+
+    # keep track of original samplenames (as we're about to add another column)
+    samples <- colnames(cnts)
+
     # add 0.5 like plotCounts to plot 0 on log scale
     cnts <- cnts + pc
+
+    cnts <- as.data.frame(cnts) %>% mutate(gene=rownames(.))
+
     # merge with res.i and colData
-    df <- as.data.frame(cbind(cnts, res))
+    df <- inner_join(as_tibble(cnts), as_tibble(res))
+
     # add label for plotting
     df <- df %>% mutate(label = paste(gene, !!!syms(label), sep=' | '))
     # subset to sel.genes if not NULL (then keep all)
@@ -571,11 +583,17 @@ counts.df <- function(dds, res, sel.genes=NULL, label=NULL, rank.col='padj', pc=
     }
     # add rank
     df <- df %>%
-        mutate(rank = rank(!!sym(rank.col), ties.method='first', na.last='keep')) %>%
-        pivot_longer(colnames(cnts), names_to='samplename', values_to='normalized_counts')
-    # add colData
-    df <- merge(df, colData(dds), by='samplename') %>%
-        as.data.frame()
+        mutate(rank=rank(!!sym(rank.col), ties.method='first', na.last='keep')) %>%
+        pivot_longer(all_of(samples), names_to='samplename', values_to='normalized_counts')
+
+    # add colData, but without requiring the first column of colData to be
+    # called exactly "samplename" -- instead we make a new column called
+    # join.samplename that will be used just for joining (it becomes
+    # "samplename" in the final joined df)
+
+    dat <- colData(dds) %>% as.data.frame %>% mutate(join.samplename=rownames(.))
+    df <- left_join(df, dat, by=c('samplename'='join.samplename')) %>%
+        as_tibble
     return(df)
 }
 
@@ -772,6 +790,7 @@ summarize.res.list <- function(res.list, alpha, lfc.thresh, dds.list=NULL){
         slist[[name]] <- x
     }
     slist <- do.call(rbind, slist)
+    rownames(slist) <- as.character(lapply(res.list, function (x) x[['label']]))
     return(slist)
 }
 
@@ -893,3 +912,20 @@ write.clusterprofiler.results <- function(res, cprof.folder, label){
     return(list(orig=filename.orig, split=filename.split))
 }
 
+
+#' DESeq2::collapseReplicates, but also fix the first column
+#'
+#' DESeq2::collapseReplicates returns an object whose colData contains the
+#' column used for collapsing, but only the first unique value of a collapsed
+#' group is returned. This function makes the first column the same as the
+#' rownames. This in turn allows the colData to meet expectations of other
+#' lcdbwf functions and play nicer with dplyr.
+#'
+#' @param object Object to collapse. Typically a DESeq2 dds object
+#' @param groupby Factor to group by. Typically a column from dds indicating
+#'                biological replicate (e.g., dds$biorep)
+collapseReplicates2 <- function(object, groupby){
+    collapsed <- DESeq2::collapseReplicates(object, groupby)
+    colData(collapsed)[,1] <- rownames(colData(collapsed))
+    return(collapsed)
+}
