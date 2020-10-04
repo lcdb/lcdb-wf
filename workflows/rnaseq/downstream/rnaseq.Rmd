@@ -32,21 +32,23 @@ Last run: `r date()`
 # RNA-seq results
 
 ```{r}
-library(DESeq2)
-library(gridExtra)
-library(ggplot2)
-library(genefilter)
-library(readr)
-library(tximport)
-library(clusterProfiler)
 library(AnnotationHub)
 library(BiocParallel)
-library(UpSetR)
-library(ReactomePA)
+library(clusterProfiler)
 library(cowplot)
-library(plotly)
-library(tibble)
+library(DESeq2)
 library(dplyr)
+library(DT)
+library(genefilter)
+library(ggplot2)
+library(gridExtra)
+library(plotly)
+library(ReactomePA)
+library(readr)
+library(reshape)
+library(tibble)
+library(tximport)
+library(UpSetR)
 ```
 
 
