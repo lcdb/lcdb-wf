@@ -40,9 +40,19 @@ c = ChIPSeqConfig(
 wildcard_constraints:
     n = '[1,2]'
 
+localrules: symlinks
+
 
 def wrapper_for(path):
     return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
+
+
+def render_r1_r2(pattern, r1_only=False):
+    return expand(pattern, sample='{sample}', n=c.n)
+
+
+def r1_only(pattern):
+    return expand(pattern, sample='{sample}', n=1)
 
 
 # ----------------------------------------------------------------------------
@@ -78,6 +88,35 @@ rule targets:
     Final targets to create
     """
     input: final_targets
+
+
+rule multiqc_initial:
+    """
+    Aggregate various QC stats and logs into a single HTML report with MultiQC
+    """
+    # NOTE: if you add more rules and want MultiQC to pick up the output, best
+    # to add outputs from those rules to the inputs here.
+    input:
+        files=(
+            utils.flatten(c.targets['fastqc']['raw'])
+        ),
+        config='config/multiqc_config.yaml'
+    output:
+        'multiqc_initial.html'
+    log:
+        'multiqc_initial.html.log'
+    run:
+        analysis_directory = set([os.path.dirname(i) for i in input])
+        shell(
+            'LC_ALL=en_US.utf8 LC_LANG=en_US.utf8 '
+            'multiqc '
+            '--quiet '
+            '--force '
+            '--filename {output} '
+            '--config {input.config} '
+            '{analysis_directory} '
+            '&> {log} '
+        )
 
 
 if 'orig_filename' in c.sampletable.columns:
@@ -169,9 +208,6 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                 )
 
 
-def render_r1_r2(pattern):
-    return expand(pattern, sample='{sample}', n=[1,2])
-
 rule cutadapt:
     """
     Run cutadapt
@@ -183,11 +219,8 @@ rule cutadapt:
     log:
         render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
     run:
-        paired = len(input) == 2
-
         # NOTE: Change cutadapt params here
-
-        if paired:
+        if c.is_paired:
             shell(
                 "cutadapt "
                 "-o {output[0]} "
@@ -223,33 +256,34 @@ rule fastqc:
     script:
         wrapper_for('fastqc/wrapper.py')
 
+
 rule bowtie2:
     """
     Map reads with Bowtie2
     """
     input:
         fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
-        index=[refdict[c.organism][config['aligner']['tag']]['bowtie2']]
+        index=[c.refdict[c.organism][config['aligner']['tag']]['bowtie2']]
     output:
         bam=c.patterns['bam']
     log:
         c.patterns['bam'] + '.log'
-    threads: 8
+    threads: 16
     run:
         prefix = aligners.prefix_from_bowtie2_index(input.index)
         sam = output.bam.replace('.bam', '.sam')
 
-        # If two fastqs were provided, assume paired-end mode; otherwise single-end
-        if isinstance(input.fastq, str) or len(input.fastq) == 1:
-            fastqs = '-U {0} '.format(input.fastq)
-        else:
+        if c.is_paired:
             assert len(input.fastq) == 2
             fastqs = '-1 {0} -2 {1} '.format(*input.fastq)
+        else:
+            assert len(input.fastq) == 1
+            fastqs = '-U {0} '.format(input.fastq)
 
         shell(
             "bowtie2 "
             "-x {prefix} "
-            "-U {input.fastq} "
+            "{fastqs} "
             '--no-unal '  # NOTE: suppress unaligned reads
             "--threads {threads} "
             "-S {sam} "
@@ -725,7 +759,7 @@ rule plotcorrelation:
         '--corMethod spearman '
         '--whatToPlot heatmap '
         '--plotFile {output.heatmap} '
-        '--colorMap viridis '
+        '--colorMap Reds '
         '--outFileCorMatrix {output.tab}'
 
         # NOTE: if you're expecting negative correlation, try a divergent
