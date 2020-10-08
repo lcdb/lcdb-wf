@@ -27,7 +27,7 @@ rseqc>=3.0.1
 salmon>=1.2.1
 samtools>=1.9
 seaborn>=0.10.0
-snakemake-minimal>=5.15.0,<5.18
+snakemake-minimal
 sra-tools>=2.10.7
 star>=2.7.3a
 subread>=2.0.0
