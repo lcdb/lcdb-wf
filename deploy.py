@@ -39,7 +39,8 @@ always = {
         "wrappers/wrappers",
         "include",
         "lib",
-        "requirements.txt",
+        "requirements-non-r.txt",
+        "requirements-r.txt",
         ".gitignore",
     ],
     "exclude": [
@@ -93,11 +94,11 @@ ap.add_argument(
 )
 ap.add_argument("--dest", help="""Destination directory in which to copy files""", required=True)
 ap.add_argument(
-    "--build-env",
+    "--build-envs",
     action="store_true",
-    help="""If specified, a conda environment with all dependencies will be
-    installed into a directory called "env" within the directory provided for
-    --dest.  """,
+    help="""If specified, conda environments with all dependencies will be
+    installed into directories called "env" and "env-r" within the directory
+    provided for --dest.""",
 )
 ap.add_argument("--verbose", "-v", action="store_true", help="""Verbose mode""")
 
@@ -212,7 +213,7 @@ os.chmod(log, 0o440)
 
 
 # If specified, build an environment in `dest/env`, using the correct channels.
-if args.build_env:
+if args.build_envs:
     sp.check_call(
         [
             "conda",
