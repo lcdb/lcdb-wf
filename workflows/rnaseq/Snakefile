@@ -505,7 +505,7 @@ rule bam_count:
     input:
         bam='{sample_dir}/{sample}/{suffix}.bam'
     output:
-        count='{sample_dir}/{sample}/{suffix}.bam.libsize'
+        '{sample_dir}/{sample}/{suffix}.bam.libsize'
     shell:
         'samtools view -c {input} > {output}'
 
