@@ -731,6 +731,7 @@ rule multibigwigsummary:
     output:
         npz=c.targets['multibigwigsummary']['npz'],
         tab=c.targets['multibigwigsummary']['tab']
+    threads: 16
     run:
         # from the input files, figure out the sample name.
         labels = ' '.join([i.split('/')[-2] for i in input])
