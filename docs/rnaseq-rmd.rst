@@ -253,7 +253,7 @@ The above example becomes the following:
    lst <- list(
       main=list(sampletable=colData, design=~group),
       no.rep.4=list(
-         sampletable=colData %>% filter(replicate!='rep4),
+         sampletable=colData %>% filter(replicate!='rep4'),
          design=~group,
          args=list(subset.counts=TRUE))
    )
@@ -443,6 +443,7 @@ existing results table. If it exists, it applies shrinkage to the lfc and se
 in that table. If it *doesn't* exist, it calls results on dds with the syntax
 
     res <- results(dds, name=coef)
+
 or
 
     res <- results(dds, contrast=contrast)

@@ -21,7 +21,6 @@ should inspect the following files:
   necessary changes, returning the temp dir. Other cluster-specific code may go
   here (see `cluster_specific`)
 
-
 The default configuration we provide is specific to the NIH Biowulf cluster.
 To run a workflow on Biowulf, from the workflow directory (e.g.,
 ``workflows/rnaseq``, run the following command::
@@ -34,15 +33,15 @@ snakemake process then submits each rule separately to the cluster scheduler.
 As configured in that script, we specify ``config/clusterconfig.yaml`` as
 containing the rule-specific cluster arguments.
 
-That script also contains this Snakemake arguments::
+That script also contains the Snakemake arguments::
 
     --jobname "s.{rulename}.{jobid}.sh" \
     --cluster 'sbatch {cluster.prefix} --cpus-per-task={threads}  --output=logs/{rule}.o.%j --error=logs/{rule}.e.%j' \
 
-This means that each job is named after the rule and job id (the ``--jobname``
-arg) and the stdout and stderr go to files in ``logs`` and are named after the
-rule, followed by a ``.o`` or ``.e``, followed by the cluster job ID (the
-``--cluster`` arg).
+This means that each job will be named after the rule and job id (the
+``--jobname`` arg) and the stdout and stderr go to files in ``logs`` and are
+named after the rule, followed by a ``.o`` or ``.e``, followed by the cluster
+job ID (the ``--cluster`` arg).
 
 .. _cluster_specific:
 

@@ -14,9 +14,39 @@ The example run takes up about 360 MB of space and runs in about 15 mins on
 
 .. note::
 
-    The environment you created (see :ref:`create-env`) needs to be activated
-    for these steps.
+   The ``deploy.py`` script specifically **excludes** the various test files,
+   so the commands below must be run in a full clone of the repo, not in
+   a directory in which lcdb-wf has been deployed.
 
+Create conda envs
+-----------------
+
+This assumes you have set up the `bioconda channel
+<https://bioconda.github.io>`_ properly.
+
+.. code-block:: bash
+
+   conda create -p ./env --file requirements-non-r.txt
+
+.. code-block:: bash
+
+   conda create -p ./env-r --file requirements-r.txt
+
+
+Activate the main env
+---------------------
+
+Depending on how you have set up conda, either
+
+.. code-block:: bash
+
+   conda activate ./env
+
+or
+
+.. code-block:: bash
+
+   source activate ./env
 
 Download example data
 ---------------------
@@ -64,6 +94,9 @@ for test settings, and writes the results to a new ``Snakefile.test`` file that
 is then run. In production, especially when running on a cluster, there's no
 need to do this.
 
+
+See the docstring in the ``ci/preprocessor.py`` for details on how this works.
+
 The ``run_test.sh`` simply passes all arguments on to Snakemake. Take a look at
 the script to see what it's doing, and see the examples below for usage.
 
@@ -96,17 +129,24 @@ example just uses 2 cores):
 
 This will take ~15 minutes to run.
 
-Briefly,the file ``config/config.yaml`` sets up lots of configuration like
-where the fastq files are found, how to build references, and so on. The
-workflow expects the file called ``config/config.yaml``; see :ref:`config` for
-more details. This workflow first imports the references workflow, which
-downloads genome sequence and reference files and builds indexes as necessary
-(HISAT2 genome index, salmon transcriptome index, bowtie2 index for rRNA, GTF
-file of gene annotations) and then carries on with the RNA-seq workflow.
+Then activate the R environment (this assumes you're still in the
+``workflows/rnaseq`` subdirectory):
 
-The RNA-seq workflow includes the standard mapping, counting, and differential
-expression stages, as well as many quality-control steps. See :ref:`rnaseq` for
-more details.
+.. code-block:: bash
+
+    conda activate env-r   # or source activate env-r
+
+You can either start an R interpreter and run:
+
+.. code-block:: bash
+
+    rmarkdown::render('downstream/rnaseq.Rmd')
+
+or from the terminal:
+
+.. code-block:: bash
+
+    Rscript -e "rmarkdown::render('downstream/rnaseq.Rmd')"
 
 After the workflow runs, here are some useful points of interest in the output:
 
@@ -116,13 +156,22 @@ After the workflow runs, here are some useful points of interest in the output:
     - ``downstream/rnaseq.html``: Differential expression results generated
       from running the ``downstream/rnaseq.Rmd`` RMarkdown file.
 
-See :ref:`rnaseq` for details.
+.. seealso::
+
+   - :ref:`rnaseq`
+   - :ref:`config`
 
 Run the ChIP-seq workflow with example data
 -------------------------------------------
 
-With the `lcdb-wf` environment activated, from the top-level directory of the
-repo, change to the ``workflows/chipseq`` directory:
+From the top-level directory of the repo, activate the main env:
+
+.. code-block:: bash
+
+   conda activate ./env  # or source activate ./env
+
+
+Change to the ``workflows/chipseq`` directory:
 
 .. code-block:: bash
 
@@ -145,13 +194,8 @@ example just uses 2 cores):
 
     ./run_test.sh -j 2 --use-conda
 
-Like the RNA-seq workflow, the ChIP-seq workflow expects
-a ``config/config.yaml`` file and includes the
-``workflows/references/Snakemake`` workflow, so that genome fastas are
-downloaded and indexes built as necessary, before continuing on to the ChIP-seq
-workflow. The ChIP-seq workflow includes QC, mapping, and peak-calling.
 
-Points of interest:
+Points of interest after running the ChIP-seq workflow:
 
     - ``data/chipseq_samples/*``: sample-specific output. Individual BAM files
       for a sample can be found here.
@@ -163,44 +207,17 @@ Points of interest:
 
 See :ref:`chipseq` for details.
 
-Run the references workflow with example data
----------------------------------------------
+Exhaustive tests
+----------------
 
-This is optional; parts of this workflow were actually run automatically as
-needed for the RNA-seq and ChIP-seq workflows. However, running this workflow
-on its own can be useful for setting up a new site, as it will build all
-configured references the config file provided to it (as opposed to only
-building the references specifically requested by either the ChIP-seq or
-RNA-seq workflows).
-
-From the top-level of the repo, change to the ``workflows/references`` directory:
-.. code-block:: bash
-
-    cd workflows/references
-
-First, run in dry-run mode which will print out the jobs to be run.  The
-arguments will be described later, this is just to get things running:
-
-.. code-block:: bash
-
-    ./run_test.sh -n --use-conda --configfile ../../include/reference_configs/test.yaml
-
-If all goes well, you will get lots of output ending with a summary of the
-number of jobs that will be run. Then, use the same command but remove the
-``-n``, and optionall include the ``-j`` argument to specify the number of
-cores to use, for example ``-j 8`` if you have 8 cores on your machine (this
-example just uses 2 cores):
-
-.. code-block:: bash
-
-    ./run_test.sh -j 2 --use-conda --configfile ../../include/reference_configs/test.yaml
-
-
-See :ref:`references` for details.
-
+The file ``.circleci/config.yml`` configures all of the tests that are run on
+CircleCI. There's a lot of configuration happening there, but look for the
+entries that have ``./run_test.sh`` in them to see the commands that are run.
 
 Next steps
 ----------
+See :ref:`setup-proj` for deploying lcdb-wf to a project directory.
+
 See :ref:`config` for how to configure the workflows to work on your own data
 and how to configure for your system.
 
