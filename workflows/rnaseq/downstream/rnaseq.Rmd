@@ -128,7 +128,7 @@ dds <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
 
 # NOTE: collapse technical replicates ----------------------------------------
 #   If collapsing technical replicates, do so here
-dds <- lcdbwf::collapseReplicates2(dds, dds$biorep)
+# dds <- lcdbwf::collapseReplicates2(dds, dds$biorep)
 
 if (strip.dotted.version){
     rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE),
