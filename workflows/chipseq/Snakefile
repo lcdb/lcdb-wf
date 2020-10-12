@@ -90,35 +90,6 @@ rule targets:
     input: final_targets
 
 
-rule multiqc_initial:
-    """
-    Aggregate various QC stats and logs into a single HTML report with MultiQC
-    """
-    # NOTE: if you add more rules and want MultiQC to pick up the output, best
-    # to add outputs from those rules to the inputs here.
-    input:
-        files=(
-            utils.flatten(c.targets['fastqc']['raw'])
-        ),
-        config='config/multiqc_config.yaml'
-    output:
-        'multiqc_initial.html'
-    log:
-        'multiqc_initial.html.log'
-    run:
-        analysis_directory = set([os.path.dirname(i) for i in input])
-        shell(
-            'LC_ALL=en_US.utf8 LC_LANG=en_US.utf8 '
-            'multiqc '
-            '--quiet '
-            '--force '
-            '--filename {output} '
-            '--config {input.config} '
-            '{analysis_directory} '
-            '&> {log} '
-        )
-
-
 if 'orig_filename' in c.sampletable.columns:
 
     # Convert the sampletable to be indexed by the first column, for
