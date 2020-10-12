@@ -41,6 +41,8 @@ wildcard_constraints:
     n = '[1,2]',
     sample = '|'.join(SAMPLES)
 
+localrules: symlinks
+
 
 def wrapper_for(path):
     return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
