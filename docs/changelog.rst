@@ -4,7 +4,6 @@ Changelog
 v1.6
 ----
 
-
 References
 ~~~~~~~~~~
 - overhaul the way transcriptome fastas are created. Instead of requiring
@@ -12,8 +11,18 @@ References
   files. The reference config section now uses keys ``genome:``,
   ``transcriptome:``, and ``annotation:`` rather than the ``fasta:`` and
   ``gtf:`` keys.
-- **backwards-incompatible change:** reference config files are updated to
-  reflect the changes in the references workflow
+- **backwards-incompatible change:** reference config files have been updated
+  to reflect the changes in the references workflow
+- Update PhiX genome fasta to use NCBI rather than Illumina iGenomes
+
+ChIP-seq workflow
+~~~~~~~~~~~~~~~~~
+- ChIP-seq workflow now properly supports paired-end reads
+- A ChIP-seq workflow can now be run when the ``chipseq:`` and/or
+  ``peak_calling:`` sections are omitted.
+- added a missing bowtie2 config entry in ``clusterconfig.yaml`` which could
+  result in out-of-memory errors when submitting to a cluster using that file
+
 
 RNA-seq workflow
 ~~~~~~~~~~~~~~~~
@@ -26,6 +35,8 @@ RNA-seq workflow
   samples.
 - implement STAR two-pass alignment. Default is still single-pass.
 - Clean up hard-coded STAR indexing Log.out file
+- Include ``ashr`` and ``ihw`` Bioconductor packages in the R requirements, for
+  use with recent versions of DESeq2.
 
 
 RNA-seq downstream
@@ -45,10 +56,17 @@ RNA-seq downstream
   TSVs for each contrast
 - Many functions in the rnaseq.Rmd now expect a list of :term:`dds` objects.
   See :ref:`dds_list` for more info on this.
-- Created a new R package, ``lcdbwf`` stored in :file:`lib/lcdbwf`.
+- Created a new R package, ``lcdbwf`` stored in :file:`lib/lcdbwf`. This can be
+  edited in place, and it is loaded from disk within ``rnaseq.Rmd``.
+- Modified some output keys to support recent versions of Snakemake, for which
+  ``count`` is a reserved keyword
+
 
 General
 ~~~~~~~
+- Conda environments are now split into R and non-R. See :ref:`conda-envs` for
+  details. Updated ``deploy.py`` accordingly
+- symlinks rules are now set to be localrules
 - updated workflows to work on recent Snakemake versions
 - split environments into non-R and R. This, along with a loose pinning of
   versions (``>=``), dramatically speeds up environment creation.
