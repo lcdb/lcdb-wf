@@ -43,7 +43,11 @@ a site to get lots of genomes you can use for running `fastq_screen`, and
 easily include arbitrary other genomes. They can then be automatically included
 in RNA-seq and ChIP-seq workflows.
 
-This system is designed to allow customization
+This system is designed to allow customization as the config file
+can be used to include arbitrary genomes whether local or on the web.
+The `references` workflow need only be run once for all these genomes
+to be created, with the `references_dir` being used as a centralized
+repository that can be then used with all other workflows.
 
 Integration with external data and figure-making
 ------------------------------------------------
@@ -68,7 +72,7 @@ Run locally or on a cluster with the same code
 Run the same workflow locally or on a cluster with only a slight command-line
 modification. SLURM support for the NIH Biowulf cluster is built in; edit the
 ``clusterconfig.yaml`` file to specify cluster arguments specific to your
-system.
+system whether global or rule-specific.
 
 Only run the jobs required
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
