@@ -3,11 +3,10 @@ Overview of workflows
 
 .. note::
 
-    These workflows **are intended to be edited and customized by the user**.
+   These workflows **are intended to be edited and customized by the user**.
 
-    The typical use-case is to clone the entire repository into a new directory
-    for each project. The Snakefiles and config files are then edited
-    accordingly for that particular project.
+   See :ref:`setup-proj` for recommendations on setting up these workflows in
+   your project directory.
 
 
 Orientation of the directory structure
@@ -24,9 +23,10 @@ Starting at the top level of the repo:
     [3]  ├── include/
     [4]  ├── lib/
     [5]  ├── README.md
-    [6]  ├── requirements.txt
-    [7]  ├── workflows/
-    [8]  └── wrappers/
+    [6]  ├── requirements-non-r.txt
+    [7]  ├── requirements-r.txt
+    [8]  ├── workflows/
+    [9]  └── wrappers/
 
 1. ``ci`` contains infrastructure for continuous integration testing. You don't
    have to worry about this stuff unless you're actively developing `lcdb-wf`.
@@ -42,12 +42,16 @@ Starting at the top level of the repo:
 
 5. ``README.md`` contains top-level info.
 
-6. ``requirements.txt`` contains the package dependencies needed to run the
+6. ``requirements-non-r.txt`` contains the package dependencies needed to run the
    workflows, and is used to set up a conda environment.
 
-7. ``workflows/`` contains one directory for each workflow; see below for details.
+7. ``requirements-r.txt`` contains the package dependencies for R and various
+   Bioconductor packages used in downstream analysis. See :ref:`conda-envs` for the
+   rationale for splitting these.
 
-8. ``wrappers/`` contains Snakemake `wrappers
+8. ``workflows/`` contains one directory for each workflow; see below for details.
+
+9. ``wrappers/`` contains Snakemake `wrappers
    <https://snakemake.readthedocs.io/en/stable/snakefiles/modularization.html#wrappers>`_,
    which are scripts that can use their own independent environment. See
    :ref:`wrappers` for more.
@@ -79,18 +83,26 @@ Each workflow lives in its own directory:
         └── ...
 
 
-There are two general classes of workflows, the primary analysis and the
-downstream analysis. The primary analysis workflows are:
+There are two general classes of workflows, **primary analysis** and the
+**integrative analysis**. The primary analysis workflows are:
 
 - :ref:`references`
 - :ref:`rnaseq`
 - :ref:`chipseq`
 
-and the downstream workflows are:
+The primary analysis workflows are generally used for transforming raw data
+(fastq files) into usable results. For RNA-seq, that's differentially-expressed
+genes (along with comprehensive QC and analysis). For ChIP-seq, that's called
+peaks or differentially bound chromatin regions.
+
+The integrative analysis workflows are:
 
 - :ref:`colocalization`
 - :ref:`external`
 - :ref:`figures`
+
+The integrative analysis workflows take input from the primary workflows and
+tie them together.
 
 Each workflow is driven by a ``Snakefile`` and is configured by plain text
 `YAML <https://en.wikipedia.org/wiki/YAML>`_ and `TSV
@@ -100,30 +112,32 @@ a higher-level look at the features common to the primary analysis workflows.
 
 Features common to workflows
 ----------------------------
+There is some shared code across the multiple Snakefiles:
+
 The directory ``../..`` is added to Python's path. This way, the ``../../lib``
 module can be found, and we can use the various helper functions there. This is
 also simpler than providing a `setup.py` to install the helper functions.
 
-The config file is hard-coded to be `config/config.yaml`, but this can be
-overridden by Snakemake from the commandline, using ``snakemake --configfile
-<path to other config file>``. This allows the config file to be in the
-`config` dir with other config files without having to be specified on the
-command line, while also affording the user flexibility.
+The config file is hard-coded to be `config/config.yaml`, but if you need to
+this can be overridden by Snakemake from the commandline, using ``snakemake
+--configfile <path to other config file>``. This allows the config file to be
+in the `config` dir with other config files without having to be specified on
+the command line, while also affording the user flexibility.
 
 The config file is loaded using ``common.load_config``. This function resolves
-various paths (especially the `includ`-ed reference configs) and checks to see
+various paths (especially the references config section) and checks to see
 if the config is well-formatted.
 
-A `SeqConfig` object is created. It needs that parsed config file as well as
-the patterns file (see :ref:`patterns-and-targets`). The act of creating this
-object reads the sample table, fills in the patterns with sample names, creates
+To make it easier to work with the config, a `SeqConfig` object is created. It
+needs that parsed config file as well as the patterns file (see
+:ref:`patterns-and-targets` for more on this). The act of creating this object
+reads the sample table, fills in the patterns with sample names, creates
 a reference dictionary (see ``common.references_dict``) for easy access to
 reference files, and for ChIP-seq, also fills in the filenames for the
 configured peak-calling runs. This object, called ``c`` for convenience, can be
 accesto get all sort of information -- ``c.sampletable``, ``c.config``,
 ``c.patterns``, ``c.targets``, and ``c.refdict`` are frequently used in rules
 throughout the Snakefiles.
-
 
 Cluster-specific settings
 -------------------------
@@ -142,8 +156,9 @@ tools (examples include rules calling samtools, deepTools bamCoverage, picard,
 salmon).  However in some cases we use wrapper scripts. Situtations where we
 use wrappers:
 
-- Aligners (HISAT2, Bowtie2). These wrappers call the aligner, followed by
-  samtools sort and view such that FASTQs go in, and sorted BAM comes out.
+- Ensuring various aligners (HISAT2, Bowtie2, STAR, bwa) behave uniformly.
+  These wrappers call the aligner, followed by samtools sort and view. The end
+  result is that FASTQs go in, and a sorted BAM comes out.
 - Tools with legacy dependencies like Python 2.7 that must be run in an
   independent environment (macs2, sicer, rseqc)
 - R analyses (particularly spp and dupradar, which build up an R script

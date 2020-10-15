@@ -38,38 +38,3 @@ following tasks:
 The DAG of jobs looks like this:
 
 .. image:: rnaseq.png
-
-To run the workflow on your own data:
-
-- Install the dependencies (:ref:`getting-started`)
-- Optionally run the workflow on provided test data (:ref:`running-the-tests`)
-- Search the Snakefile for the string ``NOTE`` and edit rules as described by those comments
-- Edit the sampletable to reflect your sample IDs and their FASTQ files (:ref:`sampletable`)
-- Edit the config file to reflect the references you want to use (:ref:`references-config`)
-- Edit the config file to reflect the optional bigWig merging you would like (:ref:`cfg-merged-bigwigs`)
-
-If you are running on a local machine, from the ``workflows/rnaseq`` directory
-and with the environment activated, this will do a dry run:
-
-.. code-block:: bash
-
-    snakemake -n
-
-If no errors are displayed, run the workflow (assuming 8 CPUs):
-
-.. code-block:: bash
-
-    snakemake -j 8 --use-conda
-
-If you are running on a cluster other than NIH's Biowulf, edit the settings in
-the ``workflows/rnaseq/config/clusterconfig.yaml`` to reflect the settings for
-your cluster.
-
-Edit ``include/WRAPPER_SLURM`` to reflect the environment name that you used.
-
-From the ``workflows/rnaseq`` directory:
-
-.. code-block:: bash
-
-    sbatch ../../include/WRAPPER_SLURM
-

@@ -32,21 +32,23 @@ Last run: `r date()`
 # RNA-seq results
 
 ```{r}
-library(DESeq2)
-library(gridExtra)
-library(ggplot2)
-library(genefilter)
-library(readr)
-library(tximport)
-library(clusterProfiler)
 library(AnnotationHub)
 library(BiocParallel)
-library(UpSetR)
-library(ReactomePA)
+library(clusterProfiler)
 library(cowplot)
-library(plotly)
-library(tibble)
+library(DESeq2)
 library(dplyr)
+library(DT)
+library(genefilter)
+library(ggplot2)
+library(gridExtra)
+library(plotly)
+library(ReactomePA)
+library(readr)
+library(reshape)
+library(tibble)
+library(tximport)
+library(UpSetR)
 ```
 
 
@@ -126,10 +128,14 @@ dds <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
 
 # NOTE: collapse technical replicates ----------------------------------------
 #   If collapsing technical replicates, do so here
-# dds <-collapseReplicates(dds, dds$biorep)
+# dds <- lcdbwf::collapseReplicates2(dds, dds$biorep)
 
 if (strip.dotted.version){
-    rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
+    rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE),
+                            function (x) {ifelse(grepl('_', x[2]),
+                                                 paste(x[1], x[2], sep='.'),
+                                                 x[1])}
+                            )
 }
 
 vsd <- varianceStabilizingTransformation(dds, blind=TRUE)
@@ -194,6 +200,7 @@ a scatterplot).
 ```{r sizefactors, results='asis'}
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#sizefactors
 
+cat('\n\n\n\n\n\n')
 lcdbwf::mdcat('### Size factors')
 dds <- estimateSizeFactors(dds)
 sf <- sizeFactors(dds)
@@ -207,6 +214,7 @@ p <- ggplot(sf) +
     theme_bw() +
     theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1))
 ggplotly(p)
+cat('\n\n\n\n\n\n')
 
 lcdbwf::mdcat('### Size factors vs total read count')
 trc <- colSums(counts(dds)) %>%
@@ -217,6 +225,7 @@ p <- ggplot(data=trc_vs_sf, aes_string(x="`Total Read Count`", y="`Size Factor`"
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ggplotly(p)
+cat('\n\n\n\n\n\n')
 ```
 
 ```{r parallel_config}
@@ -340,11 +349,11 @@ for (name in names(res.list)){
   mdcat('### Summary of results')
   print(knitr::kable(my.summary(res.i, dds.i)))
   mdcat('### Normalized counts of top 3 upregulated genes')
-  print(counts.plot(counts.df(dds.i, res.i, sel.genes=lfc.filter(res.i),
+  print(lcdbwf::counts.plot(lcdbwf::counts.df(dds.i, res.i, sel.genes=lfc.filter(res.i),
                               label='symbol', rank.col='padj'),
                     3))
   mdcat('### Normalized counts of top 3 downregulated genes')
-  print(counts.plot(counts.df(dds.i, res.i, sel.genes=lfc.filter(res.i, reverse=TRUE),
+  print(lcdbwf::counts.plot(lcdbwf::counts.df(dds.i, res.i, sel.genes=lfc.filter(res.i, reverse=TRUE),
                               label='symbol', rank.col='padj'),
                     3))
 

@@ -189,6 +189,14 @@ class ChIPSeqConfig(SeqConfig):
         #            macs2: '{peak_calling}/macs2/{macs2_run}/peaks.bigbed'
         #            spp: '{peak_calling}/spp/{spp_run}/peaks.bigbed'
 
+
+        # Also notte that the snakefile's all rule uses
+        # utils.flatten(c.targets['peaks']), but in the case where no
+        # peak-calling runs are specified these should be initialized,
+        # otherwise we'll get a KeyError.
+        self.targets['peaks'] = []
+        self.targets['bigbed'] = []
+
         for pc in PEAK_CALLERS:
             # Extract out just the subset of `patterns_by_peaks` for this
             # peak-caller e.g., from the example above, if pc='macs2' this
@@ -222,6 +230,7 @@ class ChIPSeqConfig(SeqConfig):
                 self.targets_for_peaks,
                 helpers.fill_patterns(_peak_patterns, _fill)
             )
+
 
         self.targets.update(self.targets_for_peaks)
         self.patterns.update(self.patterns_by_peaks)

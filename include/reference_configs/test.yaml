@@ -85,10 +85,12 @@ references:
   phix:
     default:
       genome:
-        url: 'ftp://igenome:G3nom3s4u@ussd-ftp.illumina.com/PhiX/Illumina/RTA/PhiX_Illumina_RTA.tar.gz'
-        postprocess: "lib.postprocess.phix.fasta_postprocess"
+        url: 'ftp://ftp.ncbi.nlm.nih.gov/genomes/Viruses/enterobacteria_phage_phix174_sensu_lato_uid14015/NC_001422.fna'
+        postprocess:
+          - 'lib.common.gzipped'
         indexes:
           - 'bowtie2'
+
 
 
   multiple_postprocess_funcs:
