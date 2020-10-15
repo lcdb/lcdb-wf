@@ -1,12 +1,11 @@
 This documentation uses [sphinx](http://www.sphinx-doc.org) to buid the documentation.
 
-THe built documentation from the master branch can be found at
+The built documentation from the master branch can be found at
 https://lcdb.github.io/lcdb-wf. If you want to build a local copy of the
 documentation:
 
-- create an environment
+- create an environment from the `docs/docs-requirements.txt` file
 - activate it
-- install sphinx into it
 - run the Makefile in `docs`
 
 
@@ -15,16 +14,13 @@ That is:
 ```bash
 # Create env
 conda create -n lcdb-wf-docs \
-  --file requirements.txt \
+  --file docs/docs-requirements.txt \
   --channel bioconda \
   --channel conda-forge \
   --channel lcdb
 
 # activate it
 source activate lcdb-wf-docs
-
-# install sphinx
-conda install sphinx
 
 # build the docs
 cd docs
