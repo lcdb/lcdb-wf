@@ -20,3 +20,11 @@ code {
 code.file {
     font-style: italic;
 }
+
+/* make fixed sidebar scrollable
+   from: https://stackoverflow.com/questions/57031848/sphinx-alabaster-theme-scroll-inside-of-fixed-sidebar 
+*/
+div.sphinxsidebar {
+    max-height: 90%;
+    overflow-y: auto;
+}
