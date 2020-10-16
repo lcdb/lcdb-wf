@@ -1,5 +1,5 @@
-lcdb-wf
-=======
+Introduction
+============
 
 `lcdb-wf` is a collection of Snakemake workflows for common high-throughput
 sequencing analysis.
@@ -92,32 +92,3 @@ Installation of all dependencies is handled by conda, ensuring reproducibility,
 streamlined setup, and no need for root administrator privileges.
 
 See :ref:`getting-started` to get started.
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-   :hidden:
-
-   getting-started
-   tests
-   workflows
-   guide
-   config
-   references
-   rnaseq
-   downstream-rnaseq
-   chipseq
-   external
-   figures
-   colocalization
-   wrappers
-   cluster
-   conda
-   rnaseq-rmd
-   gene-patterns-rmarkdown-docs
-   functional-enrichment-rmarkdown-docs
-   faqs
-   autodoc
-   changelog
-   developers
-
