@@ -1,8 +1,14 @@
 /README.md
+/workflows/
+    The directory with all workflows
+/workflows/references/
+    The main workflow to generate references
 /workflows/references/Snakefile
-    The main workflow to generate references***
+    Snakefile to perform the references workflow***
+/workflows/rnaseq/
+    The main workflow for performing RNA-seq analysis
 /workflows/rnaseq/Snakefile
-    The main workflow for performing RNA-seq analysis***
+    Snakefile to perform RNA-Seq analysis***
 /workflows/rnaseq/config/
     Configuration for the RNA-seq workflow***
 /workflows/rnaseq/config/sampletable.tsv
@@ -12,9 +18,11 @@
 /workflows/rnaseq/config/clusterconfig.yaml
     Cluster-specific parameters for the RNA-seq workflow
 /workflows/rnaseq/downstream/rnaseq.Rmd
-    Rmd file called by rnaseq.snakefile***
+    Rmd file called by the RNA-Seq Snakefile***
+/workflows/chipseq/
+    The main workflow for performing ChIP-seq analysis
 /workflows/chipseq/Snakefile
-    The main workflow for performing ChIP-seq analysis***
+    Snakefile to perform ChIP-Seq analysis***
 /workflows/chipseq/config/
     Configuration for the ChIP-seq workflow***
 /workflows/chipseq/config/sampletable.tsv
