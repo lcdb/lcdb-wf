@@ -486,20 +486,35 @@ contrasts in the :term:`res.list`.
 ``selections``
 --------------
 
-
+Here we get a list of DE genes from the :term:`res.list` object
+to use for downstream analysis using the log2FoldChange (lfc) and 
+false discovery rate (FDR) thresholds.
 
 ``upsetplots``
 --------------
 
+This chunk produces Upset plots comparing the selected lists of genes.
+
 ``helpdocs``
 ------------
+
+Here we include documentation of the analysis in the ``rnaseq.Rmd``
+script from a child Rmd file.
+
 
 ``genepatterns``
 ----------------
 
+Here we perform pattern analysis of the differentially expressed genes
+to find co-regulated sets of genes using the ``DEGReport`` R package
+in a separate child Rmd. For more details see :ref:`gene-patterns-rmarkdown-docs`.
+
 ``functionalenrichment``
 ------------------------
 
+Here we perform functional enrichment analysis of the differentially expressed genes
+to find enriched functional terms or pathways using the ``clusterProfiler`` R package.
+This analysis is also performed in a separate child Rmd; for more details see :ref:`functional-enrichment-rmarkdown-docs`.
 
 Glossary
 --------
