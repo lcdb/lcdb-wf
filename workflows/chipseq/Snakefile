@@ -64,20 +64,9 @@ helpers.preflight(config)
 
 # See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
-    c.targets['bam'],
-    utils.flatten(c.targets['fastqc']),
-    utils.flatten(c.targets['libsizes']),
-    [c.targets['fastq_screen']],
-    [c.targets['libsizes_table']],
     [c.targets['multiqc']],
-    utils.flatten(c.targets['markduplicates']),
-    utils.flatten(c.targets['bigwig']),
     utils.flatten(c.targets['peaks']),
-    utils.flatten(c.targets['merged_techreps']),
-    utils.flatten(c.targets['fingerprint']),
     utils.flatten(c.targets['bigbed']),
-    utils.flatten(c.targets['multibigwigsummary']),
-    utils.flatten(c.targets['plotcorrelation']),
 ))
 
 if 'merged_bigwigs' in config:
@@ -415,7 +404,8 @@ rule multiqc:
             utils.flatten(c.targets['markduplicates']) +
             utils.flatten(c.targets['fingerprint']) +
             utils.flatten(c.targets['peaks']) +
-            utils.flatten(c.targets['fastq_screen'])
+            utils.flatten(c.targets['fastq_screen']) +
+            utils.flatten(c.targets['plotcorrelation'])
         ),
         config='config/multiqc_config.yaml'
     output:
