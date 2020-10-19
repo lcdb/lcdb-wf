@@ -102,6 +102,8 @@ html_theme = 'alabaster'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
+# Default options here: https://github.com/bitprophet/alabaster/blob/master/alabaster/theme.conf
+#
 html_theme_options = {
     'description': 'Customizable workflows for high-throughput sequencing analysis',
     'show_related': 'true',
