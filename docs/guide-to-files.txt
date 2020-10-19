@@ -19,6 +19,10 @@
     Cluster-specific parameters for the RNA-seq workflow
 /workflows/rnaseq/downstream/rnaseq.Rmd
     Rmd file called by the RNA-Seq Snakefile***
+/workflows/rnaseq/downstream/gene-patterns.Rmd
+    Rmd file called by rnaseq.Rmd to perform gene patterns analysis
+/workflows/rnaseq/downstream/functional-enrichment.Rmd
+    Rmd file called by rnaseq.Rmd to perform functional enrichment analysis
 /workflows/chipseq/
     The main workflow for performing ChIP-seq analysis
 /workflows/chipseq/Snakefile
