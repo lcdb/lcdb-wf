@@ -92,3 +92,4 @@ Installation of all dependencies is handled by conda, ensuring reproducibility,
 streamlined setup, and no need for root administrator privileges.
 
 See :ref:`getting-started` to get started.
+
