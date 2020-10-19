@@ -102,14 +102,12 @@ Integrative analysis workflows
 The integrative analysis workflows take input from the primary workflows and
 tie them together.
 
-The integrative analysis workflows are:
+The integrative analysis workflows are described in :ref:`integrative`:
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   colocalization
-   external
-   figures
+   integrative
 
 Features common to workflows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -151,24 +149,13 @@ the primary analysis workflows.
 Next Steps
 ~~~~~~~~~~
 
-Next we look at the implemented workflows:
+Next we look at :ref:`config` for details on how to configure specific workflows,
+before going into the implemented workflows:
 
-**Primary analysis workflows:**
+- Primary analysis workflows
+   - :ref:`references`
+   - :ref:`rnaseq`
+   - :ref:`chipseq`
 
-.. toctree::
-   :maxdepth: 1
+- :ref:`integrative`
 
-   references
-   rnaseq
-   chipseq
-
-**Integrative analysis workflows:**
-
-.. toctree::
-   :maxdepth: 1
-
-   colocalization
-   external
-   figures
-
-Following that we will look at :ref:`config` for details on how to configure specific workflows.
