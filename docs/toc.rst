@@ -9,17 +9,13 @@ Table of Contents
    guide
    tests
    workflows
+   config
    references
    rnaseq
+   downstream-rnaseq
    chipseq
-   config
-   wrappers
-   cluster
-   rnaseq-rmd
-   gene-patterns-rmarkdown-docs
-   functional-enrichment-rmarkdown-docs
+   integrative
    faqs
-   autodoc
    changelog
    developers
 
