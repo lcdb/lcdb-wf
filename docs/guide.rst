@@ -115,6 +115,10 @@ Files in bold are the most important.
     
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/downstream/rnaseq.Rmd" data-balloon=" Rmd file called by the RNA-Seq Snakefile" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rnaseq.Rmd</span></a></p>
     
+    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/downstream/gene-patterns.Rmd" data-balloon=" Rmd file called by rnaseq.Rmd to perform gene patterns analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gene-patterns.Rmd</span></a></p>
+    
+    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/downstream/functional-enrichment.Rmd" data-balloon=" Rmd file called by rnaseq.Rmd to perform functional enrichment analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;functional-enrichment.Rmd</span></a></p>
+    
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/" data-balloon=" The main workflow for performing ChIP-seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir">&nbsp;&nbsp;&nbsp;chipseq/</span></a></p>
     
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/Snakefile" data-balloon=" Snakefile to perform ChIP-Seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snakefile</span></a></p>
