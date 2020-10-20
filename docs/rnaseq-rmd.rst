@@ -27,8 +27,8 @@ To further modularize the code and because certain parts of the analysis are sel
 the downstream analysis code is broken up into three main components:
 
 - `Primary analysis script`_: ``rnaseq.Rmd``
-- :ref:`gene-patterns`: ``gene-patterns.Rmd``
-- :ref:`functional-enrichment`: ``functional-enrichment.Rmd``
+- `Gene patterns analysis`_: ``gene-patterns.Rmd``
+- `Functional enrichment analysis`_: ``functional-enrichment.Rmd``
 
 The ``gene_patterns.Rmd`` and ``functional-enrichment.Rmd`` scripts are called
 from within the primary analysis Rmd in the genepatterns_ and functionalenrichment_
@@ -525,15 +525,23 @@ help section are included as a child Rmd. This can be disabled by setting
 ----------------
 
 Here we perform pattern analysis of the differentially expressed genes
-to find co-regulated sets of genes using the ``DEGReport`` R package
-in a separate child Rmd. For more details see :ref:`gene-patterns`.
+to find co-regulated sets of genes using the ``DEGreport`` R package
+in a separate child Rmd. For more details see `Gene patterns analysis`_ below.
 
 ``functionalenrichment``
 ------------------------
 
 Here we perform functional enrichment analysis of the differentially expressed genes
 to find enriched functional terms or pathways using the ``clusterProfiler`` R package.
-This analysis is also performed in a separate child Rmd; for more details see :ref:`functional-enrichment`.
+This analysis is also performed in a separate child Rmd; for more details see `Functional enrichment analysis`_ below.
+
+Gene patterns analysis
+~~~~~~~~~~~~~~~~~~~~~~
+See :ref:`gene-patterns` for details.
+
+Functional enrichment analysis
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+See :ref:`functional-enrichment` for details.
 
 Glossary
 --------
