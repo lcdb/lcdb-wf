@@ -104,6 +104,22 @@ genes that are shared as DE across contrasts.
 
 For a more detailed discussion see :ref:`contrast`.
 
+Functional enrichment analysis
+------------------------------
+For each of the entries in ``res.list`` (as described above), functional enrichment analysis will
+be performed using clusterProfiler, using gene ontology (GO), KEGG pathways and optionally, Reactome pathways.
+The results are depicted using three different visualizations, dotplots, emapplots and cnetplots,
+with plots from up- and down-regulated shown side-by-side for easy comparison.
+
+Gene patterns analysis
+----------------------
+To look for clusters of co-expressed or co-regulated genes in a time-series
+or dose-response experiment, we perform a pattern analysis of the differentially
+expressed genes using a clustering method implemented in the R package ``DEGreport``.
+The clusters of similar genes found from this analysis are visualized and
+also saved as individual files and as cluster memberships in the differential
+analysis reports.
+
 Help docs
 ---------
 For new users, or when distributing the output to collaborators who might
@@ -118,14 +134,12 @@ included in ``rnaseq.Rmd`` as a child document. This way the main document
 doesn't get cluttered with all the functions while you're editing it, but
 the code for those functions is still included in the HTML output.
 
-Functional enrichment analysis
-------------------------------
-For each of the entries in ``res.list`` (as described above), GO analysis will
-be performed using clusterProfiler, using GO and KEGG enrichment. These will be
-shown in bubble plots, which each contrast in a different color so that GO
-enrichment can be compared between contrasts on the same plot.
-
 More details
 ~~~~~~~~~~~~
 
 For more detailed documentation, see :ref:`downstream-detailed`.
+
+.. toctree::
+   :maxdepth: 2
+
+   rnaseq-rmd
