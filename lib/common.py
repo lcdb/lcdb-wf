@@ -335,7 +335,7 @@ def references_dict(config):
                 indexes:
                   - hisat2
 
-    In this function, we need to conver that "indexes: [hisat2]" into the full
+    In this function, we need to convert that "indexes: [hisat2]" into the full
     path of the hisat2 index that can be used as input for a Snakemake rule. In
     this example, in the dictionary returned below we can then get that path
     with `d['human']['gencode']['hisat2']`, or more generally,
@@ -352,9 +352,6 @@ def references_dict(config):
     standpoint. But it's not so great for practical usage. Here we convert the
     config file which has the format::
 
-    >>> from textwrap import dedent
-    >>> fout = open('tmp', 'w')
-    >>> _ = fout.write(dedent('''
     ... references_dir: "/data"
     ... references:
     ...   dm6:
@@ -375,32 +372,24 @@ def references_dict(config):
     ...       transcriptome:
     ...           indexes:
     ...             - salmon
-    ... '''))
-    >>> fout.close()
 
-    To this format:
+    To this format::
 
-    >>> d, conversion_kwargs = references_dict('tmp')
-    >>> assert d == (
-    ... {
-    ...   'dm6': {
-    ...      'r6-11': {
-    ...          'annotation':    '/data/dm6/r6-11/annotation/dm6_r6-11.gtf',
-    ...          'bowtie2':       '/data/dm6/r6-11/genome/bowtie2/dm6_r6-11.1.bt2',
-    ...          'bowtie2_fasta': '/data/dm6/r6-11/genome/bowtie2/dm6_r6-11.fasta',
-    ...          'chromsizes':    '/data/dm6/r6-11/genome/dm6_r6-11.chromsizes',
-    ...          'genome':        '/data/dm6/r6-11/genome/dm6_r6-11.fasta',
-    ...          'hisat2':        '/data/dm6/r6-11/genome/hisat2/dm6_r6-11.1.ht2',
-    ...          'hisat2_fasta':  '/data/dm6/r6-11/genome/hisat2/dm6_r6-11.fasta',
-    ...          'refflat':       '/data/dm6/r6-11/annotation/dm6_r6-11.refflat',
-    ...          'salmon':        '/data/dm6/r6-11/transcriptome/salmon/dm6_r6-11/versionInfo.json',
-    ...          'salmon_fasta':  '/data/dm6/r6-11/transcriptome/salmon/dm6_r6-11.fasta',
-    ...          'transcriptome': '/data/dm6/r6-11/transcriptome/dm6_r6-11.fasta',
-    ...          },
-    ...     },
-    ... }), d
-    >>> assert conversion_kwargs == {'/data/dm6/r6-11/annotation/dm6_r6-11.refflat': {}}
-    >>> os.unlink('tmp')
+    ... 'dm6': {
+    ...    'r6-11': {
+    ...        'annotation':    '/data/dm6/r6-11/annotation/dm6_r6-11.gtf',
+    ...        'bowtie2':       '/data/dm6/r6-11/genome/bowtie2/dm6_r6-11.1.bt2',
+    ...        'bowtie2_fasta': '/data/dm6/r6-11/genome/bowtie2/dm6_r6-11.fasta',
+    ...        'chromsizes':    '/data/dm6/r6-11/genome/dm6_r6-11.chromsizes',
+    ...        'genome':        '/data/dm6/r6-11/genome/dm6_r6-11.fasta',
+    ...        'hisat2':        '/data/dm6/r6-11/genome/hisat2/dm6_r6-11.1.ht2',
+    ...        'hisat2_fasta':  '/data/dm6/r6-11/genome/hisat2/dm6_r6-11.fasta',
+    ...        'refflat':       '/data/dm6/r6-11/annotation/dm6_r6-11.refflat',
+    ...        'salmon':        '/data/dm6/r6-11/transcriptome/salmon/dm6_r6-11/versionInfo.json',
+    ...        'salmon_fasta':  '/data/dm6/r6-11/transcriptome/salmon/dm6_r6-11.fasta',
+    ...        'transcriptome': '/data/dm6/r6-11/transcriptome/dm6_r6-11.fasta',
+    ...        },
+    ... }
 
     """
     if isinstance(config, str):
