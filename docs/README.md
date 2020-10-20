@@ -27,4 +27,4 @@ cd docs
 make html
 ```
 
-The locally-built docs will be in `docs/_build/html/index.html`.
+The locally-built docs will be in `docs/_build/html/toc.html`.
