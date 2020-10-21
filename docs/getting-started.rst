@@ -1,7 +1,7 @@
 .. _getting-started:
 
-Requirements
-============
+Getting started
+===============
 
 The only starting requirement is an installation of conda with the `bioconda
 <https://bioconda.github.io>`_ channel set up.
@@ -23,10 +23,12 @@ allowing newer versions in more recent projects.
 If you want to see the full list of software installed into these environments,
 see the ``requirements-*.txt`` files at https://github.com/lcdb/lcdb-wf/.
 
+For a more detailed discussion of conda, see :ref:`conda-envs`.
+
 .. _setup-proj:
 
 Setting up a project
-====================
+--------------------
 
 The general steps to use lcdb-wf in a new project are:
 
@@ -164,10 +166,10 @@ Snakemake so the Snakemake documentation on `cluster execution
 consulted for running on your particular system.
 
 You can typically run simultaneous workflows when they are in different directories; see
+:ref:`workflows` for details.
 
 Next steps
-==========
+~~~~~~~~~~
 
-You may want to run tests to make sure everything is set up (see
-:ref:`running-the-tests`), or jump right in to learning about how to configure
-the workflows for your particular experiment (see :ref:`config`).
+Next, we give a brief overview of the file hierarchy of ``lcdb-wf`` in the
+:ref:`guide` page.

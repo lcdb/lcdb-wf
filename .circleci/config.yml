@@ -48,7 +48,7 @@ variables:
         name: Set path
         command: |
           # x11-utils required to avoid R::png() segfaulting
-          apt install -y locales-all locales x11-utils
+          apt update && apt install -y locales-all locales x11-utils
           echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
           echo 'export LC_ALL=en_US.utf8' >> $BASH_ENV
           echo 'export LANG=en_US.utf8' >> $BASH_ENV
@@ -429,7 +429,7 @@ jobs:
       - *set-path
       - run:
           name: Install sphinx
-          command: conda install -y sphinx make
+          command: source activate lcdb-wf-test && conda install -y sphinx make yaml
       - run:
           name: OK for unknown github host
           command: mkdir -p ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config

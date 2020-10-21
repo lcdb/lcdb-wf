@@ -54,7 +54,7 @@ templates_path = ['_templates']
 source_suffix = '.rst'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = 'toc'
 
 # General information about the project.
 project = 'lcdb-wf'
@@ -102,10 +102,13 @@ html_theme = 'alabaster'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
+# Default options here: https://github.com/bitprophet/alabaster/blob/master/alabaster/theme.conf
+#
 html_theme_options = {
     'description': 'Customizable workflows for high-throughput sequencing analysis',
     'show_related': 'true',
     'fixed_sidebar': 'true',
+    'sidebar_width': '300px',
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

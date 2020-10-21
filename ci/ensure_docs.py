@@ -16,8 +16,8 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 # documentation.
 d = {
     "../workflows/rnaseq/downstream/rnaseq.Rmd": "../docs/rnaseq-rmd.rst",
-    "../workflows/rnaseq/downstream/functional-enrichment.Rmd": "../docs/functional-enrichment-rmarkdown-docs.rst",
-    "../workflows/rnaseq/downstream/gene-patterns.Rmd": "../docs/gene-patterns-rmarkdown-docs.rst",
+    "../workflows/rnaseq/downstream/functional-enrichment.Rmd": "../docs/functional-enrichment-rmd.rst",
+    "../workflows/rnaseq/downstream/gene-patterns.Rmd": "../docs/gene-patterns-rmd.rst",
 }
 
 # For now, just assume "------" as H2 headings. A better approach would be to

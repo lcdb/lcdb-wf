@@ -110,6 +110,22 @@ different species need to go in different workflows. If you want to compare,
 say, hg19 and hg38, then you would make a copy of the workflow for each assembly
 and adjust the reference config accordingly for each workflow separately.
 
+.. _lowcounts:
+
+How are low counts handled during differential expression analysis? Should we use a read-count threshold to filter genes?
+-------------------------------------------------------------------------------------------------------------------------
+Low count genes are handled during the normalization and analysis steps of DESeq2
+with sophisticated statistical models. Genes with low counts across the board are flagged
+as *low count outliers*, and the p-values are set to NA. Also genes with low counts
+are penalized by shrinking the ``log2FoldChange`` estimate. For example, a fold change of
+4 that came from 4 reads in the treatment group vs 1 read in the control, will be shrunken,
+as opposed to if the treatment had 2000 reads vs 500 in the control. As a result of this
+low-count correction, the ``log2FoldChange`` of genes clearing a false-discovery criterion
+can be used as a reliable metric for prioritizing candidate genes for follow-up experiments.
+In contrast, using an arbitrary fold-change cutoff could introduce biases that potentially
+violate modeling assumptions and introduce variables that we could not predict or control for.
+So, we do not recommend using count thresholds to filter differential expression analysis
+results to determine candidate genes for follow up.
 
 
 .. _troubleshooting:
