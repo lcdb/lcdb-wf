@@ -113,7 +113,7 @@ and adjust the reference config accordingly for each workflow separately.
 .. _lowcounts:
 
 How are low counts handled during differential expression analysis? Should we use a read-count threshold to filter genes?
--------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------
 Low count genes are handled during the normalization and analysis steps of DESeq2
 with sophisticated statistical models. Genes with low counts across the board are flagged
 as *low count outliers*, and the p-values are set to NA. Also genes with low counts
