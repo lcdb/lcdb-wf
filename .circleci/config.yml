@@ -429,7 +429,7 @@ jobs:
       - *set-path
       - run:
           name: Install sphinx
-          command: conda install -y sphinx make
+          command: conda install -y sphinx make yaml
       - run:
           name: OK for unknown github host
           command: mkdir -p ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
