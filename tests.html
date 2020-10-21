@@ -4,7 +4,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Running the tests &#8212; lcdb-wf 0.1 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Testing the installation &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -14,8 +15,8 @@
     <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Deploying lcdb-wf and staying up-to-date" href="deploy.html" />
-    <link rel="prev" title="Initial setup" href="getting-started.html" />
+    <link rel="next" title="Using conda and conda envs" href="conda.html" />
+    <link rel="prev" title="Guide to file hierarchy" href="guide.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -27,7 +28,7 @@
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+<h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
 
 
 
@@ -39,42 +40,39 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Running the tests</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Testing the installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#create-conda-envs">Create conda envs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#activate-the-main-env">Activate the main env</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#download-example-data">Download example data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#a-note-about-test-settings">A note about test settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#run-the-rna-seq-workflow-with-example-data">Run the RNA-seq workflow with example data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#run-the-chip-seq-workflow-with-example-data">Run the ChIP-seq workflow with example data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#run-the-references-workflow-with-example-data">Run the references workflow with example data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#exhaustive-tests">Exhaustive tests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#next-steps">Next steps</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
-<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="developers.html">Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="getting-started.html" title="previous chapter">Initial setup</a></li>
-      <li>Next: <a href="deploy.html" title="next chapter">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
+  <li><a href="toc.html">Documentation overview</a><ul>
+      <li>Previous: <a href="guide.html" title="previous chapter">Guide to file hierarchy</a></li>
+      <li>Next: <a href="conda.html" title="next chapter">Using conda and conda envs</a></li>
   </ul></li>
 </ul>
 </div>
@@ -96,8 +94,8 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="running-the-tests">
-<span id="id1"></span><h1>Running the tests<a class="headerlink" href="#running-the-tests" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="testing-the-installation">
+<span id="running-the-tests"></span><h1>Testing the installation<a class="headerlink" href="#testing-the-installation" title="Permalink to this headline">¶</a></h1>
 <p>This section describes setting up for and running the example data, for when
 you want to verify everything is working correctly. This reproduces the steps
 that are performed during the automated tests on <a class="reference external" href="https:/circleci.com">Circle CI</a>. You can see the latest test results <a class="reference external" href="https://circleci.com/gh/lcdb/lcdb-wf/tree/master">here</a>.</p>
@@ -105,8 +103,43 @@ that are performed during the automated tests on <a class="reference external" h
 2 cores.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The environment you created (see <a class="reference internal" href="getting-started.html#create-env"><span class="std std-ref">2. Create a new conda environment</span></a>) needs to be activated
-for these steps.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">deploy.py</span></code> script specifically <strong>excludes</strong> the various test files,
+so the commands below must be run in a full clone of the repo, not in
+a directory in which lcdb-wf has been deployed.</p>
+</div>
+<div class="section" id="create-conda-envs">
+<h2>Create conda envs<a class="headerlink" href="#create-conda-envs" title="Permalink to this headline">¶</a></h2>
+<p>This assumes you have set up the <a class="reference external" href="https://bioconda.github.io">bioconda channel</a> properly.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -p ./env --file requirements-non-r.txt
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -p ./env-r --file requirements-r.txt
+</pre></div>
+</div>
+<p>We <strong>highly recommend</strong> using conda for isolating projects and for analysis
+reproducibility. If you are unfamiliar with conda, we provide a more detailed look
+at:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="conda.html">Using conda and conda envs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="conda.html#conda-basics">Conda basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conda.html#conda-envs-in-lcdb-wf">Conda envs in lcdb-wf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conda.html#building-the-environments">Building the environments</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="activate-the-main-env">
+<h2>Activate the main env<a class="headerlink" href="#activate-the-main-env" title="Permalink to this headline">¶</a></h2>
+<p>Depending on how you have set up conda, either</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda activate ./env
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span> activate ./env
+</pre></div>
+</div>
 </div>
 <div class="section" id="download-example-data">
 <h2>Download example data<a class="headerlink" href="#download-example-data" title="Permalink to this headline">¶</a></h2>
@@ -130,8 +163,8 @@ this.</p>
 has 2 cores and 2GB RAM. To accommodate this but to also allow the workflows to
 run in their entirety in a reasonable time frame, we developed a small
 representative <a class="reference external" href="https://github.com/lcdb/lcdb-test-data">test dataset</a> from
-real-world data. We also need to make settings to the workflows, in particular
-to set the Java VM memory to only 2GB for Java tools like Picard and FastQC.</p>
+real-world data. We also need to adjust specific settings to the workflows, e.g.
+we set the Java VM memory to only 2GB for Java tools like Picard and FastQC.</p>
 <p>We had to make a design decision: should the “default” state of the workflows
 reflect production-ready (high-RAM) settings, or reflect test-ready (low RAM)
 settings? We chose to have the default to be real-world, production-ready
@@ -144,6 +177,7 @@ specially-formatted comments in the workflows, swaps out production settings
 for test settings, and writes the results to a new <code class="docutils literal notranslate"><span class="pre">Snakefile.test</span></code> file that
 is then run. In production, especially when running on a cluster, there’s no
 need to do this.</p>
+<p>See the docstring in the <code class="docutils literal notranslate"><span class="pre">ci/preprocessor.py</span></code> for details on how this works.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">run_test.sh</span></code> simply passes all arguments on to Snakemake. Take a look at
 the script to see what it’s doing, and see the examples below for usage.</p>
 </div>
@@ -161,23 +195,26 @@ arguments will be described later, this is just to get things running:</p>
 </div>
 <p>If all goes well, you will get lots of output ending with a summary of the
 number of jobs that will be run. Then, use the same command but remove the
-<code class="docutils literal notranslate"><span class="pre">-n</span></code>, and optionall include the <code class="docutils literal notranslate"><span class="pre">-j</span></code> argument to specify the number of
+<code class="docutils literal notranslate"><span class="pre">-n</span></code>, and optionally include the <code class="docutils literal notranslate"><span class="pre">-j</span></code> argument to specify the number of
 cores to use, for example <code class="docutils literal notranslate"><span class="pre">-j</span> <span class="pre">8</span></code> if you have 8 cores on your machine (this
 example just uses 2 cores):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./run_test.sh -j <span class="m">2</span> --use-conda
 </pre></div>
 </div>
 <p>This will take ~15 minutes to run.</p>
-<p>Briefly,the file <code class="docutils literal notranslate"><span class="pre">config/config.yaml</span></code> sets up lots of configuration like
-where the fastq files are found, how to build references, and so on. The
-workflow expects the file called <code class="docutils literal notranslate"><span class="pre">config/config.yaml</span></code>; see <a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration</span></a> for
-more details. This workflow first imports the references workflow, which
-downloads genome sequence and reference files and builds indexes as necessary
-(HISAT2 genome index, salmon transcriptome index, bowtie2 index for rRNA, GTF
-file of gene annotations) and then carries on with the RNA-seq workflow.</p>
-<p>The RNA-seq workflow includes the standard mapping, counting, and differential
-expression stages, as well as many quality-control steps. See <a class="reference internal" href="rnaseq.html#rnaseq"><span class="std std-ref">RNA-seq workflow</span></a> for
-more details.</p>
+<p>Then activate the R environment (this assumes you’re still in the
+<code class="docutils literal notranslate"><span class="pre">workflows/rnaseq</span></code> subdirectory):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda activate env-r   <span class="c1"># or source activate env-r</span>
+</pre></div>
+</div>
+<p>You can either start an R interpreter and run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rmarkdown::render<span class="o">(</span><span class="s1">&#39;downstream/rnaseq.Rmd&#39;</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>or from the terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Rscript -e <span class="s2">&quot;rmarkdown::render(&#39;downstream/rnaseq.Rmd&#39;)&quot;</span>
+</pre></div>
+</div>
 <p>After the workflow runs, here are some useful points of interest in the output:</p>
 <blockquote>
 <div><ul class="simple">
@@ -188,34 +225,15 @@ individual BAMs and bigWig files can be found here</p></li>
 from running the <code class="docutils literal notranslate"><span class="pre">downstream/rnaseq.Rmd</span></code> RMarkdown file.</p></li>
 </ul>
 </div></blockquote>
-<p>See <a class="reference internal" href="rnaseq.html#rnaseq"><span class="std std-ref">RNA-seq workflow</span></a> for details.</p>
+<p>See <a class="reference internal" href="rnaseq.html#rnaseq"><span class="std std-ref">RNA-seq workflow</span></a> and <a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration details</span></a> for more details.</p>
 </div>
 <div class="section" id="run-the-chip-seq-workflow-with-example-data">
 <h2>Run the ChIP-seq workflow with example data<a class="headerlink" href="#run-the-chip-seq-workflow-with-example-data" title="Permalink to this headline">¶</a></h2>
-<p>With the <cite>lcdb-wf</cite> environment activated, from the top-level directory of the
-repo, change to the <code class="docutils literal notranslate"><span class="pre">workflows/chipseq</span></code> directory:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> workflows/chipseq
-</pre></div>
-</div>
-<p>First, run in dry-run mode which will print out the jobs to be run.  The
-arguments will be described later, this is just to get things running:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./run_test.sh -n --use-conda
-</pre></div>
-</div>
-<p>If all goes well, you will get lots of output ending with a summary of the
-number of jobs that will be run. Then, use the same command but remove the
-<code class="docutils literal notranslate"><span class="pre">-n</span></code>, and optionall include the <code class="docutils literal notranslate"><span class="pre">-j</span></code> argument to specify the number of
-cores to use, for example <code class="docutils literal notranslate"><span class="pre">-j</span> <span class="pre">8</span></code> if you have 8 cores on your machine (this
-example just uses 2 cores):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./run_test.sh -j <span class="m">2</span> --use-conda
-</pre></div>
-</div>
-<p>Like the RNA-seq workflow, the ChIP-seq workflow expects
-a <code class="docutils literal notranslate"><span class="pre">config/config.yaml</span></code> file and includes the
-<code class="docutils literal notranslate"><span class="pre">workflows/references/Snakemake</span></code> workflow, so that genome fastas are
-downloaded and indexes built as necessary, before continuing on to the ChIP-seq
-workflow. The ChIP-seq workflow includes QC, mapping, and peak-calling.</p>
-<p>Points of interest:</p>
+<p>To run the ChIP-Seq workflow, follow the same steps as above but
+with the workflow directory updated to <code class="docutils literal notranslate"><span class="pre">workflows/chipseq</span></code>.
+The most notable difference here is that the downstream analysis
+in R (e.g. the <code class="docutils literal notranslate"><span class="pre">rmarkdown::render</span></code> step)  is not run.</p>
+<p>Points of interest after running the ChIP-seq workflow:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">data/chipseq_samples/*</span></code>: sample-specific output. Individual BAM files
@@ -227,45 +245,21 @@ called peaks and bedGraph files of signal as output by each algorithm</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">data/chipseq_aggregation/multiqc.html</span></code>: MultiQC report</p></li>
 </ul>
 </div></blockquote>
-<p>See <a class="reference internal" href="chipseq.html#chipseq"><span class="std std-ref">ChIP-seq workflow</span></a> for details.</p>
+<p>See <a class="reference internal" href="chipseq.html#chipseq"><span class="std std-ref">ChIP-seq workflow</span></a> for more details.</p>
 </div>
-<div class="section" id="run-the-references-workflow-with-example-data">
-<h2>Run the references workflow with example data<a class="headerlink" href="#run-the-references-workflow-with-example-data" title="Permalink to this headline">¶</a></h2>
-<p>This is optional; parts of this workflow were actually run automatically as
-needed for the RNA-seq and ChIP-seq workflows. However, running this workflow
-on its own can be useful for setting up a new site, as it will build all
-configured references the config file provided to it (as opposed to only
-building the references specifically requested by either the ChIP-seq or
-RNA-seq workflows).</p>
-<p>From the top-level of the repo, change to the <code class="docutils literal notranslate"><span class="pre">workflows/references</span></code> directory:
-.. code-block:: bash</p>
-<blockquote>
-<div><p>cd workflows/references</p>
-</div></blockquote>
-<p>First, run in dry-run mode which will print out the jobs to be run.  The
-arguments will be described later, this is just to get things running:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./run_test.sh -n --use-conda --configfile ../../include/reference_configs/test.yaml
-</pre></div>
-</div>
-<p>If all goes well, you will get lots of output ending with a summary of the
-number of jobs that will be run. Then, use the same command but remove the
-<code class="docutils literal notranslate"><span class="pre">-n</span></code>, and optionall include the <code class="docutils literal notranslate"><span class="pre">-j</span></code> argument to specify the number of
-cores to use, for example <code class="docutils literal notranslate"><span class="pre">-j</span> <span class="pre">8</span></code> if you have 8 cores on your machine (this
-example just uses 2 cores):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./run_test.sh -j <span class="m">2</span> --use-conda --configfile ../../include/reference_configs/test.yaml
-</pre></div>
-</div>
-<p>See <a class="reference internal" href="references.html#references"><span class="std std-ref">References workflow</span></a> for details.</p>
+<div class="section" id="exhaustive-tests">
+<h2>Exhaustive tests<a class="headerlink" href="#exhaustive-tests" title="Permalink to this headline">¶</a></h2>
+<p>The file <code class="docutils literal notranslate"><span class="pre">.circleci/config.yml</span></code> configures all of the tests that are run on
+CircleCI. There’s a lot of configuration happening there, but look for the
+entries that have <code class="docutils literal notranslate"><span class="pre">./run_test.sh</span></code> in them to see the commands that are run.</p>
 </div>
 <div class="section" id="next-steps">
 <h2>Next steps<a class="headerlink" href="#next-steps" title="Permalink to this headline">¶</a></h2>
-<p>See <a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration</span></a> for how to configure the workflows to work on your own data
-and how to configure for your system.</p>
-<p>See the <a class="reference internal" href="rnaseq.html#rnaseq"><span class="std std-ref">RNA-seq workflow</span></a>, <a class="reference internal" href="chipseq.html#chipseq"><span class="std std-ref">ChIP-seq workflow</span></a>, and <a class="reference internal" href="references.html#references"><span class="std std-ref">References workflow</span></a> sections for more
-details on the above workflows, and then the <a class="reference internal" href="external.html#external"><span class="std std-ref">“External” workflow</span></a>, <a class="reference internal" href="figures.html#figures"><span class="std std-ref">“Figures” workflow</span></a>,
-and <a class="reference internal" href="colocalization.html#colocalization"><span class="std std-ref">Colocalization workflow</span></a> sections for other workflows that can be used for
-downstream analysis and integrating published data with newly-generated
-results.</p>
+<p>Now that you have tested your installation of <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> you can learn about the
+different workflows implemented here at the <a class="reference internal" href="workflows.html#workflows"><span class="std std-ref">Overview of workflows</span></a> page and see details
+on configuration at <a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration details</span></a>, before getting started on your analysis.</p>
+<p>In addition, <a class="reference internal" href="getting-started.html#setup-proj"><span class="std std-ref">Setting up a project</span></a> explains the process of deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code>
+to a project directory.</p>
 </div>
 </div>
 
@@ -280,7 +274,7 @@ results.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

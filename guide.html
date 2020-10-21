@@ -4,7 +4,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Guide to files &#8212; lcdb-wf 0.1 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guide to file hierarchy &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -14,6 +15,8 @@
     <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Testing the installation" href="tests.html" />
+    <link rel="prev" title="Getting started" href="getting-started.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -25,7 +28,7 @@
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+<h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
 
 
 
@@ -37,32 +40,33 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
-<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Guide to file hierarchy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#folder-organization">Folder organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#annotated-tree">Annotated tree</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
-<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="developers.html">Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
-  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="toc.html">Documentation overview</a><ul>
+      <li>Previous: <a href="getting-started.html" title="previous chapter">Getting started</a></li>
+      <li>Next: <a href="tests.html" title="next chapter">Testing the installation</a></li>
   </ul></li>
 </ul>
 </div>
@@ -84,8 +88,55 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="guide-to-files">
-<span id="guide"></span><h1>Guide to files<a class="headerlink" href="#guide-to-files" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="guide-to-file-hierarchy">
+<span id="guide"></span><h1>Guide to file hierarchy<a class="headerlink" href="#guide-to-file-hierarchy" title="Permalink to this headline">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> workflow system is designed to have a standardized directory
+structure and file hierarchy to allow us to be as consistent across many diverse
+and disparate analyses and sources of data and reduce the overhead when it comes
+to troubleshooting when something goes wrong. All the components of the repository
+are laid out with this overarching design principle in mind.</p>
+<p>Below we give a high-level overview and brief description of the files and folders used
+by the workflows, and include an annotated directory tree highlighting the most important
+parts of the repository.</p>
+<div class="section" id="folder-organization">
+<h2>Folder organization<a class="headerlink" href="#folder-organization" title="Permalink to this headline">¶</a></h2>
+<p>The top level of the repo looks like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>[1]  ├── ci/
+[2]  ├── docs/
+[3]  ├── include/
+[4]  ├── lib/
+[5]  ├── README.md
+[6]  ├── requirements-non-r.txt
+[7]  ├── requirements-r.txt
+[8]  ├── workflows/
+[9]  └── wrappers/
+</pre></div>
+</div>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ci</span></code> contains infrastructure for continuous integration testing. You don’t
+have to worry about this stuff unless you’re actively developing <cite>lcdb-wf</cite>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">docs/</span></code> contains the source for documentation. You’re reading it.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">include/</span></code> has miscellaneous files and scripts that can be used by all
+workflows. Of particular note is the <code class="docutils literal notranslate"><span class="pre">WRAPPER_SLURM</span></code> script (see
+<a class="reference internal" href="config.html#cluster"><span class="std std-ref">Running on a cluster</span></a> for more) and the <code class="docutils literal notranslate"><span class="pre">reference_configs</span></code> directory (see
+<a class="reference internal" href="references.html#references"><span class="std std-ref">References workflow</span></a> and <a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration details</span></a> for more).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lib/</span></code> contains Python modules used by the workflows.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> contains top-level info.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">requirements-non-r.txt</span></code> contains the package dependencies needed to run the
+workflows, and is used to set up a conda environment.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">requirements-r.txt</span></code> contains the package dependencies for R and various
+Bioconductor packages used in downstream analysis. See <a class="reference internal" href="conda.html#conda-envs"><span class="std std-ref">Using conda and conda envs</span></a> for the
+rationale for splitting these.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">workflows/</span></code> contains one directory for each workflow. Each workflow directory contains
+its own <code class="docutils literal notranslate"><span class="pre">Snakefile</span></code> and configuration files. We go into more detail in the next section.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wrappers/</span></code> contains Snakemake <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/snakefiles/modularization.html#wrappers">wrappers</a>,
+which are scripts that can use their own independent environment. See
+<a class="reference internal" href="developers.html#wrappers"><span class="std std-ref">Wrappers</span></a> for more.</p></li>
+</ol>
+<p>Below, you can see a detailed overview of the files contained in these folders.</p>
+</div>
+<div class="section" id="annotated-tree">
+<h2>Annotated tree<a class="headerlink" href="#annotated-tree" title="Permalink to this headline">¶</a></h2>
 <p>The following is an annotated directory tree of the <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> repository to
 help orient you. Hover over files for a tooltip description; click a file to
 view the most recent version on GitHub.</p>
@@ -112,9 +163,15 @@ view the most recent version on GitHub.</p>
 
 <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//README.md" style="text-decoration:none;"><span class="file undoc">README.md</span></a></p>
 
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/references/Snakefile" data-balloon=" The main workflow to generate references" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snakefile</span></a></p>
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/" data-balloon=" The directory with all workflows" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir">workflows/</span></a></p>
 
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/Snakefile" data-balloon=" The main workflow for performing RNA-seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snakefile</span></a></p>
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/references/" data-balloon=" The main workflow to generate references" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir">&nbsp;&nbsp;&nbsp;references/</span></a></p>
+
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/references/Snakefile" data-balloon=" Snakefile to perform the references workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snakefile</span></a></p>
+
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/" data-balloon=" The main workflow for performing RNA-seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir">&nbsp;&nbsp;&nbsp;rnaseq/</span></a></p>
+
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/Snakefile" data-balloon=" Snakefile to perform RNA-Seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snakefile</span></a></p>
 
 <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/config/" data-balloon=" Configuration for the RNA-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;config/</span></a></p>
 
@@ -124,9 +181,15 @@ view the most recent version on GitHub.</p>
 
 <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/config/clusterconfig.yaml" data-balloon=" Cluster-specific parameters for the RNA-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clusterconfig.yaml</span></a></p>
 
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/downstream/rnaseq.Rmd" data-balloon=" Rmd file called by rnaseq.snakefile" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rnaseq.Rmd</span></a></p>
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/downstream/rnaseq.Rmd" data-balloon=" Rmd file called by the RNA-Seq Snakefile" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rnaseq.Rmd</span></a></p>
 
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/Snakefile" data-balloon=" The main workflow for performing ChIP-seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snakefile</span></a></p>
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/downstream/gene-patterns.Rmd" data-balloon=" Rmd file called by rnaseq.Rmd to perform gene patterns analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gene-patterns.Rmd</span></a></p>
+
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/downstream/functional-enrichment.Rmd" data-balloon=" Rmd file called by rnaseq.Rmd to perform functional enrichment analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;functional-enrichment.Rmd</span></a></p>
+
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/" data-balloon=" The main workflow for performing ChIP-seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir">&nbsp;&nbsp;&nbsp;chipseq/</span></a></p>
+
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/Snakefile" data-balloon=" Snakefile to perform ChIP-Seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snakefile</span></a></p>
 
 <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/config/" data-balloon=" Configuration for the ChIP-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;config/</span></a></p>
 
@@ -264,7 +327,12 @@ view the most recent version on GitHub.</p>
 
 <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//wrappers/test/utils.py" style="text-decoration:none;"><span class="file undoc">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;utils.py</span></a></p>
 
-<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//wrappers/wrappers/" data-balloon=" Wrappers directory of snakemake wrappers used among the workflows" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir important">&nbsp;&nbsp;&nbsp;wrappers/</span></a></p></div>
+<p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//wrappers/wrappers/" data-balloon=" Wrappers directory of snakemake wrappers used among the workflows" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir important">&nbsp;&nbsp;&nbsp;wrappers/</span></a></p><p>Now that you have seen which files and folders are the most important and have some idea
+of where everything lives, let’s look at how to run tests to make sure everything is set up
+correctly (see <a class="reference internal" href="tests.html#running-the-tests"><span class="std std-ref">Testing the installation</span></a>), or jump right in to learning about how to configure
+the workflows for your particular experiment (see <a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration details</span></a>).</p>
+</div>
+</div>
 
 
           </div>
@@ -277,7 +345,7 @@ view the most recent version on GitHub.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

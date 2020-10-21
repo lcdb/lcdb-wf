@@ -4,6 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>lib.chipseq &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -25,7 +26,7 @@
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../index.html">lcdb-wf</a></h1>
+<h1 class="logo"><a href="../../toc.html">lcdb-wf</a></h1>
 
 
 
@@ -37,32 +38,27 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Initial setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tests.html">Running the tests</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../workflows.html">Overview of workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configuration details</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../references.html">References workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../rnaseq.html">RNA-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../chipseq.html">ChIP-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../external.html">“External” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../figures.html">“Figures” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../colocalization.html">Colocalization workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../wrappers.html">Wrappers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../cluster.html">Running on a cluster</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../developers.html">Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developers.html">For Developers</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
-  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../../toc.html">Documentation overview</a><ul>
   <li><a href="../index.html">Module code</a><ul>
   </ul></li>
   </ul></li>
@@ -137,7 +133,18 @@
 <span class="sd">        `label`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;chipseq&#39;</span><span class="p">][</span><span class="s1">&#39;peak_calling&#39;</span><span class="p">]:</span>
+
+    <span class="k">if</span> <span class="s1">&#39;chipseq&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">d</span>
+
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;chipseq&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">d</span>
+
+    <span class="n">peaks_blocks</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;chipseq&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;peak_calling&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">peaks_blocks</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">d</span>
+
+    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">peaks_blocks</span><span class="p">:</span>
         <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">],</span> <span class="n">block</span><span class="p">[</span><span class="s1">&#39;algorithm&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">algorithm</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">algorithm</span><span class="p">:</span>
@@ -288,7 +295,7 @@
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

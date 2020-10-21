@@ -4,6 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>References config &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -27,7 +28,7 @@
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+<h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
 
 
 
@@ -39,39 +40,32 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
-<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="config.html">Configuration</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="config-yaml.html">Config YAML</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">References config</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sampletable.html">Sample tables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="patterns-targets.html">Patterns and targets</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="config.html">Configuration details</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="config.html#general-configuration">General configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#running-on-a-cluster">Running on a cluster</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
-<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="developers.html">Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-  <li><a href="config.html">Configuration</a><ul>
+  <li><a href="toc.html">Documentation overview</a><ul>
+  <li><a href="config.html">Configuration details</a><ul>
       <li>Previous: <a href="config-yaml.html" title="previous chapter">Config YAML</a></li>
       <li>Next: <a href="sampletable.html" title="next chapter">Sample tables</a></li>
   </ul></li>
@@ -372,7 +366,7 @@ your functions within modules in that directory.</p>
 <p>For example, above we used the postprocess function
 <code class="docutils literal notranslate"><span class="pre">lib.postprocess.sacCer3.fasta_lib.postprocess</span></code>, and you can view this
 function in <code class="docutils literal notranslate"><span class="pre">lib/postprocess/sacCer3.py</span></code>.</p>
-<p>Please see <code class="xref py py-func docutils literal notranslate"><span class="pre">lib.common.download_and_postprocess()</span></code> for more details, and
+<p>Please see <a class="reference internal" href="lib.common.html#lib.common.download_and_postprocess" title="lib.common.download_and_postprocess"><code class="xref py py-func docutils literal notranslate"><span class="pre">lib.common.download_and_postprocess()</span></code></a> for more details, and
 the files in the <code class="docutils literal notranslate"><span class="pre">lib/postproces</span></code> directory for inspiration.</p>
 <p>These two arguments are automatically provided by the references workflow –
 you don’t have to know or care exactly what the filenames are, just what has to
@@ -456,9 +450,10 @@ be worth the additional space and time cost.</p>
 <div class="section" id="available-indexes-and-conversions">
 <h2>Available indexes and conversions<a class="headerlink" href="#available-indexes-and-conversions" title="Permalink to this headline">¶</a></h2>
 <p>The following indexes can be currently be specified for fasta files:</p>
-<dl class="field-list">
-<dt class="field-odd">hisat2</dt>
-<dd class="field-odd"><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">indexes</span><span class="p">:</span>
+<div class="section" id="hisat2">
+<h3>hisat2<a class="headerlink" href="#hisat2" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">indexes</span><span class="p">:</span>
   <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">hisat2</span>
 </pre></div>
 </div>
@@ -466,9 +461,12 @@ be worth the additional space and time cost.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">hisat2</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.*.</span><span class="n">ht2</span>
 </pre></div>
 </div>
-</dd>
-<dt class="field-even">bowtie2</dt>
-<dd class="field-even"><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">indexes</span><span class="p">:</span>
+</div></blockquote>
+</div>
+<div class="section" id="bowtie2">
+<h3>bowtie2<a class="headerlink" href="#bowtie2" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">indexes</span><span class="p">:</span>
   <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">bowtie2</span>
 </pre></div>
 </div>
@@ -476,9 +474,12 @@ be worth the additional space and time cost.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">bowtie2</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.*.</span><span class="n">bt2</span>
 </pre></div>
 </div>
-</dd>
-<dt class="field-odd">salmon</dt>
-<dd class="field-odd"><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">indexes</span><span class="p">:</span>
+</div></blockquote>
+</div>
+<div class="section" id="salmon">
+<h3>salmon<a class="headerlink" href="#salmon" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">indexes</span><span class="p">:</span>
   <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">salmon</span>
 </pre></div>
 </div>
@@ -486,12 +487,13 @@ be worth the additional space and time cost.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">salmon</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/*</span>
 </pre></div>
 </div>
-</dd>
-</dl>
+</div></blockquote>
 <p>The following conversions can be specified for GTF files:</p>
-<dl class="field-list">
-<dt class="field-odd">refflat</dt>
-<dd class="field-odd"><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">conversions</span><span class="p">:</span>
+</div>
+<div class="section" id="refflat">
+<h3>refflat<a class="headerlink" href="#refflat" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">conversions</span><span class="p">:</span>
   <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">refflat</span>
 </pre></div>
 </div>
@@ -501,9 +503,12 @@ be worth the additional space and time cost.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">gtf</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.</span><span class="n">refflat</span>
 </pre></div>
 </div>
-</dd>
-<dt class="field-even">bed12</dt>
-<dd class="field-even"><blockquote>
+</div></blockquote>
+</div>
+<div class="section" id="bed12">
+<h3>bed12<a class="headerlink" href="#bed12" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">conversions</span><span class="p">:</span>
    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">bed12</span>
 </pre></div>
@@ -515,9 +520,12 @@ be worth the additional space and time cost.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">gtf</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.</span><span class="n">refflat</span>
 </pre></div>
 </div>
-</dd>
-<dt class="field-odd">gffutils</dt>
-<dd class="field-odd"><p>Converts GTF to gffutils database (typically used for downstream work). You
+</div></blockquote>
+</div>
+<div class="section" id="gffutils">
+<h3>gffutils<a class="headerlink" href="#gffutils" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>Converts GTF to gffutils database (typically used for downstream work). You
 can specify arbitrary kwargs to <code class="docutils literal notranslate"><span class="pre">gffutils.create_db</span></code> by including them as
 keys. For example, if the GTF file already contains features for genes and
 transcripts:</p>
@@ -531,9 +539,12 @@ transcripts:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">gtf</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.</span><span class="n">gtf</span><span class="o">.</span><span class="n">db</span>
 </pre></div>
 </div>
-</dd>
-<dt class="field-even">genelist</dt>
-<dd class="field-even"><p>Reads the postprocessed GTF file, and extracts the set of gene IDs found,
+</div></blockquote>
+</div>
+<div class="section" id="genelist">
+<h3>genelist<a class="headerlink" href="#genelist" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>Reads the postprocessed GTF file, and extracts the set of gene IDs found,
 one ID per line. The GTF attribute to use is configured by the
 <code class="docutils literal notranslate"><span class="pre">gene_id:</span></code> key, for example, if the file contains gene IDs in the
 <code class="docutils literal notranslate"><span class="pre">Name</span></code> attribute of each line, use the following:</p>
@@ -546,9 +557,12 @@ one ID per line. The GTF attribute to use is configured by the
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">gtf</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.</span><span class="n">genelist</span>
 </pre></div>
 </div>
-</dd>
-<dt class="field-odd">mappings</dt>
-<dd class="field-odd"><p>Reads the postprocesses GTF file, and outputs mappings between attributes
+</div></blockquote>
+</div>
+<div class="section" id="mappings">
+<h3>mappings<a class="headerlink" href="#mappings" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p>Reads the postprocesses GTF file, and outputs mappings between attributes
 as a gzipped TSV.</p>
 <p>You can include/exclude featuretypes from being checked.  For example, if
 your GTF has genes and transcripts in addition to exons, the gene and
@@ -572,8 +586,8 @@ attribute that may happen to be called <code class="docutils literal notranslate
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">gtf</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.</span><span class="n">mapping</span><span class="o">.</span><span class="n">tsv</span><span class="o">.</span><span class="n">gz</span>
 </pre></div>
 </div>
-</dd>
-</dl>
+</div></blockquote>
+</div>
 </div>
 </div>
 
@@ -588,7 +602,7 @@ attribute that may happen to be called <code class="docutils literal notranslate
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

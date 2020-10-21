@@ -1,3 +1,50 @@
+.. _integrative:
+
+Integrative workflows
+=====================
+
+Here we look at integrative workflows which can be used to combine multiple
+standard or non-standard workflows.
+
+.. _colocalization:
+
+Colocalization workflow
+-----------------------
+The output of this workflow is a set of heatmaps showing metrics of
+colocalization between pairs of regions. This can be used to answer questions
+like "what else does my protein of interest bind with?".
+
+Several colocalization methods are run, and they all give slightly different
+results.
+
+- bedtools fisher
+- bedtools jaccard
+- GAT (Genome Association Test) log2 fold change
+- GAT (Genome Association Test) nucleotide overlap
+- IntervalStats
+
+.. _external:
+
+"External" workflow
+-------------------
+Often we want to compare new data with existing published data. We have found
+that in practice, having a separate workflow to handle downloading and
+reformatting and various conversion tasks helps with organization.
+
+The test workflow is a working example that:
+
+- downloads ChIP-seq data from modENCODE in an older fly genome organism (dm3)
+- downloads the chainfile for liftover
+- fixes the formatting of the downloaded files so they can be lifted over
+- lifts over the files to the newer dm6 assembly.
+
+The file is intended to be heavily edited for the particular experiment; it is
+here mostly as a placeholder and to be used as a template for integrative
+downstream work.  It can then be incorporated into the ``figures`` workflow (see
+:ref:`figures`) to integrate the analysis with other output.
+
+.. image:: external.png
+
 .. _figures:
 
 "Figures" workflow

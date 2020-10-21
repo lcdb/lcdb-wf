@@ -4,6 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sample tables &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -27,7 +28,7 @@
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+<h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
 
 
 
@@ -39,39 +40,32 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
-<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="config.html">Configuration</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="config-yaml.html">Config YAML</a></li>
-<li class="toctree-l2"><a class="reference internal" href="references-config.html">References config</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Sample tables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="patterns-targets.html">Patterns and targets</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="config.html">Configuration details</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="config.html#general-configuration">General configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#running-on-a-cluster">Running on a cluster</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
-<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="developers.html">Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-  <li><a href="config.html">Configuration</a><ul>
+  <li><a href="toc.html">Documentation overview</a><ul>
+  <li><a href="config.html">Configuration details</a><ul>
       <li>Previous: <a href="references-config.html" title="previous chapter">References config</a></li>
       <li>Next: <a href="patterns-targets.html" title="next chapter">Patterns and targets</a></li>
   </ul></li>
@@ -163,7 +157,7 @@ the Snakefile</em>.</p>
 <p>For RNA-seq, only the first column and optionally the <cite>orig_filename</cite> column
 are used directly by the RNA-seq workflow.</p>
 <p>However, the sampletable is imported into the <code class="docutils literal notranslate"><span class="pre">downstream/rnaseq.Rmd</span></code> file
-(see <a class="reference internal" href="downstream-rnaseq.html#downstream-rnaseq"><span class="std std-ref">Downstream RNA-seq in R</span></a> for more info) so it’s often useful to include
+(see <a class="reference internal" href="downstream-rnaseq.html#downstream"><span class="std std-ref">RNA-Seq downstream analysis</span></a> for more info) so it’s often useful to include
 any metadata in the sampletable so it’s all in one place, and you’ll get all
 that information imported into R.</p>
 <p>For example, with this sample table we would be easily able to use a DESeq
@@ -356,7 +350,7 @@ example this file:</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

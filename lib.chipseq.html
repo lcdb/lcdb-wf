@@ -4,6 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Module lib.chipseq &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -27,7 +28,7 @@
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+<h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
 
 
 
@@ -39,38 +40,33 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
-<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
-<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="autodoc.html">Module documentation</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="lib.common.html">Module <code class="docutils literal notranslate"><span class="pre">lib.common</span></code></a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Module <code class="docutils literal notranslate"><span class="pre">lib.chipseq</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="lib.patterns_targets.html">Module <code class="docutils literal notranslate"><span class="pre">lib.patterns_targets</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="developers.html">For Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="developers.html#wrappers">Wrappers</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="developers.html#module-documentation">Module documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#miscellanous-tips">Miscellanous tips</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="developers.html">Developers</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-  <li><a href="autodoc.html">Module documentation</a><ul>
+  <li><a href="toc.html">Documentation overview</a><ul>
+  <li><a href="developers.html">For Developers</a><ul>
       <li>Previous: <a href="lib.common.html" title="previous chapter">Module <code class="docutils literal notranslate"><span class="pre">lib.common</span></code></a></li>
       <li>Next: <a href="lib.patterns_targets.html" title="next chapter">Module <code class="docutils literal notranslate"><span class="pre">lib.patterns_targets</span></code></a></li>
   </ul></li>
@@ -133,8 +129,9 @@ it more easily in the ChIP-seq workflow without cluttering the Snakefile.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – </p></li>
-<li><p><strong>algorithm</strong> (<em>label</em><em>,</em>) – </p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – </p></li>
+<li><p><strong>label</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – </p></li>
+<li><p><strong>algorithm</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -159,7 +156,7 @@ available input BAMs together.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>sampletable</strong> (<em>pandas.DataFrame</em>) – </p></li>
-<li><p><strong>merged_ip</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Label of IP to use, must be present in the <cite>label</cite> column of the
+<li><p><strong>merged_ip</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Label of IP to use, must be present in the <cite>label</cite> column of the
 sampletable.</p></li>
 </ul>
 </dd>
@@ -204,8 +201,8 @@ they share the same biological material.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – </p></li>
-<li><p><strong>algorithm</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><em>None</em></a>) – If <cite>algorithm</cite> is None, dictionary is keyed by (label, algorithm).
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – </p></li>
+<li><p><strong>algorithm</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><em>None</em></a>) – If <cite>algorithm</cite> is None, dictionary is keyed by (label, algorithm).
 Otherwise, only the runs for <cite>algorithm</cite> are returned, keyed by
 <cite>label</cite>.</p></li>
 </ul>
@@ -220,8 +217,9 @@ Otherwise, only the runs for <cite>algorithm</cite> are returned, keyed by
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – </p></li>
-<li><p><strong>algorithm</strong> (<em>label</em><em>,</em>) – Used as keys into peak_calling_dict()</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – </p></li>
+<li><p><strong>label</strong> – Used as keys into peak_calling_dict()</p></li>
+<li><p><strong>algorithm</strong> – Used as keys into peak_calling_dict()</p></li>
 <li><p><strong>treatment</strong> (<em>ip | input</em>) – </p></li>
 </ul>
 </dd>
@@ -242,7 +240,7 @@ Otherwise, only the runs for <cite>algorithm</cite> are returned, keyed by
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -4,6 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Module lib.common &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -15,7 +16,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Module lib.chipseq" href="lib.chipseq.html" />
-    <link rel="prev" title="Module documentation" href="autodoc.html" />
+    <link rel="prev" title="For Developers" href="developers.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -27,7 +28,7 @@
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+<h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
 
 
 
@@ -39,39 +40,34 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
-<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
-<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="autodoc.html">Module documentation</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Module <code class="docutils literal notranslate"><span class="pre">lib.common</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="lib.chipseq.html">Module <code class="docutils literal notranslate"><span class="pre">lib.chipseq</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="lib.patterns_targets.html">Module <code class="docutils literal notranslate"><span class="pre">lib.patterns_targets</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="developers.html">For Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="developers.html#wrappers">Wrappers</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="developers.html#module-documentation">Module documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#miscellanous-tips">Miscellanous tips</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="developers.html">Developers</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-  <li><a href="autodoc.html">Module documentation</a><ul>
-      <li>Previous: <a href="autodoc.html" title="previous chapter">Module documentation</a></li>
+  <li><a href="toc.html">Documentation overview</a><ul>
+  <li><a href="developers.html">For Developers</a><ul>
+      <li>Previous: <a href="developers.html" title="previous chapter">For Developers</a></li>
       <li>Next: <a href="lib.chipseq.html" title="next chapter">Module <code class="docutils literal notranslate"><span class="pre">lib.chipseq</span></code></a></li>
   </ul></li>
   </ul></li>
@@ -108,20 +104,17 @@ handling references.</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_config</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#lib.common.resolve_config" title="lib.common.resolve_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_config</span></code></a>(config[, workdir])</p></td>
+<td><p>Finds the config file.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">references_dict</span></code></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#lib.common.references_dict" title="lib.common.references_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">references_dict</span></code></a>(config)</p></td>
+<td><p>Transforms the references section of the config file.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">tempdir_for_biowulf</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#lib.common.get_references_dir" title="lib.common.get_references_dir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_references_dir</span></code></a>(config)</p></td>
+<td><p>Identify the references directory based on config and env vars.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_references_dir</span></code></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampletable</span></code></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#lib.common.get_sampletable" title="lib.common.get_sampletable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampletable</span></code></a>(config)</p></td>
+<td><p>Return samples and pandas.DataFrame of parsed sampletable.</p></td>
 </tr>
 </tbody>
 </table>
@@ -134,26 +127,334 @@ handling references.</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gzipped</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#lib.common.gzipped" title="lib.common.gzipped"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gzipped</span></code></a>(tmpfiles, outfile)</p></td>
+<td><p>Cat-and-gzip a list of uncompressed files into a compressed output file.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cat</span></code></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#lib.common.cat" title="lib.common.cat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cat</span></code></a>(tmpfiles, outfile)</p></td>
+<td><p>Simple concatenation of files.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter_fastas</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#lib.common.filter_fastas" title="lib.common.filter_fastas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter_fastas</span></code></a>(tmpfiles, outfile, pattern)</p></td>
+<td><p>Extract records from fasta file(s) given a search pattern.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">twobit_to_fasta</span></code></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#lib.common.twobit_to_fasta" title="lib.common.twobit_to_fasta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">twobit_to_fasta</span></code></a>(tmpfiles, outfile)</p></td>
+<td><p>Converts .2bit files to fasta.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">download_and_postprocess</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#lib.common.download_and_postprocess" title="lib.common.download_and_postprocess"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download_and_postprocess</span></code></a>(outfile, config, …)</p></td>
+<td><p>Given an output file, figure out what to do based on the config.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<div class="section" id="details">
-<h2>Details<a class="headerlink" href="#details" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-lib.common">
+<span id="details"></span><h2>Details<a class="headerlink" href="#module-lib.common" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="lib.common.cat">
+<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">cat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tmpfiles</span></em>, <em class="sig-param"><span class="n">outfile</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#cat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.cat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple concatenation of files.</p>
+<p>Note that gzipped files can be concatenated as-is without un- and re-
+compressing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="lib.common.deprecation_handler">
+<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">deprecation_handler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#deprecation_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.deprecation_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks the config to see if anything has been deprecated.</p>
+<p>Also makes any fixes that can be done automatically.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="lib.common.download_and_postprocess">
+<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">download_and_postprocess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outfile</span></em>, <em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">organism</span></em>, <em class="sig-param"><span class="n">tag</span></em>, <em class="sig-param"><span class="n">type_</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#download_and_postprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.download_and_postprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an output file, figure out what to do based on the config.</p>
+<p>See notes below for details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – </p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – </p></li>
+<li><p><strong>organism</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Which organism to use. Must be a key in the “references” section of the
+config.</p></li>
+<li><p><strong>tag</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Which tag for the organism to use. Must be a tag for the organism in
+the config</p></li>
+<li><p><strong>type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – A supported references type (gtf, fasta) to use.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This function:</p>
+<blockquote>
+<div><ul>
+<li><p>uses <cite>organism</cite>, <cite>tag</cite>, <cite>type_</cite> as a key into the config dict to
+figure out:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>what postprocessing function (if any) was specified along with
+its optional args</p></li>
+<li><p>the URL[s] to download</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>resolves the name of the postprocessing function (if provided) and
+imports it</p></li>
+<li><p>downloads the URL[s] to tempfile[s]</p></li>
+<li><p>calls the imported postprocessing function using the tempfile[s] and
+outfile plus any additional specified arguments.</p></li>
+</ul>
+</div></blockquote>
+<p>The postprocessing function must have one of the following signatures,
+where <cite>infiles</cite> contains the list of temporary files downloaded from the
+URL or URLs specified, and <cite>outfile</cite> is a gzipped file expected to be
+created by the function:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">infiles</span><span class="p">,</span> <span class="n">outfile</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">infiles</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">infiles</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>The function is specified as a string that resolves to an importable
+function, e.g., <cite>postprocess: lib.postprocess.dm6.fix</cite> will call a function
+called <cite>fix</cite> in the file <cite>lib/postprocess/dm6.py</cite>.</p>
+<p>If the contents of <cite>postprocess:</cite> is a dict, it must have at least the key
+<cite>function</cite>, and optionally <cite>args</cite> and/or <cite>kwargs</cite> keys. The <cite>function</cite> key
+indicates the importable path to the function.  <cite>args</cite> can be a string
+or list of arguments that will be provided as additional args to a function
+with the second kind of signature above.  If <cite>kwargs</cite> is provided, it is
+a dict that is passed to the function with the third kind of signature
+above. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">postprocess</span><span class="p">:</span>
+    <span class="n">function</span><span class="p">:</span> <span class="n">lib</span><span class="o">.</span><span class="n">postprocess</span><span class="o">.</span><span class="n">dm6</span><span class="o">.</span><span class="n">fix</span>
+    <span class="n">args</span><span class="p">:</span>
+        <span class="o">-</span> <span class="kc">True</span>
+        <span class="o">-</span> <span class="mi">3</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">postprocess</span><span class="p">:</span>
+    <span class="n">function</span><span class="p">:</span> <span class="n">lib</span><span class="o">.</span><span class="n">postprocess</span><span class="o">.</span><span class="n">dm6</span><span class="o">.</span><span class="n">fix</span>
+    <span class="n">args</span><span class="p">:</span>
+        <span class="o">-</span> <span class="kc">True</span>
+        <span class="o">-</span> <span class="mi">3</span>
+    <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">skip</span><span class="p">:</span> <span class="n">exon</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="lib.common.fill_r1_r2">
+<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">fill_r1_r2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sampletable</span></em>, <em class="sig-param"><span class="n">pattern</span></em>, <em class="sig-param"><span class="n">r1_only</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#fill_r1_r2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.fill_r1_r2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a function intended to be used as a rule’s input function.</p>
+<p>The returned function, when provided with wildcards, will return one or two
+rendered versions of a pattern depending on SE or PE respectively.
+Specifically, given a pattern (which is expected to contain a placeholder
+for “{sample}” and “{n}”), look up in the sampletable whether or not it is
+paired-end.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sampletable</strong> (<em>pandas.DataFrame</em>) – Contains a “layout” column with either “SE” or “PE”, or “LibraryLayout”
+column with “SINGLE” or “PAIRED”. If column does not exist, assume SE.</p></li>
+<li><p><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Must contain at least a “{sample}” placeholder.</p></li>
+<li><p><strong>r1_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, then only return the file for R1 even if PE is configured.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="lib.common.filter_fastas">
+<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">filter_fastas</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tmpfiles</span></em>, <em class="sig-param"><span class="n">outfile</span></em>, <em class="sig-param"><span class="n">pattern</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#filter_fastas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.filter_fastas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract records from fasta file(s) given a search pattern.</p>
+<p>Given input gzipped FASTAs, create a new gzipped fasta containing only
+records whose description matches <cite>pattern</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tmpfiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – gzipped fasta files to look through</p></li>
+<li><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – gzipped output fastq file</p></li>
+<li><p><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Look for this string in each record’s description</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="lib.common.get_references_dir">
+<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">get_references_dir</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#get_references_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.get_references_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identify the references directory based on config and env vars.</p>
+<p>Returns the references dir, preferring the value of an existing environment
+variable <cite>REFERENCES_DIR</cite> over the config entry “references_dir”. Raise an
+error if either can’t be found.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="lib.common.get_sampletable">
+<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">get_sampletable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#get_sampletable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.get_sampletable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return samples and pandas.DataFrame of parsed sampletable.</p>
+<p>Returns the sample IDs and the parsed sampletable from the file specified
+in the config.</p>
+<p>The sample IDs are assumed to be the first column of the sampletable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="lib.common.get_techreps">
+<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">get_techreps</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sampletable</span></em>, <em class="sig-param"><span class="n">label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#get_techreps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.get_techreps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all sample IDs for which the “label” column is <cite>label</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="lib.common.gzipped">
+<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">gzipped</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tmpfiles</span></em>, <em class="sig-param"><span class="n">outfile</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#gzipped"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.gzipped" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cat-and-gzip a list of uncompressed files into a compressed output file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="lib.common.is_paired_end">
+<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">is_paired_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sampletable</span></em>, <em class="sig-param"><span class="n">sample</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#is_paired_end"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.is_paired_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inspects the sampletable to see if the sample is paired-end or not</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sampletable</strong> (<em>pandas.DataFrame</em>) – Contains a “layout” or “LibraryLayout” column (but not both). If the
+lowercase value is “pe” or “paired”, consider the sample paired-end.
+Otherwise consider single-end.</p></li>
+<li><p><strong>sample</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Assumed to be found in the first column of <cite>sampletable</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="lib.common.load_config">
+<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">load_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#load_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.load_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the config.</p>
+<p>Resolves any included references directories/files and runs the deprecation
+handler.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="lib.common.openfile">
+<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">openfile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tmp</span></em>, <em class="sig-param"><span class="n">mode</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#openfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.openfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an open file handle; auto-detects gzipped files.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="lib.common.references_dict">
+<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">references_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#references_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.references_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transforms the references section of the config file.</p>
+<p>The references section of the config file is designed to be human-editable,
+and to only need the URL(s). User-specified indexes, conversions, and
+post-processing functions can also be added.</p>
+<p>For example, the config might say:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">human</span><span class="p">:</span>
+  <span class="n">gencode</span><span class="p">:</span>
+    <span class="n">fasta</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">url</span> <span class="n">to</span> <span class="n">fasta</span><span class="o">&gt;</span>
+        <span class="n">indexes</span><span class="p">:</span>
+          <span class="o">-</span> <span class="n">hisat2</span>
+</pre></div>
+</div>
+<p>In this function, we need to convert that “indexes: [hisat2]” into the full
+path of the hisat2 index that can be used as input for a Snakemake rule. In
+this example, in the dictionary returned below we can then get that path
+with <cite>d[‘human’][‘gencode’][‘hisat2’]</cite>, or more generally,
+<cite>d[organism][tag][type]</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – </p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The config file is designed to be easy to edit and use from the user’s
+standpoint. But it’s not so great for practical usage. Here we convert the
+config file which has the format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">...</span> <span class="n">references_dir</span><span class="p">:</span> <span class="s2">&quot;/data&quot;</span>
+<span class="o">...</span> <span class="n">references</span><span class="p">:</span>
+<span class="o">...</span>   <span class="n">dm6</span><span class="p">:</span>
+<span class="o">...</span>     <span class="n">r6</span><span class="o">-</span><span class="mi">11</span><span class="p">:</span>
+<span class="o">...</span>       <span class="n">metadata</span><span class="p">:</span>
+<span class="o">...</span>         <span class="n">reference_genome_build</span><span class="p">:</span> <span class="s1">&#39;dm6&#39;</span>
+<span class="o">...</span>         <span class="n">reference_effective_genome_count</span><span class="p">:</span> <span class="mf">1.2e7</span>
+<span class="o">...</span>         <span class="n">reference_effective_genome_proportion</span><span class="p">:</span> <span class="mf">0.97</span>
+<span class="o">...</span>       <span class="n">genome</span><span class="p">:</span>
+<span class="o">...</span>         <span class="n">url</span><span class="p">:</span> <span class="s2">&quot;&quot;</span>
+<span class="o">...</span>         <span class="n">indexes</span><span class="p">:</span>
+<span class="o">...</span>           <span class="o">-</span> <span class="n">bowtie2</span>
+<span class="o">...</span>           <span class="o">-</span> <span class="n">hisat2</span>
+<span class="o">...</span>       <span class="n">annotation</span><span class="p">:</span>
+<span class="o">...</span>         <span class="n">url</span><span class="p">:</span> <span class="s2">&quot;&quot;</span>
+<span class="o">...</span>         <span class="n">conversions</span><span class="p">:</span>
+<span class="o">...</span>           <span class="o">-</span> <span class="n">refflat</span>
+<span class="o">...</span>       <span class="n">transcriptome</span><span class="p">:</span>
+<span class="o">...</span>           <span class="n">indexes</span><span class="p">:</span>
+<span class="o">...</span>             <span class="o">-</span> <span class="n">salmon</span>
+</pre></div>
+</div>
+<p>To this format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">...</span> <span class="s1">&#39;dm6&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="o">...</span>    <span class="s1">&#39;r6-11&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="o">...</span>        <span class="s1">&#39;annotation&#39;</span><span class="p">:</span>    <span class="s1">&#39;/data/dm6/r6-11/annotation/dm6_r6-11.gtf&#39;</span><span class="p">,</span>
+<span class="o">...</span>        <span class="s1">&#39;bowtie2&#39;</span><span class="p">:</span>       <span class="s1">&#39;/data/dm6/r6-11/genome/bowtie2/dm6_r6-11.1.bt2&#39;</span><span class="p">,</span>
+<span class="o">...</span>        <span class="s1">&#39;bowtie2_fasta&#39;</span><span class="p">:</span> <span class="s1">&#39;/data/dm6/r6-11/genome/bowtie2/dm6_r6-11.fasta&#39;</span><span class="p">,</span>
+<span class="o">...</span>        <span class="s1">&#39;chromsizes&#39;</span><span class="p">:</span>    <span class="s1">&#39;/data/dm6/r6-11/genome/dm6_r6-11.chromsizes&#39;</span><span class="p">,</span>
+<span class="o">...</span>        <span class="s1">&#39;genome&#39;</span><span class="p">:</span>        <span class="s1">&#39;/data/dm6/r6-11/genome/dm6_r6-11.fasta&#39;</span><span class="p">,</span>
+<span class="o">...</span>        <span class="s1">&#39;hisat2&#39;</span><span class="p">:</span>        <span class="s1">&#39;/data/dm6/r6-11/genome/hisat2/dm6_r6-11.1.ht2&#39;</span><span class="p">,</span>
+<span class="o">...</span>        <span class="s1">&#39;hisat2_fasta&#39;</span><span class="p">:</span>  <span class="s1">&#39;/data/dm6/r6-11/genome/hisat2/dm6_r6-11.fasta&#39;</span><span class="p">,</span>
+<span class="o">...</span>        <span class="s1">&#39;refflat&#39;</span><span class="p">:</span>       <span class="s1">&#39;/data/dm6/r6-11/annotation/dm6_r6-11.refflat&#39;</span><span class="p">,</span>
+<span class="o">...</span>        <span class="s1">&#39;salmon&#39;</span><span class="p">:</span>        <span class="s1">&#39;/data/dm6/r6-11/transcriptome/salmon/dm6_r6-11/versionInfo.json&#39;</span><span class="p">,</span>
+<span class="o">...</span>        <span class="s1">&#39;salmon_fasta&#39;</span><span class="p">:</span>  <span class="s1">&#39;/data/dm6/r6-11/transcriptome/salmon/dm6_r6-11.fasta&#39;</span><span class="p">,</span>
+<span class="o">...</span>        <span class="s1">&#39;transcriptome&#39;</span><span class="p">:</span> <span class="s1">&#39;/data/dm6/r6-11/transcriptome/dm6_r6-11.fasta&#39;</span><span class="p">,</span>
+<span class="o">...</span>        <span class="p">},</span>
+<span class="o">...</span> <span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="lib.common.resolve_config">
+<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">resolve_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">workdir</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#resolve_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.resolve_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the config file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – If str, assume it’s a YAML file and parse it; otherwise pass through</p></li>
+<li><p><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Optional location to specify relative location of all paths in <cite>config</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="lib.common.twobit_to_fasta">
+<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">twobit_to_fasta</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tmpfiles</span></em>, <em class="sig-param"><span class="n">outfile</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#twobit_to_fasta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.twobit_to_fasta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts .2bit files to fasta.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tmpfiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – 2bit files to convert</p></li>
+<li><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – gzipped output fastq file</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 </div>
 
@@ -168,7 +469,7 @@ handling references.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

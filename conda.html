@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Using conda and conda envs &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Overview of workflows" href="workflows.html" />
+    <link rel="prev" title="Testing the installation" href="tests.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
+
+
+
+<p class="blurb">Customizable workflows for high-throughput sequencing analysis</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="tests.html">Testing the installation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="tests.html#create-conda-envs">Create conda envs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#activate-the-main-env">Activate the main env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#download-example-data">Download example data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#a-note-about-test-settings">A note about test settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#run-the-rna-seq-workflow-with-example-data">Run the RNA-seq workflow with example data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#run-the-chip-seq-workflow-with-example-data">Run the ChIP-seq workflow with example data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#exhaustive-tests">Exhaustive tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#next-steps">Next steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="toc.html">Documentation overview</a><ul>
+  <li><a href="tests.html">Testing the installation</a><ul>
+      <li>Previous: <a href="tests.html" title="previous chapter">Testing the installation</a></li>
+      <li>Next: <a href="workflows.html" title="next chapter">Overview of workflows</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="using-conda-and-conda-envs">
+<span id="conda-envs"></span><h1>Using conda and conda envs<a class="headerlink" href="#using-conda-and-conda-envs" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="conda-basics">
+<h2>Conda basics<a class="headerlink" href="#conda-basics" title="Permalink to this headline">¶</a></h2>
+<p>If you’re not familiar with <code class="docutils literal notranslate"><span class="pre">conda</span></code>, it installs particular versions of
+software in an isolated location on your computer. When you “activate” the
+environment, it places that location at the beginning of your <code class="docutils literal notranslate"><span class="pre">$PATH</span></code>
+variable, so that any executables there are found first. It does not affect
+any existing installation of any software on your machine and does not need
+root privileges.</p>
+<p>If you don’t already have conda installed and the Bioconda channel set up, see
+the <a class="reference external" href="https://bioconda.github.io">Bioconda docs</a> for details.</p>
+<p><strong>It is recommended that you create a separate environment directory for
+each project</strong>. That way you can update packages in each project
+independently of any others, and yet the environment will always be close at
+hand. This is especially good practice in shared space as others can easily
+find and activate the environment specific to the project.</p>
+</div>
+<div class="section" id="conda-envs-in-lcdb-wf">
+<h2>Conda envs in lcdb-wf<a class="headerlink" href="#conda-envs-in-lcdb-wf" title="Permalink to this headline">¶</a></h2>
+<p>lcdb-wf has lot of requirements and it would be a lot of effort to install them
+all. Furthermore, as you work on many projects over time, older projects may
+need older versions, but you may want newer versions for more recent projects.</p>
+<p>Conda environments handle all of this. Each project has its own isolated set of
+software that is independent of other projects.</p>
+<p>However, given all of the software used across all of lcdb-wf, the environments
+can take a lot of time to build. Conda has to solve the entire dependency tree
+and come up with a solution that works to satisfy the entire set of specified
+requirements. That is, if we specify snakemake and STAR as requirements,
+conda has to identify all of the dependencies of snakemake, all of the
+dependencies of STAR, and inspect them to make sure they are compatible with
+each other. If not, it has to incrementally try different versions of those
+dependencies to find a solution. This process becomes exponentially more
+complex as we add more requirementst. As a result, solving and building the
+environments can take some time (usually under 15 mins).</p>
+<p>The reason for having two different environments – one for R, one for non-R –
+is that by removing the entire sub-DAG of R packages from the main environment
+we can dramatically reduce the creation time for an environment.</p>
+<p>The <strong>main</strong> environment’s requirements are stored in
+<code class="docutils literal notranslate"><span class="pre">requirements-non-r.txt</span></code>. These are used for the primary workflows. The
+<strong>R-related</strong> requirements are in <code class="docutils literal notranslate"><span class="pre">requirements-r.txt</span></code> and these are used for
+downstream work, like <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq/downstream/rnaseq.Rmd</span></code> and
+<code class="docutils literal notranslate"><span class="pre">workflows/chipseq/downstream/diffbind.Rmd</span></code>.</p>
+</div>
+<div class="section" id="building-the-environments">
+<h2>Building the environments<a class="headerlink" href="#building-the-environments" title="Permalink to this headline">¶</a></h2>
+<p>If you use the <code class="docutils literal notranslate"><span class="pre">--build-envs</span></code> argument when deploying lcdb-wf to a project
+directory (see <a class="reference internal" href="getting-started.html#setup-proj"><span class="std std-ref">Setting up a project</span></a>), conda environments will be built in the
+directories <code class="docutils literal notranslate"><span class="pre">env</span></code> (with all non-R requirements) and <code class="docutils literal notranslate"><span class="pre">env-r</span></code> (R packages).</p>
+<p>Otherwise, do the following in the top-level directory of the deployment:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -p ./env --file requirements-non-r.txt
+conda create -p ./env-r --file requirements-r.txt
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/conda.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

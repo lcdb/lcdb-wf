@@ -4,6 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Patterns and targets &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +15,7 @@
     <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="References workflow" href="references.html" />
+    <link rel="next" title="FAQs" href="faqs.html" />
     <link rel="prev" title="Sample tables" href="sampletable.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -27,7 +28,7 @@
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+<h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
 
 
 
@@ -39,41 +40,34 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
-<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="config.html">Configuration</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="config-yaml.html">Config YAML</a></li>
-<li class="toctree-l2"><a class="reference internal" href="references-config.html">References config</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sampletable.html">Sample tables</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Patterns and targets</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="config.html">Configuration details</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="config.html#general-configuration">General configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#running-on-a-cluster">Running on a cluster</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
-<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="developers.html">Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-  <li><a href="config.html">Configuration</a><ul>
+  <li><a href="toc.html">Documentation overview</a><ul>
+  <li><a href="config.html">Configuration details</a><ul>
       <li>Previous: <a href="sampletable.html" title="previous chapter">Sample tables</a></li>
-      <li>Next: <a href="references.html" title="next chapter">References workflow</a></li>
+      <li>Next: <a href="faqs.html" title="next chapter">FAQs</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -207,9 +201,9 @@ peak-callers and all peak-calling runs.</p></li>
 <p>In particular:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">lib.patterns_targets.SeqConfig</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">lib.patterns_targets.RNASeqConfig</span></code></p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">lib.patterns_targets.ChIPSeqConfig</span></code></p></li>
+<li><p><a class="reference internal" href="lib.patterns_targets.html#lib.patterns_targets.SeqConfig" title="lib.patterns_targets.SeqConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">lib.patterns_targets.SeqConfig</span></code></a></p></li>
+<li><p><a class="reference internal" href="lib.patterns_targets.html#lib.patterns_targets.RNASeqConfig" title="lib.patterns_targets.RNASeqConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">lib.patterns_targets.RNASeqConfig</span></code></a></p></li>
+<li><p><a class="reference internal" href="lib.patterns_targets.html#lib.patterns_targets.ChIPSeqConfig" title="lib.patterns_targets.ChIPSeqConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">lib.patterns_targets.ChIPSeqConfig</span></code></a></p></li>
 </ul>
 </div></blockquote>
 <p>In addition, the <a class="reference external" href="https://github.com/lcdb/lcdb-wf/blob/master/workflows/figures/Snakefile">figures Snakefile</a>,
@@ -230,7 +224,7 @@ for downstream work.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -1,0 +1,255 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Functional enrichment analysis &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
+
+
+
+<p class="blurb">Customizable workflows for high-throughput sequencing analysis</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="toc.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="functional-enrichment-analysis">
+<span id="functional-enrichment"></span><h1>Functional enrichment analysis<a class="headerlink" href="#functional-enrichment-analysis" title="Permalink to this headline">¶</a></h1>
+<p>Let’s say that the differential expression analysis of your RNA-Seq data
+yields hundreds of changed genes. While this is exciting as it shows that
+there is an effect of the treatment or mutant or drug, it also can be
+daunting, since it is extremely labor intensive to manually go through a
+bunch of genes, and assess their relevance to the biology that you’re
+interested in.</p>
+<p>So, one of the first questions we usually have after performing a
+differential expression analysis, is: <strong>what kind of genes are changing in
+the experiment?</strong></p>
+<p>To answer this question, we perform functional enrichment analysis, where
+information about gene function (<code class="docutils literal notranslate"><span class="pre">annotation</span></code>) from various databases
+are collated and tested for enrichment using a <a class="reference external" href="http://en.wikipedia.org/wiki/Hypergeometric_distribution#Hypergeometric_test">hypergeometric test</a>.
+The databases implemented here by default are gene ontology (GO) and KEGG pathways,
+while Reactome pathways can be enabled if desired.</p>
+<div class="section" id="cprofsetup">
+<h2>cprofsetup<a class="headerlink" href="#cprofsetup" title="Permalink to this headline">¶</a></h2>
+<p>Here we set up <code class="docutils literal notranslate"><span class="pre">clusterProfiler</span></code> parameters and output directories. The default
+parameters should work with almost all analyses. The only parameter that can be
+changed:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>parameter</p></th>
+<th class="head"><p>description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">types</span></code></p></td>
+<td><p>A list of keys to extract from the annotation database. The defaults should not be changed, but
+additional keys can be added. For a list of keys for an orgDb object, run <code class="docutils literal notranslate"><span class="pre">keyTypes(orgdb)</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="bitrgenes">
+<h2><code class="docutils literal notranslate"><span class="pre">bitrgenes</span></code><a class="headerlink" href="#bitrgenes" title="Permalink to this headline">¶</a></h2>
+<p>Here we obtain a list of differentially expressed genes and obtain a mapping of
+these gene IDs to the terms listed in <code class="docutils literal notranslate"><span class="pre">types</span></code> above. Notable parameter to change:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 83%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>parameter</p></th>
+<th class="head"><p>description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">from.type</span></code></p></td>
+<td><p>This needs to be changed to match the source of gene IDs being used.
+For instance, if the GTF file is downloaded from Ensembl, then this
+should be set to <code class="docutils literal notranslate"><span class="pre">ENSEMBL</span></code> (default = <code class="docutils literal notranslate"><span class="pre">'FLYBASE'</span></code>).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="enrichall">
+<h2><code class="docutils literal notranslate"><span class="pre">enrichall</span></code><a class="headerlink" href="#enrichall" title="Permalink to this headline">¶</a></h2>
+<p>This is the main chunk where the functional enrichment analysis is performed. A set of
+parameters for the analysis are set at the top of the chunk, but the only ones that should be
+changed based on the experiment are:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 78%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>parameter</p></th>
+<th class="head"><p>description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">kegg.organism</span></code></p></td>
+<td><p>This is set based on the organism being studied. For example, for <em>Homo sapiens</em>
+this should be <code class="docutils literal notranslate"><span class="pre">'hsa'</span></code> (default = <code class="docutils literal notranslate"><span class="pre">'dme'</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">RUN.REACTOME</span></code></p></td>
+<td><p>Specify if Reactome analysis should be performed (default = <code class="docutils literal notranslate"><span class="pre">FALSE</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reactome.organism</span></code></p></td>
+<td><p>In contrast to KEGG, Reactome analysis needs the name of the species.
+For example, for <em>Homo sapiens</em> this should be <code class="docutils literal notranslate"><span class="pre">'human'</span></code> (default = <code class="docutils literal notranslate"><span class="pre">'fly'</span></code>).
+This only needs adjusting if <code class="docutils literal notranslate"><span class="pre">RUN.REACTOME</span></code> is <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<p>This chunk performs GO, KEGG (and optionally Reactome) analyses for each element in the list of
+DE genes, separately for up- and down-regulated genes. The results populate a list which is then
+output to files and used subsequently for visualization.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Each list of DE genes is analyzed in multiple (3 GO ontologies + KEGG + optionally Reactome) separate ways
+so for many lists, this chunk can be <em>very</em> time-consuming. However, with <code class="docutils literal notranslate"><span class="pre">cache</span> <span class="pre">=</span> <span class="pre">TRUE</span></code>,
+this is only run once and subsequent runs are much faster.</p>
+</div>
+</div>
+<div class="section" id="plotgo">
+<h2><code class="docutils literal notranslate"><span class="pre">plotgo</span></code><a class="headerlink" href="#plotgo" title="Permalink to this headline">¶</a></h2>
+<p>Here we visualize the functional enrichment analysis results using three different
+plots:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">dotplot</span></code></p>
+<blockquote>
+<div><p>This represents highly enriched terms from the analysis with the color corresponding to
+level of enrichment (adjusted p-value) and the size of the dots representing the
+number of genes associated with the GO term or pathway.</p>
+<p>This is the easiest plot to read the enriched terms. By default the top 10
+categories are shown.</p>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">emapplot</span></code></p>
+<blockquote>
+<div><p>The enrichment map plot is a network visualization of the enrichment analysis. Nodes in
+the network represent GO terms or pathways and the connections (edges) between nodes
+represent shared genes between the terms/pathways. The color of the node corresponds
+to adjusted p-values, the size represent the number of genes associated with the term
+and the thickness of the edge represents the number or fraction of genes shared between
+the terms.</p>
+<p>This plot is good for identifying enriched pathways, since categories with
+similar genes will cluster together. By default the top 30 categories are
+shown.</p>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cnetplot</span></code></p>
+<blockquote>
+<div><p>This plot extracts the complex associations of genes with multiple functional terms or
+pathways. The size of the nodes for functional terms represent the number of associated
+genes and the gene nodes can also be overlayed with observed fold-changes.</p>
+<p>This plot is good for identifying which genes act as links between which
+categories. By default the top 5 categories are plotted.</p>
+</div></blockquote>
+</li>
+</ul>
+<p>Each plot is also saved to file as PDF and a link included in the html summary report.</p>
+</div>
+<div class="section" id="adjustcatlen">
+<h2><code class="docutils literal notranslate"><span class="pre">adjustcatlen</span></code><a class="headerlink" href="#adjustcatlen" title="Permalink to this headline">¶</a></h2>
+<p>Here we update the <code class="docutils literal notranslate"><span class="pre">clusterProfiler</span></code> results object by adding symbols corresponding to
+KEGG gene IDs. This is done so that human-readable gene names show in the visualizations.
+This will likely be moved to a helper function that is run automatically in a future release.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/functional-enrichment-rmd.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

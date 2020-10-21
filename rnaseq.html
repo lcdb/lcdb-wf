@@ -4,6 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RNA-seq workflow &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +15,7 @@
     <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Downstream RNA-seq in R" href="downstream-rnaseq.html" />
+    <link rel="next" title="RNA-Seq downstream analysis" href="downstream-rnaseq.html" />
     <link rel="prev" title="References workflow" href="references.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -27,7 +28,7 @@
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+<h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
 
 
 
@@ -39,34 +40,40 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
-<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
-<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="workflows.html">Overview of workflows</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="workflows.html#primary-analysis-workflows">Primary analysis workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#integrative-analysis-workflows">Integrative analysis workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#features-common-to-workflows">Features common to workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">RNA-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">RNA-seq workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#downstream-analysis">Downstream analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
-<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="developers.html">Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
-  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="toc.html">Documentation overview</a><ul>
+  <li><a href="workflows.html">Overview of workflows</a><ul>
       <li>Previous: <a href="references.html" title="previous chapter">References workflow</a></li>
-      <li>Next: <a href="downstream-rnaseq.html" title="next chapter">Downstream RNA-seq in R</a></li>
+      <li>Next: <a href="downstream-rnaseq.html" title="next chapter">RNA-Seq downstream analysis</a></li>
+  </ul></li>
   </ul></li>
 </ul>
 </div>
@@ -95,8 +102,7 @@ RIP-seq or small RNA-seq).</p>
 <p>This workflow can use references created by the references workflow with no
 need to run the references workflow separately. This workflow performs the
 following tasks:</p>
-<blockquote>
-<div><ul class="simple">
+<ul class="simple">
 <li><p>Build a HISAT2 index</p></li>
 <li><p>Build a salmon transcriptome index</p></li>
 <li><p>Download a GTF annotation</p></li>
@@ -114,42 +120,31 @@ configured genomes</p></li>
 <li><p>Optionally merge bigWigs as defined by config</p></li>
 <li><p>Aggregate QC results using MultiQC. Includes custom tables for library
 sizes and rRNA contamination</p></li>
-<li><p>Run various QC and differential expression. This is  performed in an
-RMarkdown file that runs a standard DESeq2 differential expression
-analysis along with diagnostic plots, exported tables of differentially
-expressed genes for each contrast, and downstream GO analysis using
-clusterProfiler. This file is run and rendered into an output HTML file.</p></li>
+<li><p>Run comprehensive downstream analysis including QC and differential expression
+in R. See section below for more details.</p></li>
 <li><p>Construct and upload a track hub of scaled coverage bigWigs for each
 sample that can be viewed in UCSC Genome Browser</p></li>
 </ul>
-</div></blockquote>
 <p>The DAG of jobs looks like this:</p>
 <img alt="_images/rnaseq.png" src="_images/rnaseq.png" />
-<p>To run the workflow on your own data:</p>
-<ul class="simple">
-<li><p>Install the dependencies (<a class="reference internal" href="getting-started.html#getting-started"><span class="std std-ref">Initial setup</span></a>)</p></li>
-<li><p>Optionally run the workflow on provided test data (<a class="reference internal" href="tests.html#running-the-tests"><span class="std std-ref">Running the tests</span></a>)</p></li>
-<li><p>Search the Snakefile for the string <code class="docutils literal notranslate"><span class="pre">NOTE</span></code> and edit rules as described by those comments</p></li>
-<li><p>Edit the sampletable to reflect your sample IDs and their FASTQ files (<a class="reference internal" href="sampletable.html#sampletable"><span class="std std-ref">Sample tables</span></a>)</p></li>
-<li><p>Edit the config file to reflect the references you want to use (<a class="reference internal" href="references-config.html#references-config"><span class="std std-ref">References config</span></a>)</p></li>
-<li><p>Edit the config file to reflect the optional bigWig merging you would like (<a class="reference internal" href="config-yaml.html#cfg-merged-bigwigs"><span class="std std-ref">merged_bigwigs config section</span></a>)</p></li>
+<div class="section" id="downstream-analysis">
+<h2>Downstream analysis<a class="headerlink" href="#downstream-analysis" title="Permalink to this headline">¶</a></h2>
+<p>This is  performed in an RMarkdown file <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code> that uses DESeq2
+for differential expression analysis, along with diagnostic plots,
+exported tables of differentially expressed genes for each comparison of
+interest, gene patterns analysis for finding coexpressed genes and downstream
+functional enrichment analysis using clusterProfiler. This file is run and
+rendered into an output HTML file. See <a class="reference internal" href="downstream-rnaseq.html#downstream"><span class="std std-ref">RNA-Seq downstream analysis</span></a> for more details.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="downstream-rnaseq.html#how-to-use-this-script">How to use this script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="downstream-rnaseq.html#points-of-interest">Points of interest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="downstream-rnaseq.html#more-details">More details</a></li>
 </ul>
-<p>If you are running on a local machine, from the <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq</span></code> directory
-and with the environment activated, this will do a dry run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake -n
-</pre></div>
+</li>
+</ul>
 </div>
-<p>If no errors are displayed, run the workflow (assuming 8 CPUs):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake -j <span class="m">8</span> --use-conda
-</pre></div>
-</div>
-<p>If you are running on a cluster other than NIH’s Biowulf, edit the settings in
-the <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq/config/clusterconfig.yaml</span></code> to reflect the settings for
-your cluster.</p>
-<p>Edit <code class="docutils literal notranslate"><span class="pre">include/WRAPPER_SLURM</span></code> to reflect the environment name that you used.</p>
-<p>From the <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq</span></code> directory:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sbatch ../../include/WRAPPER_SLURM
-</pre></div>
 </div>
 </div>
 
@@ -164,7 +159,7 @@ your cluster.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

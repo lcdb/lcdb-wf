@@ -1,0 +1,272 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FAQs &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Changelog" href="changelog.html" />
+    <link rel="prev" title="Patterns and targets" href="patterns-targets.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
+
+
+
+<p class="blurb">Customizable workflows for high-throughput sequencing analysis</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">FAQs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#can-i-run-multiple-workflows-at-once">Can I run multiple workflows at once?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-do-i-handle-multiple-experiments-in-the-same-project">How do I handle multiple experiments in the same project?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-are-low-counts-handled-during-differential-expression-analysis-should-we-use-a-read-count-threshold-to-filter-genes">How are low counts handled during differential expression analysis? Should we use a read-count threshold to filter genes?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-do-i-troubleshoot-failed-jobs">How do I troubleshoot failed jobs?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-do-i-update-my-deployment">How do I update my deployment?</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="toc.html">Documentation overview</a><ul>
+      <li>Previous: <a href="patterns-targets.html" title="previous chapter">Patterns and targets</a></li>
+      <li>Next: <a href="changelog.html" title="next chapter">Changelog</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="faqs">
+<h1>FAQs<a class="headerlink" href="#faqs" title="Permalink to this headline">¶</a></h1>
+<p>This page serves as a catch-all for details of various topics.</p>
+<div class="section" id="can-i-run-multiple-workflows-at-once">
+<span id="simultaneous-workflows"></span><h2>Can I run multiple workflows at once?<a class="headerlink" href="#can-i-run-multiple-workflows-at-once" title="Permalink to this headline">¶</a></h2>
+<p>Sometimes. While Snakemake creates a lockfile to prevent multiple instances
+running in the same directory, the fact that each workflow (rnaseq, chipseq,
+etc) are in their own subdirectory means that they will each have their own
+separate lockfiles and can be run.</p>
+<p>Be careful though, because both ChIP-seq and RNA-seq workflows include the
+references workflow. This means that if you have not yet already set up the
+references, the RNA-seq and ChIP-seq workflows may both attempt to write the
+references, potentially corrupting it.</p>
+</div>
+<div class="section" id="how-do-i-handle-multiple-experiments-in-the-same-project">
+<span id="multiple-experiments"></span><h2>How do I handle multiple experiments in the same project?<a class="headerlink" href="#how-do-i-handle-multiple-experiments-in-the-same-project" title="Permalink to this headline">¶</a></h2>
+<p>It’s pretty common to have both RNA-seq and ChIP-seq experiments that need to
+be analyzed together. For example, we might have RNA-seq in two different mouse
+cell types, RNA-seq in a human cell type, ChIP-seq for different antibodies in
+those cell types, and all of this needs to be compared with publicly available
+data (say, other RNA-seq experiments from GEO). We need to make figures for the
+manuscript, so the figure-making code needs to be re-run if there are any
+changes to the primary analysis (new samples, parameter changes, etc).</p>
+<p>lcdb-wf is designed to handle all of this. There are a couple of limitations to
+lcdb-wf that will determine how best to split up workflows, and the subsections
+below will help you decide if you should consider an experiment as part of
+a different workflow.</p>
+<p>If an experiment needs to be considered as part of a different workflow, then
+make copies of the relevant workflow directory after deploying. Taking the
+above project as an example, immediately after deploying (using <code class="docutils literal notranslate"><span class="pre">--flavor</span>
+<span class="pre">full</span></code> so we get all supported workflows including RNA-seq and ChIP-seq), we
+have:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">workflows</span><span class="o">/</span>
+  <span class="n">chipseq</span><span class="o">/</span>
+  <span class="n">colocalization</span><span class="o">/</span>
+  <span class="n">external</span><span class="o">/</span>
+  <span class="n">figures</span><span class="o">/</span>
+  <span class="n">rnaseq</span><span class="o">/</span>
+</pre></div>
+</div>
+<p>then we might rename the external one to match the GEO accession (to make it
+easier to remember), make copies of the RNA-seq directory for the mouse and
+human experiments, and clean up a little:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rm -r workflows/colocalization
+mv workflows/external workflows/GSE00112233
+cp -r workflows/rnaseq workflows/mouse-rnaseq
+cp -r workflows/rnaseq workflows/human-rnaseq
+rm -r workflows/rnaseq
+</pre></div>
+</div>
+<p>then we would have:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">workflows</span><span class="o">/</span>
+  <span class="n">chipseq</span><span class="o">/</span>
+  <span class="n">figures</span><span class="o">/</span>
+  <span class="n">GSE00112233</span><span class="o">/</span>
+  <span class="n">human</span><span class="o">-</span><span class="n">rnaseq</span><span class="o">/</span>
+  <span class="n">mouse</span><span class="o">-</span><span class="n">rnaseq</span><span class="o">/</span>
+</pre></div>
+</div>
+<p>See below for advice on when to split experiments into separate workflows.</p>
+<div class="section" id="samples-need-the-same-library-layout">
+<h3>Samples need the same library layout<a class="headerlink" href="#samples-need-the-same-library-layout" title="Permalink to this headline">¶</a></h3>
+<p>A single workflow must be either all single-end or all paired-end.</p>
+<p>If you have the same RNA-seq samples that were sequenced once SE and again PE,
+you’ll need to have two different copies of the <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq</span></code> directory
+(say, <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq-se</span></code> and <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq-pe</span></code>). If they are to be
+combined in the same differential expression analysis (e.g., by modeling layout
+as a batch effect), then the adjust your downstream analysis in R to read in
+both counts tables (see <a class="reference internal" href="rnaseq-rmd.html#rnaseqrmd"><span class="std std-ref">Primary analysis script</span></a> for more).</p>
+</div>
+<div class="section" id="samples-need-to-use-the-same-parameters">
+<h3>Samples need to use the same parameters<a class="headerlink" href="#samples-need-to-use-the-same-parameters" title="Permalink to this headline">¶</a></h3>
+<p>There is no mechanism for specifying sample-specific parameters (for example,
+to use cutadapt to trim some 5’ bases from some samples but leave other samples
+alone). Samples that need to treated differently should be split off into
+a separate workflow, and the respective Snakefiles should be edited
+accordingly.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Note that the peak-calling for ChIP-seq supports specifying custom
+parameters for each peak-calling run. The BAM files still need to have used
+uniform parameters across samples, so if alignment or trimming options
+differ, you should split each set of parameters into a different workflow.</p>
+</div>
+</div>
+<div class="section" id="samples-must-use-the-same-assembly">
+<h3>Samples must use the same assembly<a class="headerlink" href="#samples-must-use-the-same-assembly" title="Permalink to this headline">¶</a></h3>
+<p>There is no mechanism for specifying per-sample assemblies. Samples from
+different species need to go in different workflows. If you want to compare,
+say, hg19 and hg38, then you would make a copy of the workflow for each assembly
+and adjust the reference config accordingly for each workflow separately.</p>
+</div>
+</div>
+<div class="section" id="how-are-low-counts-handled-during-differential-expression-analysis-should-we-use-a-read-count-threshold-to-filter-genes">
+<span id="lowcounts"></span><h2>How are low counts handled during differential expression analysis? Should we use a read-count threshold to filter genes?<a class="headerlink" href="#how-are-low-counts-handled-during-differential-expression-analysis-should-we-use-a-read-count-threshold-to-filter-genes" title="Permalink to this headline">¶</a></h2>
+<p>Low count genes are handled during the normalization and analysis steps of DESeq2
+with sophisticated statistical models. Genes with low counts across the board are flagged
+as <em>low count outliers</em>, and the p-values are set to NA. Also genes with low counts
+are penalized by shrinking the <code class="docutils literal notranslate"><span class="pre">log2FoldChange</span></code> estimate. For example, a fold change of
+4 that came from 4 reads in the treatment group vs 1 read in the control, will be shrunken,
+as opposed to if the treatment had 2000 reads vs 500 in the control. As a result of this
+low-count correction, the <code class="docutils literal notranslate"><span class="pre">log2FoldChange</span></code> of genes clearing a false-discovery criterion
+can be used as a reliable metric for prioritizing candidate genes for follow-up experiments.
+In contrast, using an arbitrary fold-change cutoff could introduce biases that potentially
+violate modeling assumptions and introduce variables that we could not predict or control for.
+So, we do not recommend using count thresholds to filter differential expression analysis
+results to determine candidate genes for follow up.</p>
+</div>
+<div class="section" id="how-do-i-troubleshoot-failed-jobs">
+<span id="troubleshooting"></span><h2>How do I troubleshoot failed jobs?<a class="headerlink" href="#how-do-i-troubleshoot-failed-jobs" title="Permalink to this headline">¶</a></h2>
+<p>Many rules have an explicit <code class="docutils literal notranslate"><span class="pre">log:</span></code> directive that defines where the log is
+written. These are typically in the same directory as the output files the rule
+creates, and this is the first place to check if something goes wrong.</p>
+<p>Some rules do not explicitly redirect to <code class="docutils literal notranslate"><span class="pre">log:</span></code> or may only redirect either
+stdout or stderr. Where this output ends up depends on if you’re running
+locally or on a cluster.</p>
+<p><strong>When running locally,</strong>  stdout and stderr will be included in the output
+from Snakemake, so check there.</p>
+<p><strong>If running on a cluster,</strong> the default behavior is to send the main Snakemake
+output to <code class="docutils literal notranslate"><span class="pre">Snakefile.log</span></code>.  The per-rule output depends on how it was sent to
+the cluster.  As described in the above section, by default stdout and stderr
+are sent to the <code class="docutils literal notranslate"><span class="pre">logs</span></code> directory, named after rule and job ID.</p>
+<p><strong>If a job fails on a cluster</strong>:</p>
+<ul class="simple">
+<li><p>Open <code class="docutils literal notranslate"><span class="pre">Snakefile.log</span></code> and search for <code class="docutils literal notranslate"><span class="pre">Error</span></code></p></li>
+<li><p>Recent versions of Snakemake report the <code class="docutils literal notranslate"><span class="pre">log:</span></code> file (if any) and the
+<code class="docutils literal notranslate"><span class="pre">cluster_jobid:</span></code>. Keep track of these.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">log:</span></code> was defined for the rule, check there first</p></li>
+<li><p>If not, or if more information is needed, check
+<code class="docutils literal notranslate"><span class="pre">logs/&lt;rulename&gt;.{e,o}.&lt;jobid&gt;</span></code> (which is how stderr and stdout are
+configure when running with the <code class="docutils literal notranslate"><span class="pre">include/WRAPPER_SLURM</span></code> wrapper).</p></li>
+</ul>
+<p>For example, if we find the following error in <code class="docutils literal notranslate"><span class="pre">Snakefile.log</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Tue</span> <span class="n">Feb</span>  <span class="mi">6</span> <span class="mi">20</span><span class="p">:</span><span class="mi">06</span><span class="p">:</span><span class="mi">30</span> <span class="mi">2018</span><span class="p">]</span> <span class="n">Error</span> <span class="ow">in</span> <span class="n">rule</span> <span class="n">rnaseq_rmarkdown</span><span class="p">:</span>
+<span class="p">[</span><span class="n">Tue</span> <span class="n">Feb</span>  <span class="mi">6</span> <span class="mi">20</span><span class="p">:</span><span class="mi">06</span><span class="p">:</span><span class="mi">30</span> <span class="mi">2018</span><span class="p">]</span>     <span class="n">jobid</span><span class="p">:</span> <span class="mi">156</span>
+<span class="p">[</span><span class="n">Tue</span> <span class="n">Feb</span>  <span class="mi">6</span> <span class="mi">20</span><span class="p">:</span><span class="mi">06</span><span class="p">:</span><span class="mi">30</span> <span class="mi">2018</span><span class="p">]</span>     <span class="n">output</span><span class="p">:</span> <span class="n">downstream</span><span class="o">/</span><span class="n">rnaseq</span><span class="o">.</span><span class="n">html</span>
+<span class="p">[</span><span class="n">Tue</span> <span class="n">Feb</span>  <span class="mi">6</span> <span class="mi">20</span><span class="p">:</span><span class="mi">06</span><span class="p">:</span><span class="mi">30</span> <span class="mi">2018</span><span class="p">]</span>     <span class="n">cluster_jobid</span><span class="p">:</span> <span class="mi">60894387</span>
+</pre></div>
+</div>
+<p>Then we would check <code class="docutils literal notranslate"><span class="pre">logs/rnaseq_markdown.e.60894387</span></code> and
+<code class="docutils literal notranslate"><span class="pre">logs/rnaseq_markdown.o.60894387</span></code> for more information.</p>
+</div>
+<div class="section" id="how-do-i-update-my-deployment">
+<span id="updating"></span><h2>How do I update my deployment?<a class="headerlink" href="#how-do-i-update-my-deployment" title="Permalink to this headline">¶</a></h2>
+<p>If there are additional fixes or features in the main lcdb-wf repo that you
+want to propagate to your existing projects, the best way to do this is to
+clone a recent version and do the manual diffs between the new version and what
+you have on disk.</p>
+<p>To help narrow down the changes that have happened in the main lcdb-wf repo
+since you deplyed to a project, Use the <code class="docutils literal notranslate"><span class="pre">.lcdb-wf-deployment.json</span></code> file that
+is created when deploying to a project to find the commit hash that the
+deployment used.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/faqs.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

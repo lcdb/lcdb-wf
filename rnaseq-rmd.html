@@ -1,0 +1,636 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detailed documentation of RNA-Seq downstream &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ChIP-seq workflow" href="chipseq.html" />
+    <link rel="prev" title="RNA-Seq downstream analysis" href="downstream-rnaseq.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
+
+
+
+<p class="blurb">Customizable workflows for high-throughput sequencing analysis</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="downstream-rnaseq.html#how-to-use-this-script">How to use this script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="downstream-rnaseq.html#points-of-interest">Points of interest</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="downstream-rnaseq.html#more-details">More details</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="toc.html">Documentation overview</a><ul>
+  <li><a href="workflows.html">Overview of workflows</a><ul>
+  <li><a href="rnaseq.html">RNA-seq workflow</a><ul>
+  <li><a href="downstream-rnaseq.html">RNA-Seq downstream analysis</a><ul>
+      <li>Previous: <a href="downstream-rnaseq.html" title="previous chapter">RNA-Seq downstream analysis</a></li>
+      <li>Next: <a href="chipseq.html" title="next chapter">ChIP-seq workflow</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="detailed-documentation-of-rna-seq-downstream">
+<span id="downstream-detailed"></span><h1>Detailed documentation of RNA-Seq downstream<a class="headerlink" href="#detailed-documentation-of-rna-seq-downstream" title="Permalink to this headline">¶</a></h1>
+<p>Here we describe in detail the downstream analysis of RNA-Seq data done using RMarkdown.
+The code is broken into chunks or modules and the documentation follows the same
+structure. For instance, if <code class="file docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code> has the following code:</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">```{r load_libraries}</span>
+<span class="n">library(DESeq2)</span>
+<span class="n">library(dplyr)</span>
+<span class="n">```</span>
+</pre></div>
+</div>
+<p>Then you can find the corresponding documentation on this page under the
+<code class="docutils literal notranslate"><span class="pre">load_libraries</span></code> heading. Note that an RMarkdown code chunk must be named
+in order to be documented. RMarkdown requires uniquely-named chunks, so we
+can use them as uniquely-named headings.</p>
+<p>The file <code class="file docutils literal notranslate"><span class="pre">ci/ensure_docs.py</span></code> double-checks to make sure all chunks are
+documented and all documentation corresponds to a chunk, as part of the testing
+framework.</p>
+<p>To further modularize the code and because certain parts of the analysis are self-contained,
+the downstream analysis code is broken up into three main components:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#primary-analysis-script">Primary analysis script</a>: <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code></p></li>
+<li><p><a class="reference internal" href="#gene-patterns-analysis">Gene patterns analysis</a>: <code class="docutils literal notranslate"><span class="pre">gene-patterns.Rmd</span></code></p></li>
+<li><p><a class="reference internal" href="#functional-enrichment-analysis">Functional enrichment analysis</a>: <code class="docutils literal notranslate"><span class="pre">functional-enrichment.Rmd</span></code></p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">gene_patterns.Rmd</span></code> and <code class="docutils literal notranslate"><span class="pre">functional-enrichment.Rmd</span></code> scripts are called
+from within the primary analysis Rmd in the <a class="reference internal" href="#genepatterns">genepatterns</a> and <a class="reference internal" href="#functionalenrichment">functionalenrichment</a>
+chunks below.</p>
+<div class="section" id="primary-analysis-script">
+<span id="rnaseqrmd"></span><h2>Primary analysis script<a class="headerlink" href="#primary-analysis-script" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="global-options">
+<h3><code class="docutils literal notranslate"><span class="pre">global_options</span></code><a class="headerlink" href="#global-options" title="Permalink to this headline">¶</a></h3>
+<p>This chunk sets global rmarkdown options. The following lines provide
+a mechanism for all cached chunks to have their cache invalidated if either of
+the filenames’ modification times have changed.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">cache.extra_file_dep_1</span><span class="o">=</span><span class="nf">file.info</span><span class="p">(</span><span class="s">&#39;../config/sampletable.tsv&#39;</span><span class="p">)</span><span class="o">$</span><span class="n">mtime</span><span class="p">,</span>
+<span class="n">cache.extra_file_dep_2</span> <span class="o">=</span> <span class="nf">file.info</span><span class="p">(</span><span class="s">&#39;../data/rnaseq_aggregation/featurecounts.txt&#39;</span><span class="p">)</span><span class="o">$</span><span class="n">mtime</span>
+</pre></div>
+</div>
+<p>In other words, if the sample table of the RNA-Seq workflow or the counts table from
+the samples have been updated since the last time the analysis script was run, everything
+will be rerun from scratch.</p>
+</div>
+<div class="section" id="load-helpers">
+<h3><code class="docutils literal notranslate"><span class="pre">load_helpers</span></code><a class="headerlink" href="#load-helpers" title="Permalink to this headline">¶</a></h3>
+<p>Helper functions are a set of useful utility functions used throughout the
+<code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code> script that are stored in a package maintained in this
+repository, in the <code class="docutils literal notranslate"><span class="pre">lib/lcdbwf</span></code> R package. Here we include these as a child
+Rmd, so that the main document doesn’t get cluttered with the functions, but
+the code is still included in the HTML output.</p>
+<p>This chunk refreshes documentation and loads (or re-loads, if you run it later)
+the package using devtools.</p>
+</div>
+<div class="section" id="annotationhub-setup">
+<h3><code class="docutils literal notranslate"><span class="pre">annotationhub_setup</span></code><a class="headerlink" href="#annotationhub-setup" title="Permalink to this headline">¶</a></h3>
+<p>We use AnnotationHub for downloading annotations on the fly rather than
+specifying OrgDbs in the requirements.txt of the conda environment. This allows
+as much of our code as possible remain organism-agnostic. The package default
+cache location is in the user’s home directory. However this prevents other
+people using the same environment from using the cached download. Therefore
+here we reset the cache directory to
+<code class="file docutils literal notranslate"><span class="pre">../../../include/AnnotationHubCache</span></code>.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 80%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>var</p></th>
+<th class="head"><p>description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">annotation_genus_species</span></code></p></td>
+<td><p>change this to what is relevant for this experiment. will search for and use the latest annotations for that species</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">annotation_key_override</span></code></p></td>
+<td><p>will use a specific key, if you know ahead of time what that is</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="coldata-setup">
+<h3><code class="docutils literal notranslate"><span class="pre">coldata_setup</span></code><a class="headerlink" href="#coldata-setup" title="Permalink to this headline">¶</a></h3>
+<p>This chunk prepares the <a class="reference internal" href="#term-colData"><span class="xref std std-term">colData</span></a> object that contains the metadata to be used
+for creating the dds objects. The majority of the metadata is read in from the
+sampletable. This chunk also handles things like converting to factors and
+setting up the paths to Salmon output files.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 78%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>var</p></th>
+<th class="head"><p>description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sample.table.filename</span></code></p></td>
+<td><p>path to sampletable, generally you don’t need to change this</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">strip.dotted.version</span></code></p></td>
+<td><p>if TRUE, then Ensembl versions (the “.1” in “ENSG000012345.1”) will be removed from gene names</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">exclude.for.printing</span></code></p></td>
+<td><p>default columns in the default sampletable that shouldn’t necessarily be printed in tables</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">factor.columns</span></code></p></td>
+<td><p>columns to ensure are factor types</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">salmon.path.func</span></code></p></td>
+<td><p>given a samplename <code class="docutils literal notranslate"><span class="pre">x</span></code>, this function returns the sample’s <code class="docutils literal notranslate"><span class="pre">quant.sf</span></code> file.</p></td>
+</tr>
+</tbody>
+</table>
+<p>This is a good place to put any modifications to the sample table (like factors
+derived other columns).</p>
+<p>If you are using this Rmd outside the context of lcdb-wf, you will need to
+change the salmon output path patterns and the sampletable location.</p>
+<div class="topic">
+<p class="topic-title">Note on factors</p>
+<p>For the test data, “control” is the base level for the “group” factor. You will
+need to edit this as appropriate for your experimental design.</p>
+</div>
+</div>
+<div class="section" id="salmon">
+<h3><code class="docutils literal notranslate"><span class="pre">salmon</span></code><a class="headerlink" href="#salmon" title="Permalink to this headline">¶</a></h3>
+<p>If you don’t want to use Salmon TPM, disable this chunk with <code class="docutils literal notranslate"><span class="pre">eval=FALSE</span></code> or
+delete it entirely (and do the same with the next chunk).</p>
+</div>
+<div class="section" id="ddstxi">
+<h3><code class="docutils literal notranslate"><span class="pre">ddstxi</span></code><a class="headerlink" href="#ddstxi" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">design</span></code> will likely need to be changed depending on your experimental
+design.</p>
+<p>This chunk creates separate <code class="docutils literal notranslate"><span class="pre">dds.txi</span></code> and <code class="docutils literal notranslate"><span class="pre">vsd.txi</span></code> objects to
+differentiate them from the ones with no <code class="docutils literal notranslate"><span class="pre">.txi</span></code> that are created using
+featureCounts.</p>
+<p>Note we’re using VST rather than rlog because the DESeq2 docs say they are
+largely equivalent, and vst is substantially faster. Also note that since this
+is exploratory analysis, we use <code class="docutils literal notranslate"><span class="pre">blind=TRUE</span></code> to ignore the design.</p>
+</div>
+<div class="section" id="dds-initial">
+<h3><code class="docutils literal notranslate"><span class="pre">dds_initial</span></code><a class="headerlink" href="#dds-initial" title="Permalink to this headline">¶</a></h3>
+<p>This initial <a class="reference internal" href="#term-dds"><span class="xref std std-term">dds</span></a> object will be used for exploratory data analysis, NOT
+for differential expression. So the <code class="docutils literal notranslate"><span class="pre">design</span></code> should be something generic like
+“group” even for complex experimental designs.</p>
+<p>This chunk creates the initial <a class="reference internal" href="#term-dds"><span class="xref std std-term">dds</span></a> and <a class="reference internal" href="#term-vsd"><span class="xref std std-term">vsd</span></a> objects that will be
+used for exploratory data analysis.</p>
+</div>
+<div class="section" id="sample-heatmap">
+<h3><code class="docutils literal notranslate"><span class="pre">sample_heatmap</span></code><a class="headerlink" href="#sample-heatmap" title="Permalink to this headline">¶</a></h3>
+<p>This chunk creates a clustered heatmap of sample distances.</p>
+<p>It can be helpful to add colors along the side to indicate different aspects of the
+sample metadata. Any number of columns from the <a class="reference internal" href="#term-colData"><span class="xref std std-term">colData</span></a> can be provided
+as <code class="docutils literal notranslate"><span class="pre">cols.for.grouping</span></code>.</p>
+</div>
+<div class="section" id="pca">
+<h3><code class="docutils literal notranslate"><span class="pre">pca</span></code><a class="headerlink" href="#pca" title="Permalink to this headline">¶</a></h3>
+<p>Create PCA plots, colored by possibly many different <a class="reference internal" href="#term-colData"><span class="xref std std-term">colData</span></a> columns
+(specified using the <code class="docutils literal notranslate"><span class="pre">groups</span></code> list).</p>
+<p>Each of the values in <code class="docutils literal notranslate"><span class="pre">groups</span></code> will have a corresponding interactive PCA plot
+in a separate tab. This makes it easy to click through tabs to get a feel for
+the structure of the data, and allows for hoving over a point to see the
+metadata.</p>
+<p>Note that plotting interactive plotly figures in a loop is not quite possible
+(due to technical limitations) and so we have to use a workaround. Currently,
+this workaround is to “manually” step through the loop, setting <code class="docutils literal notranslate"><span class="pre">i</span></code> to
+a different integer and copy/pasting the same code multiple times.</p>
+</div>
+<div class="section" id="sizefactors">
+<h3><code class="docutils literal notranslate"><span class="pre">sizefactors</span></code><a class="headerlink" href="#sizefactors" title="Permalink to this headline">¶</a></h3>
+<p>To more easily investigate any outliers in these plots, you can optionally
+attach columns from <code class="docutils literal notranslate"><span class="pre">colData</span></code> before plotting the scatterplot, e.g.:</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">color_by</span> <span class="o">&lt;-</span> <span class="s">&#39;group&#39;</span>
+<span class="n">group_names</span> <span class="o">&lt;-</span> <span class="nf">tibble</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">dds</span><span class="o">$</span><span class="n">samplename</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="n">dds</span><span class="p">[[</span><span class="n">color_by</span><span class="p">]])</span>
+<span class="n">trc_vs_sf</span> <span class="o">&lt;-</span> <span class="nf">full_join</span><span class="p">(</span><span class="n">sf</span><span class="p">,</span> <span class="n">trc</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s">&#39;name&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="parallel-config">
+<h3><code class="docutils literal notranslate"><span class="pre">parallel_config</span></code><a class="headerlink" href="#parallel-config" title="Permalink to this headline">¶</a></h3>
+<p>By default we do not run in parallel, however this can be very useful in
+experiments with many samples and complex designs. To run in parallel, manually
+configure the parallel workers, set the number of cores, and set parallel to
+TRUE:</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">parallel</span> <span class="o">&lt;-</span> <span class="kc">TRUE</span>
+<span class="nf">register</span><span class="p">(</span><span class="nf">MulticoreParam</span><span class="p">(</span><span class="m">4</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Calls to <code class="docutils literal notranslate"><span class="pre">DESeq()</span></code> below will provide the argument <code class="docutils literal notranslate"><span class="pre">parallel=parallel</span></code> so no
+other changes should be needed.</p>
+</div>
+<div class="section" id="dds-list">
+<span id="id1"></span><h3><code class="docutils literal notranslate"><span class="pre">dds_list</span></code><a class="headerlink" href="#dds-list" title="Permalink to this headline">¶</a></h3>
+<p>This chunk sets up the <a class="reference internal" href="#term-dds"><span class="xref std std-term">dds</span></a> objects to be used in the <cite>results</cite> section
+below for differential expression detection.</p>
+<p>You may need different <code class="docutils literal notranslate"><span class="pre">dds</span></code> objects for testing different models, or perhaps
+removing outlier samples. If you have technical replicates you might need to
+combine them, and you might need to remove gene version identifiers. You might
+want to use salmon instead of featureCounts. These would need to be done for
+each <code class="docutils literal notranslate"><span class="pre">dds</span></code>, requiring code duplication.</p>
+<p>After working on many complex and/or messy experimental designs, we have
+settled on the approach of a named list of <code class="docutils literal notranslate"><span class="pre">dds</span></code> objects.</p>
+<p><strong>The</strong> <code class="docutils literal notranslate"><span class="pre">results</span></code> <strong>chunk below expects a list, one item per</strong> <code class="docutils literal notranslate"><span class="pre">dds</span></code> <strong>object.</strong></p>
+<p>The simplest example is the following where we create a single <code class="docutils literal notranslate"><span class="pre">dds</span></code> and put
+it into a list.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">dds</span> <span class="o">&lt;-</span> <span class="nf">DESeqFromCombinedFeatureCounts</span><span class="p">(</span>
+   <span class="s">&#39;../data/rnaseq_aggregation/featurecounts.txt&#39;</span><span class="p">,</span>
+   <span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span><span class="p">,</span>
+   <span class="n">design</span><span class="o">=~</span><span class="n">group</span><span class="p">)</span>
+<span class="n">dds</span> <span class="o">&lt;-</span> <span class="nf">DESeq</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">)</span>
+
+<span class="n">dds.list</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span><span class="n">main</span><span class="o">=</span><span class="n">dds</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here is a modified example where we now want to remove replicate 4. We also want to collapse technical replicates:</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">dds1</span> <span class="o">&lt;-</span> <span class="nf">DESeqFromCombinedFeatureCounts</span><span class="p">(</span>
+   <span class="s">&#39;../data/rnaseq_aggregation/featurecounts.txt&#39;</span><span class="p">,</span>
+   <span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span><span class="p">,</span>
+   <span class="n">design</span><span class="o">=~</span><span class="n">group</span><span class="p">)</span>
+<span class="n">dds1</span> <span class="o">&lt;-</span> <span class="nf">collapseReplicates</span><span class="p">(</span><span class="n">dds1</span><span class="p">,</span> <span class="s">&#39;biorep&#39;</span><span class="p">)</span>
+<span class="n">dds1</span> <span class="o">&lt;-</span> <span class="nf">DESeq</span><span class="p">(</span><span class="n">dds1</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">)</span>
+
+<span class="n">dds2</span> <span class="o">&lt;-</span> <span class="nf">DESeqFromCombinedFeatureCounts</span><span class="p">(</span>
+   <span class="s">&#39;../data/rnaseq_aggregation/featurecounts.txt&#39;</span><span class="p">,</span>
+   <span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span> <span class="o">%&gt;%</span> <span class="nf">filter</span><span class="p">(</span><span class="n">replicate</span><span class="o">!=</span><span class="s">&#39;rep4&#39;</span><span class="p">),</span>
+   <span class="n">design</span><span class="o">=~</span><span class="n">group</span><span class="p">,</span>
+   <span class="n">subset.counts</span><span class="o">=</span><span class="kc">TRUE</span>  <span class="c1"># need this to subset the featureCounts to match the colData</span>
+   <span class="p">)</span>
+<span class="n">dds2</span> <span class="o">&lt;-</span> <span class="nf">collapseReplicates</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="s">&#39;biorep&#39;</span><span class="p">)</span>
+<span class="n">dds2</span> <span class="o">&lt;-</span> <span class="nf">DESeq</span><span class="p">(</span><span class="n">dds2</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">)</span>
+
+<span class="n">dds.list</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span><span class="n">main</span><span class="o">=</span><span class="n">dds1</span><span class="p">,</span> <span class="n">no.rep.4</span><span class="o">=</span><span class="n">dds2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Based on our experience, as we add more <code class="docutils literal notranslate"><span class="pre">dds</span></code> objects the code gets more
+error-prone. So for more complex use-cases, we have a function
+<code class="docutils literal notranslate"><span class="pre">lcdbwf::make.dds</span></code>. This takes as its first argument a list of sampletable
+(<a class="reference internal" href="#term-colData"><span class="xref std std-term">colData</span></a>) and a design and additional arguments can configure the
+object further.</p>
+<p>The above example becomes the following:</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">lst</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span>
+   <span class="n">main</span><span class="o">=</span><span class="nf">list</span><span class="p">(</span><span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span><span class="p">,</span> <span class="n">design</span><span class="o">=~</span><span class="n">group</span><span class="p">),</span>
+   <span class="n">no.rep.4</span><span class="o">=</span><span class="nf">list</span><span class="p">(</span>
+      <span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span> <span class="o">%&gt;%</span> <span class="nf">filter</span><span class="p">(</span><span class="n">replicate</span><span class="o">!=</span><span class="s">&#39;rep4&#39;</span><span class="p">),</span>
+      <span class="n">design</span><span class="o">=~</span><span class="n">group</span><span class="p">,</span>
+      <span class="n">args</span><span class="o">=</span><span class="nf">list</span><span class="p">(</span><span class="n">subset.counts</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">))</span>
+<span class="p">)</span>
+
+<span class="n">dds.list</span> <span class="o">&lt;-</span> <span class="nf">map</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">make.dds</span><span class="p">,</span> <span class="n">combine.by</span><span class="o">=</span><span class="s">&#39;biorep&#39;</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note the following:</p>
+<ul class="simple">
+<li><p>the file is set by default to be <code class="file docutils literal notranslate"><span class="pre">../data/rnaseq_aggregation/featurecounts.txt</span></code></p></li>
+<li><p>we can supply additional args, like <code class="docutils literal notranslate"><span class="pre">subset.counts=TRUE</span></code>, on a per-<code class="docutils literal notranslate"><span class="pre">dds</span></code> basis.</p></li>
+<li><p>the <cite>combine.by</cite> is applied to everything in the list</p></li>
+<li><p>the <code class="docutils literal notranslate"><span class="pre">parallel</span></code> argument is also used for everything in the list</p></li>
+</ul>
+<p>See the help for <code class="docutils literal notranslate"><span class="pre">lcdbwf::make.dds</span></code> for more details.</p>
+</div>
+<div class="section" id="results">
+<h3><code class="docutils literal notranslate"><span class="pre">results</span></code><a class="headerlink" href="#results" title="Permalink to this headline">¶</a></h3>
+<p>This chunk is where the bulk of the differential expression analysis takes place.</p>
+<p>The end result of this chunk is a list of listes that is used by functions in
+the <cite>lcdbwf</cite> R package for more downstream work. For more details, see
+<a class="reference internal" href="#term-res.list"><span class="xref std std-term">res.list</span></a>.</p>
+<p>For each contrast (that is, each entry in <cite>res.list</cite>) the below chunks will
+automatically create a DE results section including:</p>
+<ul class="simple">
+<li><p>a tabbed section using the label as a header</p></li>
+<li><p>summary table</p></li>
+<li><p>MA plot</p></li>
+<li><p>counts plots of top 3 up- and down-regulated genes</p></li>
+<li><p>p-value distribution</p></li>
+<li><p>exported results tables with links</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">res.list</span></code> is a named list. Each item should be a list with names c(‘res’,
+‘dds’, ‘label’). “res” is a DESeqResults object, “dds” is the corresponding
+DESeq object the results were extracted from, and “label” is a nicer label to
+use for headers and other text.</p>
+<div class="section" id="specifying-contrasts">
+<span id="contrast"></span><h4>Specifying contrasts<a class="headerlink" href="#specifying-contrasts" title="Permalink to this headline">¶</a></h4>
+<p>Contrasts can be specified in three different ways.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In these examples, “control” and “treatment” are factor levels in the
+“group” factor (which was in the <a class="reference internal" href="#term-colData"><span class="xref std std-term">colData</span></a>), and the <a class="reference internal" href="#term-dds"><span class="xref std std-term">dds</span></a>
+object was created with the design <code class="docutils literal notranslate"><span class="pre">~group</span></code>:</p>
+</div>
+<ol class="arabic">
+<li><p>A character vector to the <cite>contrast</cite> parameter.</p>
+<p>This should be a three element vector:</p>
+<ul class="simple">
+<li><p>the name of a factor in the design formula</p></li>
+<li><p>name of the numerator for the fold change</p></li>
+<li><p>the name of the denominator for the fold change. E.g.,</p></li>
+</ul>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">res</span> <span class="o">&lt;-</span> <span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="s">&#39;group&#39;</span><span class="p">,</span> <span class="s">&#39;treatment&#39;</span><span class="p">,</span> <span class="s">&#39;control&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>That is, <strong>the control must be last</strong>.</p>
+</li>
+<li><p><cite>name</cite> parameter for <code class="docutils literal notranslate"><span class="pre">results()</span></code> function call or <cite>coef</cite> parameter for
+<code class="docutils literal notranslate"><span class="pre">lfcShrink()</span></code> call</p>
+<p><cite>name</cite> or <cite>coef</cite> should be one of the values returned by
+<code class="docutils literal notranslate"><span class="pre">resultsNames(dds)</span></code> that corresponds to the precomputed results. E.g.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="nf">resultsNames</span><span class="p">(</span><span class="n">dds</span><span class="p">)</span>
+<span class="c1"># [1] &quot;Intercept&quot;  &quot;group_treatment_vs_control&quot;</span>
+
+<span class="n">res</span> <span class="o">&lt;-</span> <span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;group_treatment_vs_control&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>A numeric contrast vector with one element for each element in the
+<code class="docutils literal notranslate"><span class="pre">resultsNames()</span></code> function call. This is useful for arbitrary comparisons
+in multi-factor designs with a grouping variable.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="nf">resultsNames</span><span class="p">(</span><span class="n">dds</span><span class="p">)</span>
+<span class="c1"># [1] &quot;Intercept&quot;  &quot;group_treatment_vs_control&quot;</span>
+
+<span class="n">res</span> <span class="o">&lt;-</span> <span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">0</span><span class="p">,</span> <span class="m">1</span><span class="p">))</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="the-most-general-way-to-specify-contrasts">
+<h4>The most general way to specify contrasts<a class="headerlink" href="#the-most-general-way-to-specify-contrasts" title="Permalink to this headline">¶</a></h4>
+<p>The most general way to specify contrasts is with a numeric vector (third
+option above).</p>
+<p>Here is a worked example, using a two-factor experiment.</p>
+<p><cite>group</cite> encodes all combinations of a two-factor experiment, so we construct
+a sampletable that looks like the following (here, showing 2 replicates per
+group):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sample</span>   <span class="n">genotype</span>   <span class="n">condition</span>   <span class="n">group</span>
+<span class="mi">1</span>        <span class="n">A</span>          <span class="n">I</span>           <span class="n">IA</span>
+<span class="mi">2</span>        <span class="n">A</span>          <span class="n">I</span>           <span class="n">IA</span>
+<span class="mi">3</span>        <span class="n">B</span>          <span class="n">I</span>           <span class="n">IB</span>
+<span class="mi">4</span>        <span class="n">B</span>          <span class="n">I</span>           <span class="n">IB</span>
+<span class="mi">5</span>        <span class="n">A</span>          <span class="n">II</span>          <span class="n">IIA</span>
+<span class="mi">6</span>        <span class="n">A</span>          <span class="n">II</span>          <span class="n">IIA</span>
+<span class="mi">7</span>        <span class="n">B</span>          <span class="n">II</span>          <span class="n">IIB</span>
+<span class="mi">8</span>        <span class="n">B</span>          <span class="n">II</span>          <span class="n">IIB</span>
+</pre></div>
+</div>
+<p>We can make arbitrary comparisons by fitting an ‘intercept-less’ model, e.g.
+<code class="docutils literal notranslate"><span class="pre">design=~group</span> <span class="pre">+</span> <span class="pre">0</span></code>, and numeric contrast vectors:</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">dds</span> <span class="o">&lt;-</span> <span class="nf">DESeqDataSetFromCombinedFeatureCounts</span><span class="p">(</span>
+    <span class="s">&#39;../data/rnaseq_aggregation/featurecounts.txt&#39;</span><span class="p">,</span>
+    <span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span><span class="p">,</span>
+    <span class="c1"># NOTE: the design is now different</span>
+    <span class="n">design</span><span class="o">=~</span><span class="n">group</span> <span class="o">+</span> <span class="m">0</span>
+<span class="p">)</span>
+<span class="n">dds</span> <span class="o">&lt;-</span> <span class="nf">DESeq</span><span class="p">(</span><span class="n">dds</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Check <code class="docutils literal notranslate"><span class="pre">resultsNames</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">resultsNames</span><span class="p">(</span><span class="n">dds</span><span class="p">)</span>
+<span class="c1"># [1] &quot;groupIA&quot;  &quot;groupIB&quot;  &quot;groupIIA&quot;  &quot;groupIIB&quot;</span>
+</pre></div>
+</div>
+<p>So any numeric vectors we provide must be 4 items long. Here is how we can make
+various contrasts with this experimental design. In each example, the
+coefficients are indicated above the resultsNames to make it easier to see.</p>
+<p>To compare IA and IB (that is, the genotype effect only in condition I):</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1">#     1          -1         0           0</span>
+<span class="c1"># &quot;groupIA&quot;  &quot;groupIB&quot;  &quot;groupIIA&quot;  &quot;groupIIB&quot;</span>
+
+<span class="n">res</span> <span class="o">&lt;-</span> <span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">-1</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="m">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Effect of genotype B (that is, disregard information about condition):</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1">#     1          -1         1           -1</span>
+<span class="c1"># &quot;groupIA&quot;  &quot;groupIB&quot;  &quot;groupIIA&quot;  &quot;groupIIB&quot;</span>
+
+<span class="n">res</span> <span class="o">&lt;-</span> <span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">-1</span><span class="p">,</span> <span class="m">1</span><span class="p">,</span> <span class="m">-1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Effect of condition II (that is, disregard information about genotype):</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1">#     1           1         -1          -1</span>
+<span class="c1"># &quot;groupIA&quot;  &quot;groupIB&quot;  &quot;groupIIA&quot;  &quot;groupIIB&quot;</span>
+
+<span class="n">res</span> <span class="o">&lt;-</span> <span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">1</span><span class="p">,</span> <span class="m">-1</span><span class="p">,</span> <span class="m">-1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Interaction term, that is, (IA vs IB) vs (IIA vs IIB). This is effectively <code class="docutils literal notranslate"><span class="pre">(IA</span>
+<span class="pre">-</span> <span class="pre">IB)</span> <span class="pre">-</span> <span class="pre">(IIA</span> <span class="pre">-</span> <span class="pre">IIB)</span></code>, which in turn becomes <code class="docutils literal notranslate"><span class="pre">IA</span> <span class="pre">-</span> <span class="pre">IB</span> <span class="pre">-</span> <span class="pre">IIA</span> <span class="pre">+</span> <span class="pre">IIB</span></code>:</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1">#     1          -1         -1          1</span>
+<span class="c1"># &quot;groupIA&quot;  &quot;groupIB&quot;  &quot;groupIIA&quot;  &quot;groupIIB&quot;</span>
+
+<span class="n">res</span> <span class="o">&lt;-</span> <span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">-1</span><span class="p">,</span> <span class="m">-1</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="notes-on-using-lfcshrink">
+<h4>Notes on using lfcShrink<a class="headerlink" href="#notes-on-using-lfcshrink" title="Permalink to this headline">¶</a></h4>
+<p>As currently implemented (05 apr 2018), lfcShrink checks its arguments for an
+existing results table. If it exists, it applies shrinkage to the lfc and se
+in that table. If it <em>doesn’t</em> exist, it calls results on dds with the syntax</p>
+<blockquote>
+<div><p>res &lt;- results(dds, name=coef)</p>
+</div></blockquote>
+<p>or</p>
+<blockquote>
+<div><p>res &lt;- results(dds, contrast=contrast)</p>
+</div></blockquote>
+<p>It does not pass any further arguments to results, and it doesn’t warn you
+that results-style arguments were unrecognized and ignored. Therefore,
+lfcShrink DOES NOT directly support lfcThreshold, or other alternative
+hypotheses, or any of the custom analysis methods you can access through
+results(). To get those, you have to call results first, without shrinkage,
+and then apply lfcShrink.</p>
+<p>Here we use the lfcShrink version of the results. In DESeq2 versions &gt;1.16,
+the lfc shrinkage is performed in a separate step, so that’s what we do here.
+This is slightly different results than if you used betaPrior=TRUE when
+creating the DESeq object.</p>
+</div>
+</div>
+<div class="section" id="attach">
+<h3><code class="docutils literal notranslate"><span class="pre">attach</span></code><a class="headerlink" href="#attach" title="Permalink to this headline">¶</a></h3>
+<p>Typically the genes as labeled in the counts tables use Ensembl or other
+not-quite-human-readable names. This chunk allows you to add additional gene
+information to the results objects.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>var</p></th>
+<th class="head"><p>description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>keytype</p></td>
+<td><p>in the counts table, what format are the gene IDs? Must be a column in the OrgDb</p></td>
+</tr>
+<tr class="row-odd"><td><p>columns</p></td>
+<td><p>what additional gene IDs to add? Must be columns in the OrgDb</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="reportresults">
+<h3><code class="docutils literal notranslate"><span class="pre">reportresults</span></code><a class="headerlink" href="#reportresults" title="Permalink to this headline">¶</a></h3>
+<p>This is the section that creates multiple, tabbed outputs for each of the
+contrasts in the <a class="reference internal" href="#term-res.list"><span class="xref std std-term">res.list</span></a>.</p>
+</div>
+<div class="section" id="selections">
+<h3><code class="docutils literal notranslate"><span class="pre">selections</span></code><a class="headerlink" href="#selections" title="Permalink to this headline">¶</a></h3>
+<p>Here we get a list of DE genes from the <a class="reference internal" href="#term-res.list"><span class="xref std std-term">res.list</span></a> object
+to use for downstream analysis using the log2FoldChange (lfc) and
+false discovery rate (FDR) thresholds.</p>
+</div>
+<div class="section" id="upsetplots">
+<h3><code class="docutils literal notranslate"><span class="pre">upsetplots</span></code><a class="headerlink" href="#upsetplots" title="Permalink to this headline">¶</a></h3>
+<p>This chunk produces Upset plots comparing the selected lists of genes.</p>
+</div>
+<div class="section" id="helpdocs">
+<h3><code class="docutils literal notranslate"><span class="pre">helpdocs</span></code><a class="headerlink" href="#helpdocs" title="Permalink to this headline">¶</a></h3>
+<p>For new users, or when distributing the output to collaborators who might
+not be familiar with the plots contained in the report, a background and
+help section are included as a child Rmd. This can be disabled by setting
+<cite>eval=FALSE</cite> for this chunk.</p>
+</div>
+<div class="section" id="genepatterns">
+<h3><code class="docutils literal notranslate"><span class="pre">genepatterns</span></code><a class="headerlink" href="#genepatterns" title="Permalink to this headline">¶</a></h3>
+<p>Here we perform pattern analysis of the differentially expressed genes
+to find co-regulated sets of genes using the <code class="docutils literal notranslate"><span class="pre">DEGreport</span></code> R package
+in a separate child Rmd. For more details see <a class="reference internal" href="#gene-patterns-analysis">Gene patterns analysis</a> below.</p>
+</div>
+<div class="section" id="functionalenrichment">
+<h3><code class="docutils literal notranslate"><span class="pre">functionalenrichment</span></code><a class="headerlink" href="#functionalenrichment" title="Permalink to this headline">¶</a></h3>
+<p>Here we perform functional enrichment analysis of the differentially expressed genes
+to find enriched functional terms or pathways using the <code class="docutils literal notranslate"><span class="pre">clusterProfiler</span></code> R package.
+This analysis is also performed in a separate child Rmd; for more details see <a class="reference internal" href="#functional-enrichment-analysis">Functional enrichment analysis</a> below.</p>
+</div>
+</div>
+<div class="section" id="gene-patterns-analysis">
+<h2>Gene patterns analysis<a class="headerlink" href="#gene-patterns-analysis" title="Permalink to this headline">¶</a></h2>
+<p>See <a class="reference internal" href="gene-patterns-rmd.html#gene-patterns"><span class="std std-ref">Gene patterns analysis</span></a> for details.</p>
+</div>
+<div class="section" id="functional-enrichment-analysis">
+<h2>Functional enrichment analysis<a class="headerlink" href="#functional-enrichment-analysis" title="Permalink to this headline">¶</a></h2>
+<p>See <a class="reference internal" href="functional-enrichment-rmd.html#functional-enrichment"><span class="std std-ref">Functional enrichment analysis</span></a> for details.</p>
+<div class="section" id="glossary">
+<h3>Glossary<a class="headerlink" href="#glossary" title="Permalink to this headline">¶</a></h3>
+<dl class="glossary">
+<dt id="term-colData">colData</dt><dd><p>The metadata describing the samples. This is originally defined in the
+sampletable for the entire lcdb-wf run, is imported into rnaseq.Rmd, and
+may be subsequently modified.</p>
+</dd>
+<dt id="term-dds">dds</dt><dd><p>DESeq data set object. Typically this is incrementally added to, as in
+the DESeq2 vignette.</p>
+</dd>
+<dt id="term-vsd">vsd</dt><dd><p>The variance-stabilized transformed version of the counts. Used for PCA,
+clustered heatmaps, and gene patterns.</p>
+</dd>
+<dt id="term-res.list">res.list</dt><dd><p>A list, with one item per contrast. Each of those items in turn is a list
+of objects that together compose the contrast (dds, results object, and
+label). This list-of-lists, which we call <cite>res.list</cite> for short, is used
+by functions in the <cite>lcdbwf</cite> R package for more downstream work.</p>
+<p>For a single contrast, it might look something like this:</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">res.list</span><span class="p">[[</span><span class="s">&#39;contrast1&#39;</span><span class="p">]][[</span><span class="s">&#39;dds&#39;</span><span class="p">]]</span> <span class="o">&lt;-</span> <span class="n">dds</span>
+<span class="n">res.list</span><span class="p">[[</span><span class="s">&#39;contrast1&#39;</span><span class="p">]][[</span><span class="s">&#39;res&#39;</span><span class="p">]]</span> <span class="o">&lt;-</span> <span class="n">res</span>
+<span class="n">res.list</span><span class="p">[[</span><span class="s">&#39;contrast1&#39;</span><span class="p">]][[</span><span class="s">&#39;label&#39;</span><span class="p">]]</span> <span class="o">&lt;-</span> <span class="s">&#39;Treatment vs control&#39;</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/rnaseq-rmd.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

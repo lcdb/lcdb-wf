@@ -4,6 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Overview of workflows &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,8 +15,8 @@
     <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Configuration" href="config.html" />
-    <link rel="prev" title="Deploying lcdb-wf and staying up-to-date" href="deploy.html" />
+    <link rel="next" title="References workflow" href="references.html" />
+    <link rel="prev" title="Using conda and conda envs" href="conda.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -27,7 +28,7 @@
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+<h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
 
 
 
@@ -39,37 +40,35 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
-<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Overview of workflows</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#orientation-of-the-directory-structure">Orientation of the directory structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#primary-analysis-workflows">Primary analysis workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#integrative-analysis-workflows">Integrative analysis workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#features-common-to-workflows">Features common to workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
-<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="developers.html">Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="deploy.html" title="previous chapter">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
-      <li>Next: <a href="config.html" title="next chapter">Configuration</a></li>
+  <li><a href="toc.html">Documentation overview</a><ul>
+      <li>Previous: <a href="conda.html" title="previous chapter">Using conda and conda envs</a></li>
+      <li>Next: <a href="references.html" title="next chapter">References workflow</a></li>
   </ul></li>
 </ul>
 </div>
@@ -92,48 +91,13 @@
           <div class="body" role="main">
             
   <div class="section" id="overview-of-workflows">
-<h1>Overview of workflows<a class="headerlink" href="#overview-of-workflows" title="Permalink to this headline">¶</a></h1>
+<span id="workflows"></span><h1>Overview of workflows<a class="headerlink" href="#overview-of-workflows" title="Permalink to this headline">¶</a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>These workflows <strong>are intended to be edited and customized by the user</strong>.</p>
-<p>The typical use-case is to clone the entire repository into a new directory
-for each project. The Snakefiles and config files are then edited
-accordingly for that particular project.</p>
+<p>See <a class="reference internal" href="getting-started.html#getting-started"><span class="std std-ref">Getting started</span></a> for recommendations on setting up these workflows in
+your project directory.</p>
 </div>
-<div class="section" id="orientation-of-the-directory-structure">
-<h2>Orientation of the directory structure<a class="headerlink" href="#orientation-of-the-directory-structure" title="Permalink to this headline">¶</a></h2>
-<p>The following is a high-level overview of the files used by the workflows. See
-<a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration</span></a> for more specific configuration information.</p>
-<p>Starting at the top level of the repo:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>[1]  ├── ci/
-[2]  ├── docs/
-[3]  ├── include/
-[4]  ├── lib/
-[5]  ├── README.md
-[6]  ├── requirements.txt
-[7]  ├── workflows/
-[8]  └── wrappers/
-</pre></div>
-</div>
-<ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">ci</span></code> contains infrastructure for continuous integration testing. You don’t
-have to worry about this stuff unless you’re actively developing <cite>lcdb-wf</cite>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">docs/</span></code> contains the source for documentation. You’re reading it.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">include/</span></code> has miscellaneous files and scripts that can be used by all
-workflows. Of particular note is the <code class="docutils literal notranslate"><span class="pre">WRAPPER_SLURM</span></code> script (see
-<a class="reference internal" href="cluster.html#cluster"><span class="std std-ref">Running on a cluster</span></a> for more) and the <code class="docutils literal notranslate"><span class="pre">reference_configs</span></code> directory (see
-<a class="reference internal" href="references.html#references"><span class="std std-ref">References workflow</span></a> and <a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration</span></a> for more).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">lib/</span></code> contains Python modules used by the workflows.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> contains top-level info.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> contains the package dependencies needed to run the
-workflows, and is used to set up a conda environment.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">workflows/</span></code> contains one directory for each workflow; see below for details.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">wrappers/</span></code> contains Snakemake <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/snakefiles/modularization.html#wrappers">wrappers</a>,
-which are scripts that can use their own independent environment. See
-<a class="reference internal" href="wrappers.html#wrappers"><span class="std std-ref">Wrappers</span></a> for more.</p></li>
-</ol>
-<div class="section" id="workflow-directories">
-<h3>Workflow directories<a class="headerlink" href="#workflow-directories" title="Permalink to this headline">¶</a></h3>
 <p>Each workflow lives in its own directory:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>├── references/
 │   ├── Snakefile
@@ -155,64 +119,36 @@ which are scripts that can use their own independent environment. See
     └── ...
 </pre></div>
 </div>
-<p>There are two general classes of workflows, the primary analysis and the
-downstream analysis. The primary analysis workflows are:</p>
-<ul class="simple">
-<li><p><a class="reference internal" href="references.html#references"><span class="std std-ref">References workflow</span></a></p></li>
-<li><p><a class="reference internal" href="rnaseq.html#rnaseq"><span class="std std-ref">RNA-seq workflow</span></a></p></li>
-<li><p><a class="reference internal" href="chipseq.html#chipseq"><span class="std std-ref">ChIP-seq workflow</span></a></p></li>
-</ul>
-<p>and the downstream workflows are:</p>
-<ul class="simple">
-<li><p><a class="reference internal" href="colocalization.html#colocalization"><span class="std std-ref">Colocalization workflow</span></a></p></li>
-<li><p><a class="reference internal" href="external.html#external"><span class="std std-ref">“External” workflow</span></a></p></li>
-<li><p><a class="reference internal" href="figures.html#figures"><span class="std std-ref">“Figures” workflow</span></a></p></li>
-</ul>
+<p>There are two general classes of workflows, <strong>primary analysis</strong> and the
+<strong>integrative analysis</strong>.</p>
 <p>Each workflow is driven by a <code class="docutils literal notranslate"><span class="pre">Snakefile</span></code> and is configured by plain text
 <a class="reference external" href="https://en.wikipedia.org/wiki/YAML">YAML</a> and <a class="reference external" href="https://en.wikipedia.org/wiki/Tab-separated_values">TSV</a> format files (see
-<a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration</span></a> for much more on this).  In this section, we will take
-a higher-level look at the features common to the primary analysis workflows.</p>
-</div>
-<div class="section" id="features-common-to-workflows">
-<h3>Features common to workflows<a class="headerlink" href="#features-common-to-workflows" title="Permalink to this headline">¶</a></h3>
-<p>The directory <code class="docutils literal notranslate"><span class="pre">../..</span></code> is added to Python’s path. This way, the <code class="docutils literal notranslate"><span class="pre">../../lib</span></code>
-module can be found, and we can use the various helper functions there. This is
-also simpler than providing a <cite>setup.py</cite> to install the helper functions.</p>
-<p>The config file is hard-coded to be <cite>config/config.yaml</cite>, but this can be
-overridden by Snakemake from the commandline, using <code class="docutils literal notranslate"><span class="pre">snakemake</span> <span class="pre">--configfile</span>
-<span class="pre">&lt;path</span> <span class="pre">to</span> <span class="pre">other</span> <span class="pre">config</span> <span class="pre">file&gt;</span></code>. This allows the config file to be in the
-<cite>config</cite> dir with other config files without having to be specified on the
-command line, while also affording the user flexibility.</p>
-<p>The config file is loaded using <code class="docutils literal notranslate"><span class="pre">common.load_config</span></code>. This function resolves
-various paths (especially the <cite>includ</cite>-ed reference configs) and checks to see
-if the config is well-formatted.</p>
-<p>A <cite>SeqConfig</cite> object is created. It needs that parsed config file as well as
-the patterns file (see <a class="reference internal" href="patterns-targets.html#patterns-and-targets"><span class="std std-ref">Patterns and targets</span></a>). The act of creating this
-object reads the sample table, fills in the patterns with sample names, creates
-a reference dictionary (see <code class="docutils literal notranslate"><span class="pre">common.references_dict</span></code>) for easy access to
-reference files, and for ChIP-seq, also fills in the filenames for the
-configured peak-calling runs. This object, called <code class="docutils literal notranslate"><span class="pre">c</span></code> for convenience, can be
-accesto get all sort of information – <code class="docutils literal notranslate"><span class="pre">c.sampletable</span></code>, <code class="docutils literal notranslate"><span class="pre">c.config</span></code>,
-<code class="docutils literal notranslate"><span class="pre">c.patterns</span></code>, <code class="docutils literal notranslate"><span class="pre">c.targets</span></code>, and <code class="docutils literal notranslate"><span class="pre">c.refdict</span></code> are frequently used in rules
-throughout the Snakefiles.</p>
-</div>
-<div class="section" id="cluster-specific-settings">
-<h3>Cluster-specific settings<a class="headerlink" href="#cluster-specific-settings" title="Permalink to this headline">¶</a></h3>
-<p>See <a class="reference internal" href="cluster.html#cluster"><span class="std std-ref">Running on a cluster</span></a> for details.</p>
-</div>
+<a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration details</span></a> for much more on this).</p>
 <div class="section" id="primary-analysis-workflows">
-<h3>Primary analysis workflows<a class="headerlink" href="#primary-analysis-workflows" title="Permalink to this headline">¶</a></h3>
-<p>While the references workflow can be run stand-alone, usually it is run as
-a by-product of running the RNA-seq or ChIP-seq workflows. See
-<a class="reference internal" href="references.html#references"><span class="std std-ref">References workflow</span></a> for details; here we will focus on RNA-seq and ChIP-seq which
-share common properties.</p>
+<h2>Primary analysis workflows<a class="headerlink" href="#primary-analysis-workflows" title="Permalink to this headline">¶</a></h2>
+<p>The primary analysis workflows are generally used for transforming raw data
+(fastq files) into usable results. For RNA-seq, that’s differentially-expressed
+genes (along with comprehensive QC and analysis). For ChIP-seq, that’s called
+peaks or differentially bound chromatin regions.</p>
+<p>The primary analysis workflows are:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+</ul>
+</div>
+<p>While the references workflow can be stand-alone, usually it is run as
+a by-product of running the RNA-seq or ChIP-seq workflows. Here we will
+focus on RNA-seq and ChIP-seq which share some common properties.</p>
 <p>Where possible, we prefer to have rules use the normal command-line syntax for
 tools (examples include rules calling samtools, deepTools bamCoverage, picard,
 salmon).  However in some cases we use wrapper scripts. Situtations where we
 use wrappers:</p>
 <ul class="simple">
-<li><p>Aligners (HISAT2, Bowtie2). These wrappers call the aligner, followed by
-samtools sort and view such that FASTQs go in, and sorted BAM comes out.</p></li>
+<li><p>Ensuring various aligners (HISAT2, Bowtie2, STAR, bwa) behave uniformly.
+These wrappers call the aligner, followed by samtools sort and view. The end
+result is that FASTQs go in, and a sorted BAM comes out.</p></li>
 <li><p>Tools with legacy dependencies like Python 2.7 that must be run in an
 independent environment (macs2, sicer, rseqc)</p></li>
 <li><p>R analyses (particularly spp and dupradar, which build up an R script
@@ -226,18 +162,84 @@ comments that say <cite># [TEST SETTINGS]</cite>; you can ignore these, and see
 <a class="reference internal" href="tests.html#test-settings"><span class="std std-ref">A note about test settings</span></a> for more info.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>You can copy entire directories and keep them separate. As an example,
-imagine you have two different RNA-seq experiments. They are from two
-different species, and so have to be run separately. But you would like to
-keep them in the same project because downstream analysis will use them
-both.  In this case, you can copy the <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq</span></code> directory to two
-other directories:</p>
+<p>If you have two different RNA-seq experiments, from different species, they
+have to be run separately. However, if downstream analyses will use them both
+then you would like to keep them in the same project. In this case, you can copy
+the <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq</span></code> directory to two other directories:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp -r workflows/rnaseq workflows/genome1-rnaseq
 cp -r workflows/rnaseq workflows/genome2-rnaseq
 </pre></div>
 </div>
+<p>Now, downstream analyses can link to and utilize results from these individual
+folders, while the whole project can remain self-contained.</p>
 </div>
 </div>
+<div class="section" id="integrative-analysis-workflows">
+<h2>Integrative analysis workflows<a class="headerlink" href="#integrative-analysis-workflows" title="Permalink to this headline">¶</a></h2>
+<p>The integrative analysis workflows take input from the primary workflows and
+tie them together.</p>
+<p>The integrative analysis workflows are described in <a class="reference internal" href="integrative.html#integrative"><span class="std std-ref">Integrative workflows</span></a>:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="integrative.html#colocalization-workflow">Colocalization workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integrative.html#external-workflow">“External” workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integrative.html#figures-workflow">“Figures” workflow</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="features-common-to-workflows">
+<h2>Features common to workflows<a class="headerlink" href="#features-common-to-workflows" title="Permalink to this headline">¶</a></h2>
+<p>In this section, we will take a higher-level look at the features common to
+the primary analysis workflows.</p>
+<ul class="simple">
+<li><p>There is some shared code across the multiple Snakefiles. For instance,
+The directory <code class="docutils literal notranslate"><span class="pre">../..</span></code> is added to Python’s path. This way, the <code class="docutils literal notranslate"><span class="pre">../../lib</span></code>
+module can be found, and we can use the various helper functions there. This is
+also simpler than providing a <cite>setup.py</cite> to install the helper functions.</p></li>
+<li><p>The config file is hard-coded to be <cite>config/config.yaml</cite>. This allows the config file to be
+in the <cite>config</cite> dir with other config files without having to be specified on
+the command line, while also affording the user flexibility. For instance, a custom
+config can be specified at the command-line, using  <code class="docutils literal notranslate"><span class="pre">snakemake</span>
+<span class="pre">--configfile</span> <span class="pre">&lt;path</span> <span class="pre">to</span> <span class="pre">other</span> <span class="pre">config</span> <span class="pre">file&gt;</span></code>.</p></li>
+<li><p>The config file is loaded using <code class="docutils literal notranslate"><span class="pre">common.load_config</span></code>. This function resolves
+various paths (especially the references config section) and checks to see
+if the config is well-formatted.</p></li>
+<li><p>To make it easier to work with the config, a <cite>SeqConfig</cite> object is created. It
+needs that parsed config file as well as the patterns file (see
+<a class="reference internal" href="patterns-targets.html#patterns-and-targets"><span class="std std-ref">Patterns and targets</span></a> for more on this). The act of creating this object
+reads the sample table, fills in the patterns with sample names, creates
+a reference dictionary (see <code class="docutils literal notranslate"><span class="pre">common.references_dict</span></code>) for easy access to
+reference files, and for ChIP-seq, also fills in the filenames for the
+configured peak-calling runs. This object, called <code class="docutils literal notranslate"><span class="pre">c</span></code> for convenience, can be
+accessed to get all sort of information – <code class="docutils literal notranslate"><span class="pre">c.sampletable</span></code>, <code class="docutils literal notranslate"><span class="pre">c.config</span></code>,
+<code class="docutils literal notranslate"><span class="pre">c.patterns</span></code>, <code class="docutils literal notranslate"><span class="pre">c.targets</span></code>, and <code class="docutils literal notranslate"><span class="pre">c.refdict</span></code> are frequently used in rules
+throughout the Snakefiles.</p></li>
+<li><p>Various files can be used to specify cluster-specific parameters if the workflows
+are being run in a high-performance cluster environment. For example, a config file
+<code class="docutils literal notranslate"><span class="pre">config/clusterconfig.yaml</span></code> can be used to specify global and rule-specific
+memory and disk-space requirements for the Snakefile to use at run-time. For more
+details, see <a class="reference internal" href="config.html#cluster"><span class="std std-ref">Running on a cluster</span></a>.</p></li>
+</ul>
+</div>
+<div class="section" id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Permalink to this headline">¶</a></h2>
+<p>Next we look at <a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration details</span></a> for details on how to configure specific workflows,
+before going into the implemented workflows:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Primary analysis workflows</dt><dd><ul>
+<li><p><a class="reference internal" href="references.html#references"><span class="std std-ref">References workflow</span></a></p></li>
+<li><p><a class="reference internal" href="rnaseq.html#rnaseq"><span class="std std-ref">RNA-seq workflow</span></a></p></li>
+<li><p><a class="reference internal" href="chipseq.html#chipseq"><span class="std std-ref">ChIP-seq workflow</span></a></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><a class="reference internal" href="integrative.html#integrative"><span class="std std-ref">Integrative workflows</span></a></p></li>
+</ul>
 </div>
 </div>
 
@@ -252,7 +254,7 @@ cp -r workflows/rnaseq workflows/genome2-rnaseq
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

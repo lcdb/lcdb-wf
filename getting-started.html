@@ -4,7 +4,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Initial setup &#8212; lcdb-wf 0.1 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Getting started &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -14,8 +15,8 @@
     <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Running the tests" href="tests.html" />
-    <link rel="prev" title="lcdb-wf" href="index.html" />
+    <link rel="next" title="Guide to file hierarchy" href="guide.html" />
+    <link rel="prev" title="Introduction" href="index.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -27,7 +28,7 @@
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+<h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
 
 
 
@@ -39,39 +40,35 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Initial setup</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#setup-required-once-per-system">Setup required once per system</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#setup-required-once-per-project">Setup required once per project</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next steps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setting-up-a-project">Setting up a project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deploying-lcdb-wf">1. Deploying lcdb-wf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configure">2. Configure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run">3. Run</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
-<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
-<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="developers.html">Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="index.html" title="previous chapter">lcdb-wf</a></li>
-      <li>Next: <a href="tests.html" title="next chapter">Running the tests</a></li>
+  <li><a href="toc.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Introduction</a></li>
+      <li>Next: <a href="guide.html" title="next chapter">Guide to file hierarchy</a></li>
   </ul></li>
 </ul>
 </div>
@@ -93,8 +90,9 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="initial-setup">
-<span id="getting-started"></span><h1>Initial setup<a class="headerlink" href="#initial-setup" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="getting-started">
+<span id="id1"></span><h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>The only starting requirement is an installation of conda with the <a class="reference external" href="https://bioconda.github.io">bioconda</a> channel set up.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><cite>lcdb-wf</cite> is tested and heavily used on Linux.</p>
@@ -103,87 +101,126 @@ available for macOS – though this is not tested.</p>
 <p>It will <strong>not</strong> work on Windows due to a general lack of support of Windows
 in bioinformatics tools.</p>
 </div>
-<div class="section" id="setup-required-once-per-system">
-<h2>Setup required once per system<a class="headerlink" href="#setup-required-once-per-system" title="Permalink to this headline">¶</a></h2>
-<p>We use <a class="reference external" href="https://bioconda.github.io">bioconda</a> to automatically install
-software into the working directory without needing admin rights on the
-machine.</p>
-<p>If you have the Anaconda Python distribution, you already have conda.
-Otherwise, install <a class="reference external" href="https://conda.io/miniconda.html">Miniconda</a>.</p>
-<p><strong>Optional:</strong>
-- Run the following commands to set up your conda channels. This puts the</p>
-<blockquote>
-<div><p><cite>lcdb</cite> channel as lowest priority (this channel has the <cite>lcdblib</cite> package),
-and then matches the channel order required by <cite>bioconda</cite>.</p>
-</div></blockquote>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda config --add channels defaults
-conda config --add channels bioconda
-conda config --add channels conda-forge
+<p>We use conda to install a separate environment for each project. This allows
+long-running projects to keep using old versions of software if needed while
+allowing newer versions in more recent projects.</p>
+<p>If you want to see the full list of software installed into these environments,
+see the <code class="docutils literal notranslate"><span class="pre">requirements-*.txt</span></code> files at <a class="reference external" href="https://github.com/lcdb/lcdb-wf/">https://github.com/lcdb/lcdb-wf/</a>.</p>
+<p>For a more detailed discussion of conda, see <a class="reference internal" href="conda.html#conda-envs"><span class="std std-ref">Using conda and conda envs</span></a>.</p>
+<div class="section" id="setting-up-a-project">
+<span id="setup-proj"></span><h2>Setting up a project<a class="headerlink" href="#setting-up-a-project" title="Permalink to this headline">¶</a></h2>
+<p>The general steps to use lcdb-wf in a new project are:</p>
+<ol class="arabic simple">
+<li><p>Deploy an instance of lcdb-wf to your project directory</p></li>
+<li><p>Set up and customize for your goals</p></li>
+<li><p>Run either locally or on a cluster</p></li>
+</ol>
+</div>
+<div class="section" id="deploying-lcdb-wf">
+<span id="deploy"></span><h2>1. Deploying lcdb-wf<a class="headerlink" href="#deploying-lcdb-wf" title="Permalink to this headline">¶</a></h2>
+<p>lcdb-wf is designed to be customized for each project, so setting up a new
+project to use lcdb-wf means copying over the files you need. There is
+a <code class="docutils literal notranslate"><span class="pre">deploy.py</span></code> script that does this for you, but you need to have a copy of
+the repository to get this script in the first place.</p>
+<p>The reason to use <code class="docutils literal notranslate"><span class="pre">deploy.py</span></code> is that there are many additional files (like
+these docs) and testing files that are not necessarily needed for an actual
+project, so you end up with a cleaner project directory.</p>
+<p>This script also writes a file to the destination called
+<code class="docutils literal notranslate"><span class="pre">.lcdb-wf-deployment.json</span></code> which stores details about what commit was used to
+deploy and the timestamp. This tracks provenance of the code, so you can always
+figure out what lcdb-wf commit your deployment originally started from.</p>
+<p>To deploy a copy, you first need to get a copy. Here are three ways to do that:</p>
+<p>Clone a repo using git:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone git@github.com:lcdb/lcdb-wf.git
+
+<span class="c1"># optionally check out a particular branch</span>
+<span class="c1"># git checkout BRANCHNAME</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="setup-required-once-per-project">
-<h2>Setup required once per project<a class="headerlink" href="#setup-required-once-per-project" title="Permalink to this headline">¶</a></h2>
-<p>The following should be done each time you set up a project.</p>
-<div class="section" id="clone-the-git-repo">
-<h3>1. Clone the git repo<a class="headerlink" href="#clone-the-git-repo" title="Permalink to this headline">¶</a></h3>
-<p>Clone the repository from github into a new directory of your choosing and
-change to that directory.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/lcdb/lcdb-wf.git my-project-dir
-<span class="nb">cd</span> my-project-dir
+<p>Or update an existing repo:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">BRANCH</span><span class="o">=</span>master  <span class="c1"># optionally change branch</span>
+git checkout <span class="nv">$BRANCH</span>
+git pull origin <span class="nv">$BRANCH</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="create-a-new-conda-environment">
-<span id="create-env"></span><h3>2. Create a new conda environment<a class="headerlink" href="#create-a-new-conda-environment" title="Permalink to this headline">¶</a></h3>
-<p>The following command will create a top-level environment with Snakemake and
-other requirements. It needs to be <cite>activated</cite> any time you’ll be working with
-these workflows.</p>
-<p>If you’re not familiar with <code class="docutils literal notranslate"><span class="pre">conda</span></code>, it installs particular versions of
-software in an isolated location on your computer. When you “activate” the
-environment, it places that location at the beginning of your <code class="docutils literal notranslate"><span class="pre">$PATH</span></code>
-variable, so that any executables there are found first. It does not affect any
-existing installation of any software on your machine and does not need root
-privileges.</p>
-<p><strong>It is recommended that you create a separate environment directory for each
-project and include it with the project</strong>.
-That way you can update packages in each project independently of
-any others, and yet the environment will always be close at hand. This is
-especially good practice in shared space as others can easily find and activate
-the environment specific to the project.
-Here we use the name “env” for the new environment to clearly denote its contents,
-but you can use anything. Note that here we specify the channels to use, which
-include <code class="docutils literal notranslate"><span class="pre">bioconda</span></code> which depends on <code class="docutils literal notranslate"><span class="pre">conda-forge</span></code>, and <code class="docutils literal notranslate"><span class="pre">lcdb</span></code> which provides
-the <code class="docutils literal notranslate"><span class="pre">lcdblib</span></code> package used by these workflows.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">p</span> <span class="o">./</span><span class="n">env</span> <span class="o">--</span><span class="n">file</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
-</pre></div>
-</div>
-<p>Then activate the environment:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">activate</span> <span class="n">lcdb</span><span class="o">-</span><span class="n">wf</span>
-</pre></div>
-</div>
-<p>Eventually when you’re done, you can “deactivate”, which removes the
-environment location from your <code class="docutils literal notranslate"><span class="pre">$PATH</span></code> until the next time you activate it.
-You might want to hold off on this for now if you’ll be running the tests:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">deactivate</span>
+<p>No git? Download a zip file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">BRANCH</span><span class="o">=</span>master  <span class="c1"># optionally change branch</span>
+wget https://github.com/lcdb/lcdb-wf/archive/<span class="nv">$BRANCH</span>.zip
+unzip <span class="nv">$BRANCH</span>.zip -d lcdb-wf
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>An alternative approach is to create an environment at a specific path, for
-example inside a project directory:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -p ./env --file requirements.txt
-<span class="nb">source</span> activate ./env
+<p>If you want to run the tests then don’t deploy just yet – see
+<a class="reference internal" href="tests.html#running-the-tests"><span class="std std-ref">Testing the installation</span></a> for details, and then come back here to deploy for
+an actual project.</p>
+</div>
+<p>Now that you have a copy of the code, you can deploy it to your project
+directory. Run the deploy script in the newly cloned/updated repo. For help,
+use <code class="docutils literal notranslate"><span class="pre">-h</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python deploy.py -h
 </pre></div>
 </div>
+<p>For example, to deploy the RNA-seq workflow to the <code class="docutils literal notranslate"><span class="pre">myproj</span></code> directory and
+build the conda environments:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python deploy.py --flavor rnaseq --dest myproj --build-envs
+</pre></div>
 </div>
+<p>Copying over the files is fast; building the conda environments may take a few
+minutes.</p>
+<p>See <a class="reference internal" href="conda.html#conda-envs"><span class="std std-ref">Using conda and conda envs</span></a> for more details on these.</p>
 </div>
+<div class="section" id="configure">
+<h2>2. Configure<a class="headerlink" href="#configure" title="Permalink to this headline">¶</a></h2>
+<p>This is where most of the effort is, and the first time you set up a project it
+will take some time to understand the configuration system.</p>
+<ul class="simple">
+<li><p>see <a class="reference internal" href="faqs.html#multiple-experiments"><span class="std std-ref">How do I handle multiple experiments in the same project?</span></a> for advice on how to handle multiple experiments that are intended to be analyzed together</p></li>
+<li><p>see <a class="reference internal" href="conda.html#conda-envs"><span class="std std-ref">Using conda and conda envs</span></a> for details on conda environments</p></li>
+<li><p>see <a class="reference internal" href="sampletable.html#sampletable"><span class="std std-ref">Sample tables</span></a> for how to write a sampletable, which includes where to find raw data and contains the associated metadata</p></li>
+<li><p>see <a class="reference internal" href="config-yaml.html#config-yaml"><span class="std std-ref">Config YAML</span></a> for configuring each workflow</p></li>
+</ul>
 </div>
+<div class="section" id="run">
+<h2>3. Run<a class="headerlink" href="#run" title="Permalink to this headline">¶</a></h2>
+<p>Activate the main environment, go to the workflow you want to run, and run the
+following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake --dryrun
+</pre></div>
+</div>
+<p>If all goes well, this should print a list of jobs to be run.</p>
+<p>You can run locally, but this is NOT recommended. To run locally, choose the
+number of CPUs you want to use (here, 8).</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you haven’t made any changes to the Snakefiles, be aware that the
+default configuration needs a lot of RAM. For example, the MarkDuplicates
+runs set 20 GB RAM for Java, and that’s for each job. Adjust the Snakefiles
+accordingly if you don’t have enough RAM available (search for “Xmx” to
+find the Java args that set memory).</p>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># run locally (not recommended)</span>
+snakemake --use-conda -j <span class="m">8</span>
+</pre></div>
+</div>
+<p>The recommended way is to run on a cluster. On NIH’s Biowulf cluster, the way
+to do this is to submit the wrapper script as a batch job:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sbatch ../../include/WRAPPER_SLURM
+</pre></div>
+</div>
+<p>and then monitor the various jobs that will be submitted on your behalf. See
+<a class="reference internal" href="config.html#cluster"><span class="std std-ref">Running on a cluster</span></a> for more details on this.</p>
+<p>Other clusters will need different configuration, but everything is standard
+Snakemake so the Snakemake documentation on <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/executing/cluster.html">cluster execution</a> and
+<a class="reference external" href="https://snakemake.readthedocs.io/en/stable/executing/cloud.html">cloud execution</a> can be
+consulted for running on your particular system.</p>
+<p>You can typically run simultaneous workflows when they are in different directories; see
+<a class="reference internal" href="workflows.html#workflows"><span class="std std-ref">Overview of workflows</span></a> for details.</p>
 <div class="section" id="next-steps">
-<h2>Next steps<a class="headerlink" href="#next-steps" title="Permalink to this headline">¶</a></h2>
-<p>You may want to run tests to make sure everything is set up (see
-<a class="reference internal" href="tests.html#running-the-tests"><span class="std std-ref">Running the tests</span></a>), or jump right in to learning about how to configure
-the workflows for your particular experiment (see <a class="reference internal" href="config.html#config"><span class="std std-ref">Configuration</span></a>).</p>
+<h3>Next steps<a class="headerlink" href="#next-steps" title="Permalink to this headline">¶</a></h3>
+<p>Next, we give a brief overview of the file hierarchy of <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> in the
+<a class="reference internal" href="guide.html#guide"><span class="std std-ref">Guide to file hierarchy</span></a> page.</p>
+</div>
 </div>
 </div>
 
@@ -198,7 +235,7 @@ the workflows for your particular experiment (see <a class="reference internal" 
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

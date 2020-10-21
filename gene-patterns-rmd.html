@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gene patterns analysis &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
+
+
+
+<p class="blurb">Customizable workflows for high-throughput sequencing analysis</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="toc.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="gene-patterns-analysis">
+<span id="gene-patterns"></span><h1>Gene patterns analysis<a class="headerlink" href="#gene-patterns-analysis" title="Permalink to this headline">¶</a></h1>
+<p>When analyzing RNA-Seq experiments that have a temporal element, e.g.
+time-series data where a treatment is applied for an increasing amount
+of time, or a dose-response aspect, e.g. where increasing amounts of a drug
+is administered to a set of cells, an interesting biological question can be:
+<em>which genes are changing in the same way over time, or in response to the
+drug treatment?</em></p>
+<p>In these cases, it may be useful to look for groups of <strong>co-expressed</strong> genes, or genes
+that show similar trends in expression over time or the dose-response assay, as this might
+indicate a pathway or gene regulatory network is being affected. For instance,
+if the main effect of a treatment is to suppress a transcription factor that
+induces a group of genes, these genes would likely show a trend of decreasing
+expression over the course of a dose-response experiment.</p>
+<p>One approach to this analysis could be to compare each time-point or dose sample to
+the control sample. However, if we are working with many time-points or doses
+this can get unwieldy very quickly, as we would be dealing with that many lists
+of differentially expressed genes. Moreover, we would lose the temporal information.
+For instance, in a time-course experiment if a gene is up-regulated from 0 hr ⇒ 2 hr,
+and also from 0 hr ⇒ 4 hr, we don’t know how 4 hr compares to 2 hr, without comparing
+those time-points explicitly.</p>
+<p>An alternative approach that avoids the complications of a per-time-point analysis
+is a pattern-based analysis, which looks at the temporal trend of gene expression as a whole,
+to find similar groups of genes. For instance, in the above experiment, the pattern
+analysis would immediately tell us which genes keep going up from 0 ⇒ 2 ⇒ 4 hr,
+and which genes go up from 0 ⇒ 2 hr, but then don’t change from 2 ⇒ 4 hr.</p>
+<p>In this Rmd, we implement the latter approach and look for groups of co-expressed or
+co-regulated genes, using gene patterns analysis with the R package, <code class="docutils literal notranslate"><span class="pre">DEGreport</span></code>. The input to
+this analysis is normalized expression data of differentially expressed genes.
+A clustering algorithm implemented in the package is then used to find similar groups
+of genes, which are then plotted.</p>
+<div class="section" id="dpsettings">
+<h2><code class="docutils literal notranslate"><span class="pre">dpsettings</span></code><a class="headerlink" href="#dpsettings" title="Permalink to this headline">¶</a></h2>
+<p>This is the chunk where the parameters for the pattern analysis are specified.
+Notable parameters to adjust include:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>parameter</p></th>
+<th class="head"><p>description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">time</span></code></p></td>
+<td><p>Factor to show on x-axis. Typically this is the time or dose-response factor in the experiment.
+Should be a column in the <code class="docutils literal notranslate"><span class="pre">colData</span></code> metadata (default = <code class="docutils literal notranslate"><span class="pre">'group'</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">col</span></code></p></td>
+<td><p>Factor to color lines by. Should be a column in the <code class="docutils literal notranslate"><span class="pre">colData</span></code> metadata (default = <code class="docutils literal notranslate"><span class="pre">NULL</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">minc</span></code></p></td>
+<td><p>Minimum cluster size (default = 1). Consider increasing if you’re getting many clusters with very few genes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">lim</span></code></p></td>
+<td><p>Maximum number of genes to include in the clustering (default = 2000). If number of DE genes is higher, they
+are downsampled to <code class="docutils literal notranslate"><span class="pre">lim</span></code>. Increase with caution since clustering a huge number of genes can be very
+CPU-intensive.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="finalclusters">
+<h2><code class="docutils literal notranslate"><span class="pre">finalclusters</span></code><a class="headerlink" href="#finalclusters" title="Permalink to this headline">¶</a></h2>
+<p>This is the chunk where the pattern analysis is done via the following steps:</p>
+<ol class="arabic simple">
+<li><p>Set up selections of DE genes to be used in the clustering analysis. By default,
+we use all the <code class="docutils literal notranslate"><span class="pre">changed</span></code> genes for this purpose, but you can choose to only
+use <code class="docutils literal notranslate"><span class="pre">up</span></code> or <code class="docutils literal notranslate"><span class="pre">dn</span></code> genes.</p></li>
+<li><p>The set of genes are consolidated and downsampled if the total number &gt; <code class="docutils literal notranslate"><span class="pre">lim</span></code>.</p></li>
+<li><p>Normalized data corresponding to these genes are extracted. We use the
+<code class="docutils literal notranslate"><span class="pre">varianceStabilizingTransformation</span></code> for the normalization. Before proceeding,
+genes with identical counts across all samples are removed, since this could lead
+to errors in the clustering.</p></li>
+<li><p>The primary clustering command <code class="docutils literal notranslate"><span class="pre">degPatterns</span></code> is run, using the parameters specified
+in the <code class="docutils literal notranslate"><span class="pre">dpsettings</span></code> chunk above.</p></li>
+<li><p>Clusters having &gt; <code class="docutils literal notranslate"><span class="pre">minc</span></code> genes are filtered out and plotted, with the gene lists being
+saved to files in the <code class="docutils literal notranslate"><span class="pre">final_clusters</span></code> subdirectory, while a column encoding the cluster
+membership is added to the <code class="docutils literal notranslate"><span class="pre">res.list</span></code> element corresponding to the DE genes being analyzed.</p></li>
+</ol>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/gene-patterns-rmd.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

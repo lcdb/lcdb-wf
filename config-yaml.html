@@ -4,6 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Config YAML &#8212; lcdb-wf 0.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -15,7 +16,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="References config" href="references-config.html" />
-    <link rel="prev" title="Configuration" href="config.html" />
+    <link rel="prev" title="Configuration details" href="config.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -27,7 +28,7 @@
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">lcdb-wf</a></h1>
+<h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
 
 
 
@@ -39,40 +40,33 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Initial setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tests.html">Running the tests</a></li>
-<li class="toctree-l1"><a class="reference internal" href="deploy.html">Deploying <code class="docutils literal notranslate"><span class="pre">lcdb-wf</span></code> and staying up-to-date</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="config.html">Configuration</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Config YAML</a></li>
-<li class="toctree-l2"><a class="reference internal" href="references-config.html">References config</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sampletable.html">Sample tables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="patterns-targets.html">Patterns and targets</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="config.html">Configuration details</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="config.html#general-configuration">General configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#running-on-a-cluster">Running on a cluster</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">Downstream RNA-seq in R</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="external.html">“External” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="figures.html">“Figures” workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="colocalization.html">Colocalization workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cluster.html">Running on a cluster</a></li>
-<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="autodoc.html">Module documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="developers.html">Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-  <li><a href="config.html">Configuration</a><ul>
-      <li>Previous: <a href="config.html" title="previous chapter">Configuration</a></li>
+  <li><a href="toc.html">Documentation overview</a><ul>
+  <li><a href="config.html">Configuration details</a><ul>
+      <li>Previous: <a href="config.html" title="previous chapter">Configuration details</a></li>
       <li>Next: <a href="references-config.html" title="next chapter">References config</a></li>
   </ul></li>
   </ul></li>
@@ -98,6 +92,10 @@
             
   <div class="section" id="config-yaml">
 <span id="id1"></span><h1>Config YAML<a class="headerlink" href="#config-yaml" title="Permalink to this headline">¶</a></h1>
+<p>This page details the various configuration options and describes how to
+configure a new workflow.</p>
+<p>Note that the <code class="docutils literal notranslate"><span class="pre">references:</span></code> section is detailed separately, at
+<a class="reference internal" href="references-config.html#references-config"><span class="std std-ref">References config</span></a>.</p>
 <p>Config files are expected to be in the file <code class="docutils literal notranslate"><span class="pre">config/config.yaml</span></code> relative to
 the Snakefile. For example, the RNA-seq workflow at
 <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq/Snakefile</span></code> expects the config file
@@ -197,7 +195,8 @@ links to a section below with more details on how to use it.</p>
 </table>
 <div class="section" id="example-configs">
 <h2>Example configs<a class="headerlink" href="#example-configs" title="Permalink to this headline">¶</a></h2>
-<p>To provide an overview, here are example config files.</p>
+<p>To provide an overview, here are some example config files. More detail is
+provided later; this is just to provide some context:</p>
 <div class="section" id="rna-seq">
 <h3>RNA-seq<a class="headerlink" href="#rna-seq" title="Permalink to this headline">¶</a></h3>
 <p>The config file for RNA-seq is expected to be in
@@ -228,22 +227,20 @@ links to a section below with more details on how to use it.</p>
 <span class="nt">references</span><span class="p">:</span>
   <span class="nt">human</span><span class="p">:</span>
     <span class="nt">gencode-v25</span><span class="p">:</span>
-      <span class="nt">fasta</span><span class="p">:</span>
+      <span class="nt">genome</span><span class="p">:</span>
         <span class="nt">url</span><span class="p">:</span> <span class="s">&#39;ftp://.../genome.fa.gz&#39;</span>
         <span class="nt">indexes</span><span class="p">:</span>
           <span class="p p-Indicator">-</span> <span class="s">&#39;hisat2&#39;</span>
           <span class="p p-Indicator">-</span> <span class="s">&#39;bowtie2&#39;</span>
-      <span class="nt">gtf</span><span class="p">:</span>
+      <span class="nt">annotation</span><span class="p">:</span>
         <span class="nt">url</span><span class="p">:</span> <span class="s">&#39;ftp://.../annotation.gtf.gz&#39;</span>
 
-    <span class="nt">gencode-v25-transcriptome</span><span class="p">:</span>
-      <span class="nt">fasta</span><span class="p">:</span>
-        <span class="nt">url</span><span class="p">:</span> <span class="s">&#39;ftp://.../transcriptome.fa.gz&#39;</span>
+      <span class="nt">transcriptome</span><span class="p">:</span>
         <span class="nt">indexes</span><span class="p">:</span>
           <span class="p p-Indicator">-</span> <span class="s">&#39;salmon&#39;</span>
 
     <span class="nt">rRNA</span><span class="p">:</span>
-      <span class="nt">fasta</span><span class="p">:</span>
+      <span class="nt">genome</span><span class="p">:</span>
         <span class="nt">url</span><span class="p">:</span> <span class="s">&#39;https://...&#39;</span>
         <span class="nt">indexes</span><span class="p">:</span>
             <span class="p p-Indicator">-</span> <span class="s">&#39;bowtie2&#39;</span>
@@ -256,8 +253,8 @@ links to a section below with more details on how to use it.</p>
 <code class="docutils literal notranslate"><span class="pre">workflows/chipseq/config/config.yaml</span></code>.</p>
 <p>The major differences between ChIP-seq and RNA-seq configs are:</p>
 <ul class="simple">
-<li><p>ChIP-seq has no <code class="docutils literal notranslate"><span class="pre">gtf</span></code> or <code class="docutils literal notranslate"><span class="pre">rrna</span></code> fields</p></li>
-<li><p>ChIP-seq has a <code class="docutils literal notranslate"><span class="pre">chipseq:</span> <span class="pre">peak_calling:</span></code> section</p></li>
+<li><p>ChIP-seq has no <code class="docutils literal notranslate"><span class="pre">annotation</span></code> or <code class="docutils literal notranslate"><span class="pre">rrna</span></code> fields</p></li>
+<li><p>ChIP-seq has an addition section <code class="docutils literal notranslate"><span class="pre">chipseq:</span> <span class="pre">peak_calling:</span></code></p></li>
 </ul>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">sampletable</span><span class="p">:</span> <span class="s">&#39;config/sampletable.tsv&#39;</span>
 <span class="nt">organism</span><span class="p">:</span> <span class="s">&#39;dmel&#39;</span>
@@ -302,9 +299,6 @@ links to a section below with more details on how to use it.</p>
         <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">input-wingdisc-2</span>
 
 <span class="nt">fastq_screen</span><span class="p">:</span>
-  <span class="p p-Indicator">-</span> <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">PhiX</span>
-    <span class="nt">organism</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">phix</span>
-    <span class="nt">tag</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">default</span>
   <span class="p p-Indicator">-</span> <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Human</span>
     <span class="nt">organism</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">human</span>
     <span class="nt">tag</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">gencode-v25</span>
@@ -326,29 +320,22 @@ links to a section below with more details on how to use it.</p>
 <span class="nt">references</span><span class="p">:</span>
   <span class="nt">human</span><span class="p">:</span>
     <span class="nt">gencode-v25</span><span class="p">:</span>
-      <span class="nt">fasta</span><span class="p">:</span>
+      <span class="nt">genome</span><span class="p">:</span>
         <span class="nt">url</span><span class="p">:</span> <span class="s">&#39;ftp://.../genome.fa.gz&#39;</span>
         <span class="nt">indexes</span><span class="p">:</span>
           <span class="p p-Indicator">-</span> <span class="s">&#39;hisat2&#39;</span>
           <span class="p p-Indicator">-</span> <span class="s">&#39;bowtie2&#39;</span>
-      <span class="nt">gtf</span><span class="p">:</span>
+      <span class="nt">annotation</span><span class="p">:</span>
         <span class="nt">url</span><span class="p">:</span> <span class="s">&#39;ftp://.../annotation.gtf.gz&#39;</span>
 
-  <span class="nt">dmel</span><span class="p">:</span>
+  <span class="nt">fly</span><span class="p">:</span>
     <span class="nt">test</span><span class="p">:</span>
-      <span class="nt">fasta</span><span class="p">:</span>
+      <span class="nt">genome</span><span class="p">:</span>
         <span class="nt">url</span><span class="p">:</span> <span class="s">&quot;https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa&quot;</span>
         <span class="nt">postprocess</span><span class="p">:</span> <span class="s">&#39;lib.common.gzipped&#39;</span>
         <span class="nt">indexes</span><span class="p">:</span>
           <span class="p p-Indicator">-</span> <span class="s">&#39;bowtie2&#39;</span>
           <span class="p p-Indicator">-</span> <span class="s">&#39;hisat2&#39;</span>
-
-  <span class="nt">phix</span><span class="p">:</span>
-    <span class="nt">default</span><span class="p">:</span>
-      <span class="nt">fasta</span><span class="p">:</span>
-        <span class="nt">url</span><span class="p">:</span> <span class="s">&#39;ftp://...&#39;</span>
-        <span class="nt">indexes</span><span class="p">:</span>
-          <span class="p p-Indicator">-</span> <span class="s">&#39;bowtie2&#39;</span>
 </pre></div>
 </div>
 </div>
@@ -363,8 +350,7 @@ links to a section below with more details on how to use it.</p>
 <div><p>This section defines labels for references, where to get FASTA and GTF
 files and (optionally) post-process them, and which indexes to build.</p>
 <p>Briefly, the example above has a single organism configured (“human”). That
-organism has three tags (“gencode-v25”, “gencode-v25-transcriptome”, and
-“rRNA”).</p>
+organism has two tags (“gencode-v25” and “rRNA”).</p>
 <p>This is the most complex section and is documented elsewhere (see
 <a class="reference internal" href="references-config.html#references-config"><span class="std std-ref">References config</span></a>).</p>
 </div></blockquote>
@@ -386,9 +372,9 @@ file.</p>
 <p>If not specified, uses the environment variable <code class="docutils literal notranslate"><span class="pre">REFERENCES_DIR</span></code>.</p>
 <p>If specified and <code class="docutils literal notranslate"><span class="pre">REFERENCES_DIR</span></code> also exists, <code class="docutils literal notranslate"><span class="pre">REFERENCES_DIR</span></code> takes
 precedence.</p>
-<p>Can also be used when a references directory has already been created. Simply
-point references_dir to an existing references directory to avoid having to
-rebuild references.</p>
+<p>This is useful when multiple people in a group share the same references to
+avoid duplicating commonly-used references. Simply point references_dir to
+an existing references directory to avoid having to rebuild references.</p>
 </div></blockquote>
 </div>
 </div>
@@ -398,8 +384,8 @@ rebuild references.</p>
 <span id="cfg-sampletable"></span><h4><code class="docutils literal notranslate"><span class="pre">sampletable</span></code> field<a class="headerlink" href="#sampletable-field" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><p>Path to sampletable file which, at minimum, list sample names and paths to
-FASTQ files. The path is relative to the Snakefile. See <a class="reference internal" href="sampletable.html#sampletable"><span class="std std-ref">Sample tables</span></a>
-for more info on the expected contents of the file.</p>
+FASTQ files. The path of this filename is relative to the Snakefile. See
+<a class="reference internal" href="sampletable.html#sampletable"><span class="std std-ref">Sample tables</span></a> for more info on the expected contents of the file.</p>
 <p>Example:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">sampletable</span><span class="p">:</span> <span class="s">&quot;config/sampletable.tsv&quot;</span>
 </pre></div>
@@ -410,8 +396,9 @@ for more info on the expected contents of the file.</p>
 <span id="cfg-organism"></span><h4><code class="docutils literal notranslate"><span class="pre">organism</span></code> field<a class="headerlink" href="#organism-field" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><p>This field selects the top-level section of the <code class="docutils literal notranslate"><span class="pre">references</span></code> section that
-will be used for the analysis. In the example above, “human” is the only
-organism configured.</p>
+will be used for the analysis. In RNA-seq example above, “human” is the
+only organism configured. In the ChIP-seq example, there is “human” as well
+as “fly”.</p>
 <p>Example:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">organism</span><span class="p">:</span> <span class="s">&quot;human&quot;</span>
 </pre></div>
@@ -443,6 +430,7 @@ be built. For RNA-seq we would likely choose “hisat2”; for ChIP-seq
 <div class="section" id="fastq-screen-config-section">
 <span id="cfg-fastq-screen"></span><h4><code class="docutils literal notranslate"><span class="pre">fastq_screen</span></code> config section<a class="headerlink" href="#fastq-screen-config-section" title="Permalink to this headline">¶</a></h4>
 <blockquote>
+<div><blockquote>
 <div><p>This section configures which Bowtie2 indexes should be used with
 <cite>fastq_screen</cite>. It takes the form of a list of dictionaries. Each
 dictionary has the keys:</p>
@@ -465,6 +453,9 @@ dictionary has the keys:</p>
 </pre></div>
 </div>
 </div></blockquote>
+<p>The above example configures two different indexes to use for fastq_screen:
+the human gencode-v25 reference, and the human rRNA reference.</p>
+</div></blockquote>
 </div>
 <div class="section" id="merged-bigwigs-config-section">
 <span id="cfg-merged-bigwigs"></span><h4><code class="docutils literal notranslate"><span class="pre">merged_bigwigs</span></code> config section<a class="headerlink" href="#merged-bigwigs-config-section" title="Permalink to this headline">¶</a></h4>
@@ -475,10 +466,10 @@ handled in those workflows.</p>
 <p>Here is an RNA-seq example:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">merged_bigwigs</span><span class="p">:</span>
   <span class="nt">arbitrary_label_to_use</span><span class="p">:</span>
-    <span class="nt">sense</span><span class="p">:</span>
+    <span class="nt">pos</span><span class="p">:</span>
       <span class="p p-Indicator">-</span> <span class="s">&#39;sample1&#39;</span>
       <span class="p p-Indicator">-</span> <span class="s">&#39;sample2&#39;</span>
-    <span class="nt">antisense</span><span class="p">:</span>
+    <span class="nt">neg</span><span class="p">:</span>
       <span class="p p-Indicator">-</span> <span class="s">&#39;sample1&#39;</span>
       <span class="p p-Indicator">-</span> <span class="s">&#39;sample2&#39;</span>
 </pre></div>
@@ -487,9 +478,11 @@ handled in those workflows.</p>
 <cite>arbitrary_label_to_use.bigwig</cite> in the directory
 <cite>data/rnaseq_aggregation/merged_bigwigs</cite> (by default; this is configured
 using <code class="docutils literal notranslate"><span class="pre">config/rnaseq_patterns.yaml</span></code>). That file merges together both the
-sense and antisense signal strands of two samples, sample1 and sample2. The
+positive and negative signal strands of two samples, <cite>sample1</cite> and <cite>sample2</cite>. The
 names “sample1” and “sample2” are sample names defined in the <a class="reference internal" href="sampletable.html#sampletable"><span class="std std-ref">sample
 table</span></a>.</p>
+<p>In other words, if samples 1 and 2 are replicates for a condition, this
+gets us a single merged (averaged) track for that condition.</p>
 <p>Here’s another RNA-seq example, where we merge the samples again but keep
 the strands separate. This will result in two output bigwigs.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">merged_bigwigs</span><span class="p">:</span>
@@ -543,6 +536,12 @@ specified tag. It uses the already configured <code class="docutils literal notr
 <div><p>This field selects the reference tag to use for counting reads in features.
 The tag must have had a <code class="docutils literal notranslate"><span class="pre">gtf:</span></code> section specified; see
 <a class="reference internal" href="references-config.html#references-config"><span class="std std-ref">References config</span></a> for details.</p>
+<p>The organism is inherited from the <code class="docutils literal notranslate"><span class="pre">organism:</span></code> field.</p>
+<p>Example:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">gtf</span><span class="p">:</span>
+  <span class="nt">tag</span><span class="p">:</span> <span class="s">&quot;gencode-v25&quot;</span>
+</pre></div>
+</div>
 </div></blockquote>
 </div>
 <div class="section" id="salmon-field">
@@ -560,18 +559,21 @@ have been configured to be built for the organism selected with the
 <div class="section" id="chipseq-config-section">
 <span id="cfg-chipseq"></span><h4><code class="docutils literal notranslate"><span class="pre">chipseq</span></code> config section<a class="headerlink" href="#chipseq-config-section" title="Permalink to this headline">¶</a></h4>
 <blockquote>
+<div><blockquote>
 <div><p>This section configures the peak-calling stage of the ChIP-seq workflow. It
 currently expects a single key, <code class="docutils literal notranslate"><span class="pre">peak_calling</span></code>, which is a list of
 peak-calling runs.</p>
-<p>A peak-calling run is a dictionary configuring a single peak-calling run
-which results in a single BED file of called peaks. A peak-calling run is
-uniquely described by its <code class="docutils literal notranslate"><span class="pre">label</span></code> and <code class="docutils literal notranslate"><span class="pre">algorithm</span></code>. This way, we can use
-the same label (e.g., <cite>gaf-embryo-1</cite>) across multiple peak-callers to help
-organize the output.</p>
+<p>A peak-calling run is a dictionary configuring a single execution of
+a peak-caller which results in a single BED file of called peaks.
+A peak-calling run is uniquely described by its <code class="docutils literal notranslate"><span class="pre">label</span></code> and
+<code class="docutils literal notranslate"><span class="pre">algorithm</span></code>. This way, we can use the same label (e.g., <cite>gaf-embryo-1</cite>)
+across multiple peak-callers to help organize the output.</p>
+<p>The track hubs will include all of these called peaks which helps with
+assessing the peak-calling performance.</p>
 <p>Here is a minimal example of a peak-calling config section. It defines
 a single peak-calling run using the <cite>macs2</cite> algorithm. Note that the
 <code class="docutils literal notranslate"><span class="pre">ip:</span></code> and <code class="docutils literal notranslate"><span class="pre">control:</span></code> keys are lists of <strong>labels</strong> from the ChIP-seq
-sample table’s <code class="docutils literal notranslate"><span class="pre">label</span></code> column, not sample IDs from the first column.</p>
+sample table’s <code class="docutils literal notranslate"><span class="pre">label</span></code> column, <strong>not sample IDs</strong> from the first column.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">chipseq</span><span class="p">:</span>
   <span class="nt">peak_calling</span><span class="p">:</span>
 
@@ -628,6 +630,8 @@ run we already have configured.</p>
 </pre></div>
 </div>
 </div></blockquote>
+<p>Other peak-callers are supported:</p>
+</div></blockquote>
 </div>
 </div>
 </div>
@@ -644,7 +648,7 @@ run we already have configured.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

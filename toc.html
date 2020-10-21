@@ -1,0 +1,211 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Table of Contents &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Introduction" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">lcdb-wf</a></h1>
+
+
+
+<p class="blurb">Customizable workflows for high-throughput sequencing analysis</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="index.html" title="next chapter">Introduction</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="table-of-contents">
+<h1>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="index.html#designed-with-customization-in-mind">Designed with customization in mind</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#tested-automatically">Tested automatically</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#track-hubs">Track hubs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#unified-approach-to-references">Unified approach to references</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#integration-with-external-data-and-figure-making">Integration with external data and figure-making</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#all-the-advantages-of-snakemake">All the advantages of Snakemake</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#setting-up-a-project">Setting up a project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#deploying-lcdb-wf">1. Deploying lcdb-wf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#configure">2. Configure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#run">3. Run</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#folder-organization">Folder organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#annotated-tree">Annotated tree</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#create-conda-envs">Create conda envs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#activate-the-main-env">Activate the main env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#download-example-data">Download example data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#a-note-about-test-settings">A note about test settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#run-the-rna-seq-workflow-with-example-data">Run the RNA-seq workflow with example data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#run-the-chip-seq-workflow-with-example-data">Run the ChIP-seq workflow with example data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#exhaustive-tests">Exhaustive tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#next-steps">Next steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#primary-analysis-workflows">Primary analysis workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#integrative-analysis-workflows">Integrative analysis workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#features-common-to-workflows">Features common to workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config.html#general-configuration">General configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#running-on-a-cluster">Running on a cluster</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="references.html#a-dictionary-of-references">A dictionary of references</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq.html#downstream-analysis">Downstream analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="downstream-rnaseq.html#how-to-use-this-script">How to use this script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="downstream-rnaseq.html#points-of-interest">Points of interest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="downstream-rnaseq.html#more-details">More details</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="integrative.html#colocalization-workflow">Colocalization workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integrative.html#external-workflow">“External” workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integrative.html#figures-workflow">“Figures” workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="faqs.html#can-i-run-multiple-workflows-at-once">Can I run multiple workflows at once?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faqs.html#how-do-i-handle-multiple-experiments-in-the-same-project">How do I handle multiple experiments in the same project?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faqs.html#how-are-low-counts-handled-during-differential-expression-analysis-should-we-use-a-read-count-threshold-to-filter-genes">How are low counts handled during differential expression analysis? Should we use a read-count threshold to filter genes?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faqs.html#how-do-i-troubleshoot-failed-jobs">How do I troubleshoot failed jobs?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faqs.html#how-do-i-update-my-deployment">How do I update my deployment?</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-6">v1.6</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-5-3">v1.5.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-5-2">v1.5.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-5-1">v1.5.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-5-sept-2019">v1.5 (Sept 2019)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-4-2-jul-2019">v1.4.2 (Jul 2019)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-4-1-jul-2019">v1.4.1 (Jul 2019)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-4-may-2019">v1.4 (May 2019)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-3-may-2019">v1.3 (May 2019)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-2-mar-2019">v1.2 (Mar 2019)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-1-aug-2018">v1.1 (Aug 2018)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-0-1-jun-2018">v1.0.1 (Jun 2018)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-0-may-2018">v1.0 (May 2018)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#wrappers">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#module-documentation">Module documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#miscellanous-tips">Miscellanous tips</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, Ryan Dale, Justin Fear.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/toc.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
