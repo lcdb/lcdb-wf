@@ -4,12 +4,12 @@ Introduction
 `lcdb-wf` is a collection of Snakemake workflows for common high-throughput
 sequencing analysis.
 
-There are a lot of workflows out there for high-throughput sequencing analysis.
+There are a multitude of workflows out there for high-throughput sequencing analysis.
 What makes `lcdb-wf` different?
 
 Designed with customization in mind
 -----------------------------------
-We recognize that every experiment has its own unique idiosyncracies. Rather
+We recognize that every experiment has its own idiosyncracies. Rather
 than provide a one-size-fits-all solution, we aim to provide a reasonable
 starting point that users can modify for their own use.
 
@@ -56,9 +56,9 @@ through final figures. Examples are included (and tested) for how to tie
 together workflows, including downloading external data and downstream
 figure-making work.
 
-If an upstream file changes (e.g., gene annotation), all downstream jobs
-depending on it -- including figures -- will be updated so you can ensure that
-even complex analyses stay correct and up-to-date.
+If an upstream file changes (e.g., gene annotation), all dependent downstream 
+jobs -- including figures -- will be updated so you can ensure that even 
+complex analyses stay correct and up-to-date.
 
 All the advantages of Snakemake
 -------------------------------
@@ -76,10 +76,9 @@ system whether global or rule-specific.
 
 Only run the jobs required
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-New gene annotation? Snakemake tracks dependencies, so it will detect that the
-annotations changed, and re-run only the jobs that depend on that file at some
-point in their dependency chain, leaving other files that don't depend on it
-untouched.
+New gene annotation? Snakemake tracks dependencies, so it will detect that the 
+annotations changed. Only jobs that depend on that file at some point in their 
+dependency chain will be re-run and the independent files are untouched.
 
 Parallelization
 ~~~~~~~~~~~~~~~
