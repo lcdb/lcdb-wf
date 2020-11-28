@@ -408,7 +408,7 @@ multiqc_inputs = [
     utils.flatten(c.targets['plotcorrelation'])
 ]
 
-if c.paired:
+if c.is_paired:
     multiqc_inputs.extend(utils.flatten(c.targets['collectinsertsizemetrics']['metrics']))
 
 rule multiqc:
@@ -496,7 +496,7 @@ rule merge_techreps:
     script:
         wrapper_for('combos/merge_and_dedup/wrapper.py')
 
-if c.paired:
+if c.is_paired:
     rule collectinsertsizemetrics:
         input:
             bam=c.patterns['markduplicates']['bam'],
