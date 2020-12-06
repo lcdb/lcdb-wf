@@ -32,13 +32,19 @@ shell.executable('/bin/bash')
 
 config = common.load_config(config)
 
+# Verify configuration of config and sampletable files
+helpers.preflight(config)
+
 c = ChIPSeqConfig(
     config,
     config.get('patterns', 'config/chipseq_patterns.yaml')
 )
 
+SAMPLES = c.sampletable.iloc[:, 0].values
+
 wildcard_constraints:
-    n = '[1,2]'
+    n = '[1,2]',
+    sample = '|'.join(SAMPLES)
 
 localrules: symlinks
 
@@ -47,20 +53,12 @@ def wrapper_for(path):
     return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
 
 
-def render_r1_r2(pattern, r1_only=False):
-    return expand(pattern, sample='{sample}', n=c.n)
-
-
-def r1_only(pattern):
-    return expand(pattern, sample='{sample}', n=1)
 
 
 # ----------------------------------------------------------------------------
 # RULES
 # ----------------------------------------------------------------------------
 
-# Verify configuration of config and sampletable files
-helpers.preflight(config)
 
 # See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
@@ -83,6 +81,13 @@ final_targets = utils.flatten((
 if 'merged_bigwigs' in config:
     final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
 
+
+def render_r1_r2(pattern, r1_only=False):
+    return expand(pattern, sample='{sample}', n=c.n)
+
+def r1_only(pattern):
+    return expand(pattern, sample='{sample}', n=1)
+
 rule targets:
     """
     Final targets to create
@@ -101,15 +106,10 @@ if 'orig_filename' in c.sampletable.columns:
         Given a sample, returns either one or two original fastq files
         depending on whether the library was single- or paired-end.
         """
-        row = _st.loc[wc.sample]
-        res = [row['orig_filename']]
-        try:
-            r2 = row['orig_filename_R2']
-            if isinstance(r2, str):
-                res.append(row['orig_filename_R2'])
-        except KeyError:
-            pass
-        return res
+        if c.is_paired:
+            return _st.loc[wc.sample, ['orig_filename', 'orig_filename_R2']]
+        return _st.loc[wc.sample, ['orig_filename']]
+
 
     rule symlinks:
         """
@@ -118,10 +118,10 @@ if 'orig_filename' in c.sampletable.columns:
         input:
             orig_for_sample
         output:
-            c.patterns['fastq']
-        wildcard_constraints:
-            n="\d+"
+            render_r1_r2(c.patterns['fastq'])
         run:
+
+            assert len(output) == len(input), (input, output)
             for src, linkname in zip(input, output):
                 utils.make_relative_symlink(src, linkname)
 
@@ -129,7 +129,8 @@ if 'orig_filename' in c.sampletable.columns:
     rule symlink_targets:
         input: c.targets['fastq']
 
-if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('SRR')) > 1:
+
+if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('SRR')) > 0:
 
     # Convert the sampletable to be indexed by the first column, for
     # convenience in generating the input/output filenames.
@@ -137,15 +138,14 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
 
     rule fastq_dump:
         output:
-            c.patterns['fastq']
+            fastq=render_r1_r2(c.patterns['fastq'])
         run:
             srr = _st.loc[wildcards.sample, 'Run']
 
             # Two different paths depending on the layout. In both cases, we
             # want to avoid creating the final output until the very end, to
             # avoid incomplete downloads.
-            if _st.loc[wildcards.sample, 'layout'] == 'PE':
-
+            if c.is_paired:
                 # For PE we need to use --split-files, which also means using
                 # the slower --gzip
                 shell(
@@ -153,18 +153,12 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     '{srr} '
                     '--gzip '
                     '--split-files '
-                    # '-X 1000 ' # [TEST SETTINGS]
+                    # '-X 100000 ' # [TEST SETTINGS]
                 )
 
-                # The filenames are predictable, so we can move them as needd.
-                shell(
-                    'mv {srr}_1.fastq.gz '
-                    '$(dirname {output})/{sample}_R1.fastq.gz'
-                )
-                shell(
-                    'mv {srr}_2.fastq.gz '
-                    '$(dirname {output})/{sample}_R2.fastq.gz'
-                )
+                # The filenames are predictable, so we can move them as needed.
+                shell('mv {srr}_1.fastq.gz {output[0]}')
+                shell('mv {srr}_2.fastq.gz {output[1]}')
 
             else:
                 # For SE, we can use the faster stdout | gzip, and move it
@@ -173,9 +167,9 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     'fastq-dump '
                     '{srr} '
                     '-Z '
-                    # '-X 1000 ' # [TEST SETTINGS]
-                    '| gzip -c > {output}.tmp '
-                    '&& mv {output}.tmp {output} '
+                    # '-X 100000 ' # [TEST SETTINGS]
+                    '| gzip -c > {output[0]}.tmp '
+                    '&& mv {output[0]}.tmp {output[0]} '
                 )
 
 
@@ -184,12 +178,14 @@ rule cutadapt:
     Run cutadapt
     """
     input:
-        fastq=common.fill_r1_r2(c.sampletable, c.patterns['fastq'])
+        fastq=render_r1_r2(c.patterns['fastq'])
     output:
         fastq=render_r1_r2(c.patterns['cutadapt'])
     log:
         render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
+    threads: 6
     run:
+
         # NOTE: Change cutadapt params here
         if c.is_paired:
             shell(
@@ -199,6 +195,7 @@ rule cutadapt:
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
                 '-q 20 '
+                '-j {threads} '
                 '--minimum-length 25 '
                 "{input.fastq[0]} "
                 "{input.fastq[1]} "
@@ -300,9 +297,9 @@ rule bam_count:
     Count reads in a BAM file
     """
     input:
-        bam='{sample_dir}/{sample}/{sample}{suffix}.bam'
+        bam='{sample_dir}/{sample}/{suffix}.bam'
     output:
-        '{sample_dir}/{sample}/{sample}{suffix}.bam.libsize'
+        '{sample_dir}/{sample}/{suffix}.bam.libsize'
     shell:
         'samtools view -c {input} > {output}'
 
@@ -336,7 +333,7 @@ rule fastq_screen:
     """
     input:
         **fastq_screen_references(),
-        fastq=rules.cutadapt.output.fastq,
+        fastq=r1_only(rules.cutadapt.output.fastq),
     output:
         txt=c.patterns['fastq_screen']
     log:
@@ -399,6 +396,20 @@ rule libsizes_table:
         with open(output.json, 'w') as fout:
             yaml.dump(y, fout, default_flow_style=False)
 
+multiqc_inputs = [
+    utils.flatten(c.targets['fastqc']) +
+    utils.flatten(c.targets['libsizes_yaml']) +
+    utils.flatten(c.targets['cutadapt']) +
+    utils.flatten(c.targets['bam']) +
+    utils.flatten(c.targets['markduplicates']) +
+    utils.flatten(c.targets['fingerprint']) +
+    utils.flatten(c.targets['peaks']) +
+    utils.flatten(c.targets['fastq_screen']) +
+    utils.flatten(c.targets['plotcorrelation'])
+]
+
+if c.is_paired:
+    multiqc_inputs.extend(utils.flatten(c.targets['collectinsertsizemetrics']['metrics']))
 
 rule multiqc:
     """
@@ -407,16 +418,7 @@ rule multiqc:
     # NOTE: if you add more rules and want MultiQC to pick up the output, best
     # to add outputs from those rules to the inputs here.
     input:
-        files=(
-            utils.flatten(c.targets['fastqc']) +
-            utils.flatten(c.targets['libsizes_yaml']) +
-            utils.flatten(c.targets['cutadapt']) +
-            utils.flatten(c.targets['bam']) +
-            utils.flatten(c.targets['markduplicates']) +
-            utils.flatten(c.targets['fingerprint']) +
-            utils.flatten(c.targets['peaks']) +
-            utils.flatten(c.targets['fastq_screen'])
-        ),
+        files=multiqc_inputs,
         config='config/multiqc_config.yaml'
     output:
         c.targets['multiqc']
@@ -494,6 +496,26 @@ rule merge_techreps:
     script:
         wrapper_for('combos/merge_and_dedup/wrapper.py')
 
+if c.is_paired:
+    rule collectinsertsizemetrics:
+        input:
+            bam=c.patterns['markduplicates']['bam'],
+        output:
+            pdf=c.patterns['collectinsertsizemetrics']['pdf'],
+            metrics=c.patterns['collectinsertsizemetrics']['metrics']
+        log:
+            c.patterns['collectinsertsizemetrics']['metrics'] + '.log'
+        params:
+            java_args='-Xmx20g'
+            # java_args='-Xmx2g'  # [TEST SETTINGS -1]
+        shell:
+            'picard '
+            '{params.java_args} '
+            'CollectInsertSizeMetrics '
+            'I={input.bam} '
+            'O={output.metrics} '
+            'H={output.pdf} '
+            '&> {log} '
 
 rule bigwig:
     """
@@ -656,6 +678,7 @@ rule bed_to_bigbed:
         bed='{prefix}.bed',
         chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes']
     output: '{prefix}.bigbed'
+    log: '{prefix}.bigbed.log'
     run:
         # Based on the filename, identify the algorithm. Based on the contents,
         # identify the format.
@@ -689,7 +712,7 @@ rule bed_to_bigbed:
             df['score'] = df['score'].astype(int)
             df.to_csv(output[0] + '.tmp', sep='\t', index=False, header=False)
 
-            shell('bedToBigBed -as={_as} -type={_type} {output}.tmp {input.chromsizes} {output}')
+            shell('bedToBigBed -as={_as} -type={_type} {output}.tmp {input.chromsizes} {output} &> {log}')
             shell('rm {output}.tmp')
 
 

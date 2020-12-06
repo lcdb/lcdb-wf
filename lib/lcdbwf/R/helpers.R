@@ -30,6 +30,10 @@ get.orgdb <- function(species, cache, annotation_key_override=NA){
         proxy <- NULL
     }
 
+    if (!dir.exists(cache)){
+        dir.create(cache, recursive=TRUE)
+    }
+
     ah <- AnnotationHub(hub=getAnnotationHubOption('URL'),
              cache=cache,
              proxy=proxy,

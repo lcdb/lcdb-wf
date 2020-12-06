@@ -27,3 +27,5 @@ include/AnnotationHubCache
 env*
 references_dir/
 staging/
+.DS_Store
+._.DS_Store
