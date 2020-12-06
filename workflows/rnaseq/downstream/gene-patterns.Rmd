@@ -143,7 +143,7 @@ for (name in names(ll)){
     print(degPlotCluster(
         n2,
         time=time,
-        #min_genes=minc,   # min_genes argument is now deprecated.
+        min_genes=minc,
         col=col
         )
     )
