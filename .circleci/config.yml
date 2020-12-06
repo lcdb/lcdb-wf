@@ -183,10 +183,14 @@ variables:
           # R environments. So we need to test the rnaseq.Rmd separately
           # outside the context of the Snakefile.
           source activate lcdb-wf-test-r
-          Rscript -e "rmarkdown::render('downstream/rnaseq.Rmd')"
+
+          # This script runs the preprocessor on the Rmd files and stores them
+          # in a new download-test directory (see the comments in the script
+          # for details)
+          bash run_downstream_test.sh
 
           # bundle up the entire directory to be used as an artifact
-          tar -zcf downstream.tar.gz downstream/
+          tar -zcf downstream.tar.gz downstream-test/
 
   # --------------------------------------------------------------------------
   # Quick test on just two samples to make sure STAR works OK
