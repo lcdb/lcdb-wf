@@ -75,7 +75,7 @@ For RNA-seq, only the first column and optionally the `orig_filename` column
 are used directly by the RNA-seq workflow.
 
 However, the sampletable is imported into the ``downstream/rnaseq.Rmd`` file
-(see :ref:`downstream-rnaseq` for more info) so it's often useful to include
+(see :ref:`downstream` for more info) so it's often useful to include
 any metadata in the sampletable so it's all in one place, and you'll get all
 that information imported into R.
 

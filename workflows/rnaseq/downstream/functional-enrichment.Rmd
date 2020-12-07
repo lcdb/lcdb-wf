@@ -206,6 +206,7 @@ for(comp in names(all.enrich)){
             # If there is only one gene, then we don't have a directed graph --
             # "Error in graph_to_tree(graph, mode = direction) : Graph must be directed"
             if (nrow(res@result) > 1){
+                try(
                 emapplots[[sel]] <- emapplot(
                     res,
                     showCategory=30,
@@ -213,6 +214,7 @@ for(comp in names(all.enrich)){
                 ) +
                     ggtitle(title) +
                     theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+                )
             }
 
             cnetplots[[sel]] <- cnetplot(

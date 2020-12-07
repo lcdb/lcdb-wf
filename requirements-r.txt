@@ -9,21 +9,24 @@ bioconductor-diffbind
 bioconductor-dupradar
 bioconductor-genomeinfodbdata
 bioconductor-genomicfeatures
+bioconductor-ihw
 bioconductor-reactomepa
 bioconductor-s4vectors
 bioconductor-sva
 bioconductor-tximport
-r-base >3.5
+r-ashr
+r-base >=3.4
 r-devtools
 r-dt
+r-ggnewscale
 r-ggrepel
 r-heatmaply
 r-knitr
-r-plotly
 r-pheatmap
+r-plotly
 r-readr
 r-rmarkdown
-r-spp
 r-sparsem
+r-spp
 r-upsetr
 r-ggupset

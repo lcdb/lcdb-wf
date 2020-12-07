@@ -1,7 +1,69 @@
 .. _guide:
 
-Guide to files
-==============
+Guide to file hierarchy
+=======================
+
+The ``lcdb-wf`` workflow system is designed to have a standardized directory
+structure and file hierarchy to allow us to be as consistent across many diverse
+and disparate analyses and sources of data and reduce the overhead when it comes
+to troubleshooting when something goes wrong. All the components of the repository
+are laid out with this overarching design principle in mind.
+
+Below we give a high-level overview and brief description of the files and folders used
+by the workflows, and include an annotated directory tree highlighting the most important
+parts of the repository.
+
+Folder organization
+~~~~~~~~~~~~~~~~~~~
+
+The top level of the repo looks like this:
+
+::
+
+    [1]  ├── ci/
+    [2]  ├── docs/
+    [3]  ├── include/
+    [4]  ├── lib/
+    [5]  ├── README.md
+    [6]  ├── requirements-non-r.txt
+    [7]  ├── requirements-r.txt
+    [8]  ├── workflows/
+    [9]  └── wrappers/
+
+1. ``ci`` contains infrastructure for continuous integration testing. You don't
+   have to worry about this stuff unless you're actively developing `lcdb-wf`.
+
+2. ``docs/`` contains the source for documentation. You're reading it.
+
+3. ``include/`` has miscellaneous files and scripts that can be used by all
+   workflows. Of particular note is the ``WRAPPER_SLURM`` script (see
+   :ref:`cluster` for more) and the ``reference_configs`` directory (see
+   :ref:`references` and :ref:`config` for more).
+
+4. ``lib/`` contains Python modules used by the workflows.
+
+5. ``README.md`` contains top-level info.
+
+6. ``requirements-non-r.txt`` contains the package dependencies needed to run the
+   workflows, and is used to set up a conda environment.
+
+7. ``requirements-r.txt`` contains the package dependencies for R and various
+   Bioconductor packages used in downstream analysis. See :ref:`conda-envs` for the
+   rationale for splitting these.
+
+8. ``workflows/`` contains one directory for each workflow. Each workflow directory contains
+   its own ``Snakefile`` and configuration files. We go into more detail in the next section.
+
+9. ``wrappers/`` contains Snakemake `wrappers
+   <https://snakemake.readthedocs.io/en/stable/snakefiles/modularization.html#wrappers>`_,
+   which are scripts that can use their own independent environment. See
+   :ref:`wrappers` for more.
+
+Below, you can see a detailed overview of the files contained in these folders.
+
+
+Annotated tree
+~~~~~~~~~~~~~~
 
 The following is an annotated directory tree of the ``lcdb-wf`` repository to
 help orient you. Hover over files for a tooltip description; click a file to
@@ -33,9 +95,15 @@ Files in bold are the most important.
     
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//README.md" style="text-decoration:none;"><span class="file undoc">README.md</span></a></p>
     
-    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/references/Snakefile" data-balloon=" The main workflow to generate references" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snakefile</span></a></p>
+    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/" data-balloon=" The directory with all workflows" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir">workflows/</span></a></p>
     
-    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/Snakefile" data-balloon=" The main workflow for performing RNA-seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snakefile</span></a></p>
+    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/references/" data-balloon=" The main workflow to generate references" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir">&nbsp;&nbsp;&nbsp;references/</span></a></p>
+    
+    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/references/Snakefile" data-balloon=" Snakefile to perform the references workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snakefile</span></a></p>
+    
+    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/" data-balloon=" The main workflow for performing RNA-seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir">&nbsp;&nbsp;&nbsp;rnaseq/</span></a></p>
+    
+    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/Snakefile" data-balloon=" Snakefile to perform RNA-Seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snakefile</span></a></p>
     
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/config/" data-balloon=" Configuration for the RNA-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;config/</span></a></p>
     
@@ -45,9 +113,15 @@ Files in bold are the most important.
     
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/config/clusterconfig.yaml" data-balloon=" Cluster-specific parameters for the RNA-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clusterconfig.yaml</span></a></p>
     
-    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/downstream/rnaseq.Rmd" data-balloon=" Rmd file called by rnaseq.snakefile" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rnaseq.Rmd</span></a></p>
+    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/downstream/rnaseq.Rmd" data-balloon=" Rmd file called by the RNA-Seq Snakefile" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rnaseq.Rmd</span></a></p>
     
-    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/Snakefile" data-balloon=" The main workflow for performing ChIP-seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snakefile</span></a></p>
+    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/downstream/gene-patterns.Rmd" data-balloon=" Rmd file called by rnaseq.Rmd to perform gene patterns analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gene-patterns.Rmd</span></a></p>
+    
+    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/downstream/functional-enrichment.Rmd" data-balloon=" Rmd file called by rnaseq.Rmd to perform functional enrichment analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;functional-enrichment.Rmd</span></a></p>
+    
+    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/" data-balloon=" The main workflow for performing ChIP-seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir">&nbsp;&nbsp;&nbsp;chipseq/</span></a></p>
+    
+    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/Snakefile" data-balloon=" Snakefile to perform ChIP-Seq analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Snakefile</span></a></p>
     
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/config/" data-balloon=" Configuration for the ChIP-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;config/</span></a></p>
     
@@ -189,3 +263,7 @@ Files in bold are the most important.
     
 
 
+Now that you have seen which files and folders are the most important and have some idea
+of where everything lives, let's look at how to run tests to make sure everything is set up 
+correctly (see :ref:`running-the-tests`), or jump right in to learning about how to configure
+the workflows for your particular experiment (see :ref:`config`).

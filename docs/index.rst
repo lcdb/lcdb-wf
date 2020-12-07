@@ -1,5 +1,5 @@
-lcdb-wf
-=======
+Introduction
+============
 
 `lcdb-wf` is a collection of Snakemake workflows for common high-throughput
 sequencing analysis.
@@ -22,15 +22,18 @@ Tested automatically
 Every change to the code on GitHub triggers an automated test, the results of
 which you can find at https://circleci.com/gh/lcdb/lcdb-wf. Each test sets the
 system up from scratch, including installing all software, downloading example
-data, and running everything up through the final results.
+data, and running everything up through the final results. This guarantees that
+you can set up and test yourself.
 
 Track hubs
 ----------
 The ChIP-seq and RNA-seq workflows generate track hubs that can be viewed in
-the UCSC Genome Browser. ChIP-seq shows signal and called peaks (across
-multiple peak-callers); RNA-seq shows strand-specific signal tracks. Both
-support the addition of arbitrary additional tracks (primers, loci of interest,
-external data, etc) to view alongside your data.
+the UCSC Genome Browser. ChIP-seq shows signal and called peaks (many
+peak-calling runs, with different peak-callers and different parameters for
+each, can be configured to automatically run and show up in the track hub);
+RNA-seq shows strand-specific signal tracks. Both support the addition of
+arbitrary additional tracks (primers, loci of interest, external data, etc) to
+view alongside your data.
 
 Unified approach to references
 ------------------------------
@@ -40,17 +43,25 @@ a site to get lots of genomes you can use for running `fastq_screen`, and
 easily include arbitrary other genomes. They can then be automatically included
 in RNA-seq and ChIP-seq workflows.
 
+This system is designed to allow customization as the config file
+can be used to include arbitrary genomes whether local or on the web.
+The `references` workflow need only be run once for all these genomes
+to be created, with the `references_dir` being used as a centralized
+repository that can be then used with all other workflows.
+
 Integration with external data and figure-making
 ------------------------------------------------
-Examples are included (and tested) for how to tie together workflows, including
-downloading external data and downstream figure-making work.
+Designed to tie together your entire analysis, from downloading references
+through final figures. Examples are included (and tested) for how to tie
+together workflows, including downloading external data and downstream
+figure-making work.
 
 If an upstream file changes (e.g., gene annotation), all downstream jobs
 depending on it -- including figures -- will be updated so you can ensure that
 even complex analyses stay correct and up-to-date.
 
-Advantages of Snakemake
------------------------
+All the advantages of Snakemake
+-------------------------------
 
 The workflows are built using `Snakemake
 <https://snakemake.readthedocs.io/en/stable/>`_, so we also get the following
@@ -61,7 +72,7 @@ Run locally or on a cluster with the same code
 Run the same workflow locally or on a cluster with only a slight command-line
 modification. SLURM support for the NIH Biowulf cluster is built in; edit the
 ``clusterconfig.yaml`` file to specify cluster arguments specific to your
-system.
+system whether global or rule-specific.
 
 Only run the jobs required
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -81,32 +92,4 @@ Installation of all dependencies is handled by conda, ensuring reproducibility,
 streamlined setup, and no need for root administrator privileges.
 
 See :ref:`getting-started` to get started.
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-   :hidden:
-
-   getting-started
-   tests
-   deploy
-   workflows
-   guide
-   config
-   references
-   rnaseq
-   downstream-rnaseq
-   chipseq
-   external
-   figures
-   colocalization
-   wrappers
-   cluster
-   troubleshooting
-   rnaseq-rmd
-   gene-patterns-rmarkdown-docs
-   functional-enrichment-rmarkdown-docs
-   autodoc
-   changelog
-   developers
 

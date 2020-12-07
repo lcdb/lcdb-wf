@@ -48,7 +48,7 @@ variables:
         name: Set path
         command: |
           # x11-utils required to avoid R::png() segfaulting
-          apt install -y locales-all locales x11-utils
+          apt update && apt install -y locales-all locales x11-utils
           echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
           echo 'export LC_ALL=en_US.utf8' >> $BASH_ENV
           echo 'export LANG=en_US.utf8' >> $BASH_ENV
@@ -152,6 +152,15 @@ variables:
             --config sampletable=$ORIG/test/test_configs/chipseq_one_run.tsv \
             --config merged_bigwigs="{}" \
             --until bed_to_bigbed
+
+          # Piggy-backing on that test, here we check to make sure it's OK to
+          # omit peak-calling config. We just do a dry-run.
+          ./run_test.sh -n \
+            --configfile $ORIG/test/test_configs/test_chipseq_no_peaks.yaml \
+            --config sampletable=$ORIG/test/test_configs/chipseq_one_run.tsv \
+            --config merged_bigwigs="{}" \
+            --until bed_to_bigbed
+
   # --------------------------------------------------------------------------
   # Standard references workflow.
   references-step: &references-step
@@ -176,10 +185,14 @@ variables:
           # R environments. So we need to test the rnaseq.Rmd separately
           # outside the context of the Snakefile.
           source activate lcdb-wf-test-r
-          Rscript -e "rmarkdown::render('downstream/rnaseq.Rmd')"
+
+          # This script runs the preprocessor on the Rmd files and stores them
+          # in a new download-test directory (see the comments in the script
+          # for details)
+          bash run_downstream_test.sh
 
           # bundle up the entire directory to be used as an artifact
-          tar -zcf downstream.tar.gz downstream/
+          tar -zcf downstream.tar.gz downstream-test/
 
   # --------------------------------------------------------------------------
   # Quick test on just two samples to make sure STAR works OK
@@ -422,7 +435,7 @@ jobs:
       - *set-path
       - run:
           name: Install sphinx
-          command: conda install -y sphinx make
+          command: source activate lcdb-wf-test && conda install -y sphinx make yaml
       - run:
           name: OK for unknown github host
           command: mkdir -p ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config

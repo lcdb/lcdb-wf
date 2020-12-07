@@ -6,8 +6,23 @@ v1.6
 
 References
 ~~~~~~~~~~
-- overhaul the way transcriptome fastas are created. Instead of requiring separate download, they are now created out of the provided GTF and fasta files.
-- **backwards-incompatible change:** reference config files are updated to reflect the changes in the references workflow
+- overhaul the way transcriptome fastas are created. Instead of requiring
+  separate download, they are now created out of the provided GTF and fasta
+  files. The reference config section now uses keys ``genome:``,
+  ``transcriptome:``, and ``annotation:`` rather than the ``fasta:`` and
+  ``gtf:`` keys.
+- **backwards-incompatible change:** reference config files have been updated
+  to reflect the changes in the references workflow
+- Update PhiX genome fasta to use NCBI rather than Illumina iGenomes
+
+ChIP-seq workflow
+~~~~~~~~~~~~~~~~~
+- ChIP-seq workflow now properly supports paired-end reads
+- A ChIP-seq workflow can now be run when the ``chipseq:`` and/or
+  ``peak_calling:`` sections are omitted.
+- added a missing bowtie2 config entry in ``clusterconfig.yaml`` which could
+  result in out-of-memory errors when submitting to a cluster using that file
+
 
 RNA-seq workflow
 ~~~~~~~~~~~~~~~~
@@ -19,29 +34,51 @@ RNA-seq workflow
   which is the summarize output of RSeQC's ``infer_experiment.py`` across all
   samples.
 - implement STAR two-pass alignment. Default is still single-pass.
+- Clean up hard-coded STAR indexing Log.out file
+- Include ``ashr`` and ``ihw`` Bioconductor packages in the R requirements, for
+  use with recent versions of DESeq2.
+
 
 RNA-seq downstream
 ~~~~~~~~~~~~~~~~~~
 
-- functional enrichment and gene patterns are now separate child documents.
+- Functional enrichment and gene patterns are now separate child documents.
   This makes it easier to turn them on/off by only needing to adjust the chunk
   options of the child chunk
-- new documentation method for rnaseq.Rmd. Now there is a separate, dedicated
-  documentation page with sections that exactly correspond to each named chunk
-  in the Rmd.
+- Created a new documentation method for rnaseq.Rmd. Now there is a separate,
+  dedicated documentation page with sections that exactly correspond to each
+  named chunk in the Rmd, as well as a tool for ensuring that chunks and docs
+  stay synchronized. See :ref:`rnaseqrmd` for the new docs.
 - New ``counts.df`` and ``counts.plot`` functions to make it much easier to
   make custom dotplots of top counts by melting and joining the counts table
   with the metadata in colData.
 - DEGpatterns cluster IDs are now added as additional columns in the output
   TSVs for each contrast
+- Many functions in the rnaseq.Rmd now expect a list of :term:`dds` objects.
+  See :ref:`dds_list` for more info on this.
+- Created a new R package, ``lcdbwf`` stored in :file:`lib/lcdbwf`. This can be
+  edited in place, and it is loaded from disk within ``rnaseq.Rmd``.
+- Modified some output keys to support recent versions of Snakemake, for which
+  ``count`` is a reserved keyword
+
 
 General
 ~~~~~~~
+- Conda environments are now split into R and non-R. See :ref:`conda-envs` for
+  details. Updated ``deploy.py`` accordingly
+- symlinks rules are now set to be localrules
+- updated workflows to work on recent Snakemake versions
 - split environments into non-R and R. This, along with a loose pinning of
   versions (``>=``), dramatically speeds up environment creation.
 - updates to support latest Snakemake versions
-- improvements to testing: environment YAML files are stored as artifacts on
-  CircleCI as well as rendered HTML files from the rnaseq.Rmd.
+- improvements to testing:
+   - environment YAML files, rendered HTML, and docs are stored as artifacts on CircleCI
+   - consolidations of some RNA-seq tests to reduce total time
+   - additional comments in the test config yaml to help new users understand the system
+- new "preflight check" function is run to hopefully catch errors before running workflows
+- updates to support recent Picard versions
+- added wildcard constraints to help Snakemake solve DAG
+
 
 v1.5.3
 ------

@@ -1,13 +1,11 @@
-``rnaseq.Rmd`` code documentation
-=================================
+.. _downstream-detailed:
 
+Detailed documentation of RNA-Seq downstream
+============================================
 
-This page serves as documentation for the
-:file:`workflows/rnaseq/downstream/rnaseq.Rmd` file, allowing the full power of
-reStructured Text for presentation.
-
-It is organized by chunk. For example, if :file:`rnaseq.Rmd` has the following
-code:
+Here we describe in detail the downstream analysis of RNA-Seq data done using RMarkdown.
+The code is broken into chunks or modules and the documentation follows the same
+structure. For instance, if :file:`rnaseq.Rmd` has the following code:
 
 .. code-block:: r
 
@@ -22,8 +20,24 @@ in order to be documented. RMarkdown requires uniquely-named chunks, so we
 can use them as uniquely-named headings.
 
 The file :file:`ci/ensure_docs.py` double-checks to make sure all chunks are
-documented and all documentation corresponds to a chunk.
+documented and all documentation corresponds to a chunk, as part of the testing
+framework.
 
+To further modularize the code and because certain parts of the analysis are self-contained,
+the downstream analysis code is broken up into three main components:
+
+- `Primary analysis script`_: ``rnaseq.Rmd``
+- `Gene patterns analysis`_: ``gene-patterns.Rmd``
+- `Functional enrichment analysis`_: ``functional-enrichment.Rmd``
+
+The ``gene_patterns.Rmd`` and ``functional-enrichment.Rmd`` scripts are called
+from within the primary analysis Rmd in the genepatterns_ and functionalenrichment_
+chunks below.
+
+.. _rnaseqrmd:
+
+Primary analysis script
+~~~~~~~~~~~~~~~~~~~~~~~
 
 ``global_options``
 ------------------
@@ -36,12 +50,18 @@ the filenames' modification times have changed.
     cache.extra_file_dep_1=file.info('../config/sampletable.tsv')$mtime,
     cache.extra_file_dep_2 = file.info('../data/rnaseq_aggregation/featurecounts.txt')$mtime
 
+In other words, if the sample table of the RNA-Seq workflow or the counts table from
+the samples have been updated since the last time the analysis script was run, everything
+will be rerun from scratch.
 
 ``load_helpers``
 ----------------
 
-The helper functions are stored in a package that is maintained in this
-repository, in the ``lib/lcdbwf`` R package.
+Helper functions are a set of useful utility functions used throughout the
+``rnaseq.Rmd`` script that are stored in a package maintained in this
+repository, in the ``lib/lcdbwf`` R package. Here we include these as a child
+Rmd, so that the main document doesn't get cluttered with the functions, but
+the code is still included in the HTML output.
 
 This chunk refreshes documentation and loads (or re-loads, if you run it later)
 the package using devtools.
@@ -73,12 +93,6 @@ for creating the dds objects. The majority of the metadata is read in from the
 sampletable. This chunk also handles things like converting to factors and
 setting up the paths to Salmon output files.
 
-This is a good place to put any modifications to the sample table (like factors
-derived other columns).
-
-If you are using this Rmd outside the context of lcdb-wf, you will need to
-change the salmon output path patterns and the sampletable location.
-
 +---------------------------+------------------------------------------------------------------------------------------------+
 | var                       | description                                                                                    |
 +===========================+================================================================================================+
@@ -93,12 +107,16 @@ change the salmon output path patterns and the sampletable location.
 | ``salmon.path.func``      | given a samplename ``x``, this function returns the sample's ``quant.sf`` file.                |
 +---------------------------+------------------------------------------------------------------------------------------------+
 
+This is a good place to put any modifications to the sample table (like factors
+derived other columns).
 
+If you are using this Rmd outside the context of lcdb-wf, you will need to
+change the salmon output path patterns and the sampletable location.
 
-Note on factors
-~~~~~~~~~~~~~~~
-For the test data, "control" is the base level for the "group" factor. You will
-need to edit this as appropriate for your experimental design.
+.. topic:: Note on factors
+   
+   For the test data, "control" is the base level for the "group" factor. You will
+   need to edit this as appropriate for your experimental design.
 
 
 ``salmon``
@@ -183,6 +201,8 @@ TRUE:
 Calls to ``DESeq()`` below will provide the argument ``parallel=parallel`` so no
 other changes should be needed.
 
+.. _dds_list:
+
 ``dds_list``
 ------------
 
@@ -249,7 +269,7 @@ The above example becomes the following:
    lst <- list(
       main=list(sampletable=colData, design=~group),
       no.rep.4=list(
-         sampletable=colData %>% filter(replicate!='rep4),
+         sampletable=colData %>% filter(replicate!='rep4'),
          design=~group,
          args=list(subset.counts=TRUE))
    )
@@ -290,8 +310,10 @@ automatically create a DE results section including:
 DESeq object the results were extracted from, and "label" is a nicer label to
 use for headers and other text.
 
+.. _contrast:
+
 Specifying contrasts
-~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^
 
 Contrasts can be specified in three different ways.
 
@@ -312,6 +334,8 @@ Contrasts can be specified in three different ways.
    .. code-block:: r
 
       res <- results(dds, contrast=c('group', 'treatment', 'control')
+
+   That is, **the control must be last**.
 
 2. `name` parameter for ``results()`` function call or `coef` parameter for
    ``lfcShrink()`` call
@@ -339,7 +363,7 @@ Contrasts can be specified in three different ways.
 
 
 The most general way to specify contrasts
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The most general way to specify contrasts is with a numeric vector (third
 option above).
@@ -431,12 +455,13 @@ Interaction term, that is, (IA vs IB) vs (IIA vs IIB). This is effectively ``(IA
 
 
 Notes on using lfcShrink
-~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^
 As currently implemented (05 apr 2018), lfcShrink checks its arguments for an
 existing results table. If it exists, it applies shrinkage to the lfc and se
 in that table. If it *doesn't* exist, it calls results on dds with the syntax
 
     res <- results(dds, name=coef)
+
 or
 
     res <- results(dds, contrast=contrast)
@@ -479,20 +504,44 @@ contrasts in the :term:`res.list`.
 ``selections``
 --------------
 
-
+Here we get a list of DE genes from the :term:`res.list` object
+to use for downstream analysis using the log2FoldChange (lfc) and 
+false discovery rate (FDR) thresholds.
 
 ``upsetplots``
 --------------
 
+This chunk produces Upset plots comparing the selected lists of genes.
+
 ``helpdocs``
 ------------
+
+For new users, or when distributing the output to collaborators who might
+not be familiar with the plots contained in the report, a background and
+help section are included as a child Rmd. This can be disabled by setting
+`eval=FALSE` for this chunk.
 
 ``genepatterns``
 ----------------
 
+Here we perform pattern analysis of the differentially expressed genes
+to find co-regulated sets of genes using the ``DEGreport`` R package
+in a separate child Rmd. For more details see `Gene patterns analysis`_ below.
+
 ``functionalenrichment``
 ------------------------
 
+Here we perform functional enrichment analysis of the differentially expressed genes
+to find enriched functional terms or pathways using the ``clusterProfiler`` R package.
+This analysis is also performed in a separate child Rmd; for more details see `Functional enrichment analysis`_ below.
+
+Gene patterns analysis
+~~~~~~~~~~~~~~~~~~~~~~
+See :ref:`gene-patterns` for details.
+
+Functional enrichment analysis
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+See :ref:`functional-enrichment` for details.
 
 Glossary
 --------
