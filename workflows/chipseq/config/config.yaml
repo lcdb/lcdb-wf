@@ -124,8 +124,6 @@ fastq_screen:
   - label: Human
     organism: human
     tag: small-gencode-v28
-    organism: dmel
-    tag: test
   - label: Fly
     organism: dmel
     tag: test
@@ -140,14 +138,7 @@ aligner:
   tag: 'small-gencode-v28'
 
 include_references:
-<<<<<<< HEAD
   - '../../include/reference_configs/PhiX.yaml'
   - '../../include/reference_configs/Test_Homo_sapiens.yaml'
-||||||| 39fd02a
-  - '../../include/reference_configs/PhiX.yaml'
   - '../../include/reference_configs/Drosophila_melanogaster.yaml'
   - '../../include/reference_configs/test.yaml'
-=======
-  - '../../include/reference_configs/Drosophila_melanogaster.yaml'
-  - '../../include/reference_configs/test.yaml'
->>>>>>> master
