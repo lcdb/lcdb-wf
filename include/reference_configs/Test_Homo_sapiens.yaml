@@ -1,0 +1,45 @@
+references:
+  human:
+    small-gencode-v28:
+      metadata:
+        reference_genome_build: 'hg38.p12'
+        reference_effective_genome_count: 2.7e9
+        reference_effective_genome_proportion: 0.87
+
+      genome:
+        url: 'https://github.com/lcdb/lcdb-test-data-human/raw/master/seq/hg38.small.fa'
+        postprocess:
+          function: 'lib.postprocess.utils.convert_fasta_chroms'
+          args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/human/gencode_GRCh38.28_to_ucsc_hg38/mappings_gencode_GRCh38.28_to_ucsc_hg38.tsv'
+
+        indexes:
+          - 'hisat2'
+          - 'bowtie2'
+          - 'star'
+
+      annotation:
+        url: 'https://github.com/lcdb/lcdb-test-data-human/raw/master/annotation/hg38.small.gtf'
+        postprocess:
+          function: 'lib.postprocess.utils.convert_gtf_chroms'
+          args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/human/gencode_GRCh38.28_to_ucsc_hg38/mappings_gencode_GRCh38.28_to_ucsc_hg38.tsv'
+        conversions:
+          - 'refflat'
+          - 'bed12'
+
+      transcriptome:
+        indexes:
+          - 'salmon'
+
+
+    rRNA:
+      genome:
+        url:
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+        postprocess:
+          function: 'lib.common.filter_fastas'
+          args: 'Homo sapiens'
+        indexes:
+          - 'hisat2'
+          - 'bowtie2'
+

@@ -1,5 +1,37 @@
-samplename	group	layout	orig_filename
-sample1	control	SE	data/example_data/rnaseq_sample1PE_1.fq.gz
-sample2	control	SE	data/example_data/rnaseq_sample2.fq.gz
-sample3	treatment	SE	data/example_data/rnaseq_sample3.fq.gz
-sample4	treatment	SE	data/example_data/rnaseq_sample4.fq.gz
+samplename	GEO_Run	layout	group	cell_line_group	cell_Line	treatment	timepoint	repl	biorep	orig_filename
+A549_dBet6_1h_1	SRR6354081	SE	dBet6_1h	A549_dBet6_1h	A549	dBet6	1h	1	A549_dBet6_1h_1	data/example_data/A549_dBet6_1h_1.small_R1.fastq.gz
+A549_dBet6_1h_2	SRR6354082	SE	dBet6_1h	A549_dBet6_1h	A549	dBet6	1h	2	A549_dBet6_1h_1	data/example_data/A549_dBet6_1h_2.small_R1.fastq.gz
+A549_dBet6_6h_1	SRR6354083	SE	dBet6_6h	A549_dBet6_6h	A549	dBet6	6h	1	A549_dBet6_6h_1	data/example_data/A549_dBet6_6h_2.small_R1.fastq.gz
+A549_dBet6_6h_2	SRR6354084	SE	dBet6_6h	A549_dBet6_6h	A549	dBet6	6h	2	A549_dBet6_6h_1	data/example_data/A549_dBet6_6h_1.small_R1.fastq.gz
+A549_DMSO_1h_1	SRR6354085	SE	DMSO_1h	A549_DMSO_1h	A549	DMSO	1h	1	A549_DMSO_1h_1	data/example_data/A549_DMSO_1h_1.small_R1.fastq.gz
+A549_DMSO_1h_2	SRR6354086	SE	DMSO_1h	A549_DMSO_1h	A549	DMSO	1h	2	A549_DMSO_1h_2	data/example_data/A549_DMSO_1h_2.small_R1.fastq.gz
+A549_DMSO_6h_1	SRR6354087	SE	DMSO_6h	A549_DMSO_6h	A549	DMSO	6h	1	A549_DMSO_6h_1	data/example_data/A549_DMSO_6h_1.small_R1.fastq.gz
+A549_DMSO_6h_2	SRR6354088	SE	DMSO_6h	A549_DMSO_6h	A549	DMSO	6h	2	A549_DMSO_6h_2	data/example_data/A549_DMSO_6h_2.small_R1.fastq.gz
+A549_JQ1_1h_1	SRR6354089	SE	JQ1_1h	A549_JQ1_1h	A549	JQ1	1h	1	A549_JQ1_1h_1	data/example_data/A549_JQ1_1h_1.small_R1.fastq.gz
+A549_JQ1_1h_2	SRR6354090	SE	JQ1_1h	A549_JQ1_1h	A549	JQ1	1h	2	A549_JQ1_1h_2	data/example_data/A549_JQ1_1h_2.small_R1.fastq.gz
+A549_JQ1_6h_1	SRR6354091	SE	JQ1_6h	A549_JQ1_6h	A549	JQ1	6h	1	A549_JQ1_6h_1	data/example_data/A549_JQ1_6h_1.small_R1.fastq.gz
+A549_JQ1_6h_2	SRR6354092	SE	JQ1_6h	A549_JQ1_6h	A549	JQ1	6h	2	A549_JQ1_6h_2	data/example_data/A549_JQ1_6h_2.small_R1.fastq.gz
+HAP1_dBet6_1h_1	SRR6354109	SE	dBet6_1h	HAP1_dBet6_1h	HAP1	dBet6	1h	1	HAP1_dBet6_1h_1	data/example_data/HAP1_dBet6_1h_1.small_R1.fastq.gz
+HAP1_dBet6_1h_2	SRR6354110	SE	dBet6_1h	HAP1_dBet6_1h	HAP1	dBet6	1h	2	HAP1_dBet6_1h_2	data/example_data/HAP1_dBet6_1h_2.small_R1.fastq.gz
+HAP1_dBet6_6h_1	SRR6354111	SE	dBet6_6h	HAP1_dBet6_6h	HAP1	dBet6	6h	1	HAP1_dBet6_6h_1	data/example_data/HAP1_dBet6_6h_1.small_R1.fastq.gz
+HAP1_dBet6_6h_2	SRR6354112	SE	dBet6_6h	HAP1_dBet6_6h	HAP1	dBet6	6h	2	HAP1_dBet6_6h_2	data/example_data/HAP1_dBet6_6h_2.small_R1.fastq.gz
+HAP1_DMSO_1h_1	SRR6354113	SE	DMSO_1h	HAP1_DMSO_1h	HAP1	DMSO	1h	1	HAP1_DMSO_1h_1	data/example_data/HAP1_DMSO_1h_1.small_R1.fastq.gz
+HAP1_DMSO_1h_2	SRR6354114	SE	DMSO_1h	HAP1_DMSO_1h	HAP1	DMSO	1h	2	HAP1_DMSO_1h_2	data/example_data/HAP1_DMSO_1h_2.small_R1.fastq.gz
+HAP1_DMSO_6h_1	SRR6354115	SE	DMSO_6h	HAP1_DMSO_6h	HAP1	DMSO	6h	1	HAP1_DMSO_6h_1	data/example_data/HAP1_DMSO_6h_1.small_R1.fastq.gz
+HAP1_DMSO_6h_2	SRR6354116	SE	DMSO_6h	HAP1_DMSO_6h	HAP1	DMSO	6h	2	HAP1_DMSO_6h_2	data/example_data/HAP1_DMSO_6h_2.small_R1.fastq.gz
+HAP1_JQ1_1h_1	SRR6354117	SE	JQ1_1h	HAP1_JQ1_1h	HAP1	JQ1	1h	1	HAP1_JQ1_1h_1	data/example_data/HAP1_JQ1_1h_1.small_R1.fastq.gz
+HAP1_JQ1_1h_2	SRR6354118	SE	JQ1_1h	HAP1_JQ1_1h	HAP1	JQ1	1h	2	HAP1_JQ1_1h_2	data/example_data/HAP1_JQ1_1h_2.small_R1.fastq.gz
+HAP1_JQ1_6h_1	SRR6354119	SE	JQ1_6h	HAP1_JQ1_6h	HAP1	JQ1	6h	1	HAP1_JQ1_6h_1	data/example_data/HAP1_JQ1_6h_1.small_R1.fastq.gz
+HAP1_JQ1_6h_2	SRR6354120	SE	JQ1_6h	HAP1_JQ1_6h	HAP1	JQ1	6h	2	HAP1_JQ1_6h_2	data/example_data/HAP1_JQ1_6h_2.small_R1.fastq.gz
+outlier_HAP1_dBet6_1h_1	SRR6354137	SE	dBet6_1h	HAP1_dBet6_1h	HAP1	dBet6	1h	1	HAP1_dBet6_1h_1	data/example_data/outlier_HAP1_dBet6_1h_1.small_R1.fastq.gz
+K562_dBet6_1h_2	SRR6354138	SE	dBet6_1h	K562_dBet6_1h	K562	dBet6	1h	2	K562_dBet6_1h_2	data/example_data/K562_dBet6_1h_2.small_R1.fastq.gz
+K562_dBet6_6h_1	SRR6354139	SE	dBet6_6h	K562_dBet6_6h	K562	dBet6	6h	1	K562_dBet6_6h_1	data/example_data/K562_dBet6_6h_1.small_R1.fastq.gz
+K562_dBet6_6h_2	SRR6354140	SE	dBet6_6h	K562_dBet6_6h	K562	dBet6	6h	2	K562_dBet6_6h_2	data/example_data/K562_dBet6_6h_2.small_R1.fastq.gz
+K562_DMSO_1h_1	SRR6354141	SE	DMSO_1h	K562_DMSO_1h	K562	DMSO	1h	1	K562_DMSO_1h_1	data/example_data/K562_DMSO_1h_1.small_R1.fastq.gz
+K562_DMSO_1h_2	SRR6354142	SE	DMSO_1h	K562_DMSO_1h	K562	DMSO	1h	2	K562_DMSO_1h_2	data/example_data/K562_DMSO_1h_2.small_R1.fastq.gz
+K562_DMSO_6h_1	SRR6354143	SE	DMSO_6h	K562_DMSO_6h	K562	DMSO	6h	1	K562_DMSO_6h_1	data/example_data/K562_DMSO_6h_1.small_R1.fastq.gz
+K562_DMSO_6h_2	SRR6354144	SE	DMSO_6h	K562_DMSO_6h	K562	DMSO	6h	2	K562_DMSO_6h_2	data/example_data/K562_DMSO_6h_2.small_R1.fastq.gz
+K562_JQ1_1h_1	SRR6354145	SE	JQ1_1h	K562_JQ1_1h	K562	JQ1	1h	1	K562_JQ1_1h_1	data/example_data/K562_JQ1_1h_1.small_R1.fastq.gz
+K562_JQ1_1h_2	SRR6354146	SE	JQ1_1h	K562_JQ1_1h	K562	JQ1	1h	2	K562_JQ1_1h_2	data/example_data/K562_JQ1_1h_2.small_R1.fastq.gz
+K562_JQ1_6h_1	SRR6354147	SE	JQ1_6h	K562_JQ1_6h	K562	JQ1	6h	1	K562_JQ1_6h_1	data/example_data/K562_JQ1_6h_1.small_R1.fastq.gz
+K562_JQ1_6h_2	SRR6354148	SE	JQ1_6h	K562_JQ1_6h	K562	JQ1	6h	2	K562_JQ1_6h_2	data/example_data/K562_JQ1_6h_2.small_R1.fastq.gz

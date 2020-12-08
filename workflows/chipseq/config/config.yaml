@@ -5,7 +5,7 @@
 sampletable: 'config/sampletable.tsv'
 
 # Which key in the `references` dict below to use
-organism: 'dmel'
+organism: 'human'
 
 # If not specified here, use the environment variable REFERENCES_DIR.
 references_dir: 'references_data'
@@ -37,99 +37,108 @@ chipseq:
   # at least a BED file of peaks.
   #
   peak_calling:
-    - label: gaf-embryo-sicer
-      algorithm: sicer
+    - label: BRD4_dBET6_1
+      algorithm: macs2
       ip:
-        - gaf-embryo-1
+        - BRD4_dBET6_1
       control:
-        - input-embryo-1
-      redundancy_threshold: 1
-      window_size: 200
-      fragment_size: 150
+        - mockIgG_dBET6_1
       # optional user-specified override mappable genome proportion if
       # specified here, SICER will use this value instead of the value specific
       # to the genome build if NOT specified here, SICER will use the
       # mappability value for your genome build
-      effective_genome_fraction: 0.75
-      genome_build: dm6
-      gap_size: 600
-      fdr: 0.01
+      #effective_genome_count: 7e7
+      extra: '--nomodel -p 0.05 --cutoff-analysis'    # --broad for histones, paper says  in ‘histone’ mode for MTHFD1, but got very small number of peaks with --broad
 
-
-    - label: gaf-embryo-1
+    - label: BRD4_dBET6_2
       algorithm: macs2
       ip:
-        - gaf-embryo-1
+        - BRD4_dBET6_2
       control:
-        - input-embryo-1
-      # optional user-specified override mappable genome size if specified
-      # here, MACS will use this value instead of the value specific to the
-      # genome build if NOT specified here, MACS will use the mappability value
-      # for your genome build
-      effective_genome_count: 7e7
-      extra: '--nomodel --extsize 147'
+        - mockIgG_dBET6_2
+      extra: '--nomodel -p 0.05 --cutoff-analysis'
 
-    - label: gaf-embryo-1
-      algorithm: spp
-      ip:
-        - gaf-embryo-1
-      control:
-        - input-embryo-1
-      extra:
-        fdr: 0.3
-        zthr: 4
-
-    - label: gaf-embryo-1-defaults
-      algorithm: spp
-      ip:
-        - gaf-embryo-1
-      control:
-        - input-embryo-1
-
-    - label: gaf-wingdisc-pooled
+    - label: BRD4_DMSO_1
       algorithm: macs2
       ip:
-        - gaf-wingdisc-1
-        - gaf-wingdisc-2
+        - BRD4_DMSO_1
       control:
-        - input-wingdisc-1
-        - input-wingdisc-2
-      extra: '--nomodel --extsize 147'
+        - mockIgG_DMSO_1
+      extra: '--nomodel -p 0.05 --cutoff-analysis'
 
-    - label: gaf-wingdisc-pooled
-      algorithm: spp
+    - label: BRD4_DMSO_2
+      algorithm: macs2
       ip:
-        - gaf-wingdisc-1
-        - gaf-wingdisc-2
+        - BRD4_DMSO_2
       control:
-        - input-wingdisc-1
-        # - input-wingdisc-2
-      extra:
-        fdr: 0.5
-        zthr: 4
+        - mockIgG_DMSO_2
+      extra: '--nomodel -p 0.05 --cutoff-analysis'
+
+    - label: MTHFD1_dBET6_1
+      algorithm: macs2
+      ip:
+        - MTHFD1_dBET6_1
+      control:
+        - mockIgG_dBET6_1
+      extra: '--nomodel -p 0.05 --cutoff-analysis'    # --broad for histones, paper says  in ‘histone’ mode for MTHFD1
+
+    - label: MTHFD1_dBET6_1_inputCTRL
+      algorithm: macs2
+      ip:
+        - MTHFD1_dBET6_1
+      control:
+        - input_dBET6_1
+      extra: '--nomodel -p 0.05 --cutoff-analysis'
+
+    - label: MTHFD1_dBET6_2
+      algorithm: macs2
+      ip:
+        - MTHFD1_dBET6_2
+      control:
+        - mockIgG_dBET6_2
+      extra: '--nomodel -p 0.05 --cutoff-analysis'
+
+    - label: MTHFD1_DMSO_1
+      algorithm: macs2
+      ip:
+        - MTHFD1_DMSO_1
+      control:
+        - mockIgG_DMSO_1
+      extra: '--nomodel -p 0.05 --cutoff-analysis'
+
+    - label: MTHFD1_DMSO_2
+      algorithm: macs2
+      ip:
+        - MTHFD1_DMSO_2
+      control:
+        - mockIgG_DMSO_2
+      extra: '--nomodel -p 0.05 --cutoff-analysis'
 
 fastq_screen:
   - label: rRNA
-    organism: dmel
-    tag: test
+    organism: human
+    tag: small-gencode-v28
+  - label: PhiX
+    organism: phix
+    tag: default
+  - label: Human
+    organism: human
+    tag: small-gencode-v28
   - label: Fly
     organism: dmel
     tag: test
 
 merged_bigwigs:
-  input-wingdisc:
-    - input-wingdisc-1
-    - input-wingdisc-2
-  gaf-wingdisc:
-    - gaf-wingdisc-1
-    - gaf-wingdisc-2
-  gaf-embryo:
-    - gaf-embryo-1
+  BRD4_dBET6_1:
+    - BRD4_dBET6_1
+    - BRD4_dBET6_2
 
 aligner:
   index: 'bowtie2'
-  tag: 'test'
+  tag: 'small-gencode-v28'
 
 include_references:
+  - '../../include/reference_configs/PhiX.yaml'
+  - '../../include/reference_configs/Test_Homo_sapiens.yaml'
   - '../../include/reference_configs/Drosophila_melanogaster.yaml'
   - '../../include/reference_configs/test.yaml'

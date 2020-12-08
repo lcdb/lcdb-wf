@@ -11,6 +11,11 @@ workflows/rnaseq/downstream/upset_plots
 workflows/rnaseq/downstream/final_clusters
 workflows/rnaseq/downstream/rnaseq.log
 workflows/rnaseq/downstream/*tsv
+workflows/chipseq/downstream/diffbind.html
+workflows/chipseq/downstream/diffbind_cache
+workflows/chipseq/downstream/diffbind_files
+workflows/chipseq/downstream/*tsv
+workflows/chipseq/downstream/*bed
 workflows/chipseq/data
 workflows/rnaseq/data
 workflows/colocalization/results

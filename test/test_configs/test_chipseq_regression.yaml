@@ -1,40 +1,38 @@
 #sampletable: 'config/sampletable.tsv'
-organism: 'dmel'
+organism: 'human'
 references_dir: 'references_data'
 peaks_dir: 'data/chipseq_peaks'
 
 chipseq:
   peak_calling:
 
-    - label: gaf-wingdisc-1
+    - label: BRD4_dBET6_1
       algorithm: macs2
       ip:
-        - gaf-wingdisc-1
+        - BRD4_dBET6_1
       control:
-        - input-wingdisc-1
-      effective_genome_count: 7e7
-      extra: '--nomodel --extsize 147'
+        - mockIgG_dBET6_1
+      extra: '--nomodel -p 0.05 --cutoff-analysis'
 
 
 fastq_screen:
   - label: rRNA
-    organism: dmel
-    tag: test
+    organism: human
+    tag: small-gencode-v28
   - label: PhiX
     organism: phix
     tag: default
-  - label: Fly
-    organism: dmel
-    tag: test
+  - label: Human
+    organism: human
+    tag: small-gencode-v28
 
 aligner:
   index: 'bowtie2'
-  tag: 'test'
+  tag: 'small-gencode-v28'
 
 
 merged_bigwigs: {}
 
 include_references:
-  - '../../include/reference_configs/test.yaml'
   - '../../include/reference_configs/PhiX.yaml'
-  - '../../include/reference_configs/Drosophila_melanogaster.yaml'
+  - '../../include/reference_configs/Test_Homo_sapiens.yaml'

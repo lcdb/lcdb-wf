@@ -1,6 +1,6 @@
 aligner:
   index: star
-  tag: test
+  tag: small-gencode-v28
 
 merged_bigwigs:
   control_pos:

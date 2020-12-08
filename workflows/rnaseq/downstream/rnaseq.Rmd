@@ -61,7 +61,7 @@ devtools::load_all('../../../lib/lcdbwf')
 
 ```{r annotationhub_setup}
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#annotationhub_setup
-annotation_genus_species <- 'Drosophila melanogaster'
+annotation_genus_species <- 'Homo sapiens'
 annotation_key_override <- NA
 hub.cache <- '../../../include/AnnotationHubCache'
 orgdb <- get.orgdb(
@@ -87,8 +87,12 @@ for (col in factor.columns){
     colData[[col]] <- as.factor(colData[[col]])
 }
 
-colData$group <- relevel(colData$group, ref='control')
+colData$group <- relevel(colData$group, ref='DMSO_1h')
 rownames(colData) <- colData[,1]
+
+# remove JQ1 samples
+colData <- colData %>%
+    filter(treatment != 'JQ1')
 ```
 
 ## Experiment overview
@@ -124,7 +128,8 @@ vsd.txi <- varianceStabilizingTransformation(dds.txi, blind=TRUE)
 dds <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
     '../data/rnaseq_aggregation/featurecounts.txt',
     sampletable=colData,
-    design=~group)
+    design=~group,
+    subset.counts=TRUE)
 
 # NOTE: collapse technical replicates ----------------------------------------
 #   If collapsing technical replicates, do so here
@@ -139,6 +144,21 @@ if (strip.dotted.version){
 }
 
 vsd <- varianceStabilizingTransformation(dds, blind=TRUE)
+
+outliers <- c('HAP1_MTX_6h_2', 'outlier_HAP1_dBet6_1h_1')
+dds.no.outlier <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
+    '../data/rnaseq_aggregation/featurecounts.txt',
+    sampletable=colData %>% filter(!samplename %in% outliers),
+    design=~group,
+    subset.counts=TRUE)
+dds.no.outlier <-collapseReplicates(dds.no.outlier, dds.no.outlier$biorep)
+vsd.no.outlier <- varianceStabilizingTransformation(dds.no.outlier, blind=TRUE)
+
+# remove batch effect of cell line
+#vsd.batch <- vsd.no.outlier
+#assay(vsd.batch) <- removebatchEffect(assay(vsd.batch),
+#                                      batches=list(colData(vsd.batch)$cell_Line),
+#                                      design=model.matrix(~group, data=colData(vsd.batch)))
 ```
 
 ## Sample clustering and QC
@@ -152,7 +172,14 @@ we expect to see replicates clustering together and separation of treatments.
 ```{r sample_heatmap, cache=TRUE, dependson='dds_initial'}
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#sample_heatmap
 lcdbwf::plot.heatmap(vsd, colData, cols.for.grouping=c('group'))
+cat('\n\n### Without outliers\n\n')
+lcdbwf::plot.heatmap(vsd.no.outlier, colData, cols.for.grouping=c('group'))
+cat('\n\n### After removing cell line batch effect\n\n')
+#lcdbwf::plot.heatmap(vsd.batch, colData, cols.for.grouping=c('group'))
+cat('\n\nDISABLED\n\n')
 ```
+
+**Note: HAP1_MTX_6h_2 and outlier_HAP1_dBet6_1h_1 are outliers and will be removed from subsequent analyses.**
 
 ## PCA {.tabset}
 
@@ -167,16 +194,39 @@ explained by each principal component is indicated in the axes label.
 
 groups <- list(
                group=c('group'),
-               layout=c('layout')
+               cell_line_group=c('cell_line_group'),
+               cell_Line=c('cell_Line'),
+               treatment=c('treatment'),
+               timepoint=c('timepoint')
                )
 
 p <- list()
 for(group in groups){
-    p[[group]] <- lcdbwf::plotPCA.ly(vsd, intgroup=group)
+    p[[group]] <- lcdbwf::plotPCA.ly(vsd.no.outlier, intgroup=group)
 }
 
 i <- 1; lcdbwf::mdcat('### ', names(p)[i]); ggplotly(p[[i]])
 i <- 2; lcdbwf::mdcat('### ', names(p)[i]); ggplotly(p[[i]])
+i <- 3; lcdbwf::mdcat('### ', names(p)[i]); ggplotly(p[[i]])
+i <- 4; lcdbwf::mdcat('### ', names(p)[i]); ggplotly(p[[i]])
+i <- 5; lcdbwf::mdcat('### ', names(p)[i]); ggplotly(p[[i]])
+```
+
+## PCA after batch effect removal {.tabset}
+
+DISABLED
+
+```{r pca_batch, results='asis', cache=TRUE, dependson='dds_initial'}
+#p <- list()
+#for(group in groups){
+#    p[[group]] <- lcdbwf::plotPCA.ly(vsd.batch, intgroup=group)
+#}
+#
+#i <- 1; lcdbwf::mdcat('### ', names(p)[i]); ggplotly(p[[i]])
+#i <- 2; lcdbwf::mdcat('### ', names(p)[i]); ggplotly(p[[i]])
+#i <- 3; lcdbwf::mdcat('### ', names(p)[i]); ggplotly(p[[i]])
+#i <- 4; lcdbwf::mdcat('### ', names(p)[i]); ggplotly(p[[i]])
+#i <- 5; lcdbwf::mdcat('### ', names(p)[i]); ggplotly(p[[i]])
 ```
 
 
@@ -231,8 +281,8 @@ cat('\n\n\n\n\n\n')
 ```{r parallel_config}
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#parallel_config
 
-parallel <- FALSE
-# register(MulticoreParam(4))
+parallel <- TRUE
+register(MulticoreParam(4))
 ```
 
 ```{r dds_list, cache=TRUE}
@@ -240,16 +290,24 @@ parallel <- FALSE
 
 lst <- list(
             main=list(
-                sampletable=colData,
-                design=~group),
-            no_rep4=list(
-                sampletable=colData %>% filter(samplename != 'sample4'),
-                design=~group,
+                sampletable=colData %>% filter(!samplename %in% outliers),
+                design=~treatment,
+                args=list(subset.counts=TRUE)
+            ),
+            #jq_cell_line=list(
+            #    sampletable=colData %>% filter(treatment %in% c('DMSO', 'JQ1'), !samplename %in% outliers),
+            #    design=~cell_line_group + 0,
+            #    args=list(subset.counts=TRUE)
+            #),
+            dbet_cell_line=list(
+                sampletable=colData %>% filter(treatment %in% c('DMSO', 'dBet6'), !samplename %in% outliers),
+                design=~cell_line_group + 0,
                 args=list(subset.counts=TRUE)
             )
 )
+
 dds.list <- map(lst, lcdbwf::make.dds, salmon.files=NULL, remove.version=TRUE,
-                combine.by=NULL, parallel=parallel)
+                combine.by='biorep', parallel=parallel)
 ```
 
 
@@ -258,37 +316,68 @@ dds.list <- map(lst, lcdbwf::make.dds, salmon.files=NULL, remove.version=TRUE,
 
 res.list <- list()
 
-# NOTE: Example contrast #1----------------------------------------------------
+# NOTE: Example contrast #1: JQ1 vs. DMSO ---------------------------------
 #   Using the example data, this compares treatment group to control group.
 #   Change to reflect your experiment.
 # IMPORTANT: Control must always be last
-res.list[['main']] <- list(
-    res=lfcShrink(dds.list[['main']], contrast=c('group', 'treatment', 'control'), type='normal'),
+
+# including only treatment in the contrast
+#res.list[['main_jq']] <- list(
+#    res=results(dds.list[['main']], contrast=c('treatment', 'JQ1', 'DMSO')),
+#    dds='main',
+#    label='JQ1 vs. DMSO (LFC > 0); dds main; cts treatment'
+#)
+
+# JQ1 vs. DMSO at 1h
+#res.list[['jq1h-batch']] <- list(
+#    res=results(dds.list[['jq_cell_line']], contrast=c(-1,0,1,0,-1,0,1,0,-1,0,1,0)),
+#    dds='jq_cell_line',
+#    label='JQ1 vs. DMSO 1h (LFC>0); dds jq_cell_line; cts cell_Line_group; batch effect'
+#)
+
+# JQ1 vs. DMSO at 6h
+#res.list[['jq6h-batch']] <- list(
+#    res=results(dds.list[['jq_cell_line']], contrast=c(0,-1,0,1,0,-1,0,1,0,-1,0,1)),
+#    dds='jq_cell_line',
+#    label='JQ1 vs. DMSO 6h (LFC>0); dds jq_cell_line; cts cell_Line_group; batch effect'
+#)
+
+# JQ1 vs. DMSO 6h vs. 1h
+#res.list[['jq6h.vs.1h-batch']] <- list(
+#    res=results(dds.list[['jq_cell_line']], contrast=c(1,-1,-1,1,1,-1,-1,1,1,-1,-1,1)),
+#    dds='jq_cell_line',
+#    label='JQ1 vs. DMSO 6h vs. 1h (LFC>0); dds jq_cell_line; cts cell_Line_group; batch effect'
+#)
+
+# dBet6 ---------------------------
+
+res.list[['main_dbet']] <- list(
+    res=results(dds.list[['main']], contrast=c('treatment', 'dBet6', 'DMSO')),
     dds='main',
-    label='Using a log2FoldChange threshold of 0'
+    label='dBet6 vs. DMSO (LFC > 0); dds main; cts treatment'
 )
 
-
-# NOTE: Example contrast #2----------------------------------------------------
-#    Using the example data, this compares treatment group to control group but
-#    requiring genes to have >4-fold differences (log2(4) = 2). Change to
-#    reflect your experiment.
-#    If using an lfcThreshold, must update elsewhere throughout the code.
-res.lfcthresh.2 <- results(
-    dds.list[['main']],
-    contrast=c('group', 'treatment', 'control'),
-    lfcThreshold=2)
-
-res.list[['lfc2']] <- list(
-    res=lfcShrink(
-        dds.list[['main']],
-        contrast=c('group', 'treatment', 'control'),
-        res=res.lfcthresh.2,
-        type='normal'
-    ),
-    dds='main',
-    label='Using a log2FoldChange threshold of >2'
+# dBET6 vs. DMSO at 1h
+res.list[['dbet1h-batch']] <- list(
+    res=results(dds.list[['dbet_cell_line']], contrast=c(-1,0,1,0,-1,0,1,0,-1,0,1,0)),
+    dds='dbet_cell_line',
+    label='dBet6 vs. DMSO 1h (LFC>0); dds dbet_cell_line; cts cell_Line_group; batch effect'
 )
+
+# dBet6 vs. DMSO at 6h
+res.list[['dbet6h-batch']] <- list(
+    res=results(dds.list[['dbet_cell_line']], contrast=c(0,-1,0,1,0,-1,0,1,0,-1,0,1)),
+    dds='dbet_cell_line',
+    label='dBet6 vs. DMSO 6h (LFC>0); dds dbet_cell_line; cts cell_Line_group; batch effect'
+)
+
+# dBet6 vs. DMSO 6h vs. 1h
+res.list[['dbet6h.vs.1h-batch']] <- list(
+    res=results(dds.list[['dbet_cell_line']], contrast=c(1,-1,-1,1,1,-1,-1,1,1,-1,-1,1)),
+    dds='dbet_cell_line',
+    label='dBet6 vs. DMSO 6h vs. 1h (LFC>0); dds dbet_cell_line; cts cell_Line_group; batch effect'
+)
+
 ```
 
 
@@ -348,14 +437,16 @@ for (name in names(res.list)){
   mdcat('## ', label, ' {.tabset}')
   mdcat('### Summary of results')
   print(knitr::kable(my.summary(res.i, dds.i)))
+  cat(paste0('resultsNames: ',paste(resultsNames(dds.i), collapse=', '), '\n\n'))
+  cat(paste(elementMetadata(res.i)$description, collapse='\n\n'))
   mdcat('### Normalized counts of top 3 upregulated genes')
   print(lcdbwf::counts.plot(lcdbwf::counts.df(dds.i, res.i, sel.genes=lfc.filter(res.i),
                               label='symbol', rank.col='padj'),
-                    3))
+                    3, no.aes=TRUE) + aes(y=normalized_counts, x=group, color=cell_Line))
   mdcat('### Normalized counts of top 3 downregulated genes')
   print(lcdbwf::counts.plot(lcdbwf::counts.df(dds.i, res.i, sel.genes=lfc.filter(res.i, reverse=TRUE),
                               label='symbol', rank.col='padj'),
-                    3))
+                    3, no.aes=TRUE) + aes(y=normalized_counts, x=group, color=cell_Line))
 
   # NOTE: gene labels --------------------------------------------------------
   #   By default we plot the symbols of the top 10 upregulated or downregulated
