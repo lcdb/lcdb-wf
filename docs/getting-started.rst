@@ -46,13 +46,13 @@ project to use lcdb-wf means copying over the files you need. There is
 a ``deploy.py`` script that does this for you, but you need to have a copy of
 the repository to get this script in the first place.
 
-The reason to use ``deploy.py`` is that there are many additional files (like
-these docs) and testing files that are not necessarily needed for an actual
-project, so you end up with a cleaner project directory.
+The reason to use ``deploy.py`` is so you end up with a cleaner project directory.
+There are many additional files (like these docs) and esting files that are not
+necessary for an actual project. 
 
 This script also writes a file to the destination called
-``.lcdb-wf-deployment.json`` which stores details about what commit was used to
-deploy and the timestamp. This tracks provenance of the code, so you can always
+``.lcdb-wf-deployment.json``. It stores the timestamp and details about what 
+commit was used to deploy it. This tracks provenance of the code, so you can always
 figure out what lcdb-wf commit your deployment originally started from.
 
 To deploy a copy, you first need to get a copy. Here are three ways to do that:

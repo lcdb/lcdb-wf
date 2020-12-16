@@ -74,7 +74,7 @@ modification. SLURM support for the NIH Biowulf cluster is built in; edit the
 ``clusterconfig.yaml`` file to specify cluster arguments specific to your
 system whether global or rule-specific.
 
-Only run the jobs required
+Only run the required jobs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 New gene annotation? Snakemake tracks dependencies, so it will detect that the 
 annotations changed. Only jobs that depend on that file at some point in their 

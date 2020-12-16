@@ -92,7 +92,7 @@ troubleshooting.
 Fixtures can use other fixtures, and what's really nice is that py.test handles
 all of the dependencies across fixtures. For example, we can have a fixture
 that downloads a FASTQ file and another fixture that runs FastQC on the FASTQ.
-Then we can have a MultiQC test that uses the FastQC fixture as input. Py.test
+Then we can have a MultiQC test that uses the FastQC fixture as input. py.test
 will figure that out and create and clean up tempdirs as needed.
 
 I'm still working out the best way to do this. As one extreme, we could
@@ -159,7 +159,7 @@ Testing
   and change only the aligner.
 
 - Modify `.circleci/config.yml` to include a new block in each of the
-  variables, jobs, and workflows sections. Use the `rnaseq-star` blocks
+  variables, jobs, and workflows sections. Use the `rnaseq-star` blocks as
   a guide for this. The idea is to only run up through the aligner step in
   a parallel task (to save on CI build time).
 

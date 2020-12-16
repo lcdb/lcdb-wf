@@ -19,7 +19,7 @@ the `Bioconda docs <https://bioconda.github.io>`_ for details.
 **It is recommended that you create a separate environment directory for
 each project**. That way you can update packages in each project
 independently of any others, and yet the environment will always be close at
-hand. This is especially good practice in shared space as others can easily
+hand. This is an especially good practice in shared space as others can easily
 find and activate the environment specific to the project.
 
 Conda envs in lcdb-wf
