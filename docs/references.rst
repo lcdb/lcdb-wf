@@ -18,8 +18,8 @@ configuring.
 
 .. image:: references.png
 
-References workflow and the reference dict
-------------------------------------------
+A dictionary of references
+--------------------------
 The references workflow in ``workflows/references/Snakefile``, when run on its
 own, builds all references specified in the config file. This is typically done
 only when initially setting up a system that will run workflows on many

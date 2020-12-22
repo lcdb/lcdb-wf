@@ -1,0 +1,26 @@
+Package: lcdbwf
+Title: lcdb-wf Helper Functions
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Ryan",
+           family = "Dale",
+           role = c("aut", "cre"),
+           email = "ryan.dale@nih.gov")
+Description: Helper functions for lcdb-wf, primarily for the downstream RNA-seq rnaseq.Rmd
+Imports:
+    DESeq2,
+    pheatmap,
+    RColorBrewer,
+    ggplot2,
+    DEGreport,
+    ggrepel,
+    heatmaply,
+    readr,
+    stringr,
+    tibble,
+    tidyr
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1

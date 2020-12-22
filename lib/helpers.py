@@ -4,6 +4,28 @@ from itertools import product
 import pandas as pd
 from snakemake.shell import shell
 from snakemake.io import expand, regex
+from lib import common
+
+
+def detect_layout(sampletable):
+    """
+    Identifies whether a sampletable represents single-end or paired-end reads.
+
+    Raises NotImplementedError if there's a mixture.
+    """
+    is_pe = [common.is_paired_end(sampletable, s) for s in sampletable.iloc[:, 0]]
+    if all(is_pe):
+        return 'PE'
+    elif not any(is_pe):
+        return 'SE'
+    else:
+        p = sampletable.iloc[is_pe, 0].to_list()
+        s = sampletable.iloc[[not i for i in is_pe], 0].to_list()
+        if len(p) > len(s):
+            report = f'SE samples: {s}'
+        else:
+            report = f'PE samples: {p}'
+        raise ValueError(f"Only a single layout (SE or PE) is supported. {report}")
 
 
 def fill_patterns(patterns, fill, combination=product):
@@ -104,3 +126,35 @@ def rscript(string, scriptname, log=None):
     else:
         _log = ""
     shell('Rscript {scriptname} {_log}')
+
+
+def check_unique_fn(df):
+    """
+    Raises an error if the fastq filenames are not unique
+    """
+    fns = df['orig_filename']
+    if 'orig_filename_R2' in df.columns:
+        fns = fns.append(df['orig_filename_R2'])
+    if len(fns.unique()) < len(fns):
+        raise ValueError('Fastq filenames non unique, check the sampletable\n')
+
+def check_unique_samplename(df):
+    """
+    Raises an error if the samplenames are not unique
+    """
+    ns = df.index
+    if len(ns.unique()) < len(ns):
+        raise ValueError('Samplenames non unique, check the sampletable\n')
+
+def preflight(config):
+    """
+    Performs verifications on config and sampletable files
+
+    Parameters
+    ----------
+    config: yaml config object
+    """
+    sampletable = pd.read_table(config['sampletable'], index_col='samplename', comment='#')
+    check_unique_samplename(sampletable)
+    if 'orig_filename' in sampletable.columns:
+        check_unique_fn(sampletable)

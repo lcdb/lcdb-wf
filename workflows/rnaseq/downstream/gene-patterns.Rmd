@@ -1,0 +1,173 @@
+# Gene patterns {.tabset}
+
+We can roughly group genes into expression patterns. This uses the [DEGreport
+package](https://www.bioconductor.org/packages/release/bioc/html/DEGreport.html),
+which in turn uses the
+[ConsensusClusterPlus](https://www.bioconductor.org/packages/release/bioc/html/ConsensusClusterPlus.html)
+algorithm to cluster genes into similar expression patterns. The lists of genes
+found in each cluster are reported below the plot. Cluster IDs are also reported in
+the exported results TSVs in the section below.
+
+The default general flow is as follows:
+
+```{r dpsettings}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#dpsettings
+
+# NOTE: settings for DEGpatterns-----------------------------------------------
+#  These parameters are set up here because we will be providing them to
+#  multiple degPatterns calls.
+
+# NOTE:  Max number of genes to include----------------------------------------
+#   If more genes are differeentially expressed, they will be downsampled to
+#   this many
+lim <- 2000
+
+
+# NOTE: Min number of genes to include----------------------------------------
+#   If fewer than this many genes, skip the clustering
+# lower.lim <- 0  # [ TEST SETTINGS +1 ]
+lower.lim <- 10
+
+# NOTE:  Correlation coefficient above which to merge clusters-----------------
+cutoff <- 0.5
+
+# NOTE: x-axis for degPatterns ------------------------------------------------
+#   Should be a column in the colData metadata
+time <- "group"
+
+# NOTE: color for degPatterns.------------------------------------------------
+#   Use NULL for no color.
+col <- NULL
+
+# NOTE: This is set very low for test data. Default is 15.---------------------
+#   Minimum cluster size.
+# minc <- 1  # [ TEST SETTINGS +1 ]
+minc <- 15
+
+# NOTE: This is a very low value used for getting the degPatterns to run -----
+low.minc <- 1
+```
+
+- Take the union of all genes that are changed across all contrasts
+- If there are more than `r lim` genes, randomly sample `r lim` genes (to keep the computations reasonable)
+- Cluster genes by coexpression across contrasts
+- If clusters are correlated with a correlation coefficient of `r cutoff` or
+  more, they are merged together
+- Clusters with fewer than `r minc` genes are not shown.
+
+```{r finalclusters, fig.width=12, results='asis', cache=TRUE, dependson='selections'}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#finalclusters
+# NOTE: which genes to cluster?------------------------------------------------
+#    By default, we get all the changed genes, but you may want only the up or
+#    down genes.
+ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed'))
+
+# Filter out results where there were zero genes detected.
+ll <- ll[lapply(ll, length) > 0]
+
+add.cluster.id <- function(clusters, res, label){
+    # Merges the degPattern cluster IDs `cluster` with DESeqresults `res`
+    # `label` will be used to create a cluster column with a unique column name 
+    # returns a DESeqresults with cluster IDs
+    unq <- unique(clusters[, c('genes', 'cluster')])
+    names(unq)[names(unq) == 'genes'] <- 'gene'
+    merged <- merge(as.data.frame(res) %>% tibble::rowid_to_column("ID"),
+                    unq, by='gene', all.x=TRUE) %>%
+        arrange(ID)
+    res[[paste0(label, '_cluster')]] <- merged[['cluster']]
+    return(res)
+}
+
+for (name in names(ll)){
+    # Print a nice Markdown header
+    mdcat('## ', res.list[[name]][['label']])
+
+    genes <- ll[[name]]
+
+    # Plotting a large number of genes will take a lot of time to perform the
+    # clustering. If there are more than this limit, then we take a random
+    # sample.
+    if (length(genes) > lim){
+        genes <- sample(genes, lim)
+    }
+
+    if (length(genes) < lower.lim){
+        mdcat('**Too few genes (', length(genes), ') to cluster**')
+        next
+    }
+
+    # Extract the normalized counts for these genes
+    vsd.i <- varianceStabilizingTransformation(dds.list[[ res.list[[name]][['dds']] ]], blind=TRUE)
+    idx <- rownames(vsd.i) %in% genes
+    ma <- assay(vsd.i)[idx,]
+
+    # Remove genes with identical normalized counts across all samples
+    ma <- ma[apply(as.data.frame(ma), 1, n_distinct) > 1, ]
+
+    colData.i <- colData(dds.list[[ res.list[[name]][['dds']] ]])
+    colData.i <- colData.i[,!(colnames(colData.i) %in% exclude.for.printing)]
+
+
+    # Sometimes, if there are limited clusters, degPattern fails. The solution
+    # below is to reduce the `minc` to a very low number which allows it to run
+    # without error, disable plotting, then manually remove the clusters with
+    # low numbers of genes, then use the degPlotCluster function to re-plot
+    # them.
+    p <- degPatterns(
+        ma,
+        colData.i,
+        time=time,
+        col=col,
+
+        # NOTE: reduce and merge cutoff----------------------------------------
+        #   Reduce will merge clusters that are similar; similarity determined
+        #   by cutoff
+        reduce=TRUE,
+
+        # NOTE: color----------------------------------------------------------
+        #   For more complicated designs, try the `col` argument to color the
+        #   plot by another factor.
+        # col="another.column",
+
+        # NOTE: see above note
+        minc=low.minc,
+
+        plot=FALSE
+
+        )
+
+    n <- p$normalized
+    cls <- unique(n$cluster)
+    names(cls) <- cls
+    cluster.counts <- sapply(cls, function (x) length(unique(n$genes[n$cluster==x])))
+    clusters.keep <- names(cluster.counts)[cluster.counts > minc]
+    n2 <- n[n$cluster %in% clusters.keep,]
+    print(degPlotCluster(
+        n2,
+        time=time,
+        min_genes=minc,
+        col=col
+        )
+    )
+
+
+    # In the final_clusters directory, this creates files containing lists of
+    # the genes in each cluster, and adds a link to the Markdown.
+    dir.create('final_clusters')
+    mdcat('\n')
+    for (u in unique(n2$cluster)){
+        fn <- file.path('final_clusters',
+                        paste0('final.', name, '.cluster.', u, '.txt'))
+        write.table(unique(n2[n2$cluster==u, 'genes']), file=fn, quote=FALSE,
+                    row.names=FALSE, col.names=FALSE)
+        mdcat('- [', fn, '](', fn, '), cluster "', u, '" genes')
+    }
+    pdf.file = file.path('final_clusters', paste0(name, '.pdf'))
+    dev.copy(pdf, file=pdf.file)
+    dev.off()
+    mdcat('- [', pdf.file, '](', pdf.file, '), PDF')
+
+    # merge the degPattern cluster IDs with res.list
+    res.list[[name]][['res']] <- add.cluster.id(clusters=n2, res=res.list[[name]][['res']], label=name)
+}
+```

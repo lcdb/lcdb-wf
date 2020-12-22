@@ -6,7 +6,7 @@ references:
         reference_effective_genome_count: 2.7e9
         reference_effective_genome_proportion: 0.87
 
-      fasta:
+      genome:
         url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/GRCh38.primary_assembly.genome.fa.gz'
         postprocess:
           function: 'lib.postprocess.utils.convert_fasta_chroms'
@@ -15,18 +15,18 @@ references:
         indexes:
           - 'hisat2'
           - 'bowtie2'
+          - 'star'
 
-      gtf:
+      annotation:
         url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/gencode.v28.primary_assembly.annotation.gtf.gz'
         postprocess:
           function: 'lib.postprocess.utils.convert_gtf_chroms'
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/human/gencode_GRCh38.28_to_ucsc_hg38/mappings_gencode_GRCh38.28_to_ucsc_hg38.tsv'
         conversions:
           - 'refflat'
+          - 'bed12'
 
-    gencode-v28-transcriptome:
-      fasta:
-        url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/gencode.v28.transcripts.fa.gz'
+      transcriptome:
         indexes:
           - 'salmon'
 
@@ -38,13 +38,14 @@ references:
         reference_effective_genome_count: 2.7e9
         reference_effective_genome_proportion: 0.87
 
-      fasta:
+      genome:
         url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh38.primary_assembly.genome.fa.gz'
         indexes:
           - 'hisat2'
           - 'bowtie2'
+          - 'star'
 
-      gtf:
+      annotation:
         url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz'
         postprocess: 'lib.postprocess.hg38.strip_ensembl_version'
         conversions:
@@ -60,9 +61,7 @@ references:
               disable_infer_genes: True
               disable_infer_transcripts: True
 
-    gencode-v25-transcriptome:
-      fasta:
-        url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz'
+      transcriptome:
         indexes:
           - 'salmon'
 
@@ -73,29 +72,25 @@ references:
         reference_effective_genome_count: 2.7e9
         reference_effective_genome_proportion: 0.87
 
-      fasta:
+      genome:
         url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/GRCh37.p13.genome.fa.gz'
         indexes:
           - 'bowtie2'
           - 'hisat2'
-      gtf:
+          - 'star'
+
+      annotation:
         url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.annotation.gtf.gz'
         postprocess: 'lib.postprocess.hg38.strip_ensembl_version'
         conversions:
           - 'refflat'
 
-    gencode_v19_plus_lncRNA_transcriptome:
-      fasta:
-        url:
-          - 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.pc_transcripts.fa.gz'
-          - 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.lncRNA_transcripts.fa.gz'
-        postprocess: "lib.common.cat"
+      transcriptome:
         indexes:
           - 'salmon'
 
-
     rRNA:
-      fasta:
+      genome:
         url:
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
@@ -105,4 +100,4 @@ references:
         indexes:
           - 'hisat2'
           - 'bowtie2'
-
+          - 'star'

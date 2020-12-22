@@ -11,6 +11,8 @@ if 'memory' in snakemake.params:
 else:
     mem_arg = ''
 
+log = snakemake.log_fmt_shell()
+
 if len(snakemake.input.bigwigs) == 1:
     utils.make_relative_symlink(snakemake.input.bigwigs[0], snakemake.output[0])
 
@@ -28,5 +30,5 @@ else:
         """| awk 'BEGIN{{OFS="\t"}}{{$4={f}*$4; print}}' """
         '| sort {mem_arg} -T {tmpdir} -k1,1 -k2,2n > {tmp} '
         '&& bedGraphToBigWig {tmp} {snakemake.input.chromsizes} '
-        '{snakemake.output} '
+        '{snakemake.output} {log}'
     )

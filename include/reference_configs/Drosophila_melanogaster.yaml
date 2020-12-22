@@ -1,19 +1,19 @@
 references:
   dmel:
     rRNA:
-      fasta:
+      genome:
         url:
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
         postprocess:
-            function: 'lib.common.filter_fastas'
-            args: 'Drosophila melanogaster'
+          function: 'lib.common.filter_fastas'
+          args: 'Drosophila melanogaster'
         indexes:
-            - 'hisat2'
-            - 'bowtie2'
-
+          - 'hisat2'
+          - 'bowtie2'
+          - 'star'
     r6-24:
-      gtf:
+      annotation:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.24_FB2018_05/gtf/dmel-all-r6.24.gtf.gz'
         postprocess:
           - function: 'lib.postprocess.utils.match_gtf_9th'
@@ -26,7 +26,7 @@ references:
         conversions:
           - 'refflat'
 
-      fasta:
+      genome:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.24_FB2018_05/fasta/dmel-all-chromosome-r6.24.fasta.gz'
         postprocess:
           function: 'lib.postprocess.utils.convert_fasta_chroms'
@@ -34,19 +34,15 @@ references:
         indexes:
           - 'bowtie2'
           - 'hisat2'
+          - 'star'
 
-    r6-24_transcriptome:
-      fasta:
-        url:
-          - 'ftp://ftp.flybase.net/releases/FB2018_05/dmel_r6.24/fasta/dmel-all-transcript-r6.24.fasta.gz'
-          - 'ftp://ftp.flybase.net/releases/FB2018_05/dmel_r6.24/fasta/dmel-all-ncRNA-r6.24.fasta.gz'
-        postprocess: 'lib.common.cat'
+      transcriptome:
         indexes:
           - 'salmon'
 
     # Note: the mappings from r6.23 still work well for r6.28.
     r6-28:
-      gtf:
+      annotation:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.28_FB2019_03/gtf/dmel-all-r6.28.gtf.gz'
         postprocess:
           - function: 'lib.postprocess.utils.match_gtf_9th'
@@ -59,7 +55,7 @@ references:
         conversions:
           - 'refflat'
 
-      fasta:
+      genome:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.28_FB2019_03/fasta/dmel-all-chromosome-r6.28.fasta.gz'
         postprocess:
           function: 'lib.postprocess.utils.convert_fasta_chroms'
@@ -67,12 +63,8 @@ references:
         indexes:
           - 'bowtie2'
           - 'hisat2'
+          - 'star'
 
-    r6-28_transcriptome:
-      fasta:
-        url:
-          - 'ftp://ftp.flybase.net/releases/FB2019_03/dmel_r6.28/fasta/dmel-all-transcript-r6.28.fasta.gz'
-          - 'ftp://ftp.flybase.net/releases/FB2019_03/dmel_r6.28/fasta/dmel-all-ncRNA-r6.28.fasta.gz'
-        postprocess: 'lib.common.cat'
+      transcriptome:
         indexes:
           - 'salmon'

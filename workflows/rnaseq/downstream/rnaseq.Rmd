@@ -8,145 +8,87 @@ output:
 ---
 
 ```{r, include=FALSE}
-# =============================================================================
-# IMPORTANT:
-# Before running this, search for the string "NOTE:". This indicates parts of
-# the file that need to be changed depending on the experiment.
-# =============================================================================
+# Each named chunk has a corresponding entry at:
 #
-# This Rmd file aims to include "the works", with some preliminary exploratory
-# visualizations, followed by differential expression using both gene models
-# and transcript models and some downstream GO analysis.
-#
-# Look for the string "NOTE:" to identify places that may need some editing.
-# Notably, the only model run by default is `~group`, which will only be
-# appropriate for the simplest experiments!
-
-# There are a fair amount of helper functions. They are stored in
-# `helpers.Rmd`, and included here as a child document so that all code is
-# self-contained in the HTML rendered from this RMarkdown.
-#-----------------------------------------------------------------------------
+#   https://lcdb.github.io/lcdb-wf/rnaseq-rmarkdown-docs.html
 ```
 
 ```{r global_options, include=FALSE}
-knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#global_options
+knitr::opts_chunk$set(
+    warning=FALSE,
+    message=FALSE,
+    cache.extra_file_dep_1=file.info('../config/sampletable.tsv')$mtime,
+    cache.extra_file_dep_2 = file.info('../data/rnaseq_aggregation/featurecounts.txt')$mtime
+)
 ```
 
 # Changelog
 
-Initial results
+**Initial results**
 
 Last run: `r date()`
 
 # RNA-seq results
 
-```{r imports}
-library(DESeq2)
-library(gridExtra)
-library(ggplot2)
-library(genefilter)
-library(readr)
-library(tximport)
-library(clusterProfiler)
+```{r}
 library(AnnotationHub)
 library(BiocParallel)
-library(UpSetR)
-library(ReactomePA)
+library(clusterProfiler)
 library(cowplot)
+library(DESeq2)
+library(dplyr)
+library(DT)
+library(genefilter)
+library(ggplot2)
+library(gridExtra)
 library(plotly)
+library(ReactomePA)
+library(readr)
+library(reshape)
+library(tibble)
+library(tximport)
+library(UpSetR)
 ```
 
 
-```{r child='helpers.Rmd'}
-# When running interactively, run the following to load helper functions.
-# When rendering this file, the contents of this code block will be skipped
-# since it is a "child" block for which all contents are expected to be in
-# the other file.
-rmarkdown::render('helpers.Rmd', run_pandoc=FALSE)
+```{r load_helpers}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#load_helpers
+
+devtools::document('../../../lib/lcdbwf')
+devtools::load_all('../../../lib/lcdbwf')
 ```
 
 ```{r annotationhub_setup}
-# NOTE: Organism---------------------------------------------------------------
-#   This is the search term used for looking in the AnnotationHub
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#annotationhub_setup
 annotation_genus_species <- 'Drosophila melanogaster'
-
-# NOTE: If you already know the key, provide it here---------------------------
-#   Provide this to override the AnnotationHub accession otherwise discovered
 annotation_key_override <- NA
-
-# This should generally not be changed unless you know what you're doing
 hub.cache <- '../../../include/AnnotationHubCache'
-
-# To ensure that we do not clobber any local copies of the annotation, we copy
-# to tmp. This also should increase performance when running on a cluster -- we
-# avoid poor sqlite performance on shared filesystems by copying to local
-# scratch space.
-ok <- file.copy(hub.cache, tempdir(), recursive=TRUE)
-new.cache <- file.path(tempdir(), 'AnnotationHubCache')
-
 orgdb <- get.orgdb(
     annotation_genus_species,
-    cache=new.cache,
+    cache=hub.cache,
     annotation_key_override=annotation_key_override
 )
 ```
 
 ```{r coldata_setup}
-# NOTE: path name to sampletable-----------------------------------------------
-#   Path is relative to the directory of this Rmd
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#coldata_setup
 sample.table.filename <- '../config/sampletable.tsv'
-
-# NOTE: Strip gene versions?---------------------------------------------------
-#   Ensembl annotations often come with ".N" version numbers at the end. If
-#   TRUE, later code will strip these off.
 strip.dotted.version <- TRUE
-
-# NOTE: Which columns to exclude from printing sampletable---------------------
-#   If you have very verbose metadata in your sampletable you can exclude those
-#   columns here.
 exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'orig_filename', 'orig_filename_R2')
-
-colData <- read.table(sample.table.filename, sep='\t', header=TRUE)
-
-# NOTE: Specify which featureCounts strandedness to use.-----------------------
-#   All three are created by default in the workflow, but here is where you
-#   specify which one to use for differential expression. This will be used to
-#   construct the paths to the correct featureCounts output files
-featurecounts.strandedness <- 's0'  # unstranded
-# featurecounts.strandedness <- 's1' # plus-strand reads correspond to sense-strand transcription (e.g., Ovation kits)
-# featurecounts.strandedness <- 's2' # minus-strand reads correspond to sense-strand transcription (e.g., TruSeq kits)
-
-# NOTE: Paths to featureCounts output---------------------------------------
-#   This is configured in the patterns and targets from the workflow; if you've
-#   changed anything there you will need to change it here as well.
-colData$featurecounts.path <- sapply(
-    colData$samplename,
-    function (x) file.path(
-        '..', 'data', 'rnaseq_samples', x,
-        paste0(x, '.cutadapt.bam.featurecounts.', featurecounts.strandedness, '.txt')
-        )
-    )
-
-# NOTE: Paths to Salmon output----------------------------------------------
-#    This is configured in the patterns and targets from the workflow; if
-#    you've changed anything there you will need to change it here as well.
-colData$salmon.path <- sapply(
-    colData$samplename,
-    function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
-)
-
-# NOTE: Factor columns------------------------------------------------------
-#    These are the columns in the sampletable that should be converted to
-#    factors
 factor.columns <- c('group')
+salmon.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
+
+colData <- read.table(sample.table.filename, sep='\t', header=TRUE, stringsAsFactors=FALSE)
+
+colData$salmon.path <- sapply(colData$samplename, salmon.path.func)
+
 for (col in factor.columns){
     colData[[col]] <- as.factor(colData[[col]])
 }
 
-# NOTE: Relevel the factors----------------------------------------------------
-#   For the test data, "control" is the base level for the "group" factor, but
-#   you will need to edit as appropriate for your experimenal design.
 colData$group <- relevel(colData$group, ref='control')
+rownames(colData) <- colData[,1]
 ```
 
 ## Experiment overview
@@ -158,55 +100,45 @@ knitr::kable(colData[, colnames(colData)[!colnames(colData) %in% exclude.for.pri
 ```
 
 ```{r salmon}
-# NOTE: Disable salmon?--------------------------------------------------------
-#   If you are not intending on using Salmon, set this chunk to eval=FALSE
-#
-# Load transcript-level counts
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#salmon
 txi <- tximport(colData[, 'salmon.path'], type='salmon', txOut=TRUE)
 transcript.tpm <- txi$abundance
 colnames(transcript.tpm) <- colData$samplename
 ```
 
-```{r ddstxi, cache=TRUE, eval=TRUE}
+```{r ddstxi, cache=TRUE, eval=FALSE}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#ddstxi
+
 dds.txi <- DESeqDataSetFromTximport(
     txi, colData=colData[, -grepl('path', colnames(colData)), drop=FALSE],
-
-    # NOTE: design to use when importing Salmon data.--------------------------
     design=~group
 )
 
-# Normalize transcript counts for heatmaps and PCA. We're using vst rather than
-# rlog because the DESeq2 docs say they are largely equivalent, and vst is
-# substantially faster.
-#
-# Since this is for exploratory data analysis, we use blind=TRUE
-# to ignore the design.
-rld.txi <- varianceStabilizingTransformation(dds.txi, blind=TRUE)
+vsd.txi <- varianceStabilizingTransformation(dds.txi, blind=TRUE)
 ```
 
 
 ```{r dds_initial, cache=TRUE}
-# Load gene-level counts
-dds <- DESeqDataSetFromCombinedFeatureCounts(
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#dds_initial
+
+dds <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
     '../data/rnaseq_aggregation/featurecounts.txt',
     sampletable=colData,
-    # NOTE: What design to use?------------------------------------------------
-    #   This object will be used for EDA, so it's recommended to use a single
-    #   factor that describes the samples. We'll be recreating another dds
-    #   later for the actual contrasts of interest.
     design=~group)
 
+# NOTE: collapse technical replicates ----------------------------------------
+#   If collapsing technical replicates, do so here
+# dds <- lcdbwf::collapseReplicates2(dds, dds$biorep)
+
 if (strip.dotted.version){
-    rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
+    rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE),
+                            function (x) {ifelse(grepl('_', x[2]),
+                                                 paste(x[1], x[2], sep='.'),
+                                                 x[1])}
+                            )
 }
 
-# Variance-stablilized transform to normalize gene-level counts.
-# Alternatively, use `rlog`, but that gives about the same results
-# and is slow for large numbers of samples.
-#
-# Since this is for exploratory data analysis, we use blind=TRUE
-# to ignore the design.
-rld <- varianceStabilizingTransformation(dds, blind=TRUE)
+vsd <- varianceStabilizingTransformation(dds, blind=TRUE)
 ```
 
 ## Sample clustering and QC
@@ -217,13 +149,9 @@ we expect to see replicates clustering together and separation of treatments.
 
 ## Clustered heatmap
 
-```{r}
-# NOTE: Which columns to use for grouping the heatmap?-------------------------
-#    Add as many columns as you want for the last argument. The test data uses
-#    just the "group" column to create colored boxes corresponding to values of
-#    "group" alongside the heatmap.
-#
-plot.heatmap(rld, colData, c('group'))
+```{r sample_heatmap, cache=TRUE, dependson='dds_initial'}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#sample_heatmap
+lcdbwf::plot.heatmap(vsd, colData, cols.for.grouping=c('group'))
 ```
 
 ## PCA {.tabset}
@@ -234,140 +162,109 @@ dimensions along which the samples vary the most. The amount of variance
 explained by each principal component is indicated in the axes label.
 
 
-```{r, results='asis'}
-# NOTE: Which columns to use for grouping the heatmap?-------------------------
-#    See similiar note above for which columns to group by. Here, each PCA plot
-#    will be in a separate tab.
+```{r pca, results='asis', cache=TRUE, dependson='dds_initial'}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#pca
+
 groups <- list(
                group=c('group'),
                layout=c('layout')
                )
 
-# NOTE: Here we make interactive PCA plots using ggplotly. However, this does
-#    not work inside a loop. So, if you have multiple groups, copy and paste
-#    the following lines, updating the variable 'i'.
 p <- list()
 for(group in groups){
-    p[[group]] <- plotPCA.ly(rld, intgroup=group)
+    p[[group]] <- lcdbwf::plotPCA.ly(vsd, intgroup=group)
 }
 
-i <- 1
-mdcat('### ', names(p)[i])
-#p <- plotPCA(rld, intgroup=groups[1])
-ggplotly(p[[i]])
-
-i <- 2
-mdcat('### ', names(p)[i])
-#p <- plotPCA(rld, intgroup=groups[2])
-ggplotly(p[[i]])
-
+i <- 1; lcdbwf::mdcat('### ', names(p)[i]); ggplotly(p[[i]])
+i <- 2; lcdbwf::mdcat('### ', names(p)[i]); ggplotly(p[[i]])
 ```
 
 
-## Size factors
-Size factors: ideally, all libraries were sequenced to identical depth, in
-which case all size factors would be 1.0. In practice, this is almost never the
-case. These size factor estimates are DESeq2's way of showing how sequencing
-depth varies across libraries. If some libraries are much higher or lower than
+## Size factors {.tabset}
+Ideally, all libraries were sequenced to identical depth, in which case all
+size factors would be 1.0. In practice, this is almost never the case due to
+the difficulties of accurately measuring low concentrations of cDNA. These size
+factor estimates are DESeq2's way of showing how sequencing depth varies across
+libraries. If some libraries are much higher or lower than
 1 then those libraries had dramatically different coverage and we should be
 careful about interpreting results.
 
-```{r}
+Size factors are calculated according to the median-ratio method (equation 5 of
+[Anders & Huber
+2010](http://dx.doi.org/10.1186/gb-2010-11-10-r106)).
+
+These diagnostic plots show the size factors (as a ranked bar plot) and the
+relationship between the size factors and the total read count (as
+a scatterplot).
+
+```{r sizefactors, results='asis'}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#sizefactors
+
+cat('\n\n\n\n\n\n')
+lcdbwf::mdcat('### Size factors')
 dds <- estimateSizeFactors(dds)
 sf <- sizeFactors(dds)
-sf <- sf[order(sf)]
-knitr::kable(sf)
+sf <- sf[order(sf)] %>%
+        enframe(value = 'Size Factor')
+
+p <- ggplot(sf) +
+    aes(x=reorder(name, `Size Factor`), y=`Size Factor`) +
+    xlab('sample name') +
+    geom_col() +
+    theme_bw() +
+    theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1))
+ggplotly(p)
+cat('\n\n\n\n\n\n')
+
+lcdbwf::mdcat('### Size factors vs total read count')
+trc <- colSums(counts(dds)) %>%
+        enframe(value = 'Total Read Count')
+trc_vs_sf <- full_join(sf, trc, by='name')
+p <- ggplot(data=trc_vs_sf, aes_string(x="`Total Read Count`", y="`Size Factor`", label='name')) +
+    geom_point(size=3) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+ggplotly(p)
+cat('\n\n\n\n\n\n')
 ```
 
-```{r}
-# NOTE: Run DESeq2 on multiple cores.------------------------------------------
-#    By default, we do not run in parallel, however this can be very useful in
-#    experiments with many samples and complex designs.  To run in parallel,
-#    comment out the line below and set cores appropriately. Then, add the
-#    argument `parallel=TRUE` whenever you call DESeq()
-#    register(MulticoreParam(4))
+```{r parallel_config}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#parallel_config
+
 parallel <- FALSE
+# register(MulticoreParam(4))
 ```
 
-```{r dds_models, cache=TRUE}
-# NOTE: gene rather than transcript counts-------------------------------------
-#    By default we use gene counts rather than transcript counts. See code
-#    above where the `dds.txi` object is created for how to modify this for
-#    transcript counts.
-dds <- DESeqDataSetFromCombinedFeatureCounts(
-    '../data/rnaseq_aggregation/featurecounts.txt',
-    sampletable=colData,
-    # NOTE: What design to use?------------------------------------------------
-    #   This will be used for contrasts below.
-    design=~group)
+```{r dds_list, cache=TRUE}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#dds_list
 
-if (strip.dotted.version){
-    rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE), function (x) x[1])
-}
-
-dds <- DESeq(dds,
-    # NOTE: betaPrior----------------------------------------------------------
-    #    betaPrior=FALSE is the default in DESeq2 >1.16, but here we set it
-    #    explicitly for consistency across different versions.
-    betaPrior=FALSE,
-    parallel=parallel
-    )
+lst <- list(
+            main=list(
+                sampletable=colData,
+                design=~group),
+            no_rep4=list(
+                sampletable=colData %>% filter(samplename != 'sample4'),
+                design=~group,
+                args=list(subset.counts=TRUE)
+            )
+)
+dds.list <- map(lst, lcdbwf::make.dds, salmon.files=NULL, remove.version=TRUE,
+                combine.by=NULL, parallel=parallel)
 ```
 
 
-```{r results, cache=TRUE}
-# NOTE: lots of editing likely needed in this chunk!---------------------------
-#    This chunk builds a data structure like this:
-#
-#       res.list[[contrast]][[res]]   <- results object for this contrast
-#       res.list[[contrast]][[dds]]   <- the dds object for this contrast
-#       res.list[[contrast]][[label]] <- a nice label for this contrast
-#
-#    This is the block that performs the contrasts, filling out the `res.list`
-#    named list, which ties together the results, the DESeq object from which the
-#    results were extracted, and a descriptive label to be used in plots and
-#    headings.
-#
-#    For each entry in `res.list`, you will get DE results sections automatically
-#    created for each item. Each of these sections will have the "label" as its
-#    header, and will contain a summary table, MA plots, counts plots of top 3 up-
-#    and down-regulated genes, p-value distribution, and exported results tables
-#    with links in the rendered HTML to the output files.
-#
-#    NOTE: Here are some notes on using lfcShrink...
-#    As currently implemented (05 apr 2018), lfcShrink checks its arguments for an
-#    existing results table. If it exists, it applies shrinkage to the lfc and se
-#    in that table. If it *doesn't* exist, it calls results on dds with the syntax
-#
-#        res <- results(dds, name=coef)
-#    or
-#
-#        res <- results(dds, contrast=contrast)
-#
-#    It does not pass any further arguments to results, and it doesn't warn you
-#    that results-style arguments were unrecognized and ignored. Therefore,
-#    lfcShrink DOES NOT directly support lfcThreshold, or other alternative
-#    hypotheses, or any of the custom analysis methods you can access through
-#    results(). To get those, you have to call results first, without shrinkage,
-#    and then apply lfcShrink.
-#
-#    Here we use the lfcShrink version of the results. In DESeq2 versions >1.16,
-#    the lfc shrinkage is performed in a separate step, so that's what we do here.
-#    This is slightly different results than if you used betaPrior=TRUE when
-#    creating the DESeq object.
+```{r results, dependson='dds_list', cache=TRUE}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#results
 
-# res.list is a named list. Each item should be a list with names c('res',
-# 'dds', 'label'). "res" is a DESeqResults object, "dds" is the corresponding
-# DESeq object the results were extracted from, and "label" is a nicer label to
-# use for headers and other text.
 res.list <- list()
 
 # NOTE: Example contrast #1----------------------------------------------------
 #   Using the example data, this compares treatment group to control group.
 #   Change to reflect your experiment.
-res.list[['all']] <- list(
-    res=lfcShrink(dds, contrast=c('group', 'treatment', 'control')),
-    dds=dds,
+# IMPORTANT: Control must always be last
+res.list[['main']] <- list(
+    res=lfcShrink(dds.list[['main']], contrast=c('group', 'treatment', 'control'), type='normal'),
+    dds='main',
     label='Using a log2FoldChange threshold of 0'
 )
 
@@ -376,28 +273,28 @@ res.list[['all']] <- list(
 #    Using the example data, this compares treatment group to control group but
 #    requiring genes to have >4-fold differences (log2(4) = 2). Change to
 #    reflect your experiment.
+#    If using an lfcThreshold, must update elsewhere throughout the code.
 res.lfcthresh.2 <- results(
-    dds,
+    dds.list[['main']],
     contrast=c('group', 'treatment', 'control'),
     lfcThreshold=2)
 
 res.list[['lfc2']] <- list(
     res=lfcShrink(
-        dds,
+        dds.list[['main']],
         contrast=c('group', 'treatment', 'control'),
-        res=res.lfcthresh.2
+        res=res.lfcthresh.2,
+        type='normal'
     ),
-    dds=dds,
+    dds='main',
     label='Using a log2FoldChange threshold of >2'
 )
 ```
 
 
-```{r attach, cache=TRUE, depends='results'}
-# NOTE: Assumes Ensembl Ids----------------------------------------------------
+```{r attach, cache=TRUE, dependson='results'}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#attach
 keytype <- 'ENSEMBL'
-
-# NOTE: Assumes these  columns are available in the OrgDb----------------------
 columns <- c('SYMBOL', 'UNIPROT', 'ALIAS')
 
 for (name in names(res.list)){
@@ -410,12 +307,17 @@ for (name in names(res.list)){
 
 # Differential expression {.tabset}
 
+```{r}
+# NOTE: significance level---------------------------------------------------
+alpha <- 0.1
+lfc.thresh <- 0 # Must change if using an lfcThreshold other than 0
+```
+
 Here is a table summarizing the comparisons. See the [Background and
 help](#Help) section for details.
 
 ```{r, results='asis'}
-# Summarize all experiments
-knitr::kable(summarize.res.list(res.list, dds.list, res.list.lookup))
+knitr::kable(summarize.res.list(res.list, alpha, lfc.thresh, dds.list))
 ```
 
 For each comparison there is a tab and under each tab are the following:
@@ -429,14 +331,17 @@ For each comparison there is a tab and under each tab are the following:
 
 See the [Background and help](#Help) section for details on these.
 
-```{r, results='asis'}
+
+```{r reportresults, results='asis'}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#reportresults
+
 # NOTE: Which columns to add to the top plots' titles?-------------------------
 #    This will add nicer titles to the plots. These may have come from the
 #    `attach.info` call above.
 add_cols <- c('symbol', 'alias')
 
 for (name in names(res.list)){
-  dds.i <- res.list[[name]][['dds']]
+  dds.i <- dds.list[[ res.list[[name]][['dds']] ]]
   res.i <- res.list[[name]][['res']]
   label <- res.list[[name]][['label']]
 
@@ -444,186 +349,36 @@ for (name in names(res.list)){
   mdcat('### Summary of results')
   print(knitr::kable(my.summary(res.i, dds.i)))
   mdcat('### Normalized counts of top 3 upregulated genes')
-  top.plots(padj.order(res.i), 3, my.counts, dds.i, add_cols)
+  print(lcdbwf::counts.plot(lcdbwf::counts.df(dds.i, res.i, sel.genes=lfc.filter(res.i),
+                              label='symbol', rank.col='padj'),
+                    3))
   mdcat('### Normalized counts of top 3 downregulated genes')
-  top.plots(padj.order(res.i, reverse=TRUE), 3, my.counts, dds.i, add_cols)
+  print(lcdbwf::counts.plot(lcdbwf::counts.df(dds.i, res.i, sel.genes=lfc.filter(res.i, reverse=TRUE),
+                              label='symbol', rank.col='padj'),
+                    3))
 
-  # NOTE: By default we plot the top 10 upregulated or downregulated genes, with the lowest padj
-  # To change this behavior edit the following lines
+  # NOTE: gene labels --------------------------------------------------------
+  #   By default we plot the symbols of the top 10 upregulated or downregulated
+  #   genes, with the lowest padj. To change this behavior edit the following
+  #   lines
   res.i <- res.i[order(res.i$padj),]
-  genes.to.label <- rownames(res.i)[1:10]
+
+  genes.to.label <- res.i[1:10, 'symbol']
 
   mdcat('### M-A plot')
-  print(plotMA.label(res.i, genes.to.label=genes.to.label))
+  print(plotMA.label(res.i, genes.to.label=genes.to.label, col='symbol'))
 
   mdcat('### P-value distribution')
   pval.hist(res.i)
 }
 ```
 
-```{r, fig.width=12, results='asis'}
-# UpSet plots only make sense for more than one set of genes. The Markdown
-# explanatory text and the plots themselves are only created if res.list has
-# multiple items in it.
-
-if (length(res.list) > 1){
-
-    dir.create('upset_plots', showWarnings=FALSE)
-
-    mdcat("# UpSet plots {.tabset}")
-    mdcat("Gather together all the interesting gene sets into an ",
-          "['UpSet' plot](http://caleydo.org/tools/upset/). These plots show ",
-          "the combinatorial overlaps of genes found to be up, down, and any ",
-          "changed across the different contrasts performed.")
-
-    mdcat("## Upregulated UpSet plot")
-    ll <- lapply(res.list, function (x) get.sig(x[['res']], 'up'))
-    ll <- ll[lapply(ll, length) > 0]
-    if (length(ll) > 1) {
-        upset(fromList(ll), order.by='freq', nsets=length(ll))
-        outfile <- file.path('upset_plots', 'upregulated.tsv')
-        lldf <- rownames.first.col(fromList.with.names(ll))
-        write.table(lldf, file=outfile, sep='\t', row.names=FALSE)
-        mdcat('- [', outfile, ']', '(', outfile, ')')
-    } else {
-        mdcat('not enough contrasts with upregulated genes')
-    }
-
-    mdcat("## Downregulated UpSet plot")
-    ll <- lapply(res.list, function (x) get.sig(x[['res']], 'down'))
-    ll <- ll[lapply(ll, length) > 0]
-    if (length(ll) > 1) {
-        upset(fromList(ll), order.by='freq', nsets=length(ll))
-        outfile <- file.path('upset_plots', 'upregulated.tsv')
-        lldf <- rownames.first.col(fromList.with.names(ll))
-        write.table(lldf, file=outfile, sep='\t', row.names=FALSE)
-        mdcat('- [', outfile, ']', '(', outfile, ')')
-    } else {
-        mdcat('not enough contrasts with downregulated genes')
-    }
-
-    mdcat("## Changed genes UpSet plot")
-    ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed'))
-    ll <- ll[lapply(ll, length) > 0]
-    if (length(ll) > 1) {
-        upset(fromList(ll), order.by='freq', nsets=length(ll))
-        outfile <- file.path('upset_plots', 'upregulated.tsv')
-        lldf <- rownames.first.col(fromList.with.names(ll))
-        write.table(lldf, file=outfile, sep='\t', row.names=FALSE)
-        mdcat('- [', outfile, ']', '(', outfile, ')')
-    } else {
-        mdcat('not enough contrasts with changed genes')
-    }
-}
-```
-
-# Gene patterns {.tabset}
-
-We can roughly group genes into expression patterns. This uses the [DEGreport
-package](https://www.bioconductor.org/packages/release/bioc/html/DEGreport.html),
-which in turn uses the
-[ConsensusClusterPlus](https://www.bioconductor.org/packages/release/bioc/html/ConsensusClusterPlus.html)
-algorithm to cluster genes into similar expression patterns. The lists of genes
-found in each cluster are reported below the plot.
-
-The default general flow is as follows:
-
-```{r dpsettings}
-# NOTE: settings for DEGpatterns-----------------------------------------------
-
-# NOTE:  Max number of genes to include----------------------------------------
-#   More will be downsampled to this many
-lim <- 2000
-
-# NOTE:  Correlation coefficient above which to merge clusters-----------------
-cutoff <- 0.5
-
-# NOTE: This is set very low for test data. Default is 15.---------------------
-#   Minimum cluster size.
-minc <- 1
-```
-
-- Take the union of all genes that are changed across all contrasts
-- If there are more than `r lim` genes, randomly sample `r lim` genes (to keep the computations reasonable)
-- Cluster genes by coexpression across contrasts
-- If clusters are correlated with a correlation coefficient of `r cutoff` or
-  more, they are merged together
-- Clusters with fewer than `r minc` genes are not shown.
-
-```{r, fig.width=12, results='asis', cache=TRUE}
-# NOTE: which genes to cluster?------------------------------------------------
-#    By default, we get all the changed genes, but you may want only the up or
-#    down genes.
-ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed'))
-
-# Filter out results where there were zero genes detected.
-ll <- ll[lapply(ll, length) > 0]
-
-for (name in names(ll)){
-    genes <- ll[[name]]
-
-    # Plotting a large number of genes will take a lot of time to perform the
-    # clustering. If there are more than this limit, then we take a random
-    # sample.
-    if (length(genes) > lim){
-        genes <- sample(genes, lim)
-    }
-
-    # Extract the normalized counts for these genes
-    idx <- rownames(rld) %in% genes
-    ma <- assay(rld)[idx,]
-
-    # Print a nice Markdown header
-    mdcat('## ', res.list[[name]][['label']])
-    colData.i <- colData(res.list[[name]][['dds']])
-
-    d <- degPatterns(
-        ma,
-        colData.i,
-
-        # NOTE: xaxis of plot -------------------------------------------------
-        #   "time" argument becomes the x-axis of the plot; change as
-        #   appropriate to your experiment
-        time='group',
-
-        # NOTE: reduce and merge cutoff----------------------------------------
-        #   Reduce will merge clusters that are similar; similarity determined
-        #   by cutoff
-        reduce=TRUE, cutoff=cutoff,
-
-        # NOTE: color----------------------------------------------------------
-        #   For more complicated designs, try the `col` argument to color the
-        #   plot by another factor.
-        # col="another.column",
-
-        # NOTE: increase min cluster size to 15
-        # This is purposely set low for test data; the DEGreport default is 15.
-        minc=minc
-        )
-
-    # In the final_clusters directory, this creates files containing lists of
-    # the genes in each cluster, and adds a link to the Markdown.
-    dir.create('final_clusters')
-    mdcat('\n')
-    for (u in unique(d$df$cluster)){
-        fn <- file.path('final_clusters',
-                        paste0('final.', name, '.cluster.', u, '.txt'))
-        write.table(d$df[d$df$cluster==u, 'genes'], file=fn, quote=FALSE,
-                    row.names=FALSE, col.names=FALSE)
-        mdcat('- [', fn, '](', fn, '), cluster "', u, '" genes')
-    }
-}
-```
-
-# Exported results
-
-```{r selections}
+```{r selections, cache=TRUE, dependson='attach'}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#selections
 sel.list <- list()
 for (name in names(res.list)){
   res <- res.list[[name]][['res']]
 
-  # NOTE: significance level---------------------------------------------------
-  alpha <- 0.1
 
   # NOTE: any other selections?------------------------------------------------
   #    Here we just get the up- and downregulated genes, but any arbitrary
@@ -634,347 +389,89 @@ for (name in names(res.list)){
   #        created for it in the Markdown
   #      - GO analysis will be performed on each group separately below.
   sel.list[[name]] <- list(
-    up=res[get.sig(res, alpha=alpha, direction='up'),],
-    dn=res[get.sig(res, alpha=alpha, direction='dn'),]
+    up=res[get.sig(res, alpha=alpha, lfc.thresh=lfc.thresh, direction='up'),],
+    dn=res[get.sig(res, alpha=alpha, lfc.thresh=lfc.thresh, direction='dn'),]
     )
 }
 
 # Keep track of our sel.list entries, here just using the last one
 sel.names <- names(sel.list[[name]])
-
 ```
 
+```{r upsetplots, results='asis', cache=TRUE, dependson='selections'}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#upsetplots
+# UpSet plots only make sense for more than one set of genes. The Markdown
+# explanatory text and the plots themselves are only created if res.list has
+# multiple items in it.
 
-# Functional enrichment analysis
+plot.upset <- function(sel.list.key, label) {
+    mdcat("## UpSet plot: ", label)
+    ll <- lapply(sel.list, function (x) rownames(x[[sel.list.key]]))
+    ll <- ll[lapply(ll, length) > 0]
+    if (length(ll) > 1) {
+        print(upset(fromList(ll), order.by='freq', nsets=length(ll)))
+        outfile <- file.path('upset_plots', paste0(label, '.tsv'))
+        lldf <- rownames.first.col(fromList.with.names(ll))
+        write.table(lldf, file=outfile, sep='\t', row.names=FALSE)
+        mdcat('- [', outfile, ']', '(', outfile, ')')
+        pdf.file <- file.path('upset_plots', paste0(label, '.pdf'))
+        dev.copy(pdf, file=pdf.file)
+        dev.off()
+        mdcat('- [', pdf.file, ']', '(', pdf.file, ')')
 
-Here we perform gene ontology, KEGG pathway and Reactome pathway enrichment using the
-[clusterProfiler](https://bioconductor.org/packages/release/bioc/vignettes/clusterProfiler/inst/doc/clusterProfiler.html)
-package with some custom plotting functions.
-
-```{r cprof_setup, results='hide'}
-
-# output directory for clusterProfiler results
-cprof.folder <- "clusterprofiler"
-plots.folder <- "clusterprofiler/plots"
-
-# check for subfolder and create if absent
-ifelse(!dir.exists(file.path('.',cprof.folder)),
-       dir.create(file.path('.',cprof.folder), recursive = TRUE), NA)
-ifelse(!dir.exists(file.path('.',plots.folder)),
-       dir.create(file.path('.',plots.folder), recursive = TRUE), NA)
-
-# NOTE: keyTypes to obtain from bitr-------------------------------------------
-types <- c("ENTREZID","SYMBOL","UNIPROT")
-
-# NOTE: convert IDs to symbols for KEGG?---------------------------------------
-id.convert <- TRUE
-```
-
-```{r bitr_genes, results='hide'}
-# NOTE: Gene IDs are provided in what format?----------------------------------
-from.type <- "FLYBASE"
-
-deg.list <- nested.lapply(sel.list, rownames)
-genes.df <- nested.lapply(deg.list, bitr, fromType=from.type, toType=types, OrgDb=orgdb)
-```
-
-```{r enrich_all, results='hide', cache=TRUE}
-
-# run enrichment for all gene lists over a loop
-
-# NOTE: settings for clusterProfiler and plots---------------------------------
-go.keytype <- 'ENTREZID'
-kegg.keytype <- 'ncbi-geneid'
-pvalueCutoff <- 1
-qvalueCutoff <- 1
-go.uni <- NULL
-path.uni <- NULL
-kegg.organism <- 'dme'
-RUN.REACTOME <- FALSE
-reactome.organism <- 'fly'
-
-
-# list to hold all enrichment results
-# will have structure:
-#
-#   all.enrich[[contrast]][[direction]][[enrichment label]]
-all.enrich <- list()
-enrich.files <- list()
-# loop over each contrast
-for(comp in names(genes.df)){
-
-    all.enrich[[comp]] <- list()
-    enrich.files[[comp]] <- list()
-
-    # loop over selection list
-    for(sel in sel.names){
-
-        all.enrich[[comp]][[sel]] <- list()
-        enrich.files[[comp]][[sel]] <- list()
-
-        gene <- genes.df[[comp]][[sel]][[go.keytype]]
-
-        for (ont in c('CC', 'BP', 'MF')){
-            go.res <- enrichGO(
-                gene=gene, universe=go.uni, keyType=go.keytype, OrgDb=orgdb,
-                ont=ont, pvalueCutoff=pvalueCutoff, qvalueCutoff=qvalueCutoff,
-                readable = TRUE)
-
-            res.label <- paste('GO', ont, sep='_')
-            all.enrich[[comp]][[sel]][[ont]] <- go.res
-            if (!is.null(go.res)){
-                enrich.files[[comp]][[sel]][[ont]] <- write.clusterprofiler.results(go.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
-            }
-        }
-
-        # perform KEGG enrichment
-        res.label <- 'KEGG'
-        kegg.res <- enrichKEGG(
-            gene=gene, universe=path.uni, organism=kegg.organism,
-            keyType=kegg.keytype, pvalueCutoff=pvalueCutoff,
-            qvalueCutoff=qvalueCutoff)
-
-
-        if (!is.null(kegg.res)){
-            # convert uniprot IDs to readable symbols. This needs to be done separately
-            # in the case of KEGG
-            if(id.convert){
-              id.vec <- genes.df[[comp]][[sel]]$SYMBOL
-              names(id.vec) <- genes.df[[comp]][[sel]]$ENTREZID
-              kegg.res.genes <- kegg.res@result$geneID
-              for(j in 1:length(kegg.res.genes)){
-                id.split <- strsplit(kegg.res.genes[j], "/")[[1]]
-                temp <- paste(id.vec[id.split], collapse="/")
-                kegg.res@result$geneID[j] <- temp
-              }
-            }
-
-
-            all.enrich[[comp]][[sel]][['kegg']] <- kegg.res
-            enrich.files[[comp]][[sel]][['kegg']] <- write.clusterprofiler.results(kegg.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
-        }
-
-        if (RUN.REACTOME) {
-            # NOTE: Install OrgDb--------------------------------------------------
-            #   ReactomePA requires the relevant OrgDb package to be installed
-            #   and so is disabled by default.
-            res.label <- 'Reactome'
-            reactome.res <-enrichPathway(
-                gene=gene, universe=path.uni, organism=reactome.organism,
-                pvalueCutoff=pvalueCutoff, qvalueCutoff=qvalueCutoff, readable=TRUE)
-            all.enrich[[comp]][[sel]][['reactome']] <- reactome.res
-
-            if (!is.null(reactome.res)){
-                enrich.files[[comp]][[sel]][['reactome']] <- write.clusterprofiler.results(reactome.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
-            }
-        }
+    } else {
+        mdcat('not enough contrasts with upregulated genes')
     }
 }
 
-```
 
-```{r adjust_catlen}
+if (length(res.list) > 1){
 
-# This shortens the names of functional terms for better visualization
-maxcatlen <- 50
-for(comp in names(all.enrich)){
-  for(name in names(all.enrich[[comp]])){
-    for(go in names(all.enrich[[comp]][[name]])){
-      all.enrich[[comp]][[name]][[go]]@result$Description <- substr(all.enrich[[comp]][[name]][[go]]@result$Description, 1, maxcatlen)
-    }
-  }
-}
+    dir.create('upset_plots', showWarnings=FALSE)
 
-```
+    mdcat("# UpSet plots {.tabset}")
+    mdcat("Here we gather together all the interesting gene sets into an ",
+          "[UpSet plot](http://caleydo.org/tools/upset/). These plots show ",
+          "the combinatorial overlaps of genes found to be up or down ",
+          "across the different contrasts performed. It's much like a ",
+          "Venn diagram, but easier to interpret and can scale to many comparisons. ",
+          "A TSV file is linked under each plot. This file has rows for each ",
+          "gene and columns for each contrast. A `1` indicates that gene was found to be ",
+          "up/down/changed in that contrast. "
+    )
 
-
-Below we show the results separately for each comparison: *mutant vs het*, *mutant vs wt*
-and *wt vs het*. Links to files containing analysis results are shown above each set of
-plots, with parsed files showing genes on separate lines.
-
-```{r plot_go, fig.width=15, fig.height=10, results='asis'}
-# go labels for file names
-go.label <- list(
-    BP='GO Biological Process',
-    CC='GO Cellular Component',
-    MF='GO Molecular Function',
-    kegg='KEGG Pathways',
-    reactome='Reactome Pathways')
-
-comp.label <- lapply(res.list, function (x) x[['label']])
-
-for(comp in names(all.enrich)){
-    mdcat('## ', comp.label[[comp]], ' {.tabset}')
-    for(go in names(go.label)){
-
-        mdcat('### ', go.label[[go]], ' {.tabset}')
-
-        mdcat('TSV format results (condensed and split versions):\n')
-
-        dotplots <- list()
-        emapplots <- list()
-        cnetplots <- list()
-
-        for (sel in sel.names){
-
-            res <- all.enrich[[comp]][[sel]][[go]]
-
-            if (is.null(res))
-            {
-                cat('\n\n\nNo genes enriched for:', comp, sel, go, '\n\n\n')
-                next
-            }
-
-            outfiles <- enrich.files[[comp]][[sel]][[go]]
-            f1 <- outfiles[['orig']]
-            f2 <- outfiles[['split']]
-            mdcat(' - ', sel, ' [', f1, '](', f1 ,')', ', [', f2, '](', f2 ,')')
-            title <- paste(sel, go)
-
-            # NOTE: arguments to dotplot, emapplot, and cnetplot---------------
-            #   Arguments provided are package defaults, explicitly provided
-            #   here for better visibility on what to tweak. Most commonly
-            #   adjusted is probably the showCategory argument.
-
-            dotplots[[sel]] <- dotplot(
-                res,
-                showCategory=10,
-                color='p.adjust',
-                x='GeneRatio'
-            ) +
-                ggtitle(title) +
-                theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
-
-            emapplots[[sel]] <- emapplot(
-                res,
-                showCategory=30,
-                color='p.adjust'
-            ) +
-                ggtitle(title) +
-                theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
-
-            cnetplots[[sel]] <- cnetplot(
-                res,
-                showCategory=5,
-                foldChange=NULL,
-                colorEdge=FALSE,
-                circular=FALSE,
-                node_label=TRUE
-            ) +
-                ggtitle(title) +
-                theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
-        }
-
-        save.and.link <- function(plottype){
-            f <- file.path(plots.folder, paste0(go,"_", comp,"_", plottype, ".pdf"))
-            dev.copy(pdf, file=f, width=15, height=10)
-            dev.off()
-            mdcat('Link to pdf - [', f, '](', f, ')')
-            cat('\n')
-        }
-
-        # It's possible that we got this far without any results to plot; if so
-        # then skip creating the tabs and plots
-        skip <- (length(dotplots) == 0) & (length(emapplots) == 0) & (length(cnetplots) == 0)
-
-
-        if (!skip){
-            mdcat('#### Dotplot')
-            print(plot_grid(plotlist=dotplots, align='hv'))
-            save.and.link('dotplot')
-
-            mdcat('#### Emapplot')
-            print(plot_grid(plotlist=emapplots, align='hv'))
-            save.and.link('emapplot')
-
-            mdcat('#### Cnetplot')
-            print(plot_grid(plotlist=cnetplots, align='hv'))
-            save.and.link('cnetplot')
-        }
+    for (name in names(sel.list[[1]])){
+        plot.upset(name, name)
     }
 }
 ```
 
-```{r groupcounts, cache=TRUE, eval=FALSE}
-# NOTE: optionally disable this chunk------------------------------------------
-#
-#    This chunk inspects the model matrix of the design, aggregates counts for
-#    each of the levels in the design, and attaches them to each set of
-#    results.
-#
-#    It also attaches normalized gene counts and Salmon TPM.
-#
-#    Requires transcript.tpm to be available, and therefore Salmon was run
-counts.list <- list()
-
-# Compute aggregate (by gene) normalized transcript counts from Salmon
-gene.tpm <- aggregate(transcript.tpm, list(transcript.geneids), sum)
-
-# Use normalized counts to get per-level mean counts. Attach Salmon aggregate
-# counts to each output file. This does *not* assume any particular model.
-for (name in names(res.list)) {
-
-    my.res <- res.list[[name]][['res']]
-    my.dds <- res.list[[name]][['dds']]
-
-    counts.list[[name]] <- my.res[,c("gene", "baseMean", "log2FoldChange", "lfcSE", "padj")]
-
-    # get the DESeq2 normalized per-gene count data
-    my.normalized.counts <- counts(my.dds, TRUE)
-    colnames(gene.tpm) <- c("Gene", colnames(my.normalized.counts))
-
-    # report per-sample Salmon counts to output files
-    merged.results.deseq.counts <- merge(data.frame(my.res), my.normalized.counts, by.x="gene", by.y="row.names", all.x=TRUE, sort=FALSE)
-    merged.results.salmon.tpm <- merge(data.frame(my.res), gene.tpm, by.x="gene", by.y="Gene", all.x=TRUE, sort=FALSE)
-    rownames(merged.results.deseq.counts) <- merged.results.deseq.counts$gene
-    rownames(merged.results.salmon.tpm)   <- merged.results.salmon.tpm$gene
-    merged.results.deseq.counts           <- merged.results.deseq.counts[rownames(my.res),]
-    merged.results.salmon.tpm <- merged.results.salmon.tpm[rownames(my.res),]
-    rownames(merged.results.deseq.counts) <- NULL
-    rownames(merged.results.salmon.tpm) <- NULL
-    for (colname in colnames(my.normalized.counts)) {
-        my.res[,paste('deseq2.counts', colname, sep='.')] <- merged.results.deseq.counts[,colname]
-        my.res[,paste('avg.salmon.tpm', colname, sep='.')] <- merged.results.salmon.tpm[,colname]
-    }
-
-    # extract the design matrix
-    my.model <- model.matrix(design(my.dds), colData(my.dds))
-
-    # unique rows correspond to groups
-    my.unique.patterns <- unique(my.model)
-
-    # for each unique pattern
-    for (i in 1:nrow(my.unique.patterns)) {
-        # determine which samples conform to that pattern
-        in.pattern <- apply(my.model, 1, function(row) {all(row == my.unique.patterns[i,])})
-    # get counts just in those samples
-    in.counts <- rowMeans(my.normalized.counts[,in.pattern])
-    counts.list[[name]] <- cbind(counts.list[[name]], in.counts)
-    colnames(counts.list[[name]])[ncol(counts.list[[name]])] <- format.group.name(my.unique.patterns[i,])
-    }
-}
+```{r genepatterns, child='gene-patterns.Rmd', eval=TRUE}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#genepatterns
+rmarkdown::render('gene-patterns.Rmd', run_pandoc=FALSE)
 ```
 
+# Exported results
 
-```{r, results='asis', eval=FALSE}
+The files below are TSVs that can be opened in Excel:
+
+
+```{r, results='asis'}
 # Write out files for full and each selection, and create a link to them in the
 # HTML generated by this RMarkdown.
 for (name in names(res.list)){
   mdcat('## ', res.list[[name]][['label']])
   fn <- paste0(name, '.tsv')
-  write.table(res.list[[name]][['res']], file=fn, row.names=FALSE, sep='\t')
-  write.table(counts.list[[name]], file=paste(fn, ".counts", sep=""), row.names=FALSE, sep="\t")
+  write.table(res.list[[name]][['res']], file=fn, row.names=FALSE, sep='\t', quote=FALSE)
   mdcat('- [', fn, '](', fn, '), results for ', res.list[[name]][['label']])
-
-  # Selections defined above written out to file, and a Markdown link created.
-  for (sel in names(sel.list[[name]])){
-    fn <- paste0(name, '.', sel, '.tsv')
-    write.table(sel.list[[name]][[sel]], file=fn, row.names=FALSE, sep='\t')
-    mdcat('- [', fn, '](', fn, '), just the "', sel, '" genes for ', res.list[[name]][['label']])
-  }
 }
 ```
 
+```{r functionalenrichment, child='functional-enrichment.Rmd', eval=TRUE}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#functionalenrichment
+
+rmarkdown::render('functional-enrichment.Rmd', run_pandoc=FALSE)
+```
 
 # Session info
 For reproducibility purposes, here is the output of `sessionInfo()` showing the
@@ -987,6 +484,7 @@ sessionInfo()
 # Help
 
 ```{r helpdocs, child="help_docs.Rmd", run_pandoc=FALSE}
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#helpdocs
 # NOTE: optional help section--------------------------------------------------
 #   Delete this chunk, or set to eval=FALSE, if you don't want to include the
 #   help text from "help_docs.Rmd"

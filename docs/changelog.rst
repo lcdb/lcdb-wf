@@ -1,12 +1,226 @@
 Changelog
 =========
 
-v1.5
+v1.6
 ----
 
+References
+~~~~~~~~~~
+- overhaul the way transcriptome fastas are created. Instead of requiring
+  separate download, they are now created out of the provided GTF and fasta
+  files. The reference config section now uses keys ``genome:``,
+  ``transcriptome:``, and ``annotation:`` rather than the ``fasta:`` and
+  ``gtf:`` keys.
+- **backwards-incompatible change:** reference config files have been updated
+  to reflect the changes in the references workflow
+- Update PhiX genome fasta to use NCBI rather than Illumina iGenomes
 
-v1.4.2
+ChIP-seq workflow
+~~~~~~~~~~~~~~~~~
+- ChIP-seq workflow now properly supports paired-end reads
+- A ChIP-seq workflow can now be run when the ``chipseq:`` and/or
+  ``peak_calling:`` sections are omitted.
+- added a missing bowtie2 config entry in ``clusterconfig.yaml`` which could
+  result in out-of-memory errors when submitting to a cluster using that file
+
+
+RNA-seq workflow
+~~~~~~~~~~~~~~~~
+- if colData is a tibble this no longer causes issues for importing counts
+- dupRadar removed from RNA-seq workflow. We ended up never using it, and it
+  depends on R which we've since removed from the main environment.
+- new ``strand_test`` rule, which can be run explicitly with ``snakemake -j2
+  strand_check``. This generates ``strandedness.tsv`` in the current directory,
+  which is the summarize output of RSeQC's ``infer_experiment.py`` across all
+  samples.
+- implement STAR two-pass alignment. Default is still single-pass.
+- Clean up hard-coded STAR indexing Log.out file
+- Include ``ashr`` and ``ihw`` Bioconductor packages in the R requirements, for
+  use with recent versions of DESeq2.
+
+
+RNA-seq downstream
+~~~~~~~~~~~~~~~~~~
+
+- Functional enrichment and gene patterns are now separate child documents.
+  This makes it easier to turn them on/off by only needing to adjust the chunk
+  options of the child chunk
+- Created a new documentation method for rnaseq.Rmd. Now there is a separate,
+  dedicated documentation page with sections that exactly correspond to each
+  named chunk in the Rmd, as well as a tool for ensuring that chunks and docs
+  stay synchronized. See :ref:`rnaseqrmd` for the new docs.
+- New ``counts.df`` and ``counts.plot`` functions to make it much easier to
+  make custom dotplots of top counts by melting and joining the counts table
+  with the metadata in colData.
+- DEGpatterns cluster IDs are now added as additional columns in the output
+  TSVs for each contrast
+- Many functions in the rnaseq.Rmd now expect a list of :term:`dds` objects.
+  See :ref:`dds_list` for more info on this.
+- Created a new R package, ``lcdbwf`` stored in :file:`lib/lcdbwf`. This can be
+  edited in place, and it is loaded from disk within ``rnaseq.Rmd``.
+- Modified some output keys to support recent versions of Snakemake, for which
+  ``count`` is a reserved keyword
+
+
+General
+~~~~~~~
+- Conda environments are now split into R and non-R. See :ref:`conda-envs` for
+  details. Updated ``deploy.py`` accordingly
+- symlinks rules are now set to be localrules
+- updated workflows to work on recent Snakemake versions
+- split environments into non-R and R. This, along with a loose pinning of
+  versions (``>=``), dramatically speeds up environment creation.
+- updates to support latest Snakemake versions
+- improvements to testing:
+   - environment YAML files, rendered HTML, and docs are stored as artifacts on CircleCI
+   - consolidations of some RNA-seq tests to reduce total time
+   - additional comments in the test config yaml to help new users understand the system
+- new "preflight check" function is run to hopefully catch errors before running workflows
+- updates to support recent Picard versions
+- added wildcard constraints to help Snakemake solve DAG
+
+
+v1.5.3
 ------
+
+General
+~~~~~~~
+- default 12-hr wall time in WRAPPER_SLURM
+- update .gitignore (`#223 <https://github.com/lcdb/lcdb-wf/issues/223>`_)
+- remove the FastQC status checks section from the MultiQC report (which shows
+  up in recent MultiQC versions) (`#246 <https://github.com/lcdb/lcdb-wf/issues/246>`_
+
+Bugs
+~~~~
+
+- add bed12 conversion for all species with default reference configs
+- presence of an orig_filename_R2 in sampletable is sufficient to consider the
+  experiment PE
+- ensure DEGpattern output only contains unique genes
+- bring back featurecounts in multiqc report
+- "attach" chunk in rnaseq.Rmd was not properly set to depend on the "results" chunk
+
+RNA-seq
+~~~~~~~
+
+- dds objects can now be created from a full featureCounts input file and
+  a subsetted colData table, if subset.counts=TRUE
+- improve the dependencies between rnaseq.Rmd chunks so that cache=TRUE behaves
+  as expected: (`#232 <https://github.com/lcdb/lcdb-wf/issues/232>`_)
+- add plots for rnaseq.Rmd size factors (`#222 <https://github.com/lcdb/lcdb-wf/issues/222>`_)
+- run rseqc instead of CollectRnaSeqMetrics (the multiqc output is nicer for
+  it, and it's pretty much doing the same thing) (`#218 <https://github.com/lcdb/lcdb-wf/issues/218>`_)
+- when converting Ensembl to symbol, if there is no symbol then fall back to
+  the Ensembl ID to avoid NA (`#246
+  <https://github.com/lcdb/lcdb-wf/issues/246>`_)
+- in rnaseq.Rmd, all caches will be invalidated if the sampletable or the
+  featurecounts table have changed.
+
+Tests
+~~~~~
+- using continuumio/miniconda3 container; finally got en_US.utf8 locale
+  installed and working correctly in that container so that multiqc works.
+
+
+v1.5.2
+------
+
+Bug fixes
+~~~~~~~~~
+
+- When some samples were substrings of other samples (e.g., `WT_1_1` and
+  `WT_1_10`), DESeqDataSetFromCombinedFeatureCounts was assigning the wrong
+  names. This has now been fixed in `helpers.Rmd`.
+
+v1.5.1
+------
+
+Bug fixes
+~~~~~~~~~
+
+- DESeqDataSetFromCombinedFeatureCounts (added in v1.5) was incorrectly
+  assigning labels to samples when the order of the sampletable did not match
+  the order of the samples in the featureCounts table columns. This has been
+  fixed.
+
+General
+~~~~~~~
+
+- `deploy.py` deployment script now only pays attention to files checked in to
+  version control and optionally can create a conda environment in the target
+  directory.
+
+- tests now work out of a newly-deployed instance to better reflect real-world
+  usage
+
+
+ChIP-seq and RNA-seq
+~~~~~~~~~~~~~~~~~~~~
+- reorder cutadapt commands to avoid a MultQC parsing bug in the cutadapt
+  module (see https://github.com/ewels/MultiQC/issues/949)
+
+RNA-seq
+~~~~~~~
+The majority of these changes affect ``rnaseq.Rmd``:
+
+- modifications to MultiQC config to get back featureCounts output
+- `plotMA.label` function (in ``helpers.Rmd``) now defaults to FDR < 0.1
+  (instead of 0.01), and additionally supports labeling using different columns
+  of the results object (e.g., "symbol").
+- remove some now-redundant featureCounts code
+- add a comment showing where to collapse replicates
+- convert colData's first column to rownames
+- implement lower limit for DEGpatterns clustering (default is 0, but can
+  easily set to higher if you're getting issues)
+- expose arbitrary additional function arguments to ``top.plots``. This allows
+  different `intgroup` arguments to be passed to the `my.counts` function,
+  enabling different ways of plotting the gene dotplots.
+
+
+v1.5 (Sept 2019)
+----------------
+
+Major change: **it is no longer possible to mix single-end and paired-end
+samples within the same run of the workflow.** See `#208
+<https://github.com/lcdb/lcdb-wf/pull/208>`_ and the corresponding issue
+description at `#175 <https://github.com/lcdb/lcdb-wf/issues/175>`_.
+
+This version also has many improvements to the ``rnaseq.Rmd`` file for RNA-seq,
+as described below.
+
+RNA-seq
+~~~~~~~
+
+Many changes and improvements to ``rnaseq.Rmd``, including:
+
+- Differential analysis summaries now include labeled MA plots (`#192 <https://github.com/lcdb/lcdb-wf/pull/192/files>`_)
+- PCA plots now use plotly for improved insepction of samples (`#192 <https://github.com/lcdb/lcdb-wf/pull/192/files>`_
+- don't use knitrBootstrap any more (`#192 <https://github.com/lcdb/lcdb-wf/pull/192/files>`_
+- heatmaps use heatmaply package for better interaction (`#192 <https://github.com/lcdb/lcdb-wf/pull/192/files>`_
+- allow ``sel.list`` to be used for UpSet plots and fix some typos `#205 <https://github.com/lcdb/lcdb-wf/pull/205>`_
+- workaround for degPatterns for corner cases where there are few clusters because of the ``minc`` parameter (`#205 <https://github.com/lcdb/lcdb-wf/pull/205>`_)
+- alpha and lfc.thresh are now pulled out into a separate chunk (`#206 <https://github.com/lcdb/lcdb-wf/pull/206>`_)
+- Support AnnotationHub http proxy handling in new version of AnnotationHub (`#207 <https://github.com/lcdb/lcdb-wf/pull/207>`_).
+
+As well as the following changes to other parts of the RNA-seq workflow, such as:
+
+- better bigWig file nomenclature (`#194 <https://github.com/lcdb/lcdb-wf/pull/194/files>`_), uses "pos" and "neg".
+- featureCounts only runs once on all BAMs rather than individual samples (`#195 <https://github.com/lcdb/lcdb-wf/pull/195>`_)
+- support `rseqc infer_experiment`, which replaces running featureCounts in multiple stranded modes (`#199 <https://github.com/lcdb/lcdb-wf/pull/199>`_, `#203 <https://github.com/lcdb/lcdb-wf/pull/203>`_)
+- use ``--validateMappings`` for salmon (`#203 <https://github.com/lcdb/lcdb-wf/pull/203>`_)
+
+References
+~~~~~~~~~~
+- fix typo in *S. pombe* name
+
+All workflows
+~~~~~~~~~~~~~
+
+- Documentation now recommends creating an environment for each directory using the `-p` argument (`#195 <https://github.com/lcdb/lcdb-wf/pull/195>`_)
+
+
+v1.4.2 (Jul 2019)
+-----------------
 
 Bugfixes
 ~~~~~~~~
@@ -14,8 +228,8 @@ Bugfixes
 - Don't require ChIP-seq configs to have at least one block for each supported
   peak-caller
 
-v1.4.1
-------
+v1.4.1 (Jul 2019)
+-----------------
 
 RNA-seq
 ~~~~~~~
@@ -38,8 +252,8 @@ References
   `convert_fastq_chroms` and `convert_gtf_chroms` used in reference configs for
   other species.
 
-v1.4
-----
+v1.4 (May 2019)
+---------------
 RNA-seq
 ~~~~~~~
 Much-improved ``rnaseq.Rmd``:
@@ -56,8 +270,8 @@ Much-improved ``rnaseq.Rmd``:
    - clusterprofiler helper functions
 
 
-v1.3
-----
+v1.3 (May 2019)
+---------------
 Bugfixes
 ~~~~~~~~
 - Fix broken paired-end support for RNA-seq. Previously, when using data from
@@ -83,8 +297,8 @@ ChIP-seq and RNA-seq
 - RSeQC is now available in Python 3 so wrappers have been removed.
 - NextGenMap support removed
 
-v1.2
-----
+v1.2 (Mar 2019)
+---------------
 
 RNA-seq
 ~~~~~~~
@@ -145,8 +359,8 @@ Colocalization
 - From colocalization, removed the GAT "fractions" heatmap due to unresolved
   pandas index errors
 
-v1.1
-----
+v1.1 (Aug 2018)
+---------------
 
 Infrastructure
 ~~~~~~~~~~~~~~
@@ -236,15 +450,15 @@ RNA-seq
       labels (list of lists, rather than individual list object; refactored
       functions to use this new structure
 
-v1.0.1
-------
+v1.0.1 (Jun 2018)
+-----------------
 Bugfixes, last release before references changes.
 
 Infrastructure
 ~~~~~~~~~~~~~~
 
 - Transition to CircleCI for testing
-- Use production settings by default; see :ref:`note-on-test-settings` for
+- Use production settings by default; see :ref:`test-settings` for
   more.
 - lots o' docs
 - new ``include/references_configs`` to help organize references. These are
@@ -305,6 +519,6 @@ Both RNA-seq and ChIP-seq
   in SRA
 - multiple FastQC runs are shown separately in MultiQC output
 
-v1.0
-----
-First full release.
+v1.0 (May 2018)
+---------------
+First official full release.

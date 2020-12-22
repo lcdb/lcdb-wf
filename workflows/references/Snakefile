@@ -33,6 +33,11 @@ def wrapper_for(path):
 
 localrules: symlink_fasta_to_index_dir
 
+wildcard_constraints:
+    _type="genome|transcriptome|annotation",
+    _ext="fasta|gtf"
+
+
 rule all_references:
     input: utils.flatten(refdict)
 
@@ -42,7 +47,7 @@ rule download_and_process:
     saves the resulting gzipped file to *.fasta.gz or *.gtf.gz.
     """
     output:
-        temporary('{references_dir}/{organism}/{tag}/{_type}/{organism}_{tag}.{_type}.gz')
+        temporary('{references_dir}/{organism}/{tag}/{_type}/{organism}_{tag}.{_ext}.gz')
     run:
         common.download_and_postprocess(output[0], config, wildcards.organism, wildcards.tag, wildcards._type)
 
@@ -54,9 +59,11 @@ rule unzip:
     input:
         rules.download_and_process.output
     output:
-        protected('{references_dir}/{organism}/{tag}/{_type}/{organism}_{tag}.{_type}')
+        protected('{references_dir}/{organism}/{tag}/{_type}/{organism}_{tag}.{_ext}')
+    wildcard_constraints:
+        _type="genome|annotation"
     log:
-        '{references_dir}/logs/{organism}/{tag}/{_type}/{organism}_{tag}.{_type}.log'
+        '{references_dir}/logs/{organism}/{tag}/{_type}/{organism}_{tag}.{_ext}.log'
     shell: 'gunzip -c {input} > {output}'
 
 
@@ -65,11 +72,11 @@ rule bowtie2_index:
     Build bowtie2 index
     """
     input:
-        '{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta'
+        '{references_dir}/{organism}/{tag}/genome/{organism}_{tag}.fasta'
     output:
-        protected(aligners.bowtie2_index_from_prefix('{references_dir}/{organism}/{tag}/bowtie2/{organism}_{tag}'))
+        protected(aligners.bowtie2_index_from_prefix('{references_dir}/{organism}/{tag}/genome/bowtie2/{organism}_{tag}'))
     log:
-        '{references_dir}/logs/{organism}/{tag}/bowtie2/{organism}_{tag}.log'
+        '{references_dir}/logs/{organism}/{tag}/genome/bowtie2/{organism}_{tag}.log'
     run:
         prefix = aligners.prefix_from_bowtie2_index(output)
         shell(
@@ -81,12 +88,12 @@ rule bowtie2_index:
 
 rule star_index:
     input:
-        fasta='{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta',
-        gtf='{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf',
+        fasta='{references_dir}/{organism}/{tag}/genome/{organism}_{tag}.fasta',
+        gtf='{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.gtf',
     output:
-        protected('{references_dir}/{organism}/{tag}/star/{organism}_{tag}/Genome')
+        protected('{references_dir}/{organism}/{tag}/genome/star/{organism}_{tag}/Genome')
     log:
-        '{references_dir}/{organism}/{tag}/star/{organism}_{tag}/Genome.log'
+        '{references_dir}/{organism}/{tag}/genome/star/{organism}_{tag}/Genome.log'
     threads:
         8
     run:
@@ -111,6 +118,10 @@ rule star_index:
             # --genomeSAindexNbases 14
             '&> {log}'
         )
+        # STAR writes a hard-coded Log.out file to the current working
+        # directory. So put that on the end of the log file for the rule and
+        # then clean up.
+        shell('cat {genomedir}/Log.out >> {log} && rm {genomedir}/Log.out')
 
 
 rule hisat2_index:
@@ -118,11 +129,11 @@ rule hisat2_index:
     Build HISAT2 index
     """
     input:
-        '{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta'
+        '{references_dir}/{organism}/{tag}/genome/{organism}_{tag}.fasta'
     output:
-        protected(aligners.hisat2_index_from_prefix('{references_dir}/{organism}/{tag}/hisat2/{organism}_{tag}'))
+        protected(aligners.hisat2_index_from_prefix('{references_dir}/{organism}/{tag}/genome/hisat2/{organism}_{tag}'))
     log:
-        '{references_dir}/logs/{organism}/{tag}/hisat2/{organism}_{tag}.log'
+        '{references_dir}/logs/{organism}/{tag}/genome/hisat2/{organism}_{tag}.log'
     run:
         prefix = aligners.prefix_from_hisat2_index(output)
         shell(
@@ -137,25 +148,35 @@ rule symlink_fasta_to_index_dir:
     this makes the appropriate symlink
     """
     input:
-        fasta='{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta'
+        fasta='{references_dir}/{organism}/{tag}/{_type}/{organism}_{tag}.fasta'
     output:
-        '{references_dir}/{organism}/{tag}/{index}/{organism}_{tag}.fasta'
+        '{references_dir}/{organism}/{tag}/{_type}/{index}/{organism}_{tag}.fasta'
     log:
-        '{references_dir}/logs/{organism}/{tag}/{index}/{organism}_{tag}.fasta.log'
+        '{references_dir}/logs/{organism}/{tag}/{_type}/{index}/{organism}_{tag}.fasta.log'
     run:
         utils.make_relative_symlink(input[0], output[0])
+
+
+rule transcriptome_fasta:
+    input:
+        fasta='{references_dir}/{organism}/{tag}/genome/{organism}_{tag}.fasta',
+        gtf='{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.gtf'
+    output:
+        protected('{references_dir}/{organism}/{tag}/transcriptome/{organism}_{tag}.fasta')
+    shell:
+        'gffread {input.gtf} -w {output} -g {input.fasta}'
 
 
 rule salmon_index:
     "Build salmon index"
     output:
-        protected('{references_dir}/{organism}/{tag}/salmon/{organism}_{tag}/hash.bin')
+        protected('{references_dir}/{organism}/{tag}/transcriptome/salmon/{organism}_{tag}/versionInfo.json')
     input:
-        fasta='{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta'
+        fasta='{references_dir}/{organism}/{tag}/transcriptome/{organism}_{tag}.fasta'
     log:
-        '{references_dir}/logs/{organism}/{tag}/salmon/{organism}_{tag}.log'
+        '{references_dir}/logs/{organism}/{tag}/transcriptome/salmon/{organism}_{tag}.log'
     params:
-        outdir='{references_dir}/{organism}/{tag}/salmon/{organism}_{tag}'
+        outdir='{references_dir}/{organism}/{tag}/transcriptome/salmon/{organism}_{tag}'
     shell:
         'salmon index '
         '--transcripts {input.fasta} '
@@ -167,11 +188,11 @@ rule conversion_refflat:
     """Converts a GTF into refFlat format
     """
     input:
-        '{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf'
+        '{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.gtf'
     output:
-        protected('{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.refflat')
+        protected('{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.refflat')
     log:
-        '{references_dir}/logs/{organism}/{tag}/gtf/{organism}_{tag}.refflat.log'
+        '{references_dir}/logs/{organism}/{tag}/annotation/{organism}_{tag}.refflat.log'
     shell:
         'gtfToGenePred -ignoreGroupsWithoutExons {input} {output}.tmp '
         '''&& awk '{{print $1"\t"$0}}' {output}.tmp > {output} '''
@@ -180,22 +201,23 @@ rule conversion_refflat:
 
 rule conversion_bed12:
     input:
-        '{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf'
+        '{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.gtf'
     output:
-        protected('{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.bed12')
+        protected('{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.bed12')
     shell:
-        'gtfToGenePred {input} {output}.tmp '
-        '&& genePredToBed {output}.tmp {output}'
+        'gtfToGenePred -ignoreGroupsWithoutExons {input} {output}.tmp '
+        '&& genePredToBed {output}.tmp {output} '
+        '&& rm {output}.tmp'
 
 rule conversion_gffutils:
     """Converts a GTF into a gffutils sqlite3 database
     """
     input:
-        gtf='{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf'
+        gtf='{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.gtf'
     output:
-        db=protected('{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf.db')
+        db=protected('{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.gtf.db')
     log:
-        '{references_dir}/logs/{organism}/{tag}/gtf/{organism}_{tag}.gtf.db.log'
+        '{references_dir}/logs/{organism}/{tag}/annotation/{organism}_{tag}.gtf.db.log'
     run:
         import gffutils
         kwargs = conversion_kwargs[output[0]]
@@ -208,11 +230,11 @@ rule chromsizes:
     """Creates a chromsizes table from fasta
     """
     input:
-        '{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta'
+        '{references_dir}/{organism}/{tag}/genome/{organism}_{tag}.fasta'
     output:
-        protected('{references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.chromsizes')
+        protected('{references_dir}/{organism}/{tag}/genome/{organism}_{tag}.chromsizes')
     log:
-        '{references_dir}/logs/{organism}/{tag}/fasta/{organism}_{tag}.fasta.log'
+        '{references_dir}/logs/{organism}/{tag}/genome/{organism}_{tag}.fasta.log'
     params:
         # NOTE: Be careful with the memory here; make sure you have enough
         # and/or it matches the resources you're requesting in the cluster
@@ -236,9 +258,9 @@ rule genelist:
     """Creates a list of unique gene names in the GTF
     """
     input:
-        gtf='{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf'
+        gtf='{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.gtf'
     output:
-        protected('{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.genelist')
+        protected('{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.genelist')
     run:
         attribute = conversion_kwargs[output[0]]['gene_id']
         import gffutils
@@ -255,9 +277,9 @@ rule mappings:
     Creates gzipped TSV mapping between attributes in the GTF.
     """
     input:
-        gtf='{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf'
+        gtf='{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.gtf'
     output:
-        protected('{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.mapping.tsv.gz')
+        protected('{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.mapping.tsv.gz')
     params:
         include_featuretypes=lambda wildcards, output: conversion_kwargs[output[0]].get('include_featuretypes', [])
     run:
@@ -292,29 +314,5 @@ rule mappings:
 
         # Restore original setting
         gffutils.constants.always_return_list = orig_setting
-
-rule annotations:
-    """Creates TSVs mappings between gene names (created in the `genelist` rule
-    above) and all of the columns in the configured AnnotationHub accession
-    (https://bioconductor.org/packages/release/bioc/html/AnnotationHub.html)
-    """
-    input:
-        rules.genelist.output
-    output:
-        protected('{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.{keytype}.csv')
-    params:
-        prefix='{references_dir}/{organism}/{tag}/gtf/{organism}_{tag}',
-        ahkey=lambda wildcards, output: conversion_kwargs[output[0]]['ahkey']
-    shell:
-        '''Rscript -e "'''
-        "library(AnnotationHub); "
-        "ah <- AnnotationHub(); "
-        "db <- ah[['{params.ahkey}']]; "
-        "gene.names <- read.table('{input}', stringsAsFactors=FALSE)[['V1']];"
-        "for (col in columns(db)){{"
-        "f <- select(db, keys=gene.names, keytype='{wildcards.keytype}', columns=col);"
-        "write.csv(f, file=paste0('{params.prefix}', '.', col, '.csv'), row.names=FALSE);"
-        '''}}"'''
-
 
 # vim: ft=python

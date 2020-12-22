@@ -5,12 +5,13 @@ references:
       metadata:
         reference_genome_build: 'danRer11'
 
-      fasta:
+      genome:
         url: 'ftp://hgdownload.soe.ucsc.edu/goldenPath/danRer11/bigZips/danRer11.fa.gz'
         indexes:
           - 'hisat2'
           - 'bowtie2'
-      gtf:
+          - 'star'
+      annotation:
         url: 'ftp://ftp.ensembl.org/pub/release-94/gtf/danio_rerio/Danio_rerio.GRCz11.94.gtf.gz'
         postprocess:
           function: 'lib.postprocess.utils.convert_gtf_chroms'
@@ -18,21 +19,19 @@ references:
         conversions:
           - 'refflat'
 
-
-    ucsc_11_transcriptome:
-      fasta:
-        url: 'ftp://hgdownload.soe.ucsc.edu/goldenPath/danRer11/bigZips/mrna.fa.gz'
+      transcriptome:
         indexes:
           - 'salmon'
 
     rRNA:
-      fasta:
+      genome:
         url:
-            - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
-            - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
         indexes:
-            - 'hisat2'
-            - 'bowtie2'
+          - 'hisat2'
+          - 'bowtie2'
+          - 'star'
         postprocess:
-            function: 'lib.common.filter_fastas'
-            args: 'Danio rerio'
+          function: 'lib.common.filter_fastas'
+          args: 'Danio rerio'

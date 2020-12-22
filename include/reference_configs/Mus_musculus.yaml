@@ -7,7 +7,7 @@ references:
         reference_effective_genome_count: 2.3e9
         reference_effective_genome_proportion: 0.87
 
-      fasta:
+      genome:
         url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M18/GRCm38.primary_assembly.genome.fa.gz'
         postprocess:
           function: 'lib.postprocess.utils.convert_fasta_chroms'
@@ -15,18 +15,17 @@ references:
         indexes:
           - 'hisat2'
           - 'bowtie2'
-      gtf:
+          - 'star'
+      annotation:
         url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M18/gencode.vM18.primary_assembly.annotation.gtf.gz'
         postprocess:
           function: 'lib.postprocess.utils.convert_gtf_chroms'
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/mouse/gencode_GRCm38.m18_to_ucsc_mm10/mappings_gencode_GRCm38.m18_to_ucsc_mm10.tsv'
         conversions:
           - 'refflat'
+          - 'bed12'
 
-
-    gencode_m18_transcriptome:
-      fasta:
-        url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M18/gencode.vM18.transcripts.fa.gz'
+      transcriptome:
         indexes:
           - 'salmon'
 
@@ -37,31 +36,31 @@ references:
         reference_effective_genome_count: 2.3e9
         reference_effective_genome_proportion: 0.87
 
-      fasta:
+      genome:
         url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M12/GRCm38.primary_assembly.genome.fa.gz'
         indexes:
           - 'hisat2'
           - 'bowtie2'
-      gtf:
+          - 'star'
+      annotation:
         url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M12/gencode.vM12.annotation.gtf.gz'
         conversions:
           - 'refflat'
+          - 'bed12'
 
-
-    gencode_m12_transcriptome:
-      fasta:
-        url: 'ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M12/gencode.vM12.transcripts.fa.gz'
+      transcriptome:
         indexes:
           - 'salmon'
 
     rRNA:
-      fasta:
+      genome:
         url:
-            - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
-            - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
         indexes:
-            - 'hisat2'
-            - 'bowtie2'
+          - 'hisat2'
+          - 'bowtie2'
+          - 'star'
         postprocess:
-            function: 'lib.common.filter_fastas'
-            args: 'Mus musculus'
+          function: 'lib.common.filter_fastas'
+          args: 'Mus musculus'

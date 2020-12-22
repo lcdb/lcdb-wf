@@ -18,10 +18,8 @@ from lib.patterns_targets import RNASeqConfig
 
 # Only use default if no configfile specified on the command line with
 # --configfile
-if not workflow.overwrite_configfile:
+if not workflow.overwrite_configfiles:
     configfile: 'config/config.yaml'
-else:
-    configfile: workflow.overwrite_configfile
 
 include: '../references/Snakefile'
 shell.prefix(
@@ -32,10 +30,18 @@ shell.executable('/bin/bash')
 
 config = common.load_config(config)
 
+# Verify configuration of config and sampletable files
+helpers.preflight(config)
+
 c = RNASeqConfig(config, config.get('patterns', 'config/rnaseq_patterns.yaml'))
 
+SAMPLES = c.sampletable.iloc[:, 0].values
+
 wildcard_constraints:
-    n = '[1,2]'
+    n = '[1,2]',
+    sample = '|'.join(SAMPLES)
+
+localrules: symlinks
 
 
 def wrapper_for(path):
@@ -44,7 +50,6 @@ def wrapper_for(path):
 # ----------------------------------------------------------------------------
 # RULES
 # ----------------------------------------------------------------------------
-
 
 # See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
@@ -59,25 +64,21 @@ final_targets = utils.flatten((
     utils.flatten(c.targets['rrna']),
     utils.flatten(c.targets['markduplicates']),
     utils.flatten(c.targets['salmon']),
-    utils.flatten(c.targets['dupradar']),
     utils.flatten(c.targets['preseq']),
     utils.flatten(c.targets['rseqc']),
     utils.flatten(c.targets['collectrnaseqmetrics']),
     utils.flatten(c.targets['bigwig']),
-    utils.flatten(c.targets['downstream']),
 ))
 
 if 'merged_bigwigs' in config:
     final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
 
-# Special case: all samples are single-end
-if all(c.sampletable.iloc[:, 0].apply(
-    lambda x: not common.is_paired_end(c.sampletable, x))
-):
-    ALL_SE = True
-    final_targets = [i.replace('{n}', '1') for i in final_targets]
-else:
-    ALL_SE = False
+
+def render_r1_r2(pattern, r1_only=False):
+    return expand(pattern, sample='{sample}', n=c.n)
+
+def r1_only(pattern):
+    return expand(pattern, sample='{sample}', n=1)
 
 rule targets:
     """
@@ -96,15 +97,9 @@ if 'orig_filename' in c.sampletable.columns:
         Given a sample, returns either one or two original fastq files
         depending on whether the library was single- or paired-end.
         """
-        row = _st.loc[wc.sample]
-        res = [row['orig_filename']]
-        try:
-            r2 = row['orig_filename_R2']
-            if isinstance(r2, str):
-                res.append(row['orig_filename_R2'])
-        except KeyError:
-            pass
-        return res
+        if c.is_paired:
+            return _st.loc[wc.sample, ['orig_filename', 'orig_filename_R2']]
+        return _st.loc[wc.sample, ['orig_filename']]
 
 
     rule symlinks:
@@ -114,30 +109,16 @@ if 'orig_filename' in c.sampletable.columns:
         input:
             orig_for_sample
         output:
-            c.patterns['fastq']
-        wildcard_constraints:
-            n="\d+"
+            render_r1_r2(c.patterns['fastq'])
         run:
 
-            assert len(output) == 1
-            if wildcards.n == '1':
-                src = input[0]
-            elif wildcards.n == '2':
-                src = input[1]
-            else:
-                raise ValueError("n={}, only 1 and 2 supported".format(wildcards.n))
-
-            utils.make_relative_symlink(src, output[0])
+            assert len(output) == len(input), (input, output)
+            for src, linkname in zip(input, output):
+                utils.make_relative_symlink(src, linkname)
 
 
     rule symlink_targets:
         input: c.targets['fastq']
-
-
-def render_r1_r2(pattern):
-    if ALL_SE:
-        return expand(pattern, sample='{sample}', n=[1])
-    return expand(pattern, sample='{sample}', n=[1, 2])
 
 
 if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('SRR')) > 0:
@@ -155,8 +136,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
             # Two different paths depending on the layout. In both cases, we
             # want to avoid creating the final output until the very end, to
             # avoid incomplete downloads.
-            if common.is_paired_end(c.sampletable, wildcards.sample):
-
+            if c.is_paired:
                 # For PE we need to use --split-files, which also means using
                 # the slower --gzip
                 shell(
@@ -167,7 +147,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     # '-X 100000 ' # [TEST SETTINGS]
                 )
 
-                # The filenames are predictable, so we can move them as needd.
+                # The filenames are predictable, so we can move them as needed.
                 shell('mv {srr}_1.fastq.gz {output[0]}')
                 shell('mv {srr}_2.fastq.gz {output[1]}')
 
@@ -182,8 +162,64 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     '| gzip -c > {output[0]}.tmp '
                     '&& mv {output[0]}.tmp {output[0]} '
                 )
-                if not ALL_SE:
-                    shell('touch {output[1]}')
+
+# This can be set at the command line with --config strand_check_reads=1000
+config.setdefault('strand_check_reads', 1e5)
+
+rule sample_strand_check:
+    input:
+        fastq=common.fill_r1_r2(c.sampletable, c.patterns['fastq']),
+        index=[c.refdict[c.organism][config['aligner']['tag']]['bowtie2']],
+        bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12']
+    output:
+        temporary('{sample}.strandedness')
+    threads: 6
+    run:
+        prefix = aligners.prefix_from_bowtie2_index(input.index)
+        nreads = int(config['strand_check_reads']) * 4
+        if c.is_paired:
+            assert len(input.fastq) == 2
+            shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output}.small_R1.fastq')
+            shell('set +o pipefail; zcat {input.fastq[1]} | head -n {nreads} > {output}.small_R2.fastq')
+            fastqs = f'-1 {output}.small_R1.fastq -2 {output}.small_R2.fastq '
+        else:
+            assert len(input.fastq) == 1
+            shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output}.small_R1.fastq')
+            fastqs = f'-U {output}.small_R1.fastq '
+        shell(
+            "bowtie2 "
+            "-x {prefix} "
+            "{fastqs} "
+            '--no-unal '
+            "--threads {threads} "
+            "| samtools view -Sb - "
+            "| samtools sort - -o {output}.bam "
+        )
+        shell(
+            'infer_experiment.py -r {input.bed12} -i {output}.bam > {output} '
+            '&& rm {output}.bam {output}.small_R?.fastq'
+        )
+
+rule strand_check:
+    input:
+        expand('{sample}.strandedness', sample=SAMPLES)
+    output:
+        'strandedness.tsv'
+    run:
+        ds = []
+        for f in list(input):
+            d = {}
+            sample = f.split('.')[0]
+            d['sample'] = sample
+            for line in open(f):
+                line = line.strip()
+                toks = line.split(': ')
+                if 'explained by' in line:
+                    d[toks[0].split()[-1].replace('"', '')] = toks[-1]
+                if 'failed to determine' in line:
+                    d['undetermined'] = toks[-1]
+            ds.append(d)
+        pd.DataFrame(ds).to_csv(output[0], sep='\t', index=False)
 
 
 rule cutadapt:
@@ -191,23 +227,18 @@ rule cutadapt:
     Run cutadapt
     """
     input:
-        fastq=common.fill_r1_r2(c.sampletable, c.patterns['fastq'])
+        fastq=render_r1_r2(c.patterns['fastq'])
     output:
         fastq=render_r1_r2(c.patterns['cutadapt'])
     log:
         render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
     threads: 6
     run:
-        paired = len(input) == 2
 
         # NOTE: Change cutadapt params here
-
-
-        if paired:
+        if c.is_paired:
             shell(
                 "cutadapt "
-                "{input.fastq[0]} "
-                "{input.fastq[1]} "
                 "-o {output[0]} "
                 "-p {output[1]} "
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
@@ -215,20 +246,20 @@ rule cutadapt:
                 '-q 20 '
                 '-j {threads} '
                 '--minimum-length 25 '
+                "{input.fastq[0]} "
+                "{input.fastq[1]} "
                 "&> {log}"
             )
         else:
             shell(
                 "cutadapt "
-                "{input.fastq[0]} "
                 "-o {output[0]} "
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 '-q 20 '
                 '--minimum-length 25 '
+                "{input.fastq[0]} "
                 "&> {log}"
             )
-            if not ALL_SE:
-                shell('touch {output[1]}')
 
 
 rule fastqc:
@@ -260,12 +291,12 @@ if config['aligner']['index'] == 'hisat2':
             prefix = aligners.prefix_from_bowtie2_index(input.index)
             sam = output.bam.replace('.bam', '.sam')
 
-            # If two fastqs were provided, assume paired-end mode; otherwise single-end
-            if isinstance(input.fastq, str) or len(input.fastq) == 1:
-                fastqs = '-U {0} '.format(input.fastq)
-            else:
+            if c.is_paired:
                 assert len(input.fastq) == 2
                 fastqs = '-1 {0} -2 {1} '.format(*input.fastq)
+            else:
+                assert len(input.fastq) == 1
+                fastqs = '-U {0} '.format(input.fastq)
 
             shell(
                 "hisat2 "
@@ -283,50 +314,144 @@ if config['aligner']['index'] == 'hisat2':
                 "&& rm {sam}"
             )
 
+if config['aligner']['index'].startswith('star'):
+
+    # STAR can be run in 1-pass or 2-pass modes. Since we may be running it
+    # more than once in almost the same way, we pull out the shell command here
+    # and use it below.
+    STAR_CMD = (
+        'STAR '
+        '--runThreadN {threads} '
+        '--genomeDir {genomedir} '
+        '--readFilesIn {input.fastq} '
+        '--readFilesCommand zcat '
+        '--outFileNamePrefix {prefix} '
+
+        # NOTE: The STAR docs indicate that the following parameters are
+        # standard options for ENCODE long-RNA-seq pipeline.  Comments are from
+        # the STAR docs.
+        '--outFilterType BySJout '               # reduces number of spurious junctions
+        '--outFilterMultimapNmax 20 '            # if more than this many multimappers, consider unmapped
+        '--alignSJoverhangMin 8 '                # min overhang for unannotated junctions
+        '--alignSJDBoverhangMin 1 '              # min overhang for annotated junctions
+        '--outFilterMismatchNmax 999 '           # max mismatches per pair
+        '--outFilterMismatchNoverReadLmax 0.04 ' # max mismatches per pair relative to read length
+        '--alignIntronMin 20 '                   # min intron length
+        '--alignIntronMax 1000000 '              # max intron length
+        '--alignMatesGapMax 1000000 '            # max distance between mates
+        '--outSAMunmapped None '                 # do not report aligned reads in output
+    )
+    logfile_extensions = ['Log.progress.out', 'Log.out', 'Log.final.out', 'Log.std.out']
+
 if config['aligner']['index'] == 'star':
+
     rule star:
         """
-        Map reads with STAR
+        Align with STAR (1-pass mode)
         """
         input:
             fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
-            index=[c.refdict[c.organism][config['aligner']['tag']]['star']]
+            index=[c.refdict[c.organism][config['aligner']['tag']]['star']],
+            annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
         output:
-            bam=c.patterns['bam']
+            bam=c.patterns['bam'],
+            sjout=temporary(c.patterns['bam'].replace('.bam', '.star.SJ.out.tab')),
         log:
-            c.patterns['bam'] + '.log'
-        threads: 6
+            c.patterns['bam'].replace('.bam', '.star.bam.log')
+        threads: 16
         run:
             genomedir = os.path.dirname(input.index[0])
-            prefix = os.path.dirname(output[0]) + '.star.'
+            outdir = os.path.dirname(output[0])
+            prefix = output.bam.replace('.bam', '.star.')
             shell(
-                'STAR '
-                '--runThreadN {threads} '
-                '--genomeDir {genomedir} '
-                '--readFilesIn {input.fastq} '
-                '--readFilesCommand zcat '
-                '--outFileNamePrefix {prefix} '
-                # NOTE: The STAR docs indicate that the following parameters
-                # are standard options for ENCODE long-RNA-seq pipeline.
-                # Comments are from the STAR docs.
-                '--outFilterType BySJout '     # reduces number of spurious junctions
-                '--outFilterMultimapNmax 20 '  # if more than this many multimappers, consider unmapped
-                '--alignSJoverhangMin 8 '      # min overhang for unannotated junctions
-                '--alignSJDBoverhangMin 1 '    # min overhang for annotated junctions
-                '--outFilterMismatchNmax 999 ' # max mismatches per pair
-                '--outFilterMismatchNoverReadLmax 0.04 ' # max mismatches per pair relative to read length
-                '--alignIntronMin 20 '         # min intron length
-                '--alignIntronMax 1000000 '    # max intron length
-                '--alignMatesGapMax 1000000 '  # max distance between mates
-                '--outSAMunmapped None '       # do not report aligned reads in output
-                 '&> {log} '
+                STAR_CMD + (
+                    '--outSAMtype BAM SortedByCoordinate '
+                    '--outStd BAM_SortedByCoordinate > {output.bam} '
+                    '2> {log} '
+                )
             )
 
+            # move various hard-coded log files to log directory
+            logfiles = expand(prefix + '{ext}', ext=logfile_extensions)
+            shell('mkdir -p {outdir}/star_logs '
+                  '&& mv {logfiles} {outdir}/star_logs')
+
+if config['aligner']['index'] == 'star-twopass':
+
+    rule star_pass1:
+        """
+        First pass of alignment with STAR to get the junctions
+        """
+        input:
+            fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            index=[c.refdict[c.organism][config['aligner']['tag']]['star']],
+            annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
+        output:
+            sjout=temporary(c.patterns['bam'].replace('.bam', '.star-pass1.SJ.out.tab')),
+        log:
+            c.patterns['bam'].replace('.bam', '.star-pass1.bam.log')
+        threads: 16
+        run:
+            genomedir = os.path.dirname(input.index[0])
+            outdir = os.path.dirname(output[0])
+            prefix = output.sjout.replace('SJ.out.tab', '')
             shell(
-                'samtools view -Sb {prefix}Aligned.out.sam '
-                '| samtools sort - -O BAM -o {output.bam} '
-                '&& rm {prefix}Aligned.out.sam '
+                STAR_CMD +
+                (
+                    # In this first pass, we don't actually care about the
+                    # alignment -- just the detected junctions. So we output
+                    # the SAM to /dev/null.
+                    '--outStd SAM > /dev/null '
+                    '2> {log} '
+                )
             )
+
+            # move various hard-coded log files to log directory
+            logfiles = expand(prefix + '{ext}', ext=logfile_extensions)
+            shell('mkdir -p {outdir}/star-pass1_logs '
+                  '&& mv {logfiles} {outdir}/star-pass1_logs')
+
+
+    rule star_pass2:
+        """
+        Second pass of alignment with STAR using splice junctions across all
+        samples to get the final BAM
+        """
+        input:
+            sjout=expand(c.patterns['bam'].replace('.bam', '.star-pass1.SJ.out.tab'), sample=SAMPLES),
+            fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            index=[c.refdict[c.organism][config['aligner']['tag']]['star']],
+            annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
+        output:
+            bam=c.patterns['bam'],
+            sjout=temporary(c.patterns['bam'].replace('.bam', '.star-pass2.SJ.out.tab')),
+        log:
+            c.patterns['bam'].replace('.bam', '.star-pass2.bam.log')
+        threads: 16
+        run:
+            genomedir = os.path.dirname(input.index[0])
+            outdir = os.path.dirname(output[0])
+            prefix = output.bam.replace('.bam', '.star-pass2.')
+            shell(
+                STAR_CMD + (
+                    # In contrast to pass 1, we will be keeping these BAMs --
+                    # so sort them
+                    '--outSAMtype BAM SortedByCoordinate '
+
+                    # Splice junction databases from all samples in the first
+                    # pass.
+                    '--sjdbFileChrStartEnd {input.sjout} '
+                    '--outStd BAM_SortedByCoordinate > {output.bam} '
+                    '2> {log} '
+                )
+            )
+
+            # move various hard-coded log files to log directory
+            logfiles = expand(prefix + '{ext}', ext=logfile_extensions)
+            shell('mkdir -p {outdir}/star-pass2_logs '
+                  '&& mv {logfiles} {outdir}/star-pass2_logs')
+
+            shell('rm -r {prefix}_STARgenome')
 
 
 rule rRNA:
@@ -334,17 +459,12 @@ rule rRNA:
     Map reads with bowtie2 to the rRNA reference
     """
     input:
-        fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt'], r1_only=True),
+        fastq=r1_only(c.patterns['cutadapt']),
         index=[c.refdict[c.organism][config['rrna']['tag']]['bowtie2']]
     output:
         bam=c.patterns['rrna']['bam']
     log:
         c.patterns['rrna']['bam'] + '.log'
-    params:
-        # NOTE: we'd likely only want to report a single alignment for rRNA
-        # screening
-        bowtie2_extra='-k 1',
-        samtools_view_extra='-F 0x04'
     threads: 6
     run:
         prefix = aligners.prefix_from_bowtie2_index(input.index)
@@ -375,7 +495,7 @@ rule fastq_count:
     input:
         fastq='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz'
     output:
-        count='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
+        '{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
     shell:
         'zcat {input} | echo $((`wc -l`/4)) > {output}'
 
@@ -387,7 +507,7 @@ rule bam_count:
     input:
         bam='{sample_dir}/{sample}/{suffix}.bam'
     output:
-        count='{sample_dir}/{sample}/{suffix}.bam.libsize'
+        '{sample_dir}/{sample}/{suffix}.bam.libsize'
     shell:
         'samtools view -c {input} > {output}'
 
@@ -421,7 +541,7 @@ rule fastq_screen:
     """
     input:
         **fastq_screen_references(),
-        fastq=common.fill_r1_r2(c.sampletable, rules.cutadapt.output.fastq, r1_only=True),
+        fastq=r1_only(rules.cutadapt.output.fastq),
     output:
         txt=c.patterns['fastq_screen']
     log:
@@ -436,27 +556,32 @@ rule featurecounts:
     Count reads in annotations with featureCounts from the subread package
     """
     input:
-        annotation=c.refdict[c.organism][config['gtf']['tag']]['gtf'],
+        annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
         bam=c.targets['bam']
     output:
         counts='{sample_dir}/rnaseq_aggregation/featurecounts.txt'
     log:
         '{sample_dir}/rnaseq_aggregation/featurecounts.txt.log'
-    shell:
+    threads: 4
+    run:
+        # NOTE: By default, we use -p for paired-end
+        p_arg = ''
+        if c.is_paired:
+            p_arg = '-p '
+        shell(
             'featureCounts '
 
             # NOTE:
-            # Choose strandedness here
+            # Choose strandedness here (s0 is unstranded, s1 is sense, s2 is
+            # antisense)
             '-s0 '
-
-            # NOTE:
-            # Paired-end data? You'll likely want to use the -p argument
-            # '-p '
+            '{p_arg} '
             '-T {threads} '
             '-a {input.annotation} '
             '-o {output.counts} '
             '{input.bam} '
             '&> {log}'
+        )
 
 
 rule rrna_libsizes_table:
@@ -580,7 +705,6 @@ rule multiqc:
             utils.flatten(c.targets['salmon']) +
             utils.flatten(c.targets['rseqc']) +
             utils.flatten(c.targets['fastq_screen']) +
-            utils.flatten(c.targets['dupradar']) +
             utils.flatten(c.targets['preseq']) +
             utils.flatten(c.targets['collectrnaseqmetrics'])
         ),
@@ -592,7 +716,7 @@ rule multiqc:
         outdir = os.path.dirname(c.targets['multiqc'][0])
         basename = os.path.basename(c.targets['multiqc'][0])
         shell(
-            'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
+            'LC_ALL=en_US.utf8 LC_LANG=en_US.utf8 '
             'multiqc '
             '--quiet '
             '--outdir {outdir} '
@@ -602,6 +726,7 @@ rule multiqc:
             '{analysis_directory} '
             '&> {log} '
         )
+
 
 rule markduplicates:
     """
@@ -627,6 +752,7 @@ rule markduplicates:
         'INPUT={input.bam} '
         'OUTPUT={output.bam} '
         'METRICS_FILE={output.metrics} '
+        'VALIDATION_STRINGENCY=LENIENT '
         '&> {log}'
 
 
@@ -639,7 +765,6 @@ rule collectrnaseqmetrics:
         refflat=c.refdict[c.organism][config['gtf']['tag']]['refflat']
     output:
         metrics=c.patterns['collectrnaseqmetrics']['metrics'],
-        pdf=c.patterns['collectrnaseqmetrics']['pdf']
     params:
         # NOTE: Be careful with the memory here; make sure you have enough
         # and/or it matches the resources you're requesting in the cluster
@@ -662,8 +787,7 @@ rule collectrnaseqmetrics:
         #     SECOND_READ_TRANSCRIPTION_STRAND}
         #
         'STRAND=NONE '
-
-        'CHART_OUTPUT={output.pdf} '
+        'VALIDATION_STRINGENCY=LENIENT '
         'REF_FLAT={input.refflat} '
         'INPUT={input.bam} '
         'OUTPUT={output.metrics} '
@@ -685,27 +809,6 @@ rule preseq:
         '-o {output} '
 
 
-rule dupRadar:
-    """
-    Assess the library complexity with dupRadar
-    """
-    input:
-        bam=rules.markduplicates.output.bam,
-        annotation=c.refdict[c.organism][config['gtf']['tag']]['gtf'],
-    output:
-        density_scatter=c.patterns['dupradar']['density_scatter'],
-        expression_histogram=c.patterns['dupradar']['expression_histogram'],
-        expression_boxplot=c.patterns['dupradar']['expression_boxplot'],
-        expression_barplot=c.patterns['dupradar']['expression_barplot'],
-        multimapping_histogram=c.patterns['dupradar']['multimapping_histogram'],
-        dataframe=c.patterns['dupradar']['dataframe'],
-        model=c.patterns['dupradar']['model'],
-        curve=c.patterns['dupradar']['curve'],
-    log: c.patterns['dupradar']['dataframe'] + '.log'
-    script:
-        wrapper_for('dupradar/wrapper.py')
-
-
 rule salmon:
     """
     Quantify reads coming from transcripts with Salmon
@@ -722,8 +825,7 @@ rule salmon:
         c.patterns['salmon'] + '.log'
     threads: 6
     run:
-        paired = len(input.fastq) == 2
-        if paired:
+        if c.is_paired:
             shell(
                 # NOTE: adjust Salmon params as needed
                 'salmon quant '
@@ -764,18 +866,6 @@ rule salmon:
             )
 
 
-rule rseqc_bam_stat:
-    """
-    Calculate various BAM stats with RSeQC
-    """
-    input:
-        bam=c.patterns['bam']
-    output:
-        txt=c.patterns['rseqc']['bam_stat']
-    shell:
-        'bam_stat.py -i {input.bam} > {output.txt}'
-
-
 rule rseqc_infer_experiment:
     """
     Infer strandedness of experiment
@@ -785,9 +875,25 @@ rule rseqc_infer_experiment:
         bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12']
     output:
         txt=c.patterns['rseqc']['infer_experiment']
-    shell:
-        'infer_experiment.py -r {input.bed12} -i {input.bam} > {output}'
+    log:
+        c.patterns['rseqc']['infer_experiment'] + '.log'
 
+    shell:
+        'infer_experiment.py -r {input.bed12} -i {input.bam} > {output} &> {log}'
+
+rule rseqc_read_distribution:
+    """
+    read distribution plots
+    """
+    input:
+        bam=c.patterns['bam'],
+        bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12'],
+    output:
+        txt=c.patterns['rseqc']['read_distribution']
+    log:
+        c.patterns['rseqc']['read_distribution'] + '.log'
+    shell:
+        'read_distribution.py -i {input.bam} -r {input.bed12} > {output} &> {log}'
 
 rule bigwig_neg:
     """
@@ -810,6 +916,10 @@ rule bigwig_neg:
         '--minMappingQuality 20 '
         '--ignoreDuplicates '
         '--smoothLength 10 '
+
+        # NOTE: --filterRNAstrand forward keeps minus-strand reads, which
+        # originally came from genes on the forward strand assuming
+        # a dUTP-based library prep.
         '--filterRNAstrand forward '
         '--normalizeUsing BPM '
         '&> {log}'
@@ -836,30 +946,13 @@ rule bigwig_pos:
         '--minMappingQuality 20 '
         '--ignoreDuplicates '
         '--smoothLength 10 '
+
+        # NOTE: --filterRNAstrand reverse keeps plus-strand reads, which
+        # originally came from genes on the reverse strand assuming
+        # a dUTP-based library prep.
         '--filterRNAstrand reverse '
         '--normalizeUsing BPM '
         '&> {log}'
-
-
-rule rnaseq_rmarkdown:
-    """
-    Run and render the RMarkdown file that performs differential expression
-    """
-    input:
-        featurecounts=utils.flatten(c.targets['featurecounts']),
-        salmon=utils.flatten(c.targets['salmon']),
-
-        # NOTE: the Rmd will likely need heavy editing depending on the project.
-        rmd='downstream/rnaseq.Rmd',
-        sampletable=config['sampletable']
-    output:
-        'downstream/rnaseq.html'
-    log:
-        'downstream/rnaseq.log'
-    shell:
-        'Rscript -e '
-        '''"rmarkdown::render('{input.rmd}')" '''
-        '> {log} 2>&1'
 
 
 def bigwigs_to_merge(wc):
@@ -890,5 +983,27 @@ if 'merged_bigwigs' in config:
             c.patterns['merged_bigwig'] + '.log'
         script:
             wrapper_for('average-bigwigs/wrapper.py')
+
+
+rule rnaseq_rmarkdown:
+    """
+    Run and render the RMarkdown file that performs differential expression
+    """
+    input:
+        featurecounts=utils.flatten(c.targets['featurecounts']),
+        salmon=utils.flatten(c.targets['salmon']),
+
+        # NOTE: the Rmd will likely need heavy editing depending on the project.
+        rmd='downstream/rnaseq.Rmd',
+        sampletable=config['sampletable']
+    output:
+        'downstream/rnaseq.html'
+    log:
+        'downstream/rnaseq.log'
+    shell:
+        'Rscript -e '
+        '''"rmarkdown::render('{input.rmd}')" '''
+        '> {log} 2>&1'
+        # [TEST_SETTINGS -1]
 
 # vim: ft=python

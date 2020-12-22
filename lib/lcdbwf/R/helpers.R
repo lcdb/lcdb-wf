@@ -1,4 +1,4 @@
-```{r}
+## -----------------------------------------------------------------------------
 library(DESeq2)
 library(pheatmap)
 library(RColorBrewer)
@@ -6,6 +6,11 @@ library(DEGreport)
 library(ggplot2)
 library(ggrepel)
 library(heatmaply)
+library(readr)
+library(stringr)
+library(tibble)
+library(purrr)
+library(tidyr)
 
 #' Get the OrgDb for the specified organism, using the cached AnnotationHub.
 #'
@@ -20,15 +25,19 @@ get.orgdb <- function(species, cache, annotation_key_override=NA){
     # Workaround to allow AnnotationHub to use proxy. See
     # https://github.com/Bioconductor/AnnotationHub/issues/4, and thanks
     # Wolfgang!
-    ah <- AnnotationHub::.Hub("AnnotationHub",
-        getAnnotationHubOption("URL"),
+    proxy <- Sys.getenv('http_proxy')
+    if (proxy == ""){
+        proxy <- NULL
+    }
 
-        # Cache location is specific to this instance of lcdb-wf so we don't
-        # clobber old runs with new annotation data
-        '../../../include/AnnotationHubCache',
+    if (!dir.exists(cache)){
+        dir.create(cache, recursive=TRUE)
+    }
 
-        httr::use_proxy(Sys.getenv("http_proxy")),
-        FALSE)
+    ah <- AnnotationHub(hub=getAnnotationHubOption('URL'),
+             cache=cache,
+             proxy=proxy,
+             localHub=FALSE)
 
     find.annotationhub.name <- function(species.name, override.code) { #autodetect ah names based on loaded database
         if (is.na(override.code)) {
@@ -74,15 +83,24 @@ plotPCA.ly <- function(rld, intgroup){
 #' @param fc.lim User-defined limits for y-axis (log2FC). If NULL, this is defined as
 #'        the (floor, ceiling) of range(res$log2FoldChange)
 #' @param genes.to.label Genes to label on the MA plot. NULL, by default
+#' @param col Column of `res` in which to look for `genes.to.label`. If NULL,
+#'        rownames are used.
 #'
 #' @return Handle to ggplot
 plotMA.label <- function(res,
-                         fdr.thres=0.01,
+                         fdr.thres=0.1,
                          fc.thres=0,
                          fc.lim=NULL,
-                         genes.to.label=NULL){
+                         genes.to.label=NULL,
+                         col=NULL
+                         ){
   # TODO: Add ggrastr option for points
-
+  genes.to.label <- as.character(genes.to.label)
+  nna <- sum(is.na(genes.to.label))
+  if (nna > 0){
+      warning(paste("Removing", nna, "NAs from gene list"))
+      genes.to.label <- genes.to.label[!is.na(genes.to.label)]
+  }
   # convert res to data frame
   res <- data.frame(res)
 
@@ -128,8 +146,14 @@ plotMA.label <- function(res,
 
   if(!is.null(genes.to.label)){
     # get data frame of genes to be labeled
-    label.list <- res[rownames(res) %in% genes.to.label,]
-    label.list <- data.frame(genes=rownames(label.list), label.list)
+    if (!is.null(col)){
+        res$gene.labels <- res[,col]
+    } else {
+        res$gene.labels <- rownames(res)
+    }
+
+    label.list <- res[res$gene.labels %in% genes.to.label,]
+    #label.list <- data.frame(genes=rownames(label.list), label.list)
 
     # label genes outside limits
     up.max.idx <- rownames(label.list) %in% rownames(up.max)
@@ -145,7 +169,7 @@ plotMA.label <- function(res,
 
     # add labels
     p <- p + geom_point(data=label.list, col="black", pch=1, size=3)
-    p <- p + geom_label_repel(data=label.list, aes(label=label.list$genes, fontface="italic"))
+    p <- p + geom_label_repel(data=label.list, aes(label=label.list$gene.labels, fontface="italic"))
   }
   return(p)
 
@@ -204,38 +228,89 @@ mdcat <- function(...){
 }
 
 
+#' Convert a vector of BAM filenames into a vector of samplenames.
+#'
+#' @param x Character vector of BAM filenames (e.g., from the header of
+#'        featureCounts)
+#'
+lcdbwf.samplename <- function(x) {
+    x <- x %>%
+        str_remove_all('data/rnaseq_samples/') %>%
+        str_remove_all('.cutadapt.bam') %>%
+        str_split(fixed('/'), simplify=TRUE)
+    x[,1]
+}
+
+
 #' Load a single combined featureCounts table into a DESeq object.
 #'
 #' @param filename Filename containing featureCounts combined output
 #' @param sampletable data.frame containing at least sample names as first
-#' column
+#'        column
 #' @param design Model used for creating DESeq object
+#' @param sample.func Function that will be applied to each column name
+#'        to align it to the input sampletable. Takes a character vector as
+#'        input and returns a character vector of adjusted strings.
+#' @param subset.counts If TRUE, then counts are subsetted by the provided
+#'        sampletable. That is, only the counts columns that match a rowname of
+#'        the provided sampletable are included. If FALSE (default), an error
+#'        is raised reporting the differences in sampletable and counts data.
+#'        It is always an error if counts data does not have an entry for
+#'        a sample in the sampletable.
 #'
 #' @return DESeq object
 #'
 #' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
-DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable, design, ...){
+DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable, design, sample.func=lcdbwf.samplename, subset.counts=FALSE, ...){
 
-    m <- read.table(filename, header=TRUE, row.names=1)
-    m <- m[, 6:ncol(m)]
+    # The sampletable may be data.frame or tibble; if it's a tibble then it
+    # likely doesn't have rownames. So in this function we assume that it's the
+    # first column that contains the samplenames.
+
+    # Read in the counts TSV, use gene ID as rownames, and get rid of the Chr,
+    # Start, End, Strand, Length columns
+    m <- read_tsv(filename, comment="#") %>%
+        remove_rownames %>%
+        column_to_rownames('Geneid') %>%
+        dplyr::select(-(1:5)) %>%
+        as.data.frame
 
     # The column names of the imported table are not guaranteed to match the
     # samples in the metadata, so we need to make sure things match up
     # correctly when renaming columns.
-
-    s <- as.character(sampletable[,1])
-
-    # If each sample matches exactly once, then sapply will simplify to an
-    # integer. Otherwise, it will be a list.
-    hits <- sapply(s, grep, colnames(m))
-    stopifnot(class(hits) == 'integer')
-
-    # In this case, we now have an integer vector showing which samplename
-    # should be used for which column in `m`:
     #
-    #   sample1 sample2 sample3 sample4
-    #         2       1       4       3
-    colnames(m) <- names(hits)[hits]
+    # sample.func should convert filenames (which are columns in featurecounts
+    # table) with samples (as listed in the sampletable)
+    x <- colnames(m) %>% sample.func
+
+    samplenames <- sampletable[,1]
+    counts.not.sampletable <- setdiff(x, samplenames)
+    sampletable.not.counts <- setdiff(samplenames, x)
+
+
+    if (!all(x %in% samplenames)){
+        # sampletable is missing:
+        if (!subset.counts){
+            stop(paste('The following samples are in the counts data but not the sampletable. If this is intended, consider using `subset.counts=TRUE` to remove them from the counts:', paste(counts.not.sampletable, collapse=', ')))
+        }
+    }
+    if (!all(samplenames %in% x)){
+        stop(
+           paste(
+             'The following samples are in the sampletable but not in the counts data. Check sample.func?',
+             paste(sampletable.not.counts, collapse=', '))
+        )
+    }
+
+    colnames(m) <- x
+
+    # We should be good -- so reorder columns in `m` to match sampletable
+    m <- m[, sampletable[,1]]
+
+    # Before creating the dds object, we will drop levels from factors, in case
+    # that was not done before sending in the (possibly subsetted) sampletable.
+
+    sampletable <- droplevels(as.data.frame(sampletable))
 
     object <- DESeqDataSetFromMatrix(countData=m, colData=sampletable, design=design, ...)
     return(object)
@@ -279,13 +354,95 @@ DESeqDataSetFromFeatureCounts <- function (sampleTable, directory='.', design,
 #' @return DESeq object with transcript-level counts
 #'
 #' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
-DESeqDataSetFromSalmon <- function (sampleTable, directory='.', design,
+DESeqDataSetFromSalmon <- function (sampleTable, design,
                                            ignoreRank=FALSE,  ...)
 {
     txi <- tximport(sampleTable[, 'salmon.path'], type='salmon', txOut=TRUE)
     object <- DESeqDataSetFromTximport(txi, colData=sampleTable[, -grepl('path', colnames(sampleTable)),
                                        drop=FALSE], design=design, ignoreRank, ...)
     return(object)
+}
+
+#' Make a single dds object
+#'
+#' This function is intended to be applied to a list of design data.
+#'
+#' @param design_data Named list of 2 to 4 items. At least "sampletable" (the
+#'           colData, as a data.frame or tibble) and "design" (e.g., `~group`)
+#'           are required. The optional named items are "file", which is the
+#'           featureCounts file containing counts for all samples, and "args"
+#'           which is a list of arguments to be passed to the constructor
+#'           (e.g., `args=list(subset.counts=TRUE))`.
+#' @param salmon.files If you want the dds objects to be generated from salmon
+#'           counts, then provide the txi object from tximport. Otherwise,
+#'           leave as NULL to use featureCounts. The value of this argument is
+#'           used for all dds objects in the returned list (that is, the
+#'           returned list cannot have a mix of salmon and featureCounts; if
+#'           you want both you'll need to call this function twice).
+#' @param combine.by The column to collapse technical replicates by. Rows in
+#'           the sampletable that share the same value of this column will be
+#'           combined using DESeq2::collapseReplicates.
+#' @param ... Additional arguments will be passed on to the DESeq() call (e.g.,
+#'           parallel, fitType, etc)
+#' @param remove.version If TRUE, gene (or transcript) version information --
+#'           the ".1" in "ENSG0000102345.1" -- will be stripped off.
+make.dds <- function(design_data, salmon.files=NULL, combine.by=NULL,
+                     remove.version=FALSE, ...){
+    colData <- pluck(design_data, 'sampletable')
+    design <- pluck(design_data, 'design')
+    location <- pluck(design_data, 'file',
+                      .default='../data/rnaseq_aggregation/featurecounts.txt')
+    arg_list <- pluck(design_data, 'args')
+
+    if (is.null(salmon.files)) {
+        dds <- exec(
+            DESeqDataSetFromCombinedFeatureCounts,
+                location,
+                sampletable=colData,
+                design=design,
+                !!!arg_list)
+    } else {
+        dds <- exec(
+            DESeqDataSetFromTximport,
+            salmon.files,
+            colData=colData[, -grepl('path', colnames(colData)), drop=FALSE],
+            design=design,
+            !!!arg_list)
+    }
+
+    if (remove.version){
+        rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE),
+                                function (x) {ifelse(grepl('_', x[2]),
+                                                     paste(x[1], x[2], sep='.'),
+                                                     x[1])}
+                                )
+    }
+
+    if(!is.null(combine.by)){
+        dds <-collapseReplicates2(dds, dds[[combine.by]])
+    }
+
+    dds <- DESeq(dds, ...)
+    return(dds)
+}
+
+#' Make a list of dds objects
+#'
+#' Helper function to construct a list of dds objects. The `make.dds` function
+#' does all the work; this just sets up some sane defaults and does the map()
+#' call.
+#'
+#' @param deseq_obj_list A named list of lists. Each list is used as the first
+#'           argument to `make.dds`; see the documentation of that function for
+#'           details.
+#'
+#' @return A list of dds objects.
+#'
+make.dds.list <- function(deseq_obj_list, salmon.files=NULL, combine.by=FALSE,
+                          remove.version=TRUE, ...){
+    dds_list <- map(deseq_obj_list, make.dds, salmon.files, combine.by,
+                    remove.version, ...)
+    return(dds_list)
 }
 
 #' Compute label for one component of an arbitrary design matrix
@@ -373,13 +530,14 @@ padj.order <- function(res, reverse=FALSE){
 #'
 #' @param sorted DESeq2 results object
 #' @param n Number of top genes to plot
-#' @param func Plotting function to call on each gene
+#' @param func Plotting function to call on each gene. Signature is func(gene,
+#'             dds, label=label, ...)
 #' @param dds DESeq2 object
 #' @param label Vector of column names in `res` from which to add a label to
-#'   the gene (e.g., c('symbol', 'alias'))
-#'
+#'        the gene (e.g., c('symbol', 'alias'))
+#' @param ... Additional arguments that are passed to `func`
 #' @return Side effect is to create plot
-top.plots <- function(res, n, func, dds, add_cols=NULL){
+top.plots <- function(res, n, func, dds, add_cols=NULL, ...){
     ps <- list()
     for (i in seq(n)){
         gene <- rownames(res)[i]
@@ -389,9 +547,105 @@ top.plots <- function(res, n, func, dds, add_cols=NULL){
         if (length(label) == 0){
           label <- NULL
         }
-        ps[[gene]] <- func(gene, dds, label=label)
+        ps[[gene]] <- func(gene, dds, label=label, ...)
     }
     grid.arrange(grobs=ps)
+}
+
+#' Make dataframe of normalized gene counts
+#'
+#' @param dds DESeq2 object
+#' @param res DESeq2 results object
+#' @param sel.genes list of genes to consider
+#' @param label column(s) to be included to the plot labels
+#' @param pc count number to be added to the normalized counts
+#'        Typically a pc of 0.5 is added to allow plotting in log scale
+#'
+#' @return dataframe
+counts.df <- function(dds, res, sel.genes=NULL, label=NULL, rank.col='padj', pc=0.5) {
+
+    # getting normalized counts copied from plotCounts()
+    cnts <- counts(dds, normalized = TRUE, replaced = FALSE)
+
+    # keep track of original samplenames (as we're about to add another column)
+    samples <- colnames(cnts)
+
+    # add 0.5 like plotCounts to plot 0 on log scale
+    cnts <- cnts + pc
+
+    cnts <- as.data.frame(cnts) %>% mutate(gene=rownames(.))
+
+    # merge with res.i and colData
+    df <- inner_join(as_tibble(cnts), as_tibble(res))
+
+    # add label for plotting
+    df <- df %>% mutate(label = paste(gene, !!!syms(label), sep=' | '))
+    # subset to sel.genes if not NULL (then keep all)
+    if (!is.null(sel.genes)) {
+        df <- df %>%
+            filter(gene %in% sel.genes)
+    }
+    # add rank
+    df <- df %>%
+        mutate(rank=rank(!!sym(rank.col), ties.method='first', na.last='keep')) %>%
+        pivot_longer(all_of(samples), names_to='samplename', values_to='normalized_counts')
+
+    # add colData, but without requiring the first column of colData to be
+    # called exactly "samplename" -- instead we make a new column called
+    # join.samplename that will be used just for joining (it becomes
+    # "samplename" in the final joined df)
+
+    dat <- colData(dds) %>% as.data.frame %>% mutate(join.samplename=rownames(.))
+    df <- left_join(df, dat, by=c('samplename'='join.samplename')) %>%
+        as_tibble
+    return(df)
+}
+
+#' Filter results by log2FoldChange sign
+#'
+#' @param res DESeq2 results object
+#' @param reverse If TRUE then filter negative lfc
+#'
+#' @return filtered genes
+lfc.filter <- function(res, reverse=FALSE){
+    res.na <- res[!is.na(res$log2FoldChange),]
+    if (!reverse){
+        res.na <- res.na[res.na$log2FoldChange > 0,]
+    } else {
+        res.na <- res.na[res.na$log2FoldChange < 0,]
+    }
+    return(res.na[,'gene'])
+}
+
+#' Plot genes' normalized counts across samples
+#'
+#' @param df dataframe from which to extract genes normalized_counts
+#' @param rank.nb rank number less or equal used to filter the genes to be plotted
+#' @param no.aes whether to include the default aes or return the ggplot object
+#' without aes
+#' @param facet name of column to use for faceting
+#'
+#' @return ggplot object
+counts.plot <- function(df, rank.nb=NULL, no.aes=FALSE, facet='label') {
+    if (!is.null(rank.nb)) {
+        df <- df %>%
+            filter(rank <= rank.nb)
+    }
+    df <- df %>%
+        arrange(rank) %>%
+        mutate(facet = factor(!!!syms(facet), levels = unique(!!!syms(facet))))
+    plt <- ggplot(df) +
+        scale_y_log10() +
+        geom_point(position=position_jitter(width=.1, height=0),  size=3) +
+        geom_line(color='#000000') +
+        theme_bw() +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+        facet_wrap(.~facet, ncol=1, scales='free_y')
+    if (!no.aes) {
+        plt <- plt +
+            aes(y=normalized_counts, x=group, color=group)
+    }
+    return(plt)
 }
 
 #' Plot a histogram of raw pvals
@@ -413,13 +667,13 @@ pval.hist <- function(res){
 #' @param alpha Alpha level at which to call significantly changing genes
 #'
 #' @return Dataframe of summarized results
-my.summary <- function(res, dds, alpha, ...){
+my.summary <- function(res, dds, alpha, lfc.thresh=0, ...){
    if (missing(alpha)){
        alpha <- if (is.null(metadata(res)$alpha)){ 0.1 } else { metadata(res)$alpha }
    }
    notallzero <- sum(res$baseMean > 0)
-   up <- sum(res$padj < alpha & res$log2FoldChange > 0, na.rm=TRUE)
-   down <- sum(res$padj < alpha & res$log2FoldChange < 0, na.rm=TRUE)
+   up <- sum(res$padj < alpha & res$log2FoldChange > lfc.thresh, na.rm=TRUE)
+   down <- sum(res$padj < alpha & res$log2FoldChange < -lfc.thresh, na.rm=TRUE)
    filt <- sum(!is.na(res$pvalue) & is.na(res$padj))
    outlier <- sum(res$baseMean > 0 & is.na(res$pvalue))
    ft <- if(is.null(metadata(res)$filterThreshold)){ 0 } else { round(metadata(res)$filterThreshold) }
@@ -429,6 +683,7 @@ my.summary <- function(res, dds, alpha, ...){
                     total.annotated.genes=nrow(res),
                     total.nonzero.read.count=notallzero,
                     alpha=alpha,
+                    lfcThreshold=lfc.thresh,
                     up=up,
                     down=down,
                     outliers=outlier,
@@ -508,6 +763,7 @@ attach.info <- function(res, keytype='ENSEMBL', columns=c('SYMBOL', 'UNIPROT', '
     for (column in columns){
       label <- tolower(column)
       res[label] <- mapIds(orgdb, keys=keys, column=column, keytype=keytype, multiVal='first')
+      res[[label]] <- ifelse(is.na(res[[label]]), keys, res[[label]])
     }
     # Put "gene" column as the first
     cn <- colnames(res)
@@ -521,18 +777,24 @@ attach.info <- function(res, keytype='ENSEMBL', columns=c('SYMBOL', 'UNIPROT', '
 #'
 #' @param res.list Named list of lists, where each sublist contains the following
 #'                 names: c('res', 'dds', 'label'). "res" is a DESeqResults object,
-#'                 "dds" is a DESeq object, and "label" is a nicer-looking
-#'                 label to use.
+#'                 "dds" is either the indexing label for the dds.list object or
+#'                  the DESeq object, and "label" is a nicer-looking
+#'                 label to use. NOTE: backwards compatibility with older versions
+#'                  of lcdb-wf depends on no dds.list object being passed.
 #'
 #' @return Dataframe
-summarize.res.list <- function(res.list, dds.list, res.list.lookup){
+summarize.res.list <- function(res.list, alpha, lfc.thresh, dds.list=NULL){
     slist <- list()
     for (name in names(res.list)){
-        x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']])
+        if(!is.null(dds.list)){
+            x <- my.summary(res.list[[name]][['res']], dds.list[[ res.list[[name]][['dds']] ]], alpha, lfc.thresh)
+        } else { x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']], alpha, lfc.thresh)
+        }
         rownames(x) <- res.list[[name]][['label']]
         slist[[name]] <- x
     }
     slist <- do.call(rbind, slist)
+    rownames(slist) <- as.character(lapply(res.list, function (x) x[['label']]))
     return(slist)
 }
 
@@ -546,13 +808,13 @@ summarize.res.list <- function(res.list, dds.list, res.list.lookup){
 #' @param return.names If TRUE, returns the rownames of selected genes; if FALSE return boolean index of length(x)
 #'
 #' @return Character vector of rownames (if return.names=TRUE) or boolean vector of genes selected.
-get.sig <- function(x, direction='up', alpha=0.1, thresh=0, return.names=TRUE){
+get.sig <- function(x, direction='up', alpha=0.1, lfc.thresh=0, return.names=TRUE){
     if (direction == 'up'){
-        idx <- (x$padj < alpha) & (x$log2FoldChange > thresh) & (!is.na(x$padj))
+        idx <- (x$padj < alpha) & (x$log2FoldChange > lfc.thresh) & (!is.na(x$padj))
     } else if (direction %in% c('down', 'dn')){
-        idx <- (x$padj < alpha) & (x$log2FoldChange < -thresh) & (!is.na(x$padj))
+        idx <- (x$padj < alpha) & (x$log2FoldChange < -lfc.thresh) & (!is.na(x$padj))
     } else if (direction %in% c('changed', 'ch')){
-        idx <- (x$padj < alpha) & (!is.na(x$padj))
+        idx <- (x$padj < alpha) & (abs(x$log2FoldChange) > lfc.thresh) & (!is.na(x$padj))
     }
     if (return.names){
         return(rownames(x)[idx])
@@ -653,4 +915,21 @@ write.clusterprofiler.results <- function(res, cprof.folder, label){
     write.table(res.split, file=filename.split, sep='\t', quote=FALSE, row.names=FALSE)
     return(list(orig=filename.orig, split=filename.split))
 }
-```
+
+
+#' DESeq2::collapseReplicates, but also fix the first column
+#'
+#' DESeq2::collapseReplicates returns an object whose colData contains the
+#' column used for collapsing, but only the first unique value of a collapsed
+#' group is returned. This function makes the first column the same as the
+#' rownames. This in turn allows the colData to meet expectations of other
+#' lcdbwf functions and play nicer with dplyr.
+#'
+#' @param object Object to collapse. Typically a DESeq2 dds object
+#' @param groupby Factor to group by. Typically a column from dds indicating
+#'                biological replicate (e.g., dds$biorep)
+collapseReplicates2 <- function(object, groupby){
+    collapsed <- DESeq2::collapseReplicates(object, groupby)
+    colData(collapsed)[,1] <- rownames(colData(collapsed))
+    return(collapsed)
+}

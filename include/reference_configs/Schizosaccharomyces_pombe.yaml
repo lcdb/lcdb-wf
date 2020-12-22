@@ -6,34 +6,31 @@ references:
         reference_effective_genome_count: 1.2e7
         reference_effective_genome_proportion: 0.97
 
-      fasta:
+      genome:
         url: 'ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/fasta/schizosaccharomyces_pombe/dna/Schizosaccharomyces_pombe.ASM294v2.dna_sm.toplevel.fa.gz'
         indexes:
           - 'bowtie2'
           - 'hisat2'
-      gtf:
+          - 'star'
+      annotation:
         url: 'ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/gff3/schizosaccharomyces_pombe/Schizosaccharomyces_pombe.ASM294v2.41.gff3.gz'
         postprocess: 'lib.common.gff2gtf'
         conversions:
           - 'refflat'
 
-    ucsc_41_transcriptome:
-      fasta:
-        url:
-          - 'ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/fasta/schizosaccharomyces_pombe/cdna/Schizosaccharomyces_pombe.ASM294v2.cdna.all.fa.gz'
-          - 'ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/fasta/schizosaccharomyces_pombe/ncrna/Schizosaccharomyces_pombe.ASM294v2.ncrna.fa.gz'
-        postprocess: 'lib.common.cat'
+      transcriptome:
         indexes:
           - 'salmon'
 
     rRNA:
-      fasta:
+      genome:
         url:
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
           - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
         postprocess:
-            function: 'lib.common.filter_fastas'
-            args: 'Schizosaccharomyces pombe'
+          function: 'lib.common.filter_fastas'
+          args: 'Schizosaccharomyces pombe'
         indexes:
-            - 'hisat2'
-            - 'bowtie2'
+          - 'hisat2'
+          - 'bowtie2'
+          - 'star'

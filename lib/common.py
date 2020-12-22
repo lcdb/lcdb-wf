@@ -321,9 +321,25 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
 
 def references_dict(config):
     """
-    Reformats the config file's reference section into a more practical form.
+    Transforms the references section of the config file.
 
-    Files can be referenced as `d[organism][tag][type]`.
+    The references section of the config file is designed to be human-editable,
+    and to only need the URL(s). User-specified indexes, conversions, and
+    post-processing functions can also be added.
+
+    For example, the config might say::
+
+        human:
+          gencode:
+            fasta: <url to fasta>
+                indexes:
+                  - hisat2
+
+    In this function, we need to convert that "indexes: [hisat2]" into the full
+    path of the hisat2 index that can be used as input for a Snakemake rule. In
+    this example, in the dictionary returned below we can then get that path
+    with `d['human']['gencode']['hisat2']`, or more generally,
+    `d[organism][tag][type]`.
 
     Parameters
     ----------
@@ -336,9 +352,6 @@ def references_dict(config):
     standpoint. But it's not so great for practical usage. Here we convert the
     config file which has the format::
 
-    >>> from textwrap import dedent
-    >>> fout = open('tmp', 'w')
-    >>> _ = fout.write(dedent('''
     ... references_dir: "/data"
     ... references:
     ...   dm6:
@@ -347,49 +360,36 @@ def references_dict(config):
     ...         reference_genome_build: 'dm6'
     ...         reference_effective_genome_count: 1.2e7
     ...         reference_effective_genome_proportion: 0.97
-    ...       fasta:
+    ...       genome:
     ...         url: ""
     ...         indexes:
     ...           - bowtie2
     ...           - hisat2
-    ...       gtf:
+    ...       annotation:
     ...         url: ""
     ...         conversions:
     ...           - refflat
-    ...     r6-11_transcriptome:
-    ...       fasta:
-    ...         url: ""
-    ...         indexes:
-    ...           - salmon
-    ... '''))
-    >>> fout.close()
+    ...       transcriptome:
+    ...           indexes:
+    ...             - salmon
 
-    To this format:
+    To this format::
 
-    >>> d, conversion_kwargs = references_dict('tmp')
-    >>> assert d == (
-    ... {
-    ...   'dm6': {
-    ...      'r6-11': {
-    ...          'fasta': '/data/dm6/r6-11/fasta/dm6_r6-11.fasta',
-    ...          'refflat': '/data/dm6/r6-11/gtf/dm6_r6-11.refflat',
-    ...          'gtf': '/data/dm6/r6-11/gtf/dm6_r6-11.gtf',
-    ...          'chromsizes': '/data/dm6/r6-11/fasta/dm6_r6-11.chromsizes',
-    ...          'bowtie2': '/data/dm6/r6-11/bowtie2/dm6_r6-11.1.bt2',
-    ...          'bowtie2_fasta': '/data/dm6/r6-11/bowtie2/dm6_r6-11.fasta',
-    ...          'hisat2': '/data/dm6/r6-11/hisat2/dm6_r6-11.1.ht2',
-    ...          'hisat2_fasta': '/data/dm6/r6-11/hisat2/dm6_r6-11.fasta',
-    ...          },
-    ...      'r6-11_transcriptome': {
-    ...          'fasta': '/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.fasta',
-    ...          'chromsizes': '/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.chromsizes',
-    ...          'salmon': '/data/dm6/r6-11_transcriptome/salmon/dm6_r6-11_transcriptome/hash.bin',
-    ...          'salmon_fasta': '/data/dm6/r6-11_transcriptome/salmon/dm6_r6-11_transcriptome.fasta',
-    ...          },
-    ...     },
-    ... }), d
-    >>> assert conversion_kwargs == {'/data/dm6/r6-11/gtf/dm6_r6-11.refflat': {}}
-    >>> os.unlink('tmp')
+    ... 'dm6': {
+    ...    'r6-11': {
+    ...        'annotation':    '/data/dm6/r6-11/annotation/dm6_r6-11.gtf',
+    ...        'bowtie2':       '/data/dm6/r6-11/genome/bowtie2/dm6_r6-11.1.bt2',
+    ...        'bowtie2_fasta': '/data/dm6/r6-11/genome/bowtie2/dm6_r6-11.fasta',
+    ...        'chromsizes':    '/data/dm6/r6-11/genome/dm6_r6-11.chromsizes',
+    ...        'genome':        '/data/dm6/r6-11/genome/dm6_r6-11.fasta',
+    ...        'hisat2':        '/data/dm6/r6-11/genome/hisat2/dm6_r6-11.1.ht2',
+    ...        'hisat2_fasta':  '/data/dm6/r6-11/genome/hisat2/dm6_r6-11.fasta',
+    ...        'refflat':       '/data/dm6/r6-11/annotation/dm6_r6-11.refflat',
+    ...        'salmon':        '/data/dm6/r6-11/transcriptome/salmon/dm6_r6-11/versionInfo.json',
+    ...        'salmon_fasta':  '/data/dm6/r6-11/transcriptome/salmon/dm6_r6-11.fasta',
+    ...        'transcriptome': '/data/dm6/r6-11/transcriptome/dm6_r6-11.fasta',
+    ...        },
+    ... }
 
     """
     if isinstance(config, str):
@@ -402,7 +402,16 @@ def references_dict(config):
         'bowtie2': aligners.bowtie2_index_from_prefix('')[0],
         'hisat2': aligners.hisat2_index_from_prefix('')[0],
         'star': '/Genome',
-        'salmon': '/hash.bin',
+
+        # Notes on salmon indexing:
+        #   - pre-1.0 versions had hash.bin
+        #   - post-1.0 versions do not have hash.bin but do have several other
+        #     different .bin files
+        #   - both appear to have versionInfo.json
+        #
+        # In order to support both, we use a filename found in common between
+        # the version.
+        'salmon': '/versionInfo.json',
     }
 
     conversion_extensions = {
@@ -421,6 +430,12 @@ def references_dict(config):
 
     merged_references = config['references']
 
+    type_extensions = {
+        'genome': 'fasta',
+        'annotation': 'gtf',
+        'transcriptome': 'fasta'
+    }
+
     for organism in merged_references.keys():
         d[organism] = {}
         for tag in merged_references[organism].keys():
@@ -428,16 +443,30 @@ def references_dict(config):
             for type_, block in merged_references[organism][tag].items():
                 if type_ == 'metadata':
                     continue
+                try:
+                    type_extension = type_extensions[type_]
+
+                except KeyError:
+                    raise ValueError(
+
+                        "KeyError: " + type_ + "\n"
+                        "\nConfig file format has changed:\n"
+                        "  - 'fasta:' -> 'genome:'\n"
+                        "  - 'gtf:' -> 'annotation:'\n"
+                        "  - new 'transcriptome:' section\n"
+                        "\nSee docs for details\n\n"
+
+                    )
                 e[type_] = (
                     '{references_dir}/'
                     '{organism}/'
                     '{tag}/'
                     '{type_}/'
-                    '{organism}_{tag}.{type_}'.format(**locals())
+                    '{organism}_{tag}.{type_extension}'.format(**locals())
                 )
 
                 # Add conversions if specified.
-                if type_ == 'gtf':
+                if type_ == 'annotation':
                     conversions = block.get('conversions', [])
                     for conversion in conversions:
                         kwargs = {}
@@ -472,31 +501,33 @@ def references_dict(config):
 
                         conversion_kwargs[output] = kwargs
 
-                if type_ == 'fasta':
+                if type_ in ['genome', 'transcriptome']:
                     # Add indexes if specified
                     indexes = block.get('indexes', [])
                     for index in indexes:
                         ext = index_extensions[index]
 
                         e[index] = (
-                            '{references_dir}/{organism}/{tag}/{index}/{organism}_{tag}{ext}'
+                            '{references_dir}/{organism}/{tag}/{type_}/{index}/{organism}_{tag}{ext}'
                             .format(**locals())
                         )
 
                         # Each index will get the original fasta symlinked over
                         # to its directory
                         e[index + '_fasta'] = (
-                            '{references_dir}/{organism}/{tag}/{index}/{organism}_{tag}.fasta'
+                            '{references_dir}/{organism}/{tag}/{type_}/{index}/{organism}_{tag}.fasta'
                             .format(**locals())
                         )
 
-                    e['chromsizes'] = (
-                        '{references_dir}/'
-                        '{organism}/'
-                        '{tag}/'
-                        '{type_}/'
-                        '{organism}_{tag}.chromsizes'.format(**locals())
-                    )
+                    # Only makes sense to have chromsizes for genome fasta, not transcriptome.
+                    if type_ == 'genome':
+                        e['chromsizes'] = (
+                            '{references_dir}/'
+                            '{organism}/'
+                            '{tag}/'
+                            '{type_}/'
+                            '{organism}_{tag}.chromsizes'.format(**locals())
+                        )
                 d[organism][tag] = e
     return d, conversion_kwargs
 
@@ -664,6 +695,8 @@ def is_paired_end(sampletable, sample):
         Assumed to be found in the first column of `sampletable`
     """
     row = sampletable.set_index(sampletable.columns[0]).loc[sample]
+    if 'orig_filename_R2' in row:
+        return True
     if 'layout' in row and 'LibraryLayout' in row:
         raise ValueError("Expecting column 'layout' or 'LibraryLayout', "
                          "not both")
