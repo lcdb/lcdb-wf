@@ -114,6 +114,10 @@ variables:
       command: |
         source activate lcdb-wf-test
         pytest --doctest-modules lib
+
+        # find all URLs in reference configs and make sure they exist
+        python -c 'from lib.common import check_all_urls_found; check_all_urls_found()'
+
   # --------------------------------------------------------------------------
   # Other downstream jobs depend on this so that we can catch trivial errors
   # quickly
