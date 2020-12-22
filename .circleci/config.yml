@@ -138,9 +138,9 @@ variables:
   # Previous versions had an error where chipseq peaks needed to be defined for
   # every caller. This does a (relatively) quick test to only run a single
   # sample through a single peak-caller to prevent regression of that error
-  chipseq-regression-step: &chipseq-regression-step
+  chipseq-misc-step: &chipseq-misc-step
       run:
-        name: chipseq regression test workflow
+        name: chipseq misc
         command: |
           ORIG=$(pwd)
           cd $DEPLOY/workflows/chipseq
@@ -203,17 +203,6 @@ variables:
           cp -r workflows/rnaseq workflows/rnaseq-star
           cd workflows/rnaseq-star
           source activate lcdb-wf-test
-          ./run_test.sh -j 2 --use-conda -k -p -r \
-            --forcerun star_pass1 \
-            --configfile $ORIG/test/test_configs/star_override_2pass.yaml \
-            --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
-            --until star_pass2
-
-          ./run_test.sh -j 2 --use-conda -k -p -r \
-            --forcerun star \
-            --configfile $ORIG/test/test_configs/star_override_1pass.yaml \
-            --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
-            --until star
   # --------------------------------------------------------------------------
   # Various tests on RNA-seq workflow that don't warrant the overhead of a new
   # cache load
@@ -224,53 +213,60 @@ variables:
           ORIG=$(pwd)
           cd $DEPLOY
           cp -r workflows/rnaseq workflows/rnaseq-misc-test
+
+          # make a copy of the data so we can get a fresh copy each time below
           cp -r workflows/rnaseq/data /tmp/data
           cd workflows/rnaseq-misc-test
           source activate lcdb-wf-test
 
+          # SRA, PE. Note that there's no starting data directory and that we
+          # only go to the cutadapt step.
+          rm -r data
           ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
             --configfile $ORIG/test/test_configs/override.yaml \
             --config sampletable=$ORIG/test/test_configs/test_sra_sampletable.tsv
 
+          # Same as above, but SE
           rm -r data
-          cp -r /tmp/data data
           ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
             --configfile $ORIG/test/test_configs/override.yaml \
             --config sampletable=$ORIG/test/test_configs/test_sra_sampletable_SE_only.tsv
 
           # test strandedness, PE
-          rm -r data
-          cp -r /tmp/data data
+          rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r --until strand_check \
             --configfile $ORIG/test/test_configs/override.yaml \
             --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv \
             && cat strandedness.tsv
 
           # test strandedness, SE
-          rm -r data
-          cp -r /tmp/data data
+          rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r --until strand_check \
             --configfile $ORIG/test/test_configs/override.yaml \
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
             && cat strandedness.tsv
 
-  # --------------------------------------------------------------------------
-  # Quick (ish) test for PE data
-  rnaseq-pe-step: &rnaseq-pe-step
-      run:
-        name: rnaseq test PE
-        command: |
-          ORIG=$(pwd)
-          cd $DEPLOY
-          cp -r workflows/rnaseq workflows/rnaseq-pe-test
-          cd workflows/rnaseq-pe-test
-          source activate lcdb-wf-test
+          # test STAR 2-pass alignment
+          rm -r data && cp -r /tmp/data data
+          ./run_test.sh -j 2 --use-conda -k -p -r \
+            --forcerun star_pass1 \
+            --configfile $ORIG/test/test_configs/star_override_2pass.yaml \
+            --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
+            --until star_pass2
+
+          # test STAR 1-pass alignment
+          rm -r data && cp -r /tmp/data data
+          ./run_test.sh -j 2 --use-conda -k -p -r \
+            --forcerun star \
+            --configfile $ORIG/test/test_configs/star_override_1pass.yaml \
+            --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
+            --until star
 
           # test PE reads
+          rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r --until multiqc \
             --configfile $ORIG/test/test_configs/override.yaml \
             --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
-
 
   # --------------------------------------------------------------------------
   # Standard colocalization workflow
@@ -344,24 +340,14 @@ jobs:
       - store_artifacts:
           path: /tmp/lcdb-wf-test/workflows/chipseq/data/chipseq_aggregation/multiqc.html
 
-  chipseq-regression:
+  chipseq-misc:
     <<: *defaults
     steps:
       - checkout
       - *restore_cache
       - *set-path
       - *get-data
-      - *chipseq-regression-step
-
-  rnaseq-dryrun:
-    <<: *defaults
-    resource_class: small
-    steps:
-      - checkout
-      - *restore_cache
-      - *set-path
-      - *get-data
-      - *rnaseq-dryrun
+      - *chipseq-misc-step
 
   rnaseq:
     <<: *defaults
@@ -378,15 +364,6 @@ jobs:
       - store_artifacts:
           path: /tmp/lcdb-wf-test/workflows/rnaseq/data/rnaseq_aggregation/multiqc.html
 
-  rnaseq-star:
-    <<: *defaults
-    steps:
-      - checkout
-      - *restore_cache
-      - *set-path
-      - *get-data
-      - *rnaseq-star-step
-
   rnaseq-misc:
     <<: *defaults
     steps:
@@ -395,16 +372,6 @@ jobs:
       - *set-path
       - *get-data
       - *rnaseq-misc-step
-
-
-  rnaseq-pe:
-    <<: *defaults
-    steps:
-      - checkout
-      - *restore_cache
-      - *set-path
-      - *get-data
-      - *rnaseq-pe-step
 
   colocalization:
     <<: *defaults
@@ -446,7 +413,6 @@ jobs:
       - store_artifacts:
           path: /tmp/docs.tar.gz
 
-
   report-env:
     <<: *defaults
     resource_class: small
@@ -479,11 +445,7 @@ workflows:
          requires:
            - initial-setup
            - pytest
-      - chipseq-regression:
-         requires:
-           - initial-setup
-           - pytest
-      - rnaseq-dryrun:
+      - chipseq-misc:
          requires:
            - initial-setup
            - pytest
@@ -491,22 +453,10 @@ workflows:
           requires:
             - initial-setup
             - pytest
-            - rnaseq-dryrun
-      - rnaseq-star:
-          requires:
-            - initial-setup
-            - pytest
-            - rnaseq-dryrun
       - rnaseq-misc:
           requires:
             - initial-setup
             - pytest
-            - rnaseq-dryrun
-      - rnaseq-pe:
-          requires:
-            - initial-setup
-            - pytest
-            - rnaseq-dryrun
       - references:
           requires:
             - initial-setup
@@ -518,13 +468,11 @@ workflows:
       - build-docs:
           requires:
             - initial-setup
-
       - report-env:
           requires:
             - rnaseq
-            - rnaseq-star
-            - rnaseq-pe
             - rnaseq-misc
             - chipseq
+            - chipseq-misc
             - references
             - colocalization
