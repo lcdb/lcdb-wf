@@ -1,6 +1,10 @@
 import glob
+import subprocess
+import time
 import os
 import warnings
+import urllib.request as request
+import contextlib
 import yaml
 import pandas
 from Bio import SeqIO
@@ -8,6 +12,7 @@ import gzip
 import binascii
 from lib.imports import resolve_name
 from lib import aligners
+from lib import utils
 from snakemake.shell import shell
 from snakemake.io import expand
 
@@ -598,7 +603,7 @@ def get_techreps(sampletable, label):
     return result
 
 
-def load_config(config):
+def load_config(config, missing_references_ok=False):
     """
     Loads the config.
 
@@ -622,15 +627,19 @@ def load_config(config):
                             recursive=True):
             refs = yaml.load(open(fn), Loader=yaml.FullLoader).get('references', None)
             if refs is None:
-                raise ValueError("No 'references:' section in {0}".format(fn))
-            reference_sections.append(refs)
+                if not missing_references_ok:
+                    raise ValueError("No 'references:' section in {0}".format(fn))
+            else:
+                reference_sections.append(refs)
 
     # Now the files
     for fn in filter(os.path.isfile, includes):
         refs = yaml.load(open(fn), Loader=yaml.FullLoader).get('references', None)
         if refs is None:
-            raise ValueError("No 'references:' section in {0}".format(fn))
-        reference_sections.append(refs)
+            if not missing_references_ok:
+                raise ValueError("No 'references:' section in {0}".format(fn))
+        else:
+            reference_sections.append(refs)
 
     # The last thing we include is the references section as written in the
     # config, which wins over all.
@@ -747,3 +756,82 @@ def fill_r1_r2(sampletable, pattern, r1_only=False):
         res = expand(pattern, sample=wc.sample, n=n)
         return res
     return func
+
+
+def pluck(obj, kv):
+    """
+    For a given dict or list that somewhere contains keys `kv`, return the
+    values of those keys.
+
+    Named after the dplyr::pluck, and implemented based on
+    https://stackoverflow.com/a/1987195
+    """
+    if isinstance(obj, list):
+        for i in obj:
+            for x in pluck(i, kv):
+                yield x
+    elif isinstance(obj, dict):
+        if kv in obj:
+            yield obj[kv]
+        for j in obj.values():
+            for x in pluck(j, kv):
+                yield x
+
+
+def check_url(url):
+    """
+    Try to open -- and then immediately close -- a URL.
+
+    Any exceptions can be handled upstream.
+    """
+    proc = subprocess.run(['curl', '--silent', '--fail', '--head', url],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                          universal_newlines=True)
+    return proc
+
+
+def check_urls(config, verbose=False, wait=2):
+    """
+    Given a config filename or existing object, extract the URLs and check
+    them.
+
+    Parameters
+    ----------
+
+    config : str or dict
+        Config object to inspect
+
+    verbose : bool
+        Print which URL is being checked
+
+    wait : int 
+        Number of seconds to wait in between checking URLs, to avoid
+        too-many-connection issues
+    """
+    config = load_config(config, missing_references_ok=True)
+    failures = []
+    urls = list(set(utils.flatten(pluck(config, 'url'))))
+    for url in urls:
+        if verbose:
+            print(f'Checking {url}')
+        res = check_url(url)
+
+        if res.returncode:
+            failures.append(f'FAIL ({res}) {url}')
+    if failures:
+        print('\n'.join(failures))
+        raise ValueError('Found problematic URLs')
+
+
+def check_all_urls_found():
+    """
+    Recursively loads all references that can be included and checks them.
+    Reports out if there are any failures.
+    """
+    check_urls({'include_references': [
+        'include/reference_configs',
+        'test/test_configs',
+        'workflows/rnaseq/config',
+        'workflows/chipseq/config',
+        'workflows/references/config',
+    ]}, verbose=True)
