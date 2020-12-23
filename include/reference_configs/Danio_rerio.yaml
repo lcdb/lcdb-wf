@@ -6,7 +6,7 @@ references:
         reference_genome_build: 'danRer11'
 
       genome:
-        url: 'ftp://hgdownload.soe.ucsc.edu/goldenPath/danRer11/bigZips/danRer11.fa.gz'
+        url: 'https://hgdownload.soe.ucsc.edu/goldenPath/danRer11/bigZips/danRer11.fa.gz'
         indexes:
           - 'hisat2'
           - 'bowtie2'
