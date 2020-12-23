@@ -867,7 +867,7 @@ def check_all_urls_found(verbose=True):
         'workflows/rnaseq/config',
         'workflows/chipseq/config',
         'workflows/references/config',
-    ]}, verbose=verbose
+    ]}, verbose=verbose)
 
 
 def gff2gtf(gff, gtf):
