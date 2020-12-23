@@ -778,19 +778,52 @@ def pluck(obj, kv):
                 yield x
 
 
-def check_url(url):
+def check_url(url, verbose=False):
     """
     Try to open -- and then immediately close -- a URL.
 
     Any exceptions can be handled upstream.
+
     """
-    proc = subprocess.run(['curl', '--silent', '--fail', '--head', url],
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                          universal_newlines=True)
+
+    # Some notes here:
+    #
+    #  - A pure python implementation isn't great because urlopen seems to
+    #    cache or hold sessions open or something. EBI servers reject responses
+    #    because too many clients are connected. This doesn't happen using curl.
+    #
+    #  - Using the requests module doesn't help, because urls can be ftp:// and
+    #    requests doesn't support that.
+    #
+    #  - Similarly, using asyncio and aiohttp works great for https, but not
+    #    ftp (I couldn't get aioftp to work properly).
+    #
+    #  - Not all servers support --head. An example of this is
+    #    https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA.
+    #
+    #  - Piping curl to head using the -c arg to use bytes seems to work.
+    #    However, we need to set pipefail (otherwise because head exits 0 the
+    #    whole thing exits 0). And in that case, we expect curl to exit every
+    #    time with exit code 23, which is "failed to write output", because of
+    #    the broken pipe. This is handled below.
+    #
+    if verbose:
+        print(f'Checking {url}')
+
+    # Notes on curl args:
+    #
+    #  --max-time to allow the server some seconds to respond
+    #  --retry to allow multiple tries if transient errors (4xx for FTP, 5xx for HTTP) are found
+    #  --silent to not print anything
+    #  --fail to return non-zero exit codes for 404 (default is exit 0 on hitting 404)
+    #
+    # Need to run through bash explicitly to get the pipefail option, which in
+    # turn means running with shell=True
+    proc = subprocess.run(f'/bin/bash -o pipefail -c "curl --retry 3 --max-time 10 --silent --fail {url} | head -c 10 > /dev/null"', shell=True)
     return proc
 
 
-def check_urls(config, verbose=False, wait=2):
+def check_urls(config, verbose=False):
     """
     Given a config filename or existing object, extract the URLs and check
     them.
@@ -804,7 +837,7 @@ def check_urls(config, verbose=False, wait=2):
     verbose : bool
         Print which URL is being checked
 
-    wait : int 
+    wait : int
         Number of seconds to wait in between checking URLs, to avoid
         too-many-connection issues
     """
@@ -812,18 +845,18 @@ def check_urls(config, verbose=False, wait=2):
     failures = []
     urls = list(set(utils.flatten(pluck(config, 'url'))))
     for url in urls:
-        if verbose:
-            print(f'Checking {url}')
-        res = check_url(url)
+        res = check_url(url, verbose=verbose)
 
-        if res.returncode:
-            failures.append(f'FAIL ({res}) {url}')
+        # we expect exit code 23 because we're triggering SIGPIPE with the
+        # "|head -c" above.
+        if res.returncode and res.returncode != 23:
+            failures.append(f'FAIL with exit code {res.returncode}. Command was: {res.args}')
     if failures:
-        print('\n'.join(failures))
-        raise ValueError('Found problematic URLs')
+        output = '\n   '.join(failures)
+        raise ValueError(f'Found problematic URLs. See https://ec.haxx.se/usingcurl/usingcurl-returns for explanation of exit codes.\n   {output}')
 
 
-def check_all_urls_found():
+def check_all_urls_found(verbose=True):
     """
     Recursively loads all references that can be included and checks them.
     Reports out if there are any failures.
@@ -834,7 +867,7 @@ def check_all_urls_found():
         'workflows/rnaseq/config',
         'workflows/chipseq/config',
         'workflows/references/config',
-    ]}, verbose=True)
+    ]}, verbose=verbose
 
 
 def gff2gtf(gff, gtf):
