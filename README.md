@@ -1,5 +1,6 @@
 # `lcdb-wf`
 
+
 A collection of [snakemake](https://snakemake.readthedocs.io/en/stable/)
 workflows and tools for common high-throughput sequencing analysis, along with
 associated infrastructure.
@@ -23,4 +24,3 @@ DAG for RNA-seq workflow:
 DAG for ChIP-seq workflow:
 
 ![chipseq dag](docs/chipseq.png)
-

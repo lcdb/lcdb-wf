@@ -1,6 +1,6 @@
 import os
 from snakemake.shell import shell
-from lcdblib.utils.imports import resolve_name
+from ..imports import resolve_name
 
 def file_merge(origfns, newfn, *args):
     tmpfiles = ['{0}.{1}.sub.tmp'.format(newfn, i) for i in range(len(origfns))]

@@ -1,0 +1,40 @@
+#sampletable: 'config/sampletable.tsv'
+organism: 'dmel'
+references_dir: 'references_data'
+peaks_dir: 'data/chipseq_peaks'
+
+chipseq:
+  peak_calling:
+
+    - label: gaf-wingdisc-1
+      algorithm: macs2
+      ip:
+        - gaf-wingdisc-1
+      control:
+        - input-wingdisc-1
+      effective_genome_count: 7e7
+      extra: '--nomodel --extsize 147'
+
+
+fastq_screen:
+  - label: rRNA
+    organism: dmel
+    tag: test
+  - label: PhiX
+    organism: phix
+    tag: default
+  - label: Fly
+    organism: dmel
+    tag: test
+
+aligner:
+  index: 'bowtie2'
+  tag: 'test'
+
+
+merged_bigwigs: {}
+
+include_references:
+  - '../../include/reference_configs/test.yaml'
+  - '../../include/reference_configs/PhiX.yaml'
+  - '../../include/reference_configs/Drosophila_melanogaster.yaml'

@@ -4,6 +4,9 @@ __default__:
 bowtie2_index:
   prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
 
+bowtie2:
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
+
 fastq_screen:
   prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
 

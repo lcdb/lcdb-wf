@@ -5,8 +5,8 @@ from textwrap import dedent
 import yaml
 import tempfile
 import pandas as pd
-from lcdblib.snakemake import helpers, aligners
-from lcdblib.utils import utils
+from lib import helpers, aligners
+from lib import utils
 from lib import common
 from lib import cluster_specific
 from lib.patterns_targets import RNASeqConfig, ChIPSeqConfig
@@ -89,13 +89,13 @@ pattern = '{outdir}/{algorithm}/{domain}/{value}_heatmap.pdf'
 targets += expand(pattern, outdir=config['output'], domain=config['domains'],
                   algorithm='IntervalStats', value=['f_01'])
 targets += expand(pattern, outdir=config['output'], domain=config['domains'],
-                  algorithm='GAT', value=['l2fold', 'fractions'])
+                  algorithm='GAT', value=['l2fold'])
 targets += expand(pattern, outdir=config['output'], domain=config['domains'],
                   algorithm='jaccard', value=['jaccard'])
 targets += expand(pattern, outdir=config['output'], domain=config['domains'],
                   algorithm='fisher', value=['pval'])
 
-rule target:
+rule targets:
     input: targets
 
 
@@ -150,6 +150,7 @@ rule intervalstats:
         query=lambda wc: config['beds'][getattr(wc, 'query')],
         reference=lambda wc: config['beds'][getattr(wc, 'reference')],
     output: '{outdir}/IntervalStats/{domain}/{query}/{query}_vs_{reference}.txt'
+    log: '{outdir}/IntervalStats/{domain}/{query}/{query}_vs_{reference}.log'
     run:
         if input.query == input.reference:
             run_self = '--self'
@@ -161,7 +162,7 @@ rule intervalstats:
             '--reference {input.reference} '
             '--output {output}.full '
             '--domain {input.domain} '
-            '{run_self}'
+            '{run_self} &> {log}'
         )
 
         # Summarize the output into a faster-to-parse file used by downstream
@@ -254,8 +255,7 @@ rule heatmap:
         )
     output:
         '{outdir}/{algorithm}/{domain}/{value}_heatmap.pdf'
-    conda:
-        'scripts/heatmap_env.yaml'
+
     shell:
         'python scripts/colocalization_heatmap.py '
         '--domain {wildcards.domain} '

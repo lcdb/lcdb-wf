@@ -103,7 +103,9 @@ illustration.
     # EXAMPLE REFERENCES CONFIG SECTION
 
     # This configures the directory in which the prepared references will be
-    # saved (see below for directory structure):
+    # saved (see below for directory structure). If you already have reference
+    files saved in the lcdb-wf structure, point this to that directory to
+    avoid rebuilding a fresh set of references:
 
     references_dir: 'data/references'
 
@@ -393,7 +395,8 @@ Available indexes and conversions
 ---------------------------------
 The following indexes can be currently be specified for fasta files:
 
-:hisat2:
+hisat2
+^^^^^^
 
     .. code-block:: yaml
 
@@ -404,7 +407,8 @@ The following indexes can be currently be specified for fasta files:
 
       {references_dir}/{organism}/{tag}/hisat2/{organism}_{tag}.*.ht2
 
-:bowtie2:
+bowtie2
+^^^^^^^
 
     .. code-block:: yaml
 
@@ -415,7 +419,8 @@ The following indexes can be currently be specified for fasta files:
 
       {references_dir}/{organism}/{tag}/bowtie2/{organism}_{tag}.*.bt2
 
-:salmon:
+salmon
+^^^^^^
 
     .. code-block:: yaml
 
@@ -428,7 +433,8 @@ The following indexes can be currently be specified for fasta files:
 
 The following conversions can be specified for GTF files:
 
-:refflat:
+refflat
+^^^^^^^
 
     .. code-block:: yaml
 
@@ -442,7 +448,23 @@ The following conversions can be specified for GTF files:
 
       {references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.refflat
 
-:gffutils:
+bed12
+^^^^^
+
+    .. code-block:: yaml
+
+        conversions:
+           - bed12
+
+   Converts GTF to BED12 format. See the ``conversion_bed12`` rule in
+   ``workflows/references/Snakefile``.
+
+   Output file::
+
+      {references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.refflat
+
+gffutils
+^^^^^^^^
     Converts GTF to gffutils database (typically used for downstream work). You
     can specify arbitrary kwargs to ``gffutils.create_db`` by including them as
     keys. For example, if the GTF file already contains features for genes and
@@ -460,7 +482,8 @@ The following conversions can be specified for GTF files:
 
         {references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.gtf.db
 
-:genelist:
+genelist
+^^^^^^^^
     Reads the postprocessed GTF file, and extracts the set of gene IDs found,
     one ID per line. The GTF attribute to use is configured by the
     ``gene_id:`` key, for example, if the file contains gene IDs in the
@@ -476,7 +499,8 @@ The following conversions can be specified for GTF files:
 
       {references_dir}/{organism}/{tag}/gtf/{organism}_{tag}.genelist
 
-:mappings:
+mappings
+^^^^^^^^
     Reads the postprocesses GTF file, and outputs mappings between attributes
     as a gzipped TSV.
 

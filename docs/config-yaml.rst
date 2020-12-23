@@ -3,6 +3,12 @@
 Config YAML
 ===========
 
+This page details the various configuration options and describes how to
+configure a new workflow.
+
+Note that the ``references:`` section is detailed separately, at
+:ref:`references-config`.
+
 Config files are expected to be in the file ``config/config.yaml`` relative to
 the Snakefile. For example, the RNA-seq workflow at
 ``workflows/rnaseq/Snakefile`` expects the config file
@@ -37,7 +43,8 @@ Field                                                                           
 Example configs
 ---------------
 
-To provide an overview, here are example config files.
+To provide an overview, here are some example config files. More detail is
+provided later; this is just to provide some context:
 
 RNA-seq
 ~~~~~~~
@@ -73,22 +80,20 @@ The config file for RNA-seq is expected to be in
     references:
       human:
         gencode-v25:
-          fasta:
+          genome:
             url: 'ftp://.../genome.fa.gz'
             indexes:
               - 'hisat2'
               - 'bowtie2'
-          gtf:
+          annotation:
             url: 'ftp://.../annotation.gtf.gz'
 
-        gencode-v25-transcriptome:
-          fasta:
-            url: 'ftp://.../transcriptome.fa.gz'
+          transcriptome:
             indexes:
               - 'salmon'
 
         rRNA:
-          fasta:
+          genome:
             url: 'https://...'
             indexes:
                 - 'bowtie2'
@@ -101,8 +106,8 @@ The config file for ChIP-seq is expected to be in
 
 The major differences between ChIP-seq and RNA-seq configs are:
 
-- ChIP-seq has no ``gtf`` or ``rrna`` fields
-- ChIP-seq has a ``chipseq: peak_calling:`` section
+- ChIP-seq has no ``annotation`` or ``rrna`` fields
+- ChIP-seq has an addition section ``chipseq: peak_calling:``
 
 .. code-block:: yaml
 
@@ -149,9 +154,6 @@ The major differences between ChIP-seq and RNA-seq configs are:
             - input-wingdisc-2
 
     fastq_screen:
-      - label: PhiX
-        organism: phix
-        tag: default
       - label: Human
         organism: human
         tag: gencode-v25
@@ -173,29 +175,23 @@ The major differences between ChIP-seq and RNA-seq configs are:
     references:
       human:
         gencode-v25:
-          fasta:
+          genome:
             url: 'ftp://.../genome.fa.gz'
             indexes:
               - 'hisat2'
               - 'bowtie2'
-          gtf:
+          annotation:
             url: 'ftp://.../annotation.gtf.gz'
 
-      dmel:
+      fly:
         test:
-          fasta:
+          genome:
             url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa"
             postprocess: 'lib.common.gzipped'
             indexes:
               - 'bowtie2'
               - 'hisat2'
 
-      phix:
-        default:
-          fasta:
-            url: 'ftp://...'
-            indexes:
-              - 'bowtie2'
 
 
 Field descriptions
@@ -210,8 +206,7 @@ Required for references, RNA-seq and ChIP-seq
     files and (optionally) post-process them, and which indexes to build.
 
     Briefly, the example above has a single organism configured ("human"). That
-    organism has three tags ("gencode-v25", "gencode-v25-transcriptome", and
-    "rRNA").
+    organism has two tags ("gencode-v25" and "rRNA").
 
     This is the most complex section and is documented elsewhere (see
     :ref:`references-config`).
@@ -241,6 +236,10 @@ Required for references, RNA-seq and ChIP-seq
     If specified and ``REFERENCES_DIR`` also exists, ``REFERENCES_DIR`` takes
     precedence.
 
+    This is useful when multiple people in a group share the same references to
+    avoid duplicating commonly-used references. Simply point references_dir to
+    an existing references directory to avoid having to rebuild references.
+
 Required for RNA-seq and ChIP-seq
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. _cfg-sampletable:
@@ -248,8 +247,8 @@ Required for RNA-seq and ChIP-seq
 ``sampletable`` field
 `````````````````````
     Path to sampletable file which, at minimum, list sample names and paths to
-    FASTQ files. The path is relative to the Snakefile. See :ref:`sampletable`
-    for more info on the expected contents of the file.
+    FASTQ files. The path of this filename is relative to the Snakefile. See
+    :ref:`sampletable` for more info on the expected contents of the file.
 
     Example:
 
@@ -262,8 +261,9 @@ Required for RNA-seq and ChIP-seq
 ``organism`` field
 ``````````````````
     This field selects the top-level section of the ``references`` section that
-    will be used for the analysis. In the example above, "human" is the only
-    organism configured.
+    will be used for the analysis. In RNA-seq example above, "human" is the
+    only organism configured. In the ChIP-seq example, there is "human" as well
+    as "fly".
 
     Example:
 
@@ -283,8 +283,7 @@ Required for RNA-seq and ChIP-seq
     be built. For RNA-seq we would likely choose "hisat2"; for ChIP-seq
     "bowtie2".
 
-    Currently-configured options are ``hisat2``, ``bowtie2``, ``star``, and
-    ``ngm``.
+    Currently-configured options are ``hisat2``, ``bowtie2``, and ``star``.
 
     Example:
 
@@ -324,6 +323,9 @@ Optional fields
             organism: human
             tag: rRNA
 
+   The above example configures two different indexes to use for fastq_screen:
+   the human gencode-v25 reference, and the human rRNA reference.
+
 .. _cfg-merged-bigwigs:
 
 ``merged_bigwigs`` config section
@@ -338,10 +340,10 @@ Optional fields
 
         merged_bigwigs:
           arbitrary_label_to_use:
-            sense:
+            pos:
               - 'sample1'
               - 'sample2'
-            antisense:
+            neg:
               - 'sample1'
               - 'sample2'
 
@@ -349,9 +351,12 @@ Optional fields
     `arbitrary_label_to_use.bigwig` in the directory
     `data/rnaseq_aggregation/merged_bigwigs` (by default; this is configured
     using ``config/rnaseq_patterns.yaml``). That file merges together both the
-    sense and antisense signal strands of two samples, sample1 and sample2. The
+    positive and negative signal strands of two samples, `sample1` and `sample2`. The
     names "sample1" and "sample2" are sample names defined in the :ref:`sample
     table <sampletable>`.
+
+    In other words, if samples 1 and 2 are replicates for a condition, this
+    gets us a single merged (averaged) track for that condition.
 
     Here's another RNA-seq example, where we merge the samples again but keep
     the strands separate. This will result in two output bigwigs.
@@ -417,6 +422,15 @@ RNA-seq-only fields
     The tag must have had a ``gtf:`` section specified; see
     :ref:`references-config` for details.
 
+    The organism is inherited from the ``organism:`` field.
+
+    Example:
+
+    .. code-block:: yaml
+
+         gtf:
+           tag: "gencode-v25"
+
 .. _cfg-salmon:
 
 ``salmon`` field
@@ -425,6 +439,7 @@ RNA-seq-only fields
     The tag must have had a FASTA configured, and an index for "salmon" must
     have been configured to be built for the organism selected with the
     ``organism`` config option.
+
 
 ChIP-seq-only fields
 ~~~~~~~~~~~~~~~~~~~~
@@ -437,16 +452,19 @@ ChIP-seq-only fields
     currently expects a single key, ``peak_calling``, which is a list of
     peak-calling runs.
 
-    A peak-calling run is a dictionary configuring a single peak-calling run
-    which results in a single BED file of called peaks. A peak-calling run is
-    uniquely described by its ``label`` and ``algorithm``. This way, we can use
-    the same label (e.g., `gaf-embryo-1`) across multiple peak-callers to help
-    organize the output.
+    A peak-calling run is a dictionary configuring a single execution of
+    a peak-caller which results in a single BED file of called peaks.
+    A peak-calling run is uniquely described by its ``label`` and
+    ``algorithm``. This way, we can use the same label (e.g., `gaf-embryo-1`)
+    across multiple peak-callers to help organize the output.
+
+    The track hubs will include all of these called peaks which helps with
+    assessing the peak-calling performance.
 
     Here is a minimal example of a peak-calling config section. It defines
     a single peak-calling run using the `macs2` algorithm. Note that the
     ``ip:`` and ``control:`` keys are lists of **labels** from the ChIP-seq
-    sample table's ``label`` column, not sample IDs from the first column.
+    sample table's ``label`` column, **not sample IDs** from the first column.
 
     .. code-block:: yaml
 
@@ -509,5 +527,8 @@ ChIP-seq-only fields
               control:
                 - input-embryo-1
                 - input-embryo-2
+
+
+   Other peak-callers are supported:
 
 

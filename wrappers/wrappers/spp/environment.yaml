@@ -1,6 +1,6 @@
 channels:
-  - bioconda
   - conda-forge
+  - bioconda
   - defaults
 
 dependencies:
@@ -8,4 +8,4 @@ dependencies:
   - bedtools
   - samtools
   - r-spp
-  - bioconductor-s4vectors<0.18
+  - r >=3.5.1

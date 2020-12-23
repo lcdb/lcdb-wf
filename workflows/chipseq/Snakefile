@@ -7,10 +7,7 @@ import tempfile
 import pandas as pd
 import numpy as np
 import pybedtools
-from lcdblib.snakemake import helpers, aligners
-from lcdblib.utils import utils
-from lib import common, chipseq
-from lib import cluster_specific
+from lib import common, cluster_specific, utils, helpers, aligners, chipseq
 from lib.patterns_targets import ChIPSeqConfig
 
 # ----------------------------------------------------------------------------
@@ -20,28 +17,49 @@ from lib.patterns_targets import ChIPSeqConfig
 #
 # ----------------------------------------------------------------------------
 
+# Only use default if no configfile specified on the command line with
+# --configfile
+if not workflow.overwrite_configfiles:
+    configfile: 'config/config.yaml'
 
-configfile: 'config/config.yaml'
 include: '../references/Snakefile'
 
-shell.prefix('set -euo pipefail; export TMPDIR={};'.format(cluster_specific.tempdir_for_biowulf()))
+shell.prefix(
+    'set -euo pipefail; export R_PROFILE_USER=; export TMPDIR={};'
+    .format(cluster_specific.tempdir_for_biowulf())
+)
 shell.executable('/bin/bash')
 
 config = common.load_config(config)
+
+# Verify configuration of config and sampletable files
+helpers.preflight(config)
 
 c = ChIPSeqConfig(
     config,
     config.get('patterns', 'config/chipseq_patterns.yaml')
 )
 
+SAMPLES = c.sampletable.iloc[:, 0].values
+
+wildcard_constraints:
+    n = '[1,2]',
+    sample = '|'.join(SAMPLES)
+
+localrules: symlinks
+
 
 def wrapper_for(path):
     return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
 
 
+
+
 # ----------------------------------------------------------------------------
 # RULES
 # ----------------------------------------------------------------------------
+
+
 # See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
     c.targets['bam'],
@@ -63,6 +81,13 @@ final_targets = utils.flatten((
 if 'merged_bigwigs' in config:
     final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
 
+
+def render_r1_r2(pattern, r1_only=False):
+    return expand(pattern, sample='{sample}', n=c.n)
+
+def r1_only(pattern):
+    return expand(pattern, sample='{sample}', n=1)
+
 rule targets:
     """
     Final targets to create
@@ -81,15 +106,10 @@ if 'orig_filename' in c.sampletable.columns:
         Given a sample, returns either one or two original fastq files
         depending on whether the library was single- or paired-end.
         """
-        row = _st.loc[wc.sample]
-        res = [row['orig_filename']]
-        try:
-            r2 = row['orig_filename_R2']
-            if isinstance(r2, str):
-                res.append(row['orig_filename_R2'])
-        except KeyError:
-            pass
-        return res
+        if c.is_paired:
+            return _st.loc[wc.sample, ['orig_filename', 'orig_filename_R2']]
+        return _st.loc[wc.sample, ['orig_filename']]
+
 
     rule symlinks:
         """
@@ -98,10 +118,10 @@ if 'orig_filename' in c.sampletable.columns:
         input:
             orig_for_sample
         output:
-            c.patterns['fastq']
-        wildcard_constraints:
-            n="\d+"
+            render_r1_r2(c.patterns['fastq'])
         run:
+
+            assert len(output) == len(input), (input, output)
             for src, linkname in zip(input, output):
                 utils.make_relative_symlink(src, linkname)
 
@@ -109,7 +129,8 @@ if 'orig_filename' in c.sampletable.columns:
     rule symlink_targets:
         input: c.targets['fastq']
 
-if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('SRR')) > 1:
+
+if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('SRR')) > 0:
 
     # Convert the sampletable to be indexed by the first column, for
     # convenience in generating the input/output filenames.
@@ -117,15 +138,14 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
 
     rule fastq_dump:
         output:
-            c.patterns['fastq']
+            fastq=render_r1_r2(c.patterns['fastq'])
         run:
             srr = _st.loc[wildcards.sample, 'Run']
 
             # Two different paths depending on the layout. In both cases, we
             # want to avoid creating the final output until the very end, to
             # avoid incomplete downloads.
-            if _st.loc[wildcards.sample, 'layout'] == 'PE':
-
+            if c.is_paired:
                 # For PE we need to use --split-files, which also means using
                 # the slower --gzip
                 shell(
@@ -133,17 +153,12 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     '{srr} '
                     '--gzip '
                     '--split-files '
+                    # '-X 100000 ' # [TEST SETTINGS]
                 )
 
-                # The filenames are predictable, so we can move them as needd.
-                shell(
-                    'mv {srr}_1.fastq.gz '
-                    '$(dirname {output})/{sample}_R1.fastq.gz'
-                )
-                shell(
-                    'mv {srr}_2.fastq.gz '
-                    '$(dirname {output})/{sample}_R2.fastq.gz'
-                )
+                # The filenames are predictable, so we can move them as needed.
+                shell('mv {srr}_1.fastq.gz {output[0]}')
+                shell('mv {srr}_2.fastq.gz {output[1]}')
 
             else:
                 # For SE, we can use the faster stdout | gzip, and move it
@@ -152,49 +167,50 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     'fastq-dump '
                     '{srr} '
                     '-Z '
-                    '| gzip -c > {output}.tmp '
-                    '&& mv {output}.tmp {output} '
+                    # '-X 100000 ' # [TEST SETTINGS]
+                    '| gzip -c > {output[0]}.tmp '
+                    '&& mv {output[0]}.tmp {output[0]} '
                 )
 
-
-def render_r1_r2(pattern):
-    return expand(pattern, sample='{sample}', n=[1,2])
 
 rule cutadapt:
     """
     Run cutadapt
     """
     input:
-        fastq=common.fill_r1_r2(c.sampletable, c.patterns['fastq'])
+        fastq=render_r1_r2(c.patterns['fastq'])
     output:
         fastq=render_r1_r2(c.patterns['cutadapt'])
     log:
         render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
+    threads: 6
     run:
-        paired = len(input) == 2
 
         # NOTE: Change cutadapt params here
-        extra='-a file:../../include/adapters.fa -q 20 --minimum-length=25'
-
-        if paired:
+        if c.is_paired:
             shell(
                 "cutadapt "
-                "{extra} "
-                "{input.fastq[0]} "
-                "{input.fastq[1]} "
                 "-o {output[0]} "
                 "-p {output[1]} "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
+                '-q 20 '
+                '-j {threads} '
+                '--minimum-length 25 '
+                "{input.fastq[0]} "
+                "{input.fastq[1]} "
                 "&> {log}"
             )
         else:
             shell(
                 "cutadapt "
-                "{extra} "
-                "{input.fastq[0]} "
                 "-o {output[0]} "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                '-q 20 '
+                '--minimum-length 25 '
+                "{input.fastq[0]} "
                 "&> {log}"
             )
-            shell('touch {output[1]}')
 
 
 rule fastqc:
@@ -205,8 +221,8 @@ rule fastqc:
     output:
         html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
         zip='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
-    wrapper:
-        wrapper_for('fastqc')
+    script:
+        wrapper_for('fastqc/wrapper.py')
 
 
 rule bowtie2:
@@ -215,19 +231,38 @@ rule bowtie2:
     """
     input:
         fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
-        index=[refdict[c.organism][config['aligner']['tag']]['bowtie2']]
+        index=[c.refdict[c.organism][config['aligner']['tag']]['bowtie2']]
     output:
         bam=c.patterns['bam']
     log:
         c.patterns['bam'] + '.log'
-    params:
-        samtools_view_extra='-F 0x04'
-    # NOTE:
-    # When running on a cluster, number of threads here should match the
-    # resources requested in the cluster config.
-    threads: 8
-    wrapper:
-        wrapper_for('bowtie2/align')
+    threads: 16
+    run:
+        prefix = aligners.prefix_from_bowtie2_index(input.index)
+        sam = output.bam.replace('.bam', '.sam')
+
+        if c.is_paired:
+            assert len(input.fastq) == 2
+            fastqs = '-1 {0} -2 {1} '.format(*input.fastq)
+        else:
+            assert len(input.fastq) == 1
+            fastqs = '-U {0} '.format(input.fastq)
+
+        shell(
+            "bowtie2 "
+            "-x {prefix} "
+            "{fastqs} "
+            '--no-unal '  # NOTE: suppress unaligned reads
+            "--threads {threads} "
+            "-S {sam} "
+            "> {log} 2>&1"
+        )
+
+        shell(
+            "samtools view -Sb {sam} "
+            "| samtools sort - -o {output.bam} -O BAM "
+            "&& rm {sam}"
+        )
 
 
 rule unique:
@@ -238,12 +273,10 @@ rule unique:
         c.patterns['bam']
     output:
         c.patterns['unique']
-    params:
+    shell:
         # NOTE: the quality score chosen here should reflect the scores output
         # by the aligner used. For example, STAR uses 255 as max mapping
         # quality.
-        extra="-b -q 20"
-    shell:
         'samtools view -b -q 20 {input} > {output}'
 
 
@@ -254,7 +287,7 @@ rule fastq_count:
     input:
         fastq='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz'
     output:
-        count='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
+        '{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
     shell:
         'zcat {input} | echo $((`wc -l`/4)) > {output}'
 
@@ -264,9 +297,9 @@ rule bam_count:
     Count reads in a BAM file
     """
     input:
-        bam='{sample_dir}/{sample}/{sample}{suffix}.bam'
+        bam='{sample_dir}/{sample}/{suffix}.bam'
     output:
-        count='{sample_dir}/{sample}/{sample}{suffix}.bam.libsize'
+        '{sample_dir}/{sample}/{suffix}.bam.libsize'
     shell:
         'samtools view -c {input} > {output}'
 
@@ -300,14 +333,14 @@ rule fastq_screen:
     """
     input:
         **fastq_screen_references(),
-        fastq=rules.cutadapt.output.fastq,
+        fastq=r1_only(rules.cutadapt.output.fastq),
     output:
         txt=c.patterns['fastq_screen']
     log:
         c.patterns['fastq_screen'] + '.log'
     params: subset=100000
-    wrapper:
-        wrapper_for('fastq_screen')
+    script:
+        wrapper_for('fastq_screen/wrapper.py')
 
 
 rule libsizes_table:
@@ -358,11 +391,25 @@ rule libsizes_table:
                 'title': 'Library size table',
                 'min': 0
             },
-            'data': yaml.load(df.transpose().to_json()),
+            'data': yaml.load(df.transpose().to_json(), Loader=yaml.FullLoader),
         }
         with open(output.json, 'w') as fout:
             yaml.dump(y, fout, default_flow_style=False)
 
+multiqc_inputs = [
+    utils.flatten(c.targets['fastqc']) +
+    utils.flatten(c.targets['libsizes_yaml']) +
+    utils.flatten(c.targets['cutadapt']) +
+    utils.flatten(c.targets['bam']) +
+    utils.flatten(c.targets['markduplicates']) +
+    utils.flatten(c.targets['fingerprint']) +
+    utils.flatten(c.targets['peaks']) +
+    utils.flatten(c.targets['fastq_screen']) +
+    utils.flatten(c.targets['plotcorrelation'])
+]
+
+if c.is_paired:
+    multiqc_inputs.extend(utils.flatten(c.targets['collectinsertsizemetrics']['metrics']))
 
 rule multiqc:
     """
@@ -371,16 +418,7 @@ rule multiqc:
     # NOTE: if you add more rules and want MultiQC to pick up the output, best
     # to add outputs from those rules to the inputs here.
     input:
-        files=(
-            utils.flatten(c.targets['fastqc']) +
-            utils.flatten(c.targets['libsizes_yaml']) +
-            utils.flatten(c.targets['cutadapt']) +
-            utils.flatten(c.targets['bam']) +
-            utils.flatten(c.targets['markduplicates']) +
-            utils.flatten(c.targets['fingerprint']) +
-            utils.flatten(c.targets['peaks']) +
-            utils.flatten(c.targets['fastq_screen'])
-        ),
+        files=multiqc_inputs,
         config='config/multiqc_config.yaml'
     output:
         c.targets['multiqc']
@@ -391,7 +429,7 @@ rule multiqc:
         outdir = os.path.dirname(c.targets['multiqc'][0])
         basename = os.path.basename(c.targets['multiqc'][0])
         shell(
-            'LC_ALL=en_US.UTF.8 LC_LANG=en_US.UTF-8 '
+            'LC_ALL=en_US.utf8 LC_LANG=en_US.utf8 '
             'multiqc '
             '--quiet '
             '--outdir {outdir} '
@@ -428,6 +466,7 @@ rule markduplicates:
         'OUTPUT={output.bam} '
         'REMOVE_DUPLICATES=true '
         'METRICS_FILE={output.metrics} '
+        'VALIDATION_STRINGENCY=LENIENT '
         '&> {log}'
 
 
@@ -454,9 +493,29 @@ rule merge_techreps:
         # config.
         java_args='-Xmx32g'
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
-    wrapper:
-        wrapper_for('combos/merge_and_dedup')
+    script:
+        wrapper_for('combos/merge_and_dedup/wrapper.py')
 
+if c.is_paired:
+    rule collectinsertsizemetrics:
+        input:
+            bam=c.patterns['markduplicates']['bam'],
+        output:
+            pdf=c.patterns['collectinsertsizemetrics']['pdf'],
+            metrics=c.patterns['collectinsertsizemetrics']['metrics']
+        log:
+            c.patterns['collectinsertsizemetrics']['metrics'] + '.log'
+        params:
+            java_args='-Xmx20g'
+            # java_args='-Xmx2g'  # [TEST SETTINGS -1]
+        shell:
+            'picard '
+            '{params.java_args} '
+            'CollectInsertSizeMetrics '
+            'I={input.bam} '
+            'O={output.metrics} '
+            'H={output.pdf} '
+            '&> {log} '
 
 rule bigwig:
     """
@@ -619,6 +678,7 @@ rule bed_to_bigbed:
         bed='{prefix}.bed',
         chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes']
     output: '{prefix}.bigbed'
+    log: '{prefix}.bigbed.log'
     run:
         # Based on the filename, identify the algorithm. Based on the contents,
         # identify the format.
@@ -652,7 +712,7 @@ rule bed_to_bigbed:
             df['score'] = df['score'].astype(int)
             df.to_csv(output[0] + '.tmp', sep='\t', index=False, header=False)
 
-            shell('bedToBigBed -as={_as} -type={_type} {output}.tmp {input.chromsizes} {output}')
+            shell('bedToBigBed -as={_as} -type={_type} {output}.tmp {input.chromsizes} {output} &> {log}')
             shell('rm {output}.tmp')
 
 
@@ -665,6 +725,7 @@ rule multibigwigsummary:
     output:
         npz=c.targets['multibigwigsummary']['npz'],
         tab=c.targets['multibigwigsummary']['tab']
+    threads: 16
     run:
         # from the input files, figure out the sample name.
         labels = ' '.join([i.split('/')[-2] for i in input])
@@ -693,7 +754,7 @@ rule plotcorrelation:
         '--corMethod spearman '
         '--whatToPlot heatmap '
         '--plotFile {output.heatmap} '
-        '--colorMap viridis '
+        '--colorMap Reds '
         '--outFileCorMatrix {output.tab}'
 
         # NOTE: if you're expecting negative correlation, try a divergent
@@ -719,7 +780,7 @@ if 'merged_bigwigs' in config:
             c.patterns['merged_bigwig']
         log:
             c.patterns['merged_bigwig'] + '.log'
-        wrapper:
-            wrapper_for('average-bigwigs')
+        script:
+            wrapper_for('average-bigwigs/wrapper.py')
 
 # vim: ft=python

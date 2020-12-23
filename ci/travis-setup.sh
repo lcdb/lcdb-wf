@@ -21,17 +21,16 @@ export PATH="$CONDA_DIR/bin:$PATH"
 
 cat > ~/.condarc <<EOF
 channels:
-  - bioconda
   - conda-forge
+  - bioconda
   - defaults
   - lcdb
-default_channels:
-  - https://repo.continuum.io/pkgs/free
 EOF
 
 # See https://github.com/conda/conda/issues/5536
 # conda install -y "conda<4.3"
 
+conda update conda -y
 conda --version
 cat ~/.condarc
 

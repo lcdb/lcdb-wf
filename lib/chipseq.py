@@ -40,7 +40,18 @@ def peak_calling_dict(config, algorithm=None):
         `label`.
     """
     d = {}
-    for block in config['chipseq']['peak_calling']:
+
+    if 'chipseq' not in config:
+        return d
+
+    if config['chipseq'] is None:
+        return d
+
+    peaks_blocks = config['chipseq'].get('peak_calling', [])
+    if not peaks_blocks:
+        return d
+
+    for block in peaks_blocks:
         key = (block['label'], block['algorithm'])
         if algorithm:
             if key[1] != algorithm:
@@ -120,7 +131,7 @@ def merged_input_for_ip(sampletable, merged_ip):
 
     >>> from io import StringIO
     >>> import pandas as pd
-    >>> df = pd.read_table(StringIO('''
+    >>> df = pd.read_csv(StringIO('''
     ... samplename  antibody   biological_material  label
     ... ip1         gaf        s2cell-1             s2cell-gaf-1
     ... ip2         gaf        s2cell-1             s2cell-gaf-1

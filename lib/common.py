@@ -1,13 +1,18 @@
 import glob
+import subprocess
+import time
 import os
 import warnings
+import urllib.request as request
+import contextlib
 import yaml
 import pandas
 from Bio import SeqIO
 import gzip
 import binascii
-from lcdblib.utils.imports import resolve_name
-from lcdblib.snakemake import aligners
+from lib.imports import resolve_name
+from lib import aligners
+from lib import utils
 from snakemake.shell import shell
 from snakemake.io import expand
 
@@ -57,7 +62,7 @@ def resolve_config(config, workdir=None):
         Optional location to specify relative location of all paths in `config`
     """
     if isinstance(config, str):
-        config = yaml.load(open(config))
+        config = yaml.load(open(config), Loader=yaml.FullLoader)
 
     def rel(pth):
         if workdir is None or os.path.isabs(pth):
@@ -298,6 +303,7 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
 
     # Download tempfiles into reasonably-named filenames
     tmpfiles = ['{0}.{1}.tmp'.format(outfile, i) for i in range(len(urls))]
+    tmpinputfiles = tmpfiles
     try:
         for url, tmpfile in zip(urls, tmpfiles):
             if url.startswith('file:'):
@@ -307,7 +313,8 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
                 shell("wget {url} -O- > {tmpfile} 2> {outfile}.log")
 
         for func, args, kwargs, outfile in funcs:
-            func(tmpfiles, outfile, *args, **kwargs)
+            func(tmpinputfiles, outfile, *args, **kwargs)
+            tmpinputfiles = [outfile]
 
     except Exception as e:
         raise e
@@ -319,9 +326,25 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
 
 def references_dict(config):
     """
-    Reformats the config file's reference section into a more practical form.
+    Transforms the references section of the config file.
 
-    Files can be referenced as `d[organism][tag][type]`.
+    The references section of the config file is designed to be human-editable,
+    and to only need the URL(s). User-specified indexes, conversions, and
+    post-processing functions can also be added.
+
+    For example, the config might say::
+
+        human:
+          gencode:
+            fasta: <url to fasta>
+                indexes:
+                  - hisat2
+
+    In this function, we need to convert that "indexes: [hisat2]" into the full
+    path of the hisat2 index that can be used as input for a Snakemake rule. In
+    this example, in the dictionary returned below we can then get that path
+    with `d['human']['gencode']['hisat2']`, or more generally,
+    `d[organism][tag][type]`.
 
     Parameters
     ----------
@@ -334,9 +357,6 @@ def references_dict(config):
     standpoint. But it's not so great for practical usage. Here we convert the
     config file which has the format::
 
-    >>> from textwrap import dedent
-    >>> fout = open('tmp', 'w')
-    >>> _ = fout.write(dedent('''
     ... references_dir: "/data"
     ... references:
     ...   dm6:
@@ -345,53 +365,40 @@ def references_dict(config):
     ...         reference_genome_build: 'dm6'
     ...         reference_effective_genome_count: 1.2e7
     ...         reference_effective_genome_proportion: 0.97
-    ...       fasta:
+    ...       genome:
     ...         url: ""
     ...         indexes:
     ...           - bowtie2
     ...           - hisat2
-    ...       gtf:
+    ...       annotation:
     ...         url: ""
     ...         conversions:
     ...           - refflat
-    ...     r6-11_transcriptome:
-    ...       fasta:
-    ...         url: ""
-    ...         indexes:
-    ...           - salmon
-    ... '''))
-    >>> fout.close()
+    ...       transcriptome:
+    ...           indexes:
+    ...             - salmon
 
-    To this format:
+    To this format::
 
-    >>> d, conversion_kwargs = references_dict('tmp')
-    >>> assert d == (
-    ... {
-    ...   'dm6': {
-    ...      'r6-11': {
-    ...          'fasta': '/data/dm6/r6-11/fasta/dm6_r6-11.fasta',
-    ...          'refflat': '/data/dm6/r6-11/gtf/dm6_r6-11.refflat',
-    ...          'gtf': '/data/dm6/r6-11/gtf/dm6_r6-11.gtf',
-    ...          'chromsizes': '/data/dm6/r6-11/fasta/dm6_r6-11.chromsizes',
-    ...          'bowtie2': '/data/dm6/r6-11/bowtie2/dm6_r6-11.1.bt2',
-    ...          'bowtie2_fasta': '/data/dm6/r6-11/bowtie2/dm6_r6-11.fasta',
-    ...          'hisat2': '/data/dm6/r6-11/hisat2/dm6_r6-11.1.ht2',
-    ...          'hisat2_fasta': '/data/dm6/r6-11/hisat2/dm6_r6-11.fasta',
-    ...          },
-    ...      'r6-11_transcriptome': {
-    ...          'fasta': '/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.fasta',
-    ...          'chromsizes': '/data/dm6/r6-11_transcriptome/fasta/dm6_r6-11_transcriptome.chromsizes',
-    ...          'salmon': '/data/dm6/r6-11_transcriptome/salmon/dm6_r6-11_transcriptome/hash.bin',
-    ...          'salmon_fasta': '/data/dm6/r6-11_transcriptome/salmon/dm6_r6-11_transcriptome.fasta',
-    ...          },
-    ...     },
-    ... }), d
-    >>> assert conversion_kwargs == {'/data/dm6/r6-11/gtf/dm6_r6-11.refflat': {}}
-    >>> os.unlink('tmp')
+    ... 'dm6': {
+    ...    'r6-11': {
+    ...        'annotation':    '/data/dm6/r6-11/annotation/dm6_r6-11.gtf',
+    ...        'bowtie2':       '/data/dm6/r6-11/genome/bowtie2/dm6_r6-11.1.bt2',
+    ...        'bowtie2_fasta': '/data/dm6/r6-11/genome/bowtie2/dm6_r6-11.fasta',
+    ...        'chromsizes':    '/data/dm6/r6-11/genome/dm6_r6-11.chromsizes',
+    ...        'genome':        '/data/dm6/r6-11/genome/dm6_r6-11.fasta',
+    ...        'hisat2':        '/data/dm6/r6-11/genome/hisat2/dm6_r6-11.1.ht2',
+    ...        'hisat2_fasta':  '/data/dm6/r6-11/genome/hisat2/dm6_r6-11.fasta',
+    ...        'refflat':       '/data/dm6/r6-11/annotation/dm6_r6-11.refflat',
+    ...        'salmon':        '/data/dm6/r6-11/transcriptome/salmon/dm6_r6-11/versionInfo.json',
+    ...        'salmon_fasta':  '/data/dm6/r6-11/transcriptome/salmon/dm6_r6-11.fasta',
+    ...        'transcriptome': '/data/dm6/r6-11/transcriptome/dm6_r6-11.fasta',
+    ...        },
+    ... }
 
     """
     if isinstance(config, str):
-        config = yaml.load(open(config))
+        config = yaml.load(open(config), Loader=yaml.FullLoader)
 
     references_dir = get_references_dir(config)
 
@@ -399,15 +406,25 @@ def references_dict(config):
     index_extensions = {
         'bowtie2': aligners.bowtie2_index_from_prefix('')[0],
         'hisat2': aligners.hisat2_index_from_prefix('')[0],
-        'ngm': '.fasta-enc.2.ngm',
         'star': '/Genome',
-        'salmon': '/hash.bin',
+
+        # Notes on salmon indexing:
+        #   - pre-1.0 versions had hash.bin
+        #   - post-1.0 versions do not have hash.bin but do have several other
+        #     different .bin files
+        #   - both appear to have versionInfo.json
+        #
+        # In order to support both, we use a filename found in common between
+        # the version.
+        'salmon': '/versionInfo.json',
     }
 
     conversion_extensions = {
+
         'intergenic': '.intergenic.gtf',
         'refflat': '.refflat',
         'gffutils': '.gtf.db',
+        'bed12': '.bed12',
         'genelist': '.genelist',
         'annotation_hub': '.{keytype}.csv',
         'mappings': '.mapping.tsv.gz',
@@ -418,6 +435,12 @@ def references_dict(config):
 
     merged_references = config['references']
 
+    type_extensions = {
+        'genome': 'fasta',
+        'annotation': 'gtf',
+        'transcriptome': 'fasta'
+    }
+
     for organism in merged_references.keys():
         d[organism] = {}
         for tag in merged_references[organism].keys():
@@ -425,16 +448,30 @@ def references_dict(config):
             for type_, block in merged_references[organism][tag].items():
                 if type_ == 'metadata':
                     continue
+                try:
+                    type_extension = type_extensions[type_]
+
+                except KeyError:
+                    raise ValueError(
+
+                        "KeyError: " + type_ + "\n"
+                        "\nConfig file format has changed:\n"
+                        "  - 'fasta:' -> 'genome:'\n"
+                        "  - 'gtf:' -> 'annotation:'\n"
+                        "  - new 'transcriptome:' section\n"
+                        "\nSee docs for details\n\n"
+
+                    )
                 e[type_] = (
                     '{references_dir}/'
                     '{organism}/'
                     '{tag}/'
                     '{type_}/'
-                    '{organism}_{tag}.{type_}'.format(**locals())
+                    '{organism}_{tag}.{type_extension}'.format(**locals())
                 )
 
                 # Add conversions if specified.
-                if type_ == 'gtf':
+                if type_ == 'annotation':
                     conversions = block.get('conversions', [])
                     for conversion in conversions:
                         kwargs = {}
@@ -469,31 +506,33 @@ def references_dict(config):
 
                         conversion_kwargs[output] = kwargs
 
-                if type_ == 'fasta':
+                if type_ in ['genome', 'transcriptome']:
                     # Add indexes if specified
                     indexes = block.get('indexes', [])
                     for index in indexes:
                         ext = index_extensions[index]
 
                         e[index] = (
-                            '{references_dir}/{organism}/{tag}/{index}/{organism}_{tag}{ext}'
+                            '{references_dir}/{organism}/{tag}/{type_}/{index}/{organism}_{tag}{ext}'
                             .format(**locals())
                         )
 
                         # Each index will get the original fasta symlinked over
                         # to its directory
                         e[index + '_fasta'] = (
-                            '{references_dir}/{organism}/{tag}/{index}/{organism}_{tag}.fasta'
+                            '{references_dir}/{organism}/{tag}/{type_}/{index}/{organism}_{tag}.fasta'
                             .format(**locals())
                         )
 
-                    e['chromsizes'] = (
-                        '{references_dir}/'
-                        '{organism}/'
-                        '{tag}/'
-                        '{type_}/'
-                        '{organism}_{tag}.chromsizes'.format(**locals())
-                    )
+                    # Only makes sense to have chromsizes for genome fasta, not transcriptome.
+                    if type_ == 'genome':
+                        e['chromsizes'] = (
+                            '{references_dir}/'
+                            '{organism}/'
+                            '{tag}/'
+                            '{type_}/'
+                            '{organism}_{tag}.chromsizes'.format(**locals())
+                        )
                 d[organism][tag] = e
     return d, conversion_kwargs
 
@@ -532,7 +571,7 @@ def get_sampletable(config):
     config : dict
     """
     config = resolve_config(config)
-    sampletable = pandas.read_table(config['sampletable'], comment="#")
+    sampletable = pandas.read_csv(config['sampletable'], comment="#", sep='\t')
     samples = sampletable.iloc[:, 0]
     return samples, sampletable
 
@@ -564,7 +603,7 @@ def get_techreps(sampletable, label):
     return result
 
 
-def load_config(config):
+def load_config(config, missing_references_ok=False):
     """
     Loads the config.
 
@@ -572,7 +611,7 @@ def load_config(config):
     handler.
     """
     if isinstance(config, str):
-        config = yaml.load(open(config))
+        config = yaml.load(open(config), Loader=yaml.FullLoader)
 
     # Here we populate a list of reference sections. Items later on the list
     # will have higher priority
@@ -586,17 +625,21 @@ def load_config(config):
         # reference directories are possible
         for fn in glob.glob(os.path.join(dirname, '**/*.y?ml'),
                             recursive=True):
-            refs = yaml.load(open(fn)).get('references', None)
+            refs = yaml.load(open(fn), Loader=yaml.FullLoader).get('references', None)
             if refs is None:
-                raise ValueError("No 'references:' section in {0}".format(fn))
-            reference_sections.append(refs)
+                if not missing_references_ok:
+                    raise ValueError("No 'references:' section in {0}".format(fn))
+            else:
+                reference_sections.append(refs)
 
     # Now the files
     for fn in filter(os.path.isfile, includes):
-        refs = yaml.load(open(fn)).get('references', None)
+        refs = yaml.load(open(fn), Loader=yaml.FullLoader).get('references', None)
         if refs is None:
-            raise ValueError("No 'references:' section in {0}".format(fn))
-        reference_sections.append(refs)
+            if not missing_references_ok:
+                raise ValueError("No 'references:' section in {0}".format(fn))
+        else:
+            reference_sections.append(refs)
 
     # The last thing we include is the references section as written in the
     # config, which wins over all.
@@ -629,7 +672,7 @@ def deprecation_handler(config):
             "'assembly' should be replaced with 'organism' in config files. "
             "As a temporary measure, a new 'organism' key has been added with "
             "the value of 'assembly'",
-            UserWarning)
+            DeprecationWarning)
 
     for org, block1 in config.get('references', {}).items():
         for tag, block2 in block1.items():
@@ -641,7 +684,7 @@ def deprecation_handler(config):
                         "than 'annotation_hub' since it works directly off "
                         "the GTF file rather than assuming concordance between "
                         "GTF and AnnoationHub instances",
-                        UserWarning)
+                        DeprecationWarning)
 
     return config
 
@@ -661,6 +704,8 @@ def is_paired_end(sampletable, sample):
         Assumed to be found in the first column of `sampletable`
     """
     row = sampletable.set_index(sampletable.columns[0]).loc[sample]
+    if 'orig_filename_R2' in row:
+        return True
     if 'layout' in row and 'LibraryLayout' in row:
         raise ValueError("Expecting column 'layout' or 'LibraryLayout', "
                          "not both")
@@ -713,84 +758,123 @@ def fill_r1_r2(sampletable, pattern, r1_only=False):
     return func
 
 
-def convert_gtf_chroms(tmpfiles, outfile, conv_table):
+def pluck(obj, kv):
     """
-    Convert chrom names in GTF file according to conversion table.
+    For a given dict or list that somewhere contains keys `kv`, return the
+    values of those keys.
+
+    Named after the dplyr::pluck, and implemented based on
+    https://stackoverflow.com/a/1987195
+    """
+    if isinstance(obj, list):
+        for i in obj:
+            for x in pluck(i, kv):
+                yield x
+    elif isinstance(obj, dict):
+        if kv in obj:
+            yield obj[kv]
+        for j in obj.values():
+            for x in pluck(j, kv):
+                yield x
+
+
+def check_url(url, verbose=False):
+    """
+    Try to open -- and then immediately close -- a URL.
+
+    Any exceptions can be handled upstream.
+
+    """
+
+    # Some notes here:
+    #
+    #  - A pure python implementation isn't great because urlopen seems to
+    #    cache or hold sessions open or something. EBI servers reject responses
+    #    because too many clients are connected. This doesn't happen using curl.
+    #
+    #  - Using the requests module doesn't help, because urls can be ftp:// and
+    #    requests doesn't support that.
+    #
+    #  - Similarly, using asyncio and aiohttp works great for https, but not
+    #    ftp (I couldn't get aioftp to work properly).
+    #
+    #  - Not all servers support --head. An example of this is
+    #    https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA.
+    #
+    #  - Piping curl to head using the -c arg to use bytes seems to work.
+    #    However, we need to set pipefail (otherwise because head exits 0 the
+    #    whole thing exits 0). And in that case, we expect curl to exit every
+    #    time with exit code 23, which is "failed to write output", because of
+    #    the broken pipe. This is handled below.
+    #
+    if verbose:
+        print(f'Checking {url}')
+
+    # Notes on curl args:
+    #
+    #  --max-time to allow the server some seconds to respond
+    #  --retry to allow multiple tries if transient errors (4xx for FTP, 5xx for HTTP) are found
+    #  --silent to not print anything
+    #  --fail to return non-zero exit codes for 404 (default is exit 0 on hitting 404)
+    #
+    # Need to run through bash explicitly to get the pipefail option, which in
+    # turn means running with shell=True
+    proc = subprocess.run(f'/bin/bash -o pipefail -c "curl --retry 3 --max-time 10 --silent --fail {url} | head -c 10 > /dev/null"', shell=True)
+    return proc
+
+
+def check_urls(config, verbose=False):
+    """
+    Given a config filename or existing object, extract the URLs and check
+    them.
 
     Parameters
     ----------
-    tmpfiles : str
-        GTF files to look through
 
-    outfile : str
-        gzipped output GTF file
+    config : str or dict
+        Config object to inspect
 
-    conv_table : str
-        Lookup table file for the chromosome name conversion. Uses pandas to
-        read lookup table, so it can be file://, a path relative to the
-        snakefile, or an http://, https://, or ftp:// URL.
+    verbose : bool
+        Print which URL is being checked
+
+    wait : int
+        Number of seconds to wait in between checking URLs, to avoid
+        too-many-connection issues
     """
+    config = load_config(config, missing_references_ok=True)
+    failures = []
+    urls = list(set(utils.flatten(pluck(config, 'url'))))
+    for url in urls:
+        res = check_url(url, verbose=verbose)
 
-    lookup = pandas.read_table(
-        conv_table, sep='\t', header=None, names=('a', 'b')
-    ).set_index('a')['b'].to_dict()
+        # we expect exit code 23 because we're triggering SIGPIPE with the
+        # "|head -c" above.
+        if res.returncode and res.returncode != 23:
+            failures.append(f'FAIL with exit code {res.returncode}. Command was: {res.args}')
+    if failures:
+        output = '\n   '.join(failures)
+        raise ValueError(f'Found problematic URLs. See https://ec.haxx.se/usingcurl/usingcurl-returns for explanation of exit codes.\n   {output}')
 
-    with gzip.open(outfile, 'wt') as fout:
-        for tmpfn in tmpfiles:
-            with openfile(tmpfn, 'rt') as tmp:
-                for line in tmp:
-                    if not line.startswith("#"):
-                        toks = line.split('\t')
-                        chrom = toks[0]
-                        if chrom in lookup.keys():
-                            toks[0]= lookup[chrom]
-                            line = '\t'.join(toks)
-                        else:
-                            raise ValueError(
-                                'Chromosome "{chrom}" not found in conversion table '
-                                '"{conv_table}"'
-                                .format(chrom=chrom, conv_table=conv_table)
-                            )
-                    fout.write(line)
 
-def convert_fasta_chroms(tmpfiles, outfile, conv_table):
+def check_all_urls_found(verbose=True):
     """
-    Convert chrom names in fasta file according to conversion table.
-
-    Parameters
-    ----------
-    tmpfiles : str
-        fasta files to look through
-
-    outfile : str
-        gzipped output fasta file
-
-    conv_table : str
-        Lookup table file for the chromosome name conversion. Uses pandas to
-        read lookup table, so it can be file://, a path relative to the
-        snakefile, or an http://, https://, or ftp:// URL.
+    Recursively loads all references that can be included and checks them.
+    Reports out if there are any failures.
     """
+    check_urls({'include_references': [
+        'include/reference_configs',
+        'test/test_configs',
+        'workflows/rnaseq/config',
+        'workflows/chipseq/config',
+        'workflows/references/config',
+    ]}, verbose=verbose)
 
-    lookup = pandas.read_table(
-        conv_table, sep='\t', header=None, names=('a', 'b')
-    ).set_index('a')['b'].to_dict()
 
-    with gzip.open(outfile, 'wt') as fout:
-        for tmpfn in tmpfiles:
-            with openfile(tmpfn, 'rt') as tmp:
-                for line in tmp:
-                    if line.startswith(">"):
-                        line = line.rstrip("\n")
-                        toks = line.split(' ')
-                        chrom = toks[0].lstrip(">")
-                        chrom = chrom.rstrip("\n")
-                        if chrom in lookup.keys():
-                            toks[0]= ">" + lookup[chrom]
-                            line = ' '.join(toks) + "\n"
-                        else:
-                            raise ValueError(
-                                'Chromosome "{chrom}" not found in conversion table '
-                                '"{conv_table}"'
-                                .format(chrom=chrom, conv_table=conv_table)
-                            )
-                    fout.write(line)
+def gff2gtf(gff, gtf):
+    """
+    Converts a gff file to a gtf format using the gffread function from Cufflinks
+    """
+    if _is_gzipped(gff[0]):
+        shell('gzip -d -S .gz.0.tmp {gff} -c | gffread - -T -o- | gzip -c > {gtf}')
+    else:
+        shell('gffread {gff} -T -o- | gzip -c > {gtf}')
