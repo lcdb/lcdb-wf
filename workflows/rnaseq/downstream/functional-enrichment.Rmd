@@ -5,6 +5,7 @@ Here we perform gene ontology, KEGG pathway and Reactome pathway enrichment usin
 package with some custom plotting functions.
 
 ```{r cprofsetup, results='hide'}
+# Initial setup for clusterProfiler chunks below.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#cprofsetup
 
 # output directory for clusterProfiler results
@@ -25,6 +26,7 @@ id.convert <- TRUE
 ```
 
 ```{r bitrgenes, results='hide'}
+# Convert gene IDs to those useable to clusterProfiler.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#bitrgenes
 # NOTE: Gene IDs are provided in what format?----------------------------------
 from.type <- "FLYBASE"
@@ -34,6 +36,7 @@ genes.df <- nested.lapply(deg.list, function (x) AnnotationDbi::select(orgdb, ke
 ```
 
 ```{r enrichall, results='hide', cache=TRUE, dependson='selections'}
+# Perform enrichment analyses.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#enrichall
 
 # run enrichment for all gene lists over a loop
@@ -130,6 +133,7 @@ for(comp in names(genes.df)){
 ```
 
 ```{r adjustcatlen}
+# Tweak the annotation names.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#adjustcatlen
 
 # This shortens the names of functional terms for better visualization
@@ -149,6 +153,7 @@ containing analysis results are shown above each set of plots, with parsed
 files showing genes on separate lines.
 
 ```{r plotgo, fig.width=15, fig.height=10, results='asis', cache=TRUE, dependson='enrich_all'}
+# Plot the enrichment results.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#plotgo
 
 # go labels for file names
