@@ -14,6 +14,7 @@ output:
 ```
 
 ```{r global_options, include=FALSE}
+# Sets up global options for rendering RMarkdown into HTML.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#global_options
 knitr::opts_chunk$set(
     warning=FALSE,
@@ -53,6 +54,7 @@ library(UpSetR)
 
 
 ```{r load_helpers}
+# Load the lcdbwf R package, which is stored locally
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#load_helpers
 
 devtools::document('../../../lib/lcdbwf')
@@ -60,6 +62,7 @@ devtools::load_all('../../../lib/lcdbwf')
 ```
 
 ```{r annotationhub_setup}
+# Load the annotations for the specified organism (the "OrgDb")
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#annotationhub_setup
 annotation_genus_species <- 'Drosophila melanogaster'
 annotation_key_override <- NA
@@ -72,17 +75,21 @@ orgdb <- get.orgdb(
 ```
 
 ```{r coldata_setup}
+# Set up all of the metadata for the samples and experimental design.
+#
+# This will likely need substantial editing.
+#
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#coldata_setup
 sample.table.filename <- '../config/sampletable.tsv'
 strip.dotted.version <- TRUE
 exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'orig_filename', 'orig_filename_R2')
-factor.columns <- c('group')
 salmon.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
 
 colData <- read.table(sample.table.filename, sep='\t', header=TRUE, stringsAsFactors=FALSE)
 
 colData$salmon.path <- sapply(colData$samplename, salmon.path.func)
 
+factor.columns <- c('group')
 for (col in factor.columns){
     colData[[col]] <- as.factor(colData[[col]])
 }
@@ -100,6 +107,7 @@ knitr::kable(colData[, colnames(colData)[!colnames(colData) %in% exclude.for.pri
 ```
 
 ```{r salmon}
+# Load salmon quantification.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#salmon
 txi <- tximport(colData[, 'salmon.path'], type='salmon', txOut=TRUE)
 transcript.tpm <- txi$abundance
@@ -107,6 +115,8 @@ colnames(transcript.tpm) <- colData$samplename
 ```
 
 ```{r ddstxi, cache=TRUE, eval=FALSE}
+# Convert salmon quantification into transcript-level DESeq2 object, and do
+# variance-stabilizing transform.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#ddstxi
 
 dds.txi <- DESeqDataSetFromTximport(
@@ -119,6 +129,8 @@ vsd.txi <- varianceStabilizingTransformation(dds.txi, blind=TRUE)
 
 
 ```{r dds_initial, cache=TRUE}
+# Convert featureCounts gene-level counts into DESeq2 object, and run
+# variance-stabiliizing transform.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#dds_initial
 
 dds <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
@@ -150,6 +162,7 @@ we expect to see replicates clustering together and separation of treatments.
 ## Clustered heatmap
 
 ```{r sample_heatmap, cache=TRUE, dependson='dds_initial'}
+# Plot a clustered heatmap of sample distances, for QC.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#sample_heatmap
 lcdbwf::plot.heatmap(vsd, colData, cols.for.grouping=c('group'))
 ```
@@ -163,6 +176,7 @@ explained by each principal component is indicated in the axes label.
 
 
 ```{r pca, results='asis', cache=TRUE, dependson='dds_initial'}
+# Plot PCA plots, optionally tabbed with different factors colored, for QC.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#pca
 
 groups <- list(
@@ -198,6 +212,7 @@ relationship between the size factors and the total read count (as
 a scatterplot).
 
 ```{r sizefactors, results='asis'}
+# Plot size factors vs total read counts for QC.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#sizefactors
 
 cat('\n\n\n\n\n\n')
@@ -229,6 +244,8 @@ cat('\n\n\n\n\n\n')
 ```
 
 ```{r parallel_config}
+# Configure whether or not to run DESeq2 in parallel. Take care in setting on
+# a cluster.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#parallel_config
 
 parallel <- FALSE
@@ -236,6 +253,10 @@ parallel <- FALSE
 ```
 
 ```{r dds_list, cache=TRUE}
+# Create a list of dds objects used as the basis for differential expression.
+#
+# May need substantial editing.
+#
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#dds_list
 
 lst <- list(
@@ -254,6 +275,10 @@ dds.list <- map(lst, lcdbwf::make.dds, salmon.files=NULL, remove.version=TRUE,
 
 
 ```{r results, dependson='dds_list', cache=TRUE}
+# Perform differential expression testing.
+#
+# This will need substantial editing.
+#
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#results
 
 res.list <- list()
@@ -293,6 +318,7 @@ res.list[['lfc2']] <- list(
 
 
 ```{r attach, cache=TRUE, dependson='results'}
+# Attach additional info to the results
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#attach
 keytype <- 'ENSEMBL'
 columns <- c('SYMBOL', 'UNIPROT', 'ALIAS')
@@ -333,6 +359,8 @@ See the [Background and help](#Help) section for details on these.
 
 
 ```{r reportresults, results='asis'}
+# Generate a tabset for each set of results that contains a nested set of tabs
+# of various output.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#reportresults
 
 # NOTE: Which columns to add to the top plots' titles?-------------------------
@@ -374,6 +402,7 @@ for (name in names(res.list)){
 ```
 
 ```{r selections, cache=TRUE, dependson='attach'}
+# Make selections of interesting sets of genes to be investigated further.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#selections
 sel.list <- list()
 for (name in names(res.list)){
@@ -399,7 +428,9 @@ sel.names <- names(sel.list[[name]])
 ```
 
 ```{r upsetplots, results='asis', cache=TRUE, dependson='selections'}
+# Compare overlap across multiple differential expression contrasts.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#upsetplots
+#
 # UpSet plots only make sense for more than one set of genes. The Markdown
 # explanatory text and the plots themselves are only created if res.list has
 # multiple items in it.
@@ -447,6 +478,7 @@ if (length(res.list) > 1){
 ```
 
 ```{r genepatterns, child='gene-patterns.Rmd', eval=TRUE}
+# Run the gene patterns module (see other Rmd for details).
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#genepatterns
 rmarkdown::render('gene-patterns.Rmd', run_pandoc=FALSE)
 ```
@@ -468,6 +500,7 @@ for (name in names(res.list)){
 ```
 
 ```{r functionalenrichment, child='functional-enrichment.Rmd', eval=TRUE}
+# Perform functional enrichment for all of the sets of selected genes.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#functionalenrichment
 
 rmarkdown::render('functional-enrichment.Rmd', run_pandoc=FALSE)
@@ -484,6 +517,8 @@ sessionInfo()
 # Help
 
 ```{r helpdocs, child="help_docs.Rmd", run_pandoc=FALSE}
+# Include the help text, useful for first-time collaborators.
+#
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#helpdocs
 # NOTE: optional help section--------------------------------------------------
 #   Delete this chunk, or set to eval=FALSE, if you don't want to include the
