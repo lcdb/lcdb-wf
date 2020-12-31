@@ -13,9 +13,11 @@ from lib import aligners, helpers
 from lib import cluster_specific
 from lib import common
 
-configfile: 'config/config.yaml'
-
-config = common.load_config(config)
+# Note: when running this workflow on its own (say, to generate all references
+# ahead of time) you wil need to provide a config file from the command line.
+#
+# Otherwise, this file is expected to be `include:`ed into other workflows,
+# which will have their own config files.
 
 tempfile.tempdir = cluster_specific.tempdir_for_biowulf()
 
