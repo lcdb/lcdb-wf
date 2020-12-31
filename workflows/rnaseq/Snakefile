@@ -53,7 +53,6 @@ def wrapper_for(path):
 
 # See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
-    c.targets['bam'],
     utils.flatten(c.targets['fastqc']),
     utils.flatten(c.targets['libsizes']),
     [c.targets['fastq_screen']],
@@ -61,7 +60,6 @@ final_targets = utils.flatten((
     [c.targets['rrna_percentages_table']],
     [c.targets['multiqc']],
     utils.flatten(c.targets['featurecounts']),
-    utils.flatten(c.targets['rrna']),
     utils.flatten(c.targets['markduplicates']),
     utils.flatten(c.targets['salmon']),
     utils.flatten(c.targets['preseq']),
@@ -283,7 +281,7 @@ if config['aligner']['index'] == 'hisat2':
             fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
             index=[c.refdict[c.organism][config['aligner']['tag']]['hisat2']]
         output:
-            bam=c.patterns['bam']
+            bam=temporary(c.patterns['bam'])
         log:
             c.patterns['bam'] + '.log'
         threads: 6
@@ -354,7 +352,7 @@ if config['aligner']['index'] == 'star':
             index=[c.refdict[c.organism][config['aligner']['tag']]['star']],
             annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
         output:
-            bam=c.patterns['bam'],
+            bam=temporary(c.patterns['bam']),
             sjout=temporary(c.patterns['bam'].replace('.bam', '.star.SJ.out.tab')),
         log:
             c.patterns['bam'].replace('.bam', '.star.bam.log')
@@ -423,7 +421,7 @@ if config['aligner']['index'] == 'star-twopass':
             index=[c.refdict[c.organism][config['aligner']['tag']]['star']],
             annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
         output:
-            bam=c.patterns['bam'],
+            bam=temporary(c.patterns['bam']),
             sjout=temporary(c.patterns['bam'].replace('.bam', '.star-pass2.SJ.out.tab')),
         log:
             c.patterns['bam'].replace('.bam', '.star-pass2.bam.log')
@@ -462,7 +460,7 @@ rule rRNA:
         fastq=r1_only(c.patterns['cutadapt']),
         index=[c.refdict[c.organism][config['rrna']['tag']]['bowtie2']]
     output:
-        bam=c.patterns['rrna']['bam']
+        bam=temporary(c.patterns['rrna']['bam'])
     log:
         c.patterns['rrna']['bam'] + '.log'
     threads: 6
@@ -557,7 +555,7 @@ rule featurecounts:
     """
     input:
         annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
-        bam=c.targets['bam']
+        bam=c.targets['markduplicates']
     output:
         counts='{sample_dir}/rnaseq_aggregation/featurecounts.txt'
     log:
@@ -700,7 +698,6 @@ rule multiqc:
             utils.flatten(c.targets['rrna_percentages_yaml']) +
             utils.flatten(c.targets['cutadapt']) +
             utils.flatten(c.targets['featurecounts']) +
-            utils.flatten(c.targets['bam']) +
             utils.flatten(c.targets['markduplicates']) +
             utils.flatten(c.targets['salmon']) +
             utils.flatten(c.targets['rseqc']) +
