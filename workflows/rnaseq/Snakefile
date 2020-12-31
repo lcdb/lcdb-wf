@@ -555,7 +555,7 @@ rule featurecounts:
     """
     input:
         annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
-        bam=c.targets['markduplicates']
+        bam=c.targets['markduplicates']['bam']
     output:
         counts='{sample_dir}/rnaseq_aggregation/featurecounts.txt'
     log:
