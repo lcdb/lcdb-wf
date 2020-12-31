@@ -61,7 +61,6 @@ final_targets = utils.flatten((
     [c.targets['rrna_percentages_table']],
     [c.targets['multiqc']],
     utils.flatten(c.targets['featurecounts']),
-    utils.flatten(c.targets['rrna']),
     utils.flatten(c.targets['markduplicates']),
     utils.flatten(c.targets['salmon']),
     utils.flatten(c.targets['preseq']),
