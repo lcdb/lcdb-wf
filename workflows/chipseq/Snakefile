@@ -22,6 +22,8 @@ from lib.patterns_targets import ChIPSeqConfig
 if not workflow.overwrite_configfiles:
     configfile: 'config/config.yaml'
 
+config = common.load_config(config)
+
 include: '../references/Snakefile'
 
 shell.prefix(
@@ -29,8 +31,6 @@ shell.prefix(
     .format(cluster_specific.tempdir_for_biowulf())
 )
 shell.executable('/bin/bash')
-
-config = common.load_config(config)
 
 # Verify configuration of config and sampletable files
 helpers.preflight(config)
