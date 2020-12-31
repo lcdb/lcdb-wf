@@ -232,9 +232,8 @@ rule cutadapt:
     input:
         fastq=render_r1_r2(c.patterns['fastq'])
     output:
-        fastq=render_r1_r2(c.patterns['cutadapt'])
-    log:
-        render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
+        fastq=render_r1_r2(c.patterns['cutadapt']),
+        log=render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
     threads: 6
     run:
 
@@ -251,7 +250,7 @@ rule cutadapt:
                 '--minimum-length 25 '
                 "{input.fastq[0]} "
                 "{input.fastq[1]} "
-                "&> {log}"
+                "&> {output.log}"
             )
         else:
             shell(
@@ -261,7 +260,7 @@ rule cutadapt:
                 '-q 20 '
                 '--minimum-length 25 '
                 "{input.fastq[0]} "
-                "&> {log}"
+                "&> {output.log}"
             )
 
 
@@ -284,11 +283,10 @@ if config['aligner']['index'] == 'hisat2':
         """
         input:
             fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
-            index=[c.refdict[c.organism][config['aligner']['tag']]['hisat2']]
+            index=[c.refdict[c.organism][config['aligner']['tag']]['hisat2']],
         output:
-            bam=c.patterns['bam']
-        log:
-            c.patterns['bam'] + '.log'
+            bam=temp(c.patterns['bam']),
+            log=c.patterns['bam'] + '.log'
         threads: 6
         run:
             prefix = aligners.prefix_from_bowtie2_index(input.index)
@@ -308,7 +306,7 @@ if config['aligner']['index'] == 'hisat2':
                 '--no-unal '
                 "--threads {threads} "
                 "-S {sam} "
-                "> {log} 2>&1"
+                "> {output.log} 2>&1"
             )
 
             shell(
@@ -357,10 +355,9 @@ if config['aligner']['index'] == 'star':
             index=[c.refdict[c.organism][config['aligner']['tag']]['star']],
             annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
         output:
-            bam=c.patterns['bam'],
+            bam=temp(c.patterns['bam']),
             sjout=temporary(c.patterns['bam'].replace('.bam', '.star.SJ.out.tab')),
-        log:
-            c.patterns['bam'].replace('.bam', '.star.bam.log')
+            log=c.patterns['bam'].replace('.bam', '.star.bam.log')
         threads: 16
         run:
             genomedir = os.path.dirname(input.index[0])
@@ -370,7 +367,7 @@ if config['aligner']['index'] == 'star':
                 STAR_CMD + (
                     '--outSAMtype BAM SortedByCoordinate '
                     '--outStd BAM_SortedByCoordinate > {output.bam} '
-                    '2> {log} '
+                    '2> {output.log} '
                 )
             )
 
@@ -391,8 +388,7 @@ if config['aligner']['index'] == 'star-twopass':
             annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
         output:
             sjout=temporary(c.patterns['bam'].replace('.bam', '.star-pass1.SJ.out.tab')),
-        log:
-            c.patterns['bam'].replace('.bam', '.star-pass1.bam.log')
+            log=c.patterns['bam'].replace('.bam', '.star-pass1.bam.log'),
         threads: 16
         run:
             genomedir = os.path.dirname(input.index[0])
@@ -405,7 +401,7 @@ if config['aligner']['index'] == 'star-twopass':
                     # alignment -- just the detected junctions. So we output
                     # the SAM to /dev/null.
                     '--outStd SAM > /dev/null '
-                    '2> {log} '
+                    '2> {output.log} '
                 )
             )
 
@@ -426,10 +422,9 @@ if config['aligner']['index'] == 'star-twopass':
             index=[c.refdict[c.organism][config['aligner']['tag']]['star']],
             annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
         output:
-            bam=c.patterns['bam'],
+            bam=temp(c.patterns['bam']),
             sjout=temporary(c.patterns['bam'].replace('.bam', '.star-pass2.SJ.out.tab')),
-        log:
-            c.patterns['bam'].replace('.bam', '.star-pass2.bam.log')
+            log=c.patterns['bam'].replace('.bam', '.star-pass2.bam.log'),
         threads: 16
         run:
             genomedir = os.path.dirname(input.index[0])
@@ -445,7 +440,7 @@ if config['aligner']['index'] == 'star-twopass':
                     # pass.
                     '--sjdbFileChrStartEnd {input.sjout} '
                     '--outStd BAM_SortedByCoordinate > {output.bam} '
-                    '2> {log} '
+                    '2> {output.log} '
                 )
             )
 
@@ -465,7 +460,7 @@ rule rRNA:
         fastq=r1_only(c.patterns['cutadapt']),
         index=[c.refdict[c.organism][config['rrna']['tag']]['bowtie2']]
     output:
-        bam=c.patterns['rrna']['bam']
+        bam=temp(c.patterns['rrna']['bam'])
     log:
         c.patterns['rrna']['bam'] + '.log'
     threads: 6
@@ -701,9 +696,9 @@ rule multiqc:
             utils.flatten(c.targets['fastqc']) +
             utils.flatten(c.targets['libsizes_yaml']) +
             utils.flatten(c.targets['rrna_percentages_yaml']) +
-            utils.flatten(c.targets['cutadapt']) +
+            utils.flatten(c.targets['cutadapt'], with_suffix='.log') +
             utils.flatten(c.targets['featurecounts']) +
-            utils.flatten(c.targets['bam']) +
+            utils.flatten(c.targets['bam'], with_suffix='.log') +
             utils.flatten(c.targets['markduplicates']) +
             utils.flatten(c.targets['salmon']) +
             utils.flatten(c.targets['rseqc']) +

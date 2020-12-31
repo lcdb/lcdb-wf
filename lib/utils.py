@@ -21,10 +21,12 @@ def temp_env(env):
         os.environ.update(orig)
 
 
-def flatten(iter, unlist=False):
+def flatten(iter, unlist=False, with_suffix=None):
     """
     Flatten an arbitrarily nested iterable whose innermost items are strings
     into a flat list of strings.
+
+    Optionally add a suffix to the end of everything before returning.
 
     Parameters
     ----------
@@ -32,6 +34,10 @@ def flatten(iter, unlist=False):
 
     unlist : bool
         If True, convert single-item lists into a bare string
+
+    with_suffix : str or None
+        If not None, this suffix will be added to the end of every string in
+        the final list.
     """
     if isinstance(iter, dict):
         iter = iter.values()
@@ -47,6 +53,8 @@ def flatten(iter, unlist=False):
     results = list(gen())
     if unlist and len(results) == 1:
         return results[0]
+    if with_suffix:
+        return [i + with_suffix for i in results]
     return results
 
 
