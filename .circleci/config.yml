@@ -172,7 +172,7 @@ variables:
         command: |
           cd $DEPLOY/workflows/references
           source activate lcdb-wf-test
-          ./run_test.sh  --use-conda -j2 -k -p -r
+          ./run_test.sh  --use-conda -j2 -k -p -r --configfile config/config.yaml
   # --------------------------------------------------------------------------
   # Standard RNA-seq workflow
   rnaseq-step: &rnaseq-step
