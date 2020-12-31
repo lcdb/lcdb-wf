@@ -94,6 +94,7 @@ variables:
         # Separately copy over some test-specific files
         cp workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq
         cp workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq
+        cp workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq
         cp workflows/colocalization/run_test.sh $DEPLOY/workflows/references
         cp workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization
         mkdir $DEPLOY/ci
