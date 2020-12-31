@@ -94,6 +94,7 @@ variables:
         # Separately copy over some test-specific files
         cp workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq
         cp workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq
+        cp workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq
         cp workflows/colocalization/run_test.sh $DEPLOY/workflows/references
         cp workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization
         mkdir $DEPLOY/ci
@@ -196,17 +197,6 @@ variables:
           # bundle up the entire directory to be used as an artifact
           tar -zcf downstream.tar.gz downstream-test/
 
-  # --------------------------------------------------------------------------
-  # Quick test on just two samples to make sure STAR works OK
-  rnaseq-star-step: &rnaseq-star-step
-      run:
-        name: rnaseq star aligner
-        command: |
-          ORIG=$(pwd)
-          cd $DEPLOY
-          cp -r workflows/rnaseq workflows/rnaseq-star
-          cd workflows/rnaseq-star
-          source activate lcdb-wf-test
   # --------------------------------------------------------------------------
   # Various tests on RNA-seq workflow that don't warrant the overhead of a new
   # cache load
