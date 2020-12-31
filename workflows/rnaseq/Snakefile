@@ -54,7 +54,6 @@ def wrapper_for(path):
 
 # See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
-    c.targets['bam'],
     utils.flatten(c.targets['fastqc']),
     utils.flatten(c.targets['libsizes']),
     [c.targets['fastq_screen']],
@@ -357,7 +356,7 @@ if config['aligner']['index'] == 'star':
         output:
             bam=temp(c.patterns['bam']),
             sjout=temporary(c.patterns['bam'].replace('.bam', '.star.SJ.out.tab')),
-            log=c.patterns['bam'].replace('.bam', '.star.bam.log')
+            log=c.patterns['bam'] + '.log'
         threads: 16
         run:
             genomedir = os.path.dirname(input.index[0])
@@ -424,7 +423,7 @@ if config['aligner']['index'] == 'star-twopass':
         output:
             bam=temp(c.patterns['bam']),
             sjout=temporary(c.patterns['bam'].replace('.bam', '.star-pass2.SJ.out.tab')),
-            log=c.patterns['bam'].replace('.bam', '.star-pass2.bam.log'),
+            log=c.patterns['bam'] + '.log'
         threads: 16
         run:
             genomedir = os.path.dirname(input.index[0])
