@@ -21,14 +21,16 @@ from lib.patterns_targets import RNASeqConfig
 if not workflow.overwrite_configfiles:
     configfile: 'config/config.yaml'
 
+
+config = common.load_config(config)
+
 include: '../references/Snakefile'
+
 shell.prefix(
     'set -euo pipefail; export R_PROFILE_USER=; export TMPDIR={};'
     .format(cluster_specific.tempdir_for_biowulf())
 )
 shell.executable('/bin/bash')
-
-config = common.load_config(config)
 
 # Verify configuration of config and sampletable files
 helpers.preflight(config)
@@ -69,7 +71,7 @@ final_targets = utils.flatten((
     utils.flatten(c.targets['bigwig']),
 ))
 
-if 'merged_bigwigs' in config:
+if config.get('merged_bigwigs', None):
     final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
 
 
