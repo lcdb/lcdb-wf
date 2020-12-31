@@ -26,11 +26,6 @@ refdict, conversion_kwargs = common.references_dict(config)
 
 makedirs([references_dir, os.path.join(references_dir, 'logs')])
 
-
-def wrapper_for(path):
-    return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
-
-
 localrules: symlink_fasta_to_index_dir
 
 wildcard_constraints:
