@@ -19,6 +19,8 @@ from lib import common
 # Otherwise, this file is expected to be `include:`ed into other workflows,
 # which will have their own config files.
 
+config = common.load_config(config)
+
 tempfile.tempdir = cluster_specific.tempdir_for_biowulf()
 
 shell.prefix('set -euo pipefail; export TMPDIR={};'.format(cluster_specific.tempdir_for_biowulf()))
