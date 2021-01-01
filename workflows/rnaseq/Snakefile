@@ -16,19 +16,18 @@ from lib.patterns_targets import RNASeqConfig
 #
 # ----------------------------------------------------------------------------
 
-# Only use default if no configfile specified on the command line with
-# --configfile
-if not workflow.overwrite_configfiles:
-    configfile: 'config/config.yaml'
+configfile: 'config/config.yaml'
+
+
+config = common.load_config(config)
 
 include: '../references/Snakefile'
+
 shell.prefix(
     'set -euo pipefail; export R_PROFILE_USER=; export TMPDIR={};'
     .format(cluster_specific.tempdir_for_biowulf())
 )
 shell.executable('/bin/bash')
-
-config = common.load_config(config)
 
 # Verify configuration of config and sampletable files
 helpers.preflight(config)
@@ -41,7 +40,6 @@ wildcard_constraints:
     n = '[1,2]',
     sample = '|'.join(SAMPLES)
 
-localrules: symlinks
 
 
 def wrapper_for(path):
@@ -68,7 +66,7 @@ final_targets = utils.flatten((
     utils.flatten(c.targets['bigwig']),
 ))
 
-if 'merged_bigwigs' in config:
+if config.get('merged_bigwigs', None):
     final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
 
 
@@ -85,6 +83,8 @@ rule targets:
     input: final_targets
 
 if 'orig_filename' in c.sampletable.columns:
+
+    localrules: symlinks
 
     # Convert the sampletable to be indexed by the first column, for
     # convenience in generating the input/output filenames.

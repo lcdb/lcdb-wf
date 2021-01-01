@@ -1,0 +1,33 @@
+
+patterns: 'config/rnaseq_patterns.yaml'
+
+# Which key in the `references` dict below to use
+organism: 'human'
+
+# If not specified here, use the environment variable REFERENCES_DIR.
+references_dir: 'references_data'
+
+aligner:
+  index: 'star'
+  tag: 'gencode-v28'
+
+rrna:
+  index: 'bowtie2'
+  tag: 'rRNA'
+
+gtf:
+  tag: "gencode-v28"
+
+salmon:
+  tag: "gencode-v28"
+
+fastq_screen:
+  - label: rRNA
+    organism: human
+    tag: rRNA
+  - label: human
+    organism: human
+    tag: gencode-v28
+
+include_references:
+  - '../../include/reference_configs/Homo_sapiens.yaml'

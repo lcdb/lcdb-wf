@@ -82,16 +82,6 @@ references:
       annotation:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf.gz"
 
-  phix:
-    default:
-      genome:
-        url: 'ftp://ftp.ncbi.nlm.nih.gov/genomes/Viruses/enterobacteria_phage_phix174_sensu_lato_uid14015/NC_001422.fna'
-        postprocess:
-          - 'lib.common.gzipped'
-        indexes:
-          - 'bowtie2'
-
-
 
   multiple_postprocess_funcs:
     default:
