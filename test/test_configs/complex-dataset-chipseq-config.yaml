@@ -1,0 +1,25 @@
+patterns: 'config/chipseq_patterns.yaml'
+organism: 'human'
+references_dir: 'references_data'
+
+aligner:
+  index: 'bowtie2'
+  tag: 'gencode-v28'
+
+rrna:
+  index: 'bowtie2'
+  tag: 'rRNA'
+
+fastq_screen:
+  - label: rRNA
+    organism: human
+    tag: rRNA
+  - label: human
+    organism: human
+    tag: gencode-v28
+
+merged_bigwigs: {}
+chipseq: {}
+
+include_references:
+  - '../../include/reference_configs/Homo_sapiens.yaml'
