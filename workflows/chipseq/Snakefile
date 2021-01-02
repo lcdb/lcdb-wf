@@ -17,7 +17,8 @@ from lib.patterns_targets import ChIPSeqConfig
 #
 # ----------------------------------------------------------------------------
 
-configfile: 'config/config.yaml'
+if not workflow.overwrite_configfiles:
+    configfile: 'config/config.yaml'
 
 config = common.load_config(config)
 
@@ -50,8 +51,6 @@ def wrapper_for(path):
     return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
 
 
-
-
 # ----------------------------------------------------------------------------
 # RULES
 # ----------------------------------------------------------------------------
@@ -75,7 +74,7 @@ final_targets = utils.flatten((
     utils.flatten(c.targets['plotcorrelation']),
 ))
 
-if 'merged_bigwigs' in config:
+if config.get('merged_bigwigs', None):
     final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
 
 
