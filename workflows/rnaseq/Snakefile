@@ -109,7 +109,6 @@ if 'orig_filename' in c.sampletable.columns:
         output:
             render_r1_r2(c.patterns['fastq'])
         run:
-
             assert len(output) == len(input), (input, output)
             for src, linkname in zip(input, output):
                 utils.make_relative_symlink(src, linkname)
@@ -128,6 +127,9 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
     rule fastq_dump:
         output:
             fastq=render_r1_r2(c.patterns['fastq'])
+
+        log:
+            r1_only(c.patterns['fastq'])[0] + '.log'
         run:
             srr = _st.loc[wildcards.sample, 'Run']
 
@@ -143,6 +145,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     '--gzip '
                     '--split-files '
                     # '-X 100000 ' # [TEST SETTINGS]
+                    '&> {log}'
                 )
 
                 # The filenames are predictable, so we can move them as needed.
@@ -157,7 +160,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     '{srr} '
                     '-Z '
                     # '-X 100000 ' # [TEST SETTINGS]
-                    '| gzip -c > {output[0]}.tmp '
+                    '2> {log} | gzip -c > {output[0]}.tmp '
                     '&& mv {output[0]}.tmp {output[0]} '
                 )
 
