@@ -16,8 +16,8 @@ from lib.patterns_targets import RNASeqConfig
 #
 # ----------------------------------------------------------------------------
 
-configfile: 'config/config.yaml'
-
+if not workflow.overwrite_configfiles:
+    configfile: 'config/config.yaml'
 
 config = common.load_config(config)
 
