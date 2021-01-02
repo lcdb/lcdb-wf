@@ -601,10 +601,10 @@ def get_techreps(sampletable, label):
 
     is_chipseq = 'antibody' in sampletable.columns
     if is_chipseq:
-        err = (
-            "No technical replicates found for label '{}'. This looks to "
-            "be a ChIP-seq experiment; check the peak-calling section of"
-            "the config.".format(label)
+        err = ("""
+        No technical replicates found for label '{}'. Check the ChIP-seq config
+        file to ensure the peak-calling section only specifies values from the
+        sampletable's "label" column.""".format(label)
         )
     else:
         err = "No technical replicates found for label '{}'.".format(label)
