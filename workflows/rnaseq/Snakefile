@@ -257,6 +257,7 @@ rule cutadapt:
                 "-o {output[0]} "
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 '-q 20 '
+                '-j {threads} '
                 '--minimum-length 25 '
                 "{input.fastq[0]} "
                 "&> {log}"
