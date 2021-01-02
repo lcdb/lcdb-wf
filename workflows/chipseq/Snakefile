@@ -44,7 +44,6 @@ wildcard_constraints:
     n = '[1,2]',
     sample = '|'.join(SAMPLES)
 
-localrules: symlinks
 
 
 def wrapper_for(path):
@@ -92,6 +91,8 @@ rule targets:
 
 
 if 'orig_filename' in c.sampletable.columns:
+
+    localrules: symlinks
 
     # Convert the sampletable to be indexed by the first column, for
     # convenience in generating the input/output filenames.
