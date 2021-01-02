@@ -157,7 +157,7 @@ def preflight(config):
     ----------
     config: yaml config object
     """
-    sampletable = pd.read_table(config['sampletable'], index_col='samplename', comment='#')
+    sampletable = pd.read_table(config['sampletable'], index_col=0, comment='#')
     check_unique_samplename(sampletable)
     if 'orig_filename' in sampletable.columns:
         check_unique_fn(sampletable)
