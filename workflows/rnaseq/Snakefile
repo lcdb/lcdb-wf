@@ -268,7 +268,10 @@ rule fastqc:
     """
     Run FastQC
     """
-    input: '{sample_dir}/{sample}/{sample}{suffix}'
+    input:
+        '{sample_dir}/{sample}/{sample}{suffix}'
+    threads:
+        6
     output:
         html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
         zip='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
