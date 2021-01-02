@@ -6,6 +6,9 @@ from snakemake.shell import shell
 from snakemake.io import expand, regex
 from lib import common
 
+class ConfigurationError(Exception):
+    pass
+
 
 def detect_layout(sampletable):
     """
@@ -144,7 +147,7 @@ def check_unique_samplename(df):
     """
     ns = df.index
     if len(ns.unique()) < len(ns):
-        raise ValueError('Samplenames non unique, check the sampletable\n')
+        raise ConfigurationError('Samplenames non unique, check the sampletable\n')
 
 def preflight(config):
     """
