@@ -738,6 +738,7 @@ rule multibigwigsummary:
             'bins '
             '-b {input} '
             '--labels {labels} '
+            '--numberOfProcessors {threads} '
             '-out {output.npz} '
             '--outRawCounts {output.tab}'
         )
