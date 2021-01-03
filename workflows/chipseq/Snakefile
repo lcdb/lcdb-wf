@@ -567,24 +567,29 @@ rule fingerprint:
         metrics=c.patterns['fingerprint']['metrics']
     threads: 8
     log: c.patterns['fingerprint']['metrics'] + '.log'
-    shell:
-        'plotFingerprint '
-        '--bamfiles {input.bams} '
-        '-p {threads} '
-        # The JSDsample argument is disabled for testing as it dramatically
-        # increases the run time.
-        # [TEST SETTINGS +1]
-        '--JSDsample {input.control} '
-        '--smartLabels '
-        '--extendReads=300 '
-        '--skipZeros '
-        '--outQualityMetrics {output.metrics} '
-        '--outRawCounts {output.raw_counts} '
-        '--plotFile {output.plot} '
-        # Default is 500k; use fewer to speed up testing:
-        # '--numberOfSamples 50 '  # [TEST SETTINGS ]
-        '&> {log} '
-        '&& sed -i "s/NA/0.0/g" {output.metrics} '
+    run:
+        if len(input.control) == 0:
+            jsdsample_arg = ""
+        else:
+            jsdsample_arg = '--JSDsample {input.control}'
+        shell(
+            'plotFingerprint ' '--bamfiles {input.bams} '
+            '-p {threads} '
+            # The JSDsample argument is disabled for testing as it dramatically
+            # increases the run time.
+            # [TEST SETTINGS +1]
+            '{jsdsample_arg} '
+            '--smartLabels '
+            '--extendReads=300 '
+            '--skipZeros '
+            '--outQualityMetrics {output.metrics} '
+            '--outRawCounts {output.raw_counts} '
+            '--plotFile {output.plot} '
+            # Default is 500k; use fewer to speed up testing:
+            # '--numberOfSamples 50 '  # [TEST SETTINGS ]
+            '&> {log} '
+            '&& sed -i "s/NA/0.0/g" {output.metrics} '
+        )
 
 
 rule sicer:
