@@ -95,7 +95,7 @@ comments that say `# [TEST SETTINGS]`; you can ignore these, and see
         cp -r workflows/rnaseq workflows/genome2-rnaseq
 
     Now, downstream analyses can link to and utilize results from these individual
-    folders, while the whole project can remain self-contained.
+    folders, while the whole project remains self-contained.
 
 Integrative analysis workflows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

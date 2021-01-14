@@ -20,7 +20,7 @@ We use conda to install a separate environment for each project. This allows
 long-running projects to keep using old versions of software if needed while
 allowing newer versions in more recent projects.
 
-If you want to see the full list of software installed into these environments,
+To see the full list of software installed into these environments,
 see the ``requirements-*.txt`` files at https://github.com/lcdb/lcdb-wf/.
 
 For a more detailed discussion of conda, see :ref:`conda-envs`.
@@ -32,9 +32,9 @@ Setting up a project
 
 The general steps to use lcdb-wf in a new project are:
 
-1. Deploy an instance of lcdb-wf to your project directory
-2. Set up and customize for your goals
-3. Run either locally or on a cluster
+1. Deploy: download an instance of lcdb-wf to your project directory
+2. Configure: set up samples table for experiments and edit configuration file
+3. Run: activate environment and run the Snakemake file either locally or on a cluster
 
 .. _deploy:
 
@@ -46,9 +46,7 @@ project to use lcdb-wf means copying over the files you need. There is
 a ``deploy.py`` script that does this for you, but you need to have a copy of
 the repository to get this script in the first place.
 
-The reason to use ``deploy.py`` is so you end up with a cleaner project directory.
-There are many additional files (like these docs) and esting files that are not
-necessary for an actual project. 
+The reason to use deploy.py is so you end up with a cleaner project directory. There are many additional files (like these docs and testing files) that are not necessary for an actual project.
 
 This script also writes a file to the destination called
 ``.lcdb-wf-deployment.json``. It stores the timestamp and details about what 
@@ -112,7 +110,7 @@ See :ref:`conda-envs` for more details on these.
 2. Configure
 ------------
 
-This is where most of the effort is, and the first time you set up a project it
+This step takes the most effort and the first time you set up a project it
 will take some time to understand the configuration system.
 
 - see :ref:`multiple-experiments` for advice on how to handle multiple experiments that are intended to be analyzed together

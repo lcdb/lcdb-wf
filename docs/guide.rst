@@ -4,13 +4,13 @@ Guide to file hierarchy
 =======================
 
 The ``lcdb-wf`` workflow system is designed to have a standardized directory
-structure and file hierarchy to allow us to be as consistent across many diverse
-and disparate analyses and sources of data and reduce the overhead when it comes
+structure and file hierarchy. This allows us to be as consistent across many diverse
+and disparate analyses and sources of data. As a result, this reduces the overhead when it comes
 to troubleshooting when something goes wrong. All the components of the repository
 are laid out with this overarching design principle in mind.
 
 Below we give a high-level overview and brief description of the files and folders used
-by the workflows, and include an annotated directory tree highlighting the most important
+by the workflows. The includeed annotated directory tree highlights the most important
 parts of the repository.
 
 Folder organization
@@ -265,5 +265,5 @@ Files in bold are the most important.
 
 Now that you have seen which files and folders are the most important and have some idea
 of where everything lives, let's look at how to run tests to make sure everything is set up 
-correctly (see :ref:`running-the-tests`), or jump right in to learning about how to configure
+correctly (see :ref:`running-the-tests`). Or, jump right in to learning about how to configure
 the workflows for your particular experiment (see :ref:`config`).

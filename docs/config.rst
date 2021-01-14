@@ -9,7 +9,7 @@ General configuration
 ~~~~~~~~~~~~~~~~~~~~~
 
 The majority of the work in setting up a new project is in the configuration --
-which samples to run, where the data files are, which references are
+which samples to run, where the data files are located, which references are
 needed, etc.
 
 **The entry point for configuration** is in the ``config/config.yaml`` file found
@@ -38,7 +38,7 @@ is specified in the config file. See :ref:`sampletable` for more.
 
 A **patterns file** only needs to be edited
 if you're doing custom work. It determines the patterns of files that will be
-created by the workflow. Ssee :ref:`patterns-and-targets` for more.
+created by the workflow. See :ref:`patterns-and-targets` for more.
 
 .. toctree::
    :maxdepth: 2
@@ -86,7 +86,7 @@ That script also contains the Snakemake arguments::
     --cluster 'sbatch {cluster.prefix} --cpus-per-task={threads}  --output=logs/{rule}.o.%j --error=logs/{rule}.e.%j' \
 
 This means that each job will be named after the rule and job id (the
-``--jobname`` arg) and the stdout and stderr go to files in ``logs`` and are
+``--jobname`` arg). The stdout and stderr go to files in ``logs`` and are
 named after the rule, followed by a ``.o`` or ``.e``, followed by the cluster
 job ID (the ``--cluster`` arg).
 
