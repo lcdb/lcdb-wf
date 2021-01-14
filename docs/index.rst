@@ -37,8 +37,8 @@ view alongside your data.
 
 Unified approach to reference genomes
 -------------------------------------
-The references workflow defines the genomes references in the experiement. It is
-is shared by RNA-seq and ChIP-seq and is driven by
+The references workflow defines the genome files for the organisms used in 
+the experiement. It it is shared by RNA-seq and ChIP-seq and is driven by
 a config file that specifies URLs for FASTA and GTF files. Set it up once for
 a site to get lots of genomes you can use for running `fastq_screen`, and
 easily include arbitrary other genomes. They can then be automatically included
