@@ -35,9 +35,10 @@ RNA-seq shows strand-specific signal tracks. Both support the addition of
 arbitrary additional tracks (primers, loci of interest, external data, etc) to
 view alongside your data.
 
-Unified approach to references
-------------------------------
-The references workflow is shared by RNA-seq and ChIP-seq and is driven by
+Unified approach to reference genomes
+-------------------------------------
+The references workflow defines the genomes references in the experiement. It is
+is shared by RNA-seq and ChIP-seq and is driven by
 a config file that specifies URLs for FASTA and GTF files. Set it up once for
 a site to get lots of genomes you can use for running `fastq_screen`, and
 easily include arbitrary other genomes. They can then be automatically included
@@ -52,9 +53,7 @@ repository that can be then used with all other workflows.
 Integration with external data and figure-making
 ------------------------------------------------
 Designed to tie together your entire analysis, from downloading references
-through final figures. Examples are included (and tested) for how to tie
-together workflows, including downloading external data and downstream
-figure-making work.
+through producing final figures. The included examples tie together workflows that download external data, perform downstream analysis, and make figures. These examples have been thoroughly tested.
 
 If an upstream file changes (e.g., gene annotation), all dependent downstream 
 jobs -- including figures -- will be updated so you can ensure that even 
