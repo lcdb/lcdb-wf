@@ -144,7 +144,7 @@ ChIP-seq sample table
 
 :``antibody``:
     Used for differentiating between input and IP samples. Input samples should
-    be listed with an antibody of exactly ``input``.
+    be listed with an antibody of exactly ``input``. IP samples are named after     the antibody used.
 
 :``biological_material``:
     Ties together which samples came from the same chromatin. This is how we

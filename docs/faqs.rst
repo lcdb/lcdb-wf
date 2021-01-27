@@ -51,7 +51,7 @@ have::
       figures/
       rnaseq/
 
-then we might rename the external one to match the GEO accession (to make it
+then we might rename the directory called "external" to match the GEO accession (to make it
 easier to remember), make copies of the RNA-seq directory for the mouse and
 human experiments, and clean up a little:
 
