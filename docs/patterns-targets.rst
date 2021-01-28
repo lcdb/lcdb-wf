@@ -135,7 +135,7 @@ This has several advantages:
         - :class:`lib.patterns_targets.ChIPSeqConfig`
 
     In addition, the `figures Snakefile
-    <https://github.com/lcdb/lcdb-wf/blob/master/workflows/figures/Snakefile>`_,
+    <https://github.com/lcdb/lcdb-wf/blob/master/workflows/figures/Snakefile>`_
     demonstrates how the ChIP-seq and RNA-seq patterns and targets can be used
     for downstream work.
 
