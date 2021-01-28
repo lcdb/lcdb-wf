@@ -82,7 +82,7 @@ have the following values, configured in ``config/rnaseq_patterns.yaml``:
 
 
 And ``c.targets[['cutadapt']`` might have the following values, after being
-filled in with the sampletable (see below for details):
+filled in with the sample table (see below for details):
 
 .. code-block:: python
 
@@ -97,7 +97,7 @@ filled in with the sampletable (see below for details):
 
 This has several advantages:
 
-- Patterns can be automatically filled in by the sampletable and config file,
+- Patterns can be automatically filled in by the sample table and config file,
   so the workflow is largely controlled by a TSV file and a YAML file.
 
 - Storing filenames outside individual Snakefiles allows us to access them much
