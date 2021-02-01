@@ -1,0 +1,57 @@
+import sys
+sys.path.insert(0, srcdir('../..'))
+from lib import cluster_specific
+from lib import common
+import pybedtools
+
+
+shell.prefix('set -euo pipefail; export TMPDIR={};'.format(cluster_specific.tempdir_for_biowulf()))
+shell.executable('/bin/bash')
+
+# This is a useful construct for mapping intended output filenames to the URLs
+# they come from
+modencode = {
+    'data/suhw_kc.bed': 'https://raw.githubusercontent.com/daler/pybedtools/master/pybedtools/test/data/SuHw_Kc_Bushey_2009.bed',
+    'data/ctcf_kc.bed': 'https://raw.githubusercontent.com/daler/pybedtools/master/pybedtools/test/data/CTCF_Kc_Bushey_2009.bed',
+}
+
+
+rule targets:
+    input:
+        list(modencode.keys()),
+
+
+rule download_chainfile:
+    """
+    Download the chainfile we need for liftover
+    """
+    output: 'data/dm3ToDm6.over.chain.gz'
+    shell:
+        'wget -O- '
+        'http://hgdownload.cse.ucsc.edu/goldenPath/dm3/liftOver/dm3ToDm6.over.chain.gz '
+        '> {output}'
+
+
+rule beds:
+    """
+    Download URLs, get rid of "track" lines, and then prepare them for liftover
+    """
+    output: temporary('data/{factor}_{celltype}.bed.dm3')
+    run:
+        key = str(output[0]).replace('.dm3', '')
+        url = modencode[key]
+        shell(
+            'wget -O - "{url}" | grep -v "track" > {output}')
+
+rule liftover:
+    """
+    Perform the liftover
+    """
+    input:
+        bed='{prefix}.dm3',
+        chainfile=rules.download_chainfile.output
+    output: '{prefix}'
+    shell:
+        'liftOver {input.bed} {input.chainfile} {output} {output}.unmapped'
+
+# vim: ft=python

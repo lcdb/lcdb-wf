@@ -1,0 +1,14 @@
+__default__:
+  prefix: "--gres=lscratch:20 --time=4:00:00"
+
+bowtie2_index:
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
+
+hisat2_index:
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"
+
+salmon_index:
+  prefix: "--mem=32g"
+
+chromsizes:
+  prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g"

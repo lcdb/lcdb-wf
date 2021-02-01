@@ -1,0 +1,56 @@
+patterns_by_sample:
+
+  fastq: 'data/chipseq_samples/{sample}/{sample}_R{n}.fastq.gz'
+  cutadapt: 'data/chipseq_samples/{sample}/{sample}_R{n}.cutadapt.fastq.gz'
+  bam: 'data/chipseq_samples/{sample}/{sample}.cutadapt.bam'
+
+  fastqc:
+    raw: 'data/chipseq_samples/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.zip'
+    cutadapt: 'data/chipseq_samples/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip'
+    bam: 'data/chipseq_samples/{sample}/fastqc/{sample}.cutadapt.unique.nodups.bam_fastqc.zip'
+
+  libsizes:
+    fastq:   'data/chipseq_samples/{sample}/{sample}_R1.fastq.gz.libsize'
+    cutadapt: 'data/chipseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize'
+    bam:     'data/chipseq_samples/{sample}/{sample}.cutadapt.bam.libsize'
+    unique:     'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.bam.libsize'
+    nodups: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.libsize'
+
+  fastq_screen: 'data/chipseq_samples/{sample}/{sample}.cutadapt.screen.txt'
+  libsizes_table: 'data/chipseq_aggregation/libsizes_table.tsv'
+  libsizes_yaml: 'data/chipseq_aggregation/libsizes_table_mqc.yaml'
+  multiqc: 'data/chipseq_aggregation/multiqc.html'
+  unique: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.bam'
+
+  markduplicates:
+    bam: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam'
+    metrics: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.metrics'
+
+  merged_techreps: 'data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam'
+
+  bigwig: 'data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.bam.bigwig'
+
+  fingerprint:
+    plot: 'data/chipseq_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.png'
+    raw_counts: 'data/chipseq_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.tab'
+    metrics: 'data/chipseq_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.metrics'
+
+  multibigwigsummary:
+    npz: 'data/chipseq_aggregation/deeptools/multibigwigsummary_matrix.npz'
+    tab: 'data/chipseq_aggregation/deeptools/multibigwigsummary.tab'
+  plotcorrelation:
+    tab: 'data/chipseq_aggregation/deeptools/plotcorrelation.tab'
+    heatmap: 'data/chipseq_aggregation/deeptools/correlation_heatmap.png'
+
+patterns_by_peaks:
+  peaks:
+    macs2: 'data/chipseq_peaks/macs2/{macs2_run}/peaks.bed'
+    spp: 'data/chipseq_peaks/spp/{spp_run}/peaks.bed'
+    sicer: 'data/chipseq_peaks/sicer/{sicer_run}/peaks.bed'
+  bigbed:
+    macs2: 'data/chipseq_peaks/macs2/{macs2_run}/peaks.bigbed'
+    spp: 'data/chipseq_peaks/spp/{spp_run}/peaks.bigbed'
+    sicer: 'data/chipseq_peaks/sicer/{sicer_run}/peaks.bigbed'
+
+patterns_by_aggregate:
+  merged_bigwig: 'data/chipseq_aggregation/merged_bigwigs/{merged_bigwig_label}.bigwig'

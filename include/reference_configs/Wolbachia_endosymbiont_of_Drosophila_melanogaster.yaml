@@ -1,0 +1,9 @@
+references:
+  wolbachia:
+    default:
+      genome:
+        url: 'ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/008/025/GCF_000008025.1_ASM802v1/GCF_000008025.1_ASM802v1_genomic.fna.gz'
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+          - 'star'

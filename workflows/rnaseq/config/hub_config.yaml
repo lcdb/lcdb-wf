@@ -1,0 +1,60 @@
+hub:
+  name: 'examplernaseq'
+  short_label: 'Example RNA-seq'
+  long_label: 'Example RNA-seq'
+  email: 'dalerr@niddk.nih.gov'
+  genome: 'dm6'
+
+upload:
+  host: localhost   # helix.nih.gov
+
+  # If not specified, defaults to current user
+  user:
+  rsync_options: '-vprLt --progress'
+    #
+  # Directory to which track hub will be prepared, by making a bunch of
+  # symlinks
+  staging: staging
+
+  # rsync `staging` to this full path on the host. If not provided, no rsync
+  # will be performed
+  remote_dir:
+
+subgroups:
+  # The subgroups to use, as specified in column names of sampletable.tsv. The
+  # order matters; they will be used to create dimensions for the composite
+  # track.
+  columns:
+    - group
+
+  # The default sort order can be independent of the columns. Anything missing
+  # here will inherit sorting from `columns` above.
+  sort_order:
+    - samplename
+
+# Colors and regular expressions to search against samplenames. These use
+# `regex.search` instead of `regex.match`, so the pattern can be found
+# anywhere.
+#
+# Note that this is a list of one-key dicts. The value of each dict is a list
+# of regexes. The list is prioritized such that the first pattern to match
+# a sample wins.
+colors:
+  - "#4c9985":
+    - treatment
+  - "#555555":
+    - control
+
+# Each dict in the supplemental list will be added to the track hub, under the
+# "supplemental view". The dict for each item in the list will be passed
+# directly to the trackhub.Track() constructor, so anything valid there can be
+# used here.
+supplemental:
+  -
+    name: "myc"
+    short_label: "Myc in Kc"
+    long_label: "Myc in Kc cells from modENCODE"
+    tracktype: "bigWig"
+    url: "https://www.encodeproject.org/files/ENCFF611KAG/@@download/ENCFF611KAG.bigWig"
+    color: "255,0,0"
+    visibility: "full"

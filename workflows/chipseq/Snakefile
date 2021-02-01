@@ -1,0 +1,786 @@
+import sys
+sys.path.insert(0, srcdir('../..'))
+import os
+from textwrap import dedent
+import yaml
+import tempfile
+import pandas as pd
+import numpy as np
+import pybedtools
+from lib import common, cluster_specific, utils, helpers, aligners, chipseq
+from lib.patterns_targets import ChIPSeqConfig
+
+# ----------------------------------------------------------------------------
+#
+# Search for the string "NOTE:" to look for points of configuration that might
+# be helpful for your experiment.
+#
+# ----------------------------------------------------------------------------
+
+# Only use default if no configfile specified on the command line with
+# --configfile
+if not workflow.overwrite_configfiles:
+    configfile: 'config/config.yaml'
+
+include: '../references/Snakefile'
+
+shell.prefix(
+    'set -euo pipefail; export R_PROFILE_USER=; export TMPDIR={};'
+    .format(cluster_specific.tempdir_for_biowulf())
+)
+shell.executable('/bin/bash')
+
+config = common.load_config(config)
+
+# Verify configuration of config and sampletable files
+helpers.preflight(config)
+
+c = ChIPSeqConfig(
+    config,
+    config.get('patterns', 'config/chipseq_patterns.yaml')
+)
+
+SAMPLES = c.sampletable.iloc[:, 0].values
+
+wildcard_constraints:
+    n = '[1,2]',
+    sample = '|'.join(SAMPLES)
+
+localrules: symlinks
+
+
+def wrapper_for(path):
+    return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
+
+
+
+
+# ----------------------------------------------------------------------------
+# RULES
+# ----------------------------------------------------------------------------
+
+
+# See "patterns and targets" in the documentation for what's going on here.
+final_targets = utils.flatten((
+    c.targets['bam'],
+    utils.flatten(c.targets['fastqc']),
+    utils.flatten(c.targets['libsizes']),
+    [c.targets['fastq_screen']],
+    [c.targets['libsizes_table']],
+    [c.targets['multiqc']],
+    utils.flatten(c.targets['markduplicates']),
+    utils.flatten(c.targets['bigwig']),
+    utils.flatten(c.targets['peaks']),
+    utils.flatten(c.targets['merged_techreps']),
+    utils.flatten(c.targets['fingerprint']),
+    utils.flatten(c.targets['bigbed']),
+    utils.flatten(c.targets['multibigwigsummary']),
+    utils.flatten(c.targets['plotcorrelation']),
+))
+
+if 'merged_bigwigs' in config:
+    final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
+
+
+def render_r1_r2(pattern, r1_only=False):
+    return expand(pattern, sample='{sample}', n=c.n)
+
+def r1_only(pattern):
+    return expand(pattern, sample='{sample}', n=1)
+
+rule targets:
+    """
+    Final targets to create
+    """
+    input: final_targets
+
+
+if 'orig_filename' in c.sampletable.columns:
+
+    # Convert the sampletable to be indexed by the first column, for
+    # convenience in generating the input/output filenames.
+    _st = c.sampletable.set_index(c.sampletable.columns[0])
+
+    def orig_for_sample(wc):
+        """
+        Given a sample, returns either one or two original fastq files
+        depending on whether the library was single- or paired-end.
+        """
+        if c.is_paired:
+            return _st.loc[wc.sample, ['orig_filename', 'orig_filename_R2']]
+        return _st.loc[wc.sample, ['orig_filename']]
+
+
+    rule symlinks:
+        """
+        Symlinks files over from original filename
+        """
+        input:
+            orig_for_sample
+        output:
+            render_r1_r2(c.patterns['fastq'])
+        run:
+
+            assert len(output) == len(input), (input, output)
+            for src, linkname in zip(input, output):
+                utils.make_relative_symlink(src, linkname)
+
+
+    rule symlink_targets:
+        input: c.targets['fastq']
+
+
+if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('SRR')) > 0:
+
+    # Convert the sampletable to be indexed by the first column, for
+    # convenience in generating the input/output filenames.
+    _st = c.sampletable.set_index(c.sampletable.columns[0])
+
+    rule fastq_dump:
+        output:
+            fastq=render_r1_r2(c.patterns['fastq'])
+        run:
+            srr = _st.loc[wildcards.sample, 'Run']
+
+            # Two different paths depending on the layout. In both cases, we
+            # want to avoid creating the final output until the very end, to
+            # avoid incomplete downloads.
+            if c.is_paired:
+                # For PE we need to use --split-files, which also means using
+                # the slower --gzip
+                shell(
+                    'fastq-dump '
+                    '{srr} '
+                    '--gzip '
+                    '--split-files '
+                    # '-X 100000 ' # [TEST SETTINGS]
+                )
+
+                # The filenames are predictable, so we can move them as needed.
+                shell('mv {srr}_1.fastq.gz {output[0]}')
+                shell('mv {srr}_2.fastq.gz {output[1]}')
+
+            else:
+                # For SE, we can use the faster stdout | gzip, and move it
+                # directly when done.
+                shell(
+                    'fastq-dump '
+                    '{srr} '
+                    '-Z '
+                    # '-X 100000 ' # [TEST SETTINGS]
+                    '| gzip -c > {output[0]}.tmp '
+                    '&& mv {output[0]}.tmp {output[0]} '
+                )
+
+
+rule cutadapt:
+    """
+    Run cutadapt
+    """
+    input:
+        fastq=render_r1_r2(c.patterns['fastq'])
+    output:
+        fastq=render_r1_r2(c.patterns['cutadapt'])
+    log:
+        render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
+    threads: 6
+    run:
+
+        # NOTE: Change cutadapt params here
+        if c.is_paired:
+            shell(
+                "cutadapt "
+                "-o {output[0]} "
+                "-p {output[1]} "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
+                '-q 20 '
+                '-j {threads} '
+                '--minimum-length 25 '
+                "{input.fastq[0]} "
+                "{input.fastq[1]} "
+                "&> {log}"
+            )
+        else:
+            shell(
+                "cutadapt "
+                "-o {output[0]} "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                '-q 20 '
+                '--minimum-length 25 '
+                "{input.fastq[0]} "
+                "&> {log}"
+            )
+
+
+rule fastqc:
+    """
+    Run FastQC
+    """
+    input: '{sample_dir}/{sample}/{sample}{suffix}'
+    output:
+        html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
+        zip='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
+    script:
+        wrapper_for('fastqc/wrapper.py')
+
+
+rule bowtie2:
+    """
+    Map reads with Bowtie2
+    """
+    input:
+        fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+        index=[c.refdict[c.organism][config['aligner']['tag']]['bowtie2']]
+    output:
+        bam=c.patterns['bam']
+    log:
+        c.patterns['bam'] + '.log'
+    threads: 16
+    run:
+        prefix = aligners.prefix_from_bowtie2_index(input.index)
+        sam = output.bam.replace('.bam', '.sam')
+
+        if c.is_paired:
+            assert len(input.fastq) == 2
+            fastqs = '-1 {0} -2 {1} '.format(*input.fastq)
+        else:
+            assert len(input.fastq) == 1
+            fastqs = '-U {0} '.format(input.fastq)
+
+        shell(
+            "bowtie2 "
+            "-x {prefix} "
+            "{fastqs} "
+            '--no-unal '  # NOTE: suppress unaligned reads
+            "--threads {threads} "
+            "-S {sam} "
+            "> {log} 2>&1"
+        )
+
+        shell(
+            "samtools view -Sb {sam} "
+            "| samtools sort - -o {output.bam} -O BAM "
+            "&& rm {sam}"
+        )
+
+
+rule unique:
+    """
+    Remove multimappers
+    """
+    input:
+        c.patterns['bam']
+    output:
+        c.patterns['unique']
+    shell:
+        # NOTE: the quality score chosen here should reflect the scores output
+        # by the aligner used. For example, STAR uses 255 as max mapping
+        # quality.
+        'samtools view -b -q 20 {input} > {output}'
+
+
+rule fastq_count:
+    """
+    Count reads in a FASTQ file
+    """
+    input:
+        fastq='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz'
+    output:
+        '{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
+    shell:
+        'zcat {input} | echo $((`wc -l`/4)) > {output}'
+
+
+rule bam_count:
+    """
+    Count reads in a BAM file
+    """
+    input:
+        bam='{sample_dir}/{sample}/{suffix}.bam'
+    output:
+        '{sample_dir}/{sample}/{suffix}.bam.libsize'
+    shell:
+        'samtools view -c {input} > {output}'
+
+
+rule bam_index:
+    """
+    Index a BAM
+    """
+    input:
+        bam='{prefix}.bam'
+    output:
+        bai='{prefix}.bam.bai'
+    shell:
+        'samtools index {input} {output}'
+
+
+def fastq_screen_references():
+    """
+    Returns the Bowtie2 indexes for the configured references from the
+    `fastq_screen:` section of the config
+    """
+    refs = {}
+    for i in config['fastq_screen']:
+        refs[i['label']] = c.refdict[i['organism']][i['tag']]['bowtie2']
+    return refs
+
+
+rule fastq_screen:
+    """
+    Run fastq_screen to look for contamination from other genomes
+    """
+    input:
+        **fastq_screen_references(),
+        fastq=r1_only(rules.cutadapt.output.fastq),
+    output:
+        txt=c.patterns['fastq_screen']
+    log:
+        c.patterns['fastq_screen'] + '.log'
+    params: subset=100000
+    script:
+        wrapper_for('fastq_screen/wrapper.py')
+
+
+rule libsizes_table:
+    """
+    Aggregate fastq and bam counts in to a single table
+    """
+    input:
+        utils.flatten(c.targets['libsizes'])
+    output:
+        json=c.patterns['libsizes_yaml'],
+        tsv=c.patterns['libsizes_table']
+    run:
+        def sample(f):
+            return os.path.basename(os.path.dirname(f))
+
+        def million(f):
+            return float(open(f).read()) / 1e6
+
+        def stage(f):
+            return os.path.basename(f).split('.', 1)[1].replace('.gz', '').replace('.count', '')
+
+        df = pd.DataFrame(dict(filename=list(map(str, input))))
+        df['sample'] = df.filename.apply(sample)
+        df['million'] = df.filename.apply(million)
+        df['stage'] = df.filename.apply(stage)
+        df = df.set_index('filename')
+        df = df.pivot('sample', columns='stage', values='million')
+
+        # make nicer column names
+        convert = {
+            'fastq.libsize': 'stage1_raw',
+            'cutadapt.fastq.libsize' : 'stage2_trimmed',
+            'cutadapt.bam.libsize': 'stage3_aligned',
+            'cutadapt.unique.bam.libsize': 'stage4_unique',
+            'cutadapt.unique.nodups.bam.libsize': 'stage5_nodups',
+        }
+
+        df.columns = [convert[i] for i in df.columns]
+
+        df.to_csv(output.tsv, sep='\t')
+        y = {
+            'id': 'libsizes_table',
+            'section_name': 'Library sizes',
+            'description': 'Library sizes at various stages of the pipeline',
+            'plot_type': 'table',
+            'pconfig': {
+                'id': 'libsizes_table_table',
+                'title': 'Library size table',
+                'min': 0
+            },
+            'data': yaml.load(df.transpose().to_json(), Loader=yaml.FullLoader),
+        }
+        with open(output.json, 'w') as fout:
+            yaml.dump(y, fout, default_flow_style=False)
+
+multiqc_inputs = [
+    utils.flatten(c.targets['fastqc']) +
+    utils.flatten(c.targets['libsizes_yaml']) +
+    utils.flatten(c.targets['cutadapt']) +
+    utils.flatten(c.targets['bam']) +
+    utils.flatten(c.targets['markduplicates']) +
+    utils.flatten(c.targets['fingerprint']) +
+    utils.flatten(c.targets['peaks']) +
+    utils.flatten(c.targets['fastq_screen']) +
+    utils.flatten(c.targets['plotcorrelation'])
+]
+
+if c.is_paired:
+    multiqc_inputs.extend(utils.flatten(c.targets['collectinsertsizemetrics']['metrics']))
+
+rule multiqc:
+    """
+    Aggregate various QC stats and logs into a single HTML report with MultiQC
+    """
+    # NOTE: if you add more rules and want MultiQC to pick up the output, best
+    # to add outputs from those rules to the inputs here.
+    input:
+        files=multiqc_inputs,
+        config='config/multiqc_config.yaml'
+    output:
+        c.targets['multiqc']
+    log:
+        c.targets['multiqc'][0] + '.log'
+    run:
+        analysis_directory = set([os.path.dirname(i) for i in input])
+        outdir = os.path.dirname(c.targets['multiqc'][0])
+        basename = os.path.basename(c.targets['multiqc'][0])
+        shell(
+            'LC_ALL=en_US.utf8 LC_LANG=en_US.utf8 '
+            'multiqc '
+            '--quiet '
+            '--outdir {outdir} '
+            '--force '
+            '--filename {basename} '
+            '--config {input.config} '
+            '{analysis_directory} '
+            '&> {log} '
+        )
+
+
+rule markduplicates:
+    """
+    Mark or remove PCR duplicates with Picard MarkDuplicates
+    """
+    input:
+        bam=c.patterns['unique']
+    output:
+        bam=c.patterns['markduplicates']['bam'],
+        metrics=c.patterns['markduplicates']['metrics']
+    log:
+        c.patterns['markduplicates']['bam'] + '.log'
+    params:
+        # NOTE: Be careful with the memory here; make sure you have enough
+        # and/or it matches the resources you're requesting in the cluster
+        # config.
+        java_args='-Xmx20g'
+        # java_args='-Xmx2g'  # [TEST SETTINGS -1]
+    shell:
+        'picard '
+        '{params.java_args} '
+        'MarkDuplicates '
+        'INPUT={input.bam} '
+        'OUTPUT={output.bam} '
+        'REMOVE_DUPLICATES=true '
+        'METRICS_FILE={output.metrics} '
+        'VALIDATION_STRINGENCY=LENIENT '
+        '&> {log}'
+
+
+rule merge_techreps:
+    """
+    Technical replicates are merged and then re-deduped.
+
+    If there's only one technical replicate, its unique, nodups bam is simply
+    symlinked.
+    """
+    input:
+        lambda wc: expand(
+            c.patterns['markduplicates']['bam'],
+            sample=common.get_techreps(c.sampletable, wc.label),
+        )
+    output:
+        bam=c.patterns['merged_techreps'],
+        metrics=c.patterns['merged_techreps'] + '.metrics'
+    log:
+        c.patterns['merged_techreps'] + '.log'
+    params:
+        # NOTE: Be careful with the memory here; make sure you have enough
+        # and/or it matches the resources you're requesting in the cluster
+        # config.
+        java_args='-Xmx32g'
+        # java_args='-Xmx2g'  # [TEST SETTINGS -1]
+    script:
+        wrapper_for('combos/merge_and_dedup/wrapper.py')
+
+if c.is_paired:
+    rule collectinsertsizemetrics:
+        input:
+            bam=c.patterns['markduplicates']['bam'],
+        output:
+            pdf=c.patterns['collectinsertsizemetrics']['pdf'],
+            metrics=c.patterns['collectinsertsizemetrics']['metrics']
+        log:
+            c.patterns['collectinsertsizemetrics']['metrics'] + '.log'
+        params:
+            java_args='-Xmx20g'
+            # java_args='-Xmx2g'  # [TEST SETTINGS -1]
+        shell:
+            'picard '
+            '{params.java_args} '
+            'CollectInsertSizeMetrics '
+            'I={input.bam} '
+            'O={output.metrics} '
+            'H={output.pdf} '
+            '&> {log} '
+
+rule bigwig:
+    """
+    Create a bigwig.
+
+    See note below about normalizing!
+    """
+    input:
+        bam=c.patterns['merged_techreps'],
+        bai=c.patterns['merged_techreps'] + '.bai',
+    output:
+        c.patterns['bigwig']
+    log:
+        c.patterns['bigwig'] + '.log'
+    shell:
+        'bamCoverage '
+        '--bam {input.bam} '
+        '-o {output} '
+        '-p {threads} '
+        '--minMappingQuality 20 '
+        '--ignoreDuplicates '
+        # Can't use the CPM normalization for testing due to <1000 reads total
+        # in example data; keep uncommented when running in production
+        # [TEST SETTINGS +1]
+        '--normalizeUsing CPM '
+        '--extendReads 300 '
+        '&> {log}'
+
+
+rule fingerprint:
+    """
+    Runs deepTools plotFingerprint to assess how well the ChIP experiment
+    worked.
+
+    Note: uses the merged techreps.
+    """
+    input:
+        bams=lambda wc: expand(c.patterns['merged_techreps'], label=wc.ip_label),
+        control=lambda wc: expand(c.patterns['merged_techreps'], label=chipseq.merged_input_for_ip(c.sampletable, wc.ip_label)),
+        bais=lambda wc: expand(c.patterns['merged_techreps'] + '.bai', label=wc.ip_label),
+        control_bais=lambda wc: expand(c.patterns['merged_techreps'] + '.bai', label=chipseq.merged_input_for_ip(c.sampletable, wc.ip_label)),
+    output:
+        plot=c.patterns['fingerprint']['plot'],
+        raw_counts=c.patterns['fingerprint']['raw_counts'],
+        metrics=c.patterns['fingerprint']['metrics']
+    threads: 8
+    log: c.patterns['fingerprint']['metrics'] + '.log'
+    shell:
+        'plotFingerprint '
+        '--bamfiles {input.bams} '
+        '-p {threads} '
+        # The JSDsample argument is disabled for testing as it dramatically
+        # increases the run time.
+        # [TEST SETTINGS +1]
+        '--JSDsample {input.control} '
+        '--smartLabels '
+        '--extendReads=300 '
+        '--skipZeros '
+        '--outQualityMetrics {output.metrics} '
+        '--outRawCounts {output.raw_counts} '
+        '--plotFile {output.plot} '
+        # Default is 500k; use fewer to speed up testing:
+        # '--numberOfSamples 50 '  # [TEST SETTINGS ]
+        '&> {log} '
+        '&& sed -i "s/NA/0.0/g" {output.metrics} '
+
+
+rule sicer:
+    """
+    Run the SICER peak caller
+    """
+    input:
+        ip=lambda wc:
+            expand(
+                c.patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.sicer_run, 'sicer', 'ip'),
+            ),
+        control=lambda wc:
+            expand(
+                c.patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.sicer_run, 'sicer', 'control'),
+            ),
+        chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
+    output:
+        bed=c.patterns['peaks']['sicer']
+    log:
+        c.patterns['peaks']['sicer'] + '.log'
+    params:
+        block=lambda wc: chipseq.block_for_run(config, wc.sicer_run, 'sicer')
+    wrapper:
+        wrapper_for('sicer')
+
+rule macs2:
+    """
+    Run the macs2 peak caller
+    """
+    input:
+        ip=lambda wc:
+            expand(
+                c.patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'ip'),
+            ),
+        control=lambda wc:
+            expand(
+                c.patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.macs2_run, 'macs2', 'control'),
+            ),
+        chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
+    output:
+        bed=c.patterns['peaks']['macs2']
+    log:
+        c.patterns['peaks']['macs2'] + '.log'
+    params:
+        block=lambda wc: chipseq.block_for_run(config, wc.macs2_run, 'macs2')
+    wrapper:
+        wrapper_for('macs2/callpeak')
+
+
+rule spp:
+    """
+    Run the SPP peak caller
+    """
+    input:
+        ip=lambda wc:
+            expand(
+                c.patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'ip'),
+            ),
+        control=lambda wc:
+            expand(
+                c.patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.spp_run, 'spp', 'control'),
+            ),
+        chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
+    output:
+        bed=c.patterns['peaks']['spp'],
+        enrichment_estimates=c.patterns['peaks']['spp'] + '.est.wig',
+        smoothed_enrichment_mle=c.patterns['peaks']['spp'] + '.mle.wig',
+        rdata=c.patterns['peaks']['spp'] + '.RData'
+    log:
+        c.patterns['peaks']['spp'] + '.log'
+    params:
+        block=lambda wc: chipseq.block_for_run(config, wc.spp_run, 'spp'),
+        keep_tempfiles=False,
+        # NOTE: Be careful with the memory here; make sure you have enough
+        # and/or it matches the resources you're requesting in the cluster
+        # config.
+        java_args='-Xmx24g',
+        # java_args='-Xmx2g',  # [TEST SETTINGS -1]
+    threads: 2
+    wrapper:
+        wrapper_for('spp')
+
+
+rule bed_to_bigbed:
+    """
+    Convert BED to bigBed
+    """
+    input:
+        bed='{prefix}.bed',
+        chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes']
+    output: '{prefix}.bigbed'
+    log: '{prefix}.bigbed.log'
+    run:
+        # Based on the filename, identify the algorithm. Based on the contents,
+        # identify the format.
+        algorithm = os.path.basename(os.path.dirname(input.bed))
+        kind = chipseq.detect_peak_format(input.bed)
+
+
+        # bedToBigBed doesn't handle zero-size files
+        if os.stat(input.bed).st_size == 0:
+            shell("touch {output}")
+        else:
+            if kind == 'narrowPeak':
+                _as = '../../include/bigNarrowPeak.as'
+                _type = 'bed6+4'
+                names=[
+                    'chrom', 'chromStart', 'chromEnd', 'name', 'score',
+                    'strand', 'signalValue', 'pValue', 'qValue', 'peak']
+            elif kind == 'broadPeak':
+                _as = '../../include/bigBroadPeak.as'
+                _type = 'bed6+3'
+                names=[
+                    'chrom', 'chromStart', 'chromEnd', 'name', 'score',
+                    'strand', 'signalValue', 'pValue', 'qValue']
+            else:
+                raise ValueError("Unhandled format for {0}".format(input.bed))
+
+            df = pd.read_table(input.bed, index_col=False, names=names)
+            df['score'] = df['score'] - df['score'].min()
+            df['score'] = (df['score'] / df['score'].max()) * 1000
+            df['score'] = df['score'].replace([np.inf, -np.inf], np.nan).fillna(0)
+            df['score'] = df['score'].astype(int)
+            df.to_csv(output[0] + '.tmp', sep='\t', index=False, header=False)
+
+            shell('bedToBigBed -as={_as} -type={_type} {output}.tmp {input.chromsizes} {output} &> {log}')
+            shell('rm {output}.tmp')
+
+
+rule multibigwigsummary:
+    """
+    Summarize the bigWigs across genomic bins
+    """
+    input:
+        c.targets['bigwig']
+    output:
+        npz=c.targets['multibigwigsummary']['npz'],
+        tab=c.targets['multibigwigsummary']['tab']
+    threads: 16
+    run:
+        # from the input files, figure out the sample name.
+        labels = ' '.join([i.split('/')[-2] for i in input])
+        shell(
+            'multiBigwigSummary '
+            'bins '
+            '-b {input} '
+            '--labels {labels} '
+            '-out {output.npz} '
+            '--outRawCounts {output.tab}'
+        )
+
+
+rule plotcorrelation:
+    """
+    Plot a heatmap of correlations across all samples
+    """
+    input:
+        c.targets['multibigwigsummary']['npz']
+    output:
+        heatmap=c.targets['plotcorrelation']['heatmap'],
+        tab=c.targets['plotcorrelation']['tab']
+    shell:
+        'plotCorrelation '
+        '--corData {input} '
+        '--corMethod spearman '
+        '--whatToPlot heatmap '
+        '--plotFile {output.heatmap} '
+        '--colorMap Reds '
+        '--outFileCorMatrix {output.tab}'
+
+        # NOTE: if you're expecting negative correlation, try a divergent
+        # colormap and setting the min/max to ensure that the colomap is
+        # centered on zero:
+        # '--colorMap RdBu_r '
+        # '--zMin -1 '
+        # '--zMax 1 '
+
+if 'merged_bigwigs' in config:
+    rule merge_bigwigs:
+        """
+        Merge together bigWigs as specified in the config ("merged_bigwigs"
+        section).
+        """
+        input:
+            bigwigs=lambda wc: expand(
+                c.patterns['bigwig'],
+                label=config['merged_bigwigs'][wc.merged_bigwig_label],
+            ),
+            chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
+        output:
+            c.patterns['merged_bigwig']
+        log:
+            c.patterns['merged_bigwig'] + '.log'
+        script:
+            wrapper_for('average-bigwigs/wrapper.py')
+
+# vim: ft=python

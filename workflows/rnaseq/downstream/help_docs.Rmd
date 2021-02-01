@@ -1,0 +1,176 @@
+## Differential expression help
+
+This section describes the output generated in this report. You can find much
+more detailed information in the [DESeq2
+vignette](https://bioconductor.org/packages/3.7/bioc/vignettes/DESeq2/inst/doc/DESeq2.html).
+
+### What is a contrast?
+
+In its simplest form a contrast is a statistical test that compares
+a particular group of replicates with another group of replicates, for example
+"WT vs mutant". More complicated contrasts are possible, depending on the
+experimental design and the model used.
+
+The result of a single contrast is generally a table of results with log2 fold
+change and adjusted p-value columns (see below for more details).
+
+### What information is in the summary tables?
+
+Summary tables contain the following information for each contrast:
+
+-  **total.annotated.genes**: these are the genes for which we have count data.
+  It's the same for each comparison, reported here as a double-check.
+
+- **total.nonzero.read.count**: If a gene has zero reads in any replicate, it's
+  removed from the analysis. This number shows the remaining number of genes.
+
+- **alpha**: the threshold against which to compare adjusted pvalues to decided
+  whether a gene is significant. 0.1 is typically used for DESeq2: we're OK
+  calling something as differentially expressed (when the truth is that it's
+  not) about 10% of the time. This is the same across contrasts.
+
+- **up, down**: number of genes up or downregulated. For things like a simple
+  control vs treatment, this is straightforward. For interaction terms though,
+  things get complicated (see the interaction section).
+
+- **outliers**: DESeq2 automatically detects outliers and removes them. This column keeps track of that.
+
+- **low.counts**: DESeq2 implements filtering of genes with low counts in order
+  to improve the adjusted pvals. It removes genes with such low counts that
+  they would not ever be detected as significant, and as such that means we
+  don't have to calculate as many pvals, which in turn means a less harsh
+  multiple testing correction.
+
+- **desc, design**: these are details about the underlying model and what
+  contrast is being performed. Mostly for diagnostic purposes. If you see
+  "MAP", it means the fold changes are shrunken. "MLE" means they are not
+  because there was an interaction term.
+
+
+### What do the columns mean in the exported results files?
+
+Each contrast has an exported file containing the DESeq results. It has at
+least the following columns:
+
+- first column (unnamed) is gene ID
+
+- **baseMean**: the average count across all replicates in all conditions
+
+- **log2FoldChange**: magnitude of differential expression. Interpretation
+  depends on the contrast (see MA plots below). If log2FoldChange is NA, then
+  it means all samples had zero counts.
+
+- **lfcSE, stat, pvalue**: standard error of the log2 fold change estimate, Wald
+  or LRT test statistic, and raw pvalue. These are all just for diagnostics and
+  you can ignore them for the most part. However if `pvalue` is set to NA, it
+  means that the gene as an outlier and was not considered (see DESeq2
+  documentation for details).
+
+- **padj**: Adjusted p-value, or FDR. We typically use 0.1 as a cutoff to
+  determine statistical significance. If "NA", then it means the gene had too
+  few counts to be useful.
+
+
+Remaining columns may include other gene information, like, symbol, name,
+UniProt ID.
+
+### What does "NA" mean in the results?
+
+DESeq2 encodes extra information about a gene by placing an NA in a particular
+column. Here's how to interepret that (these notes are simplified from
+https://bioconductor.org/packages/3.7/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#pvaluesNA):
+
+- Within a row, if all samples have zero counts then the baseMean column will
+  be zero. In this case, the log2 fold change estimates, p value and adjusted
+  p value will all be set to NA.
+- If a row contains a sample with an extreme count outlier then the p value and
+  adjusted p value will both be set to NA. These outlier counts are detected by
+  Cook’s distance.
+- If a row is filtered by automatic independent filtering for having a low
+  mean normalized count, then only the adjusted p value will be set to NA.
+
+
+To summarize:
+
+
+| log2FoldChange | pval | padj | Meaning                                                                               |
+|----------------+------+------+---------------------------------------------------------------------------------------|
+| NA             | NA   | NA   | Zero counts in all samples                                                            |
+| .              | NA   | NA   | At least one replicate was an outlier and removed from analysis                       |
+| .              | .    | NA   | Gene was removed by automatic independent filtering for having too little information |
+
+### What is an MA plot?
+An MA plot is another name for a Bland-Altman plot or a mean-difference plot.
+You can create your own MA-plot using the log2FoldChange column and the
+baseMean column from the exported results files.
+
+MA plots are a good way of showing the results of differential expression. Each
+point is a gene in which we have counted reads. If a genomic region was not
+included in the annotation, we have no counts for it and it is therefore not in
+this plot. The x-axis is average normalized counts. This is *NOT* expression,
+since the values are uncorrected for gene length and we would expect more
+counts for longer genes. This is fine -- we are performing differential
+expression between conditions and we are assuming that genes do not change size
+between conditions. These normalized counts most accurately reflect what data
+the differential expression algorithm is seeing and using. The y-axis is log2
+fold change.
+
+DESeq2 has two different ways of calculating log2 fold change. The shrunken
+version will shrink values toward y=0 for those genes with low information
+content (low counts or high variability across replicates) while the MLE
+version will show the unshrunken log2 fold change. Some contrasts, in
+particular those with interaction terms in the model, can't have their values
+shrunken for technical reasons (see the DESeq2 docs for details).
+
+### How do I interpret the functional enrichment section?
+
+Each contrast has a separate section (which you can quickly access from the
+table of contents). Each contrast's section has nested tabs.
+
+The top level of the tabs corresponds to the different databases used for
+functional enrichment analysis (e.g., GO, KEGG, Reactome etc).
+
+Each database's enrichment is available as a TSV file, in both condensed format
+(one line per term, multiple genes are separated by "/") or split (one gene per
+line; other information is duplicated). These files contain all the information
+that is plotted below. And, since the plots below only plot the top 10, 30, or
+5 categories by default, there may be a lot in these files that are not
+plotted.
+
+The second level of tabs corresponds to the different plots (described below).
+
+The analysis is visualized with 3 different plots, all showing the same results
+in different ways. For better comparison, we show each of the selected genes
+(typically, upregulated and downregulated though this can vary depending on the
+experiment) as side-by-side plots.
+
+#### dotplot
+
+This represents highly enriched terms from the analysis with the color corresponding to
+level of enrichment (adjusted p-value) and the size of the dots representing the
+number of genes associated with the GO term or pathway.
+
+This is the easiest plot to read the enriched terms. By default the top 10
+categories are shown.
+
+#### emapplot
+
+The enrichment map plot is a network visualization of the enrichment analysis. Nodes in
+the network represent GO terms or pathways and the connections (edges) between nodes
+represent shared genes between the terms/pathways. The color of the node corresponds
+to adjusted p-values, the size represent the number of genes associated with the term
+and the thickness of the edge represents the number or fraction of genes shared between
+the terms.
+
+This plot is good for identifying enriched pathways, since categories with
+similar genes will cluster together. By default the top 30 categories are
+shown.
+
+#### cnetplot
+
+This plot extracts the complex associations of genes with multiple functional terms or
+pathways. The size of the nodes for functional terms represent the number of associated
+genes and the gene nodes can also be overlayed with observed fold-changes.
+
+This plot is good for identifying which genes act as links between which
+categories. By default the top 5 categories are plotted.

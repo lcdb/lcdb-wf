@@ -1,0 +1,23 @@
+language: python
+filter_secrets: false
+install: bash ci/travis-setup.sh
+before_script:
+  - export PATH=/tmp/ci/ana/bin:$PATH
+  - export JAVA_HOME=
+  - export TMPDIR=/tmp
+script:
+  - travis_wait 40 ci/travis-run.sh
+env:
+  global:
+    - ENCRYPTION_LABEL: "7472da9c29f2"
+
+  matrix:
+    - TYPE=rnaseq.snakefile
+    - TYPE=chipseq.snakefile
+    - TYPE=references.snakefile
+    - TYPE=figures.snakefile
+    - TYPE=external.snakefile
+    - TYPE=colocalization.snakefile
+    - TYPE=pytest
+    - TYPE=docs
+

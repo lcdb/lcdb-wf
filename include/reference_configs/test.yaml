@@ -1,0 +1,107 @@
+references:
+  dmel:
+    test:
+      genome:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa"
+        postprocess: 'lib.common.gzipped'
+        indexes:
+          - 'bowtie2'
+          - 'hisat2'
+          - 'star'
+      annotation:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf"
+        postprocess: 'lib.common.gzipped'
+        conversions:
+          - 'refflat'
+          - 'bed12'
+          - gffutils: # kwargs below will be provided to `gffutils.create_db`
+              merge_strategy: 'merge'
+              id_spec:
+                  transcript: ['transcript_id', 'transcript_symbol']
+                  gene: ['gene_id', 'gene_symbol']
+              gtf_transcript_key: 'transcript_id'
+              gtf_gene_key: 'gene_id'
+
+          # the attribute from the GTF to consider gene ID
+          - genelist:
+              gene_id: 'gene_id'
+
+          # Deprecated in favor of "mappings"
+          # a <- AnnotationHub()
+          # a[(a$rdataclass == 'OrgDb') & grepl('melanogaster', a$species),]
+          # - annotation_hub:
+          #     ahkey: 'AH57972'
+          #    keytype: 'ENSEMBL'
+          #
+          - mappings
+
+      transcriptome:
+        indexes:
+          - 'salmon'
+
+      metadata:
+        reference_genome_build: 'dm6'
+        reference_effective_genome_count: 1.2e8
+        reference_effective_genome_proportion: 0.88
+
+    chrom_test:
+      annotation:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf.gz"
+        postprocess:
+          function: 'lib.postprocess.utils.convert_gtf_chroms'
+          args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/893cb5bdf84c2d6f5c6d48fe74c791646383f189/mappings/test/test_to_ucsc.tsv'
+      genome:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/fasta_long_header/data/seq/dm6.small.longheader.fa"
+        postprocess:
+          function: 'lib.postprocess.utils.convert_fasta_chroms'
+          args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/893cb5bdf84c2d6f5c6d48fe74c791646383f189/mappings/test/test_to_ucsc.tsv'
+
+    test_exclude_gtf_pattern:
+      annotation:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf.gz"
+        postprocess:
+          function: 'lib.postprocess.utils.match_gtf_9th'
+          args:
+            - 'FBgn0002121'
+            - '-'
+
+
+    rRNA:
+      genome:
+        url:
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+        postprocess:
+          function: 'lib.common.filter_fastas'
+          args: 'Drosophila melanogaster'
+        indexes:
+          - 'hisat2'
+          - 'bowtie2'
+
+    gtf_no_postproc:
+      annotation:
+        url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf.gz"
+
+  phix:
+    default:
+      genome:
+        url: 'ftp://ftp.ncbi.nlm.nih.gov/genomes/Viruses/enterobacteria_phage_phix174_sensu_lato_uid14015/NC_001422.fna'
+        postprocess:
+          - 'lib.common.gzipped'
+        indexes:
+          - 'bowtie2'
+
+
+
+  multiple_postprocess_funcs:
+    default:
+        annotation:
+          url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf.gz"
+          postprocess:
+            - function: 'lib.postprocess.utils.match_gtf_9th'
+              args:
+                - 'FBgn0002121'
+                - '-'
+            - function: 'lib.postprocess.utils.convert_gtf_chroms'
+              args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/893cb5bdf84c2d6f5c6d48fe74c791646383f189/mappings/test/test_to_ucsc.tsv'
+            - 'lib.postprocess.test.test_postprocess'

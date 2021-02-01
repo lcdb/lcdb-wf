@@ -1,0 +1,10 @@
+aligner:
+  index: 'star-twopass'
+  tag: test
+
+merged_bigwigs:
+  control_pos:
+    pos: []
+  treatment_all:
+    pos: []
+    neg: []

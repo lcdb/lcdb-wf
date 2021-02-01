@@ -1,0 +1,9 @@
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  # for fastqc running in minimal containers, which complain about missing
+  # fonts
+  - openjdk >=8.0.144
+  - font-ttf-dejavu-sans-mono
+  - fastqc

@@ -1,0 +1,30 @@
+pre {
+    font-size: 0.7em;
+}
+
+
+h3 {
+    font-style: italic;
+}
+
+h2 {
+    /* text-decoration: underline; */
+}
+
+code {
+    background-color: #fff;
+    font-size: 0.8em;
+    color: #444;
+}
+
+code.file {
+    font-style: italic;
+}
+
+/* make fixed sidebar scrollable
+   from: https://stackoverflow.com/questions/57031848/sphinx-alabaster-theme-scroll-inside-of-fixed-sidebar 
+*/
+div.sphinxsidebar {
+    max-height: 90%;
+    overflow-y: auto;
+}

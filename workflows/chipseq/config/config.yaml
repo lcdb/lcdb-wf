@@ -1,0 +1,135 @@
+# NOTE: all paths are relative to the calling Snakefile.
+#
+# sampletable: TSV file defining sample metadata.
+# First column must have header name "samplename".
+sampletable: 'config/sampletable.tsv'
+
+# Which key in the `references` dict below to use
+organism: 'dmel'
+
+# If not specified here, use the environment variable REFERENCES_DIR.
+references_dir: 'references_data'
+
+peaks_dir: 'data/chipseq_peaks'
+
+
+chipseq:
+  # The peak_calling section is a list of dicts, each one defining a single
+  # chipseq peak-calling run. The output will be created according to `label`
+  # and `algorithm`. There will be at least a file
+  # `<peaks_dir>/<algorithm>/<label>/peaks.bed`; other files may be created
+  # depending on the algorithm.
+  #
+  # Note that this directory structure means you can have the same label for
+  # different peak-callers to more easily compare them.
+  #
+  # The `ip` and `control` sections expect names found in the "label" column of
+  # the sampletable. This column describes the technical replicates, and the
+  # merging step of the workflow merges and de-dupes appropriately so that the
+  # peak callers only see BAMs with all duplicates removed.
+  #
+  # The "extra" block is used to pass extra information to the peak-caller in
+  # a run-specific manner. Check the wrapper README for details on this. For
+  # example, the macs2 wrapper passes `extra` verbatim to the command line, but
+  # the spp wrapper handles things differently.
+  #
+  # Each wrapper is built to accept either single or multiple BAMs and output
+  # at least a BED file of peaks.
+  #
+  peak_calling:
+    - label: gaf-embryo-sicer
+      algorithm: sicer
+      ip:
+        - gaf-embryo-1
+      control:
+        - input-embryo-1
+      redundancy_threshold: 1
+      window_size: 200
+      fragment_size: 150
+      # optional user-specified override mappable genome proportion if
+      # specified here, SICER will use this value instead of the value specific
+      # to the genome build if NOT specified here, SICER will use the
+      # mappability value for your genome build
+      effective_genome_fraction: 0.75
+      genome_build: dm6
+      gap_size: 600
+      fdr: 0.01
+
+
+    - label: gaf-embryo-1
+      algorithm: macs2
+      ip:
+        - gaf-embryo-1
+      control:
+        - input-embryo-1
+      # optional user-specified override mappable genome size if specified
+      # here, MACS will use this value instead of the value specific to the
+      # genome build if NOT specified here, MACS will use the mappability value
+      # for your genome build
+      effective_genome_count: 7e7
+      extra: '--nomodel --extsize 147'
+
+    - label: gaf-embryo-1
+      algorithm: spp
+      ip:
+        - gaf-embryo-1
+      control:
+        - input-embryo-1
+      extra:
+        fdr: 0.3
+        zthr: 4
+
+    - label: gaf-embryo-1-defaults
+      algorithm: spp
+      ip:
+        - gaf-embryo-1
+      control:
+        - input-embryo-1
+
+    - label: gaf-wingdisc-pooled
+      algorithm: macs2
+      ip:
+        - gaf-wingdisc-1
+        - gaf-wingdisc-2
+      control:
+        - input-wingdisc-1
+        - input-wingdisc-2
+      extra: '--nomodel --extsize 147'
+
+    - label: gaf-wingdisc-pooled
+      algorithm: spp
+      ip:
+        - gaf-wingdisc-1
+        - gaf-wingdisc-2
+      control:
+        - input-wingdisc-1
+        # - input-wingdisc-2
+      extra:
+        fdr: 0.5
+        zthr: 4
+
+fastq_screen:
+  - label: rRNA
+    organism: dmel
+    tag: test
+  - label: Fly
+    organism: dmel
+    tag: test
+
+merged_bigwigs:
+  input-wingdisc:
+    - input-wingdisc-1
+    - input-wingdisc-2
+  gaf-wingdisc:
+    - gaf-wingdisc-1
+    - gaf-wingdisc-2
+  gaf-embryo:
+    - gaf-embryo-1
+
+aligner:
+  index: 'bowtie2'
+  tag: 'test'
+
+include_references:
+  - '../../include/reference_configs/Drosophila_melanogaster.yaml'
+  - '../../include/reference_configs/test.yaml'

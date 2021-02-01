@@ -1,0 +1,37 @@
+references:
+  rat:
+    ucsc_rn6:
+
+      metadata:
+        reference_genome_build: 'rn6'
+
+      genome:
+        url: 'ftp://hgdownload.soe.ucsc.edu/goldenPath/rn6/bigZips/rn6.fa.gz'
+        indexes:
+          - 'hisat2'
+          - 'bowtie2'
+          - 'star'
+      annotation:
+        url: 'ftp://ftp.ensembl.org/pub/release-94/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.94.gtf.gz'
+        postprocess:
+          function: 'lib.postprocess.utils.convert_gtf_chroms'
+          args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/6378179e30bf4502d10a63e1b4f4f8a0b0070ce9/mappings/rat/ensembl_Rnor_6.0_to_ucsc_rn6/mappings_ensembl_Rnor_6.0_to_ucsc_rn6.tsv'
+        conversions:
+          - 'refflat'
+
+      transcriptome:
+        indexes:
+          - 'salmon'
+
+    rRNA:
+      genome:
+        url:
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+        indexes:
+          - 'hisat2'
+          - 'bowtie2'
+          - 'star'
+        postprocess:
+          function: 'lib.common.filter_fastas'
+          args: 'Rattus norvegicus'
