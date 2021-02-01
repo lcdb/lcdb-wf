@@ -39,7 +39,7 @@ The DAG of jobs looks like this:
 Downstream analysis
 ~~~~~~~~~~~~~~~~~~~
 
-This is  performed in an RMarkdown file ``rnaseq.Rmd`` that uses DESeq2
+This is  performed in an RMarkdown file (``rnaseq.Rmd``) that uses DESeq2
 for differential expression analysis, along with diagnostic plots, 
 exported tables of differentially expressed genes for each comparison of 
 interest, gene patterns analysis for finding coexpressed genes and downstream

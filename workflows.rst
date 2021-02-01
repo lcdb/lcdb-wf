@@ -64,8 +64,9 @@ focus on RNA-seq and ChIP-seq which share some common properties.
 
 Where possible, we prefer to have rules use the normal command-line syntax for
 tools (examples include rules calling samtools, deepTools bamCoverage, picard,
-salmon).  However in some cases we use wrapper scripts. Situtations where we
-use wrappers:
+salmon).  However in some cases we use wrapper scripts. 
+
+Situtations where we use wrappers:
 
 - Ensuring various aligners (HISAT2, Bowtie2, STAR, bwa) behave uniformly.
   These wrappers call the aligner, followed by samtools sort and view. The end
