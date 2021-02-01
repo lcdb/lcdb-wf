@@ -23,7 +23,7 @@ Every change to the code on GitHub triggers an automated test, the results of
 which you can find at https://circleci.com/gh/lcdb/lcdb-wf. Each test sets the
 system up from scratch, including installing all software, downloading example
 data, and running everything up through the final results. This guarantees that
-you can set up and test yourself.
+you can set up and test the code yourself.
 
 Track hubs
 ----------
@@ -37,8 +37,8 @@ view alongside your data.
 
 Unified approach to reference genomes
 -------------------------------------
-The references workflow defines the genomes references in the experiement. It is
-is shared by RNA-seq and ChIP-seq and is driven by
+The references workflow defines the genome files for the organisms used in 
+the experiement. It it is shared by RNA-seq and ChIP-seq and is driven by
 a config file that specifies URLs for FASTA and GTF files. Set it up once for
 a site to get lots of genomes you can use for running `fastq_screen`, and
 easily include arbitrary other genomes. They can then be automatically included
@@ -52,7 +52,7 @@ repository that can be then used with all other workflows.
 
 Integration with external data and figure-making
 ------------------------------------------------
-Designed to tie together your entire analysis, from downloading references
+It is designed to tie together your entire analysis, from downloading references
 through producing final figures. The included examples tie together workflows that download external data, perform downstream analysis, and make figures. These examples have been thoroughly tested.
 
 If an upstream file changes (e.g., gene annotation), all dependent downstream 

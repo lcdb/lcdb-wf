@@ -43,10 +43,10 @@ The general steps to use lcdb-wf in a new project are:
 
 lcdb-wf is designed to be customized for each project, so setting up a new
 project to use lcdb-wf means copying over the files you need. There is
-a ``deploy.py`` script that does this for you, but you need to have a copy of
-the repository to get this script in the first place.
+a ``deploy.py`` script that does this for you.
 
-The reason to use deploy.py is so you end up with a cleaner project directory. There are many additional files (like these docs and testing files) that are not necessary for an actual project.
+``deploy.py`` sets up a project and removes additional files (like these docs
+and testing files) that are not necessary for an actual project. The reason to use this script is so you end up with a cleaner project directory. 
 
 This script also writes a file to the destination called
 ``.lcdb-wf-deployment.json``. It stores the timestamp and details about what 
@@ -157,7 +157,7 @@ and then monitor the various jobs that will be submitted on your behalf. See
 :ref:`cluster` for more details on this.
 
 Other clusters will need different configuration, but everything is standard
-Snakemake so the Snakemake documentation on `cluster execution
+Snakemake. The Snakemake documentation on `cluster execution
 <https://snakemake.readthedocs.io/en/stable/executing/cluster.html>`_ and
 `cloud execution
 <https://snakemake.readthedocs.io/en/stable/executing/cloud.html>`_ can be

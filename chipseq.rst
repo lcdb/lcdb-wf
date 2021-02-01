@@ -2,7 +2,7 @@
 
 ChIP-seq workflow
 -----------------
-The ChIP-seq workflow starts with raw FASTQ files, does various QC steps. It
+The ChIP-seq workflow starts with raw FASTQ files and performs various QC steps. It
 aligns and prepares BAM and bigWig files, performs peak-calling, and combines
 everything together into a track hub for visualization.
 
