@@ -5,7 +5,7 @@ Testing the installation
 This section describes how to set up and run the example data.
 It is useful for verifying everything is working correctly. This
 reproduces the steps that are performed during the automated tests
-on `Circle CI<https:/circleci.com>`_. You can see the latest test
+on `Circle CI<https://circleci.com>`_. You can see the latest test
 results `here<https://circleci.com/gh/lcdb/lcdb-wf/tree/master>`_.
 
 The example run takes up about 360 MB of space and runs in about 15 mins on
@@ -85,7 +85,7 @@ A major benefit of ``lcdb-wf`` is that the code undergoes automated testing on
 has 2 cores and 2GB RAM. To accommodate this, we developed a small
 representative `test dataset <https://github.com/lcdb/lcdb-test-data>`_ from
 real-world data.This allows the workflows to run in their entirety in a reasonable time frame.
-We also need to adjust specific settings to the workflows, e.g.
+We also needed to adjust specific settings to the workflows, e.g.
 we set the Java VM memory to only 2GB for Java tools like Picard and FastQC.
 
 We had to make a design decision about the “default” state of the workflows:
@@ -94,14 +94,13 @@ test-ready (low RAM) settings? We chose to have the default to be real-world,
 production-ready settings, because we want to minimize the edits required
 (and therefore possibility of introducing errors!) for running on real data.
 
-What this all means is that if we want to run tests, we need to make some
-adjustments. In each workflows directory, a ``run_test.sh`` script handles
-this. This script runs a preprocessor, ``ci/preprocessor.py``, which looks for
-specially-formatted comments in the workflows. It swaps out production settings
-for test settings, and writes the results to a new ``Snakefile.test`` file that
+What this all means is that if we want to run tests, we need use the ``run_test.sh`` 
+script in each workflows directory to make adjustments. This script runs a
+preprocessor, ``ci/preprocessor.py``, which looks for specially-formatted 
+comments in the workflows. It swaps out production settings for test settings,
+and writes the results to a new ``Snakefile.test`` file that
 is then run. In production, especially when running on a cluster, there's no
 need to do this.
-
 
 See the docstring in the ``ci/preprocessor.py`` for details on how this works.
 
