@@ -3,8 +3,7 @@
 RNA-seq workflow
 ================
 
-This workflow is used for RNA-seq and RNA-seq-like analysis (like euRNA-seq,
-RIP-seq or small RNA-seq).
+This workflow is used for RNA-seq and RNA-seq-like analysis (like euRNA-seq, RIP-seq or small RNA-seq).
 
 This workflow can use references created by the references workflow with no
 need to run the references workflow separately. This workflow performs the
