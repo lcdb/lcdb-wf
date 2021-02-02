@@ -69,7 +69,7 @@ Points of interest
 Standard QC
 -----------
 Clustered correlation heatmaps, PCA plots, and clustered heatmaps of the most
-variable genes are created, much like the `Bioconductor RNA-seq workflow
+variable genes are created much like the `Bioconductor RNA-seq workflow
 <https://www.bioconductor.org/packages/release/workflows/vignettes/rnaseqGene/inst/doc/rnaseqGene.html>`_.
 
 Use Salmon counts or featureCounts
