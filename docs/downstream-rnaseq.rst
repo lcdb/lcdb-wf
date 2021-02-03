@@ -20,7 +20,7 @@ intervention, so that the code can be largely plug-and-play.
 
 This file is ``workflows/rnaseq/downstream/rnaseq.Rmd``, and it
 is run by the ``rnaseq`` rule in the RNA-seq workflow, which renders it through
-Knitr to create an HTML file. The rule's inputs are the featureCounts output,
+Knitr to create an HTML file. The inputs for the rule are the featureCounts output,
 the sample table, and the Rmd itself, so if any of these change the Rmd will be
 re-run.
 
@@ -69,7 +69,7 @@ Points of interest
 Standard QC
 -----------
 Clustered correlation heatmaps, PCA plots, and clustered heatmaps of the most
-variable genes are created, much like the `Bioconductor RNA-seq workflow
+variable genes are created much like the `Bioconductor RNA-seq workflow
 <https://www.bioconductor.org/packages/release/workflows/vignettes/rnaseqGene/inst/doc/rnaseqGene.html>`_.
 
 Use Salmon counts or featureCounts

@@ -3,11 +3,11 @@
 Sample tables
 =============
 Sample tables map sample names to files on disk and provide additional
-metadata.It is expected to have a header and be tab-delimited. Empty lines and
+metadata. It is expected to have a header and be tab-delimited. Empty lines and
 lines that start with a comment (``#``) are skipped.
 
 For running new experiments, you will need to write your own sample table. For
-running experiments uploaded to SRA, **you can use the SRA sample table
+running experiments uploaded to SRA (Sequence Read Archive), **you can use the SRA sample table
 as-is**, with the addition of a new column indicating what you would like to
 name each sample. This makes it almost trivial to run arbitrary SRA RNA-seq
 data sets! For ChIP-seq data from SRA, the additional columns `antibody`,
@@ -144,7 +144,7 @@ ChIP-seq sample table
 
 :``antibody``:
     Used for differentiating between input and IP samples. Input samples should
-    be listed with an antibody of exactly ``input``.
+    be listed with an antibody of exactly ``input``. IP samples are named after     the antibody.
 
 :``biological_material``:
     Ties together which samples came from the same chromatin. This is how we

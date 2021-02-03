@@ -4,7 +4,7 @@
 References config
 =================
 
-The references section defines genomes, transcriptomes, and annotations to use.
+The references section defines which genomes, transcriptomes, and annotations to use.
 It supports arbitrarily many species and assemblies, and supports customizing
 references for a particular project.
 
@@ -104,8 +104,8 @@ illustration.
 
     # This configures the directory in which the prepared references will be
     # saved (see below for directory structure). If you already have reference
-    files saved in the lcdb-wf structure, point this to that directory to
-    avoid rebuilding a fresh set of references:
+    #files saved in the lcdb-wf structure, point this to that directory to
+    #avoid rebuilding a fresh set of references:
 
     references_dir: 'data/references'
 
