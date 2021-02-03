@@ -55,10 +55,11 @@ Snakemake `supports arbitrary cluster commands
 <http://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html>`_,
 making it easy to run these workflows on many different cluster environments.
 
-Snakemake, and these workflows, are designed to decouple the code from the
+Snakemake and these workflows are designed to decouple the code from the
 configuration. If you are running the workflows on NIH's Biowulf cluster, you
-don't need to change anything. If you are running on a different cluster, you
-should inspect the following files:
+don't need to change anything.
+
+If you are running on a different cluster, you should inspect the following files:
 
 - `include/WRAPPER_SLURM`
 - the `config/clusterconfig.yaml` files in each workflow directory you will be
@@ -76,7 +77,7 @@ To run a workflow on Biowulf, from the workflow directory (e.g.,
 
 The ``WRAPPER_SLURM`` script submits the main Snakemake process on a separate
 node to avoid any restrictions from running on the head node. That main
-snakemake process then submits each rule separately to the cluster scheduler.
+Snakemake process then submits each rule separately to the cluster scheduler.
 As configured in that script, we specify ``config/clusterconfig.yaml`` as
 containing the rule-specific cluster arguments.
 

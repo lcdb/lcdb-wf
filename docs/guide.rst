@@ -5,9 +5,9 @@ Guide to file hierarchy
 
 The ``lcdb-wf`` workflow system is designed to have a standardized directory
 structure and file hierarchy. This allows us to be as consistent across many diverse
-and disparate analyses and sources of data. As a result, this reduces the overhead when it comes
-to troubleshooting when something goes wrong. All the components of the repository
-are laid out with this overarching design principle in mind.
+and disparate analyses and sources of data. As a result, this reduces the overhead 
+when it comes to troubleshooting when something goes wrong. All the components of 
+the repository are laid out with this overarching design principle in mind.
 
 Below we give a high-level overview and brief description of the files and folders used
 by the workflows. The includeed annotated directory tree highlights the most important
