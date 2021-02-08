@@ -75,7 +75,7 @@ For RNA-seq, only the first column and optionally the `orig_filename` column
 are used directly by the RNA-seq workflow.
 
 However, the sampletable is imported into the ``downstream/rnaseq.Rmd`` file
-(see :ref:`downstream` for more info) so it's often useful to include
+(see :ref:`downstream` for more info). It's often useful to include
 any metadata in the sampletable so it's all in one place, and you'll get all
 that information imported into R.
 
@@ -142,11 +142,11 @@ ChIP-seq sample table
 ``biological_material`` and ``label``.
 
 
-:``antibody``:
+``antibody``
     Used for differentiating between input and IP samples. Input samples should
-    be listed with an antibody of exactly ``input``. IP samples are named after     the antibody.
+    be listed with an antibody of exactly ``input``.
 
-:``biological_material``:
+``biological_material``
     Ties together which samples came from the same chromatin. This is how we
     know a particular input sample is the matched control for a particular IP
     sample. This is primarily used in the `fingerprint` rule, where we collect
@@ -154,7 +154,7 @@ ChIP-seq sample table
     `lib.chipseq.merged_input_for_ip` function for the technical details of how
     this is handled.
 
-:``label``:
+``label``
     Used to tie together technical replicates, and **used to configure the
     ChIP-seq peak-calling runs** (see :ref:`cfg-chipseq`).
 

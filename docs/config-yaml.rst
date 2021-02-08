@@ -396,7 +396,7 @@ RNA-seq-only fields
 ~~~~~~~~~~~~~~~~~~~
 .. _cfg-rrna:
 
-``rrrna`` field
+``rrna`` field
 ```````````````
 
     This field selects the reference tag to use for screening rRNA reads.
