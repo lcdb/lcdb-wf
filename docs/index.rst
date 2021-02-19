@@ -37,13 +37,18 @@ view alongside your data.
 
 Unified approach to reference genomes
 -------------------------------------
-This system is designed to include arbitrary genomes whether local or on
-the web. The `references` workflow is shared by RNA-seq and ChIP-seq and
-is driven by a config file that specifies URLs for FASTA and GTF files.
-Set it up once for a website to get lots of genomes you can use for running
-`fastq_screen`, and easily include arbitrary other genomes. They can then be
-automatically included in RNA-seq and ChIP-seq workflows. The `references_dir`
-is used as a centralized repository that can be included with all other future projects.
+The references workflow defines the genome files for the organisms used in 
+the experiment. It it is shared by RNA-seq and ChIP-seq and is driven by
+a config file that specifies URLs for FASTA and GTF files. Set it up once for
+a site to get lots of genomes you can use for running `fastq_screen`, and
+easily include arbitrary other genomes. They can then be automatically included
+in RNA-seq and ChIP-seq workflows.
+
+This system is designed to allow customization as the config file
+can be used to include arbitrary genomes whether local or on the web.
+The `references` workflow need only be run once for all these genomes
+to be created, with the `references_dir` being used as a centralized
+repository that can be then used with all other workflows.
 
 Integration with external data and figure-making
 ------------------------------------------------
@@ -85,4 +90,3 @@ Installation of all dependencies is handled by conda, ensuring reproducibility,
 streamlined setup, and no need for root administrator privileges.
 
 See :ref:`getting-started` to get started.
-
