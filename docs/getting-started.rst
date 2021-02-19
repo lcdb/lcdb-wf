@@ -32,7 +32,7 @@ Setting up a project
 
 The general steps to use lcdb-wf in a new project are:
 
-1. Deploy: download an instance of lcdb-wf to your project directory
+1. Deploy: from a clone of the lcdb-wf repository, run ``deploy.py``
 2. Configure: set up samples table for experiments and edit configuration file
 3. Run: activate environment and run the Snakemake file either locally or on a cluster
 
