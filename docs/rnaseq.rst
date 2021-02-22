@@ -3,8 +3,7 @@
 RNA-seq workflow
 ================
 
-This workflow is used for RNA-seq and RNA-seq-like analysis (like euRNA-seq,
-RIP-seq or small RNA-seq).
+This workflow is used for RNA-seq and RNA-seq-like analysis (like euRNA-seq, RIP-seq or small RNA-seq).
 
 This workflow can use references created by the references workflow with no
 need to run the references workflow separately. This workflow performs the
@@ -39,7 +38,7 @@ The DAG of jobs looks like this:
 Downstream analysis
 ~~~~~~~~~~~~~~~~~~~
 
-This is  performed in an RMarkdown file ``rnaseq.Rmd`` that uses DESeq2
+This is  performed in an RMarkdown file (``rnaseq.Rmd``) that uses DESeq2
 for differential expression analysis, along with diagnostic plots, 
 exported tables of differentially expressed genes for each comparison of 
 interest, gene patterns analysis for finding coexpressed genes and downstream

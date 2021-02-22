@@ -19,7 +19,7 @@ the `Bioconda docs <https://bioconda.github.io>`_ for details.
 **It is recommended that you create a separate environment directory for
 each project**. That way you can update packages in each project
 independently of any others, and yet the environment will always be close at
-hand. This is especially good practice in shared space as others can easily
+hand. This is an especially good practice in shared space as others can easily
 find and activate the environment specific to the project.
 
 Conda envs in lcdb-wf
@@ -40,7 +40,7 @@ conda has to identify all of the dependencies of snakemake, all of the
 dependencies of STAR, and inspect them to make sure they are compatible with
 each other. If not, it has to incrementally try different versions of those
 dependencies to find a solution. This process becomes exponentially more
-complex as we add more requirementst. As a result, solving and building the
+complex as we add more requirements. As a result, solving and building the
 environments can take some time (usually under 15 mins).
 
 The reason for having two different environments -- one for R, one for non-R --

@@ -4,12 +4,12 @@ Introduction
 `lcdb-wf` is a collection of Snakemake workflows for common high-throughput
 sequencing analysis.
 
-There are a lot of workflows out there for high-throughput sequencing analysis.
+There are a multitude of workflows out there for high-throughput sequencing analysis.
 What makes `lcdb-wf` different?
 
 Designed with customization in mind
 -----------------------------------
-We recognize that every experiment has its own unique idiosyncracies. Rather
+We recognize that every experiment has its own idiosyncracies. Rather
 than provide a one-size-fits-all solution, we aim to provide a reasonable
 starting point that users can modify for their own use.
 
@@ -23,7 +23,7 @@ Every change to the code on GitHub triggers an automated test, the results of
 which you can find at https://circleci.com/gh/lcdb/lcdb-wf. Each test sets the
 system up from scratch, including installing all software, downloading example
 data, and running everything up through the final results. This guarantees that
-you can set up and test yourself.
+you can set up and test the code yourself.
 
 Track hubs
 ----------
@@ -35,9 +35,10 @@ RNA-seq shows strand-specific signal tracks. Both support the addition of
 arbitrary additional tracks (primers, loci of interest, external data, etc) to
 view alongside your data.
 
-Unified approach to references
-------------------------------
-The references workflow is shared by RNA-seq and ChIP-seq and is driven by
+Unified approach to reference genomes
+-------------------------------------
+The references workflow defines the genome files for the organisms used in 
+the experiment. It it is shared by RNA-seq and ChIP-seq and is driven by
 a config file that specifies URLs for FASTA and GTF files. Set it up once for
 a site to get lots of genomes you can use for running `fastq_screen`, and
 easily include arbitrary other genomes. They can then be automatically included
@@ -51,14 +52,12 @@ repository that can be then used with all other workflows.
 
 Integration with external data and figure-making
 ------------------------------------------------
-Designed to tie together your entire analysis, from downloading references
-through final figures. Examples are included (and tested) for how to tie
-together workflows, including downloading external data and downstream
-figure-making work.
+It is designed to tie together your entire analysis, from downloading references
+through producing final figures. The included examples tie together workflows that download external data, perform downstream analysis, and make figures. These examples have been thoroughly tested.
 
-If an upstream file changes (e.g., gene annotation), all downstream jobs
-depending on it -- including figures -- will be updated so you can ensure that
-even complex analyses stay correct and up-to-date.
+If an upstream file changes (e.g., gene annotation), all dependent downstream 
+jobs -- including figures -- will be updated so you can ensure that even 
+complex analyses stay correct and up-to-date.
 
 All the advantages of Snakemake
 -------------------------------
@@ -74,12 +73,11 @@ modification. SLURM support for the NIH Biowulf cluster is built in; edit the
 ``clusterconfig.yaml`` file to specify cluster arguments specific to your
 system whether global or rule-specific.
 
-Only run the jobs required
+Only run the required jobs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-New gene annotation? Snakemake tracks dependencies, so it will detect that the
-annotations changed, and re-run only the jobs that depend on that file at some
-point in their dependency chain, leaving other files that don't depend on it
-untouched.
+New gene annotation? Snakemake tracks dependencies, so it will detect that the 
+annotations changed. Only jobs that depend on that file at some point in their 
+dependency chain will be re-run and the independent files are untouched.
 
 Parallelization
 ~~~~~~~~~~~~~~~
@@ -92,4 +90,3 @@ Installation of all dependencies is handled by conda, ensuring reproducibility,
 streamlined setup, and no need for root administrator privileges.
 
 See :ref:`getting-started` to get started.
-

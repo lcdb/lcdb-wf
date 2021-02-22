@@ -20,8 +20,8 @@ configuring.
 
 A dictionary of references
 --------------------------
-The references workflow in ``workflows/references/Snakefile``, when run on its
-own, builds all references specified in the config file. This is typically done
+When run on its own, the references workflow in ``workflows/references/Snakefile`` 
+builds all references specified in the config file. This is typically done
 only when initially setting up a system that will run workflows on many
 different references.
 

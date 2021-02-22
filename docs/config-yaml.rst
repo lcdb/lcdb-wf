@@ -9,7 +9,7 @@ configure a new workflow.
 Note that the ``references:`` section is detailed separately, at
 :ref:`references-config`.
 
-Config files are expected to be in the file ``config/config.yaml`` relative to
+Config files are expected to be in the same directory as
 the Snakefile. For example, the RNA-seq workflow at
 ``workflows/rnaseq/Snakefile`` expects the config file
 ``workflows/rnaseq/config/config.yaml``.
@@ -17,8 +17,8 @@ the Snakefile. For example, the RNA-seq workflow at
 While it is possible to use Snakemake mechanisms such as ``--config`` to
 override a particular config value and ``--configfile`` to update the config
 with a different file, it is easiest to edit the existing
-``config/config.yaml`` in place. This has the additional benefit of storing all
-config information in one place for reproducibility.
+``config/config.yaml`` in place. This has the additional benefit of reproducibity
+because all of the config information is stored in one place.
 
 The following table summarizes the config fields, which ones are use for which
 workflow, and under what conditions, if any, they are required. Each option
@@ -396,7 +396,7 @@ RNA-seq-only fields
 ~~~~~~~~~~~~~~~~~~~
 .. _cfg-rrna:
 
-``rrrna`` field
+``rrna`` field
 ```````````````
 
     This field selects the reference tag to use for screening rRNA reads.
@@ -530,5 +530,4 @@ ChIP-seq-only fields
 
 
    Other peak-callers are supported:
-
 
