@@ -84,7 +84,7 @@ A major benefit of ``lcdb-wf`` is that the code undergoes automated testing on
 `CircleCI <https://circleci.com/gh/lcdb>`_. However this test environment only
 has 2 cores and 2GB RAM. To accommodate this, we developed a small
 representative `test dataset <https://github.com/lcdb/lcdb-test-data>`_ from
-real-world data.This allows the workflows to run in their entirety in a reasonable time frame.
+real-world data. This allows the workflows to run in their entirety in a reasonable time frame.
 We also needed to adjust specific settings to the workflows, e.g.
 we set the Java VM memory to only 2GB for Java tools like Picard and FastQC.
 

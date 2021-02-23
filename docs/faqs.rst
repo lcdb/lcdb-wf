@@ -90,7 +90,7 @@ Samples need to use the same parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 There is no mechanism for specifying sample-specific parameters. For example,
-to use cutadapt to trim some 5' bases from some samples. Other samples are left
+to use cutadapt to trim some 5' bases from some samples but leave other samples
 alone. Samples that need to treated differently should be split off into
 a separate workflow, and the respective Snakefiles should be edited
 accordingly.
