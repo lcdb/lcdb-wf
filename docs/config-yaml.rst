@@ -9,7 +9,7 @@ configure a new workflow.
 Note that the ``references:`` section is detailed separately, at
 :ref:`references-config`.
 
-Config files are expected to be in the same directory as
+Config files are expected to be in a ``config`` directory next to the
 the Snakefile. For example, the RNA-seq workflow at
 ``workflows/rnaseq/Snakefile`` expects the config file
 ``workflows/rnaseq/config/config.yaml``.
@@ -530,4 +530,3 @@ ChIP-seq-only fields
 
 
    Other peak-callers are supported:
-

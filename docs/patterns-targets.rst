@@ -22,7 +22,7 @@ useful as a guide to the files that are created by the workflow.
 Targets
 -------
 The metadata (sample names, peak-calling runs) configured in the sample table
-and config file fills in the patterns to create the targets. It's the
+and config file are used to fill in the patterns to create the targets. It's the
 equivalent of a complicated `expand()` call in a standard
 Snakefile.
 
@@ -138,4 +138,3 @@ This has several advantages:
     <https://github.com/lcdb/lcdb-wf/blob/master/workflows/figures/Snakefile>`_
     demonstrates how the ChIP-seq and RNA-seq patterns and targets can be used
     for downstream work.
-
