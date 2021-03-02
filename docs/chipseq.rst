@@ -15,7 +15,7 @@ Specifically, the workflow does the following:
     - performs fastq_screen on multiple configured genomes to look for evidence of
       cross-contamination
     - QC aggregation using MultiQC, along with a custom table for library sizes
-    - merges technical replicates and then re-deduplicate
+    - merges technical replicates and then re-deduplicates them
     - creates bigWigs from unique, no-dups BAM files
     - optionally merges bigWigs to create one signal track for all replicates
     - runs deepTools plotFingerprint on grouped IP and input for QC and

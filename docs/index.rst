@@ -40,7 +40,7 @@ Unified approach to reference genomes
 This system is designed to include arbitrary genomes whether local or on
 the web. The `references` workflow is shared by RNA-seq and ChIP-seq and
 is driven by a config file that specifies URLs for FASTA and GTF files.
-Set it up once for a website to get lots of genomes you can use for running
+Set it up once on a system to get many genomes you can use for running
 `fastq_screen`, and easily include arbitrary other genomes. They can then be
 automatically included in RNA-seq and ChIP-seq workflows. The `references_dir`
 is used as a centralized repository that can be included with all other future projects.
@@ -48,7 +48,7 @@ is used as a centralized repository that can be included with all other future p
 Integration with external data and figure-making
 ------------------------------------------------
 It is designed to tie together your entire analysis, from downloading references
-through producing final figures. The included examples tie together workflows that download external data, perform downstream analysis, and make figures. These examples have been thoroughly tested.
+through producing final figures. The included examples tie together workflows that download external data, perform downstream analysis, and make figures.
 
 If an upstream file changes (e.g., gene annotation), all dependent downstream
 jobs -- including figures -- will be updated so you can ensure that even
