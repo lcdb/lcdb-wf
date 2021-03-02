@@ -6,7 +6,7 @@ references:
         reference_genome_build: 'rheMac8'
 
       genome:
-        url: 'ftp://hgdownload.soe.ucsc.edu/goldenPath/rheMac8/bigZips/rheMac8.fa.gz'
+        url: 'https://hgdownload.soe.ucsc.edu/goldenPath/rheMac8/bigZips/rheMac8.fa.gz'
         indexes:
           - 'hisat2'
           - 'bowtie2'

@@ -82,16 +82,6 @@ references:
       annotation:
         url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf.gz"
 
-  phix:
-    default:
-      genome:
-        url: 'ftp://ftp.ncbi.nlm.nih.gov/genomes/Viruses/enterobacteria_phage_phix174_sensu_lato_uid14015/NC_001422.fna'
-        postprocess:
-          - 'lib.common.gzipped'
-        indexes:
-          - 'bowtie2'
-
-
 
   multiple_postprocess_funcs:
     default:
@@ -105,3 +95,11 @@ references:
             - function: 'lib.postprocess.utils.convert_gtf_chroms'
               args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/893cb5bdf84c2d6f5c6d48fe74c791646383f189/mappings/test/test_to_ucsc.tsv'
             - 'lib.postprocess.test.test_postprocess'
+
+  spombe:
+    test_gff2gtf:
+      annotation:
+        url: 'ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/gff3/schizosaccharomyces_pombe/Schizosaccharomyces_pombe.ASM294v2.41.gff3.gz'
+        postprocess: 'lib.common.gff2gtf'
+        conversions:
+          - 'refflat'

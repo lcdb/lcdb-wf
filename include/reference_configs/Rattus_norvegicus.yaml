@@ -6,7 +6,7 @@ references:
         reference_genome_build: 'rn6'
 
       genome:
-        url: 'ftp://hgdownload.soe.ucsc.edu/goldenPath/rn6/bigZips/rn6.fa.gz'
+        url: 'https://hgdownload.soe.ucsc.edu/goldenPath/rn6/bigZips/rn6.fa.gz'
         indexes:
           - 'hisat2'
           - 'bowtie2'
