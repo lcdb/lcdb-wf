@@ -11,6 +11,7 @@ the exported results TSVs in the section below.
 The default general flow is as follows:
 
 ```{r dpsettings}
+# Settings for below chunks
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#dpsettings
 
 # NOTE: settings for DEGpatterns-----------------------------------------------
@@ -56,6 +57,7 @@ low.minc <- 1
 - Clusters with fewer than `r minc` genes are not shown.
 
 ```{r finalclusters, fig.width=12, results='asis', cache=TRUE, dependson='selections'}
+# Run the clustering, identify patterns, and generate plots.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#finalclusters
 # NOTE: which genes to cluster?------------------------------------------------
 #    By default, we get all the changed genes, but you may want only the up or

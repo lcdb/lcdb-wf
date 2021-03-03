@@ -13,7 +13,11 @@ from lib import aligners, helpers
 from lib import cluster_specific
 from lib import common
 
-configfile: 'config/config.yaml'
+# Note: when running this workflow on its own (say, to generate all references
+# ahead of time) you wil need to provide a config file from the command line.
+#
+# Otherwise, this file is expected to be `include:`ed into other workflows,
+# which will have their own config files.
 
 config = common.load_config(config)
 
@@ -25,11 +29,6 @@ references_dir = common.get_references_dir(config)
 refdict, conversion_kwargs = common.references_dict(config)
 
 makedirs([references_dir, os.path.join(references_dir, 'logs')])
-
-
-def wrapper_for(path):
-    return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
-
 
 localrules: symlink_fasta_to_index_dir
 
