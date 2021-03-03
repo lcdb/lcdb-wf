@@ -12,6 +12,9 @@ from . import helpers
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
+# Note: when adding support for new peak callers, add them here.
+PEAK_CALLERS = ['macs2', 'spp', 'sicer']
+
 
 def update_recursive(d, u):
     """
@@ -172,8 +175,6 @@ class ChIPSeqConfig(SeqConfig):
 
         # Then the peaks...
         #
-        # Note: when adding support for new peak callers, add them here.
-        PEAK_CALLERS = ['macs2', 'spp', 'sicer']
 
         self.patterns_by_peaks = self.patterns['patterns_by_peaks']
         self.targets_for_peaks = {}

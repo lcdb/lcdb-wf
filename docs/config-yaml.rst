@@ -458,6 +458,10 @@ ChIP-seq-only fields
     ``algorithm``. This way, we can use the same label (e.g., `gaf-embryo-1`)
     across multiple peak-callers to help organize the output.
 
+   The currently-supported peak-callers are ``macs2``, ``spp``, and ``sicer``.
+   They each have corresponding wrappers in the ``wrappers`` directory. To add
+   other peak-callers, see :ref:`new-peak-caller`.
+
     The track hubs will include all of these called peaks which helps with
     assessing the peak-calling performance.
 
@@ -529,4 +533,4 @@ ChIP-seq-only fields
                 - input-embryo-2
 
 
-   Other peak-callers are supported:
+
