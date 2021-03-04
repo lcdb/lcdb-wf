@@ -97,10 +97,14 @@ accordingly.
 
 .. note::
 
-    Note that the peak-calling for ChIP-seq supports specifying custom
-    parameters for each peak-calling run. The BAM files still need to have used
-    uniform parameters across samples, so if alignment or trimming options
-    differ, you should split each set of parameters into a different workflow.
+    A partial exception to this is that the peak-calling for ChIP-seq supports
+    specifying custom parameters for each peak-calling run. For example, when
+    running macs2 you can specify "--nomodel" for a single peak-calling run, or
+    any other parameter supported by the peak-caller.
+
+    However, the BAM files used in peak-calling still need to have used uniform
+    parameters across samples, so if alignment or trimming options differ, you
+    should split each set of parameters into a different workflow.
 
 Samples must use the same assembly
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

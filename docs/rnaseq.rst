@@ -9,26 +9,26 @@ This workflow can use references created by the references workflow with no
 need to run the references workflow separately. This workflow performs the
 following tasks:
 
-- Build a HISAT2 index
-- Build a salmon transcriptome index
-- Download a GTF annotation
-- Convert the GTF to refflat format
-- Trim reads with cutadapt
-- Align with HISAT2
-- Run FastQC on raw, trimmed, and aligned reads
-- Align reads to rRNA using bowtie2 to evaluate rRNA contamination
-- Count reads in genes with featureCounts
-- Run dupRadar and preseq to assess library complexity
-- Check for evidence of cross-contamination using fastq_screen on multiple
+- Builds a HISAT2 index
+- Builds a salmon transcriptome index
+- Downloads a GTF annotation
+- Converts the GTF to refflat format
+- Trims reads with cutadapt
+- Aligns with HISAT2
+- Runs FastQC on raw, trimmed, and aligned reads
+- Aligns reads to rRNA using bowtie2 to evaluate rRNA contamination
+- Counts reads in genes with featureCounts
+- Runs dupRadar and preseq to assess library complexity
+- Checks for evidence of cross-contamination using fastq_screen on multiple
   configured genomes
-- Assess transcript coverage with Picard CollectRnaSeqMetrics
-- Build bigWigs (optionally strand-specific) created from BAM files
-- Optionally merge bigWigs as defined by config
-- Aggregate QC results using MultiQC. Includes custom tables for library
+- Assesses transcript coverage with Picard CollectRnaSeqMetrics
+- Builds bigWigs (optionally strand-specific) created from BAM files
+- Optionally merges bigWigs as defined by config
+- Aggregates QC results using MultiQC. Includes custom tables for library
   sizes and rRNA contamination
-- Run comprehensive downstream analysis including QC and differential expression
+- Runs comprehensive downstream analysis including QC and differential expression
   in R. See section below for more details.
-- Construct and upload a track hub of scaled coverage bigWigs for each
+- Constructs and uploads a track hub of scaled coverage bigWigs for each
   sample that can be viewed in UCSC Genome Browser
 
 The DAG of jobs looks like this:

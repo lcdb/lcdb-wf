@@ -53,10 +53,10 @@ repository that can be then used with all other workflows.
 Integration with external data and figure-making
 ------------------------------------------------
 It is designed to tie together your entire analysis, from downloading references
-through producing final figures. The included examples tie together workflows that download external data, perform downstream analysis, and make figures. These examples have been thoroughly tested.
+through producing final figures. The included examples tie together workflows that download external data, perform downstream analysis, and make figures.
 
-If an upstream file changes (e.g., gene annotation), all dependent downstream 
-jobs -- including figures -- will be updated so you can ensure that even 
+If an upstream file changes (e.g., gene annotation), all dependent downstream
+jobs -- including figures -- will be updated so you can ensure that even
 complex analyses stay correct and up-to-date.
 
 All the advantages of Snakemake
