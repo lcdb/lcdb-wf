@@ -17,6 +17,7 @@ references:
         postprocess: 'lib.common.gff2gtf'
         conversions:
           - 'refflat'
+          - 'bed12'
 
       transcriptome:
         indexes:

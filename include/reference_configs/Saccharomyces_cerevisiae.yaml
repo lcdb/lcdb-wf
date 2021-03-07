@@ -20,6 +20,9 @@ references:
         postprocess:
           function: 'lib.postprocess.utils.convert_gtf_chroms'
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/d73fdd4d62ca7e845f9357ea5f08d7a918c17e97/mappings/cerevisiae/ensembl_Scer_R64.1.1_to_ucsc_sacCer3/mappings_ensembl_Scer_R64.1.1_to_ucsc_sacCer3.tsv'
+        conversions:
+          - 'refflat'
+          - 'bed12'
 
       transcriptome:
         indexes:
