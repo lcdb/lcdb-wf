@@ -26,7 +26,7 @@ variables:
 
   save_cache: &save_cache
     save_cache:
-      key: v2-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}
+      key: v0-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
       paths:
         - /opt/conda
 
@@ -38,7 +38,7 @@ variables:
   restore_cache: &restore_cache
     restore_cache:
       keys:
-        - v2-{{ checksum "requirements-non-r.txt" }}-{{ checksum "requirements-r.txt" }}
+        key: v0-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
 
   # --------------------------------------------------------------------------
   # The path needs to be set each time; in jobs below this will be called as
@@ -71,11 +71,11 @@ variables:
             conda config --system --add channels bioconda
             conda config --system --add channels conda-forge
             conda install mamba -y
-            mamba create -n lcdb-wf-test -y --file requirements-non-r.txt
-            mamba create -n lcdb-wf-test-r -y --file requirements-r.txt
+            mamba env create -n lcdb-wf-test -y --file env.yml
+            mamba env create -n lcdb-wf-test-r -y --file env-r.yml
         fi
-        conda env export -n lcdb-wf-test > env.yaml
-        conda env export -n lcdb-wf-test-r > env-r.yaml
+        # conda env export -n lcdb-wf-test > env.yaml
+        # conda env export -n lcdb-wf-test-r > env-r.yaml
 
   # --------------------------------------------------------------------------
   # Deploy into a new directory and get the test data.
@@ -408,23 +408,23 @@ jobs:
       - store_artifacts:
           path: /tmp/docs.tar.gz
 
-  report-env:
-    <<: *defaults
-    resource_class: small
-    steps:
-      - checkout
-      - *restore_cache
-      - *set-path
-      - run:
-          name: Report environment
-          command: |
-            conda env export -n lcdb-wf-test > /tmp/env.yaml
-            cat /tmp/env.yaml
-            conda env export -n lcdb-wf-test-r > /tmp/env-r.yaml
-      - store_artifacts:
-          path: /tmp/env.yaml
-      - store_artifacts:
-          path: /tmp/env-r.yaml
+#   report-env:
+#     <<: *defaults
+#     resource_class: small
+#     steps:
+#       - checkout
+#       - *restore_cache
+#       - *set-path
+#       - run:
+#           name: Report environment
+#           command: |
+#             conda env export -n lcdb-wf-test > /tmp/env.yaml
+#             cat /tmp/env.yaml
+#             conda env export -n lcdb-wf-test-r > /tmp/env-r.yaml
+#       - store_artifacts:
+#           path: /tmp/env.yaml
+#       - store_artifacts:
+#           path: /tmp/env-r.yaml
 
 # ----------------------------------------------------------------------------
 # This section configures the dependencies across jobs.
@@ -463,11 +463,11 @@ workflows:
       - build-docs:
           requires:
             - initial-setup
-      - report-env:
-          requires:
-            - rnaseq
-            - rnaseq-misc
-            - chipseq
-            - chipseq-misc
-            - references
-            - colocalization
+      # - report-env:
+      #     requires:
+      #       - rnaseq
+      #       - rnaseq-misc
+      #       - chipseq
+      #       - chipseq-misc
+      #       - references
+      #       - colocalization
