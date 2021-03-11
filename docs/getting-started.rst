@@ -3,8 +3,17 @@
 Getting started
 ===============
 
-The only starting requirement is an installation of conda with the `bioconda
-<https://bioconda.github.io>`_ channel set up.
+`lcdb-wf` makes heavy use of `conda <https://docs.conda.io/en/latest/>_` and `bioconda
+<https://bioconda.github.io>`_. 
+
+It is recommended to install a separate conda environment for each project.
+This allows long-running projects to keep using old versions of software if
+needed while allowing newer versions in more recent projects.
+
+To see the full list of software installed into these environments,
+see the ``requirements-*.txt`` files at https://github.com/lcdb/lcdb-wf/.
+
+For a more detailed discussion of conda, see :ref:`conda-envs`.
 
 .. note::
 
@@ -15,15 +24,6 @@ The only starting requirement is an installation of conda with the `bioconda
 
     It will **not** work on Windows due to a general lack of support of Windows
     in bioinformatics tools.
-
-We use conda to install a separate environment for each project. This allows
-long-running projects to keep using old versions of software if needed while
-allowing newer versions in more recent projects.
-
-To see the full list of software installed into these environments,
-see the ``requirements-*.txt`` files at https://github.com/lcdb/lcdb-wf/.
-
-For a more detailed discussion of conda, see :ref:`conda-envs`.
 
 .. _setup-proj:
 
@@ -41,12 +41,12 @@ The general steps to use lcdb-wf in a new project are:
 1. Deploying lcdb-wf
 --------------------
 
-lcdb-wf is designed to be customized for each project, so setting up a new
-project to use lcdb-wf means copying over the files you need. There is
-a ``deploy.py`` script that does this for you.
-
-``deploy.py`` sets up a project and removes additional files (like these docs
-and testing files) that are not necessary for an actual project. The reason to use this script is so you end up with a cleaner project directory. 
+Unlike other tools you may have used, `lcdb-wf` is not actually installed per
+se. Rather, it is "deployed" by copying over relevant files from the `lcdb-wf`
+repository to your project directory. This includes Snakefiles, config files,
+and other infrastructure required to run, and excludes files like these docs
+and testing files that are not necessary for an actual project. The reason to
+use this script is so you end up with a cleaner project directory. 
 
 This script also writes a file to the destination called
 ``.lcdb-wf-deployment.json``. It stores the timestamp and details about what 
