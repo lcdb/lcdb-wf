@@ -256,19 +256,21 @@ dds.list <- map(lst, lcdbwf::make.dds, salmon.files=NULL, remove.version=TRUE,
 ```{r results, dependson='dds_list', cache=TRUE}
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#results
 
-res.list <- list()
-
 # NOTE: Example contrast #1----------------------------------------------------
 #   Using the example data, this compares treatment group to control group.
 #   Change to reflect your experiment.
 # IMPORTANT: Control must always be last
-res.list[['main']] <- list(
+#   Change the letter prefix of the contrast to adjust order of appearance in the html
+#   Each contrast will appear in the res.list without the prefix "contr_[A-z]_".
+#   Make a separate chunk for each contrast.
+contr_a_main <- list(
     res=lfcShrink(dds.list[['main']], contrast=c('group', 'treatment', 'control'), type='normal'),
     dds='main',
     label='Using a log2FoldChange threshold of 0'
 )
+```
 
-
+```{r results2, dependson='dds_list', cache=TRUE}
 # NOTE: Example contrast #2----------------------------------------------------
 #    Using the example data, this compares treatment group to control group but
 #    requiring genes to have >4-fold differences (log2(4) = 2). Change to
@@ -279,7 +281,7 @@ res.lfcthresh.2 <- results(
     contrast=c('group', 'treatment', 'control'),
     lfcThreshold=2)
 
-res.list[['lfc2']] <- list(
+contr_b_lfc2 <- list(
     res=lfcShrink(
         dds.list[['main']],
         contrast=c('group', 'treatment', 'control'),
@@ -289,6 +291,22 @@ res.list[['lfc2']] <- list(
     dds='main',
     label='Using a log2FoldChange threshold of >2'
 )
+```
+
+```{r assemble_variables, dependson=c('results', 'results2'), cache=TRUE}
+# NOTE: Add a new dependson for every contrast chunk to prevent this from
+# malfunctioning.
+# res.list is a named list. Each item should be a list with names c('res',
+# 'dds', 'label'). "res" is a DESeqResults object, "dds" is the corresponding
+# DESeq object the results were extracted from, and "label" is a nicer label to
+# use for headers and other text.
+res.list <- list()
+
+# Take all the contrast variables and accumulate them into the res.list
+contrast_list <- ls()[grepl("contr_+", ls())]
+res.list  <- map(contrast_list, function(x) eval(parse(text=x)))
+res_names <- map(contrast_list, function(x) str_replace(x, "contr_[A-z]_", ""))
+names(res.list) <- res_names
 ```
 
 
