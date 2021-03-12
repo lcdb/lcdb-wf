@@ -31,6 +31,7 @@ snakemake-minimal
 sra-tools>=2.10.7
 star>=2.7.3a
 subread>=2.0.0
+tbb==2020.2
 trackhub>=0.2.4
 ucsc-bedgraphtobigwig>=377
 ucsc-bedsort>=377

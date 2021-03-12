@@ -1,6 +1,57 @@
 Changelog
 =========
 
+v1.7
+----
+
+Testing
+~~~~~~~
+
+- new test that checks all URLs identified in config files to ensure that the
+  included reference files remain valid
+
+- there is now a separate ``run_downstream_test`` script`
+
+- simplified the CircleCI DAG to optimize testing resources
+
+References
+~~~~~~~~~~
+
+- updated URLs for those that have changes (e.g., Sanger -> EBI; using https
+  instead of ftp for UCSC-hosted genomes)
+
+- new ``gff2gtf`` post-process tool for when an annotation is only available as
+  GFF. *S. pombe* needs this, for example, and the
+  `Schizosaccharomyces_pombe.yaml`` reference config has been updated
+  accordingly.
+
+- add ``bed12`` and ``refflat`` conversions to references
+
+- The references workflow no longer reads the config file in its directory.
+  This fixes some subtle overwriting issues when providing config files or
+  items from the command line during as is used during certain test runs. If
+  running the references workflow alone, it must be called with
+  ``--configfile``
+
+RNA-seq
+~~~~~~~
+
+- featureCounts now uses BAM files with duplicates marked. Previously if you
+  wanted to run featureCounts in a mode where it excluded duplicates you would
+  need to reconfigure rules.
+
+
+- improved comments in RNA-seq downstream RMarkdown files
+
+General
+~~~~~~~
+
+- many documentation improvements
+
+- symlinks rule is only set to localrule when it exists (it does not exist when
+  running an analysis exclusively from SRA)
+
+
 v1.6
 ----
 

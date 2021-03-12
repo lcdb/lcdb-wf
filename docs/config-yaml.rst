@@ -9,7 +9,7 @@ configure a new workflow.
 Note that the ``references:`` section is detailed separately, at
 :ref:`references-config`.
 
-Config files are expected to be in the file ``config/config.yaml`` relative to
+Config files are expected to be in a ``config`` directory next to the
 the Snakefile. For example, the RNA-seq workflow at
 ``workflows/rnaseq/Snakefile`` expects the config file
 ``workflows/rnaseq/config/config.yaml``.
@@ -17,8 +17,8 @@ the Snakefile. For example, the RNA-seq workflow at
 While it is possible to use Snakemake mechanisms such as ``--config`` to
 override a particular config value and ``--configfile`` to update the config
 with a different file, it is easiest to edit the existing
-``config/config.yaml`` in place. This has the additional benefit of storing all
-config information in one place for reproducibility.
+``config/config.yaml`` in place. This has the additional benefit of reproducibity
+because all of the config information is stored in one place.
 
 The following table summarizes the config fields, which ones are use for which
 workflow, and under what conditions, if any, they are required. Each option
@@ -396,7 +396,7 @@ RNA-seq-only fields
 ~~~~~~~~~~~~~~~~~~~
 .. _cfg-rrna:
 
-``rrrna`` field
+``rrna`` field
 ```````````````
 
     This field selects the reference tag to use for screening rRNA reads.
@@ -457,6 +457,10 @@ ChIP-seq-only fields
     A peak-calling run is uniquely described by its ``label`` and
     ``algorithm``. This way, we can use the same label (e.g., `gaf-embryo-1`)
     across multiple peak-callers to help organize the output.
+
+   The currently-supported peak-callers are ``macs2``, ``spp``, and ``sicer``.
+   They each have corresponding wrappers in the ``wrappers`` directory. To add
+   other peak-callers, see :ref:`new-peak-caller`.
 
     The track hubs will include all of these called peaks which helps with
     assessing the peak-calling performance.
@@ -528,7 +532,5 @@ ChIP-seq-only fields
                 - input-embryo-1
                 - input-embryo-2
 
-
-   Other peak-callers are supported:
 
 

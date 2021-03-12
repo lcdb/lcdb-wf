@@ -21,9 +21,9 @@ useful as a guide to the files that are created by the workflow.
 
 Targets
 -------
-**Targets** are created by filling in those patterns with metadata
-(samplenames, peak-calling runs) as configured in the sample table and config
-file. It's the equivalent of a complicated `expand()` call in a standard
+The metadata (sample names, peak-calling runs) configured in the sample table
+and config file are used to fill in the patterns to create the targets. It's the
+equivalent of a complicated `expand()` call in a standard
 Snakefile.
 
 If we had 2 samples, A and B, then filling in the pattern::
@@ -82,7 +82,7 @@ have the following values, configured in ``config/rnaseq_patterns.yaml``:
 
 
 And ``c.targets[['cutadapt']`` might have the following values, after being
-filled in with the sampletable (see below for details):
+filled in with the sample table (see below for details):
 
 .. code-block:: python
 
@@ -97,7 +97,7 @@ filled in with the sampletable (see below for details):
 
 This has several advantages:
 
-- Patterns can be automatically filled in by the sampletable and config file,
+- Patterns can be automatically filled in by the sample table and config file,
   so the workflow is largely controlled by a TSV file and a YAML file.
 
 - Storing filenames outside individual Snakefiles allows us to access them much
@@ -135,7 +135,6 @@ This has several advantages:
         - :class:`lib.patterns_targets.ChIPSeqConfig`
 
     In addition, the `figures Snakefile
-    <https://github.com/lcdb/lcdb-wf/blob/master/workflows/figures/Snakefile>`_,
+    <https://github.com/lcdb/lcdb-wf/blob/master/workflows/figures/Snakefile>`_
     demonstrates how the ChIP-seq and RNA-seq patterns and targets can be used
     for downstream work.
-
