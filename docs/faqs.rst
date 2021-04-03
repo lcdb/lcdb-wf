@@ -51,7 +51,7 @@ have::
       figures/
       rnaseq/
 
-then we might rename the external one to match the GEO accession (to make it
+then we might rename the directory called "external" to match the GEO accession (to make it
 easier to remember), make copies of the RNA-seq directory for the mouse and
 human experiments, and clean up a little:
 
@@ -89,18 +89,22 @@ both counts tables (see :ref:`rnaseqrmd` for more).
 Samples need to use the same parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-There is no mechanism for specifying sample-specific parameters (for example,
+There is no mechanism for specifying sample-specific parameters. For example,
 to use cutadapt to trim some 5' bases from some samples but leave other samples
-alone). Samples that need to treated differently should be split off into
+alone. Samples that need to treated differently should be split off into
 a separate workflow, and the respective Snakefiles should be edited
 accordingly.
 
 .. note::
 
-    Note that the peak-calling for ChIP-seq supports specifying custom
-    parameters for each peak-calling run. The BAM files still need to have used
-    uniform parameters across samples, so if alignment or trimming options
-    differ, you should split each set of parameters into a different workflow.
+    A partial exception to this is that the peak-calling for ChIP-seq supports
+    specifying custom parameters for each peak-calling run. For example, when
+    running macs2 you can specify "--nomodel" for a single peak-calling run, or
+    any other parameter supported by the peak-caller.
+
+    However, the BAM files used in peak-calling still need to have used uniform
+    parameters across samples, so if alignment or trimming options differ, you
+    should split each set of parameters into a different workflow.
 
 Samples must use the same assembly
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
