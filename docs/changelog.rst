@@ -4,6 +4,11 @@ Changelog
 v1.7
 ----
 
+Setup 
+~~~~~
+
+Use mamba for installation of environments, consistent with Snakemake recommendations
+
 Testing
 ~~~~~~~
 
