@@ -12,7 +12,6 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Config YAML" href="config-yaml.html" />
@@ -93,7 +92,7 @@
 <div class="section" id="general-configuration">
 <h2>General configuration<a class="headerlink" href="#general-configuration" title="Permalink to this headline">¶</a></h2>
 <p>The majority of the work in setting up a new project is in the configuration –
-which samples to run, where the data files are, which references are
+which samples to run, where the data files are located, which references are
 needed, etc.</p>
 <p><strong>The entry point for configuration</strong> is in the <code class="docutils literal notranslate"><span class="pre">config/config.yaml</span></code> file found
 in each workflow directory. See <a class="reference internal" href="config-yaml.html#config-yaml"><span class="std std-ref">Config YAML</span></a> for more.</p>
@@ -134,7 +133,7 @@ is specified in the config file. See <a class="reference internal" href="samplet
 </div>
 <p>A <strong>patterns file</strong> only needs to be edited
 if you’re doing custom work. It determines the patterns of files that will be
-created by the workflow. Ssee <a class="reference internal" href="patterns-targets.html#patterns-and-targets"><span class="std std-ref">Patterns and targets</span></a> for more.</p>
+created by the workflow. See <a class="reference internal" href="patterns-targets.html#patterns-and-targets"><span class="std std-ref">Patterns and targets</span></a> for more.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="patterns-targets.html">Patterns and targets</a><ul>
@@ -152,10 +151,10 @@ created by the workflow. Ssee <a class="reference internal" href="patterns-targe
 locally. For larger data sets, you’ll want to run them on an HPC cluster.
 Snakemake <a class="reference external" href="http://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html">supports arbitrary cluster commands</a>,
 making it easy to run these workflows on many different cluster environments.</p>
-<p>Snakemake, and these workflows, are designed to decouple the code from the
+<p>Snakemake and these workflows are designed to decouple the code from the
 configuration. If you are running the workflows on NIH’s Biowulf cluster, you
-don’t need to change anything. If you are running on a different cluster, you
-should inspect the following files:</p>
+don’t need to change anything.</p>
+<p>If you are running on a different cluster, you should inspect the following files:</p>
 <ul class="simple">
 <li><p><cite>include/WRAPPER_SLURM</cite></p></li>
 <li><p>the <cite>config/clusterconfig.yaml</cite> files in each workflow directory you will be
@@ -173,7 +172,7 @@ To run a workflow on Biowulf, from the workflow directory (e.g.,
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">WRAPPER_SLURM</span></code> script submits the main Snakemake process on a separate
 node to avoid any restrictions from running on the head node. That main
-snakemake process then submits each rule separately to the cluster scheduler.
+Snakemake process then submits each rule separately to the cluster scheduler.
 As configured in that script, we specify <code class="docutils literal notranslate"><span class="pre">config/clusterconfig.yaml</span></code> as
 containing the rule-specific cluster arguments.</p>
 <p>That script also contains the Snakemake arguments:</p>
@@ -182,7 +181,7 @@ containing the rule-specific cluster arguments.</p>
 </pre></div>
 </div>
 <p>This means that each job will be named after the rule and job id (the
-<code class="docutils literal notranslate"><span class="pre">--jobname</span></code> arg) and the stdout and stderr go to files in <code class="docutils literal notranslate"><span class="pre">logs</span></code> and are
+<code class="docutils literal notranslate"><span class="pre">--jobname</span></code> arg). The stdout and stderr go to files in <code class="docutils literal notranslate"><span class="pre">logs</span></code> and are
 named after the rule, followed by a <code class="docutils literal notranslate"><span class="pre">.o</span></code> or <code class="docutils literal notranslate"><span class="pre">.e</span></code>, followed by the cluster
 job ID (the <code class="docutils literal notranslate"><span class="pre">--cluster</span></code> arg).</p>
 <div class="section" id="tmpdir-handling">
@@ -225,7 +224,7 @@ running the workflows locally, but you may need to edit the
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

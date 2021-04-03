@@ -12,7 +12,6 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="References config" href="references-config.html" />
@@ -96,15 +95,15 @@
 configure a new workflow.</p>
 <p>Note that the <code class="docutils literal notranslate"><span class="pre">references:</span></code> section is detailed separately, at
 <a class="reference internal" href="references-config.html#references-config"><span class="std std-ref">References config</span></a>.</p>
-<p>Config files are expected to be in the file <code class="docutils literal notranslate"><span class="pre">config/config.yaml</span></code> relative to
+<p>Config files are expected to be in a <code class="docutils literal notranslate"><span class="pre">config</span></code> directory next to the
 the Snakefile. For example, the RNA-seq workflow at
 <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq/Snakefile</span></code> expects the config file
 <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq/config/config.yaml</span></code>.</p>
 <p>While it is possible to use Snakemake mechanisms such as <code class="docutils literal notranslate"><span class="pre">--config</span></code> to
 override a particular config value and <code class="docutils literal notranslate"><span class="pre">--configfile</span></code> to update the config
 with a different file, it is easiest to edit the existing
-<code class="docutils literal notranslate"><span class="pre">config/config.yaml</span></code> in place. This has the additional benefit of storing all
-config information in one place for reproducibility.</p>
+<code class="docutils literal notranslate"><span class="pre">config/config.yaml</span></code> in place. This has the additional benefit of reproducibity
+because all of the config information is stored in one place.</p>
 <p>The following table summarizes the config fields, which ones are use for which
 workflow, and under what conditions, if any, they are required. Each option
 links to a section below with more details on how to use it.</p>
@@ -515,8 +514,8 @@ and a <em>label</em> when working with ChIP-seq.</p>
 </div>
 <div class="section" id="rna-seq-only-fields">
 <h3>RNA-seq-only fields<a class="headerlink" href="#rna-seq-only-fields" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="rrrna-field">
-<span id="cfg-rrna"></span><h4><code class="docutils literal notranslate"><span class="pre">rrrna</span></code> field<a class="headerlink" href="#rrrna-field" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="rrna-field">
+<span id="cfg-rrna"></span><h4><code class="docutils literal notranslate"><span class="pre">rrna</span></code> field<a class="headerlink" href="#rrna-field" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><p>This field selects the reference tag to use for screening rRNA reads.
 Similar to the <code class="docutils literal notranslate"><span class="pre">aligner</span></code> field, it takes both a <code class="docutils literal notranslate"><span class="pre">tag</span></code> and <code class="docutils literal notranslate"><span class="pre">index</span></code>
@@ -568,7 +567,12 @@ a peak-caller which results in a single BED file of called peaks.
 A peak-calling run is uniquely described by its <code class="docutils literal notranslate"><span class="pre">label</span></code> and
 <code class="docutils literal notranslate"><span class="pre">algorithm</span></code>. This way, we can use the same label (e.g., <cite>gaf-embryo-1</cite>)
 across multiple peak-callers to help organize the output.</p>
-<p>The track hubs will include all of these called peaks which helps with
+</div></blockquote>
+<p>The currently-supported peak-callers are <code class="docutils literal notranslate"><span class="pre">macs2</span></code>, <code class="docutils literal notranslate"><span class="pre">spp</span></code>, and <code class="docutils literal notranslate"><span class="pre">sicer</span></code>.
+They each have corresponding wrappers in the <code class="docutils literal notranslate"><span class="pre">wrappers</span></code> directory. To add
+other peak-callers, see <a class="reference internal" href="developers.html#new-peak-caller"><span class="std std-ref">Adding a new peak-caller</span></a>.</p>
+<blockquote>
+<div><p>The track hubs will include all of these called peaks which helps with
 assessing the peak-calling performance.</p>
 <p>Here is a minimal example of a peak-calling config section. It defines
 a single peak-calling run using the <cite>macs2</cite> algorithm. Note that the
@@ -630,7 +634,6 @@ run we already have configured.</p>
 </pre></div>
 </div>
 </div></blockquote>
-<p>Other peak-callers are supported:</p>
 </div></blockquote>
 </div>
 </div>
@@ -648,7 +651,7 @@ run we already have configured.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

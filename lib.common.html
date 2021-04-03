@@ -12,7 +12,6 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Module lib.chipseq" href="lib.chipseq.html" />
@@ -55,9 +54,9 @@
 <li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="developers.html">For Developers</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="developers.html#wrappers">Wrappers</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="developers.html#module-documentation">Module documentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="developers.html#miscellanous-tips">Miscellanous tips</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="developers.html#writing-wrappers">Writing wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#adding-a-new-aligner">Adding a new aligner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#adding-a-new-peak-caller">Adding a new peak-caller</a></li>
 </ul>
 </li>
 </ul>
@@ -149,22 +148,53 @@ handling references.</p>
 <span id="details"></span><h2>Details<a class="headerlink" href="#module-lib.common" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="lib.common.cat">
-<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">cat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tmpfiles</span></em>, <em class="sig-param"><span class="n">outfile</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#cat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.cat" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">cat</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmpfiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#cat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.cat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple concatenation of files.</p>
 <p>Note that gzipped files can be concatenated as-is without un- and re-
 compressing.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt id="lib.common.check_all_urls_found">
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">check_all_urls_found</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#check_all_urls_found"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.check_all_urls_found" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively loads all references that can be included and checks them.
+Reports out if there are any failures.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="lib.common.check_url">
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">check_url</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#check_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.check_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to open – and then immediately close – a URL.</p>
+<p>Any exceptions can be handled upstream.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="lib.common.check_urls">
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">check_urls</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#check_urls"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.check_urls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a config filename or existing object, extract the URLs and check
+them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Config object to inspect</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Print which URL is being checked</p></li>
+<li><p><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of seconds to wait in between checking URLs, to avoid
+too-many-connection issues</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt id="lib.common.deprecation_handler">
-<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">deprecation_handler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#deprecation_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.deprecation_handler" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">deprecation_handler</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#deprecation_handler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.deprecation_handler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks the config to see if anything has been deprecated.</p>
 <p>Also makes any fixes that can be done automatically.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt id="lib.common.download_and_postprocess">
-<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">download_and_postprocess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outfile</span></em>, <em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">organism</span></em>, <em class="sig-param"><span class="n">tag</span></em>, <em class="sig-param"><span class="n">type_</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#download_and_postprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.download_and_postprocess" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">download_and_postprocess</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organism</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#download_and_postprocess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.download_and_postprocess" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given an output file, figure out what to do based on the config.</p>
 <p>See notes below for details.</p>
 <dl class="field-list simple">
@@ -250,7 +280,7 @@ above. For example:</p>
 
 <dl class="py function">
 <dt id="lib.common.fill_r1_r2">
-<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">fill_r1_r2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sampletable</span></em>, <em class="sig-param"><span class="n">pattern</span></em>, <em class="sig-param"><span class="n">r1_only</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#fill_r1_r2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.fill_r1_r2" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">fill_r1_r2</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampletable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r1_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#fill_r1_r2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.fill_r1_r2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a function intended to be used as a rule’s input function.</p>
 <p>The returned function, when provided with wildcards, will return one or two
 rendered versions of a pattern depending on SE or PE respectively.
@@ -271,7 +301,7 @@ column with “SINGLE” or “PAIRED”. If column does not exist, assume SE.</
 
 <dl class="py function">
 <dt id="lib.common.filter_fastas">
-<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">filter_fastas</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tmpfiles</span></em>, <em class="sig-param"><span class="n">outfile</span></em>, <em class="sig-param"><span class="n">pattern</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#filter_fastas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.filter_fastas" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">filter_fastas</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmpfiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#filter_fastas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.filter_fastas" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extract records from fasta file(s) given a search pattern.</p>
 <p>Given input gzipped FASTAs, create a new gzipped fasta containing only
 records whose description matches <cite>pattern</cite>.</p>
@@ -288,7 +318,7 @@ records whose description matches <cite>pattern</cite>.</p>
 
 <dl class="py function">
 <dt id="lib.common.get_references_dir">
-<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">get_references_dir</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#get_references_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.get_references_dir" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">get_references_dir</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#get_references_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.get_references_dir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Identify the references directory based on config and env vars.</p>
 <p>Returns the references dir, preferring the value of an existing environment
 variable <cite>REFERENCES_DIR</cite> over the config entry “references_dir”. Raise an
@@ -302,7 +332,7 @@ error if either can’t be found.</p>
 
 <dl class="py function">
 <dt id="lib.common.get_sampletable">
-<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">get_sampletable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#get_sampletable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.get_sampletable" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">get_sampletable</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#get_sampletable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.get_sampletable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return samples and pandas.DataFrame of parsed sampletable.</p>
 <p>Returns the sample IDs and the parsed sampletable from the file specified
 in the config.</p>
@@ -316,19 +346,25 @@ in the config.</p>
 
 <dl class="py function">
 <dt id="lib.common.get_techreps">
-<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">get_techreps</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sampletable</span></em>, <em class="sig-param"><span class="n">label</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#get_techreps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.get_techreps" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">get_techreps</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampletable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#get_techreps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.get_techreps" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return all sample IDs for which the “label” column is <cite>label</cite>.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt id="lib.common.gff2gtf">
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">gff2gtf</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gtf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#gff2gtf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.gff2gtf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a gff file to a gtf format using the gffread function from Cufflinks</p>
+</dd></dl>
+
+<dl class="py function">
 <dt id="lib.common.gzipped">
-<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">gzipped</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tmpfiles</span></em>, <em class="sig-param"><span class="n">outfile</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#gzipped"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.gzipped" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">gzipped</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmpfiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#gzipped"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.gzipped" title="Permalink to this definition">¶</a></dt>
 <dd><p>Cat-and-gzip a list of uncompressed files into a compressed output file.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt id="lib.common.is_paired_end">
-<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">is_paired_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sampletable</span></em>, <em class="sig-param"><span class="n">sample</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#is_paired_end"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.is_paired_end" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">is_paired_end</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampletable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#is_paired_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.is_paired_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>Inspects the sampletable to see if the sample is paired-end or not</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -344,7 +380,7 @@ Otherwise consider single-end.</p></li>
 
 <dl class="py function">
 <dt id="lib.common.load_config">
-<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">load_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#load_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.load_config" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">load_config</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_references_ok</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#load_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.load_config" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads the config.</p>
 <p>Resolves any included references directories/files and runs the deprecation
 handler.</p>
@@ -352,13 +388,22 @@ handler.</p>
 
 <dl class="py function">
 <dt id="lib.common.openfile">
-<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">openfile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tmp</span></em>, <em class="sig-param"><span class="n">mode</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#openfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.openfile" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">openfile</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#openfile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.openfile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an open file handle; auto-detects gzipped files.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt id="lib.common.pluck">
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">pluck</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kv</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#pluck"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.pluck" title="Permalink to this definition">¶</a></dt>
+<dd><p>For a given dict or list that somewhere contains keys <cite>kv</cite>, return the
+values of those keys.</p>
+<p>Named after the dplyr::pluck, and implemented based on
+https://stackoverflow.com/a/1987195</p>
+</dd></dl>
+
+<dl class="py function">
 <dt id="lib.common.references_dict">
-<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">references_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#references_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.references_dict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">references_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#references_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.references_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transforms the references section of the config file.</p>
 <p>The references section of the config file is designed to be human-editable,
 and to only need the URL(s). User-specified indexes, conversions, and
@@ -429,7 +474,7 @@ config file which has the format:</p>
 
 <dl class="py function">
 <dt id="lib.common.resolve_config">
-<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">resolve_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">workdir</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#resolve_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.resolve_config" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">resolve_config</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#resolve_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.resolve_config" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finds the config file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -443,7 +488,7 @@ config file which has the format:</p>
 
 <dl class="py function">
 <dt id="lib.common.twobit_to_fasta">
-<code class="sig-prename descclassname">lib.common.</code><code class="sig-name descname">twobit_to_fasta</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tmpfiles</span></em>, <em class="sig-param"><span class="n">outfile</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#twobit_to_fasta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.common.twobit_to_fasta" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.common.</span></code><code class="sig-name descname"><span class="pre">twobit_to_fasta</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmpfiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#twobit_to_fasta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.twobit_to_fasta" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts .2bit files to fasta.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -469,7 +514,7 @@ config file which has the format:</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

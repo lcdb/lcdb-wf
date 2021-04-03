@@ -12,7 +12,6 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Integrative workflows" href="integrative.html" />
@@ -94,30 +93,30 @@
             
   <div class="section" id="chip-seq-workflow">
 <span id="chipseq"></span><h1>ChIP-seq workflow<a class="headerlink" href="#chip-seq-workflow" title="Permalink to this headline">¶</a></h1>
-<p>The ChIP-seq workflow starts with raw FASTQ files, does various QC steps,
+<p>The ChIP-seq workflow starts with raw FASTQ files and performs various QC steps. It
 aligns and prepares BAM and bigWig files, performs peak-calling, and combines
 everything together into a track hub for visualization.</p>
 <p>Specifically, the workflow does the following:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>trim reads with cutadapt</p></li>
-<li><p>map reads with Bowtie2</p></li>
-<li><p>run FastQC on raw, trimmed, and aligned reads</p></li>
-<li><p>Remove multimappers (samtools) and duplicates (Picard MarkDuplicates)</p></li>
-<li><p>fastq_screen on multiple configured genomes to look for evidence of
+<li><p>trims reads with cutadapt</p></li>
+<li><p>maps reads with Bowtie2</p></li>
+<li><p>runs FastQC on raw, trimmed, and aligned reads</p></li>
+<li><p>Removes multimappers (samtools) and duplicates (Picard MarkDuplicates)</p></li>
+<li><p>performs fastq_screen on multiple configured genomes to look for evidence of
 cross-contamination</p></li>
 <li><p>QC aggregation using MultiQC, along with a custom table for library sizes</p></li>
-<li><p>merge technical replicates and then re-deduplicate</p></li>
-<li><p>create bigWigs from unique, no-dups BAM files</p></li>
-<li><p>optionally merge bigWigs to create one signal track for all replicates</p></li>
-<li><p>run deepTools plotFingerprint on grouped IP and input for QC and
+<li><p>merges technical replicates and then re-deduplicates them</p></li>
+<li><p>creates bigWigs from unique, no-dups BAM files</p></li>
+<li><p>optionally merges bigWigs to create one signal track for all replicates</p></li>
+<li><p>runs deepTools plotFingerprint on grouped IP and input for QC and
 evaluation of enrichment</p></li>
-<li><p>call peaks using macs2, spp, and/or sicer, with support for multiple
+<li><p>calls peaks using macs2, spp, and/or sicer, with support for multiple
 peak-calling runs using different parameters to assist with assessing
 performance and to help make decisions for downstream analysis</p></li>
-<li><p>optionally run a template diffBind RMarkdown file used for differential binding analysis</p></li>
-<li><p>convert BED files into bigBed (or bigNarrowPeak where possible)</p></li>
-<li><p>build and optionally upload a track hub of bigWigs and bigBeds to
+<li><p>optionally runs a template diffBind RMarkdown file used for differential binding analysis</p></li>
+<li><p>converts BED files into bigBed (or bigNarrowPeak where possible)</p></li>
+<li><p>builds and optionally uploads a track hub of bigWigs and bigBeds to
 visualize peak-calling in UCSC Genome Browser</p></li>
 </ul>
 </div></blockquote>
@@ -136,7 +135,7 @@ visualize peak-calling in UCSC Genome Browser</p></li>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

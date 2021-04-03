@@ -12,7 +12,6 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Sample tables" href="sampletable.html" />
@@ -92,7 +91,7 @@
             
   <div class="section" id="references-config">
 <span id="id1"></span><h1>References config<a class="headerlink" href="#references-config" title="Permalink to this headline">¶</a></h1>
-<p>The references section defines genomes, transcriptomes, and annotations to use.
+<p>The references section defines which genomes, transcriptomes, and annotations to use.
 It supports arbitrarily many species and assemblies, and supports customizing
 references for a particular project.</p>
 <div class="section" id="including-existing-reference-configs">
@@ -181,8 +180,8 @@ illustration.</p>
 
 <span class="c1"># This configures the directory in which the prepared references will be</span>
 <span class="c1"># saved (see below for directory structure). If you already have reference</span>
-<span class="l l-Scalar l-Scalar-Plain">files saved in the lcdb-wf structure, point this to that directory to</span>
-<span class="l l-Scalar l-Scalar-Plain">avoid rebuilding a fresh set of references</span><span class="p p-Indicator">:</span>
+<span class="c1"># files saved in the lcdb-wf structure, point this to that directory to</span>
+<span class="c1"># avoid rebuilding a fresh set of references:</span>
 
 <span class="nt">references_dir</span><span class="p">:</span> <span class="s">&#39;data/references&#39;</span>
 
@@ -602,7 +601,7 @@ attribute that may happen to be called <code class="docutils literal notranslate
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

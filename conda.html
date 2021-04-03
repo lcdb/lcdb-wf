@@ -12,7 +12,6 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Overview of workflows" href="workflows.html" />
@@ -108,10 +107,17 @@ any existing installation of any software on your machine and does not need
 root privileges.</p>
 <p>If you don’t already have conda installed and the Bioconda channel set up, see
 the <a class="reference external" href="https://bioconda.github.io">Bioconda docs</a> for details.</p>
+<p>If you don’t already have <a class="reference external" href="https://github.com/mamba-org/mamba">mamba</a>, you
+can install it into your base conda environment with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install -c conda-forge mamba
+</pre></div>
+</div>
+<p>Mamba is a drop-in replacement for conda that is faster and more robust. In
+fact, it is now the default conda front-end for Snakemake.</p>
 <p><strong>It is recommended that you create a separate environment directory for
 each project</strong>. That way you can update packages in each project
 independently of any others, and yet the environment will always be close at
-hand. This is especially good practice in shared space as others can easily
+hand. This is an especially good practice in shared space as others can easily
 find and activate the environment specific to the project.</p>
 </div>
 <div class="section" id="conda-envs-in-lcdb-wf">
@@ -129,7 +135,7 @@ conda has to identify all of the dependencies of snakemake, all of the
 dependencies of STAR, and inspect them to make sure they are compatible with
 each other. If not, it has to incrementally try different versions of those
 dependencies to find a solution. This process becomes exponentially more
-complex as we add more requirementst. As a result, solving and building the
+complex as we add more requirements. As a result, solving and building the
 environments can take some time (usually under 15 mins).</p>
 <p>The reason for having two different environments – one for R, one for non-R –
 is that by removing the entire sub-DAG of R packages from the main environment
@@ -139,6 +145,15 @@ we can dramatically reduce the creation time for an environment.</p>
 <strong>R-related</strong> requirements are in <code class="docutils literal notranslate"><span class="pre">requirements-r.txt</span></code> and these are used for
 downstream work, like <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq/downstream/rnaseq.Rmd</span></code> and
 <code class="docutils literal notranslate"><span class="pre">workflows/chipseq/downstream/diffbind.Rmd</span></code>.</p>
+<p>Note that one model for using conda envs with Snakemake workflows is to only have
+Snakemake in the top-level env, and any other dependencies are handled by
+smaller environments created for each rule using the <code class="docutils literal notranslate"><span class="pre">conda:</span></code> directive.
+Another model is to have everything installed into one large environment. We
+currently prefer the latter, because it allows us to activate a single
+environment to give us access to all the tools used. This streamlines
+troubleshooting because we don’t have to dig through the <code class="docutils literal notranslate"><span class="pre">.snakemake/conda</span></code>
+directory to figure out which hash corresponds to which file, but comes with
+the up-front cost of creating the environment initially.</p>
 </div>
 <div class="section" id="building-the-environments">
 <h2>Building the environments<a class="headerlink" href="#building-the-environments" title="Permalink to this headline">¶</a></h2>
@@ -146,8 +161,11 @@ downstream work, like <code class="docutils literal notranslate"><span class="pr
 directory (see <a class="reference internal" href="getting-started.html#setup-proj"><span class="std std-ref">Setting up a project</span></a>), conda environments will be built in the
 directories <code class="docutils literal notranslate"><span class="pre">env</span></code> (with all non-R requirements) and <code class="docutils literal notranslate"><span class="pre">env-r</span></code> (R packages).</p>
 <p>Otherwise, do the following in the top-level directory of the deployment:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -p ./env --file requirements-non-r.txt
-conda create -p ./env-r --file requirements-r.txt
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># if you don&#39;t already have mamba:</span>
+conda install mamba -c conda-forge
+
+mamba create -p ./env --file requirements-non-r.txt
+mamba create -p ./env-r --file requirements-r.txt
 </pre></div>
 </div>
 </div>
@@ -164,7 +182,7 @@ conda create -p ./env-r --file requirements-r.txt
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

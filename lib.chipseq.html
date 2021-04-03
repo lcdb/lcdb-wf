@@ -12,7 +12,6 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Module lib.patterns_targets" href="lib.patterns_targets.html" />
@@ -55,9 +54,9 @@
 <li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="developers.html">For Developers</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="developers.html#wrappers">Wrappers</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="developers.html#module-documentation">Module documentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="developers.html#miscellanous-tips">Miscellanous tips</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="developers.html#writing-wrappers">Writing wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#adding-a-new-aligner">Adding a new aligner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#adding-a-new-peak-caller">Adding a new peak-caller</a></li>
 </ul>
 </li>
 </ul>
@@ -124,7 +123,7 @@ it more easily in the ChIP-seq workflow without cluttering the Snakefile.</p>
 <p>Helpers for ChIP-seq.</p>
 <dl class="py function">
 <dt id="lib.chipseq.block_for_run">
-<code class="sig-prename descclassname">lib.chipseq.</code><code class="sig-name descname">block_for_run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">label</span></em>, <em class="sig-param"><span class="n">algorithm</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#block_for_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.chipseq.block_for_run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.chipseq.</span></code><code class="sig-name descname"><span class="pre">block_for_run</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorithm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#block_for_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.chipseq.block_for_run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the block for the (label, algorithm) run.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -139,7 +138,7 @@ it more easily in the ChIP-seq workflow without cluttering the Snakefile.</p>
 
 <dl class="py function">
 <dt id="lib.chipseq.detect_peak_format">
-<code class="sig-prename descclassname">lib.chipseq.</code><code class="sig-name descname">detect_peak_format</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#detect_peak_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.chipseq.detect_peak_format" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.chipseq.</span></code><code class="sig-name descname"><span class="pre">detect_peak_format</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#detect_peak_format"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.chipseq.detect_peak_format" title="Permalink to this definition">¶</a></dt>
 <dd><p>Figure out if a BED file is narrowPeak or broadPeak.</p>
 <p>Returns None if undetermined.</p>
 <p>This is useful for figuring out which autoSql file we should use or which
@@ -148,7 +147,7 @@ bigBed 6+4 or bigBed 6+3 format to use.</p>
 
 <dl class="py function">
 <dt id="lib.chipseq.merged_input_for_ip">
-<code class="sig-prename descclassname">lib.chipseq.</code><code class="sig-name descname">merged_input_for_ip</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sampletable</span></em>, <em class="sig-param"><span class="n">merged_ip</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#merged_input_for_ip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.chipseq.merged_input_for_ip" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.chipseq.</span></code><code class="sig-name descname"><span class="pre">merged_input_for_ip</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampletable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merged_ip</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#merged_input_for_ip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.chipseq.merged_input_for_ip" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the merged input label for a merged IP label.</p>
 <p>This is primarily used for the <cite>fingerprint</cite> rule, where we collect all the
 available input BAMs together.</p>
@@ -196,7 +195,7 @@ they share the same biological material.</p>
 
 <dl class="py function">
 <dt id="lib.chipseq.peak_calling_dict">
-<code class="sig-prename descclassname">lib.chipseq.</code><code class="sig-name descname">peak_calling_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">algorithm</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#peak_calling_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.chipseq.peak_calling_dict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.chipseq.</span></code><code class="sig-name descname"><span class="pre">peak_calling_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#peak_calling_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.chipseq.peak_calling_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dictionary of peak-calling runs from the config.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -212,7 +211,7 @@ Otherwise, only the runs for <cite>algorithm</cite> are returned, keyed by
 
 <dl class="py function">
 <dt id="lib.chipseq.samples_for_run">
-<code class="sig-prename descclassname">lib.chipseq.</code><code class="sig-name descname">samples_for_run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em>, <em class="sig-param"><span class="n">label</span></em>, <em class="sig-param"><span class="n">algorithm</span></em>, <em class="sig-param"><span class="n">treatment</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#samples_for_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lib.chipseq.samples_for_run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">lib.chipseq.</span></code><code class="sig-name descname"><span class="pre">samples_for_run</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorithm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">treatment</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/chipseq.html#samples_for_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.chipseq.samples_for_run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the sample names configured for a particular peak-calling run</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -240,7 +239,7 @@ Otherwise, only the runs for <cite>algorithm</cite> are returned, keyed by
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

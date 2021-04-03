@@ -12,7 +12,6 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Changelog" href="changelog.html" />
@@ -131,7 +130,7 @@ have:</p>
   <span class="n">rnaseq</span><span class="o">/</span>
 </pre></div>
 </div>
-<p>then we might rename the external one to match the GEO accession (to make it
+<p>then we might rename the directory called “external” to match the GEO accession (to make it
 easier to remember), make copies of the RNA-seq directory for the mouse and
 human experiments, and clean up a little:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rm -r workflows/colocalization
@@ -163,17 +162,20 @@ both counts tables (see <a class="reference internal" href="rnaseq-rmd.html#rnas
 </div>
 <div class="section" id="samples-need-to-use-the-same-parameters">
 <h3>Samples need to use the same parameters<a class="headerlink" href="#samples-need-to-use-the-same-parameters" title="Permalink to this headline">¶</a></h3>
-<p>There is no mechanism for specifying sample-specific parameters (for example,
+<p>There is no mechanism for specifying sample-specific parameters. For example,
 to use cutadapt to trim some 5’ bases from some samples but leave other samples
-alone). Samples that need to treated differently should be split off into
+alone. Samples that need to treated differently should be split off into
 a separate workflow, and the respective Snakefiles should be edited
 accordingly.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Note that the peak-calling for ChIP-seq supports specifying custom
-parameters for each peak-calling run. The BAM files still need to have used
-uniform parameters across samples, so if alignment or trimming options
-differ, you should split each set of parameters into a different workflow.</p>
+<p>A partial exception to this is that the peak-calling for ChIP-seq supports
+specifying custom parameters for each peak-calling run. For example, when
+running macs2 you can specify “–nomodel” for a single peak-calling run, or
+any other parameter supported by the peak-caller.</p>
+<p>However, the BAM files used in peak-calling still need to have used uniform
+parameters across samples, so if alignment or trimming options differ, you
+should split each set of parameters into a different workflow.</p>
 </div>
 </div>
 <div class="section" id="samples-must-use-the-same-assembly">
@@ -257,7 +259,7 @@ deployment used.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

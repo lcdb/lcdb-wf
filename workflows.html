@@ -12,7 +12,6 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="References workflow" href="references.html" />
@@ -143,8 +142,8 @@ a by-product of running the RNA-seq or ChIP-seq workflows. Here we will
 focus on RNA-seq and ChIP-seq which share some common properties.</p>
 <p>Where possible, we prefer to have rules use the normal command-line syntax for
 tools (examples include rules calling samtools, deepTools bamCoverage, picard,
-salmon).  However in some cases we use wrapper scripts. Situtations where we
-use wrappers:</p>
+salmon).  However in some cases we use wrapper scripts.</p>
+<p>Situtations where we use wrappers:</p>
 <ul class="simple">
 <li><p>Ensuring various aligners (HISAT2, Bowtie2, STAR, bwa) behave uniformly.
 These wrappers call the aligner, followed by samtools sort and view. The end
@@ -171,7 +170,7 @@ cp -r workflows/rnaseq workflows/genome2-rnaseq
 </pre></div>
 </div>
 <p>Now, downstream analyses can link to and utilize results from these individual
-folders, while the whole project can remain self-contained.</p>
+folders, while the whole project remains self-contained.</p>
 </div>
 </div>
 <div class="section" id="integrative-analysis-workflows">
@@ -254,7 +253,7 @@ before going into the implemented workflows:</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

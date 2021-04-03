@@ -12,7 +12,6 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="RNA-Seq downstream analysis" href="downstream-rnaseq.html" />
@@ -97,39 +96,38 @@
             
   <div class="section" id="rna-seq-workflow">
 <span id="rnaseq"></span><h1>RNA-seq workflow<a class="headerlink" href="#rna-seq-workflow" title="Permalink to this headline">¶</a></h1>
-<p>This workflow is used for RNA-seq and RNA-seq-like analysis (like euRNA-seq,
-RIP-seq or small RNA-seq).</p>
+<p>This workflow is used for RNA-seq and RNA-seq-like analysis (like euRNA-seq, RIP-seq or small RNA-seq).</p>
 <p>This workflow can use references created by the references workflow with no
 need to run the references workflow separately. This workflow performs the
 following tasks:</p>
 <ul class="simple">
-<li><p>Build a HISAT2 index</p></li>
-<li><p>Build a salmon transcriptome index</p></li>
-<li><p>Download a GTF annotation</p></li>
-<li><p>Convert the GTF to refflat format</p></li>
-<li><p>Trim reads with cutadapt</p></li>
-<li><p>Align with HISAT2</p></li>
-<li><p>Run FastQC on raw, trimmed, and aligned reads</p></li>
-<li><p>Align reads to rRNA using bowtie2 to evaluate rRNA contamination</p></li>
-<li><p>Count reads in genes with featureCounts</p></li>
-<li><p>Run dupRadar and preseq to assess library complexity</p></li>
-<li><p>Check for evidence of cross-contamination using fastq_screen on multiple
+<li><p>Builds a HISAT2 index</p></li>
+<li><p>Builds a salmon transcriptome index</p></li>
+<li><p>Downloads a GTF annotation</p></li>
+<li><p>Converts the GTF to refflat format</p></li>
+<li><p>Trims reads with cutadapt</p></li>
+<li><p>Aligns with HISAT2</p></li>
+<li><p>Runs FastQC on raw, trimmed, and aligned reads</p></li>
+<li><p>Aligns reads to rRNA using bowtie2 to evaluate rRNA contamination</p></li>
+<li><p>Counts reads in genes with featureCounts</p></li>
+<li><p>Runs dupRadar and preseq to assess library complexity</p></li>
+<li><p>Checks for evidence of cross-contamination using fastq_screen on multiple
 configured genomes</p></li>
-<li><p>Assess transcript coverage with Picard CollectRnaSeqMetrics</p></li>
-<li><p>Build bigWigs (optionally strand-specific) created from BAM files</p></li>
-<li><p>Optionally merge bigWigs as defined by config</p></li>
-<li><p>Aggregate QC results using MultiQC. Includes custom tables for library
+<li><p>Assesses transcript coverage with Picard CollectRnaSeqMetrics</p></li>
+<li><p>Builds bigWigs (optionally strand-specific) created from BAM files</p></li>
+<li><p>Optionally merges bigWigs as defined by config</p></li>
+<li><p>Aggregates QC results using MultiQC. Includes custom tables for library
 sizes and rRNA contamination</p></li>
-<li><p>Run comprehensive downstream analysis including QC and differential expression
+<li><p>Runs comprehensive downstream analysis including QC and differential expression
 in R. See section below for more details.</p></li>
-<li><p>Construct and upload a track hub of scaled coverage bigWigs for each
+<li><p>Constructs and uploads a track hub of scaled coverage bigWigs for each
 sample that can be viewed in UCSC Genome Browser</p></li>
 </ul>
 <p>The DAG of jobs looks like this:</p>
 <img alt="_images/rnaseq.png" src="_images/rnaseq.png" />
 <div class="section" id="downstream-analysis">
 <h2>Downstream analysis<a class="headerlink" href="#downstream-analysis" title="Permalink to this headline">¶</a></h2>
-<p>This is  performed in an RMarkdown file <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code> that uses DESeq2
+<p>This is  performed in an RMarkdown file (<code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code>) that uses DESeq2
 for differential expression analysis, along with diagnostic plots,
 exported tables of differentially expressed genes for each comparison of
 interest, gene patterns analysis for finding coexpressed genes and downstream
@@ -159,7 +157,7 @@ rendered into an output HTML file. See <a class="reference internal" href="downs
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

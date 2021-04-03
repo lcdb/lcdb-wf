@@ -12,7 +12,6 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="ChIP-seq workflow" href="chipseq.html" />
@@ -584,17 +583,17 @@ This analysis is also performed in a separate child Rmd; for more details see <a
 <div class="section" id="glossary">
 <h3>Glossary<a class="headerlink" href="#glossary" title="Permalink to this headline">¶</a></h3>
 <dl class="glossary">
-<dt id="term-colData">colData</dt><dd><p>The metadata describing the samples. This is originally defined in the
+<dt id="term-colData">colData<a class="headerlink" href="#term-colData" title="Permalink to this term">¶</a></dt><dd><p>The metadata describing the samples. This is originally defined in the
 sampletable for the entire lcdb-wf run, is imported into rnaseq.Rmd, and
 may be subsequently modified.</p>
 </dd>
-<dt id="term-dds">dds</dt><dd><p>DESeq data set object. Typically this is incrementally added to, as in
+<dt id="term-dds">dds<a class="headerlink" href="#term-dds" title="Permalink to this term">¶</a></dt><dd><p>DESeq data set object. Typically this is incrementally added to, as in
 the DESeq2 vignette.</p>
 </dd>
-<dt id="term-vsd">vsd</dt><dd><p>The variance-stabilized transformed version of the counts. Used for PCA,
+<dt id="term-vsd">vsd<a class="headerlink" href="#term-vsd" title="Permalink to this term">¶</a></dt><dd><p>The variance-stabilized transformed version of the counts. Used for PCA,
 clustered heatmaps, and gene patterns.</p>
 </dd>
-<dt id="term-res.list">res.list</dt><dd><p>A list, with one item per contrast. Each of those items in turn is a list
+<dt id="term-res.list">res.list<a class="headerlink" href="#term-res.list" title="Permalink to this term">¶</a></dt><dd><p>A list, with one item per contrast. Each of those items in turn is a list
 of objects that together compose the contrast (dds, results object, and
 label). This list-of-lists, which we call <cite>res.list</cite> for short, is used
 by functions in the <cite>lcdbwf</cite> R package for more downstream work.</p>
@@ -621,7 +620,7 @@ by functions in the <cite>lcdbwf</cite> R package for more downstream work.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

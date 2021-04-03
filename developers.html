@@ -12,7 +12,6 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Module lib.common" href="lib.common.html" />
@@ -55,9 +54,9 @@
 <li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">For Developers</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#wrappers">Wrappers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-documentation">Module documentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#miscellanous-tips">Miscellanous tips</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#writing-wrappers">Writing wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-a-new-aligner">Adding a new aligner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-a-new-peak-caller">Adding a new peak-caller</a></li>
 </ul>
 </li>
 </ul>
@@ -91,94 +90,12 @@
             
   <div class="section" id="for-developers">
 <h1>For Developers<a class="headerlink" href="#for-developers" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="wrappers">
-<span id="id1"></span><h2>Wrappers<a class="headerlink" href="#wrappers" title="Permalink to this headline">¶</a></h2>
-<p>One of the guiding principles of <cite>lcdb-wf</cite> is to put the complexity into
-wrappers.  A <a class="reference external" href="http://snakemake.readthedocs.io/en/latest/snakefiles/modularization.html#wrappers">snakemake wrapper</a>
-is a directory containing a script and a conda environment YAML.</p>
-<p>The <cite>wrappers/wrappers</cite> directory contains a collection of wrappers that are
-used in the workflows, or can be used in other workflows.</p>
 <div class="section" id="writing-wrappers">
-<h3>Writing wrappers<a class="headerlink" href="#writing-wrappers" title="Permalink to this headline">¶</a></h3>
+<h2>Writing wrappers<a class="headerlink" href="#writing-wrappers" title="Permalink to this headline">¶</a></h2>
 <p>See the <a class="reference external" href="https://github.com/lcdb/lcdb-wf/tree/master/wrappers/wrappers/demo">demo wrapper</a> for
 a template to use when creating your own wrappers.</p>
-</div>
-<div class="section" id="running-tests">
-<h3>Running tests<a class="headerlink" href="#running-tests" title="Permalink to this headline">¶</a></h3>
-<p>While wrappers run in their own conda environment, we still have some
-dependencies for the tests themselves. For example, one of the HISAT2 tests
-verifies that the index has the correct chromosomes by running hisat2-inspect,
-so hisat2 is a dependency.</p>
-<p>With the bioconda channel set up, install the dependencies:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">testenv</span> <span class="o">--</span><span class="n">file</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
-</pre></div>
-</div>
-<p>And run tests:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">activate</span> <span class="n">testenv</span>
-<span class="n">pytest</span> <span class="n">test</span><span class="o">/</span><span class="n">tests</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">v</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="writing-tests">
-<h3>Writing tests<a class="headerlink" href="#writing-tests" title="Permalink to this headline">¶</a></h3>
-<p>Here, a <em>test</em> is a function that specifically checks output to ensure it is as expected.</p>
-<p>A <em>fixture</em> is setup for a test. It can possibly itself be a test (if it checks
-expected output) but doesn’t have to be. An example of a fixture would be
-a function that downloads a fastq file for use in other tests. Another example
-of a fixture would be a function that runs cutadapt on that fastq, and provides
-that trimmed fastq for other tests. An example of a test would be a function
-that checks the cutadapt output to ensure it is as expected.</p>
-<p>See <code class="docutils literal notranslate"><span class="pre">test/test_demo.py</span></code> for a heavily-annotated example, and
-<code class="docutils literal notranslate"><span class="pre">test/raw_data_fixtures.py</span></code> for useful fixtures.</p>
-<p>Write new tests in <code class="docutils literal notranslate"><span class="pre">tests/test_&lt;wrappername&gt;.py</span></code>. Put any fixtures at the top
-of the file. Import any fixtures from other files as needed. There is
-a <code class="docutils literal notranslate"><span class="pre">raw_data_fixtures.py</span></code> file that will be helpful.</p>
-<p>A test consists of a <em>Snakefile</em> (typically written as a triple-quoted string
-inside each test function), an <em>input data function</em> (typically created via
-<code class="docutils literal notranslate"><span class="pre">utils.symlink_in_tempdir</span></code>), and a <em>test function</em> that performs arbitrary
-tests on the output.</p>
-<p>Importantly, for any test, you can go to
-<code class="docutils literal notranslate"><span class="pre">/tmp/pytest-of-$USER/pytest-$N/$TEST_NAME</span></code> directory and you’ll see the
-Snakefile, input data, and any created output files. This is useful for writing
-the tests in the first place (e.g., what kinds of things to test for) or for
-troubleshooting (e.g., go to the directory and run snakemake to see what
-happens).</p>
-<div class="section" id="some-notes-on-how-the-fixtures-work">
-<h4>Some notes on how the fixtures work<a class="headerlink" href="#some-notes-on-how-the-fixtures-work" title="Permalink to this headline">¶</a></h4>
-<p>The py.test docs are not that great, so here’s some extra info I’ve learned
-that might be helpful for understanding how the tests work.</p>
-<p>py.test fixtures are functions. They are used for things like setup and
-teardown that needs to be done once, or for preparing data just once that can
-be used across many tests. In this repo, the fixtures are primarily used for
-downloading data from the testing data repo to a test-specific temporary
-directory.</p>
-<p>Fixtures are stored in a conftest.py file (see <code class="docutils literal notranslate"><span class="pre">tests/conftest.py</span></code>). Any
-discovered pytest tests in any module (functions starting with <code class="docutils literal notranslate"><span class="pre">test_</span></code>) can
-use any of these fixtures as an argument, and will get the return value of that
-fixture at runtime.</p>
-<p>pytest also has some built-in fixtures. Here we use the <code class="docutils literal notranslate"><span class="pre">tmpdir</span></code> fixture and
-the <code class="docutils literal notranslate"><span class="pre">tmpdir_factory</span></code> fixture. The nice thing about these is that pytest
-manages them on disk and only keeps the last handful of tempdirs. This makes it
-straightforward to find the test data on disk and poke around when
-troubleshooting.</p>
-<p>Fixtures can use other fixtures, and what’s really nice is that py.test handles
-all of the dependencies across fixtures. For example, we can have a fixture
-that downloads a FASTQ file and another fixture that runs FastQC on the FASTQ.
-Then we can have a MultiQC test that uses the FastQC fixture as input. Py.test
-will figure that out and create and clean up tempdirs as needed.</p>
-<p>I’m still working out the best way to do this. As one extreme, we could
-maintain a single big Snakefile for each set of mutually compatible wrappers,
-and returns a big dict of all the files created. This does a high-level
-functional test of all of the wrappers, while the more specific wrapper tests
-could verify the contents. The other extreme is to have a separate fixture for
-every stage of the workflow.</p>
-<p>We could also effectively reproduce the dependency DAG implied by a Snakefile
-as py.test fixture dependencies. Not sure we need to go that route though.</p>
-</div>
-</div>
-</div>
 <div class="section" id="module-documentation">
-<h2>Module documentation<a class="headerlink" href="#module-documentation" title="Permalink to this headline">¶</a></h2>
+<h3>Module documentation<a class="headerlink" href="#module-documentation" title="Permalink to this headline">¶</a></h3>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="lib.common.html">Module <code class="docutils literal notranslate"><span class="pre">lib.common</span></code></a><ul>
@@ -199,24 +116,18 @@ as py.test fixture dependencies. Not sure we need to go that route though.</p>
 </div>
 </div>
 <div class="section" id="miscellanous-tips">
-<h2>Miscellanous tips<a class="headerlink" href="#miscellanous-tips" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="adding-a-new-aligner">
-<h3>Adding a new aligner<a class="headerlink" href="#adding-a-new-aligner" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="modules">
-<h4>Modules<a class="headerlink" href="#modules" title="Permalink to this headline">¶</a></h4>
-<ul class="simple">
-<li><p>in <cite>lib/common.py</cite>, there is a function <cite>references_dict</cite>. Within that is
-a <cite>index_extensions</cite> dictionary. You’ll need to add the name of the aligner
-and the extension of the index it creates. If it creates multiple index
-files, just one should be sufficient. The filename will be automatically
-created and will be used as the expected output file which can then be
-accessed from the references dict as
-<cite>references_dict[organism][tag][aligner]</cite> for use in various rules that need
-the index as input (that is, any mapping rules).</p></li>
-</ul>
+<h3>Miscellanous tips<a class="headerlink" href="#miscellanous-tips" title="Permalink to this headline">¶</a></h3>
 </div>
-<div class="section" id="configuration">
-<h4>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="adding-a-new-aligner">
+<h2>Adding a new aligner<a class="headerlink" href="#adding-a-new-aligner" title="Permalink to this headline">¶</a></h2>
+<p>In <cite>lib/common.py</cite>, there is a function <cite>references_dict</cite>. Within that is
+a <cite>index_extensions</cite> dictionary. You’ll need to add the name of the aligner and
+the extension of the index it creates. If it creates multiple index files, just
+one should be sufficient. The filename will be automatically created and will
+be used as the expected output file which can then be accessed from the
+references dict as <cite>references_dict[organism][tag][aligner]</cite> for use in various
+rules that need the index as input (that is, any mapping rules).</p>
 <ul class="simple">
 <li><p>add the aligner to the <cite>include/reference_configs/test.yaml</cite> config file,
 “indexes:” section.</p></li>
@@ -230,19 +141,31 @@ the “Aligner config” section.</p></li>
 <li><p>add appropriate memory/time requirements to <cite>clusterconfig.yaml</cite> for that
 aligner.</p></li>
 </ul>
-</div>
-<div class="section" id="testing">
-<h4>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h4>
 <ul class="simple">
 <li><p>For testing, create a copy of the config for any workflows it is used for,
 and change only the aligner.</p></li>
 <li><p>Modify <cite>.circleci/config.yml</cite> to include a new block in each of the
-variables, jobs, and workflows sections. Use the <cite>rnaseq-star</cite> blocks
+variables, jobs, and workflows sections. Use the <cite>rnaseq-star</cite> blocks as
 a guide for this. The idea is to only run up through the aligner step in
 a parallel task (to save on CI build time).</p></li>
 </ul>
 </div>
-</div>
+<div class="section" id="adding-a-new-peak-caller">
+<span id="new-peak-caller"></span><h2>Adding a new peak-caller<a class="headerlink" href="#adding-a-new-peak-caller" title="Permalink to this headline">¶</a></h2>
+<p>First, write a wrapper for the peak-caller. You can use the <code class="docutils literal notranslate"><span class="pre">macs2</span></code>, <code class="docutils literal notranslate"><span class="pre">spp</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">sicer</span></code> wrappers as a guide. A wrapper should expect one or more sorted
+and indexed BAM files as IP, one or more sorted and indexed BAM files as input.
+The wrapper should create at least a sorted BED file of peaks, and can
+optionally create other supplemental files as well.</p>
+<p>Next, add the peak-caller to the top of <code class="docutils literal notranslate"><span class="pre">lib/patterns_targets.py</span></code> in the
+<code class="docutils literal notranslate"><span class="pre">PEAK_CALLERS</span></code> list.</p>
+<p>Then write a rule for the peak-caller, again using <code class="docutils literal notranslate"><span class="pre">macs2</span></code>, <code class="docutils literal notranslate"><span class="pre">spp</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">sicer</span></code> rules as a guide.</p>
+<p>Last, add additional lines in
+<code class="docutils literal notranslate"><span class="pre">workflows/chipseq/config/chipseq-patterns.yaml</span></code> for the
+<code class="docutils literal notranslate"><span class="pre">patterns_by_peaks</span></code> key.</p>
+<p>To test or use, add the new peak-caller to the
+<code class="docutils literal notranslate"><span class="pre">workflows/chipseq/config/config.yaml</span></code> file’s <code class="docutils literal notranslate"><span class="pre">peak_calling</span></code> key.</p>
 </div>
 </div>
 
@@ -257,7 +180,7 @@ a parallel task (to save on CI build time).</p></li>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -12,7 +12,6 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="FAQs" href="faqs.html" />
@@ -109,9 +108,9 @@ useful as a guide to the files that are created by the workflow.</p>
 </div>
 <div class="section" id="targets">
 <h2>Targets<a class="headerlink" href="#targets" title="Permalink to this headline">¶</a></h2>
-<p><strong>Targets</strong> are created by filling in those patterns with metadata
-(samplenames, peak-calling runs) as configured in the sample table and config
-file. It’s the equivalent of a complicated <cite>expand()</cite> call in a standard
+<p>The metadata (sample names, peak-calling runs) configured in the sample table
+and config file are used to fill in the patterns to create the targets. It’s the
+equivalent of a complicated <cite>expand()</cite> call in a standard
 Snakefile.</p>
 <p>If we had 2 samples, A and B, then filling in the pattern:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="o">/</span><span class="n">rnaseq_samples</span><span class="o">/</span><span class="p">{</span><span class="n">sample</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">sample</span><span class="p">}</span><span class="n">_R1</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span>
@@ -164,7 +163,7 @@ have the following values, configured in <code class="docutils literal notransla
 </pre></div>
 </div>
 <p>And <code class="docutils literal notranslate"><span class="pre">c.targets[['cutadapt']</span></code> might have the following values, after being
-filled in with the sampletable (see below for details):</p>
+filled in with the sample table (see below for details):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">targets</span><span class="p">[</span><span class="s1">&#39;cutadapt&#39;</span><span class="p">]</span>
 <span class="c1"># data/rnaseq_samples/sample1/sample1_R1.cutadapt.fastq.gz</span>
 <span class="c1"># data/rnaseq_samples/sample1/sample2_R1.cutadapt.fastq.gz</span>
@@ -174,7 +173,7 @@ filled in with the sampletable (see below for details):</p>
 </div>
 <p>This has several advantages:</p>
 <ul class="simple">
-<li><p>Patterns can be automatically filled in by the sampletable and config file,
+<li><p>Patterns can be automatically filled in by the sample table and config file,
 so the workflow is largely controlled by a TSV file and a YAML file.</p></li>
 <li><p>Storing filenames outside individual Snakefiles allows us to access them much
 more easily from other Snakefiles or downstream scripts.</p></li>
@@ -206,7 +205,7 @@ peak-callers and all peak-calling runs.</p></li>
 <li><p><a class="reference internal" href="lib.patterns_targets.html#lib.patterns_targets.ChIPSeqConfig" title="lib.patterns_targets.ChIPSeqConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">lib.patterns_targets.ChIPSeqConfig</span></code></a></p></li>
 </ul>
 </div></blockquote>
-<p>In addition, the <a class="reference external" href="https://github.com/lcdb/lcdb-wf/blob/master/workflows/figures/Snakefile">figures Snakefile</a>,
+<p>In addition, the <a class="reference external" href="https://github.com/lcdb/lcdb-wf/blob/master/workflows/figures/Snakefile">figures Snakefile</a>
 demonstrates how the ChIP-seq and RNA-seq patterns and targets can be used
 for downstream work.</p>
 </div>
@@ -224,7 +223,7 @@ for downstream work.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

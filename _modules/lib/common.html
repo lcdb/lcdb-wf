@@ -12,7 +12,6 @@
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -92,8 +91,12 @@
             
   <h1>Source code for lib.common</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">urllib.request</span> <span class="k">as</span> <span class="nn">request</span>
+<span class="kn">import</span> <span class="nn">contextlib</span>
 <span class="kn">import</span> <span class="nn">yaml</span>
 <span class="kn">import</span> <span class="nn">pandas</span>
 <span class="kn">from</span> <span class="nn">Bio</span> <span class="kn">import</span> <span class="n">SeqIO</span>
@@ -101,6 +104,7 @@
 <span class="kn">import</span> <span class="nn">binascii</span>
 <span class="kn">from</span> <span class="nn">lib.imports</span> <span class="kn">import</span> <span class="n">resolve_name</span>
 <span class="kn">from</span> <span class="nn">lib</span> <span class="kn">import</span> <span class="n">aligners</span>
+<span class="kn">from</span> <span class="nn">lib</span> <span class="kn">import</span> <span class="n">utils</span>
 <span class="kn">from</span> <span class="nn">snakemake.shell</span> <span class="kn">import</span> <span class="n">shell</span>
 <span class="kn">from</span> <span class="nn">snakemake.io</span> <span class="kn">import</span> <span class="n">expand</span>
 
@@ -691,7 +695,7 @@
     <span class="k">return</span> <span class="n">result</span></div>
 
 
-<div class="viewcode-block" id="load_config"><a class="viewcode-back" href="../../lib.common.html#lib.common.load_config">[docs]</a><span class="k">def</span> <span class="nf">load_config</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+<div class="viewcode-block" id="load_config"><a class="viewcode-back" href="../../lib.common.html#lib.common.load_config">[docs]</a><span class="k">def</span> <span class="nf">load_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">missing_references_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Loads the config.</span>
 
@@ -715,15 +719,19 @@
                             <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
             <span class="n">refs</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">),</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;references&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">refs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No &#39;references:&#39; section in </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fn</span><span class="p">))</span>
-            <span class="n">reference_sections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">refs</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">missing_references_ok</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No &#39;references:&#39; section in </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fn</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">reference_sections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">refs</span><span class="p">)</span>
 
     <span class="c1"># Now the files</span>
     <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="nb">filter</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">,</span> <span class="n">includes</span><span class="p">):</span>
         <span class="n">refs</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">),</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;references&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">refs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No &#39;references:&#39; section in </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fn</span><span class="p">))</span>
-        <span class="n">reference_sections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">refs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">missing_references_ok</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No &#39;references:&#39; section in </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fn</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">reference_sections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">refs</span><span class="p">)</span>
 
     <span class="c1"># The last thing we include is the references section as written in the</span>
     <span class="c1"># config, which wins over all.</span>
@@ -840,6 +848,128 @@
         <span class="n">res</span> <span class="o">=</span> <span class="n">expand</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">sample</span><span class="o">=</span><span class="n">wc</span><span class="o">.</span><span class="n">sample</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">res</span>
     <span class="k">return</span> <span class="n">func</span></div>
+
+
+<div class="viewcode-block" id="pluck"><a class="viewcode-back" href="../../lib.common.html#lib.common.pluck">[docs]</a><span class="k">def</span> <span class="nf">pluck</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">kv</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For a given dict or list that somewhere contains keys `kv`, return the</span>
+<span class="sd">    values of those keys.</span>
+
+<span class="sd">    Named after the dplyr::pluck, and implemented based on</span>
+<span class="sd">    https://stackoverflow.com/a/1987195</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pluck</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">kv</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">x</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">kv</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">obj</span><span class="p">[</span><span class="n">kv</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pluck</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">kv</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">x</span></div>
+
+
+<div class="viewcode-block" id="check_url"><a class="viewcode-back" href="../../lib.common.html#lib.common.check_url">[docs]</a><span class="k">def</span> <span class="nf">check_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Try to open -- and then immediately close -- a URL.</span>
+
+<span class="sd">    Any exceptions can be handled upstream.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Some notes here:</span>
+    <span class="c1">#</span>
+    <span class="c1">#  - A pure python implementation isn&#39;t great because urlopen seems to</span>
+    <span class="c1">#    cache or hold sessions open or something. EBI servers reject responses</span>
+    <span class="c1">#    because too many clients are connected. This doesn&#39;t happen using curl.</span>
+    <span class="c1">#</span>
+    <span class="c1">#  - Using the requests module doesn&#39;t help, because urls can be ftp:// and</span>
+    <span class="c1">#    requests doesn&#39;t support that.</span>
+    <span class="c1">#</span>
+    <span class="c1">#  - Similarly, using asyncio and aiohttp works great for https, but not</span>
+    <span class="c1">#    ftp (I couldn&#39;t get aioftp to work properly).</span>
+    <span class="c1">#</span>
+    <span class="c1">#  - Not all servers support --head. An example of this is</span>
+    <span class="c1">#    https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA.</span>
+    <span class="c1">#</span>
+    <span class="c1">#  - Piping curl to head using the -c arg to use bytes seems to work.</span>
+    <span class="c1">#    However, we need to set pipefail (otherwise because head exits 0 the</span>
+    <span class="c1">#    whole thing exits 0). And in that case, we expect curl to exit every</span>
+    <span class="c1">#    time with exit code 23, which is &quot;failed to write output&quot;, because of</span>
+    <span class="c1">#    the broken pipe. This is handled below.</span>
+    <span class="c1">#</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Checking </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Notes on curl args:</span>
+    <span class="c1">#</span>
+    <span class="c1">#  --max-time to allow the server some seconds to respond</span>
+    <span class="c1">#  --retry to allow multiple tries if transient errors (4xx for FTP, 5xx for HTTP) are found</span>
+    <span class="c1">#  --silent to not print anything</span>
+    <span class="c1">#  --fail to return non-zero exit codes for 404 (default is exit 0 on hitting 404)</span>
+    <span class="c1">#</span>
+    <span class="c1"># Need to run through bash explicitly to get the pipefail option, which in</span>
+    <span class="c1"># turn means running with shell=True</span>
+    <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;/bin/bash -o pipefail -c &quot;curl --retry 3 --max-time 10 --silent --fail </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s1"> | head -c 10 &gt; /dev/null&quot;&#39;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">proc</span></div>
+
+
+<div class="viewcode-block" id="check_urls"><a class="viewcode-back" href="../../lib.common.html#lib.common.check_urls">[docs]</a><span class="k">def</span> <span class="nf">check_urls</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a config filename or existing object, extract the URLs and check</span>
+<span class="sd">    them.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    config : str or dict</span>
+<span class="sd">        Config object to inspect</span>
+
+<span class="sd">    verbose : bool</span>
+<span class="sd">        Print which URL is being checked</span>
+
+<span class="sd">    wait : int</span>
+<span class="sd">        Number of seconds to wait in between checking URLs, to avoid</span>
+<span class="sd">        too-many-connection issues</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">missing_references_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">failures</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">urls</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">pluck</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;url&#39;</span><span class="p">))))</span>
+    <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">check_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+        <span class="c1"># we expect exit code 23 because we&#39;re triggering SIGPIPE with the</span>
+        <span class="c1"># &quot;|head -c&quot; above.</span>
+        <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">returncode</span> <span class="ow">and</span> <span class="n">res</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">23</span><span class="p">:</span>
+            <span class="n">failures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;FAIL with exit code </span><span class="si">{</span><span class="n">res</span><span class="o">.</span><span class="n">returncode</span><span class="si">}</span><span class="s1">. Command was: </span><span class="si">{</span><span class="n">res</span><span class="o">.</span><span class="n">args</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">failures</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">   &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">failures</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Found problematic URLs. See https://ec.haxx.se/usingcurl/usingcurl-returns for explanation of exit codes.</span><span class="se">\n</span><span class="s1">   </span><span class="si">{</span><span class="n">output</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="check_all_urls_found"><a class="viewcode-back" href="../../lib.common.html#lib.common.check_all_urls_found">[docs]</a><span class="k">def</span> <span class="nf">check_all_urls_found</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Recursively loads all references that can be included and checks them.</span>
+<span class="sd">    Reports out if there are any failures.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">check_urls</span><span class="p">({</span><span class="s1">&#39;include_references&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;include/reference_configs&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;test/test_configs&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;workflows/rnaseq/config&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;workflows/chipseq/config&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;workflows/references/config&#39;</span><span class="p">,</span>
+    <span class="p">]},</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="gff2gtf"><a class="viewcode-back" href="../../lib.common.html#lib.common.gff2gtf">[docs]</a><span class="k">def</span> <span class="nf">gff2gtf</span><span class="p">(</span><span class="n">gff</span><span class="p">,</span> <span class="n">gtf</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts a gff file to a gtf format using the gffread function from Cufflinks</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">_is_gzipped</span><span class="p">(</span><span class="n">gff</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">shell</span><span class="p">(</span><span class="s1">&#39;gzip -d -S .gz.0.tmp </span><span class="si">{gff}</span><span class="s1"> -c | gffread - -T -o- | gzip -c &gt; </span><span class="si">{gtf}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">shell</span><span class="p">(</span><span class="s1">&#39;gffread </span><span class="si">{gff}</span><span class="s1"> -T -o- | gzip -c &gt; </span><span class="si">{gtf}</span><span class="s1">&#39;</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
@@ -852,7 +982,7 @@
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

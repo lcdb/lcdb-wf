@@ -12,7 +12,6 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Patterns and targets" href="patterns-targets.html" />
@@ -93,10 +92,10 @@
   <div class="section" id="sample-tables">
 <span id="sampletable"></span><h1>Sample tables<a class="headerlink" href="#sample-tables" title="Permalink to this headline">¶</a></h1>
 <p>Sample tables map sample names to files on disk and provide additional
-metadata.It is expected to have a header and be tab-delimited. Empty lines and
+metadata. It is expected to have a header and be tab-delimited. Empty lines and
 lines that start with a comment (<code class="docutils literal notranslate"><span class="pre">#</span></code>) are skipped.</p>
 <p>For running new experiments, you will need to write your own sample table. For
-running experiments uploaded to SRA, <strong>you can use the SRA sample table
+running experiments uploaded to SRA (Sequence Read Archive), <strong>you can use the SRA sample table
 as-is</strong>, with the addition of a new column indicating what you would like to
 name each sample. This makes it almost trivial to run arbitrary SRA RNA-seq
 data sets! For ChIP-seq data from SRA, the additional columns <cite>antibody</cite>,
@@ -157,7 +156,7 @@ the Snakefile</em>.</p>
 <p>For RNA-seq, only the first column and optionally the <cite>orig_filename</cite> column
 are used directly by the RNA-seq workflow.</p>
 <p>However, the sampletable is imported into the <code class="docutils literal notranslate"><span class="pre">downstream/rnaseq.Rmd</span></code> file
-(see <a class="reference internal" href="downstream-rnaseq.html#downstream"><span class="std std-ref">RNA-Seq downstream analysis</span></a> for more info) so it’s often useful to include
+(see <a class="reference internal" href="downstream-rnaseq.html#downstream"><span class="std std-ref">RNA-Seq downstream analysis</span></a> for more info). It’s often useful to include
 any metadata in the sampletable so it’s all in one place, and you’ll get all
 that information imported into R.</p>
 <p>For example, with this sample table we would be easily able to use a DESeq
@@ -214,21 +213,18 @@ may need different parameters depending on the library layout.</p>
 <span id="chipseq-sampletable"></span><h2>ChIP-seq sample table<a class="headerlink" href="#chip-seq-sample-table" title="Permalink to this headline">¶</a></h2>
 <p><strong>Three additional columns are required</strong> for ChIP-seq: <code class="docutils literal notranslate"><span class="pre">antibody</span></code>,
 <code class="docutils literal notranslate"><span class="pre">biological_material</span></code> and <code class="docutils literal notranslate"><span class="pre">label</span></code>.</p>
-<dl class="field-list">
-<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">antibody</span></code></dt>
-<dd class="field-odd"><p>Used for differentiating between input and IP samples. Input samples should
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">antibody</span></code></dt><dd><p>Used for differentiating between input and IP samples. Input samples should
 be listed with an antibody of exactly <code class="docutils literal notranslate"><span class="pre">input</span></code>.</p>
 </dd>
-<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">biological_material</span></code></dt>
-<dd class="field-even"><p>Ties together which samples came from the same chromatin. This is how we
+<dt><code class="docutils literal notranslate"><span class="pre">biological_material</span></code></dt><dd><p>Ties together which samples came from the same chromatin. This is how we
 know a particular input sample is the matched control for a particular IP
 sample. This is primarily used in the <cite>fingerprint</cite> rule, where we collect
 all the input BAMs together for performing QC. See the
 <cite>lib.chipseq.merged_input_for_ip</cite> function for the technical details of how
 this is handled.</p>
 </dd>
-<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">label</span></code></dt>
-<dd class="field-odd"><p>Used to tie together technical replicates, and <strong>used to configure the
+<dt><code class="docutils literal notranslate"><span class="pre">label</span></code></dt><dd><p>Used to tie together technical replicates, and <strong>used to configure the
 ChIP-seq peak-calling runs</strong> (see <a class="reference internal" href="config-yaml.html#cfg-chipseq"><span class="std std-ref">chipseq config section</span></a>).</p>
 <p>Technical replicates share the same label. If you don’t have technical
 replicates, then this column can be a copy of the first column containing
@@ -350,7 +346,7 @@ example this file:</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
