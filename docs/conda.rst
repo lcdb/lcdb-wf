@@ -16,6 +16,16 @@ root privileges.
 If you don't already have conda installed and the Bioconda channel set up, see
 the `Bioconda docs <https://bioconda.github.io>`_ for details.
 
+If you don't already have `mamba <https://github.com/mamba-org/mamba>`_, you
+can install it into your base conda environment with:
+
+.. code-block:: bash
+
+    conda install -c conda-forge mamba
+
+Mamba is a drop-in replacement for conda that is faster and more robust. In
+fact, it is now the default conda front-end for Snakemake.
+
 **It is recommended that you create a separate environment directory for
 each project**. That way you can update packages in each project
 independently of any others, and yet the environment will always be close at
@@ -31,6 +41,7 @@ need older versions, but you may want newer versions for more recent projects.
 
 Conda environments handle all of this. Each project has its own isolated set of
 software that is independent of other projects.
+
 
 However, given all of the software used across all of lcdb-wf, the environments
 can take a lot of time to build. Conda has to solve the entire dependency tree
@@ -53,6 +64,16 @@ The **main** environment's requirements are stored in
 downstream work, like ``workflows/rnaseq/downstream/rnaseq.Rmd`` and
 ``workflows/chipseq/downstream/diffbind.Rmd``.
 
+Note that one model for using conda envs with Snakemake workflows is to only have
+Snakemake in the top-level env, and any other dependencies are handled by
+smaller environments created for each rule using the ``conda:`` directive.
+Another model is to have everything installed into one large environment. We
+currently prefer the latter, because it allows us to activate a single
+environment to give us access to all the tools used. This streamlines
+troubleshooting because we don't have to dig through the ``.snakemake/conda``
+directory to figure out which hash corresponds to which file, but comes with
+the up-front cost of creating the environment initially.
+
 Building the environments
 -------------------------
 If you use the ``--build-envs`` argument when deploying lcdb-wf to a project
@@ -63,5 +84,8 @@ Otherwise, do the following in the top-level directory of the deployment:
 
 .. code-block:: bash
 
-    conda create -p ./env --file requirements-non-r.txt
-    conda create -p ./env-r --file requirements-r.txt
+    # if you don't already have mamba:
+    conda install mamba -c conda-forge
+
+    mamba create -p ./env --file requirements-non-r.txt
+    mamba create -p ./env-r --file requirements-r.txt
