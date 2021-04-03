@@ -4,7 +4,12 @@ Changelog
 v1.7
 ----
 
-General
+Setup 
+~~~~~
+
+Use mamba for installation of environments, consistent with Snakemake recommendations
+
+Testing
 ~~~~~~~
 
 - We now recommend using `mamba <https://github.com/mamba-org/mamba>`_ to
