@@ -25,6 +25,7 @@ references:
 
         conversions:
           - 'refflat'
+          - 'bed12'
 
       genome:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.24_FB2018_05/fasta/dmel-all-chromosome-r6.24.fasta.gz'
@@ -54,6 +55,7 @@ references:
 
         conversions:
           - 'refflat'
+          - 'bed12'
 
       genome:
         url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.28_FB2019_03/fasta/dmel-all-chromosome-r6.28.fasta.gz'

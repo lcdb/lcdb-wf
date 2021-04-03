@@ -9,7 +9,7 @@ General configuration
 ~~~~~~~~~~~~~~~~~~~~~
 
 The majority of the work in setting up a new project is in the configuration --
-which samples to run, where the data files are, which references are
+which samples to run, where the data files are located, which references are
 needed, etc.
 
 **The entry point for configuration** is in the ``config/config.yaml`` file found
@@ -38,7 +38,7 @@ is specified in the config file. See :ref:`sampletable` for more.
 
 A **patterns file** only needs to be edited
 if you're doing custom work. It determines the patterns of files that will be
-created by the workflow. Ssee :ref:`patterns-and-targets` for more.
+created by the workflow. See :ref:`patterns-and-targets` for more.
 
 .. toctree::
    :maxdepth: 2
@@ -55,10 +55,11 @@ Snakemake `supports arbitrary cluster commands
 <http://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html>`_,
 making it easy to run these workflows on many different cluster environments.
 
-Snakemake, and these workflows, are designed to decouple the code from the
+Snakemake and these workflows are designed to decouple the code from the
 configuration. If you are running the workflows on NIH's Biowulf cluster, you
-don't need to change anything. If you are running on a different cluster, you
-should inspect the following files:
+don't need to change anything.
+
+If you are running on a different cluster, you should inspect the following files:
 
 - `include/WRAPPER_SLURM`
 - the `config/clusterconfig.yaml` files in each workflow directory you will be
@@ -76,7 +77,7 @@ To run a workflow on Biowulf, from the workflow directory (e.g.,
 
 The ``WRAPPER_SLURM`` script submits the main Snakemake process on a separate
 node to avoid any restrictions from running on the head node. That main
-snakemake process then submits each rule separately to the cluster scheduler.
+Snakemake process then submits each rule separately to the cluster scheduler.
 As configured in that script, we specify ``config/clusterconfig.yaml`` as
 containing the rule-specific cluster arguments.
 
@@ -86,7 +87,7 @@ That script also contains the Snakemake arguments::
     --cluster 'sbatch {cluster.prefix} --cpus-per-task={threads}  --output=logs/{rule}.o.%j --error=logs/{rule}.e.%j' \
 
 This means that each job will be named after the rule and job id (the
-``--jobname`` arg) and the stdout and stderr go to files in ``logs`` and are
+``--jobname`` arg). The stdout and stderr go to files in ``logs`` and are
 named after the rule, followed by a ``.o`` or ``.e``, followed by the cluster
 job ID (the ``--cluster`` arg).
 

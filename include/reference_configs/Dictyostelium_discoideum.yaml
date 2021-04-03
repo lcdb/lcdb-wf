@@ -11,6 +11,7 @@ references:
         url: 'ftp://ftp.ensemblgenomes.org/pub/protists/release-41/gff3/dictyostelium_discoideum/Dictyostelium_discoideum.dicty_2.7.41.gff3.gz'
         conversions:
           - 'refflat'
+          - 'bed12'
 
     ensembl_transcriptome_2.7.41:
       transcriptome:

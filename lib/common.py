@@ -1,6 +1,10 @@
 import glob
+import subprocess
+import time
 import os
 import warnings
+import urllib.request as request
+import contextlib
 import yaml
 import pandas
 from Bio import SeqIO
@@ -8,6 +12,7 @@ import gzip
 import binascii
 from lib.imports import resolve_name
 from lib import aligners
+from lib import utils
 from snakemake.shell import shell
 from snakemake.io import expand
 
@@ -598,7 +603,7 @@ def get_techreps(sampletable, label):
     return result
 
 
-def load_config(config):
+def load_config(config, missing_references_ok=False):
     """
     Loads the config.
 
@@ -622,15 +627,19 @@ def load_config(config):
                             recursive=True):
             refs = yaml.load(open(fn), Loader=yaml.FullLoader).get('references', None)
             if refs is None:
-                raise ValueError("No 'references:' section in {0}".format(fn))
-            reference_sections.append(refs)
+                if not missing_references_ok:
+                    raise ValueError("No 'references:' section in {0}".format(fn))
+            else:
+                reference_sections.append(refs)
 
     # Now the files
     for fn in filter(os.path.isfile, includes):
         refs = yaml.load(open(fn), Loader=yaml.FullLoader).get('references', None)
         if refs is None:
-            raise ValueError("No 'references:' section in {0}".format(fn))
-        reference_sections.append(refs)
+            if not missing_references_ok:
+                raise ValueError("No 'references:' section in {0}".format(fn))
+        else:
+            reference_sections.append(refs)
 
     # The last thing we include is the references section as written in the
     # config, which wins over all.
@@ -747,3 +756,125 @@ def fill_r1_r2(sampletable, pattern, r1_only=False):
         res = expand(pattern, sample=wc.sample, n=n)
         return res
     return func
+
+
+def pluck(obj, kv):
+    """
+    For a given dict or list that somewhere contains keys `kv`, return the
+    values of those keys.
+
+    Named after the dplyr::pluck, and implemented based on
+    https://stackoverflow.com/a/1987195
+    """
+    if isinstance(obj, list):
+        for i in obj:
+            for x in pluck(i, kv):
+                yield x
+    elif isinstance(obj, dict):
+        if kv in obj:
+            yield obj[kv]
+        for j in obj.values():
+            for x in pluck(j, kv):
+                yield x
+
+
+def check_url(url, verbose=False):
+    """
+    Try to open -- and then immediately close -- a URL.
+
+    Any exceptions can be handled upstream.
+
+    """
+
+    # Some notes here:
+    #
+    #  - A pure python implementation isn't great because urlopen seems to
+    #    cache or hold sessions open or something. EBI servers reject responses
+    #    because too many clients are connected. This doesn't happen using curl.
+    #
+    #  - Using the requests module doesn't help, because urls can be ftp:// and
+    #    requests doesn't support that.
+    #
+    #  - Similarly, using asyncio and aiohttp works great for https, but not
+    #    ftp (I couldn't get aioftp to work properly).
+    #
+    #  - Not all servers support --head. An example of this is
+    #    https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA.
+    #
+    #  - Piping curl to head using the -c arg to use bytes seems to work.
+    #    However, we need to set pipefail (otherwise because head exits 0 the
+    #    whole thing exits 0). And in that case, we expect curl to exit every
+    #    time with exit code 23, which is "failed to write output", because of
+    #    the broken pipe. This is handled below.
+    #
+    if verbose:
+        print(f'Checking {url}')
+
+    # Notes on curl args:
+    #
+    #  --max-time to allow the server some seconds to respond
+    #  --retry to allow multiple tries if transient errors (4xx for FTP, 5xx for HTTP) are found
+    #  --silent to not print anything
+    #  --fail to return non-zero exit codes for 404 (default is exit 0 on hitting 404)
+    #
+    # Need to run through bash explicitly to get the pipefail option, which in
+    # turn means running with shell=True
+    proc = subprocess.run(f'/bin/bash -o pipefail -c "curl --retry 3 --max-time 10 --silent --fail {url} | head -c 10 > /dev/null"', shell=True)
+    return proc
+
+
+def check_urls(config, verbose=False):
+    """
+    Given a config filename or existing object, extract the URLs and check
+    them.
+
+    Parameters
+    ----------
+
+    config : str or dict
+        Config object to inspect
+
+    verbose : bool
+        Print which URL is being checked
+
+    wait : int
+        Number of seconds to wait in between checking URLs, to avoid
+        too-many-connection issues
+    """
+    config = load_config(config, missing_references_ok=True)
+    failures = []
+    urls = list(set(utils.flatten(pluck(config, 'url'))))
+    for url in urls:
+        res = check_url(url, verbose=verbose)
+
+        # we expect exit code 23 because we're triggering SIGPIPE with the
+        # "|head -c" above.
+        if res.returncode and res.returncode != 23:
+            failures.append(f'FAIL with exit code {res.returncode}. Command was: {res.args}')
+    if failures:
+        output = '\n   '.join(failures)
+        raise ValueError(f'Found problematic URLs. See https://ec.haxx.se/usingcurl/usingcurl-returns for explanation of exit codes.\n   {output}')
+
+
+def check_all_urls_found(verbose=True):
+    """
+    Recursively loads all references that can be included and checks them.
+    Reports out if there are any failures.
+    """
+    check_urls({'include_references': [
+        'include/reference_configs',
+        'test/test_configs',
+        'workflows/rnaseq/config',
+        'workflows/chipseq/config',
+        'workflows/references/config',
+    ]}, verbose=verbose)
+
+
+def gff2gtf(gff, gtf):
+    """
+    Converts a gff file to a gtf format using the gffread function from Cufflinks
+    """
+    if _is_gzipped(gff[0]):
+        shell('gzip -d -S .gz.0.tmp {gff} -c | gffread - -T -o- | gzip -c > {gtf}')
+    else:
+        shell('gffread {gff} -T -o- | gzip -c > {gtf}')
