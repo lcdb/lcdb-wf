@@ -12,12 +12,20 @@ Use mamba for installation of environments, consistent with Snakemake recommenda
 Testing
 ~~~~~~~
 
-- new test that checks all URLs identified in config files to ensure that the
-  included reference files remain valid
+- We now recommend using `mamba <https://github.com/mamba-org/mamba>`_ to
+  create conda environments. This is dramatically faster and solves some
+  depencency issues. Our automated tests now use this.
 
-- there is now a separate ``run_downstream_test`` script`
+- We have moved from requirements.txt files to env.yaml files. We also now
+  encourage the use of the strictly-pinned environments for a more stable
+  experience to hopefully avoid transient issues in the packaging ecosystem.
 
-- simplified the CircleCI DAG to optimize testing resources
+- ``tbb=2020.2`` as a dependency to fix a recent packaging issue with conda-forge.
+
+- many documentation improvements
+
+- symlinks rule is only set to localrule when it exists (it does not exist when
+  running an analysis exclusively from SRA)
 
 References
 ~~~~~~~~~~
@@ -30,7 +38,10 @@ References
   `Schizosaccharomyces_pombe.yaml`` reference config has been updated
   accordingly.
 
-- add ``bed12`` and ``refflat`` conversions to references
+- add ``bed12`` and ``refflat`` conversions to included references
+
+- additional ERCC post-processing functions to make it easier to add ERCC
+  spike-ins to fasta and GTF files.
 
 - The references workflow no longer reads the config file in its directory.
   This fixes some subtle overwriting issues when providing config files or
@@ -48,14 +59,15 @@ RNA-seq
 
 - improved comments in RNA-seq downstream RMarkdown files
 
-General
+Testing
 ~~~~~~~
 
-- many documentation improvements
+- new test that checks all URLs identified in config files to ensure that the
+  included reference files remain valid
 
-- symlinks rule is only set to localrule when it exists (it does not exist when
-  running an analysis exclusively from SRA)
+- there is now a separate ``run_downstream_test`` script`
 
+- simplified the CircleCI DAG to optimize testing resources
 
 v1.6
 ----
