@@ -857,6 +857,9 @@ def check_urls(config, verbose=False):
     failures = []
     urls = list(set(utils.flatten(pluck(config, 'url'))))
     for url in urls:
+        if url.startswith('file://'):
+            continue
+
         res = check_url(url, verbose=verbose)
 
         # we expect exit code 23 because we're triggering SIGPIPE with the
