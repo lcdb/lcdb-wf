@@ -71,11 +71,9 @@ variables:
             conda config --system --add channels bioconda
             conda config --system --add channels conda-forge
             conda install mamba -y
-            mamba env create -n lcdb-wf-test --file env.yml
-            mamba env create -n lcdb-wf-test-r --file env-r.yml
+            mamba env create -n lcdb-wf-test --file env-pinned.yml
+            mamba env create -n lcdb-wf-test-r --file env-r-pinned.yml
         fi
-        # conda env export -n lcdb-wf-test > env.yaml
-        # conda env export -n lcdb-wf-test-r > env-r.yaml
 
   # --------------------------------------------------------------------------
   # Deploy into a new directory and get the test data.
