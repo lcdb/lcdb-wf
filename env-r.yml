@@ -9,6 +9,11 @@ dependencies:
   - bioconductor-clusterprofiler
   - bioconductor-degreport
   - bioconductor-deseq2
+
+  # previous versions of this package were created with no build hash so we
+  # need to specify one here to make sure the right build gets installed.
+  - bioconductor-do.db=2.9=r40hdfd78af_10
+
   - bioconductor-dupradar
   - bioconductor-genomeinfodbdata
   - bioconductor-genomicfeatures
