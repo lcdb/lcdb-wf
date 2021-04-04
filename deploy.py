@@ -217,13 +217,13 @@ os.chmod(log, 0o440)
 if args.build_envs:
     sp.check_call(
         [
-            "conda",
+            "mamba",
+            "env",
             "create",
-            "-y",
             "-p",
             "./env",
             "--file",
-            "requirements-non-r.txt",
+            "env.yml",
             "-c",
             "conda-forge",
             "-c",
@@ -236,13 +236,13 @@ if args.build_envs:
     )
     sp.check_call(
         [
-            "conda",
+            "mamba",
+            "env",
             "create",
-            "-y",
             "-p",
             "./env-r",
             "--file",
-            "requirements-r.txt",
+            "env-r.yml",
             "-c",
             "conda-forge",
             "-c",

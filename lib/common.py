@@ -285,6 +285,18 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
                 args = ()
                 kwargs = {}
 
+            # In the special case where there is kwarg beginning and ending
+            # with "__", this can be a dotted function name so it will be
+            # resolved here as well and passed along to the postprocessing
+            # function.
+            #
+            # This makes it possible to do things like add ERCC annotations on
+            # the end of other annotations that themselves need to be
+            # post-processed.
+            for kw in kwargs:
+                if kw.startswith('__') and kw.endswith('__'):
+                    kwargs[kw] = resolve_name(kwargs[kw])
+
             # import the function
             func = resolve_name(name)
 
