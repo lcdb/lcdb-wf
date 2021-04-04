@@ -218,19 +218,19 @@ variables:
           # only go to the cutadapt step.
           rm -r data
           ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
-            --configfile $ORIG/test/test_configs/override.yaml \
+            --configfile $ORIG/test/test_configs/test_rnaseq.yaml \
             --config sampletable=$ORIG/test/test_configs/test_sra_sampletable.tsv
 
           # Same as above, but SE
           rm -r data
           ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
-            --configfile $ORIG/test/test_configs/override.yaml \
+            --configfile $ORIG/test/test_configs/test_rnaseq.yaml \
             --config sampletable=$ORIG/test/test_configs/test_sra_sampletable_SE_only.tsv
 
           # test strandedness, PE
           rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r --until strand_check \
-            --configfile $ORIG/test/test_configs/override.yaml \
+            --configfile $ORIG/test/test_configs/test_rnaseq.yaml \
             --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv \
             && cat strandedness.tsv
 
@@ -245,7 +245,9 @@ variables:
           rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r \
             --forcerun star_pass1 \
-            --configfile $ORIG/test/test_configs/star_override_2pass.yaml \
+            --configfile \
+              $ORIG/test/test_configs/test_rnaseq_config.yaml \
+              $ORIG/test/test_configs/star_override_2pass.yaml \
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
             --until star_pass2
 
@@ -253,14 +255,17 @@ variables:
           rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r \
             --forcerun star \
-            --configfile $ORIG/test/test_configs/star_override_1pass.yaml \
+            --configfile \
+              $ORIG/test/test_configs/test_rnaseq_config.yaml \
+              $ORIG/test/test_configs/star_override_1pass.yaml \
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
             --until star
 
           # test PE reads
           rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r --until multiqc \
-            --configfile $ORIG/test/test_configs/override.yaml \
+            --configfile \
+              $ORIG/test/test_configs/test_rnaseq_config.yaml \
             --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
 
   # --------------------------------------------------------------------------
