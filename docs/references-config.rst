@@ -93,6 +93,10 @@ to modify references via a plugin architecture. It works something like this:
 - For FASTA files one or more **indexes** are requested
 - For GTF files, zero or more **conversions** are requested.
 
+.. note::
+
+    If using a ``file://`` URI, it needs to be gzipped.
+
 It's probably easiest to show an example config and then describe what's
 happening.
 
