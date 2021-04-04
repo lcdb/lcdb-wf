@@ -1,0 +1,45 @@
+sampletable: 'config/sampletable.tsv'
+
+patterns: 'config/rnaseq_patterns.yaml'
+
+# Which key in the `references` dict below to use
+organism: 'filebased'
+
+# If not specified here, use the environment variable REFERENCES_DIR.
+references_dir: 'references_data'
+
+aligner:
+  index: 'hisat2'
+  tag: 'test'
+
+rrna:
+  index: 'bowtie2'
+  tag: 'test'
+
+gtf:
+  tag: "test"
+
+salmon:
+  tag: "test"
+
+fastq_screen:
+  - label: test
+    organism: filebased
+    tag: test
+
+references:
+  filebased:
+    test:
+      genome:
+        url: "file://test.fa.gz"
+        indexes:
+          - "bowtie2"
+          - "hisat2"
+      annotation:
+        url: "file://test.gtf.gz"
+        conversions:
+          - "bed12"
+          - "refflat"
+      transcriptome:
+        indexes:
+          - "salmon"
