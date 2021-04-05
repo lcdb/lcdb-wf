@@ -25,11 +25,11 @@ This assumes you have set up the `bioconda channel
 
 .. code-block:: bash
 
-   conda create -p ./env --file requirements-non-r.txt
+   mamba env create -p ./env --file env.yml
 
 .. code-block:: bash
 
-   conda create -p ./env-r --file requirements-r.txt
+   mamba env create -p ./env-r --file env-r.yml
 
 We **highly recommend** using conda for isolating projects and for analysis
 reproducibility. If you are unfamiliar with conda, we provide a more detailed look

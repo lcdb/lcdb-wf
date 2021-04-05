@@ -58,8 +58,8 @@ environments, then the equivalent command is:
 
 .. code-block:: bash
 
-    mamba env create -p ./env --file env-pinned.yml
-    mamba env create -p ./env-r --file env-r-pinned.yml
+    mamba env create -p ./env --file env.yml
+    mamba env create -p ./env-r --file env-r.yml
 
 If you want to use the more relaxed environment specifications, then use the
 non-pinned yaml files. We recommend using the pinned version though, since that
@@ -141,5 +141,5 @@ Otherwise, do the following in the top-level directory of the deployment:
     # if you don't already have mamba:
     conda install mamba -c conda-forge
 
-    mamba create -p ./env --file requirements-non-r.txt
-    mamba create -p ./env-r --file requirements-r.txt
+    mamba env create -p ./env --file env.yml
+    mamba env create -p ./env-r --file env-r.yml
