@@ -143,17 +143,11 @@ Then activate the R environment (this assumes you're still in the
 
     conda activate env-r   # or source activate env-r
 
-You can either start an R interpreter and run:
+and run:
 
 .. code-block:: bash
 
-    rmarkdown::render('downstream/rnaseq.Rmd')
-
-or from the terminal:
-
-.. code-block:: bash
-
-    Rscript -e "rmarkdown::render('downstream/rnaseq.Rmd')"
+    ./run_downstream_test.sh
 
 After the workflow runs, here are some useful points of interest in the output:
 

@@ -1,7 +1,7 @@
 .. _conda-envs:
 
-Using conda and conda envs
-==========================
+conda and conda envs in `lcdb-wf`
+=================================
 
 Conda basics
 ------------
@@ -16,24 +16,25 @@ of any software on your machine and does not need root privileges.
 If you don't already have conda installed and the Bioconda channel set up, see
 the `Bioconda docs <https://bioconda.github.io>`_ for details.
 
-If you don't already have `mamba <https://github.com/mamba-org/mamba>`_, you
-can install it into your base conda environment with:
+You'll also need `mamba <https://github.com/mamba-org/mamba>`_. Mamba is
+a drop-in replacement for conda that is faster and more robust. In fact, it is
+now the default conda front-end for Snakemake. If you don't already have mamba,
+you can install it into your base conda environment with:
 
 .. code-block:: bash
 
-    conda install -c conda-forge mamba
+    conda install -n base -c conda-forge mamba
 
-Mamba is a drop-in replacement for conda that is faster and more robust. In
-fact, it is now the default conda front-end for Snakemake.
-
-**It is recommended that you create a separate environment directory for
-each project**. That way you can update packages in each project
-independently of any others, and yet the environment will always be close at
-hand. This is an especially good practice in shared space as others can easily
-find and activate the environment specific to the project.
 
 Building the environments
 -------------------------
+
+**It is recommended that you create a separate environment directory for
+each project**, rather than a single environment for all projects. That way you
+can update packages in each project independently of any others, and yet the
+environment will always be close at hand. This is an especially good practice
+in shared space as others can easily find and activate the environment specific
+to the project.
 
 .. note::
 
@@ -42,12 +43,13 @@ Building the environments
     <https://snakemake.readthedocs.io/en/stable/getting_started/installation.html#installation-via-conda>`_
     for more info.
 
-
 We provide two different ways of specifying environments. One is a "strict"
 pinning, which lists all installed versions of all dependencies (and
-dependencies of dependencies...) to the exact version and build. The other
+dependencies of dependencies...) to the exact version and build. This
+configuration can be found in ``env.yml`` and ``env-r.yml``. The other
 version is "relaxed", where the versions of tools are allowed to float to
 whatever the latest version is at the time of environment creation.
+
 
 If you use the ``--build-envs`` argument when deploying lcdb-wf to a project
 directory (see :ref:`setup-proj`), conda environments will be built in the
@@ -91,42 +93,48 @@ Conda envs in lcdb-wf
 lcdb-wf has lot of requirements and it would be a lot of effort to install them
 all. Furthermore, as you work on many projects over time, older projects may
 need older versions, but you may want newer versions for more recent projects.
-
 Conda environments handle all of this. Each project has its own isolated set of
 software that is independent of other projects.
 
+However, given all of the software used across all of `lcdb-wf`, the
+environments can take a lot of time to build because the solver needs to figure
+out the entire dependency tree and come up with a solution that works to
+satisfy the entire set of specified requirements.
 
-However, given all of the software used across all of lcdb-wf, the environments
-can take a lot of time to build. Conda has to solve the entire dependency tree
-and come up with a solution that works to satisfy the entire set of specified
-requirements. That is, if we specify snakemake and STAR as requirements,
-conda has to identify all of the dependencies of snakemake, all of the
-dependencies of STAR, and inspect them to make sure they are compatible with
-each other. If not, it has to incrementally try different versions of those
-dependencies to find a solution. This process becomes exponentially more
-complex as we add more requirements. As a result, solving and building the
-environments can take some time (usually under 15 mins).
+We chose to split the conda environments in two: the **main** environment and the **R**
+environment (see :ref:`conda-design-decisons`). These environments are
+described by both "strict" and "loose" files. By default we use the "strict"
+version, which pins all versions of all packages exactly. This is preferred
+wherever possible. However we also provide a "loose" version that is not
+specific about versions. The following table describes these files:
 
-The reason for having two different environments -- one for R, one for non-R --
-is that by removing the entire sub-DAG of R packages from the main environment
-we can dramatically reduce the creation time for an environment.
+| strict version | loose version          | used for                         |
++================+========================+==================================+
+| ``env.yml``    | ``requirements.txt``   | Main Snakefiles                  |
+| ``env-r.yaml`` | ``requirements-r.txt`` | Downstream RNA-seq analysis in R |
 
-The **main** environment's requirements are stored in ``env.yml``, or the
-strictly pinned version ``env-pinned.yml``.  These are used for the primary
-workflows. The **R-related** requirements are in ``env-r.yml`` (or
-``env-r-pinned.yml``) and these are used for downstream work, like
-``workflows/rnaseq/downstream/rnaseq.Rmd`` and
-``workflows/chipseq/downstream/diffbind.Rmd``.
+When working on a new version of `lcdb-wf`, we use the loose version to
+generate a new environment using the latest versions of all software. When the
+tests are confirmed to be passing, the definition of these environments is
+exported to the strict version for use in production.
 
-Note that one model for using conda envs with Snakemake workflows is to only have
-Snakemake in the top-level env, and any other dependencies are handled by
-smaller environments created for each rule using the ``conda:`` directive.
-Another model is to have everything installed into one large environment. We
-currently prefer the latter, because it allows us to activate a single
-environment to give us access to all the tools used. This streamlines
-troubleshooting because we don't have to dig through the ``.snakemake/conda``
-directory to figure out which hash corresponds to which file, but comes with
-the up-front cost of creating the environment initially.
+
+.. _conda-design-decisions:
+
+Design decisions
+----------------
+
+We made the design decision to split the conda envs into two different
+environments -- one for R, one for non-R. We round that by by removing the
+entire sub-DAG of R packages from the main environment we can dramatically
+reduce the creation time.
+
+We also made the decision to use large top-level environments rather than
+smaller environments created for each rule using the ``conda:`` directive. This
+allows us to activate a single environment to give us access to all the tools
+used. This streamlines troubleshooting because we don't have to dig through the
+``.snakemake/conda`` directory to figure out which hash corresponds to which
+file, but comes with the up-front cost of creating the environment initially.
 
 Building the environments
 -------------------------

@@ -3,17 +3,12 @@
 Getting started
 ===============
 
-`lcdb-wf` makes heavy use of `conda <https://docs.conda.io/en/latest/>_` and `bioconda
-<https://bioconda.github.io>`_. 
+The main prerequisite for `lcdb-wf` is `conda
+<https://docs.conda.io/en/latest/>_`, with the `bioconda
+<https://bioconda.github.io>`_. channel set up and the `mamba
+<https://github.com/mamba-org/mamba>`_ drop-in replacement for conda.
 
-It is recommended to install a separate conda environment for each project.
-This allows long-running projects to keep using old versions of software if
-needed while allowing newer versions in more recent projects.
-
-To see the full list of software installed into these environments,
-see the ``requirements-*.txt`` files at https://github.com/lcdb/lcdb-wf/.
-
-For a more detailed discussion of conda, see :ref:`conda-envs`.
+If this is new to you, please see :ref:`conda-envs`.
 
 .. note::
 
@@ -32,9 +27,9 @@ Setting up a project
 
 The general steps to use lcdb-wf in a new project are:
 
-1. Deploy: from a clone of the lcdb-wf repository, run ``deploy.py``
-2. Configure: set up samples table for experiments and edit configuration file
-3. Run: activate environment and run the Snakemake file either locally or on a cluster
+1. **Deploy:** run ``deploy.py`` from a clone of the lcdb-wf repository
+2. **Configure:** set up samples table for experiments and edit configuration file
+3. **Run:** activate environment and run the Snakemake file either locally or on a cluster
 
 .. _deploy:
 
@@ -49,28 +44,21 @@ and testing files that are not necessary for an actual project. The reason to
 use this script is so you end up with a cleaner project directory. 
 
 This script also writes a file to the destination called
-``.lcdb-wf-deployment.json``. It stores the timestamp and details about what 
-commit was used to deploy it. This tracks provenance of the code, so you can always
-figure out what lcdb-wf commit your deployment originally started from.
+``.lcdb-wf-deployment.json``. It stores the timestamp and details about what
+commit was used to deploy it. This tracks provenance of the code, so you can
+always figure out what lcdb-wf commit your deployment originally started from.
 
-To deploy a copy, you first need to get a copy. Here are three ways to do that:
+To deploy a copy, you first need to get a copy. It is recommended that this
+copy be stored in a temporary location and cleaned up afterwards.
 
 Clone a repo using git:
 
 .. code-block:: bash
 
-   git clone git@github.com:lcdb/lcdb-wf.git
-
-   # optionally check out a particular branch
-   # git checkout BRANCHNAME
-
-Or update an existing repo:
-
-.. code-block:: bash
-
    BRANCH=master  # optionally change branch
+   git clone git@github.com:lcdb/lcdb-wf.git /tmp/lcdb-wf
+   cd /tmp/lcdb-wf
    git checkout $BRANCH
-   git pull origin $BRANCH
 
 No git? Download a zip file:
 
@@ -78,7 +66,8 @@ No git? Download a zip file:
 
    BRANCH=master  # optionally change branch
    wget https://github.com/lcdb/lcdb-wf/archive/$BRANCH.zip
-   unzip $BRANCH.zip -d lcdb-wf
+   unzip $BRANCH.zip -d /tmp/lcdb-wf
+   cd /tmp/lcdb-wf/lcdb-wf-$BRANCH
 
 
 .. note::
@@ -103,26 +92,32 @@ build the conda environments:
    python deploy.py --flavor rnaseq --dest myproj --build-envs
 
 Copying over the files is fast; building the conda environments may take a few
-minutes.
+minutes.See :ref:`conda-envs` for more details on the conda envs.
 
-See :ref:`conda-envs` for more details on these.
+After the deployment is complete, you can remove the temporary copy (e.g.,
+``/tmp/lcdb-wf`` in the examples above).
 
 2. Configure
 ------------
 
-This step takes the most effort and the first time you set up a project it
+This step takes the most effort. The first time you set up a project it
 will take some time to understand the configuration system.
 
-- see :ref:`multiple-experiments` for advice on how to handle multiple experiments that are intended to be analyzed together
-- see :ref:`conda-envs` for details on conda environments
 - see :ref:`sampletable` for how to write a sampletable, which includes where to find raw data and contains the associated metadata
 - see :ref:`config-yaml` for configuring each workflow
+- see :ref:`multiple-experiments` for advice on how to handle multiple experiments that are intended to be analyzed together
 
 3. Run
 ------
 
-Activate the main environment, go to the workflow you want to run, and run the
-following:
+Activate the main environment, go to the workflow you want to run, for example:
+
+.. code-block:: bash
+
+    conda activate ./env
+    cd workflows/rnaseq
+
+and run the following:
 
 .. code-block:: bash
 
@@ -131,7 +126,7 @@ following:
 If all goes well, this should print a list of jobs to be run.
 
 You can run locally, but this is NOT recommended. To run locally, choose the
-number of CPUs you want to use (here, 8).
+number of CPUs you want to use.
 
 .. warning::
 
@@ -163,8 +158,8 @@ Snakemake. The Snakemake documentation on `cluster execution
 <https://snakemake.readthedocs.io/en/stable/executing/cloud.html>`_ can be
 consulted for running on your particular system.
 
-You can typically run simultaneous workflows when they are in different directories; see
-:ref:`workflows` for details.
+You can typically run simultaneous workflows when they are in different
+directories; see :ref:`workflows` for details.
 
 Next steps
 ~~~~~~~~~~
