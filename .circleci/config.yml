@@ -26,7 +26,7 @@ variables:
 
   save_cache: &save_cache
     save_cache:
-      key: v0-{{ checksum "env-pinned.yml" }}-{{ checksum "env-r-pinned.yml" }}-{{ checksum "env-r.yml" }}- {{ checksum "env.yml" }}
+      key: v0-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
       paths:
         - /opt/conda
 
@@ -38,7 +38,7 @@ variables:
   restore_cache: &restore_cache
     restore_cache:
       keys:
-        - v0-{{ checksum "env-pinned.yml" }}-{{ checksum "env-r-pinned.yml" }}-{{ checksum "env-r.yml" }}- {{ checksum "env.yml" }}
+        - v0-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
 
   # --------------------------------------------------------------------------
   # The path needs to be set each time; in jobs below this will be called as
