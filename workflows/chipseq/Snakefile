@@ -700,13 +700,13 @@ rule bed_to_bigbed:
             shell("touch {output}")
         else:
             if kind == 'narrowPeak':
-                _as = '../../include/bigNarrowPeak.as'
+                _as = '../../include/autosql/bigNarrowPeak.as'
                 _type = 'bed6+4'
                 names=[
                     'chrom', 'chromStart', 'chromEnd', 'name', 'score',
                     'strand', 'signalValue', 'pValue', 'qValue', 'peak']
             elif kind == 'broadPeak':
-                _as = '../../include/bigBroadPeak.as'
+                _as = '../../include/autosql/bigBroadPeak.as'
                 _type = 'bed6+3'
                 names=[
                     'chrom', 'chromStart', 'chromEnd', 'name', 'score',
