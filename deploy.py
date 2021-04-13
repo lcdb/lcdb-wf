@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+
+# NOTE: we're supporting Python 2 on purpose, since many distributions still
+# ship with it.
+
 import os
 import tempfile
 import argparse
@@ -6,9 +10,42 @@ import subprocess as sp
 import datetime
 import json
 import fnmatch
+import logging
+import hashlib
+import sys
+
+logging.basicConfig(
+    format="%(asctime)s [%(module)s] %(message)s",
+    level=logging.DEBUG,
+    datefmt="%Y-%m-%dT%H:%M:%S",
+)
+
+# ANSI color escape codes
+DEFAULT = "\x1b[39m"
+RED = "\x1b[31m"
+GREEN = "\x1b[32m"
+YELLOW = "\x1b[33m"
+GRAY = "\x1b[37m"
+WHITE = "\x1b[97m"
+BLUE = "\x1b[34m"
+RESET = "\x1b[0m"
 
 
-HERE = os.path.dirname(__file__)
+def debug(s):
+    logging.debug(GRAY + s + RESET)
+
+
+def info(s):
+    logging.info(GREEN + s + RESET)
+
+
+def warning(s):
+    logging.warning(YELLOW + s + RESET)
+
+
+def error(s):
+    logging.error(RED + s + RESET)
+
 
 usage = """
 This script assists in the deployment of lcdb-wf to working directories.
@@ -40,8 +77,8 @@ always = {
         "wrappers/wrappers",
         "include",
         "lib",
-        "requirements-non-r.txt",
-        "requirements-r.txt",
+        "env.yaml",
+        "env-r.yaml",
         ".gitignore",
     ],
     "exclude": [
@@ -71,7 +108,7 @@ always = {
         "/workflows/rnaseq/downstream/rnaseq_cache",
         "/workflows/rnaseq/downstream/rnaseq_files",
         "/workflows/rnaseq/downstream/*.tsv*",
-        "/workflows/*/run_test.sh",
+        "/workflows/*/run*_test.sh",
         "/workflows/*/run_downstream_test.sh",
         "/workflows/*/Snakefile.test",
         "/workflows/*/.snakemake",
@@ -87,26 +124,6 @@ flavors = {
     "colocalization": ["workflows/colocalization/*"],
     "full": ["workflows/*"],
 }
-
-ap = argparse.ArgumentParser(usage=usage)
-ap.add_argument(
-    "--flavor",
-    default="full",
-    help="""Options are {0}. Default is full.""".format(list(flavors.keys())),
-)
-ap.add_argument("--dest", help="""Destination directory in which to copy files""", required=True)
-ap.add_argument(
-    "--build-envs",
-    action="store_true",
-    help="""If specified, conda environments with all dependencies will be
-    installed into directories called "env" and "env-r" within the directory
-    provided for --dest.""",
-)
-ap.add_argument("--verbose", "-v", action="store_true", help="""Verbose mode""")
-
-args = ap.parse_args()
-dest = args.dest
-flavor = args.flavor
 
 
 def filter_out_excluded(filenames, patterns_to_exclude):
@@ -143,114 +160,233 @@ def filter_out_other_workflows(filenames, patterns_to_include, prefilter="workfl
     return keep
 
 
-# We start with anything under version control, and then progressively filter
-# out other stuff.
-under_version_control = sorted(
-    sp.check_output(
-        ["git", "ls-tree", "-r", "HEAD", "--name-only"], universal_newlines=True
-    ).splitlines(False)
-)
-keep = filter_out_excluded(under_version_control, always["exclude"])
-keep = filter_out_other_workflows(keep, flavors[flavor])
+def write_file_list(source):
 
-exclude = tempfile.NamedTemporaryFile(delete=False).name
-if args.verbose:
-    print("Exclude file: {}".format(exclude))
-with open(exclude, "w") as fout:
-    fout.write("\n".join(always["exclude"]))
-
-include = tempfile.NamedTemporaryFile(delete=False).name
-if args.verbose:
-    print("Include file: {}".format(include))
-with open(include, "w") as fout:
-    fout.write("\n\n")
-    fout.write("\n".join(keep) + "\n")
-
-rsync = [
-    "rsync",
-    "--relative",
-    "-ar",
-    "--progress",
-    "--files-from={}".format(include),
-    "--exclude-from={}".format(exclude),
-    HERE,
-    dest,
-]
-if args.verbose:
-    rsync.append("-vv")
-
-sp.check_call(rsync)
-
-# This next section builds the .lcdb-wf-deployment.json data.
-#
-# First, the last commit:
-commit, message = (
-    sp.check_output(["git", "log", "--oneline", "-1"], universal_newlines=True)
-    .strip()
-    .split(" ", 1)
-)
-
-# When we're deploying:
-now = datetime.datetime.strftime(datetime.datetime.now(), "%Y%m%d%H%M")
-
-# Where the remote was:
-remotes = sp.check_output(["git", "remote", "-v"], universal_newlines=True)
-remotes = [i.strip() for i in remotes.splitlines()]
-
-# The branch we're deploying from:
-branch = sp.check_output(["git", "branch"], universal_newlines=True)
-branch = [i for i in branch.splitlines() if i.startswith("*")]
-assert len(branch) == 1
-branch = branch[0]
-branch = branch.split("* ")[1]
-
-d = {
-    "git": {"commit": commit, "message": message, "remotes": remotes, "branch": branch},
-    "timestamp": now,
-}
-log = os.path.join(dest, ".lcdb-wf-deployment.json")
-with open(log, "w") as fout:
-    fout.write(json.dumps(d) + "\n")
-os.chmod(log, 0o440)
-
-
-# If specified, build an environment in `dest/env`, using the correct channels.
-if args.build_envs:
-    sp.check_call(
-        [
-            "mamba",
-            "env",
-            "create",
-            "-p",
-            "./env",
-            "--file",
-            "env.yml",
-            "-c",
-            "conda-forge",
-            "-c",
-            "bioconda",
-            "-c",
-            "defaults",
-        ],
-        universal_newlines=True,
-        cwd=dest,
+    # We start with anything under version control, and then progressively filter
+    # out other stuff.
+    under_version_control = sorted(
+        sp.check_output(
+            ["git", "ls-tree", "-r", "HEAD", "--name-only"],
+            universal_newlines=True,
+            cwd=source,
+        ).splitlines(False),
     )
-    sp.check_call(
-        [
-            "mamba",
-            "env",
-            "create",
-            "-p",
-            "./env-r",
-            "--file",
-            "env-r.yml",
-            "-c",
-            "conda-forge",
-            "-c",
-            "bioconda",
-            "-c",
-            "defaults",
-        ],
-        universal_newlines=True,
-        cwd=dest,
+    keep = filter_out_excluded(under_version_control, always["exclude"])
+    keep = filter_out_other_workflows(keep, flavors[flavor])
+
+    exclude = tempfile.NamedTemporaryFile(delete=False).name
+    with open(exclude, "w") as fout:
+        fout.write("\n".join(always["exclude"]))
+
+    include = tempfile.NamedTemporaryFile(delete=False).name
+    with open(include, "w") as fout:
+        fout.write("\n\n")
+        fout.write("\n".join(keep) + "\n")
+
+    debug("List of files excluded: " + exclude)
+    debug("List of files included: " + include)
+
+    return include, exclude
+
+
+def clone_repo(dest, branch="master"):
+    if os.path.exists(dest):
+        error("Path " + dest + " already exists, aborting!")
+        sys.exit(1)
+    cmds = ["git", "clone", "https://github.com/lcdb/lcdb-wf.git", dest]
+    sp.check_call(cmds)
+    sp.check_call(["git", "checkout", branch], cwd=dest)
+    info("cloned to " + dest + ", using branch " + branch)
+
+    # check to see if this very file that is running is the same as the one
+    # that was just cloned -- otherwise it's out of date.
+
+    this_md5 = hashlib.md5(open(__file__).read()).hexdigest()
+    that_md5 = hashlib.md5(open(os.path.join(dest, "deploy.py")).read()).hexdigest()
+    if this_md5 != that_md5:
+        error(
+            "files "
+            + __file__
+            + " and "
+            + os.path.join(dest, "deploy.py")
+            + " do not match! The deploy script you are running appears to be out of date. "
+            "Please get an updated copy from https://github.com/lcdb/lcdb-wf, perhaps "
+            "with 'wget https://raw.githubusercontent.com/lcdb/lcdb-wf/master/deploy.py'"
+        )
+        sys.exit(1)
+
+
+def rsync(include, exclude, source, dest):
+    rsync = [
+        "rsync",
+        "--relative",
+        "-ar",
+        "--files-from={}".format(include),
+        "--exclude-from={}".format(exclude),
+        source,
+        dest,
+    ]
+    sp.check_call(rsync)
+
+
+def deployment_json(source, dest):
+    """
+    Build the .lcdb-wf-deployment.json file
+    """
+    # First, the last commit:
+    commit, message = (
+        sp.check_output(
+            ["git", "log", "--oneline", "-1"], universal_newlines=True, cwd=source
+        )
+        .strip()
+        .split(" ", 1)
     )
+
+    # When we're deploying:
+    now = datetime.datetime.strftime(datetime.datetime.now(), "%Y%m%d%H%M")
+
+    # Where the remote was:
+    remotes = sp.check_output(
+        ["git", "remote", "-v"], universal_newlines=True, cwd=source
+    )
+    remotes = [i.strip() for i in remotes.splitlines()]
+
+    # The branch we're deploying from:
+    branch = sp.check_output(["git", "branch"], universal_newlines=True, cwd=source)
+    branch = [i for i in branch.splitlines() if i.startswith("*")]
+    assert len(branch) == 1
+    branch = branch[0]
+    branch = branch.split("* ")[1]
+
+    d = {
+        "git": {
+            "commit": commit,
+            "message": message,
+            "remotes": remotes,
+            "branch": branch,
+        },
+        "timestamp": now,
+    }
+    log = os.path.join(dest, ".lcdb-wf-deployment.json")
+
+    with open(log, "w") as fout:
+        fout.write(json.dumps(d) + "\n")
+    os.chmod(log, 0o440)
+
+    info("Wrote details of deployment to " + log)
+
+
+def build_envs(dest, conda_frontend="mamba"):
+    """
+    Build conda environments.
+
+    Parameters
+    ----------
+
+    dest : str
+        Destination path. This is the project directory (likely as specified on
+        the command line with --dest) in which the env and env-r yaml files
+        should already exist. Envs will be created in here.
+
+    conda_frontend : 'mamba' | 'conda'
+        Which front-end to use (terminology borrowed from Snakemake)
+    """
+    mapping = [
+        ("./env", "env.yml"),
+        ("./env-r", "env-r.yml"),
+    ]
+    for env, yml in mapping:
+        info("Building environment " + os.path.join(dest, env))
+
+        try:
+            # conda and mamba can be hard to kill, possibly because they're
+            # doing threaded things. So we use Popen explicitly to capture the
+            # process ID so it can be killed if the user hits ^C.
+            #
+            # Note we're not using sp.run in order to support older Python
+            # versions (which avoids the need to create an env just to create
+            # some envs...)
+            cmds = [
+                conda_frontend,
+                "env",
+                "create",
+                "-p",
+                env,
+                "--file",
+                yml,
+            ]
+            p = sp.Popen(cmds, universal_newlines=True, cwd=dest,)
+            p.wait()
+
+        except KeyboardInterrupt:
+
+            print("")
+            error("Killing running " + conda_frontend + ' job "' + " ".join(cmds) + '"')
+            p.kill()
+            sys.exit(1)
+
+        if p.returncode:
+            error("Error running " + conda_frontedn)
+            sys.exit(1)
+
+        info("Created env " + os.path.join(dest, env))
+
+
+if __name__ == "__main__":
+
+    ap = argparse.ArgumentParser(usage=usage)
+    ap.add_argument(
+        "--flavor",
+        default="full",
+        help="""Options are {0}. Default is full.""".format(list(flavors.keys())),
+    )
+    ap.add_argument(
+        "--dest", help="""Destination directory in which to copy files""", required=True
+    )
+    ap.add_argument(
+        "--staging",
+        help="""By default, we deploy from the location of this script. If
+        --staging is specified (e.g., /tmp/$USER-lcdb-wf), clone the main git
+        repo to that directory and do a diff on the deploy.py script found
+        there to ensure this one is up-to-date. Useful if using this script as
+        a standalone tool. Also use --branch to configure which branch to
+        deploy from that clone.""",
+    )
+
+    ap.add_argument(
+        "--branch",
+        help="Branch to checkout if using --staging to clone a temporary copy. Default is %(default)s.",
+        default="master",
+    )
+
+    ap.add_argument(
+        "--build-envs",
+        action="store_true",
+        help="""If specified, conda environments with all dependencies will be
+        installed into directories called "env" and "env-r" within the directory
+        provided for --dest.""",
+    )
+    ap.add_argument(
+        "--conda-frontend",
+        help="Set program (conda or mamba) to use when creating environments. Default is %(default)s.",
+        default="mamba",
+    )
+
+    args = ap.parse_args()
+    dest = args.dest
+    flavor = args.flavor
+
+    if args.staging:
+        source = args.staging
+        clone_repo(args.staging, args.branch)
+    else:
+        source = os.path.abspath(os.path.dirname(__file__))
+
+    include, exclude = write_file_list(source)
+    rsync(include, exclude, source, dest)
+    deployment_json(source, dest)
+
+    if args.build_envs:
+        build_envs(dest, conda_frontend=args.conda_frontend)
+
+    warning("Deployment complete in " + args.dest)
