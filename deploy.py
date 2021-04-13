@@ -15,8 +15,8 @@ import hashlib
 import sys
 
 logging.basicConfig(
-    format="%(asctime)s [%(module)s] %(levelname)s: %(message)s",
-    level=logging.INFO,
+    format="%(asctime)s [%(module)s] %(message)s",
+    level=logging.DEBUG,
     datefmt="%Y-%m-%dT%H:%M:%S",
 )
 
@@ -30,6 +30,8 @@ WHITE = "\x1b[97m"
 BLUE = "\x1b[34m"
 RESET = "\x1b[0m"
 
+def debug(s):
+    logging.debug(GRAY + s + RESET)
 
 def info(s):
     logging.info(GREEN + s + RESET)
@@ -179,8 +181,8 @@ def write_file_list(source):
         fout.write("\n\n")
         fout.write("\n".join(keep) + "\n")
 
-    info("List of files excluded: " + exclude)
-    info("List of files included: " + include)
+    debug("List of files excluded: " + exclude)
+    debug("List of files included: " + include)
 
     return include, exclude
 
@@ -308,16 +310,13 @@ if __name__ == "__main__":
         a standalone tool. Also use --branch to configure which branch to
         deploy from that clone.""",
     )
+
     ap.add_argument(
         "--branch",
         help="Branch to checkout if using --staging to clone a temporary copy. Default is %(default)s.",
         default="master",
     )
-    ap.add_argument(
-        "--keep-staging",
-        action="store_true",
-        help="""By default, when using --staging the cloned directory will be deleted. Use this argument to disable that behavior""",
-    )
+
     ap.add_argument(
         "--build-envs",
         action="store_true",
@@ -330,7 +329,6 @@ if __name__ == "__main__":
         help="Set program (conda or mamba) to use when creating environments. Default is %(default)s.",
         default="mamba",
     )
-    ap.add_argument("--verbose", "-v", action="store_true", help="""Verbose mode""")
 
     args = ap.parse_args()
     dest = args.dest
@@ -340,7 +338,7 @@ if __name__ == "__main__":
         source = args.staging
         clone_repo(args.staging, args.branch)
     else:
-        source = os.path.dirname(__file__)
+        source = os.path.abspath(os.path.dirname(__file__))
 
     include, exclude = write_file_list(source)
     rsync(include, exclude, source, dest)
@@ -348,3 +346,5 @@ if __name__ == "__main__":
 
     if args.build_envs:
         build_envs()
+
+    warning('Deployment complete in ' + args.dest)
