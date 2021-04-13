@@ -345,6 +345,6 @@ if __name__ == "__main__":
     deployment_json(source, dest)
 
     if args.build_envs:
-        build_envs()
+        build_envs(dest)
 
     warning('Deployment complete in ' + args.dest)
