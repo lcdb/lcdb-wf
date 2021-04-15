@@ -30,8 +30,10 @@ WHITE = "\x1b[97m"
 BLUE = "\x1b[34m"
 RESET = "\x1b[0m"
 
+
 def debug(s):
     logging.debug(GRAY + s + RESET)
+
 
 def info(s):
     logging.info(GREEN + s + RESET)
@@ -347,4 +349,4 @@ if __name__ == "__main__":
     if args.build_envs:
         build_envs(dest)
 
-    warning('Deployment complete in ' + args.dest)
+    warning("Deployment complete in " + args.dest)
