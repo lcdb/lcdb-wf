@@ -1,9 +1,16 @@
 #!/usr/bin/env python
 
-# NOTE: we're supporting Python 2 on purpose, since many distributions still
-# ship with it.
-
 import os
+import sys
+
+
+try:
+    from pathlib import Path
+except ImportError:
+    print("Need Python 3.6 or higher, aborting")
+    sys.exit(1)
+
+
 import tempfile
 import argparse
 import subprocess as sp
@@ -12,7 +19,6 @@ import json
 import fnmatch
 import logging
 import hashlib
-import sys
 
 logging.basicConfig(
     format="%(asctime)s [%(module)s] %(message)s",
@@ -46,6 +52,14 @@ def warning(s):
 def error(s):
     logging.error(RED + s + RESET)
 
+
+if sys.version_info.major < 3:
+    error("Need Python 3.6+, aborting")
+    sys.exit(1)
+
+elif sys.version_info.minor < 6:
+    error("Needs Python 3.6+, aborting")
+    sys.exit(1)
 
 usage = """
 This script assists in the deployment of lcdb-wf to working directories.
@@ -183,33 +197,40 @@ def write_file_list(source):
         fout.write("\n\n")
         fout.write("\n".join(keep) + "\n")
 
-    debug("List of files excluded: " + exclude)
-    debug("List of files included: " + include)
+    debug(f"List of files excluded: {exclude}")
+    debug(f"List of files included: {include}")
 
     return include, exclude
 
 
 def clone_repo(dest, branch="master"):
-    if os.path.exists(dest):
-        error("Path " + dest + " already exists, aborting!")
+
+    if Path(dest).exists():
+        error("Path {dest} already exists, aborting!")
         sys.exit(1)
+
     cmds = ["git", "clone", "https://github.com/lcdb/lcdb-wf.git", dest]
     sp.check_call(cmds)
     sp.check_call(["git", "checkout", branch], cwd=dest)
-    info("cloned to " + dest + ", using branch " + branch)
+    info(f"cloned to {dest} using branc {branch}")
 
     # check to see if this very file that is running is the same as the one
     # that was just cloned -- otherwise it's out of date.
 
-    this_md5 = hashlib.md5(open(__file__).read()).hexdigest()
-    that_md5 = hashlib.md5(open(os.path.join(dest, "deploy.py")).read()).hexdigest()
+    def check_md5(f):
+        contents = open(f).read()
+        contents = str(contents).encode("utf-8")
+        return hashlib.md5(contents).hexdigest()
+
+    this_md5 = check_md5(__file__)
+    that_md5 = check_md5(os.path.join(dest, "deploy.py"))
+
     if this_md5 != that_md5:
+        full_here = Path(__file__).resolve()
+        full_there = Path(dest) / "deploy.py"
         error(
-            "files "
-            + __file__
-            + " and "
-            + os.path.join(dest, "deploy.py")
-            + " do not match! The deploy script you are running appears to be out of date. "
+            f"files {full_here} and {full_there} do not match! "
+            "The deploy script you are running appears to be out of date. "
             "Please get an updated copy from https://github.com/lcdb/lcdb-wf, perhaps "
             "with 'wget https://raw.githubusercontent.com/lcdb/lcdb-wf/master/deploy.py'"
         )
@@ -246,14 +267,26 @@ def deployment_json(source, dest):
     now = datetime.datetime.strftime(datetime.datetime.now(), "%Y%m%d%H%M")
 
     # Where the remote was:
-    remotes = sp.check_output(
-        ["git", "remote", "-v"], universal_newlines=True, cwd=source
+    remotes = sp.run(
+        ["git", "remote", "-v"],
+        universal_newlines=True,
+        cwd=source,
+        check=True,
+        stdout=sp.PIPE,
+        stderr=sp.STDOUT,
     )
-    remotes = [i.strip() for i in remotes.splitlines()]
+    remotes = [i.strip() for i in remotes.stdout.splitlines()]
 
     # The branch we're deploying from:
-    branch = sp.check_output(["git", "branch"], universal_newlines=True, cwd=source)
-    branch = [i for i in branch.splitlines() if i.startswith("*")]
+    branch = sp.run(
+        ["git", "branch"],
+        universal_newlines=True,
+        cwd=source,
+        check=True,
+        stdout=sp.PIPE,
+        stderr=sp.STDOUT,
+    )
+    branch = [i for i in branch.stdout.splitlines() if i.startswith("*")]
     assert len(branch) == 1
     branch = branch[0]
     branch = branch.split("* ")[1]
@@ -267,13 +300,13 @@ def deployment_json(source, dest):
         },
         "timestamp": now,
     }
-    log = os.path.join(dest, ".lcdb-wf-deployment.json")
+    log = Path(dest) / ".lcdb-wf-deployment.json"
 
     with open(log, "w") as fout:
         fout.write(json.dumps(d) + "\n")
     os.chmod(log, 0o440)
 
-    info("Wrote details of deployment to " + log)
+    info(f"Wrote details of deployment to {log}")
 
 
 def build_envs(dest, conda_frontend="mamba"):
@@ -303,9 +336,8 @@ def build_envs(dest, conda_frontend="mamba"):
             # doing threaded things. So we use Popen explicitly to capture the
             # process ID so it can be killed if the user hits ^C.
             #
-            # Note we're not using sp.run in order to support older Python
-            # versions (which avoids the need to create an env just to create
-            # some envs...)
+            # Here we use Popen directly in order to get the process ID so that
+            # it can be explictly kill upon KeyboardInterrupt.
             cmds = [
                 conda_frontend,
                 "env",
@@ -315,21 +347,21 @@ def build_envs(dest, conda_frontend="mamba"):
                 "--file",
                 yml,
             ]
-            p = sp.Popen(cmds, universal_newlines=True, cwd=dest,)
+            p = sp.Popen(cmds, universal_newlines=True, cwd=dest)
             p.wait()
 
         except KeyboardInterrupt:
-
             print("")
-            error("Killing running " + conda_frontend + ' job "' + " ".join(cmds) + '"')
+            error(f"Killing running {conda_frontend} job, '" + " ".join(cmds))
             p.kill()
             sys.exit(1)
 
         if p.returncode:
-            error("Error running " + conda_frontedn)
+            error(f"Error running {conda_frontend}, '" + " ".join(cmds))
             sys.exit(1)
 
-        info("Created env " + os.path.join(dest, env))
+        full_env = Path(dest) / env
+        info(f"Created env {full_env}")
 
 
 if __name__ == "__main__":
@@ -380,7 +412,7 @@ if __name__ == "__main__":
         source = args.staging
         clone_repo(args.staging, args.branch)
     else:
-        source = os.path.abspath(os.path.dirname(__file__))
+        source = Path(__file__).parent.resolve()
 
     include, exclude = write_file_list(source)
     rsync(include, exclude, source, dest)
@@ -389,4 +421,4 @@ if __name__ == "__main__":
     if args.build_envs:
         build_envs(dest, conda_frontend=args.conda_frontend)
 
-    warning("Deployment complete in " + args.dest)
+    warning(f"Deployment complete in {args.dest}")
