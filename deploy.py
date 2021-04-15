@@ -214,7 +214,7 @@ def clone_repo(dest, branch="master"):
     cmds = ["git", "clone", URL, dest]
     sp.check_call(cmds)
     sp.check_call(["git", "checkout", branch], cwd=dest)
-    info(f"cloned to {dest} and will deploy using branch '{branch}'")
+    info(f"Cloned to {dest} and will deploy using branch '{branch}'")
 
     # check to see if this very file that is running is the same as the one
     # that was just cloned -- otherwise it's out of date.
@@ -231,7 +231,7 @@ def clone_repo(dest, branch="master"):
         full_here = Path(__file__).resolve()
         full_there = Path(dest) / "deploy.py"
         error(
-            f"files {full_here} and {full_there} do not match! "
+            f"Files {full_here} and {full_there} do not match! "
             "The deploy script you are running appears to be out of date. "
             "Please get an updated copy from https://github.com/lcdb/lcdb-wf, perhaps "
             "with 'wget https://raw.githubusercontent.com/lcdb/lcdb-wf/master/deploy.py'"
