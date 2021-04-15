@@ -27,7 +27,7 @@ Setting up a project
 
 The general steps to use lcdb-wf in a new project are:
 
-1. **Deploy:** run ``deploy.py`` from a clone of the lcdb-wf repository
+1. **Deploy:** download and run ``deploy.py``
 2. **Configure:** set up samples table for experiments and edit configuration file
 3. **Run:** activate environment and run the Snakemake file either locally or on a cluster
 
@@ -48,10 +48,39 @@ This script also writes a file to the destination called
 commit was used to deploy it. This tracks provenance of the code, so you can
 always figure out what lcdb-wf commit your deployment originally started from.
 
-To deploy a copy, you first need to get a copy. It is recommended that this
-copy be stored in a temporary location and cleaned up afterwards.
+There are a few ways of doing this.
 
-Clone a repo using git:
+Option 1: Download and run the deployment script
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Note that you will not be able to run tests with this method, but it is likely
+the most conveient method.
+
+.. code-block:: bash
+
+    BRANCH=master  # optionally change branch
+    wget https://raw.githubusercontent.com/lcdb/lcdb-wf/$BRANCH/deploy.py
+
+Run ``python deploy.py -h`` to see help. Be sure to use the ``--staging`` and
+``--branch=$BRANCH`` arguments when using this method, which will clone the
+repository to a location of your choosing. Once you deploy you can remove it. For example:
+
+.. code-block:: bash
+
+    python deploy.py \
+      --dest analysis/project \
+      --staging /tmp/lcdb-wf-tmp \
+      --branch master \
+      --flavor rnaseq \
+      --build-envs
+
+    # You can clean up the cloned copy if you want:
+    # rm -rf /tmp/lcdb-wf-tmp
+
+Option 2: Clone repo manually
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Clone a repo using git and check out the branch. Use this method for running
+tests):
 
 .. code-block:: bash
 
@@ -60,15 +89,15 @@ Clone a repo using git:
    cd /tmp/lcdb-wf
    git checkout $BRANCH
 
-No git? Download a zip file:
+Then run the deploy script, ``python deploy.py -h`` to see usage info. Here is
+an example for RNA-seq:
 
 .. code-block:: bash
 
-   BRANCH=master  # optionally change branch
-   wget https://github.com/lcdb/lcdb-wf/archive/$BRANCH.zip
-   unzip $BRANCH.zip -d /tmp/lcdb-wf
-   cd /tmp/lcdb-wf/lcdb-wf-$BRANCH
-
+    python deploy.py \
+      --dest analysis/project \
+      --flavor rnaseq \
+      --build-envs
 
 .. note::
 
@@ -76,26 +105,10 @@ No git? Download a zip file:
    :ref:`running-the-tests` for details, and then come back here to deploy for
    an actual project.
 
-Now that you have a copy of the code, you can deploy it to your project
-directory. Run the deploy script in the newly cloned/updated repo. For help,
-use ``-h``:
 
-.. code-block:: bash
+.. note::
 
-   python deploy.py -h
-
-For example, to deploy the RNA-seq workflow to the ``myproj`` directory and
-build the conda environments:
-
-.. code-block:: bash
-
-   python deploy.py --flavor rnaseq --dest myproj --build-envs
-
-Copying over the files is fast; building the conda environments may take a few
-minutes.See :ref:`conda-envs` for more details on the conda envs.
-
-After the deployment is complete, you can remove the temporary copy (e.g.,
-``/tmp/lcdb-wf`` in the examples above).
+    See :ref:`conda-envs` for more details on the conda environment building.
 
 2. Configure
 ------------
@@ -110,7 +123,8 @@ will take some time to understand the configuration system.
 3. Run
 ------
 
-Activate the main environment, go to the workflow you want to run, for example:
+Activate the main environment and go to the workflow you want to run. For
+example if you have deployed and configured an RNA-seq run, then do:
 
 .. code-block:: bash
 
@@ -126,7 +140,8 @@ and run the following:
 If all goes well, this should print a list of jobs to be run.
 
 You can run locally, but this is NOT recommended. To run locally, choose the
-number of CPUs you want to use.
+number of CPUs you want to use with the ``-j`` argument as is standard for
+Snakemake.
 
 .. warning::
 
