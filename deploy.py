@@ -277,19 +277,59 @@ def deployment_json(source, dest):
 
 
 def build_envs(dest, conda_frontend="mamba"):
-    sp.check_call(
-        [conda_frontend, "env", "create", "-p", "./env", "--file", "env.yml",],
-        universal_newlines=True,
-        cwd=dest,
-    )
-    info("Created env " + os.path.join(dest, "env"))
+    """
+    Build conda environments.
 
-    sp.check_call(
-        [conda_frontend, "env", "create", "-p", "./env-r", "--file", "env-r.yml",],
-        universal_newlines=True,
-        cwd=dest,
-    )
-    info("Created env " + os.path.join(dest, "env-r"))
+    Parameters
+    ----------
+
+    dest : str
+        Destination path. This is the project directory (likely as specified on
+        the command line with --dest) in which the env and env-r yaml files
+        should already exist. Envs will be created in here.
+
+    conda_frontend : 'mamba' | 'conda'
+        Which front-end to use (terminology borrowed from Snakemake)
+    """
+    mapping = [
+        ("./env", "env.yml"),
+        ("./env-r", "env-r.yml"),
+    ]
+    for env, yml in mapping:
+        info("Building environment " + os.path.join(dest, env))
+
+        try:
+            # conda and mamba can be hard to kill, possibly because they're
+            # doing threaded things. So we use Popen explicitly to capture the
+            # process ID so it can be killed if the user hits ^C.
+            #
+            # Note we're not using sp.run in order to support older Python
+            # versions (which avoids the need to create an env just to create
+            # some envs...)
+            cmds = [
+                conda_frontend,
+                "env",
+                "create",
+                "-p",
+                env,
+                "--file",
+                yml,
+            ]
+            p = sp.Popen(cmds, universal_newlines=True, cwd=dest,)
+            p.wait()
+
+        except KeyboardInterrupt:
+
+            print("")
+            error("Killing running " + conda_frontend + ' job "' + " ".join(cmds) + '"')
+            p.kill()
+            sys.exit(1)
+
+        if p.returncode:
+            error("Error running " + conda_frontedn)
+            sys.exit(1)
+
+        info("Created env " + os.path.join(dest, env))
 
 
 if __name__ == "__main__":
@@ -347,6 +387,6 @@ if __name__ == "__main__":
     deployment_json(source, dest)
 
     if args.build_envs:
-        build_envs(dest)
+        build_envs(dest, conda_frontend=args.conda_frontend)
 
     warning("Deployment complete in " + args.dest)
