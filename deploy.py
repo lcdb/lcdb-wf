@@ -108,7 +108,7 @@ always = {
         "/workflows/rnaseq/downstream/rnaseq_cache",
         "/workflows/rnaseq/downstream/rnaseq_files",
         "/workflows/rnaseq/downstream/*.tsv*",
-        "/workflows/*/run_test.sh",
+        "/workflows/*/run*_test.sh",
         "/workflows/*/run_downstream_test.sh",
         "/workflows/*/Snakefile.test",
         "/workflows/*/.snakemake",
