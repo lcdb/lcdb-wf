@@ -209,10 +209,12 @@ def clone_repo(dest, branch="master"):
         error("Path {dest} already exists, aborting!")
         sys.exit(1)
 
-    cmds = ["git", "clone", "https://github.com/lcdb/lcdb-wf.git", dest]
+    URL = "https://github.com/lcdb/lcdb-wf.git"
+    info(f"cloning {URL} to {dest}")
+    cmds = ["git", "clone", URL, dest]
     sp.check_call(cmds)
     sp.check_call(["git", "checkout", branch], cwd=dest)
-    info(f"cloned to {dest} using branc {branch}")
+    info(f"cloned to {dest} and will deploy using branch '{branch}'")
 
     # check to see if this very file that is running is the same as the one
     # that was just cloned -- otherwise it's out of date.
