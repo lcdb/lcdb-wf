@@ -38,9 +38,14 @@ patterns_by_sample:
   multibigwigsummary:
     npz: 'data/chipseq_aggregation/deeptools/multibigwigsummary_matrix.npz'
     tab: 'data/chipseq_aggregation/deeptools/multibigwigsummary.tab'
+
   plotcorrelation:
     tab: 'data/chipseq_aggregation/deeptools/plotcorrelation.tab'
     heatmap: 'data/chipseq_aggregation/deeptools/correlation_heatmap.png'
+
+  collectinsertsizemetrics:
+    pdf: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.collectinsertsizemetrics.pdf'
+    metrics: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.collectinsertsizemetrics.metrics'
 
 patterns_by_peaks:
   peaks:
