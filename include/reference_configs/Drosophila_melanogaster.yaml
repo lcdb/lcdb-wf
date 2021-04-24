@@ -40,6 +40,7 @@ references:
       transcriptome:
         indexes:
           - 'salmon'
+          - 'kallisto'
 
     # Note: the mappings from r6.23 still work well for r6.28.
     r6-28:
@@ -70,3 +71,4 @@ references:
       transcriptome:
         indexes:
           - 'salmon'
+          - 'kallisto'

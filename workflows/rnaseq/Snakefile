@@ -60,6 +60,7 @@ final_targets = utils.flatten((
     utils.flatten(c.targets['featurecounts']),
     utils.flatten(c.targets['markduplicates']),
     utils.flatten(c.targets['salmon']),
+    utils.flatten(c.targets['kallisto']),
     utils.flatten(c.targets['preseq']),
     utils.flatten(c.targets['rseqc']),
     utils.flatten(c.targets['collectrnaseqmetrics']),
@@ -869,6 +870,69 @@ rule salmon:
                 '&> {log}'
             )
 
+rule kallisto:
+    """
+    Quantify reads coming from transcripts with Kallisto
+    """
+    input:
+        fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+        index=c.refdict[c.organism][config['kallisto']['tag']]['kallisto'],
+    output:
+        c.patterns['kallisto']
+    params:
+        index_dir=os.path.dirname(c.refdict[c.organism][config['kallisto']['tag']]['kallisto']),
+        outdir=os.path.dirname(c.patterns['kallisto'])
+    log:
+        c.patterns['kallisto'] + '.log'
+    run:
+        paired = len(input.fastq) == 2
+        if paired:
+            shell(
+                # NOTE: adjust Kallisto params as needed
+                'kallisto quant '
+                '--index {input.index} '
+                '--output-dir {params.outdir} '
+                '--threads {threads} '
+
+                # NOTE: --bootstrap-samples
+                '--bootstrap-samples 100 '
+
+                # NOTE: Perform sequence based bias correction. Learns parameters for a model of sequences
+                # specific bias and corrects the abundances accordlingly.
+                '--bias '
+
+                # NOTE: there is also --fr-stranded runs kallisto in strand specific mode, 
+                # only fragments where the first read in the pair pseudoaligns to the forward strand 
+                # of a transcript are processed. If a fragment pseudoaligns to multiple transcripts, 
+                # only the transcripts that are consistent with the first read are kept.
+                '{input.fastq[0]} '
+                '{input.fastq[1]} '
+                '&> {log}'
+            )
+        else:
+            shell(
+                # NOTE: adjust Kallisto params as needed
+                'kallisto quant '
+                '--index {input.index} '
+                '--output-dir {params.outdir} '
+                '--threads {threads} '
+
+                # NOTE: --bootstrap-samples
+                '--bootstrap-samples 100 '
+
+                # NOTE: Perform sequence based bias correction. Learns parameters for a model of sequences
+                # specific bias and corrects the abundances accordlingly.
+                '--bias '
+                '--single '
+                '-l 75 '
+                '-s 5 '
+                # NOTE: there is also --fr-stranded runs kallisto in strand specific mode, 
+                # only fragments where the first read in the pair pseudoaligns to the forward strand 
+                # of a transcript are processed. If a fragment pseudoaligns to multiple transcripts, 
+                # only the transcripts that are consistent with the first read are kept.
+                '{input.fastq[0]} '
+                '&> {log}'
+            )
 
 rule rseqc_infer_experiment:
     """

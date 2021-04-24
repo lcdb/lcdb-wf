@@ -13,6 +13,7 @@ gffutils
 hisat2
 intervalstats
 ipython
+kallisto
 multiqc
 pandas
 pandoc

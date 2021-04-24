@@ -24,6 +24,7 @@ references:
       transcriptome:
         indexes:
           - 'salmon'
+          - 'kallisto'
 
     rRNA:
       genome:
