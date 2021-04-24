@@ -4,9 +4,11 @@ bioconductor-biocparallel
 bioconductor-clusterprofiler
 bioconductor-degreport
 bioconductor-deseq2
+bioconductor-do.db=2.9=r40hdfd78af_10
 bioconductor-dupradar
 bioconductor-genomeinfodbdata
 bioconductor-genomicfeatures
+bioconductor-rhdf5
 bioconductor-ihw
 bioconductor-reactomepa
 bioconductor-s4vectors
