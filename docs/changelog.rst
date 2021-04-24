@@ -1,6 +1,51 @@
 Changelog
 =========
 
+v1.8
+----
+
+General
+~~~~~~~
+
+Complete shift to using pinned env.yaml files to specify conda environments,
+which is now reflected in documentation and ``deploy.py``.
+
+Reorganization of the ``include`` directory
+
+The ``lib.helpers.preflight`` function no requires the first column of the
+sampletable to be named `sampletable` when checking configs.
+
+Improvements to the deployment script:
+
+- now requires Python >3.6
+- colored output
+- proper logs (so you can easily see how long it takes to build an env)
+- ability to download and run the script directly, clone a temporary copy, and
+  deploy from there
+- using Control-C to stop the deployment will also stop mamba/conda
+- mamba is used by default, but ``--conda-frontend`` will use conda instead
+
+fastq-dump log is sent to file rather than printed to stdout
+
+cutadapt single-end uses specified threads (it was using 1 thread by default)
+
+use 6 threads for fastqc
+
+
+
+References
+~~~~~~~~~~
+
+When checking URLs in reference configs, don't use ``curl`` to check ``file://`` URIs.
+
+There is a new feature for reference configs that allows chaining
+post-processing functions together, see :ref:`advanced-preprocessing`. This
+means that it is possible, for example, to add ERCC spike-ins (which need
+post-processing) onto references that themselves need post-processing.
+
+``lib/postprocess/ercc.py`` has new helper functions for adding ERCC spike-ins
+to fasta files and GTF files.
+
 v1.7
 ----
 
@@ -14,7 +59,7 @@ Testing
 
 - We now recommend using `mamba <https://github.com/mamba-org/mamba>`_ to
   create conda environments. This is dramatically faster and solves some
-  depencency issues. Our automated tests now use this.
+  dependency issues. Our automated tests now use this.
 
 - We have moved from requirements.txt files to env.yaml files. We also now
   encourage the use of the strictly-pinned environments for a more stable
@@ -38,10 +83,6 @@ References
   `Schizosaccharomyces_pombe.yaml`` reference config has been updated
   accordingly.
 
-- add ``bed12`` and ``refflat`` conversions to included references
-
-- additional ERCC post-processing functions to make it easier to add ERCC
-  spike-ins to fasta and GTF files.
 
 - The references workflow no longer reads the config file in its directory.
   This fixes some subtle overwriting issues when providing config files or
@@ -55,7 +96,6 @@ RNA-seq
 - featureCounts now uses BAM files with duplicates marked. Previously if you
   wanted to run featureCounts in a mode where it excluded duplicates you would
   need to reconfigure rules.
-
 
 - improved comments in RNA-seq downstream RMarkdown files
 

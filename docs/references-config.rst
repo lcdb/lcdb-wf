@@ -370,6 +370,8 @@ chromosome names.  In this way, we can apply arbitrary code to modify
 references to get them into a uniform format.
 
 
+.. _advanced-postprocessing:
+
 More advanced postprocessing
 ----------------------------
 
