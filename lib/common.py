@@ -429,6 +429,7 @@ def references_dict(config):
         # In order to support both, we use a filename found in common between
         # the version.
         'salmon': '/versionInfo.json',
+        'kallisto': '/transcripts.idx',
     }
 
     conversion_extensions = {

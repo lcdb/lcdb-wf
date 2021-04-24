@@ -20,7 +20,10 @@ gtf:
   tag: "test"
 
 salmon:
-  tag: "test"
+  tag: "gencode-v28"
+
+kallisto:
+  tag: "gencode-v28"
 
 fastq_screen:
   - label: rRNA
