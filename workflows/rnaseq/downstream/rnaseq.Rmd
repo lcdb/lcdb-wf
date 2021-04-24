@@ -21,6 +21,8 @@ knitr::opts_chunk$set(
     message=FALSE,
     cache.extra_file_dep_1=file.info('../config/sampletable.tsv')$mtime,
     cache.extra_file_dep_2 = file.info('../data/rnaseq_aggregation/featurecounts.txt')$mtime
+    cache.extra_file_dep_2 = file.info('../data/rnaseq_samples/*/*.kallisto/abundance.tsv')$mtime,
+
 )
 ```
 
@@ -82,12 +84,13 @@ orgdb <- get.orgdb(
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#coldata_setup
 sample.table.filename <- '../config/sampletable.tsv'
 strip.dotted.version <- TRUE
-exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'orig_filename', 'orig_filename_R2')
+exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'kallisto.path', 'orig_filename', 'orig_filename_R2')
 salmon.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
 
 colData <- read.table(sample.table.filename, sep='\t', header=TRUE, stringsAsFactors=FALSE)
 
 colData$salmon.path <- sapply(colData$samplename, salmon.path.func)
+colData$kallisto.path <- sapply(colData$samplename, kallisto.path.func)
 
 factor.columns <- c('group')
 for (col in factor.columns){
@@ -109,17 +112,25 @@ knitr::kable(colData[, colnames(colData)[!colnames(colData) %in% exclude.for.pri
 ```{r salmon}
 # Load salmon quantification.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#salmon
-txi <- tximport(colData[, 'salmon.path'], type='salmon', txOut=TRUE)
-transcript.tpm <- txi$abundance
-colnames(transcript.tpm) <- colData$samplename
+salmon.txi <- tximport(colData[, 'salmon.path'], type='salmon', txOut=TRUE)
+salmon.tpm <- salmon.txi$abundance
+colnames(salmon.tpm) <- colData$samplename
 ```
 
-```{r ddstxi, cache=TRUE, eval=FALSE}
+```{r kallisto, cache=TRUE}
+# Load kallisto quantification.
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#kallisto
+kallisto.txi <- tximport(colData[, 'kallisto.path'], type='kallisto', txOut=TRUE)
+kallisto.tpm <- kallisto.txi$abundance
+colnames(kallisto.tpm) <- colData$samplename
+```
+
+```{r salmonddstxi, cache=TRUE, eval=FALSE}
 # Convert salmon quantification into transcript-level DESeq2 object, and do
 # variance-stabilizing transform.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#ddstxi
 
-dds.txi <- DESeqDataSetFromTximport(
+dds.salmon.txi <- DESeqDataSetFromTximport(
     txi, colData=colData[, -grepl('path', colnames(colData)), drop=FALSE],
     design=~group
 )
