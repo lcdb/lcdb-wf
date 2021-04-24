@@ -22,6 +22,9 @@ gtf:
 salmon:
   tag: "test"
 
+kallisto:
+  tag: "test"
+
 fastq_screen:
   - label: rRNA
     organism: dmel
