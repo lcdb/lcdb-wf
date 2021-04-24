@@ -85,7 +85,7 @@ tests):
 .. code-block:: bash
 
    BRANCH=master  # optionally change branch
-   git clone git@github.com:lcdb/lcdb-wf.git /tmp/lcdb-wf
+   git clone https://github.com:lcdb/lcdb-wf /tmp/lcdb-wf
    cd /tmp/lcdb-wf
    git checkout $BRANCH
 
