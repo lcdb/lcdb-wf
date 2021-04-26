@@ -58,6 +58,15 @@ class SeqConfig(object):
         self.config = common.load_config(
             common.resolve_config(config, workdir))
 
+        stranded = self.config['stranded']
+
+        if stranded in ('unstranded'):
+            self.stranded = 'unstranded'
+        elif stranded in ('fr-firststrand', 'ISR', 'SR', 'reverse'):
+            self.stranded = 'fr-firststrand'
+        elif stranded in ('fr-secondstrand', 'ISF', 'SF', 'forward'):
+            self.stranded = 'fr-secondstrand'
+
         # Read the config file and extract all sort of useful bits. This mostly
         # uses the `common` module to handle the details.
         self.config['references_dir'] = common.get_references_dir(self.config)
