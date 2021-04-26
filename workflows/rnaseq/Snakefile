@@ -571,19 +571,23 @@ rule featurecounts:
         counts='{sample_dir}/rnaseq_aggregation/featurecounts.txt'
     log:
         '{sample_dir}/rnaseq_aggregation/featurecounts.txt.log'
-    threads: 4
+    threads: 8
     run:
         # NOTE: By default, we use -p for paired-end
         p_arg = ''
         if c.is_paired:
             p_arg = '-p '
+
+        strand_arg_lookup = {
+            'unstranded': '-s0 ',
+            'fr-firststrand': '-s2 ',
+            'fr-secondstrand': '-s1 ',
+        }
+        strand_arg = strand_arg_lookup[c.stranded]
+
         shell(
             'featureCounts '
-
-            # NOTE:
-            # Choose strandedness here (s0 is unstranded, s1 is sense, s2 is
-            # antisense)
-            '-s0 '
+            '{strand_arg} '
             '{p_arg} '
             '-T {threads} '
             '-a {input.annotation} '
@@ -781,25 +785,24 @@ rule collectrnaseqmetrics:
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     log:
         c.patterns['collectrnaseqmetrics']['metrics'] + '.log'
-    shell:
-        'picard '
-        '{params.java_args} '
-        'CollectRnaSeqMetrics '
-
-        # NOTE: Adjust strandedness appropriately. From the Picard docs:
-        #
-        #     STRAND=StrandSpecificity For strand-specific library prep. For
-        #     unpaired reads, use FIRST_READ_TRANSCRIPTION_STRAND if the reads
-        #     are expected to be on the transcription strand.  Required.
-        #     Possible values: {NONE, FIRST_READ_TRANSCRIPTION_STRAND,
-        #     SECOND_READ_TRANSCRIPTION_STRAND}
-        #
-        'STRAND=NONE '
-        'VALIDATION_STRINGENCY=LENIENT '
-        'REF_FLAT={input.refflat} '
-        'INPUT={input.bam} '
-        'OUTPUT={output.metrics} '
-        '&> {log}'
+    run:
+        strand_arg_lookup = {
+            'unstranded': 'STRAND=NONE ',
+            'fr-firststrand': 'STRAND=SECOND_READ_TRANSCRIPTION_STRAND ',
+            'fr-secondstrand': 'STRAND=FIRST_READ_TRANSCRIPTION_STRAND ',
+        }
+        strand_arg = strand_arg_lookup[c.stranded]
+        shell(
+            'picard '
+            '{params.java_args} '
+            'CollectRnaSeqMetrics '
+            '{strand_arg} '
+            'VALIDATION_STRINGENCY=LENIENT '
+            'REF_FLAT={input.refflat} '
+            'INPUT={input.bam} '
+            'OUTPUT={output.metrics} '
+            '&> {log}'
+        )
 
 
 rule preseq:
@@ -834,44 +837,27 @@ rule salmon:
     threads: 6
     run:
         if c.is_paired:
-            shell(
-                # NOTE: adjust Salmon params as needed
-                'salmon quant '
-                '--index {params.index_dir} '
-                '--output {params.outdir} '
-                '--threads {threads} '
-
-                # NOTE: --libType=A auto-detects library type. Change if needed.
-                '--libType=A '
-
-                # NOTE: Docs suggest using --gcBias, --validateMappings, and
-                # --seqBias is a good idea
-                '--gcBias '
-                '--seqBias '
-                '--validateMappings '
-                '-1 {input.fastq[0]} '
-                '-2 {input.fastq[1]} '
-                '&> {log}'
-            )
+            fastq_arg = '-1 {input.fastq[0]} -2 {input.fastq[1]} '
         else:
-            shell(
-                # NOTE: adjust Salmon params as needed
-                'salmon quant '
-                '--index {params.index_dir} '
-                '--output {params.outdir} '
-                '--threads {threads} '
+            fastq_arg = '-r {input.fastq} '
+        shell(
+            'salmon quant '
+            '--index {params.index_dir} '
+            '--output {params.outdir} '
+            '--threads {threads} '
 
-                # NOTE: --libType=A auto-detects library type. Change if needed.
-                '--libType=A '
+            # NOTE: --libType=A auto-detects library type. Change if needed.
+            '--libType=A '
 
-                # NOTE: Docs suggest using --gcBias, --validateMappings, and
-                # --seqBias is a good idea
-                '--gcBias '
-                '--seqBias '
-                '--validateMappings '
-                '-r {input.fastq} '
-                '&> {log}'
-            )
+            # NOTE: Docs suggest using --gcBias, --validateMappings, and
+            # --seqBias is a good idea
+            '--gcBias '
+            '--seqBias '
+            '--validateMappings '
+            '{fastq_arg} '
+            '&> {log}'
+        )
+
 
 rule kallisto:
     """
@@ -887,55 +873,38 @@ rule kallisto:
         outdir=os.path.dirname(c.patterns['kallisto'])
     log:
         c.patterns['kallisto'] + '.log'
+    threads:
+        8
     run:
-        paired = len(input.fastq) == 2
-        if paired:
-            shell(
-                # NOTE: adjust Kallisto params as needed
-                'kallisto quant '
-                '--index {input.index} '
-                '--output-dir {params.outdir} '
-                '--threads {threads} '
-
-                # NOTE: --bootstrap-samples
-                '--bootstrap-samples 100 '
-
-                # NOTE: Perform sequence based bias correction. Learns parameters for a model of sequences
-                # specific bias and corrects the abundances accordlingly.
-                '--bias '
-
-                # NOTE: there is also --fr-stranded runs kallisto in strand specific mode, 
-                # only fragments where the first read in the pair pseudoaligns to the forward strand 
-                # of a transcript are processed. If a fragment pseudoaligns to multiple transcripts, 
-                # only the transcripts that are consistent with the first read are kept.
-                '{input.fastq[0]} '
-                '{input.fastq[1]} '
-                '&> {log}'
-            )
+        if c.is_paired:
+            se_args = ''
+            assert len(input.fastq) == 2
         else:
-            shell(
-                # NOTE: adjust Kallisto params as needed
-                'kallisto quant '
-                '--index {input.index} '
-                '--output-dir {params.outdir} '
-                '--threads {threads} '
+            # For single-end, add the experimentally-determined fragment length
+            # and standard deviation here
+            se_args = '--single --fragment-length 300 --sd 20 '
+            assert len(input.fastq) == 1
 
-                # NOTE: --bootstrap-samples
-                '--bootstrap-samples 100 '
+        strand_arg_lookup = {
+            'unstranded': '',
+            'fr-firststrand': '--rf-stranded',
+            'fr-secondstrand': '--rf-stranded',
+        }
+        strand_arg = strand_arg_lookup[c.stranded]
 
-                # NOTE: Perform sequence based bias correction. Learns parameters for a model of sequences
-                # specific bias and corrects the abundances accordlingly.
-                '--bias '
-                '--single '
-                '-l 75 '
-                '-s 5 '
-                # NOTE: there is also --fr-stranded runs kallisto in strand specific mode, 
-                # only fragments where the first read in the pair pseudoaligns to the forward strand 
-                # of a transcript are processed. If a fragment pseudoaligns to multiple transcripts, 
-                # only the transcripts that are consistent with the first read are kept.
-                '{input.fastq[0]} '
-                '&> {log}'
-            )
+        shell(
+            'kallisto quant '
+            '--index {input.index} '
+            '--output-dir {params.outdir} '
+            '--threads {threads} '
+            '--bootstrap-samples 100 '
+            '--bias '
+            '--threads {threads} '
+            '{se_args} '
+            '{strand_arg} '
+            '{input.fastq} '
+            '&> {log}'
+        )
 
 rule rseqc_infer_experiment:
     """
@@ -950,7 +919,7 @@ rule rseqc_infer_experiment:
         c.patterns['rseqc']['infer_experiment'] + '.log'
 
     shell:
-        'infer_experiment.py -r {input.bed12} -i {input.bam} > {output} &> {log}'
+        'infer_experiment.py -r {input.bed12} -i {input.bam} --sample-size 10000 > {output} &> {log}'
 
 rule rseqc_read_distribution:
     """
@@ -966,6 +935,14 @@ rule rseqc_read_distribution:
     shell:
         'read_distribution.py -i {input.bam} -r {input.bed12} > {output} &> {log}'
 
+
+# Common arguments used for bamCoverage rules below
+BAMCOVERAGE_ARGS = (
+    '--minMappingQuality 20 '  # excludes multimappers
+    '--smoothLength 10 '       # smooth signal with specified window
+    '--normalizeUsing BPM '    # equivalent to TPM
+)
+
 rule bigwig_neg:
     """
     Create a bigwig for negative-strand reads
@@ -977,23 +954,22 @@ rule bigwig_neg:
     threads: 8
     log:
         c.patterns['bigwig']['neg'] + '.log'
-    shell:
-        # NOTE: adjust bamCoverage params as needed
-        # Make sure the bigwig_pos rule below reflects the same changes.
-        'bamCoverage '
-        '--bam {input.bam} '
-        '-o {output} '
-        '-p {threads} '
-        '--minMappingQuality 20 '
-        '--ignoreDuplicates '
-        '--smoothLength 10 '
-
-        # NOTE: --filterRNAstrand forward keeps minus-strand reads, which
-        # originally came from genes on the forward strand assuming
-        # a dUTP-based library prep.
-        '--filterRNAstrand forward '
-        '--normalizeUsing BPM '
-        '&> {log}'
+    run:
+        strand_arg_lookup =  {
+            'unstranded': '',
+            'fr-firststrand': '--filterRNAstrand reverse ',
+            'fr-secondstrand': '--filterRNAstrand forward ',
+        }
+        strand_arg = strand_arg_lookup[c.stranded]
+        shell(
+            'bamCoverage '
+            '--bam {input.bam} '
+            '-o {output} '
+            '-p {threads} '
+            '{BAMCOVERAGE_ARGS} '
+            '{strand_arg} '
+            '&> {log}'
+        )
 
 
 rule bigwig_pos:
@@ -1007,23 +983,23 @@ rule bigwig_pos:
     threads: 8
     log:
         c.patterns['bigwig']['pos'] + '.log'
-    shell:
-        # NOTE: adjust bamCoverage params as needed
-        # Make sure the bigwig_neg rule above reflects the same changes.
-        'bamCoverage '
-        '--bam {input.bam} '
-        '-o {output} '
-        '-p {threads} '
-        '--minMappingQuality 20 '
-        '--ignoreDuplicates '
-        '--smoothLength 10 '
 
-        # NOTE: --filterRNAstrand reverse keeps plus-strand reads, which
-        # originally came from genes on the reverse strand assuming
-        # a dUTP-based library prep.
-        '--filterRNAstrand reverse '
-        '--normalizeUsing BPM '
-        '&> {log}'
+    run:
+        strand_arg_lookup =  {
+            'unstranded': '',
+            'fr-firststrand': '--filterRNAstrand forward ',
+            'fr-secondstrand': '--filterRNAstrand reverse ',
+        }
+        strand_arg = strand_arg_lookup[c.stranded]
+        shell(
+            'bamCoverage '
+            '--bam {input.bam} '
+            '-o {output} '
+            '-p {threads} '
+            '{BAMCOVERAGE_ARGS} '
+            '{strand_arg} '
+            '&> {log}'
+        )
 
 
 def bigwigs_to_merge(wc):
