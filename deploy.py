@@ -239,11 +239,11 @@ def clone_repo(dest, branch="master"):
         sys.exit(1)
 
 
-def rsync(include, exclude, source, dest):
+def rsync(include, exclude, source, dest, rsync_args):
     rsync = [
         "rsync",
         "--relative",
-        "-ar",
+        rsync_args,
         "--files-from={}".format(include),
         "--exclude-from={}".format(exclude),
         source,
@@ -405,6 +405,11 @@ if __name__ == "__main__":
         help="Set program (conda or mamba) to use when creating environments. Default is %(default)s.",
         default="mamba",
     )
+    ap.add_argument(
+        "--rsync-args",
+        help="Options for rsync when deploying to a new directory. Default is %(default)s.",
+        default="-rlt"
+    )
 
     args = ap.parse_args()
     dest = args.dest
@@ -417,7 +422,7 @@ if __name__ == "__main__":
         source = Path(__file__).parent.resolve()
 
     include, exclude = write_file_list(source)
-    rsync(include, exclude, source, dest)
+    rsync(include, exclude, source, dest, args.rsync_args)
     deployment_json(source, dest)
 
     if args.build_envs:
