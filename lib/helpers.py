@@ -166,6 +166,13 @@ def preflight(config):
     if "orig_filename" in sampletable.columns:
         check_unique_fn(sampletable)
 
+
+def strand_arg_lookup(config, lookup):
+    """
+    Given a config object and lookup dictionary, confirm that the config has
+    correctly specified strandedness and then return the value for that key.
+    """
+
     if "stranded" not in config:
         raise ConfigurationError(
             "Starting in v1.8, 'stranded' is required in the config file. "
@@ -174,4 +181,8 @@ def preflight(config):
             "run the workflow with only the 'strand_check' rule, like "
             "'snakemake -j 5 strand_check'."
         )
+    if config.stranded not in lookup:
+        keys = list(lookup.keys())
+        raise KeyError(f"'{c.stranded}' not one of {keys}")
+    return lookup[c.stranded]
 

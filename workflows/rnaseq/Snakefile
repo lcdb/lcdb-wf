@@ -44,6 +44,7 @@ wildcard_constraints:
 def wrapper_for(path):
     return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
 
+
 # ----------------------------------------------------------------------------
 # RULES
 # ----------------------------------------------------------------------------
@@ -578,12 +579,13 @@ rule featurecounts:
         if c.is_paired:
             p_arg = '-p '
 
-        strand_arg_lookup = {
-            'unstranded': '-s0 ',
-            'fr-firststrand': '-s2 ',
-            'fr-secondstrand': '-s1 ',
-        }
-        strand_arg = strand_arg_lookup[c.stranded]
+        strand_arg = helpers.strand_arg_lookup(
+            c, {
+                'unstranded': '-s0 ',
+                'fr-firststrand': '-s2 ',
+                'fr-secondstrand': '-s1 ',
+            }
+        )
 
         shell(
             'featureCounts '
@@ -786,12 +788,13 @@ rule collectrnaseqmetrics:
     log:
         c.patterns['collectrnaseqmetrics']['metrics'] + '.log'
     run:
-        strand_arg_lookup = {
-            'unstranded': 'STRAND=NONE ',
-            'fr-firststrand': 'STRAND=SECOND_READ_TRANSCRIPTION_STRAND ',
-            'fr-secondstrand': 'STRAND=FIRST_READ_TRANSCRIPTION_STRAND ',
-        }
-        strand_arg = strand_arg_lookup[c.stranded]
+        strand_arg = helpers.strand_arg_lookup(
+            c, {
+                'unstranded': 'STRAND=NONE ',
+                'fr-firststrand': 'STRAND=SECOND_READ_TRANSCRIPTION_STRAND ',
+                'fr-secondstrand': 'STRAND=FIRST_READ_TRANSCRIPTION_STRAND ',
+            }
+        )
         shell(
             'picard '
             '{params.java_args} '
@@ -885,12 +888,13 @@ rule kallisto:
             se_args = '--single --fragment-length 300 --sd 20 '
             assert len(input.fastq) == 1
 
-        strand_arg_lookup = {
-            'unstranded': '',
-            'fr-firststrand': '--rf-stranded',
-            'fr-secondstrand': '--rf-stranded',
-        }
-        strand_arg = strand_arg_lookup[c.stranded]
+        strand_arg = helpers.strand_arg_lookup(
+            c, {
+                'unstranded': '',
+                'fr-firststrand': '--rf-stranded',
+                'fr-secondstrand': '--rf-stranded',
+            }
+        )
 
         shell(
             'kallisto quant '
@@ -955,12 +959,13 @@ rule bigwig_neg:
     log:
         c.patterns['bigwig']['neg'] + '.log'
     run:
-        strand_arg_lookup =  {
-            'unstranded': '',
-            'fr-firststrand': '--filterRNAstrand reverse ',
-            'fr-secondstrand': '--filterRNAstrand forward ',
-        }
-        strand_arg = strand_arg_lookup[c.stranded]
+        strand_arg = helpers.strand_arg_lookup(
+            c, {
+                'unstranded': '',
+                'fr-firststrand': '--filterRNAstrand reverse ',
+                'fr-secondstrand': '--filterRNAstrand forward ',
+            }
+        )
         shell(
             'bamCoverage '
             '--bam {input.bam} '
@@ -985,12 +990,13 @@ rule bigwig_pos:
         c.patterns['bigwig']['pos'] + '.log'
 
     run:
-        strand_arg_lookup =  {
-            'unstranded': '',
-            'fr-firststrand': '--filterRNAstrand forward ',
-            'fr-secondstrand': '--filterRNAstrand reverse ',
-        }
-        strand_arg = strand_arg_lookup[c.stranded]
+        strand_arg = helpers.strand_arg_lookup(
+            c, {
+                'unstranded': '',
+                'fr-firststrand': '--filterRNAstrand forward ',
+                'fr-secondstrand': '--filterRNAstrand reverse ',
+            }
+        )
         shell(
             'bamCoverage '
             '--bam {input.bam} '
