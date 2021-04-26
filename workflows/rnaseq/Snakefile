@@ -41,7 +41,6 @@ wildcard_constraints:
     sample = '|'.join(SAMPLES)
 
 
-
 def wrapper_for(path):
     return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
 
@@ -174,54 +173,58 @@ rule sample_strand_check:
         index=[c.refdict[c.organism][config['aligner']['tag']]['bowtie2']],
         bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12']
     output:
-        temporary('{sample}.strandedness')
+        strandedness=c.patterns['strand_check']['tsv'],
+        bam=temporary(c.patterns['strand_check']['bam']),
+        idx=temporary(c.patterns['strand_check']['bam'] + '.bai'),
+        fastqs=temporary(render_r1_r2(c.patterns['strand_check']['fastq'])),
+    log:
+        c.patterns['strand_check']['tsv'] + '.log'
     threads: 6
     run:
         prefix = aligners.prefix_from_bowtie2_index(input.index)
         nreads = int(config['strand_check_reads']) * 4
         if c.is_paired:
             assert len(input.fastq) == 2
-            shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output}.small_R1.fastq')
-            shell('set +o pipefail; zcat {input.fastq[1]} | head -n {nreads} > {output}.small_R2.fastq')
-            fastqs = f'-1 {output}.small_R1.fastq -2 {output}.small_R2.fastq '
+            assert len(output.fastqs) == 2
+            shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output.fastqs[0]}')
+            shell('set +o pipefail; zcat {input.fastq[1]} | head -n {nreads} > {output.fastqs[1]}')
+            fastqs = f'-1 {output.fastqs[0]} -1 {output.fastqs[1]} '
         else:
             assert len(input.fastq) == 1
-            shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output}.small_R1.fastq')
-            fastqs = f'-U {output}.small_R1.fastq '
+            assert len(output.fastqs) == 1
+            shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output.fastqs[0]}')
+            fastqs = f'-U {output.fastqs[0]} '
         shell(
             "bowtie2 "
             "-x {prefix} "
             "{fastqs} "
             '--no-unal '
-            "--threads {threads} "
+            "--threads {threads} 2> {log} "
             "| samtools view -Sb - "
-            "| samtools sort - -o {output}.bam "
+            "| samtools sort - -o {output.bam} "
         )
+        shell("samtools index {output.bam}")
         shell(
-            'infer_experiment.py -r {input.bed12} -i {output}.bam > {output} '
-            '&& rm {output}.bam {output}.small_R?.fastq'
+            'infer_experiment.py -r {input.bed12} -i {output.bam} > {output} 2> {log}'
         )
 
 rule strand_check:
     input:
-        expand('{sample}.strandedness', sample=SAMPLES)
+        expand(c.patterns['strand_check']['tsv'], sample=SAMPLES)
     output:
-        'strandedness.tsv'
+        'strand_check/strandedness.html'
+    log:
+        'strand_check/strandedness.log'
     run:
-        ds = []
-        for f in list(input):
-            d = {}
-            sample = f.split('.')[0]
-            d['sample'] = sample
-            for line in open(f):
-                line = line.strip()
-                toks = line.split(': ')
-                if 'explained by' in line:
-                    d[toks[0].split()[-1].replace('"', '')] = toks[-1]
-                if 'failed to determine' in line:
-                    d['undetermined'] = toks[-1]
-            ds.append(d)
-        pd.DataFrame(ds).to_csv(output[0], sep='\t', index=False)
+        with open(output[0] + '.tmp', 'w') as fout:
+            for i in  input:
+                fout.write(i + '\n')
+        shell(
+            'multiqc '
+            '--module rseqc '
+            '--file-list {output}.tmp '
+            '--filename {output} &> {log}'
+        )
 
 
 rule cutadapt:
