@@ -165,3 +165,13 @@ def preflight(config):
     check_unique_samplename(sampletable)
     if "orig_filename" in sampletable.columns:
         check_unique_fn(sampletable)
+
+    if "stranded" not in config:
+        raise ConfigurationError(
+            "Starting in v1.8, 'stranded' is required in the config file. "
+            "Values can be 'unstranded', 'fr-firststrand' (R1 aligns antisense to original transcript), "
+            "or 'fr-secondstrand' (R1 aligns sense to original transcript). If you are not sure, "
+            "run the workflow with only the 'strand_check' rule, like "
+            "'snakemake -j 5 strand_check'."
+        )
+
