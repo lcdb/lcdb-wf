@@ -1,3 +1,7 @@
+strand_check:
+  fastq: 'strand_check/{sample}/{sample}_R{n}.strandedness.fastq'
+  bam: 'strand_check/{sample}/{sample}.strandedness.bam'
+  tsv: 'strand_check/{sample}/{sample}.strandedness'
 fastq: 'data/rnaseq_samples/{sample}/{sample}_R{n}.fastq.gz'
 cutadapt: 'data/rnaseq_samples/{sample}/{sample}_R{n}.cutadapt.fastq.gz'
 bam: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam'
@@ -26,7 +30,7 @@ collectrnaseqmetrics:
    metrics: 'data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.metrics'
 preseq: 'data/rnaseq_samples/{sample}/{sample}_preseq_c_curve.txt'
 salmon: 'data/rnaseq_samples/{sample}/{sample}.salmon/quant.sf'
-kallisto: 'data/rnaseq_samples/{sample}/{sample}.kallisto/abundance.tsv'
+kallisto: 'data/rnaseq_samples/{sample}/{sample}.kallisto/abundance.h5'
 rseqc:
    infer_experiment: 'data/rnaseq_samples/{sample}/rseqc/{sample}_infer_experiment.txt'
    read_distribution: 'data/rnaseq_samples/{sample}/rseqc/{sample}_read_distribution.txt'
