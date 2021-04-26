@@ -28,7 +28,13 @@ Running the full complex datasets
 Prior to a release, the complex datasets should be run. These do a more
 extensive job in testing the corner cases. This should be run on a cluster or
 a machine with substantial resources. The configs can be found in
-``include/test``.
+``include/test``. Here is how to run it using the WRAPPER_SLURM:
+
+.. code-block:: bash
+
+    sbatch ../../include/WRAPPER_SLURM \
+      --configfile ../../test/test_configs/complex-dataset-rnaseq-config.yaml \
+      --config sampletable=../../test/test_configs/complex-dataset-rnaseq-sampletable.tsv
 
 Module documentation
 --------------------
