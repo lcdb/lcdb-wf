@@ -7,49 +7,65 @@ v1.8
 General
 ~~~~~~~
 
-Complete shift to using pinned env.yaml files to specify conda environments,
-which is now reflected in documentation and ``deploy.py``.
+- Complete shift to using pinned ``env.yaml`` files to specify conda
+  environments, and using ``mamba`` for building environments (consistent with
+  recent versions of Snakemake). This is now reflected in documentation and
+  ``deploy.py``.
 
-Reorganization of the ``include`` directory
+- Reorganization/cleanup of the ``include`` directory
 
-The ``lib.helpers.preflight`` function no requires the first column of the
-sampletable to be named `sampletable` when checking configs.
+- The ``lib.helpers.preflight`` function no requires the first column of the
+  sampletable to be named `sampletable` when checking configs.
 
-Improvements to the deployment script:
+- Improvements to the deployment script:
 
-- now requires Python >3.6
-- colored output
-- proper logs (so you can easily see how long it takes to build an env)
-- ability to download and run the script directly, clone a temporary copy, and
-  deploy from there
-- using Control-C to stop the deployment will also stop mamba/conda
-- mamba is used by default, but ``--conda-frontend`` will use conda instead
+    - now requires Python >3.6
+    - colored output
+    - proper logs (so you can easily see how long it takes to build an env)
+    - ability to download and run the script directly, clone a temporary copy, and
+      deploy from there
+    - using Control-C to stop the deployment will also stop mamba/conda
+    - mamba is used by default, but ``--conda-frontend`` will use conda instead
 
-fastq-dump log is sent to file rather than printed to stdout
+- fastq-dump log is sent to file rather than printed to stdout
 
-cutadapt single-end uses specified threads (it was using 1 thread by default)
+- Threads: cutadapt single-end now uses specified threads (it was using
+  1 thread by default); use 6 threads for fastqc
 
-use 6 threads for fastqc
 
+RNA-seq
+~~~~~~~
+
+- *Configuration change:** The ``stranded:`` field is now required for RNA-seq.
+  This is used to choose the correct parameters for various rules, and avoids
+  one of the main reasons to edit the Snakefile. See :ref:`cfg-stranded` for
+  more details on its use.
+
+- The ``strand_check`` rule now runs MultiQC for a convenient way of evaluating
+  strandedness of a library.
+
+- Kallisto is now supported in both the RNA-seq Snakefile, references
+  Snakefile, and downstream ``rnaseq.Rmd``
 
 
 References
 ~~~~~~~~~~
 
-When checking URLs in reference configs, don't use ``curl`` to check ``file://`` URIs.
+- When checking URLs in reference configs, don't use ``curl`` to check
+  ``file://`` URIs.
 
-There is a new feature for reference configs that allows chaining
-post-processing functions together, see :ref:`advanced-preprocessing`. This
-means that it is possible, for example, to add ERCC spike-ins (which need
-post-processing) onto references that themselves need post-processing.
+- There is a new feature for reference configs that allows chaining
+  post-processing functions together, see :ref:`advanced-preprocessing`. This
+  means that it is possible, for example, to add ERCC spike-ins (which need
+  post-processing) onto references that themselves need post-processing.
 
-``lib/postprocess/ercc.py`` has new helper functions for adding ERCC spike-ins
-to fasta files and GTF files.
+- ``lib/postprocess/ercc.py`` has new helper functions for adding ERCC
+  spike-ins to fasta files and GTF files.
 
 v1.7
 ----
 
-Setup 
+Setup
 ~~~~~
 
 Use mamba for installation of environments, consistent with Snakemake recommendations
