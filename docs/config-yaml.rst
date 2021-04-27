@@ -32,6 +32,7 @@ Field                                                                           
 :ref:`sampletable <cfg-sampletable>`                                                        .                   yes              yes      always
 :ref:`organism <cfg-organism>`                                                              .                   yes              yes      always
 :ref:`aligner <cfg-aligner>`                                                                .                   yes              yes      always
+:ref:`stranded <cfg-stranded>`                                                              .                   yes              no       usually (see :ref:`stranded <cfg-stranded>`)
 :ref:`fastq_screen <cfg-fastq-screen>`                                                      .                   yes              yes      if using `fastq_screen`
 :ref:`merged_bigwigs <cfg-merged-bigwigs>`                                                  .                   yes              yes      if you want to merge bigwigs
 :ref:`gtf <cfg-gtf>`                                                                        .                   yes              .        always for RNA-seq
@@ -292,6 +293,59 @@ Required for RNA-seq and ChIP-seq
         aligner:
           tag: "gencode-v25"
           index: "hisat2"
+
+Required for RNA-seq
+~~~~~~~~~~~~~~~~~~~~
+
+.. _cfg-stranded:
+
+``stranded`` field
+``````````````````
+    This field specifies the strandedness of the library. This is used by
+    various rule to set the parameters correctly. For example,
+    ``featureCounts`` will use ``-s0``, ``-s1``, or ``-s2`` accordingly;
+    ``kallisto`` will use ``--fr-stranded`` if needed, and so on.
+
+    This field can take the following options:
+
+    =================== ===========
+    value               description
+    =================== ===========
+    ``unstranded``      The strand that R1 reads align to has no information about the strand of the gene.
+    ``fr-firststrand``  R1 reads from plus-strand genes align to the *minus* strand. Also called reverse stranded, dUTP-based
+    ``fr-secondstrand`` R1 reads from plus-strand genes align to the *plus* strand. Also called forward stranded.
+    =================== ===========
+
+    Example:
+
+    .. code-block:: yaml
+
+        stranded: "fr-firststrand"
+
+    Rules that require information about strand will check the config file at
+    run time and raise an error if this field doesn't exist.
+
+    If you don't know the strandedness of the library, run the Snakefile in
+    such a way to only run the ``strand_check`` rule:
+
+    .. code-block:: bash
+
+        snakemake -j 2 strand_check
+
+    Or, when using the Slurm wrapper on cluster,
+
+    .. code-block:: bash
+
+        sbatch ../../include/WRAPPER_SLURM strand_check
+
+    When complete, there will be a MultiQC HTML file in the ``strand_check/``
+    directory that you can inspect to make your choice.
+
+    This will align the first 10,000 reads to the specified reference and run
+    RSeQC's ``infer_experiment.py`` on the results and then run MultiQC on just
+    those output files.
+
+    .. versionadded:: 1.8
 
 Optional fields
 ~~~~~~~~~~~~~~~
