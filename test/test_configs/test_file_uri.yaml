@@ -12,6 +12,8 @@ aligner:
   index: 'hisat2'
   tag: 'test'
 
+stranded: 'fr-firststrand'
+
 rrna:
   index: 'bowtie2'
   tag: 'test'
@@ -21,6 +23,10 @@ gtf:
 
 salmon:
   tag: "test"
+
+kallisto:
+  tag: "test"
+
 
 fastq_screen:
   - label: test
