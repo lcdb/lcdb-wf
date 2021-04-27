@@ -842,9 +842,9 @@ rule salmon:
     threads: 6
     run:
         if c.is_paired:
-            fastq_arg = '-1 {input.fastq[0]} -2 {input.fastq[1]} '
+            fastq_arg = f'-1 {input.fastq[0]} -2 {input.fastq[1]} '
         else:
-            fastq_arg = '-r {input.fastq} '
+            fastq_arg = f'-r {input.fastq} '
         shell(
             'salmon quant '
             '--index {params.index_dir} '
