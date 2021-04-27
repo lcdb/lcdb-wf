@@ -213,18 +213,20 @@ rule strand_check:
     input:
         expand(c.patterns['strand_check']['tsv'], sample=SAMPLES)
     output:
-        'strand_check/strandedness.html'
+        html='strand_check/strandedness.html',
+        filelist=temporary('strand_check/filelist')
     log:
         'strand_check/strandedness.log'
     run:
-        with open(output[0] + '.tmp', 'w') as fout:
+        with open(output.filelist, 'w') as fout:
             for i in  input:
                 fout.write(i + '\n')
         shell(
             'multiqc '
+            '--force '
             '--module rseqc '
-            '--file-list {output}.tmp '
-            '--filename {output} &> {log}'
+            '--file-list {output.filelist} '
+            '--filename {output.html} &> {log}'
         )
 
 
