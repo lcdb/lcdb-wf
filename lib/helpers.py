@@ -172,8 +172,7 @@ def strand_arg_lookup(config, lookup):
     Given a config object and lookup dictionary, confirm that the config has
     correctly specified strandedness and then return the value for that key.
     """
-
-    if "stranded" not in config:
+    if not config.stranded:
         raise ConfigurationError(
             "Starting in v1.8, 'stranded' is required in the config file. "
             "Values can be 'unstranded', 'fr-firststrand' (R1 aligns antisense to original transcript), "
@@ -183,6 +182,5 @@ def strand_arg_lookup(config, lookup):
         )
     if config.stranded not in lookup:
         keys = list(lookup.keys())
-        raise KeyError(f"'{c.stranded}' not one of {keys}")
-    return lookup[c.stranded]
-
+        raise KeyError(f"'{config.stranded}' not one of {keys}")
+    return lookup[config.stranded]
