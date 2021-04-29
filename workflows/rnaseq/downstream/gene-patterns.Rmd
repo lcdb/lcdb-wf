@@ -42,7 +42,7 @@ col <- NULL
 # NOTE: This is set very low for test data. Default is 15.---------------------
 #   Minimum cluster size.
 # minc <- 1  # [ TEST SETTINGS +1 ]
-minc <- 1
+minc <- 15
 
 # NOTE: This is a very low value used for getting the degPatterns to run -----
 low.minc <- 1
