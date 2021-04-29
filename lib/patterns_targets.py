@@ -81,6 +81,7 @@ class SeqConfig(object):
         else:
             self.n = [1]
 
+        helpers.preflight(self.config)
 
 class RNASeqConfig(SeqConfig):
     def __init__(self, config, patterns, workdir=None):
@@ -119,6 +120,8 @@ class RNASeqConfig(SeqConfig):
             )
             self.targets.update(self.targets_by_aggregation)
             self.patterns.update(self.patterns_by_aggregation)
+
+        helpers.rnaseq_preflight(self)
 
 
 class ChIPSeqConfig(SeqConfig):
@@ -245,3 +248,5 @@ class ChIPSeqConfig(SeqConfig):
 
         self.targets.update(self.targets_for_peaks)
         self.patterns.update(self.patterns_by_peaks)
+
+        helpers.chipseq_preflight(self)

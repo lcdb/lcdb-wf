@@ -166,7 +166,9 @@ def preflight(config):
     if "orig_filename" in sampletable.columns:
         check_unique_fn(sampletable)
 
-    if "kallisto" not in config:
+
+def rnaseq_preflight(c):
+    if "kallisto" not in c.config:
         raise ConfigurationError(
             """
             Starting in v1.8, an additional 'kallisto' argument is expected
@@ -178,6 +180,10 @@ def preflight(config):
               tag: "tagname"
             """
         )
+
+
+def chipseq_preflight(c):
+    pass
 
 
 def strand_arg_lookup(config, lookup):
