@@ -26,7 +26,6 @@ lim <- 2000
 
 # NOTE: Min number of genes to include----------------------------------------
 #   If fewer than this many genes, skip the clustering
-# lower.lim <- 0  # [ TEST SETTINGS +1 ]
 lower.lim <- 10
 
 # NOTE:  Correlation coefficient above which to merge clusters-----------------
@@ -43,7 +42,7 @@ col <- NULL
 # NOTE: This is set very low for test data. Default is 15.---------------------
 #   Minimum cluster size.
 # minc <- 1  # [ TEST SETTINGS +1 ]
-minc <- 15
+minc <- 1
 
 # NOTE: This is a very low value used for getting the degPatterns to run -----
 low.minc <- 1
