@@ -166,6 +166,19 @@ def preflight(config):
     if "orig_filename" in sampletable.columns:
         check_unique_fn(sampletable)
 
+    if "kallisto" not in config:
+        raise ConfigurationError(
+            """
+            Starting in v1.8, an additional 'kallisto' argument is expected
+            in the config file. Note that in the future this may be
+            automatically included, but for now please add the following to the
+            config, where 'tagname' is the tag for the reference of interest:
+
+            kallisto:
+              tag: "tagname"
+            """
+        )
+
 
 def strand_arg_lookup(config, lookup):
     """
