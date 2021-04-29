@@ -14,17 +14,20 @@ General
 
 - Reorganization/cleanup of the ``include`` directory
 
+- Added conda troubleshooting notes to the documentation (see
+  :ref:`conda-troubleshooting`).
+
 - The ``lib.helpers.preflight`` function no requires the first column of the
   sampletable to be named `sampletable` when checking configs.
 
-- Improvements to the deployment script:
+- Improvements to the deployment script ``deploy.py``:
 
     - now requires Python >3.6
-    - colored output
     - proper logs (so you can easily see how long it takes to build an env)
-    - ability to download and run the script directly, clone a temporary copy, and
-      deploy from there
+    - supports downloading and running the script directly, which will clone
+      a temporary copy and deploy from there
     - using Control-C to stop the deployment will also stop mamba/conda
+    - colored output
     - mamba is used by default, but ``--conda-frontend`` will use conda instead
 
 - fastq-dump log is sent to file rather than printed to stdout
@@ -32,6 +35,7 @@ General
 - Threads: cutadapt single-end now uses specified threads (it was using
   1 thread by default); use 6 threads for fastqc
 
+- added new preflight checks for RNA-seq and ChIP-seq specific configs.
 
 RNA-seq
 ~~~~~~~
@@ -40,6 +44,8 @@ RNA-seq
   This is used to choose the correct parameters for various rules, and avoids
   one of the main reasons to edit the Snakefile. See :ref:`cfg-stranded` for
   more details on its use.
+
+- added ``stranded:`` field to all configs used in testing
 
 - The ``strand_check`` rule now runs MultiQC for a convenient way of evaluating
   strandedness of a library.
@@ -61,6 +67,16 @@ References
 
 - ``lib/postprocess/ercc.py`` has new helper functions for adding ERCC
   spike-ins to fasta files and GTF files.
+
+- added ``'kallisto'`` to included reference configs
+
+ChIP-seq
+~~~~~~~~
+
+- symlinks rule is now local
+- added collectinsertsizes pattern to support PE ChIP-seq experiments
+- merging bigwigs log no longer goes to stdout
+
 
 v1.7
 ----
