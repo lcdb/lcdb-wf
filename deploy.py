@@ -3,11 +3,18 @@
 import os
 import sys
 
-
 try:
     from pathlib import Path
 except ImportError:
     print("Need Python 3.6 or higher, aborting")
+    sys.exit(1)
+
+if sys.version_info.major < 3:
+    error("Need Python 3.6+, aborting")
+    sys.exit(1)
+
+elif sys.version_info.minor < 6:
+    error("Needs Python 3.6+, aborting")
     sys.exit(1)
 
 
@@ -53,13 +60,7 @@ def error(s):
     logging.error(RED + s + RESET)
 
 
-if sys.version_info.major < 3:
-    error("Need Python 3.6+, aborting")
-    sys.exit(1)
 
-elif sys.version_info.minor < 6:
-    error("Needs Python 3.6+, aborting")
-    sys.exit(1)
 
 usage = """
 This script assists in the deployment of lcdb-wf to working directories.
@@ -197,8 +198,8 @@ def write_file_list(source):
         fout.write("\n\n")
         fout.write("\n".join(keep) + "\n")
 
-    debug(f"List of files excluded: {exclude}")
-    debug(f"List of files included: {include}")
+    debug("List of files excluded: {exclude}".format(**locals()))
+    debug("List of files included: {include}".format(**locals()))
 
     return include, exclude
 
@@ -210,11 +211,11 @@ def clone_repo(dest, branch="master"):
         sys.exit(1)
 
     URL = "https://github.com/lcdb/lcdb-wf.git"
-    info(f"cloning {URL} to {dest}")
+    info("cloning {URL} to {dest}".format(**locals()))
     cmds = ["git", "clone", URL, dest]
     sp.check_call(cmds)
     sp.check_call(["git", "checkout", branch], cwd=dest)
-    info(f"Cloned to {dest} and will deploy using branch '{branch}'")
+    info("Cloned to {dest} and will deploy using branch '{branch}'".format(**locals()))
 
     # check to see if this very file that is running is the same as the one
     # that was just cloned -- otherwise it's out of date.
@@ -231,7 +232,7 @@ def clone_repo(dest, branch="master"):
         full_here = Path(__file__).resolve()
         full_there = Path(dest) / "deploy.py"
         error(
-            f"Files {full_here} and {full_there} do not match! "
+            "Files {full_here} and {full_there} do not match! ".format(**locals()) +
             "The deploy script you are running appears to be out of date. "
             "Please get an updated copy from https://github.com/lcdb/lcdb-wf, perhaps "
             "with 'wget https://raw.githubusercontent.com/lcdb/lcdb-wf/master/deploy.py'"
@@ -308,7 +309,7 @@ def deployment_json(source, dest):
         fout.write(json.dumps(d) + "\n")
     os.chmod(log, 0o440)
 
-    info(f"Wrote details of deployment to {log}")
+    info("Wrote details of deployment to {log}".format(**locals()))
 
 
 def build_envs(dest, conda_frontend="mamba"):
@@ -354,16 +355,16 @@ def build_envs(dest, conda_frontend="mamba"):
 
         except KeyboardInterrupt:
             print("")
-            error(f"Killing running {conda_frontend} job, '" + " ".join(cmds))
+            error("Killing running {conda_frontend} job, '".format(**locals()) + " ".join(cmds))
             p.kill()
             sys.exit(1)
 
         if p.returncode:
-            error(f"Error running {conda_frontend}, '" + " ".join(cmds))
+            error("Error running {conda_frontend}, '".format(**locals()) + " ".join(cmds))
             sys.exit(1)
 
         full_env = Path(dest) / env
-        info(f"Created env {full_env}")
+        info("Created env {full_env}".format(**locals()))
 
 
 if __name__ == "__main__":
@@ -428,4 +429,4 @@ if __name__ == "__main__":
     if args.build_envs:
         build_envs(dest, conda_frontend=args.conda_frontend)
 
-    warning(f"Deployment complete in {args.dest}")
+    warning("Deployment complete in {args.dest}".format(**locals()))

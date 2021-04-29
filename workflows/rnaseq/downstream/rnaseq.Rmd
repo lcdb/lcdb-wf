@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
     message=FALSE,
     cache.extra_file_dep_1=file.info('../config/sampletable.tsv')$mtime,
     cache.extra_file_dep_2 = file.info('../data/rnaseq_aggregation/featurecounts.txt')$mtime,
-    cache.extra_file_dep_2 = file.info('../data/rnaseq_samples/*/*.kallisto/abundance.tsv')$mtime
+    cache.extra_file_dep_2 = file.info('../data/rnaseq_samples/*/*.kallisto/abundance.h5')$mtime
 )
 ```
 
@@ -135,7 +135,7 @@ dds.salmon.txi <- DESeqDataSetFromTximport(
     design=~group
 )
 
-vsd.txi <- varianceStabilizingTransformation(dds.salmon.txi, blind=TRUE)
+vsd.salmon.txi <- varianceStabilizingTransformation(dds.salmon.txi, blind=TRUE)
 ```
 
 ```{r kallistoddstxi, cache=TRUE, eval=FALSE}
@@ -148,7 +148,7 @@ dds.kallisto.txi <- DESeqDataSetFromTximport(
     design=~group
 )
 
-vsd.txi <- varianceStabilizingTransformation(dds.kallisto.txi, blind=TRUE)
+vsd.kallisto.txi <- varianceStabilizingTransformation(dds.kallisto.txi, blind=TRUE)
 ```
 
 

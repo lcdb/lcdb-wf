@@ -8,6 +8,8 @@ organism: 'dmel'
 # If not specified here, use the environment variable REFERENCES_DIR.
 references_dir: 'references_data'
 
+stranded: 'fr-firststrand'
+
 aligner:
   index: 'hisat2'
   tag: 'test'

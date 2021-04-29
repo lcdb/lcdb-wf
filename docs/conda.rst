@@ -25,6 +25,10 @@ mamba, you can install it into your base conda environment with:
 
     conda install -n base -c conda-forge mamba
 
+It's recommended that you install mamba into the base env (just like conda
+itself is) so that it behaves like conda. It does *not* need to be installed
+into each individual environment.
+
 
 Building the environments
 -------------------------
@@ -57,6 +61,9 @@ argument, then then the equivalent command to run in the deployed directory is:
     mamba env create -p ./env --file env.yml
     mamba env create -p ./env-r --file env-r.yml
 
+
+.. _conda-troubleshooting:
+
 Troubleshooting environments
 ----------------------------
 
@@ -74,28 +81,35 @@ yamls. Here's an example for ``libpng`` version 1.6.37::
      |       |       |
     name     |       |
            version   |
-                   build
+                   build string
 
-The package name and version are pretty standard. The `build` string refers to
-different built versions of the conda package, but for the same version (1.6.37
-in this case) of the package. In this example, ``hed695b0`` is a hash of all
-the pinned dependencies for this package at packaging time. The `conda-forge
-pinning docs <https://conda-forge.org/docs/maintainer/pinning_deps.html>`_ give
-more detail on what this pinning is about, but basically if that pinning
-changes then this hash will change. The ``_2`` on the end of the build string
-hash indicates that this is the third built package (build numbers start at
-zero) for this version of ``libpng`` using the same pinning. In other words,
-there also likely exists ``libpng=1.6.37=hed695b0_1`` and
-``libpng=1.6.37=hed695b0_0``. At the time of this writing, there is also
-``libpng-1.6.37-h21135ba_2`` (notice the different hash) which is the same
-libpng version but uses different pinnings.
+The package name (libpng) and version (1.6.37) are pretty standard and
+self-explanatory. The `build` string refers to different built versions of the
+*conda package*, but for the same version (1.6.37 in this case) of the package.
+For example, if a conda package was built for version 1.1 of a tool, but that
+package itself had an error unrelated to the tool, then a fixed build would be
+made. The package version would remain the same (1.1) but the build string
+would change.
+
+In this example, the build string contains a hash ``hed695b0`` which is a hash
+of all the pinned dependencies for this package at packaging time. The
+`conda-forge pinning docs
+<https://conda-forge.org/docs/maintainer/pinning_deps.html>`_ give more detail
+on what this pinning is about, but basically if that pinning changes then this
+hash will change. The ``_2`` on the end of the build string hash indicates that
+this is the third built package (build numbers start at zero) for this version
+of ``libpng`` using the same pinning. In other words, there also likely exists
+``libpng=1.6.37=hed695b0_1`` and ``libpng=1.6.37=hed695b0_0``. At the time of
+this writing, there is also ``libpng-1.6.37-h21135ba_2`` (notice the different
+hash) which is the same libpng version but uses different pinnings.
 
 What does this mean for troubleshooting?
 
-For any package that seems to be problematic, edit the respective environment
-yaml (e.g., ``env.yml``) to remove the build string (so in the example above,
-try changing to ``libpng=1.6.37``) and try building the environment again. If
-that doesn't work, try removing the version as well (so just ``libpng``).
+For any package that seems to be problematic, try editing the respective
+environment yaml (e.g., ``env.yml``) to remove the build string (so in the
+example above, you would try changing it to just ``libpng=1.6.37``) and try
+building the environment again. If that doesn't work, try removing the version
+as well (so just ``libpng``).
 
 Alternatively for very problematic cases or cases where there are multiple
 problematic packages, you can try creating an environment with the "loose"
@@ -158,16 +172,24 @@ Design decisions
 ----------------
 
 We made the design decision to split the conda envs into two different
-environments -- one for R, one for non-R. We round that by by removing the
+environments -- one for R, one for non-R. We found that by by removing the
 entire sub-DAG of R packages from the main environment we can dramatically
 reduce the creation time.
 
 We also made the decision to use large top-level environments rather than
-smaller environments created for each rule using the ``conda:`` directive. This
-allows us to activate a single environment to give us access to all the tools
-used. This streamlines troubleshooting because we don't have to dig through the
-``.snakemake/conda`` directory to figure out which hash corresponds to which
-file, but comes with the up-front cost of creating the environment initially.
+smaller environments created for each rule using the ``conda:`` directive.
+There are two reasons for this choice. First, it allows us to activate a single
+environment to give us access to all the tools used. This streamlines
+troubleshooting because we don't have to dig through the ``.snakemake/conda``
+directory to figure out which hash corresponds to which file, but comes with
+the up-front cost of creating the environment initially. Second, it simplifies
+running the tests on CircleCI, allowing us to cache the env directories as
+a whole to be re-used for multiple tests rather than caching the individual
+.snakemake directories for each tested workflow.
+
+Given that the conda and snakemake ecosystem are in flux, this may change in
+the future to using small conda environments for each rule separately if it
+turns out to be more beneficial to do so.
 
 .. note::
 

@@ -6,6 +6,7 @@ from snakemake.shell import shell
 from snakemake.io import expand, regex
 from lib import common
 
+
 class ConfigurationError(Exception):
     pass
 
@@ -18,16 +19,16 @@ def detect_layout(sampletable):
     """
     is_pe = [common.is_paired_end(sampletable, s) for s in sampletable.iloc[:, 0]]
     if all(is_pe):
-        return 'PE'
+        return "PE"
     elif not any(is_pe):
-        return 'SE'
+        return "SE"
     else:
         p = sampletable.iloc[is_pe, 0].to_list()
         s = sampletable.iloc[[not i for i in is_pe], 0].to_list()
         if len(p) > len(s):
-            report = f'SE samples: {s}'
+            report = f"SE samples: {s}"
         else:
-            report = f'PE samples: {p}'
+            report = f"PE samples: {p}"
         raise ValueError(f"Only a single layout (SE or PE) is supported. {report}")
 
 
@@ -70,12 +71,13 @@ def fill_patterns(patterns, fill, combination=product):
                 d[k] = r
             else:
                 if isinstance(fill, pd.DataFrame):
-                    d[k] = list(set(expand(u[k], zip, **fill.to_dict('list'))))
+                    d[k] = list(set(expand(u[k], zip, **fill.to_dict("list"))))
                 else:
                     d[k] = list(set(expand(u[k], c, **fill)))
             if not d[k]:
                 d[k] = [u[k]]
         return d
+
     d = {}
     return update(d, patterns, combination)
 
@@ -122,24 +124,25 @@ def rscript(string, scriptname, log=None):
     log : str
         File to redirect stdout and stderr to. If None, no redirection occurs.
     """
-    with open(scriptname, 'w') as fout:
+    with open(scriptname, "w") as fout:
         fout.write(string)
     if log:
-        _log = '> {0} 2>&1'.format(log)
+        _log = "> {0} 2>&1".format(log)
     else:
         _log = ""
-    shell('Rscript {scriptname} {_log}')
+    shell("Rscript {scriptname} {_log}")
 
 
 def check_unique_fn(df):
     """
     Raises an error if the fastq filenames are not unique
     """
-    fns = df['orig_filename']
-    if 'orig_filename_R2' in df.columns:
-        fns = fns.append(df['orig_filename_R2'])
+    fns = df["orig_filename"]
+    if "orig_filename_R2" in df.columns:
+        fns = fns.append(df["orig_filename_R2"])
     if len(fns.unique()) < len(fns):
-        raise ValueError('Fastq filenames non unique, check the sampletable\n')
+        raise ValueError("Fastq filenames non unique, check the sampletable\n")
+
 
 def check_unique_samplename(df):
     """
@@ -147,7 +150,8 @@ def check_unique_samplename(df):
     """
     ns = df.index
     if len(ns.unique()) < len(ns):
-        raise ConfigurationError('Samplenames non unique, check the sampletable\n')
+        raise ConfigurationError("Samplenames non unique, check the sampletable\n")
+
 
 def preflight(config):
     """
@@ -157,7 +161,45 @@ def preflight(config):
     ----------
     config: yaml config object
     """
-    sampletable = pd.read_table(config['sampletable'], index_col=0, comment='#')
+    sampletable = pd.read_table(config["sampletable"], index_col=0, comment="#")
     check_unique_samplename(sampletable)
-    if 'orig_filename' in sampletable.columns:
+    if "orig_filename" in sampletable.columns:
         check_unique_fn(sampletable)
+
+
+def rnaseq_preflight(c):
+    if "kallisto" not in c.config:
+        raise ConfigurationError(
+            """
+            Starting in v1.8, an additional 'kallisto' argument is expected
+            in the config file. Note that in the future this may be
+            automatically included, but for now please add the following to the
+            config, where 'tagname' is the tag for the reference of interest:
+
+            kallisto:
+              tag: "tagname"
+            """
+        )
+
+
+def chipseq_preflight(c):
+    pass
+
+
+def strand_arg_lookup(config, lookup):
+    """
+    Given a config object and lookup dictionary, confirm that the config has
+    correctly specified strandedness and then return the value for that key.
+    """
+    if not config.stranded:
+        raise ConfigurationError(
+            "Starting in v1.8, 'stranded' is required in the config file. "
+            "Values can be 'unstranded', 'fr-firststrand' (R1 aligns antisense to original transcript), "
+            "or 'fr-secondstrand' (R1 aligns sense to original transcript). If you are not sure, "
+            "run the workflow with only the 'strand_check' rule, like "
+            "'snakemake -j 5 strand_check'."
+        )
+    if config.stranded not in lookup:
+        keys = list(lookup.keys())
+        raise KeyError(f"'{config.stranded}' not one of {keys}")
+    return lookup[config.stranded]

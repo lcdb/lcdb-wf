@@ -10,6 +10,8 @@ aligner:
   index: 'star'
   tag: 'gencode-v28'
 
+stranded: 'fr-firststrand'
+
 rrna:
   index: 'bowtie2'
   tag: 'rRNA'

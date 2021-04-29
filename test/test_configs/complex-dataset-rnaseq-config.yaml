@@ -7,6 +7,8 @@ organism: 'human'
 # If not specified here, use the environment variable REFERENCES_DIR.
 references_dir: 'references_data'
 
+stranded: 'fr-firststrand'
+
 aligner:
   index: 'star'
   tag: 'gencode-v28'
@@ -19,6 +21,9 @@ gtf:
   tag: "gencode-v28"
 
 salmon:
+  tag: "gencode-v28"
+
+kallisto:
   tag: "gencode-v28"
 
 fastq_screen:
