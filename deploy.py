@@ -117,6 +117,7 @@ always = {
         "/workflows/*/references_data",
         "/workflows/*/references_dir",
         "/workflows/*/reports",
+        "/workflows/*/references/config",
         "/workflows/rnaseq/downstream/final_clusters",
         "/workflows/rnaseq/downstream/*html",
         "/workflows/rnaseq/downstream/*log",
