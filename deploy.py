@@ -208,7 +208,7 @@ def write_file_list(source):
 def clone_repo(dest, branch="master"):
 
     if Path(dest).exists():
-        error("Path {dest} already exists, aborting!")
+        error("Path {dest} already exists, aborting!".format(**locals()))
         sys.exit(1)
 
     URL = "https://github.com/lcdb/lcdb-wf.git"
