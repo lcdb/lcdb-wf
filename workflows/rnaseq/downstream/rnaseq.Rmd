@@ -109,7 +109,7 @@ Here is the sample table with metadata used for this analysis:
 knitr::kable(colData[, colnames(colData)[!colnames(colData) %in% exclude.for.printing]])
 ```
 
-```{r salmon}
+```{r salmon, cache=TRUE, eval=FALSE}
 # Load salmon quantification.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#salmon
 salmon.txi <- tximport(colData[, 'salmon.path'], type='salmon', txOut=TRUE)
@@ -117,7 +117,7 @@ salmon.tpm <- salmon.txi$abundance
 colnames(salmon.tpm) <- colData$samplename
 ```
 
-```{r kallisto, cache=TRUE}
+```{r kallisto, cache=TRUE, eval=FALSE, cache.lazy=FALSE}
 # Load kallisto quantification.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#kallisto
 kallisto.txi <- tximport(colData[, 'kallisto.path'], type='kallisto', txOut=TRUE)
