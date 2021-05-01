@@ -189,7 +189,7 @@ rule sample_strand_check:
             assert len(output.fastqs) == 2
             shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output.fastqs[0]}')
             shell('set +o pipefail; zcat {input.fastq[1]} | head -n {nreads} > {output.fastqs[1]}')
-            fastqs = f'-1 {output.fastqs[0]} -1 {output.fastqs[1]} '
+            fastqs = f'-1 {output.fastqs[0]} -2 {output.fastqs[1]} '
         else:
             assert len(input.fastq) == 1
             assert len(output.fastqs) == 1
