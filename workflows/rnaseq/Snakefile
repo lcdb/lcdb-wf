@@ -917,7 +917,7 @@ rule rseqc_infer_experiment:
     Infer strandedness of experiment
     """
     input:
-        bam=c.patterns['bam'],
+        bam=c.patterns['markduplicates']['bam'],
         bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12']
     output:
         txt=c.patterns['rseqc']['infer_experiment']
