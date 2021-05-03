@@ -422,8 +422,8 @@ config looks like this:
     Ability to use special ``__``-prefixed variables that are interpreted as
     dotted-path functions to import.
 
-Locations of downloaded-and-post-rocessed FASTA and GTF files
--------------------------------------------------------------
+Locations of downloaded-and-post-processed FASTA and GTF files
+--------------------------------------------------------------
 Generally speaking, the fasta and gtf files will be in::
 
     {references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta

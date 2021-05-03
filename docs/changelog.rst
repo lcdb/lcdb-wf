@@ -18,7 +18,7 @@ General
   :ref:`conda-troubleshooting`).
 
 - The ``lib.helpers.preflight`` function no requires the first column of the
-  sampletable to be named `sampletable` when checking configs.
+  sampletable to be named `samplename` when checking configs.
 
 - Improvements to the deployment script ``deploy.py``:
 
@@ -40,7 +40,7 @@ General
 RNA-seq
 ~~~~~~~
 
-- *Configuration change:** The ``stranded:`` field is now required for RNA-seq.
+- **Configuration change:** The ``stranded:`` field is now required for RNA-seq.
   This is used to choose the correct parameters for various rules, and avoids
   one of the main reasons to edit the Snakefile. See :ref:`cfg-stranded` for
   more details on its use.
@@ -61,7 +61,7 @@ References
   ``file://`` URIs.
 
 - There is a new feature for reference configs that allows chaining
-  post-processing functions together, see :ref:`advanced-preprocessing`. This
+  post-processing functions together, see :ref:`advanced-postprocessing`. This
   means that it is possible, for example, to add ERCC spike-ins (which need
   post-processing) onto references that themselves need post-processing.
 

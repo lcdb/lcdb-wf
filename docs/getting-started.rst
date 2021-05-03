@@ -54,7 +54,7 @@ Option 1: Download and run the deployment script
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Note that you will not be able to run tests with this method, but it is likely
-the most conveient method.
+the most convenient method.
 
 .. code-block:: bash
 
@@ -70,7 +70,7 @@ repository to a location of your choosing. Once you deploy you can remove it. Fo
     python deploy.py \
       --dest analysis/project \
       --staging /tmp/lcdb-wf-tmp \
-      --branch master \
+      --branch $BRANCH \
       --flavor rnaseq \
       --build-envs
 
