@@ -925,7 +925,7 @@ rule rseqc_infer_experiment:
         c.patterns['rseqc']['infer_experiment'] + '.log'
 
     shell:
-        'infer_experiment.py -r {input.bed12} -i {input.bam} --sample-size 10000 > {output} &> {log}'
+        'infer_experiment.py -r {input.bed12} -i {input.bam} > {output} &> {log}'
 
 rule rseqc_read_distribution:
     """
