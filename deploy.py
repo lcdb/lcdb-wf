@@ -117,6 +117,7 @@ always = {
         "/workflows/*/references_data",
         "/workflows/*/references_dir",
         "/workflows/*/reports",
+        "/workflows/*/references/config",
         "/workflows/rnaseq/downstream/final_clusters",
         "/workflows/rnaseq/downstream/*html",
         "/workflows/rnaseq/downstream/*log",
@@ -207,7 +208,7 @@ def write_file_list(source):
 def clone_repo(dest, branch="master"):
 
     if Path(dest).exists():
-        error("Path {dest} already exists, aborting!")
+        error("Path {dest} already exists, aborting!".format(**locals()))
         sys.exit(1)
 
     URL = "https://github.com/lcdb/lcdb-wf.git"
