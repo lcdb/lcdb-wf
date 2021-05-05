@@ -229,15 +229,13 @@ variables:
           rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r --until strand_check \
             --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
-            --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv \
-            && cat strandedness.tsv
+            --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
 
           # test strandedness, SE
           rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r --until strand_check \
             --configfile $ORIG/test/test_configs/override.yaml \
-            --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
-            && cat strandedness.tsv
+            --config sampletable=$ORIG/test/test_configs/two_samples.tsv
 
           # test STAR 2-pass alignment
           rm -r data && cp -r /tmp/data data
