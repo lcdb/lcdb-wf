@@ -777,7 +777,7 @@ rule collectrnaseqmetrics:
     Calculate various RNA-seq QC metrics with Picarc CollectRnaSeqMetrics
     """
     input:
-        bam=c.patterns['bam'],
+        bam=c.patterns['markduplicates']['bam'],
         refflat=c.refdict[c.organism][config['gtf']['tag']]['refflat']
     output:
         metrics=c.patterns['collectrnaseqmetrics']['metrics'],
@@ -932,7 +932,7 @@ rule rseqc_read_distribution:
     read distribution plots
     """
     input:
-        bam=c.patterns['bam'],
+        bam=c.patterns['markduplicates']['bam'],
         bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12'],
     output:
         txt=c.patterns['rseqc']['read_distribution']
@@ -954,8 +954,8 @@ rule bigwig_neg:
     Create a bigwig for negative-strand reads
     """
     input:
-        bam=c.patterns['bam'],
-        bai=c.patterns['bam'] + '.bai',
+        bam=c.patterns['markduplicates']['bam'],
+        bai=c.patterns['markduplicates']['bam'] + '.bai',
     output: c.patterns['bigwig']['neg']
     threads: 8
     log:
@@ -984,8 +984,8 @@ rule bigwig_pos:
     Create a bigwig for postive-strand reads.
     """
     input:
-        bam=c.patterns['bam'],
-        bai=c.patterns['bam'] + '.bai',
+        bam=c.patterns['markduplicates']['bam'],
+        bai=c.patterns['markduplicates']['bam'] + '.bai',
     output: c.patterns['bigwig']['pos']
     threads: 8
     log:
