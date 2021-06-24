@@ -433,7 +433,10 @@ if __name__ == "__main__":
     dest = args.dest
     flavor = args.flavor
 
-    if args.staging:
+    if args.staging and not args.clone:
+            print("ERROR: --staging was specified but --clone was not. Did you want to use --clone?", file=sys.stderr)
+            sys.exit(1)
+    if args.clone:
         source = args.staging
         clone_repo(args.staging, args.branch)
     else:
