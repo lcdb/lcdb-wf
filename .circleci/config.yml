@@ -74,8 +74,6 @@ variables:
             mamba env create -n lcdb-wf-test --file env.yml
             mamba env create -n lcdb-wf-test-r --file env-r.yml
         fi
-        # conda env export -n lcdb-wf-test > env.yaml
-        # conda env export -n lcdb-wf-test-r > env-r.yaml
 
   # --------------------------------------------------------------------------
   # Deploy into a new directory and get the test data.
@@ -90,7 +88,7 @@ variables:
 
         # Deploy to the new directory, so we are testing the real-world case of post-deployment.
         # Note that $DEPLOY is set in the "set-paths" step configured above.
-        python deploy.py --flavor full --dest $DEPLOY
+        python deploy.py --flavor full --dest $DEPLOY --branch $CIRCLE_BRANCH --clone
 
         # Separately copy over some test-specific files
         cp workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq
@@ -154,7 +152,7 @@ variables:
           ./run_test.sh --use-conda -j2 -k -p -r \
             --configfile $ORIG/test/test_configs/test_chipseq_regression.yaml \
             --config sampletable=$ORIG/test/test_configs/chipseq_one_run.tsv \
-            --config merged_bigwigs="{}" \
+            merged_bigwigs="{}" \
             --until bed_to_bigbed
 
           # Piggy-backing on that test, here we check to make sure it's OK to
@@ -162,7 +160,7 @@ variables:
           ./run_test.sh -n \
             --configfile $ORIG/test/test_configs/test_chipseq_no_peaks.yaml \
             --config sampletable=$ORIG/test/test_configs/chipseq_one_run.tsv \
-            --config merged_bigwigs="{}" \
+            merged_bigwigs="{}" \
             --until bed_to_bigbed
 
   # --------------------------------------------------------------------------
@@ -214,53 +212,55 @@ variables:
           cd workflows/rnaseq-misc-test
           source activate lcdb-wf-test
 
-          # SRA, PE. Note that there's no starting data directory and that we
-          # only go to the cutadapt step.
+          echo "test SRA, PE"
           rm -r data
           ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
-            --configfile $ORIG/test/test_configs/override.yaml \
+            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
             --config sampletable=$ORIG/test/test_configs/test_sra_sampletable.tsv
 
-          # Same as above, but SE
+          echo "test SRA, SE"
           rm -r data
           ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
-            --configfile $ORIG/test/test_configs/override.yaml \
+            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
             --config sampletable=$ORIG/test/test_configs/test_sra_sampletable_SE_only.tsv
 
-          # test strandedness, PE
+          echo "test strandedness, PE"
           rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r --until strand_check \
-            --configfile $ORIG/test/test_configs/override.yaml \
-            --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv \
-            && cat strandedness.tsv
+            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
+            --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
 
-          # test strandedness, SE
+          echo "test strandedness, SE"
           rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r --until strand_check \
-            --configfile $ORIG/test/test_configs/override.yaml \
-            --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
-            && cat strandedness.tsv
+            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
+            --config sampletable=$ORIG/test/test_configs/two_samples.tsv
 
-          # test STAR 2-pass alignment
+          echo "test STAR 2-pass alignment"
           rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r \
             --forcerun star_pass1 \
-            --configfile $ORIG/test/test_configs/star_override_2pass.yaml \
+            --configfile \
+              $ORIG/test/test_configs/test_rnaseq_config.yaml \
+              $ORIG/test/test_configs/star_override_2pass.yaml \
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
             --until star_pass2
 
-          # test STAR 1-pass alignment
+          echo "test STAR 1-pass alignment"
           rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r \
             --forcerun star \
-            --configfile $ORIG/test/test_configs/star_override_1pass.yaml \
+            --configfile \
+              $ORIG/test/test_configs/test_rnaseq_config.yaml \
+              $ORIG/test/test_configs/star_override_1pass.yaml \
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
             --until star
 
-          # test PE reads
+          echo "test PE reads"
           rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r --until multiqc \
-            --configfile $ORIG/test/test_configs/override.yaml \
+            --configfile \
+              $ORIG/test/test_configs/test_rnaseq_config.yaml \
             --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
 
   # --------------------------------------------------------------------------

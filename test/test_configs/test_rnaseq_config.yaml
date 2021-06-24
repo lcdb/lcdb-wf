@@ -8,11 +8,11 @@ organism: 'dmel'
 # If not specified here, use the environment variable REFERENCES_DIR.
 references_dir: 'references_data'
 
-stranded: 'fr-firststrand'
-
 aligner:
   index: 'hisat2'
   tag: 'test'
+
+stranded: 'fr-firststrand'
 
 rrna:
   index: 'bowtie2'
@@ -37,19 +37,6 @@ fastq_screen:
   - label: Fly
     organism: dmel
     tag: test
-
-merged_bigwigs:
-  control_pos:
-    pos:
-      - sample1
-      - sample2
-  treatment_all:
-    pos:
-      - sample3
-      - sample4
-    neg:
-      - sample3
-      - sample4
 
 # See the reference config files in the top level of the repo,
 # include/reference_configs, for inspiration for more species.

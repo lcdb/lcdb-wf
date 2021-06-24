@@ -1,0 +1,97 @@
+patterns: 'config/chipseq_patterns.yaml'
+organism: 'human'
+references_dir: 'references_data'
+
+aligner:
+  index: 'bowtie2'
+  tag: 'gencode-v28'
+
+rrna:
+  index: 'bowtie2'
+  tag: 'rRNA'
+
+fastq_screen:
+  - label: rRNA
+    organism: human
+    tag: rRNA
+  - label: human
+    organism: human
+    tag: gencode-v28
+
+merged_bigwigs:
+  BRD4-dBET6:
+    - BRD4-dBET6-1
+    - BRD4-dBET6-2
+  BRD4-DMSO:
+    - BRD4-DMSO-1
+    - BRD4-DMSO-2
+  IgG-dBET6:
+    - IgG-dBET6-1
+    - IgG-dBET6-2
+  IgG-DMSO:
+    - IgG-DMSO-1
+    - IgG-DMSO-2
+  MTHFD1-dBET6:
+    - MTHFD1-dBET6-1
+    - MTHFD1-dBET6-2
+  MTHFD1-DMSO:
+    - MTHFD1-DMSO-1
+    - MTHFD1-DMSO-2
+  H3K27ac:
+    - H3K27ac-untreated-1
+    - H3K27ac-untreated-2
+
+chipseq:
+  peak_calling:
+    - label: BRD4-dBET6-1
+      algorithm: macs2
+      ip:
+        - BRD4-dBET6-1
+      control:
+        - input-dBET6-1
+    - label: BRD4-dBET6-2
+      algorithm: macs2
+      ip:
+        - BRD4-dBET6-2
+      control:
+        - input-dBET6-2
+    - label: BRD4-DMSO-1
+      algorithm: macs2
+      ip:
+        - BRD4-DMSO-1
+      control:
+        - input-DMSO-1
+    - label: BRD4-DMSO-2
+      algorithm: macs2
+      ip:
+        - BRD4-DMSO-2
+      control:
+        - input-DMSO-2
+    - label: MTHFD1-dBET6-1
+      algorithm: macs2
+      ip:
+        - MTHFD1-dBET6-1
+      control:
+        - input-dBET6-1
+    - label: MTHFD1-dBET6-2
+      algorithm: macs2
+      ip:
+        - MTHFD1-dBET6-2
+      control:
+        - input-dBET6-2
+    - label: MTHFD1-DMSO-1
+      algorithm: macs2
+      ip:
+        - MTHFD1-DMSO-1
+      control:
+        - input-DMSO-1
+    - label: MTHFD1-DMSO-2
+      algorithm: macs2
+      ip:
+        - MTHFD1-DMSO-2
+      control:
+        - input-DMSO-2
+
+
+include_references:
+  - '../../include/reference_configs/Homo_sapiens.yaml'

@@ -183,6 +183,21 @@ rule salmon_index:
         '&> {log}'
 
 
+rule kallisto_index:
+    "Build kallisto index"
+    output:
+        index=protected('{references_dir}/{organism}/{tag}/transcriptome/kallisto/{organism}_{tag}/transcripts.idx')
+    input:
+        fasta='{references_dir}/{organism}/{tag}/transcriptome/{organism}_{tag}.fasta'
+    log:
+        '{references_dir}/logs/{organism}/{tag}/transcriptome/kallisto/{organism}_{tag}.log'
+    shell:
+        'kallisto index '
+        '--index {output.index} '
+        '{input.fasta} '
+        '&> {log}'
+
+
 rule conversion_refflat:
     """Converts a GTF into refFlat format
     """

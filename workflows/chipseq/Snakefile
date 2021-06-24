@@ -17,7 +17,8 @@ from lib.patterns_targets import ChIPSeqConfig
 #
 # ----------------------------------------------------------------------------
 
-configfile: 'config/config.yaml'
+if not workflow.overwrite_configfiles:
+    configfile: 'config/config.yaml'
 
 config = common.load_config(config)
 
@@ -43,13 +44,10 @@ wildcard_constraints:
     n = '[1,2]',
     sample = '|'.join(SAMPLES)
 
-localrules: symlinks
 
 
 def wrapper_for(path):
     return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
-
-
 
 
 # ----------------------------------------------------------------------------
@@ -75,7 +73,7 @@ final_targets = utils.flatten((
     utils.flatten(c.targets['plotcorrelation']),
 ))
 
-if 'merged_bigwigs' in config:
+if config.get('merged_bigwigs', None):
     final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
 
 
@@ -93,6 +91,8 @@ rule targets:
 
 
 if 'orig_filename' in c.sampletable.columns:
+
+    localrules: symlinks
 
     # Convert the sampletable to be indexed by the first column, for
     # convenience in generating the input/output filenames.
@@ -117,7 +117,6 @@ if 'orig_filename' in c.sampletable.columns:
         output:
             render_r1_r2(c.patterns['fastq'])
         run:
-
             assert len(output) == len(input), (input, output)
             for src, linkname in zip(input, output):
                 utils.make_relative_symlink(src, linkname)
@@ -136,6 +135,9 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
     rule fastq_dump:
         output:
             fastq=render_r1_r2(c.patterns['fastq'])
+
+        log:
+            r1_only(c.patterns['fastq'])[0] + '.log'
         run:
             srr = _st.loc[wildcards.sample, 'Run']
 
@@ -151,6 +153,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     '--gzip '
                     '--split-files '
                     # '-X 100000 ' # [TEST SETTINGS]
+                    '&> {log}'
                 )
 
                 # The filenames are predictable, so we can move them as needed.
@@ -165,7 +168,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
                     '{srr} '
                     '-Z '
                     # '-X 100000 ' # [TEST SETTINGS]
-                    '| gzip -c > {output[0]}.tmp '
+                    '2> {log} | gzip -c > {output[0]}.tmp '
                     '&& mv {output[0]}.tmp {output[0]} '
                 )
 
@@ -204,6 +207,7 @@ rule cutadapt:
                 "-o {output[0]} "
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 '-q 20 '
+                '-j {threads} '
                 '--minimum-length 25 '
                 "{input.fastq[0]} "
                 "&> {log}"
@@ -214,7 +218,10 @@ rule fastqc:
     """
     Run FastQC
     """
-    input: '{sample_dir}/{sample}/{sample}{suffix}'
+    input:
+        '{sample_dir}/{sample}/{sample}{suffix}'
+    threads:
+        6
     output:
         html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
         zip='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
@@ -560,24 +567,29 @@ rule fingerprint:
         metrics=c.patterns['fingerprint']['metrics']
     threads: 8
     log: c.patterns['fingerprint']['metrics'] + '.log'
-    shell:
-        'plotFingerprint '
-        '--bamfiles {input.bams} '
-        '-p {threads} '
-        # The JSDsample argument is disabled for testing as it dramatically
-        # increases the run time.
-        # [TEST SETTINGS +1]
-        '--JSDsample {input.control} '
-        '--smartLabels '
-        '--extendReads=300 '
-        '--skipZeros '
-        '--outQualityMetrics {output.metrics} '
-        '--outRawCounts {output.raw_counts} '
-        '--plotFile {output.plot} '
-        # Default is 500k; use fewer to speed up testing:
-        # '--numberOfSamples 50 '  # [TEST SETTINGS ]
-        '&> {log} '
-        '&& sed -i "s/NA/0.0/g" {output.metrics} '
+    run:
+        if len(input.control) == 0:
+            jsdsample_arg = ""
+        else:
+            jsdsample_arg = '--JSDsample {input.control}'
+        shell(
+            'plotFingerprint ' '--bamfiles {input.bams} '
+            '-p {threads} '
+            # The JSDsample argument is disabled for testing as it dramatically
+            # increases the run time.
+            # [TEST SETTINGS +1]
+            '{jsdsample_arg} '
+            '--smartLabels '
+            '--extendReads=300 '
+            '--skipZeros '
+            '--outQualityMetrics {output.metrics} '
+            '--outRawCounts {output.raw_counts} '
+            '--plotFile {output.plot} '
+            # Default is 500k; use fewer to speed up testing:
+            # '--numberOfSamples 50 '  # [TEST SETTINGS ]
+            '&> {log} '
+            '&& sed -i "s/NA/0.0/g" {output.metrics} '
+        )
 
 
 rule sicer:
@@ -688,13 +700,13 @@ rule bed_to_bigbed:
             shell("touch {output}")
         else:
             if kind == 'narrowPeak':
-                _as = '../../include/bigNarrowPeak.as'
+                _as = '../../include/autosql/bigNarrowPeak.as'
                 _type = 'bed6+4'
                 names=[
                     'chrom', 'chromStart', 'chromEnd', 'name', 'score',
                     'strand', 'signalValue', 'pValue', 'qValue', 'peak']
             elif kind == 'broadPeak':
-                _as = '../../include/bigBroadPeak.as'
+                _as = '../../include/autosql/bigBroadPeak.as'
                 _type = 'bed6+3'
                 names=[
                     'chrom', 'chromStart', 'chromEnd', 'name', 'score',
@@ -731,6 +743,7 @@ rule multibigwigsummary:
             'bins '
             '-b {input} '
             '--labels {labels} '
+            '--numberOfProcessors {threads} '
             '-out {output.npz} '
             '--outRawCounts {output.tab}'
         )

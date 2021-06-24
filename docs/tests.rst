@@ -25,11 +25,11 @@ This assumes you have set up the `bioconda channel
 
 .. code-block:: bash
 
-   conda create -p ./env --file requirements-non-r.txt
+   mamba env create -p ./env --file env.yml
 
 .. code-block:: bash
 
-   conda create -p ./env-r --file requirements-r.txt
+   mamba env create -p ./env-r --file env-r.yml
 
 We **highly recommend** using conda for isolating projects and for analysis
 reproducibility. If you are unfamiliar with conda, we provide a more detailed look
@@ -143,17 +143,11 @@ Then activate the R environment (this assumes you're still in the
 
     conda activate env-r   # or source activate env-r
 
-You can either start an R interpreter and run:
+and run:
 
 .. code-block:: bash
 
-    rmarkdown::render('downstream/rnaseq.Rmd')
-
-or from the terminal:
-
-.. code-block:: bash
-
-    Rscript -e "rmarkdown::render('downstream/rnaseq.Rmd')"
+    ./run_downstream_test.sh
 
 After the workflow runs, here are some useful points of interest in the output:
 

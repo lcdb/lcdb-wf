@@ -25,6 +25,12 @@ salmon_index:
 salmon:
   prefix: "--mem=32g"
 
+kallisto_index:
+  prefix: "--mem=32g"
+
+kallisto:
+  prefix: "--mem=32g"
+
 bigwig_neg:
   prefix: "--gres=lscratch:20 --mem=16g"
 

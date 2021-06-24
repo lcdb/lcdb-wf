@@ -285,6 +285,18 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
                 args = ()
                 kwargs = {}
 
+            # In the special case where there is kwarg beginning and ending
+            # with "__", this can be a dotted function name so it will be
+            # resolved here as well and passed along to the postprocessing
+            # function.
+            #
+            # This makes it possible to do things like add ERCC annotations on
+            # the end of other annotations that themselves need to be
+            # post-processed.
+            for kw in kwargs:
+                if kw.startswith('__') and kw.endswith('__'):
+                    kwargs[kw] = resolve_name(kwargs[kw])
+
             # import the function
             func = resolve_name(name)
 
@@ -417,6 +429,7 @@ def references_dict(config):
         # In order to support both, we use a filename found in common between
         # the version.
         'salmon': '/versionInfo.json',
+        'kallisto': '/transcripts.idx',
     }
 
     conversion_extensions = {
@@ -589,10 +602,10 @@ def get_techreps(sampletable, label):
 
     is_chipseq = 'antibody' in sampletable.columns
     if is_chipseq:
-        err = (
-            "No technical replicates found for label '{}'. This looks to "
-            "be a ChIP-seq experiment; check the peak-calling section of"
-            "the config.".format(label)
+        err = ("""
+        No technical replicates found for label '{}'. Check the ChIP-seq config
+        file to ensure the peak-calling section only specifies values from the
+        sampletable's "label" column.""".format(label)
         )
     else:
         err = "No technical replicates found for label '{}'.".format(label)
@@ -845,6 +858,9 @@ def check_urls(config, verbose=False):
     failures = []
     urls = list(set(utils.flatten(pluck(config, 'url'))))
     for url in urls:
+        if url.startswith('file://'):
+            continue
+
         res = check_url(url, verbose=verbose)
 
         # we expect exit code 23 because we're triggering SIGPIPE with the
