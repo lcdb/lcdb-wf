@@ -44,6 +44,10 @@ BLUE = "\x1b[34m"
 RESET = "\x1b[0m"
 
 
+# Determine default staging area
+default_staging = "/tmp/{0}-lcdb-wf-staging".format(os.getenv('USER'))
+
+
 def debug(s):
     logging.debug(GRAY + s + RESET)
 
@@ -61,19 +65,23 @@ def error(s):
 
 
 
+usage = f"""
+This script assists in the deployment of relevant code from the lcdb-wf
+repository to a new deployment directory for running an analysis.
 
-usage = """
-This script assists in the deployment of lcdb-wf to working directories.
+For example, the following command will clone the GitHub repo to {default_staging},
+check out the v9.999 branch, copy the files needed for RNA-seq over to the
+"my_analysis_dir" directory, store a read-only file .lcdb-wf-deployment.yaml
+with the metadata of the repo used for cloning, and build the conda
+environments within "my_analysis_dir":
 
-The lcdb-wf repository contains infrastructure for testing that is not
-typically needed when using it in practice. Furthermore, you might not need all
-possible workflows.
+    ./deploy.py \\
+        --clone \\
+        --dest my_analysis_dir \\
+        --flavor rnaseq \\
+        --build-envs \\
+        --branch v9.999
 
-This script copies over only the files requred for each "flavor" of analysis
-(rnaseq, chipseq, colocalization, full) and also stores a file,
-`.lcdb-wf-deployment.yaml`, containing details about the git commit that was
-used and the timestamp. This can be used to compare changes and stay
-up-to-date.
 """
 
 
@@ -379,14 +387,22 @@ if __name__ == "__main__":
     ap.add_argument(
         "--dest", help="""Destination directory in which to copy files""", required=True
     )
+
+    ap.add_argument(
+        "--clone",
+        help=f"""Make a new clone to a staging area (at the location specified
+        by --staging which defaults to {default_staging}) and deploy from
+        there. Useful if using this script as a standalone tool. You can also
+        use --branch to configure which branch to deploy from that clone."""
+    )
+
     ap.add_argument(
         "--staging",
-        help="""By default, we deploy from the location of this script. If
-        --staging is specified (e.g., /tmp/$USER-lcdb-wf), clone the main git
-        repo to that directory and do a diff on the deploy.py script found
-        there to ensure this one is up-to-date. Useful if using this script as
-        a standalone tool. Also use --branch to configure which branch to
-        deploy from that clone.""",
+        default=default_staging,
+        help="""Only used when --clone is specified. Clone the main git repo to
+        this directory and do a diff on the deploy.py script found there to
+        ensure this one is up-to-date, and if so then proceed using the new clone as the source.
+        """,
     )
 
     ap.add_argument(
