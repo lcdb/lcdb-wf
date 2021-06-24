@@ -212,32 +212,31 @@ variables:
           cd workflows/rnaseq-misc-test
           source activate lcdb-wf-test
 
-          # SRA, PE. Note that there's no starting data directory and that we
-          # only go to the cutadapt step.
+          echo "test SRA, PE"
           rm -r data
           ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
             --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
             --config sampletable=$ORIG/test/test_configs/test_sra_sampletable.tsv
 
-          # Same as above, but SE
+          echo "test SRA, SE"
           rm -r data
           ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
             --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
             --config sampletable=$ORIG/test/test_configs/test_sra_sampletable_SE_only.tsv
 
-          # test strandedness, PE
+          echo "test strandedness, PE"
           rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r --until strand_check \
             --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
             --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
 
-          # test strandedness, SE
+          echo "test strandedness, SE"
           rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r --until strand_check \
-            --configfile $ORIG/test/test_configs/override.yaml \
+            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv
 
-          # test STAR 2-pass alignment
+          echo "test STAR 2-pass alignment"
           rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r \
             --forcerun star_pass1 \
@@ -247,7 +246,7 @@ variables:
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
             --until star_pass2
 
-          # test STAR 1-pass alignment
+          echo "test STAR 1-pass alignment"
           rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r \
             --forcerun star \
@@ -257,7 +256,7 @@ variables:
             --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
             --until star
 
-          # test PE reads
+          echo "test PE reads"
           rm -r data && cp -r /tmp/data data
           ./run_test.sh -j 2 --use-conda -k -p -r --until multiqc \
             --configfile \
