@@ -4,11 +4,12 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>References config &#8212; lcdb-wf 0.1 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -89,38 +90,49 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="references-config">
+  <section id="references-config">
 <span id="id1"></span><h1>References config<a class="headerlink" href="#references-config" title="Permalink to this headline">¶</a></h1>
-<p>The references section defines which genomes, transcriptomes, and annotations to use.
-It supports arbitrarily many species and assemblies, and supports customizing
-references for a particular project.</p>
-<div class="section" id="including-existing-reference-configs">
+<p>The references section defines which genomes, transcriptomes, and annotations
+to use. It supports arbitrarily many species and assemblies, and supports
+customizing references for a particular project. For example, there are tools
+and examples for adding ERCC spike-in controls to references, or adjusting
+chromosome nomenclature, or removing problematic entries from GTF files, and so
+on.</p>
+<p>Another advantage is that this makes it easy to add multiple genomes to the
+screening step (which uses fastq_screen).</p>
+<section id="specifying-a-references-directory">
+<h2>Specifying a references directory<a class="headerlink" href="#specifying-a-references-directory" title="Permalink to this headline">¶</a></h2>
+<p>See <a class="reference internal" href="config-yaml.html#cfg-references-dir"><span class="std std-ref">references_dir</span></a> for more information on where the references are
+built (as well as how and why to adjust this).</p>
+</section>
+<section id="including-existing-reference-configs">
 <h2>Including existing reference configs<a class="headerlink" href="#including-existing-reference-configs" title="Permalink to this headline">¶</a></h2>
 <p>We provide a number of pre-configured reference configs for common model
-organisms.  If you just want to use some references configs that work, then put
+organisms. If you just want to use some references configs that work, then put
 this in your config file:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">include_references</span><span class="p">:</span>
   <span class="p p-Indicator">-</span> <span class="s">&#39;../../include/references_configs&#39;</span>
 </pre></div>
 </div>
 <p>This will populate the config with the contents of all the files contained in
-the <code class="docutils literal notranslate"><span class="pre">include/references_configs</span></code> directory (the path is relative to the
-Snakefile using the config). <strong>Note that you will still need to inspect the
-contents</strong> of those files to decide which organsim and tag you want to use for
-your particular experiment (see <a class="reference internal" href="config-yaml.html#cfg-organism"><span class="std std-ref">organism field</span></a> and <a class="reference internal" href="config-yaml.html#cfg-aligner"><span class="std std-ref">aligner config section</span></a> for
-more on these fields). For example, if you are working with human RNA-seq data,
-and you use the above <code class="docutils literal notranslate"><span class="pre">include_references</span></code>, you may want this in your config:</p>
+the <code class="docutils literal notranslate"><span class="pre">include/references_configs</span></code> directory. Any paths provided under the
+<code class="docutils literal notranslate"><span class="pre">include_references</span></code> key are relative to the Snakefile using the config.
+<strong>Note that you will still need to inspect the contents</strong> of those files to
+decide which organsim and tag you want to use for your particular experiment
+(see <a class="reference internal" href="config-yaml.html#cfg-organism"><span class="std std-ref">organism field</span></a> and <a class="reference internal" href="config-yaml.html#cfg-aligner"><span class="std std-ref">aligner config section</span></a> for more on these fields). For
+example, if you are working with human RNA-seq data, and you use the above
+<code class="docutils literal notranslate"><span class="pre">include_references</span></code>, you may want this in your config:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">organism</span><span class="p">:</span> <span class="s">&#39;human&#39;</span>
 <span class="nt">aligner</span><span class="p">:</span>
   <span class="nt">tag</span><span class="p">:</span> <span class="s">&#39;gencode-v25&#39;</span>
   <span class="nt">index</span><span class="p">:</span> <span class="s">&#39;hisat2&#39;</span>
-<span class="nt">salmon</span><span class="p">:</span> <span class="s">&#39;gencode-v25-transcriptome&#39;</span>
+<span class="nt">salmon</span><span class="p">:</span> <span class="s">&#39;gencode-v25&#39;</span>
 </pre></div>
 </div>
-<p>since the <code class="docutils literal notranslate"><span class="pre">gencode-v25</span></code> and <code class="docutils literal notranslate"><span class="pre">gencode-v25-transcriptome</span></code> tags are configured
-for the <code class="docutils literal notranslate"><span class="pre">human</span></code> key in
-<code class="docutils literal notranslate"><span class="pre">../../include/references_configs/Homo_sapiens.yaml</span></code>.</p>
-<p>You can provide entire directories of reference configs, a single file, or use the references section below. The prioritization works like this:</p>
+<p>The reason for using <code class="docutils literal notranslate"><span class="pre">gencode-v25</span></code> is because that tag is configured for the
+<code class="docutils literal notranslate"><span class="pre">human</span></code> key in <code class="docutils literal notranslate"><span class="pre">../../include/references_configs/Homo_sapiens.yaml</span></code>.</p>
+<p>You can provide entire directories of reference configs, a single file, or use
+the references section below. The prioritization works like this:</p>
 <ul class="simple">
 <li><p>an organism can show up in multiple configs; if a tag exists for an organism
 in more than one config, higher-priority configs will overwrite the contents
@@ -134,15 +146,17 @@ last one has priority</p></li>
 </ul>
 <p>The remainder of this section of the documentation explains how to customize
 the references, to add your own or modify the existing examples.</p>
-</div>
-<div class="section" id="overview">
+</section>
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>The references workflow is based on the idea that while each genome’s source
-files (FASTA, GTF) may come from different providers (Ensembl, FlyBase, UCSC,
-etc) and have slightly different formatting (strange headers, one big file or
-a tarball of individual chromosomes, etc), once they are well-formatted they
-can be used to create a hisat2 index, a bowtie2 index, a list of genes,
-intergenic regions, and so on without any further customization.</p>
+files may differ, they can usually be modified to a uniform format. For
+example, reference files (FASTA, GTF) may come from different providers
+(Ensembl, FlyBase, UCSC, etc) and have slightly different formatting (strange
+headers, one big file or a tarball of individual chromosomes, etc), once they
+are well-formatted they can be used to create a hisat2 index, a bowtie2 index,
+a list of genes, intergenic regions, and so on without any further
+customization.</p>
 <p>The challenging part is the “well-formatted” part. To solve this, the config
 file and references building system allows a very flexible specification of how
 to modify references via a plugin architecture. It works something like this:</p>
@@ -158,10 +172,14 @@ below.</p></li>
 <li><p>For FASTA files one or more <strong>indexes</strong> are requested</p></li>
 <li><p>For GTF files, zero or more <strong>conversions</strong> are requested.</p></li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If using a <code class="docutils literal notranslate"><span class="pre">file://</span></code> URI, it needs to be gzipped.</p>
+</div>
 <p>It’s probably easiest to show an example config and then describe what’s
 happening.</p>
-</div>
-<div class="section" id="example-references-config">
+</section>
+<section id="example-references-config">
 <h2>Example references config<a class="headerlink" href="#example-references-config" title="Permalink to this headline">¶</a></h2>
 <p>The following example configures the workflow to:</p>
 <ul class="simple">
@@ -338,8 +356,8 @@ comprehensive annotation vs only coding genes).</p>
 specified indexes. <cite>gtf</cite> blocks can have an optional <cite>conversions</cite> entry which
 will perform the specified conversion. Available indexes and conversions are
 described below.</p>
-</div>
-<div class="section" id="post-processing">
+</section>
+<section id="post-processing">
 <h2>Post processing<a class="headerlink" href="#post-processing" title="Permalink to this headline">¶</a></h2>
 <p><strong>All files created by a block are required to be gzipped.</strong></p>
 <p>This means that if a URL points to an uncompressed GTF file, a post-processing
@@ -407,9 +425,55 @@ be defined in that module.</p>
 bowtie2 index, etc) will now use this fixed version with “chr” prepended to
 chromosome names.  In this way, we can apply arbitrary code to modify
 references to get them into a uniform format.</p>
+</section>
+<section id="more-advanced-postprocessing">
+<span id="advanced-postprocessing"></span><h2>More advanced postprocessing<a class="headerlink" href="#more-advanced-postprocessing" title="Permalink to this headline">¶</a></h2>
+<p>If a post-processing function has a keyword argument with starts and ends with
+a double underscore (<code class="docutils literal notranslate"><span class="pre">__</span></code>), the config system will assume this is a string
+that should be interpreted as a dotted function name and the actual function
+will be resolved and passed to the post-processing function.</p>
+<p>This is useful for example when attaching ERCC spike-ins to a reference file
+that in turn needs to be modified. For example, the <cite>S. pombe</cite> reference
+annotations are available as a GFF file, but this needs to be converted to
+a GTF file. After that, the ERCC spike-in GTF annotations need to be added to
+the newly-created GTF.</p>
+<p>The functions in <code class="docutils literal notranslate"><span class="pre">lib/postprocess/ercc.py</span></code> support such a use-case. The
+config looks like this:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">genome</span><span class="p">:</span>
+  <span class="nt">url</span><span class="p">:</span>
+    <span class="c1"># S. pombe fasta</span>
+    <span class="p p-Indicator">-</span> <span class="s">&#39;ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/fasta/schizosaccharomyces_pombe/dna/Schizosaccharomyces_pombe.ASM294v2.dna_sm.toplevel.fa.gz&#39;</span>
+    <span class="c1"># ERCC fasta</span>
+    <span class="p p-Indicator">-</span> <span class="s">&#39;https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA&#39;</span>
+  <span class="nt">postprocess</span><span class="p">:</span>
+    <span class="nt">function</span><span class="p">:</span> <span class="s">&quot;lib.postprocess.ercc.add_fasta_to_genome&quot;</span>
+
+<span class="nt">annotation</span><span class="p">:</span>
+  <span class="nt">url</span><span class="p">:</span>
+    <span class="c1"># S. pombe GFF, which needs to be converted to GTF</span>
+    <span class="p p-Indicator">-</span> <span class="s">&#39;ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/gff3/schizosaccharomyces_pombe/Schizosaccharomyces_pombe.ASM294v2.41.gff3.gz&#39;</span>
+
+    <span class="c1"># ERCC GTF is not available; conversion function needed to convert</span>
+    <span class="c1"># fasta to GTF</span>
+    <span class="p p-Indicator">-</span> <span class="s">&#39;https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA&#39;</span>
+
+  <span class="nt">postprocess</span><span class="p">:</span>
+    <span class="nt">function</span><span class="p">:</span> <span class="s">&quot;lib.postprocess.ercc.add_gtf_to_genome&quot;</span>
+    <span class="nt">kwargs</span><span class="p">:</span>
+      <span class="c1"># As per the docs for add_gtf_to_genome, this function will be</span>
+      <span class="c1"># applied to all but the last input file. It is specified as a string</span>
+      <span class="c1"># here, but the config-processing system will resolve this to the</span>
+      <span class="c1"># actual function and pass that along to add_gtf_to_genome</span>
+      <span class="nt">__preprocess__</span><span class="p">:</span> <span class="s">&quot;lib.common.gff2gtf&quot;</span>
+</pre></div>
 </div>
-<div class="section" id="locations-of-downloaded-and-post-rocessed-fasta-and-gtf-files">
-<h2>Locations of downloaded-and-post-rocessed FASTA and GTF files<a class="headerlink" href="#locations-of-downloaded-and-post-rocessed-fasta-and-gtf-files" title="Permalink to this headline">¶</a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.7: </span>Ability to use special <code class="docutils literal notranslate"><span class="pre">__</span></code>-prefixed variables that are interpreted as
+dotted-path functions to import.</p>
+</div>
+</section>
+<section id="locations-of-downloaded-and-post-processed-fasta-and-gtf-files">
+<h2>Locations of downloaded-and-post-processed FASTA and GTF files<a class="headerlink" href="#locations-of-downloaded-and-post-processed-fasta-and-gtf-files" title="Permalink to this headline">¶</a></h2>
 <p>Generally speaking, the fasta and gtf files will be in:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">fasta</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.</span><span class="n">fasta</span>
 <span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">gtf</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.</span><span class="n">gtf</span>
@@ -445,11 +509,11 @@ tools handle gzipped input. The references workflow therefore stores only the
 uncompressed versions. We consider the resulting configuration simplicity to
 be worth the additional space and time cost.</p>
 </div>
-</div>
-<div class="section" id="available-indexes-and-conversions">
+</section>
+<section id="available-indexes-and-conversions">
 <h2>Available indexes and conversions<a class="headerlink" href="#available-indexes-and-conversions" title="Permalink to this headline">¶</a></h2>
 <p>The following indexes can be currently be specified for fasta files:</p>
-<div class="section" id="hisat2">
+<section id="hisat2">
 <h3>hisat2<a class="headerlink" href="#hisat2" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">indexes</span><span class="p">:</span>
@@ -461,8 +525,8 @@ be worth the additional space and time cost.</p>
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="bowtie2">
+</section>
+<section id="bowtie2">
 <h3>bowtie2<a class="headerlink" href="#bowtie2" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">indexes</span><span class="p">:</span>
@@ -474,8 +538,8 @@ be worth the additional space and time cost.</p>
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="salmon">
+</section>
+<section id="salmon">
 <h3>salmon<a class="headerlink" href="#salmon" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">indexes</span><span class="p">:</span>
@@ -488,8 +552,8 @@ be worth the additional space and time cost.</p>
 </div>
 </div></blockquote>
 <p>The following conversions can be specified for GTF files:</p>
-</div>
-<div class="section" id="refflat">
+</section>
+<section id="refflat">
 <h3>refflat<a class="headerlink" href="#refflat" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">conversions</span><span class="p">:</span>
@@ -503,8 +567,8 @@ be worth the additional space and time cost.</p>
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="bed12">
+</section>
+<section id="bed12">
 <h3>bed12<a class="headerlink" href="#bed12" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><blockquote>
@@ -520,8 +584,8 @@ be worth the additional space and time cost.</p>
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="gffutils">
+</section>
+<section id="gffutils">
 <h3>gffutils<a class="headerlink" href="#gffutils" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><p>Converts GTF to gffutils database (typically used for downstream work). You
@@ -539,8 +603,8 @@ transcripts:</p>
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="genelist">
+</section>
+<section id="genelist">
 <h3>genelist<a class="headerlink" href="#genelist" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><p>Reads the postprocessed GTF file, and extracts the set of gene IDs found,
@@ -557,8 +621,8 @@ one ID per line. The GTF attribute to use is configured by the
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="mappings">
+</section>
+<section id="mappings">
 <h3>mappings<a class="headerlink" href="#mappings" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><p>Reads the postprocesses GTF file, and outputs mappings between attributes
@@ -586,9 +650,9 @@ attribute that may happen to be called <code class="docutils literal notranslate
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -601,7 +665,7 @@ attribute that may happen to be called <code class="docutils literal notranslate
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

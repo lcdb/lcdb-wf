@@ -4,11 +4,12 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>FAQs &#8212; lcdb-wf 0.1 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -90,10 +91,10 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="faqs">
+  <section id="faqs">
 <h1>FAQs<a class="headerlink" href="#faqs" title="Permalink to this headline">¶</a></h1>
 <p>This page serves as a catch-all for details of various topics.</p>
-<div class="section" id="can-i-run-multiple-workflows-at-once">
+<section id="can-i-run-multiple-workflows-at-once">
 <span id="simultaneous-workflows"></span><h2>Can I run multiple workflows at once?<a class="headerlink" href="#can-i-run-multiple-workflows-at-once" title="Permalink to this headline">¶</a></h2>
 <p>Sometimes. While Snakemake creates a lockfile to prevent multiple instances
 running in the same directory, the fact that each workflow (rnaseq, chipseq,
@@ -103,8 +104,8 @@ separate lockfiles and can be run.</p>
 references workflow. This means that if you have not yet already set up the
 references, the RNA-seq and ChIP-seq workflows may both attempt to write the
 references, potentially corrupting it.</p>
-</div>
-<div class="section" id="how-do-i-handle-multiple-experiments-in-the-same-project">
+</section>
+<section id="how-do-i-handle-multiple-experiments-in-the-same-project">
 <span id="multiple-experiments"></span><h2>How do I handle multiple experiments in the same project?<a class="headerlink" href="#how-do-i-handle-multiple-experiments-in-the-same-project" title="Permalink to this headline">¶</a></h2>
 <p>It’s pretty common to have both RNA-seq and ChIP-seq experiments that need to
 be analyzed together. For example, we might have RNA-seq in two different mouse
@@ -150,7 +151,7 @@ rm -r workflows/rnaseq
 </pre></div>
 </div>
 <p>See below for advice on when to split experiments into separate workflows.</p>
-<div class="section" id="samples-need-the-same-library-layout">
+<section id="samples-need-the-same-library-layout">
 <h3>Samples need the same library layout<a class="headerlink" href="#samples-need-the-same-library-layout" title="Permalink to this headline">¶</a></h3>
 <p>A single workflow must be either all single-end or all paired-end.</p>
 <p>If you have the same RNA-seq samples that were sequenced once SE and again PE,
@@ -159,8 +160,8 @@ you’ll need to have two different copies of the <code class="docutils literal 
 combined in the same differential expression analysis (e.g., by modeling layout
 as a batch effect), then the adjust your downstream analysis in R to read in
 both counts tables (see <a class="reference internal" href="rnaseq-rmd.html#rnaseqrmd"><span class="std std-ref">Primary analysis script</span></a> for more).</p>
-</div>
-<div class="section" id="samples-need-to-use-the-same-parameters">
+</section>
+<section id="samples-need-to-use-the-same-parameters">
 <h3>Samples need to use the same parameters<a class="headerlink" href="#samples-need-to-use-the-same-parameters" title="Permalink to this headline">¶</a></h3>
 <p>There is no mechanism for specifying sample-specific parameters. For example,
 to use cutadapt to trim some 5’ bases from some samples but leave other samples
@@ -177,16 +178,16 @@ any other parameter supported by the peak-caller.</p>
 parameters across samples, so if alignment or trimming options differ, you
 should split each set of parameters into a different workflow.</p>
 </div>
-</div>
-<div class="section" id="samples-must-use-the-same-assembly">
+</section>
+<section id="samples-must-use-the-same-assembly">
 <h3>Samples must use the same assembly<a class="headerlink" href="#samples-must-use-the-same-assembly" title="Permalink to this headline">¶</a></h3>
 <p>There is no mechanism for specifying per-sample assemblies. Samples from
 different species need to go in different workflows. If you want to compare,
 say, hg19 and hg38, then you would make a copy of the workflow for each assembly
 and adjust the reference config accordingly for each workflow separately.</p>
-</div>
-</div>
-<div class="section" id="how-are-low-counts-handled-during-differential-expression-analysis-should-we-use-a-read-count-threshold-to-filter-genes">
+</section>
+</section>
+<section id="how-are-low-counts-handled-during-differential-expression-analysis-should-we-use-a-read-count-threshold-to-filter-genes">
 <span id="lowcounts"></span><h2>How are low counts handled during differential expression analysis? Should we use a read-count threshold to filter genes?<a class="headerlink" href="#how-are-low-counts-handled-during-differential-expression-analysis-should-we-use-a-read-count-threshold-to-filter-genes" title="Permalink to this headline">¶</a></h2>
 <p>Low count genes are handled during the normalization and analysis steps of DESeq2
 with sophisticated statistical models. Genes with low counts across the board are flagged
@@ -200,8 +201,8 @@ In contrast, using an arbitrary fold-change cutoff could introduce biases that p
 violate modeling assumptions and introduce variables that we could not predict or control for.
 So, we do not recommend using count thresholds to filter differential expression analysis
 results to determine candidate genes for follow up.</p>
-</div>
-<div class="section" id="how-do-i-troubleshoot-failed-jobs">
+</section>
+<section id="how-do-i-troubleshoot-failed-jobs">
 <span id="troubleshooting"></span><h2>How do I troubleshoot failed jobs?<a class="headerlink" href="#how-do-i-troubleshoot-failed-jobs" title="Permalink to this headline">¶</a></h2>
 <p>Many rules have an explicit <code class="docutils literal notranslate"><span class="pre">log:</span></code> directive that defines where the log is
 written. These are typically in the same directory as the output files the rule
@@ -234,8 +235,8 @@ configure when running with the <code class="docutils literal notranslate"><span
 </div>
 <p>Then we would check <code class="docutils literal notranslate"><span class="pre">logs/rnaseq_markdown.e.60894387</span></code> and
 <code class="docutils literal notranslate"><span class="pre">logs/rnaseq_markdown.o.60894387</span></code> for more information.</p>
-</div>
-<div class="section" id="how-do-i-update-my-deployment">
+</section>
+<section id="how-do-i-update-my-deployment">
 <span id="updating"></span><h2>How do I update my deployment?<a class="headerlink" href="#how-do-i-update-my-deployment" title="Permalink to this headline">¶</a></h2>
 <p>If there are additional fixes or features in the main lcdb-wf repo that you
 want to propagate to your existing projects, the best way to do this is to
@@ -245,8 +246,8 @@ you have on disk.</p>
 since you deplyed to a project, Use the <code class="docutils literal notranslate"><span class="pre">.lcdb-wf-deployment.json</span></code> file that
 is created when deploying to a project to find the commit hash that the
 deployment used.</p>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>
@@ -259,7 +260,7 @@ deployment used.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

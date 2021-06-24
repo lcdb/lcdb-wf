@@ -1,14 +1,43 @@
 For Developers
 ==============
 
-Writing wrappers
-----------------
-See the `demo wrapper
-<https://github.com/lcdb/lcdb-wf/tree/master/wrappers/wrappers/demo>`_ for
-a template to use when creating your own wrappers.
+Creating and updating conda envs
+--------------------------------
+
+The ``env.yml`` and ``env-r.yml`` files contain fully-pinned versions of the
+environments. This hopefully helps with stability and can dramatically speed up
+the creation of environment. However these env definitions periodically need to
+be updated.
+
+To do so, create new environments using the unpinned versions in
+``include/requirements.txt`` and ``include/requirements-r.txt``. This may take
+substantially longer to create.
+
+Then run the tests (:ref:`running-the-tests`) using those environments.
+
+If all tests pass, then export the newly-created environments to the
+``env.yml`` and ``env-r.yml`` files.
+
+When you commit and push those files, the CI/CD system will detect that they
+are different and will trigger a re-build of the cached environments and
+proceed with the tests using those new environments.
+
+Running the full complex datasets
+---------------------------------
+
+Prior to a release, the complex datasets should be run. These do a more
+extensive job in testing the corner cases. This should be run on a cluster or
+a machine with substantial resources. The configs can be found in
+``include/test``. Here is how to run it using the WRAPPER_SLURM:
+
+.. code-block:: bash
+
+    sbatch ../../include/WRAPPER_SLURM \
+      --configfile ../../test/test_configs/complex-dataset-rnaseq-config.yaml \
+      --config sampletable=../../test/test_configs/complex-dataset-rnaseq-sampletable.tsv
 
 Module documentation
-~~~~~~~~~~~~~~~~~~~~
+--------------------
 
 .. toctree::
    :maxdepth: 2
@@ -17,8 +46,6 @@ Module documentation
    lib.chipseq
    lib.patterns_targets
 
-Miscellanous tips
-~~~~~~~~~~~~~~~~~
 
 Adding a new aligner
 --------------------

@@ -4,11 +4,12 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>Sample tables &#8212; lcdb-wf 0.1 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -89,7 +90,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="sample-tables">
+  <section id="sample-tables">
 <span id="sampletable"></span><h1>Sample tables<a class="headerlink" href="#sample-tables" title="Permalink to this headline">¶</a></h1>
 <p>Sample tables map sample names to files on disk and provide additional
 metadata. It is expected to have a header and be tab-delimited. Empty lines and
@@ -102,7 +103,7 @@ data sets! For ChIP-seq data from SRA, the additional columns <cite>antibody</ci
 <cite>label</cite>, and <cite>biological_material</cite> as described below will need to be added,
 but often that information is already in the SRA sampletable so the columns
 just need to be renamed.</p>
-<div class="section" id="rna-seq-sample-table">
+<section id="rna-seq-sample-table">
 <span id="rnaseq-sampletable"></span><h2>RNA-seq sample table<a class="headerlink" href="#rna-seq-sample-table" title="Permalink to this headline">¶</a></h2>
 <p>Here is an example minimal sample table for RNA-seq. It only contains sample
 IDs for four samples:</p>
@@ -126,7 +127,7 @@ expect the following files to already exist (paths relative to the Snakefile):</
 <span class="n">data</span><span class="o">/</span><span class="n">rnaseq_samples</span><span class="o">/</span><span class="n">t2</span><span class="o">/</span><span class="n">t2_R1</span><span class="o">.</span><span class="n">fastq</span><span class="o">.</span><span class="n">gz</span>
 </pre></div>
 </div>
-<div class="section" id="symlinking-fastqs">
+<section id="symlinking-fastqs">
 <span id="symlinks"></span><h3>Symlinking FASTQs<a class="headerlink" href="#symlinking-fastqs" title="Permalink to this headline">¶</a></h3>
 <p>To avoid having to copy or symlink files over into the expected directory
 structure, we can instead list the original filenames in a column called
@@ -150,8 +151,8 @@ sampletable:</p>
 </div>
 <p>Note that <cite>orig_filename</cite> paths in the sampletable are considered <em>relative to
 the Snakefile</em>.</p>
-</div>
-<div class="section" id="additional-metadata">
+</section>
+<section id="additional-metadata">
 <h3>Additional metadata<a class="headerlink" href="#additional-metadata" title="Permalink to this headline">¶</a></h3>
 <p>For RNA-seq, only the first column and optionally the <cite>orig_filename</cite> column
 are used directly by the RNA-seq workflow.</p>
@@ -169,8 +170,8 @@ model of <code class="docutils literal notranslate"><span class="pre">~condition
 <span class="n">t2</span>       <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">other</span><span class="o">/</span><span class="n">t2</span><span class="o">.</span><span class="n">fq</span><span class="o">.</span><span class="n">gz</span>   <span class="n">treatment</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="paired-end-data">
+</section>
+<section id="paired-end-data">
 <h3>Paired-end data<a class="headerlink" href="#paired-end-data" title="Permalink to this headline">¶</a></h3>
 <p><strong>Paired-end and single-end data may be mixed in the same sampletable.</strong>
 A sample is specified as paired-end using a separate column in the sampletable.
@@ -207,9 +208,9 @@ may need different parameters depending on the library layout.</p>
 <span class="n">t2</span>       <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">other</span><span class="o">/</span><span class="n">t2</span><span class="o">.</span><span class="n">fq</span><span class="o">.</span><span class="n">gz</span>                        <span class="n">SE</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="chip-seq-sample-table">
+</section>
+</section>
+<section id="chip-seq-sample-table">
 <span id="chipseq-sampletable"></span><h2>ChIP-seq sample table<a class="headerlink" href="#chip-seq-sample-table" title="Permalink to this headline">¶</a></h2>
 <p><strong>Three additional columns are required</strong> for ChIP-seq: <code class="docutils literal notranslate"><span class="pre">antibody</span></code>,
 <code class="docutils literal notranslate"><span class="pre">biological_material</span></code> and <code class="docutils literal notranslate"><span class="pre">label</span></code>.</p>
@@ -239,7 +240,7 @@ ChIP-seq peak-callers are command-line tools and frequently only take a single
 biological replicate, and so are run as Snakemake rules. As a result, more
 complex configuration is required to ensure complex experimental designs are
 handled correctly.</p>
-<div class="section" id="minimal-chip-seq-sample-table-no-replicates">
+<section id="minimal-chip-seq-sample-table-no-replicates">
 <h3>Minimal ChIP-seq sample table, no replicates<a class="headerlink" href="#minimal-chip-seq-sample-table-no-replicates" title="Permalink to this headline">¶</a></h3>
 <p>A minimal ChIP-seq sample table, with no biological replicates, looks like
 this:</p>
@@ -255,8 +256,8 @@ this:</p>
 also has the same biological material as the IP. Here, we know <cite>input1</cite> goes
 with <cite>ip1</cite> because they both have the same biological material.</p></li>
 </ul>
-</div>
-<div class="section" id="chip-seq-sample-table-biological-replicates">
+</section>
+<section id="chip-seq-sample-table-biological-replicates">
 <h3>ChIP-seq sample table, biological replicates<a class="headerlink" href="#chip-seq-sample-table-biological-replicates" title="Permalink to this headline">¶</a></h3>
 <p>Here is another example, this time with biological replicates:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example ChIP-seq sampletable with biological replicates</span>
@@ -275,8 +276,8 @@ biological material (<cite>s2cell-2</cite>) and <cite>input2</cite> has <code cl
 <li><p>Each sample has a unique label because there are no technical replicates
 here.</p></li>
 </ul>
-</div>
-<div class="section" id="chip-seq-sample-table-biological-and-technical-replicates">
+</section>
+<section id="chip-seq-sample-table-biological-and-technical-replicates">
 <h3>ChIP-seq sample table, biological and technical replicates<a class="headerlink" href="#chip-seq-sample-table-biological-and-technical-replicates" title="Permalink to this headline">¶</a></h3>
 <p>Another example, this time with biological and technical replicates:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example ChIP-seq sampletable with bio and tech reps</span>
@@ -297,8 +298,8 @@ label, <cite>s2cell-gaf-1</cite> (described further below). The remaining <cite>
 <cite>input1</cite>, and <cite>input2</cite> do not have to be merged with anything, so they will
 be symlinked.</p></li>
 </ul>
-</div>
-<div class="section" id="merging-technical-replicates-for-chip-seq">
+</section>
+<section id="merging-technical-replicates-for-chip-seq">
 <h3>Merging technical replicates for ChIP-seq<a class="headerlink" href="#merging-technical-replicates-for-chip-seq" title="Permalink to this headline">¶</a></h3>
 <p>In contrast to technical replicates in RNA-seq, where counts can be summed in
 R, ChIP-seq is a bit more complicated. The ChIP-seq workflow uses <code class="docutils literal notranslate"><span class="pre">samtools</span>
@@ -331,9 +332,9 @@ example this file:</p>
 </div>
 <p>For peak-calling (see <a class="reference internal" href="config-yaml.html#cfg-chipseq"><span class="std std-ref">chipseq config section</span></a>) and any other downstream analysis,
 <strong>the files to use are these merged (or symlinked) BAM files.</strong></p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -346,7 +347,7 @@ example this file:</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

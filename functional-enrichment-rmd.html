@@ -4,11 +4,12 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>Functional enrichment analysis &#8212; lcdb-wf 0.1 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -79,7 +80,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="functional-enrichment-analysis">
+  <section id="functional-enrichment-analysis">
 <span id="functional-enrichment"></span><h1>Functional enrichment analysis<a class="headerlink" href="#functional-enrichment-analysis" title="Permalink to this headline">¶</a></h1>
 <p>Let’s say that the differential expression analysis of your RNA-Seq data
 yields hundreds of changed genes. While this is exciting as it shows that
@@ -95,7 +96,7 @@ information about gene function (<code class="docutils literal notranslate"><spa
 are collated and tested for enrichment using a <a class="reference external" href="http://en.wikipedia.org/wiki/Hypergeometric_distribution#Hypergeometric_test">hypergeometric test</a>.
 The databases implemented here by default are gene ontology (GO) and KEGG pathways,
 while Reactome pathways can be enabled if desired.</p>
-<div class="section" id="cprofsetup">
+<section id="cprofsetup">
 <h2>cprofsetup<a class="headerlink" href="#cprofsetup" title="Permalink to this headline">¶</a></h2>
 <p>Here we set up <code class="docutils literal notranslate"><span class="pre">clusterProfiler</span></code> parameters and output directories. The default
 parameters should work with almost all analyses. The only parameter that can be
@@ -117,8 +118,8 @@ additional keys can be added. For a list of keys for an orgDb object, run <code 
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="bitrgenes">
+</section>
+<section id="bitrgenes">
 <h2><code class="docutils literal notranslate"><span class="pre">bitrgenes</span></code><a class="headerlink" href="#bitrgenes" title="Permalink to this headline">¶</a></h2>
 <p>Here we obtain a list of differentially expressed genes and obtain a mapping of
 these gene IDs to the terms listed in <code class="docutils literal notranslate"><span class="pre">types</span></code> above. Notable parameter to change:</p>
@@ -140,8 +141,8 @@ should be set to <code class="docutils literal notranslate"><span class="pre">EN
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="enrichall">
+</section>
+<section id="enrichall">
 <h2><code class="docutils literal notranslate"><span class="pre">enrichall</span></code><a class="headerlink" href="#enrichall" title="Permalink to this headline">¶</a></h2>
 <p>This is the main chunk where the functional enrichment analysis is performed. A set of
 parameters for the analysis are set at the top of the chunk, but the only ones that should be
@@ -180,8 +181,8 @@ output to files and used subsequently for visualization.</p>
 so for many lists, this chunk can be <em>very</em> time-consuming. However, with <code class="docutils literal notranslate"><span class="pre">cache</span> <span class="pre">=</span> <span class="pre">TRUE</span></code>,
 this is only run once and subsequent runs are much faster.</p>
 </div>
-</div>
-<div class="section" id="plotgo">
+</section>
+<section id="plotgo">
 <h2><code class="docutils literal notranslate"><span class="pre">plotgo</span></code><a class="headerlink" href="#plotgo" title="Permalink to this headline">¶</a></h2>
 <p>Here we visualize the functional enrichment analysis results using three different
 plots:</p>
@@ -219,14 +220,14 @@ categories. By default the top 5 categories are plotted.</p>
 </li>
 </ul>
 <p>Each plot is also saved to file as PDF and a link included in the html summary report.</p>
-</div>
-<div class="section" id="adjustcatlen">
+</section>
+<section id="adjustcatlen">
 <h2><code class="docutils literal notranslate"><span class="pre">adjustcatlen</span></code><a class="headerlink" href="#adjustcatlen" title="Permalink to this headline">¶</a></h2>
 <p>Here we update the <code class="docutils literal notranslate"><span class="pre">clusterProfiler</span></code> results object by adding symbols corresponding to
 KEGG gene IDs. This is done so that human-readable gene names show in the visualizations.
 This will likely be moved to a helper function that is run automatically in a future release.</p>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>
@@ -239,7 +240,7 @@ This will likely be moved to a helper function that is run automatically in a fu
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

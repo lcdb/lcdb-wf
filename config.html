@@ -4,11 +4,12 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>Configuration details &#8212; lcdb-wf 0.1 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -87,9 +88,9 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="configuration-details">
+  <section id="configuration-details">
 <span id="config"></span><h1>Configuration details<a class="headerlink" href="#configuration-details" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="general-configuration">
+<section id="general-configuration">
 <h2>General configuration<a class="headerlink" href="#general-configuration" title="Permalink to this headline">¶</a></h2>
 <p>The majority of the work in setting up a new project is in the configuration –
 which samples to run, where the data files are located, which references are
@@ -110,11 +111,13 @@ transcriptomes, and annotations to be used. See <a class="reference internal" hr
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="references-config.html">References config</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="references-config.html#specifying-a-references-directory">Specifying a references directory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="references-config.html#including-existing-reference-configs">Including existing reference configs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="references-config.html#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="references-config.html#example-references-config">Example references config</a></li>
 <li class="toctree-l2"><a class="reference internal" href="references-config.html#post-processing">Post processing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="references-config.html#locations-of-downloaded-and-post-rocessed-fasta-and-gtf-files">Locations of downloaded-and-post-rocessed FASTA and GTF files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="references-config.html#more-advanced-postprocessing">More advanced postprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="references-config.html#locations-of-downloaded-and-post-processed-fasta-and-gtf-files">Locations of downloaded-and-post-processed FASTA and GTF files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="references-config.html#available-indexes-and-conversions">Available indexes and conversions</a></li>
 </ul>
 </li>
@@ -144,8 +147,8 @@ created by the workflow. See <a class="reference internal" href="patterns-target
 </li>
 </ul>
 </div>
-</div>
-<div class="section" id="running-on-a-cluster">
+</section>
+<section id="running-on-a-cluster">
 <span id="cluster"></span><h2>Running on a cluster<a class="headerlink" href="#running-on-a-cluster" title="Permalink to this headline">¶</a></h2>
 <p>The example commands in <a class="reference internal" href="getting-started.html#getting-started"><span class="std std-ref">Getting started</span></a> describe running Snakemake
 locally. For larger data sets, you’ll want to run them on an HPC cluster.
@@ -184,7 +187,7 @@ containing the rule-specific cluster arguments.</p>
 <code class="docutils literal notranslate"><span class="pre">--jobname</span></code> arg). The stdout and stderr go to files in <code class="docutils literal notranslate"><span class="pre">logs</span></code> and are
 named after the rule, followed by a <code class="docutils literal notranslate"><span class="pre">.o</span></code> or <code class="docutils literal notranslate"><span class="pre">.e</span></code>, followed by the cluster
 job ID (the <code class="docutils literal notranslate"><span class="pre">--cluster</span></code> arg).</p>
-<div class="section" id="tmpdir-handling">
+<section id="tmpdir-handling">
 <span id="cluster-specific"></span><h3>TMPDIR handling<a class="headerlink" href="#tmpdir-handling" title="Permalink to this headline">¶</a></h3>
 <p>The top of each snakefile sets up a shell prefix that exports the TMPDIR
 variable. The reason for this is that the NIH Biowulf cluster supports nodes
@@ -201,17 +204,17 @@ is to set <code class="docutils literal notranslate"><span class="pre">$TMPDIR</
 <a class="reference external" href="https://docs.python.org/3/library/tempfile.html#tempfile.gettempdir">tempfile module</a>.
 However if you use these workflows on a different cluster, you may need to
 provide a different function to return the job-specific temp directory.</p>
-</div>
-<div class="section" id="clusterconfig-yaml-files">
+</section>
+<section id="clusterconfig-yaml-files">
 <span id="clusterconfig"></span><h3><code class="docutils literal notranslate"><span class="pre">clusterconfig.yaml</span></code> files<a class="headerlink" href="#clusterconfig-yaml-files" title="Permalink to this headline">¶</a></h3>
 <p>The <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html#cluster-configuration">snakemake cluster configuration docs</a>
 describe how to configure cluster-specific settings so that rules will run on
 the correct size node when submitting batch jobs. This is not needed if you are
 running the workflows locally, but you may need to edit the
 <cite>config/clusterconfig.yaml</cite> file found in each workflow directory.</p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -224,7 +227,7 @@ running the workflows locally, but you may need to edit the
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

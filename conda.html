@@ -4,11 +4,12 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Using conda and conda envs &#8212; lcdb-wf 0.1 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>conda and conda envs in lcdb-wf &#8212; lcdb-wf 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -95,81 +96,176 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="using-conda-and-conda-envs">
-<span id="conda-envs"></span><h1>Using conda and conda envs<a class="headerlink" href="#using-conda-and-conda-envs" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="conda-basics">
+  <section id="conda-and-conda-envs-in-lcdb-wf">
+<span id="conda-envs"></span><h1>conda and conda envs in <cite>lcdb-wf</cite><a class="headerlink" href="#conda-and-conda-envs-in-lcdb-wf" title="Permalink to this headline">¶</a></h1>
+<section id="conda-basics">
 <h2>Conda basics<a class="headerlink" href="#conda-basics" title="Permalink to this headline">¶</a></h2>
-<p>If you’re not familiar with <code class="docutils literal notranslate"><span class="pre">conda</span></code>, it installs particular versions of
-software in an isolated location on your computer. When you “activate” the
-environment, it places that location at the beginning of your <code class="docutils literal notranslate"><span class="pre">$PATH</span></code>
-variable, so that any executables there are found first. It does not affect
-any existing installation of any software on your machine and does not need
-root privileges.</p>
+<p>If you’re not familiar with <code class="docutils literal notranslate"><span class="pre">conda</span></code>, it is a way of keeping software isolated
+on a computer in an “environment” (basically a directory with the executables
+for all the software you want to use). When you “activate” the environment, it
+places that location at the beginning of your <code class="docutils literal notranslate"><span class="pre">$PATH</span></code> variable, so that any
+executables there are found first. It does not affect any existing installation
+of any software on your machine and does not need root privileges.</p>
 <p>If you don’t already have conda installed and the Bioconda channel set up, see
 the <a class="reference external" href="https://bioconda.github.io">Bioconda docs</a> for details.</p>
-<p>If you don’t already have <a class="reference external" href="https://github.com/mamba-org/mamba">mamba</a>, you
-can install it into your base conda environment with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install -c conda-forge mamba
+<p>You’ll also probably want <a class="reference external" href="https://github.com/mamba-org/mamba">mamba</a>. Mamba
+is a drop-in replacement for conda that is faster and more robust. In fact, it
+is now the default conda front-end for Snakemake. If you don’t already have
+mamba, you can install it into your base conda environment with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install -n base -c conda-forge mamba
 </pre></div>
 </div>
-<p>Mamba is a drop-in replacement for conda that is faster and more robust. In
-fact, it is now the default conda front-end for Snakemake.</p>
+<p>It’s recommended that you install mamba into the base env (just like conda
+itself is) so that it behaves like conda. It does <em>not</em> need to be installed
+into each individual environment.</p>
+</section>
+<section id="building-the-environments">
+<h2>Building the environments<a class="headerlink" href="#building-the-environments" title="Permalink to this headline">¶</a></h2>
 <p><strong>It is recommended that you create a separate environment directory for
-each project</strong>. That way you can update packages in each project
-independently of any others, and yet the environment will always be close at
-hand. This is an especially good practice in shared space as others can easily
-find and activate the environment specific to the project.</p>
+each project</strong>, rather than a single environment for all projects. That way you
+can update packages in each project independently of any others, and yet the
+environment will always be close at hand. This is an especially good practice
+in shared space as others can easily find and activate the environment specific
+to the project.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We recommend using mamba rather than conda for the speed increase and
+ability to more correctly solve environments. See the <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/getting_started/installation.html#installation-via-conda">snakemake docs</a>
+for more info.</p>
 </div>
-<div class="section" id="conda-envs-in-lcdb-wf">
+<p>If you use the <code class="docutils literal notranslate"><span class="pre">--build-envs</span></code> argument when deploying lcdb-wf to a project
+directory (see <a class="reference internal" href="getting-started.html#setup-proj"><span class="std std-ref">Setting up a project</span></a>), two conda environments will be built in the
+directories: <code class="docutils literal notranslate"><span class="pre">env</span></code>, which has all of the non-R requirements, and <code class="docutils literal notranslate"><span class="pre">env-r</span></code>
+which has the R packages used in particular for downstream RNA-seq analysis.
+These environments will use the fully-pinned environments in <code class="docutils literal notranslate"><span class="pre">env.yml</span></code> and
+<code class="docutils literal notranslate"><span class="pre">env-r.yml</span></code>. If you’ve already deployed but didn’t use the <code class="docutils literal notranslate"><span class="pre">--build-envs</span></code>
+argument, then then the equivalent command to run in the deployed directory is:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mamba env create -p ./env --file env.yml
+mamba env create -p ./env-r --file env-r.yml
+</pre></div>
+</div>
+</section>
+<section id="troubleshooting-environments">
+<span id="conda-troubleshooting"></span><h2>Troubleshooting environments<a class="headerlink" href="#troubleshooting-environments" title="Permalink to this headline">¶</a></h2>
+<p>Sometimes there is a problem with creating an environment. For example, the
+exact package specified in the env yaml might not be available for some reason
+(this should not happen, but in practice sometimes it does in corner cases).</p>
+<p>If this happens, you can try a couple things.</p>
+<p>First, some terminology with how packages are specified in the environment
+yamls. Here’s an example for <code class="docutils literal notranslate"><span class="pre">libpng</span></code> version 1.6.37:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">libpng</span><span class="o">=</span><span class="mf">1.6</span><span class="o">.</span><span class="mi">37</span><span class="o">=</span><span class="n">hed695b0_2</span>
+<span class="o">|</span><span class="n">____</span><span class="o">|</span> <span class="o">|</span><span class="n">____</span><span class="o">|</span> <span class="o">|</span><span class="n">________</span><span class="o">|</span>
+ <span class="o">|</span>       <span class="o">|</span>       <span class="o">|</span>
+<span class="n">name</span>     <span class="o">|</span>       <span class="o">|</span>
+       <span class="n">version</span>   <span class="o">|</span>
+               <span class="n">build</span> <span class="n">string</span>
+</pre></div>
+</div>
+<p>The package name (libpng) and version (1.6.37) are pretty standard and
+self-explanatory. The <cite>build</cite> string refers to different built versions of the
+<em>conda package</em>, but for the same version (1.6.37 in this case) of the package.
+For example, if a conda package was built for version 1.1 of a tool, but that
+package itself had an error unrelated to the tool, then a fixed build would be
+made. The package version would remain the same (1.1) but the build string
+would change.</p>
+<p>In this example, the build string contains a hash <code class="docutils literal notranslate"><span class="pre">hed695b0</span></code> which is a hash
+of all the pinned dependencies for this package at packaging time. The
+<a class="reference external" href="https://conda-forge.org/docs/maintainer/pinning_deps.html">conda-forge pinning docs</a> give more detail
+on what this pinning is about, but basically if that pinning changes then this
+hash will change. The <code class="docutils literal notranslate"><span class="pre">_2</span></code> on the end of the build string hash indicates that
+this is the third built package (build numbers start at zero) for this version
+of <code class="docutils literal notranslate"><span class="pre">libpng</span></code> using the same pinning. In other words, there also likely exists
+<code class="docutils literal notranslate"><span class="pre">libpng=1.6.37=hed695b0_1</span></code> and <code class="docutils literal notranslate"><span class="pre">libpng=1.6.37=hed695b0_0</span></code>. At the time of
+this writing, there is also <code class="docutils literal notranslate"><span class="pre">libpng-1.6.37-h21135ba_2</span></code> (notice the different
+hash) which is the same libpng version but uses different pinnings.</p>
+<p>What does this mean for troubleshooting?</p>
+<p>For any package that seems to be problematic, try editing the respective
+environment yaml (e.g., <code class="docutils literal notranslate"><span class="pre">env.yml</span></code>) to remove the build string (so in the
+example above, you would try changing it to just <code class="docutils literal notranslate"><span class="pre">libpng=1.6.37</span></code>) and try
+building the environment again. If that doesn’t work, try removing the version
+as well (so just <code class="docutils literal notranslate"><span class="pre">libpng</span></code>).</p>
+<p>Alternatively for very problematic cases or cases where there are multiple
+problematic packages, you can try creating an environment with the “loose”
+pinning in <code class="docutils literal notranslate"><span class="pre">include/requirements.txt</span></code> which effectively does not require any
+particular versions with the exception of a few corner cases. Keep in mind that
+using that file may cause the environment to take a while to build as conda (or
+mamba) solves the dependencies of all the specified packages.</p>
+</section>
+<section id="conda-envs-in-lcdb-wf">
 <h2>Conda envs in lcdb-wf<a class="headerlink" href="#conda-envs-in-lcdb-wf" title="Permalink to this headline">¶</a></h2>
-<p>lcdb-wf has lot of requirements and it would be a lot of effort to install them
-all. Furthermore, as you work on many projects over time, older projects may
-need older versions, but you may want newer versions for more recent projects.</p>
-<p>Conda environments handle all of this. Each project has its own isolated set of
-software that is independent of other projects.</p>
-<p>However, given all of the software used across all of lcdb-wf, the environments
-can take a lot of time to build. Conda has to solve the entire dependency tree
-and come up with a solution that works to satisfy the entire set of specified
-requirements. That is, if we specify snakemake and STAR as requirements,
-conda has to identify all of the dependencies of snakemake, all of the
-dependencies of STAR, and inspect them to make sure they are compatible with
-each other. If not, it has to incrementally try different versions of those
-dependencies to find a solution. This process becomes exponentially more
-complex as we add more requirements. As a result, solving and building the
-environments can take some time (usually under 15 mins).</p>
-<p>The reason for having two different environments – one for R, one for non-R –
-is that by removing the entire sub-DAG of R packages from the main environment
-we can dramatically reduce the creation time for an environment.</p>
-<p>The <strong>main</strong> environment’s requirements are stored in
-<code class="docutils literal notranslate"><span class="pre">requirements-non-r.txt</span></code>. These are used for the primary workflows. The
-<strong>R-related</strong> requirements are in <code class="docutils literal notranslate"><span class="pre">requirements-r.txt</span></code> and these are used for
-downstream work, like <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq/downstream/rnaseq.Rmd</span></code> and
-<code class="docutils literal notranslate"><span class="pre">workflows/chipseq/downstream/diffbind.Rmd</span></code>.</p>
-<p>Note that one model for using conda envs with Snakemake workflows is to only have
-Snakemake in the top-level env, and any other dependencies are handled by
+<p>Given all of the software used across all of <cite>lcdb-wf</cite>, the environments can
+take a lot of time to build because the solver needs to figure out the entire
+dependency tree and come up with a solution that works to satisfy the entire
+set of specified requirements.</p>
+<p>We chose to split the conda environments in two: the <strong>main</strong> environment and the <strong>R</strong>
+environment (see <span class="xref std std-ref">conda-design-decisons</span>). These environments are
+described by both “strict” and “loose” files. By default we use the “strict”
+version, which pins all versions of all packages exactly. This is preferred
+wherever possible. However we also provide a “loose” version that is not
+specific about versions. The following table describes these files:</p>
+<div class="line-block">
+<div class="line">strict version | loose version                  | used for                         |</div>
+</div>
+<p>+================+================================+==================================+
+| <code class="docutils literal notranslate"><span class="pre">env.yml</span></code>    | <code class="docutils literal notranslate"><span class="pre">include/requirements.txt</span></code>   | Main Snakefiles                  |
+| <code class="docutils literal notranslate"><span class="pre">env-r.yaml</span></code> | <code class="docutils literal notranslate"><span class="pre">include/requirements-r.txt</span></code> | Downstream RNA-seq analysis in R |</p>
+<p>When deploying new instances, use the <code class="docutils literal notranslate"><span class="pre">--build-envs</span></code> argument which will use
+the strict version. Or use the following commands in a deployed directory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mamba env create -p ./env --file env.yml
+mamba env create -p ./env-r --file env-r.yml
+</pre></div>
+</div>
+<p>When getting ready to release a new lcdb-wf version, create a new environment
+using the loose version to prepare the env and then when tests pass, export it
+to yaml. That is:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># use loose version when preparing a new version of lcdb-wf</span>
+mamba create -p ./env --file include/requirements.txt
+mamba create -p ./env-r --file include/requirements-r.txt
+
+<span class="c1"># then do testing....</span>
+
+<span class="c1"># when tests pass, export the envs</span>
+conda env <span class="nb">export</span> -p ./env &gt; env.yml
+conda env <span class="nb">export</span> -p ./env-r &gt; env-r.yaml
+
+<span class="c1"># commit, push, finalize release</span>
+</pre></div>
+</div>
+</section>
+<section id="design-decisions">
+<span id="conda-design-decisions"></span><h2>Design decisions<a class="headerlink" href="#design-decisions" title="Permalink to this headline">¶</a></h2>
+<p>We made the design decision to split the conda envs into two different
+environments – one for R, one for non-R. We found that by by removing the
+entire sub-DAG of R packages from the main environment we can dramatically
+reduce the creation time.</p>
+<p>We also made the decision to use large top-level environments rather than
 smaller environments created for each rule using the <code class="docutils literal notranslate"><span class="pre">conda:</span></code> directive.
-Another model is to have everything installed into one large environment. We
-currently prefer the latter, because it allows us to activate a single
+There are two reasons for this choice. First, it allows us to activate a single
 environment to give us access to all the tools used. This streamlines
 troubleshooting because we don’t have to dig through the <code class="docutils literal notranslate"><span class="pre">.snakemake/conda</span></code>
 directory to figure out which hash corresponds to which file, but comes with
-the up-front cost of creating the environment initially.</p>
+the up-front cost of creating the environment initially. Second, it simplifies
+running the tests on CircleCI, allowing us to cache the env directories as
+a whole to be re-used for multiple tests rather than caching the individual
+.snakemake directories for each tested workflow.</p>
+<p>Given that the conda and snakemake ecosystem are in flux, this may change in
+the future to using small conda environments for each rule separately if it
+turns out to be more beneficial to do so.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Prior to v1.7, we used requirements.txt files with loose pinning. Moving to
+yaml files allows us the option of also installing pip packages if needed.
+It also allows us to specify channels directly in the yaml file for
+streamlined installation.</p>
+<p>Using strictly-pinned yaml files that are consistently tested will
+hopefully result in a more stable experience for users. For example, if you
+happen to create an environment around the time of a new R/Bioconductor
+release, the environment may not build correctly using a loose pinning.
+Other transient issues in the packaging ecosystem can similarly cause
+issues.</p>
 </div>
-<div class="section" id="building-the-environments">
-<h2>Building the environments<a class="headerlink" href="#building-the-environments" title="Permalink to this headline">¶</a></h2>
-<p>If you use the <code class="docutils literal notranslate"><span class="pre">--build-envs</span></code> argument when deploying lcdb-wf to a project
-directory (see <a class="reference internal" href="getting-started.html#setup-proj"><span class="std std-ref">Setting up a project</span></a>), conda environments will be built in the
-directories <code class="docutils literal notranslate"><span class="pre">env</span></code> (with all non-R requirements) and <code class="docutils literal notranslate"><span class="pre">env-r</span></code> (R packages).</p>
-<p>Otherwise, do the following in the top-level directory of the deployment:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># if you don&#39;t already have mamba:</span>
-conda install mamba -c conda-forge
-
-mamba create -p ./env --file requirements-non-r.txt
-mamba create -p ./env-r --file requirements-r.txt
-</pre></div>
-</div>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>
@@ -182,7 +278,7 @@ mamba create -p ./env-r --file requirements-r.txt
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

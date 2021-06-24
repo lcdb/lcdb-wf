@@ -4,11 +4,12 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>Detailed documentation of RNA-Seq downstream &#8212; lcdb-wf 0.1 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -94,7 +95,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="detailed-documentation-of-rna-seq-downstream">
+  <section id="detailed-documentation-of-rna-seq-downstream">
 <span id="downstream-detailed"></span><h1>Detailed documentation of RNA-Seq downstream<a class="headerlink" href="#detailed-documentation-of-rna-seq-downstream" title="Permalink to this headline">¶</a></h1>
 <p>Here we describe in detail the downstream analysis of RNA-Seq data done using RMarkdown.
 The code is broken into chunks or modules and the documentation follows the same
@@ -122,9 +123,9 @@ the downstream analysis code is broken up into three main components:</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">gene_patterns.Rmd</span></code> and <code class="docutils literal notranslate"><span class="pre">functional-enrichment.Rmd</span></code> scripts are called
 from within the primary analysis Rmd in the <a class="reference internal" href="#genepatterns">genepatterns</a> and <a class="reference internal" href="#functionalenrichment">functionalenrichment</a>
 chunks below.</p>
-<div class="section" id="primary-analysis-script">
+<section id="primary-analysis-script">
 <span id="rnaseqrmd"></span><h2>Primary analysis script<a class="headerlink" href="#primary-analysis-script" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="global-options">
+<section id="global-options">
 <h3><code class="docutils literal notranslate"><span class="pre">global_options</span></code><a class="headerlink" href="#global-options" title="Permalink to this headline">¶</a></h3>
 <p>This chunk sets global rmarkdown options. The following lines provide
 a mechanism for all cached chunks to have their cache invalidated if either of
@@ -136,8 +137,8 @@ the filenames’ modification times have changed.</p>
 <p>In other words, if the sample table of the RNA-Seq workflow or the counts table from
 the samples have been updated since the last time the analysis script was run, everything
 will be rerun from scratch.</p>
-</div>
-<div class="section" id="load-helpers">
+</section>
+<section id="load-helpers">
 <h3><code class="docutils literal notranslate"><span class="pre">load_helpers</span></code><a class="headerlink" href="#load-helpers" title="Permalink to this headline">¶</a></h3>
 <p>Helper functions are a set of useful utility functions used throughout the
 <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code> script that are stored in a package maintained in this
@@ -146,8 +147,8 @@ Rmd, so that the main document doesn’t get cluttered with the functions, but
 the code is still included in the HTML output.</p>
 <p>This chunk refreshes documentation and loads (or re-loads, if you run it later)
 the package using devtools.</p>
-</div>
-<div class="section" id="annotationhub-setup">
+</section>
+<section id="annotationhub-setup">
 <h3><code class="docutils literal notranslate"><span class="pre">annotationhub_setup</span></code><a class="headerlink" href="#annotationhub-setup" title="Permalink to this headline">¶</a></h3>
 <p>We use AnnotationHub for downloading annotations on the fly rather than
 specifying OrgDbs in the requirements.txt of the conda environment. This allows
@@ -175,8 +176,8 @@ here we reset the cache directory to
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="coldata-setup">
+</section>
+<section id="coldata-setup">
 <h3><code class="docutils literal notranslate"><span class="pre">coldata_setup</span></code><a class="headerlink" href="#coldata-setup" title="Permalink to this headline">¶</a></h3>
 <p>This chunk prepares the <a class="reference internal" href="#term-colData"><span class="xref std std-term">colData</span></a> object that contains the metadata to be used
 for creating the dds objects. The majority of the metadata is read in from the
@@ -219,13 +220,13 @@ change the salmon output path patterns and the sampletable location.</p>
 <p>For the test data, “control” is the base level for the “group” factor. You will
 need to edit this as appropriate for your experimental design.</p>
 </div>
-</div>
-<div class="section" id="salmon">
+</section>
+<section id="salmon">
 <h3><code class="docutils literal notranslate"><span class="pre">salmon</span></code><a class="headerlink" href="#salmon" title="Permalink to this headline">¶</a></h3>
 <p>If you don’t want to use Salmon TPM, disable this chunk with <code class="docutils literal notranslate"><span class="pre">eval=FALSE</span></code> or
 delete it entirely (and do the same with the next chunk).</p>
-</div>
-<div class="section" id="ddstxi">
+</section>
+<section id="ddstxi">
 <h3><code class="docutils literal notranslate"><span class="pre">ddstxi</span></code><a class="headerlink" href="#ddstxi" title="Permalink to this headline">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">design</span></code> will likely need to be changed depending on your experimental
 design.</p>
@@ -235,23 +236,23 @@ featureCounts.</p>
 <p>Note we’re using VST rather than rlog because the DESeq2 docs say they are
 largely equivalent, and vst is substantially faster. Also note that since this
 is exploratory analysis, we use <code class="docutils literal notranslate"><span class="pre">blind=TRUE</span></code> to ignore the design.</p>
-</div>
-<div class="section" id="dds-initial">
+</section>
+<section id="dds-initial">
 <h3><code class="docutils literal notranslate"><span class="pre">dds_initial</span></code><a class="headerlink" href="#dds-initial" title="Permalink to this headline">¶</a></h3>
 <p>This initial <a class="reference internal" href="#term-dds"><span class="xref std std-term">dds</span></a> object will be used for exploratory data analysis, NOT
 for differential expression. So the <code class="docutils literal notranslate"><span class="pre">design</span></code> should be something generic like
 “group” even for complex experimental designs.</p>
 <p>This chunk creates the initial <a class="reference internal" href="#term-dds"><span class="xref std std-term">dds</span></a> and <a class="reference internal" href="#term-vsd"><span class="xref std std-term">vsd</span></a> objects that will be
 used for exploratory data analysis.</p>
-</div>
-<div class="section" id="sample-heatmap">
+</section>
+<section id="sample-heatmap">
 <h3><code class="docutils literal notranslate"><span class="pre">sample_heatmap</span></code><a class="headerlink" href="#sample-heatmap" title="Permalink to this headline">¶</a></h3>
 <p>This chunk creates a clustered heatmap of sample distances.</p>
 <p>It can be helpful to add colors along the side to indicate different aspects of the
 sample metadata. Any number of columns from the <a class="reference internal" href="#term-colData"><span class="xref std std-term">colData</span></a> can be provided
 as <code class="docutils literal notranslate"><span class="pre">cols.for.grouping</span></code>.</p>
-</div>
-<div class="section" id="pca">
+</section>
+<section id="pca">
 <h3><code class="docutils literal notranslate"><span class="pre">pca</span></code><a class="headerlink" href="#pca" title="Permalink to this headline">¶</a></h3>
 <p>Create PCA plots, colored by possibly many different <a class="reference internal" href="#term-colData"><span class="xref std std-term">colData</span></a> columns
 (specified using the <code class="docutils literal notranslate"><span class="pre">groups</span></code> list).</p>
@@ -263,8 +264,8 @@ metadata.</p>
 (due to technical limitations) and so we have to use a workaround. Currently,
 this workaround is to “manually” step through the loop, setting <code class="docutils literal notranslate"><span class="pre">i</span></code> to
 a different integer and copy/pasting the same code multiple times.</p>
-</div>
-<div class="section" id="sizefactors">
+</section>
+<section id="sizefactors">
 <h3><code class="docutils literal notranslate"><span class="pre">sizefactors</span></code><a class="headerlink" href="#sizefactors" title="Permalink to this headline">¶</a></h3>
 <p>To more easily investigate any outliers in these plots, you can optionally
 attach columns from <code class="docutils literal notranslate"><span class="pre">colData</span></code> before plotting the scatterplot, e.g.:</p>
@@ -273,8 +274,8 @@ attach columns from <code class="docutils literal notranslate"><span class="pre"
 <span class="n">trc_vs_sf</span> <span class="o">&lt;-</span> <span class="nf">full_join</span><span class="p">(</span><span class="n">sf</span><span class="p">,</span> <span class="n">trc</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s">&#39;name&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="parallel-config">
+</section>
+<section id="parallel-config">
 <h3><code class="docutils literal notranslate"><span class="pre">parallel_config</span></code><a class="headerlink" href="#parallel-config" title="Permalink to this headline">¶</a></h3>
 <p>By default we do not run in parallel, however this can be very useful in
 experiments with many samples and complex designs. To run in parallel, manually
@@ -286,8 +287,8 @@ TRUE:</p>
 </div>
 <p>Calls to <code class="docutils literal notranslate"><span class="pre">DESeq()</span></code> below will provide the argument <code class="docutils literal notranslate"><span class="pre">parallel=parallel</span></code> so no
 other changes should be needed.</p>
-</div>
-<div class="section" id="dds-list">
+</section>
+<section id="dds-list">
 <span id="id1"></span><h3><code class="docutils literal notranslate"><span class="pre">dds_list</span></code><a class="headerlink" href="#dds-list" title="Permalink to this headline">¶</a></h3>
 <p>This chunk sets up the <a class="reference internal" href="#term-dds"><span class="xref std std-term">dds</span></a> objects to be used in the <cite>results</cite> section
 below for differential expression detection.</p>
@@ -355,8 +356,8 @@ object further.</p>
 <li><p>the <code class="docutils literal notranslate"><span class="pre">parallel</span></code> argument is also used for everything in the list</p></li>
 </ul>
 <p>See the help for <code class="docutils literal notranslate"><span class="pre">lcdbwf::make.dds</span></code> for more details.</p>
-</div>
-<div class="section" id="results">
+</section>
+<section id="results">
 <h3><code class="docutils literal notranslate"><span class="pre">results</span></code><a class="headerlink" href="#results" title="Permalink to this headline">¶</a></h3>
 <p>This chunk is where the bulk of the differential expression analysis takes place.</p>
 <p>The end result of this chunk is a list of listes that is used by functions in
@@ -376,7 +377,7 @@ automatically create a DE results section including:</p>
 ‘dds’, ‘label’). “res” is a DESeqResults object, “dds” is the corresponding
 DESeq object the results were extracted from, and “label” is a nicer label to
 use for headers and other text.</p>
-<div class="section" id="specifying-contrasts">
+<section id="specifying-contrasts">
 <span id="contrast"></span><h4>Specifying contrasts<a class="headerlink" href="#specifying-contrasts" title="Permalink to this headline">¶</a></h4>
 <p>Contrasts can be specified in three different ways.</p>
 <div class="admonition note">
@@ -420,8 +421,8 @@ in multi-factor designs with a grouping variable.</p>
 </div>
 </li>
 </ol>
-</div>
-<div class="section" id="the-most-general-way-to-specify-contrasts">
+</section>
+<section id="the-most-general-way-to-specify-contrasts">
 <h4>The most general way to specify contrasts<a class="headerlink" href="#the-most-general-way-to-specify-contrasts" title="Permalink to this headline">¶</a></h4>
 <p>The most general way to specify contrasts is with a numeric vector (third
 option above).</p>
@@ -488,8 +489,8 @@ coefficients are indicated above the resultsNames to make it easier to see.</p>
 <span class="n">res</span> <span class="o">&lt;-</span> <span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">-1</span><span class="p">,</span> <span class="m">-1</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="notes-on-using-lfcshrink">
+</section>
+<section id="notes-on-using-lfcshrink">
 <h4>Notes on using lfcShrink<a class="headerlink" href="#notes-on-using-lfcshrink" title="Permalink to this headline">¶</a></h4>
 <p>As currently implemented (05 apr 2018), lfcShrink checks its arguments for an
 existing results table. If it exists, it applies shrinkage to the lfc and se
@@ -511,9 +512,9 @@ and then apply lfcShrink.</p>
 the lfc shrinkage is performed in a separate step, so that’s what we do here.
 This is slightly different results than if you used betaPrior=TRUE when
 creating the DESeq object.</p>
-</div>
-</div>
-<div class="section" id="attach">
+</section>
+</section>
+<section id="attach">
 <h3><code class="docutils literal notranslate"><span class="pre">attach</span></code><a class="headerlink" href="#attach" title="Permalink to this headline">¶</a></h3>
 <p>Typically the genes as labeled in the counts tables use Ensembl or other
 not-quite-human-readable names. This chunk allows you to add additional gene
@@ -537,50 +538,50 @@ information to the results objects.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="reportresults">
+</section>
+<section id="reportresults">
 <h3><code class="docutils literal notranslate"><span class="pre">reportresults</span></code><a class="headerlink" href="#reportresults" title="Permalink to this headline">¶</a></h3>
 <p>This is the section that creates multiple, tabbed outputs for each of the
 contrasts in the <a class="reference internal" href="#term-res.list"><span class="xref std std-term">res.list</span></a>.</p>
-</div>
-<div class="section" id="selections">
+</section>
+<section id="selections">
 <h3><code class="docutils literal notranslate"><span class="pre">selections</span></code><a class="headerlink" href="#selections" title="Permalink to this headline">¶</a></h3>
 <p>Here we get a list of DE genes from the <a class="reference internal" href="#term-res.list"><span class="xref std std-term">res.list</span></a> object
 to use for downstream analysis using the log2FoldChange (lfc) and
 false discovery rate (FDR) thresholds.</p>
-</div>
-<div class="section" id="upsetplots">
+</section>
+<section id="upsetplots">
 <h3><code class="docutils literal notranslate"><span class="pre">upsetplots</span></code><a class="headerlink" href="#upsetplots" title="Permalink to this headline">¶</a></h3>
 <p>This chunk produces Upset plots comparing the selected lists of genes.</p>
-</div>
-<div class="section" id="helpdocs">
+</section>
+<section id="helpdocs">
 <h3><code class="docutils literal notranslate"><span class="pre">helpdocs</span></code><a class="headerlink" href="#helpdocs" title="Permalink to this headline">¶</a></h3>
 <p>For new users, or when distributing the output to collaborators who might
 not be familiar with the plots contained in the report, a background and
 help section are included as a child Rmd. This can be disabled by setting
 <cite>eval=FALSE</cite> for this chunk.</p>
-</div>
-<div class="section" id="genepatterns">
+</section>
+<section id="genepatterns">
 <h3><code class="docutils literal notranslate"><span class="pre">genepatterns</span></code><a class="headerlink" href="#genepatterns" title="Permalink to this headline">¶</a></h3>
 <p>Here we perform pattern analysis of the differentially expressed genes
 to find co-regulated sets of genes using the <code class="docutils literal notranslate"><span class="pre">DEGreport</span></code> R package
 in a separate child Rmd. For more details see <a class="reference internal" href="#gene-patterns-analysis">Gene patterns analysis</a> below.</p>
-</div>
-<div class="section" id="functionalenrichment">
+</section>
+<section id="functionalenrichment">
 <h3><code class="docutils literal notranslate"><span class="pre">functionalenrichment</span></code><a class="headerlink" href="#functionalenrichment" title="Permalink to this headline">¶</a></h3>
 <p>Here we perform functional enrichment analysis of the differentially expressed genes
 to find enriched functional terms or pathways using the <code class="docutils literal notranslate"><span class="pre">clusterProfiler</span></code> R package.
 This analysis is also performed in a separate child Rmd; for more details see <a class="reference internal" href="#functional-enrichment-analysis">Functional enrichment analysis</a> below.</p>
-</div>
-</div>
-<div class="section" id="gene-patterns-analysis">
+</section>
+</section>
+<section id="gene-patterns-analysis">
 <h2>Gene patterns analysis<a class="headerlink" href="#gene-patterns-analysis" title="Permalink to this headline">¶</a></h2>
 <p>See <a class="reference internal" href="gene-patterns-rmd.html#gene-patterns"><span class="std std-ref">Gene patterns analysis</span></a> for details.</p>
-</div>
-<div class="section" id="functional-enrichment-analysis">
+</section>
+<section id="functional-enrichment-analysis">
 <h2>Functional enrichment analysis<a class="headerlink" href="#functional-enrichment-analysis" title="Permalink to this headline">¶</a></h2>
 <p>See <a class="reference internal" href="functional-enrichment-rmd.html#functional-enrichment"><span class="std std-ref">Functional enrichment analysis</span></a> for details.</p>
-<div class="section" id="glossary">
+<section id="glossary">
 <h3>Glossary<a class="headerlink" href="#glossary" title="Permalink to this headline">¶</a></h3>
 <dl class="glossary">
 <dt id="term-colData">colData<a class="headerlink" href="#term-colData" title="Permalink to this term">¶</a></dt><dd><p>The metadata describing the samples. This is originally defined in the
@@ -605,9 +606,9 @@ by functions in the <cite>lcdbwf</cite> R package for more downstream work.</p>
 </div>
 </dd>
 </dl>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -620,7 +621,7 @@ by functions in the <cite>lcdbwf</cite> R package for more downstream work.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -4,11 +4,12 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>Module lib.patterns_targets &#8212; lcdb-wf 0.1 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -53,7 +54,9 @@
 <li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="developers.html">For Developers</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="developers.html#writing-wrappers">Writing wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#creating-and-updating-conda-envs">Creating and updating conda envs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#running-the-full-complex-datasets">Running the full complex datasets</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="developers.html#module-documentation">Module documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="developers.html#adding-a-new-aligner">Adding a new aligner</a></li>
 <li class="toctree-l2"><a class="reference internal" href="developers.html#adding-a-new-peak-caller">Adding a new peak-caller</a></li>
 </ul>
@@ -88,7 +91,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="module-lib-patterns-targets">
+  <section id="module-lib-patterns-targets">
 <h1>Module <code class="docutils literal notranslate"><span class="pre">lib.patterns_targets</span></code><a class="headerlink" href="#module-lib-patterns-targets" title="Permalink to this headline">¶</a></h1>
 <p>The classes in module control how <code class="docutils literal notranslate"><span class="pre">rnaseq_patterns.yaml</span></code> and
 <code class="docutils literal notranslate"><span class="pre">chipseq_patterns.yaml</span></code> are filled in with the information from their
@@ -110,11 +113,11 @@ respective sample tables and config files.</p>
 </tr>
 </tbody>
 </table>
-<div class="section" id="details">
+<section id="details">
 <h2>Details<a class="headerlink" href="#details" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="lib.patterns_targets.SeqConfig">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">lib.patterns_targets.</span></code><code class="sig-name descname"><span class="pre">SeqConfig</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patterns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#SeqConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.patterns_targets.SeqConfig" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="lib.patterns_targets.SeqConfig">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">lib.patterns_targets.</span></span><span class="sig-name descname"><span class="pre">SeqConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patterns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#SeqConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.patterns_targets.SeqConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class takes care of common tasks related to config and patterns
 files (reading the sampletable, etc) but is intended to be subclassed.</p>
 <dl class="field-list simple">
@@ -130,8 +133,8 @@ as relative to <cite>workdir</cite></p></li>
 </dd></dl>
 
 <dl class="py class">
-<dt id="lib.patterns_targets.RNASeqConfig">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">lib.patterns_targets.</span></code><code class="sig-name descname"><span class="pre">RNASeqConfig</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patterns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#RNASeqConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.patterns_targets.RNASeqConfig" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="lib.patterns_targets.RNASeqConfig">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">lib.patterns_targets.</span></span><span class="sig-name descname"><span class="pre">RNASeqConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patterns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#RNASeqConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.patterns_targets.RNASeqConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Config object specific to RNA-seq workflows.</p>
 <p>Fills in patterns to create targets by handling the by-sample and
 by-aggregate sections separately.</p>
@@ -148,8 +151,8 @@ as relative to <cite>workdir</cite></p></li>
 </dd></dl>
 
 <dl class="py class">
-<dt id="lib.patterns_targets.ChIPSeqConfig">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">lib.patterns_targets.</span></code><code class="sig-name descname"><span class="pre">ChIPSeqConfig</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patterns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#ChIPSeqConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.patterns_targets.ChIPSeqConfig" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="lib.patterns_targets.ChIPSeqConfig">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">lib.patterns_targets.</span></span><span class="sig-name descname"><span class="pre">ChIPSeqConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patterns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#ChIPSeqConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.patterns_targets.ChIPSeqConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Config object specific to ChIP-seq workflows.</p>
 <p>Fills in patterns to create targets by handling the by-sample, by-peak,
 and by-aggregate sections separately.</p>
@@ -165,8 +168,8 @@ as relative to <cite>workdir</cite></p></li>
 </dl>
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
           </div>
@@ -179,7 +182,7 @@ as relative to <cite>workdir</cite></p></li>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

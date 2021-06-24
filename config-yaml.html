@@ -4,11 +4,12 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>Config YAML &#8212; lcdb-wf 0.1 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -89,7 +90,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="config-yaml">
+  <section id="config-yaml">
 <span id="id1"></span><h1>Config YAML<a class="headerlink" href="#config-yaml" title="Permalink to this headline">¶</a></h1>
 <p>This page details the various configuration options and describes how to
 configure a new workflow.</p>
@@ -109,11 +110,11 @@ workflow, and under what conditions, if any, they are required. Each option
 links to a section below with more details on how to use it.</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 48%" />
+<col style="width: 46%" />
 <col style="width: 11%" />
 <col style="width: 9%" />
 <col style="width: 10%" />
-<col style="width: 21%" />
+<col style="width: 25%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Field</p></th>
@@ -154,37 +155,43 @@ links to a section below with more details on how to use it.</p>
 <td><p>yes</p></td>
 <td><p>always</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cfg-fastq-screen"><span class="std std-ref">fastq_screen</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cfg-stranded"><span class="std std-ref">stranded</span></a></p></td>
+<td><p>.</p></td>
+<td><p>yes</p></td>
+<td><p>no</p></td>
+<td><p>usually (see <a class="reference internal" href="#cfg-stranded"><span class="std std-ref">stranded</span></a>)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cfg-fastq-screen"><span class="std std-ref">fastq_screen</span></a></p></td>
 <td><p>.</p></td>
 <td><p>yes</p></td>
 <td><p>yes</p></td>
 <td><p>if using <cite>fastq_screen</cite></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cfg-merged-bigwigs"><span class="std std-ref">merged_bigwigs</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cfg-merged-bigwigs"><span class="std std-ref">merged_bigwigs</span></a></p></td>
 <td><p>.</p></td>
 <td><p>yes</p></td>
 <td><p>yes</p></td>
 <td><p>if you want to merge bigwigs</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cfg-gtf"><span class="std std-ref">gtf</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cfg-gtf"><span class="std std-ref">gtf</span></a></p></td>
 <td><p>.</p></td>
 <td><p>yes</p></td>
 <td><p>.</p></td>
 <td><p>always for RNA-seq</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cfg-rrna"><span class="std std-ref">rrna</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cfg-rrna"><span class="std std-ref">rrna</span></a></p></td>
 <td><p>.</p></td>
 <td><p>yes</p></td>
 <td><p>.</p></td>
 <td><p>if rRNA screening desired</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cfg-salmon"><span class="std std-ref">salmon</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cfg-salmon"><span class="std std-ref">salmon</span></a></p></td>
 <td><p>.</p></td>
 <td><p>yes</p></td>
 <td><p>.</p></td>
 <td><p>if Salmon quantification will be run</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cfg-chipseq"><span class="std std-ref">chipseq</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cfg-chipseq"><span class="std std-ref">chipseq</span></a></p></td>
 <td><p>.</p></td>
 <td><p>.</p></td>
 <td><p>yes</p></td>
@@ -192,11 +199,11 @@ links to a section below with more details on how to use it.</p>
 </tr>
 </tbody>
 </table>
-<div class="section" id="example-configs">
+<section id="example-configs">
 <h2>Example configs<a class="headerlink" href="#example-configs" title="Permalink to this headline">¶</a></h2>
 <p>To provide an overview, here are some example config files. More detail is
 provided later; this is just to provide some context:</p>
-<div class="section" id="rna-seq">
+<section id="rna-seq">
 <h3>RNA-seq<a class="headerlink" href="#rna-seq" title="Permalink to this headline">¶</a></h3>
 <p>The config file for RNA-seq is expected to be in
 <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq/config/config.yaml</span></code>:</p>
@@ -245,8 +252,8 @@ provided later; this is just to provide some context:</p>
             <span class="p p-Indicator">-</span> <span class="s">&#39;bowtie2&#39;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="chip-seq">
+</section>
+<section id="chip-seq">
 <h3>ChIP-seq<a class="headerlink" href="#chip-seq" title="Permalink to this headline">¶</a></h3>
 <p>The config file for ChIP-seq is expected to be in
 <code class="docutils literal notranslate"><span class="pre">workflows/chipseq/config/config.yaml</span></code>.</p>
@@ -337,13 +344,13 @@ provided later; this is just to provide some context:</p>
           <span class="p p-Indicator">-</span> <span class="s">&#39;hisat2&#39;</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="field-descriptions">
+</section>
+</section>
+<section id="field-descriptions">
 <h2>Field descriptions<a class="headerlink" href="#field-descriptions" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="required-for-references-rna-seq-and-chip-seq">
+<section id="required-for-references-rna-seq-and-chip-seq">
 <h3>Required for references, RNA-seq and ChIP-seq<a class="headerlink" href="#required-for-references-rna-seq-and-chip-seq" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="references">
+<section id="references">
 <span id="cfg-references"></span><h4><code class="docutils literal notranslate"><span class="pre">references</span></code><a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><p>This section defines labels for references, where to get FASTA and GTF
@@ -353,8 +360,8 @@ organism has two tags (“gencode-v25” and “rRNA”).</p>
 <p>This is the most complex section and is documented elsewhere (see
 <a class="reference internal" href="references-config.html#references-config"><span class="std std-ref">References config</span></a>).</p>
 </div></blockquote>
-</div>
-<div class="section" id="include-references">
+</section>
+<section id="include-references">
 <span id="cfg-inc-refs"></span><h4><code class="docutils literal notranslate"><span class="pre">include_references</span></code><a class="headerlink" href="#include-references" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><p>This section can be used to supplement the <code class="docutils literal notranslate"><span class="pre">references</span></code> section with
@@ -363,8 +370,8 @@ of managing a large amount of references without cluttering the config
 file.</p>
 <p>See <a class="reference internal" href="references-config.html#references-config"><span class="std std-ref">References config</span></a> for more.</p>
 </div></blockquote>
-</div>
-<div class="section" id="references-dir">
+</section>
+<section id="references-dir">
 <span id="cfg-references-dir"></span><h4><code class="docutils literal notranslate"><span class="pre">references_dir</span></code><a class="headerlink" href="#references-dir" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><p>Top-level directory in which to create references.</p>
@@ -375,11 +382,11 @@ precedence.</p>
 avoid duplicating commonly-used references. Simply point references_dir to
 an existing references directory to avoid having to rebuild references.</p>
 </div></blockquote>
-</div>
-</div>
-<div class="section" id="required-for-rna-seq-and-chip-seq">
+</section>
+</section>
+<section id="required-for-rna-seq-and-chip-seq">
 <h3>Required for RNA-seq and ChIP-seq<a class="headerlink" href="#required-for-rna-seq-and-chip-seq" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="sampletable-field">
+<section id="sampletable-field">
 <span id="cfg-sampletable"></span><h4><code class="docutils literal notranslate"><span class="pre">sampletable</span></code> field<a class="headerlink" href="#sampletable-field" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><p>Path to sampletable file which, at minimum, list sample names and paths to
@@ -390,8 +397,8 @@ FASTQ files. The path of this filename is relative to the Snakefile. See
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="organism-field">
+</section>
+<section id="organism-field">
 <span id="cfg-organism"></span><h4><code class="docutils literal notranslate"><span class="pre">organism</span></code> field<a class="headerlink" href="#organism-field" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><p>This field selects the top-level section of the <code class="docutils literal notranslate"><span class="pre">references</span></code> section that
@@ -403,8 +410,8 @@ as “fly”.</p>
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="aligner-config-section">
+</section>
+<section id="aligner-config-section">
 <span id="cfg-aligner"></span><h4><code class="docutils literal notranslate"><span class="pre">aligner</span></code> config section<a class="headerlink" href="#aligner-config-section" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><p>This field has two sub-fields, and automatically uses the configured
@@ -422,11 +429,69 @@ be built. For RNA-seq we would likely choose “hisat2”; for ChIP-seq
 </pre></div>
 </div>
 </div></blockquote>
+</section>
+</section>
+<section id="required-for-rna-seq">
+<h3>Required for RNA-seq<a class="headerlink" href="#required-for-rna-seq" title="Permalink to this headline">¶</a></h3>
+<section id="stranded-field">
+<span id="cfg-stranded"></span><h4><code class="docutils literal notranslate"><span class="pre">stranded</span></code> field<a class="headerlink" href="#stranded-field" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div><p>This field specifies the strandedness of the library. This is used by
+various rule to set the parameters correctly. For example,
+<code class="docutils literal notranslate"><span class="pre">featureCounts</span></code> will use <code class="docutils literal notranslate"><span class="pre">-s0</span></code>, <code class="docutils literal notranslate"><span class="pre">-s1</span></code>, or <code class="docutils literal notranslate"><span class="pre">-s2</span></code> accordingly;
+<code class="docutils literal notranslate"><span class="pre">kallisto</span></code> will use <code class="docutils literal notranslate"><span class="pre">--fr-stranded</span></code> if needed, and so on.</p>
+<p>This field can take the following options:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 84%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>value</p></th>
+<th class="head"><p>description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">unstranded</span></code></p></td>
+<td><p>The strand that R1 reads align to has no information about the strand of the gene.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fr-firststrand</span></code></p></td>
+<td><p>R1 reads from plus-strand genes align to the <em>minus</em> strand. Also called reverse stranded, dUTP-based</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fr-secondstrand</span></code></p></td>
+<td><p>R1 reads from plus-strand genes align to the <em>plus</em> strand. Also called forward stranded.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">stranded</span><span class="p">:</span> <span class="s">&quot;fr-firststrand&quot;</span>
+</pre></div>
 </div>
+<p>Rules that require information about strand will check the config file at
+run time and raise an error if this field doesn’t exist.</p>
+<p>If you don’t know the strandedness of the library, run the Snakefile in
+such a way to only run the <code class="docutils literal notranslate"><span class="pre">strand_check</span></code> rule:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake -j <span class="m">2</span> strand_check
+</pre></div>
 </div>
-<div class="section" id="optional-fields">
+<p>Or, when using the Slurm wrapper on cluster,</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sbatch ../../include/WRAPPER_SLURM strand_check
+</pre></div>
+</div>
+<p>When complete, there will be a MultiQC HTML file in the <code class="docutils literal notranslate"><span class="pre">strand_check/</span></code>
+directory that you can inspect to make your choice.</p>
+<p>This will align the first 10,000 reads to the specified reference and run
+RSeQC’s <code class="docutils literal notranslate"><span class="pre">infer_experiment.py</span></code> on the results and then run MultiQC on just
+those output files.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.8.</span></p>
+</div>
+</div></blockquote>
+</section>
+</section>
+<section id="optional-fields">
 <h3>Optional fields<a class="headerlink" href="#optional-fields" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="fastq-screen-config-section">
+<section id="fastq-screen-config-section">
 <span id="cfg-fastq-screen"></span><h4><code class="docutils literal notranslate"><span class="pre">fastq_screen</span></code> config section<a class="headerlink" href="#fastq-screen-config-section" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><blockquote>
@@ -455,8 +520,8 @@ dictionary has the keys:</p>
 <p>The above example configures two different indexes to use for fastq_screen:
 the human gencode-v25 reference, and the human rRNA reference.</p>
 </div></blockquote>
-</div>
-<div class="section" id="merged-bigwigs-config-section">
+</section>
+<section id="merged-bigwigs-config-section">
 <span id="cfg-merged-bigwigs"></span><h4><code class="docutils literal notranslate"><span class="pre">merged_bigwigs</span></code> config section<a class="headerlink" href="#merged-bigwigs-config-section" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><p>This section controls optional merging of signal files in bigWig format.
@@ -510,11 +575,11 @@ and “label2” bigwigs.</p>
 <p>See <a class="reference internal" href="sampletable.html#sampletable"><span class="std std-ref">Sample tables</span></a> for more info on the relationship between a <em>sample</em>
 and a <em>label</em> when working with ChIP-seq.</p>
 </div></blockquote>
-</div>
-</div>
-<div class="section" id="rna-seq-only-fields">
+</section>
+</section>
+<section id="rna-seq-only-fields">
 <h3>RNA-seq-only fields<a class="headerlink" href="#rna-seq-only-fields" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="rrna-field">
+<section id="rrna-field">
 <span id="cfg-rrna"></span><h4><code class="docutils literal notranslate"><span class="pre">rrna</span></code> field<a class="headerlink" href="#rrna-field" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><p>This field selects the reference tag to use for screening rRNA reads.
@@ -528,8 +593,8 @@ specified tag. It uses the already configured <code class="docutils literal notr
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="gtf-field">
+</section>
+<section id="gtf-field">
 <span id="cfg-gtf"></span><h4><code class="docutils literal notranslate"><span class="pre">gtf</span></code> field<a class="headerlink" href="#gtf-field" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><p>This field selects the reference tag to use for counting reads in features.
@@ -542,8 +607,8 @@ The tag must have had a <code class="docutils literal notranslate"><span class="
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="salmon-field">
+</section>
+<section id="salmon-field">
 <span id="cfg-salmon"></span><h4><code class="docutils literal notranslate"><span class="pre">salmon</span></code> field<a class="headerlink" href="#salmon-field" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><p>This field selects the reference tag to use for the Salmon index (if used).
@@ -551,11 +616,11 @@ The tag must have had a FASTA configured, and an index for “salmon” must
 have been configured to be built for the organism selected with the
 <code class="docutils literal notranslate"><span class="pre">organism</span></code> config option.</p>
 </div></blockquote>
-</div>
-</div>
-<div class="section" id="chip-seq-only-fields">
+</section>
+</section>
+<section id="chip-seq-only-fields">
 <h3>ChIP-seq-only fields<a class="headerlink" href="#chip-seq-only-fields" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="chipseq-config-section">
+<section id="chipseq-config-section">
 <span id="cfg-chipseq"></span><h4><code class="docutils literal notranslate"><span class="pre">chipseq</span></code> config section<a class="headerlink" href="#chipseq-config-section" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><blockquote>
@@ -635,10 +700,10 @@ run we already have configured.</p>
 </div>
 </div></blockquote>
 </div></blockquote>
-</div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -651,7 +716,7 @@ run we already have configured.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
