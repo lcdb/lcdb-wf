@@ -390,6 +390,7 @@ if __name__ == "__main__":
 
     ap.add_argument(
         "--clone",
+        action="store_true",
         help=f"""Make a new clone to a staging area (at the location specified
         by --staging which defaults to {default_staging}) and deploy from
         there. Useful if using this script as a standalone tool. You can also
