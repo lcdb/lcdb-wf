@@ -88,7 +88,7 @@ variables:
 
         # Deploy to the new directory, so we are testing the real-world case of post-deployment.
         # Note that $DEPLOY is set in the "set-paths" step configured above.
-        python deploy.py --flavor full --dest $DEPLOY
+        python deploy.py --flavor full --dest $DEPLOY --branch $CIRCLE_BRANCH --clone
 
         # Separately copy over some test-specific files
         cp workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq
