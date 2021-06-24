@@ -10,7 +10,7 @@ General
 - Complete shift to using pinned ``env.yaml`` files to specify conda
   environments, and using ``mamba`` for building environments (consistent with
   recent versions of Snakemake). This is now reflected in documentation and
-  ``deploy.py``.
+  the updated-and-improved ``deploy.py``.
 
 - Reorganization/cleanup of the ``include`` directory
 
@@ -35,7 +35,10 @@ General
 - Threads: cutadapt single-end now uses specified threads (it was using
   1 thread by default); use 6 threads for fastqc
 
-- added new preflight checks for RNA-seq and ChIP-seq specific configs.
+- Added new preflight checks for RNA-seq and ChIP-seq specific configs.
+
+- Added a ``run_complex_test.sh`` driver script for testing the workflows on
+  full-scale publicly available data 
 
 RNA-seq
 ~~~~~~~
@@ -51,7 +54,7 @@ RNA-seq
   strandedness of a library.
 
 - Kallisto is now supported in both the RNA-seq Snakefile, references
-  Snakefile, and downstream ``rnaseq.Rmd``
+  Snakefile, included reference configs, and downstream ``rnaseq.Rmd``
 
 
 References
