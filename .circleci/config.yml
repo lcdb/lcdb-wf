@@ -60,6 +60,7 @@ variables:
       name: Setup conda
       command: |
         set -e
+        apt update
         apt install -y locales-all locales
         export LC_ALL=en_US.utf8
         export LANG=en_US.utf8
