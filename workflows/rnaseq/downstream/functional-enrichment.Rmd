@@ -19,7 +19,7 @@ ifelse(!dir.exists(file.path('.',plots.folder)),
        dir.create(file.path('.',plots.folder), recursive = TRUE), NA)
 
 # NOTE: keyTypes to obtain from bitr-------------------------------------------
-types <- c("ENTREZID","SYMBOL","UNIPROT")
+types <- c("ENTREZID", "SYMBOL", "UNIPROT")
 
 # NOTE: convert IDs to symbols for KEGG?---------------------------------------
 id.convert <- TRUE
@@ -29,10 +29,50 @@ id.convert <- TRUE
 # Convert gene IDs to those useable to clusterProfiler.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#bitrgenes
 # NOTE: Gene IDs are provided in what format?----------------------------------
-from.type <- "FLYBASE"
+from.type <- 'ENSEMBL'
+annotation_genus_species <- 'Mus musculus'
+annotation_key_override <- NA
+hub.cache <- '../../../include/AnnotationHubCache'
+orgdb <- get.orgdb(
+    annotation_genus_species,
+    cache=hub.cache,
+    annotation_key_override=annotation_key_override
+)
+# In place of AnnotationDbi::select, Use a wrapper function to run this command in order to catch the unmatching keys error
+# The func parameter corresponds to AnnotationDbi::select
+# The pattern parameter is used to identify the error raised when you have genes, but these genes do not encode proteins
+# This may happen as functional enrichment is only defined for proteins as of now. 
+# This is the common form of the error message: "Error in .testForValidKeys(x, keys, keytype, fks) : 
+#"None of the keys entered are valid keys for 'ENSEMBL'. Please use the keys method to see a listing of valid arguments."
+# You do not need to pass this entire thing to the wrapper, just enough that it can be identified with a grep search. 
+# When the exception is caught, assign the contrast a null value and interpret that value downstream in the Rmd.
+keyhandler <- function(func, pattern,  ...) {
+
+    wrapped_select <- function(...) {
+        tryCatch(
+            {
+             func(...)
+            },
+            error = function(e){
+                msg <- conditionMessage(e)
+                if (grepl(pattern, msg)){
+                    message("Caught a valid key exception in AnnotationDbi::select. Confirm that, for contrasts with no functional enrichment, the genes do not encode proteins")
+
+                    return(NULL)
+                    } else {
+                    stop(msg)
+                }
+            }
+        )
+    }
+    wrapped_select
+}
+select.keyhandler <- keyhandler(AnnotationDbi::select, 'None of the keys')
 
 deg.list <- nested.lapply(sel.list, rownames)
-genes.df <- nested.lapply(deg.list, function (x) AnnotationDbi::select(orgdb, keys=x, columns=types, keytype=from.type))
+genes.df <- nested.lapply(deg.list, function (x) select.keyhandler(orgdb, keys=x, columns=types, keytype=from.type))
+
+
 ```
 
 ```{r enrichall, results='hide', cache=TRUE, dependson='selections'}
@@ -48,10 +88,14 @@ pvalueCutoff <- 1
 qvalueCutoff <- 1
 go.uni <- NULL
 path.uni <- NULL
-kegg.organism <- 'dme'
+kegg.organism <- 'mmu'
 RUN.REACTOME <- FALSE
-reactome.organism <- 'fly'
+reactome.organism <- 'mouse'
+min.gene.set.size <- 50
 
+# Make a list to report which contrasts caught expections 
+
+except.list <- list()
 
 # list to hold all enrichment results
 # will have structure:
@@ -67,11 +111,20 @@ for(comp in names(genes.df)){
 
     # loop over selection list
     for(sel in sel.names){
-
         all.enrich[[comp]][[sel]] <- list()
         enrich.files[[comp]][[sel]] <- list()
 
+        #Checking for nullity (coerced by above if the exception was caught)
+        if (is.null(genes.df[[comp]][[sel]])) {
+            #record the contrasts that caused an error
+            except.list <- append(except.list, paste(comp,sel, sep = " "))
+            next
+        }
         gene <- genes.df[[comp]][[sel]][[go.keytype]]
+
+        if (sum(!is.na(gene)) < min.gene.set.size){
+            next
+        }
 
         for (ont in c('CC', 'BP', 'MF')){
             go.res <- enrichGO(
@@ -107,7 +160,6 @@ for(comp in names(genes.df)){
                 kegg.res@result$geneID[j] <- temp
               }
             }
-
 
             all.enrich[[comp]][[sel]][['kegg']] <- kegg.res
             enrich.files[[comp]][[sel]][['kegg']] <- write.clusterprofiler.results(kegg.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
@@ -180,6 +232,10 @@ for(comp in names(all.enrich)){
 
         for (sel in sel.names){
 
+            if (paste(comp, sel, sep=" ") %in% except.list) {
+                cat('\n\n\nNo protein-encoding genes for:', comp, sel, '\n\n\n')
+                next
+            }
             res <- all.enrich[[comp]][[sel]][[go]]
 
             if (is.null(res))
@@ -187,7 +243,6 @@ for(comp in names(all.enrich)){
                 cat('\n\n\nNo genes enriched for:', comp, sel, go, '\n\n\n')
                 next
             }
-
             outfiles <- enrich.files[[comp]][[sel]][[go]]
             f1 <- outfiles[['orig']]
             f2 <- outfiles[['split']]
