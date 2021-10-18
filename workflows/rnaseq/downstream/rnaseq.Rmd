@@ -1,4 +1,5 @@
 ---
+title: Differential expression analysis
 output:
     html_document:
         code_folding: hide
