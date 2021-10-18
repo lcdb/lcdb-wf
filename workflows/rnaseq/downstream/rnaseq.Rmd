@@ -218,6 +218,7 @@ i <- 2; lcdbwf::mdcat('### ', names(p)[i]); ggplotly(p[[i]])
 
 
 ## Size factors {.tabset}
+
 Ideally, all libraries were sequenced to identical depth, in which case all
 size factors would be 1.0. In practice, this is almost never the case due to
 the difficulties of accurately measuring low concentrations of cDNA. These size
@@ -397,8 +398,20 @@ for (name in names(res.list)){
   label <- res.list[[name]][['label']]
 
   mdcat('## ', label, ' {.tabset}')
-  mdcat('### Summary of results')
+
+  mdcat('### M-A plot and summary')
+
   print(knitr::kable(my.summary(res.i, dds.i)))
+
+  # NOTE: gene labels --------------------------------------------------------
+  #   By default we plot the symbols of the top 10 upregulated or downregulated
+  #   genes, with the lowest padj. To change this behavior edit the following
+  #   lines
+  res.i <- res.i[order(res.i$log2FoldChange),]
+  genes.to.label <- res.i[1:10, 'symbol']
+  print(plotMA.label(res.i, genes.to.label=genes.to.label, col='symbol'))
+
+
   mdcat('### Normalized counts of top 3 upregulated genes')
   print(lcdbwf::counts.plot(lcdbwf::counts.df(dds.i, res.i, sel.genes=lfc.filter(res.i),
                               label='symbol', rank.col='padj'),
@@ -407,17 +420,6 @@ for (name in names(res.list)){
   print(lcdbwf::counts.plot(lcdbwf::counts.df(dds.i, res.i, sel.genes=lfc.filter(res.i, reverse=TRUE),
                               label='symbol', rank.col='padj'),
                     3))
-
-  # NOTE: gene labels --------------------------------------------------------
-  #   By default we plot the symbols of the top 10 upregulated or downregulated
-  #   genes, with the lowest padj. To change this behavior edit the following
-  #   lines
-  res.i <- res.i[order(res.i$padj),]
-
-  genes.to.label <- res.i[1:10, 'symbol']
-
-  mdcat('### M-A plot')
-  print(plotMA.label(res.i, genes.to.label=genes.to.label, col='symbol'))
 
   mdcat('### P-value distribution')
   pval.hist(res.i)
