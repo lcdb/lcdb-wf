@@ -348,10 +348,15 @@ contr_lfc2 <- list(
 ```{r assemble_variables, cache=TRUE, dependson=knitr::all_labels()[grepl('^results', knitr::all_labels())]}
 res.list <- list()
 
-# Take all the contrast variables and accumulate them into the res.list
-contrast_list <- ls()[grepl("contr_+", ls())]
-res.list  <- map(contrast_list, function(x) eval(parse(text=x)))
-res_names <- map(contrast_list, function(x) str_replace(x, "contr_[A-z]_", ""))
+# identify all variable names that start with "contr_" and store in a list
+contrast_list <- ls()[grepl("^contr_", ls())]
+
+# Convert the list of string variable names into a list of the objects
+# themselves
+res.list <- map(contrast_list, function(x) eval(parse(text=x)))
+
+# Rename the items in the list to not have the "contr_" prefix
+res_names <- map(contrast_list, function(x) str_replace(x, "contr_", ""))
 names(res.list) <- res_names
 ```
 
