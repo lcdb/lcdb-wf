@@ -408,7 +408,7 @@ For each comparison there is a tab and under each tab are the following:
 See the [Background and help](#Help) section for details on these.
 
 
-```{r reportresults, results='asis'}
+```{r reportresults, results='asis', dependson=c('assemble_variables'), cache=TRUE}
 # Generate a tabset for each set of results that contains a nested set of tabs
 # of various output.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#reportresults
@@ -451,7 +451,7 @@ for (name in names(res.list)){
 }
 ```
 
-```{r selections, cache=TRUE, dependson='attach'}
+```{r selections, cache=TRUE, dependson='assemble_variables'}
 # Make selections of interesting sets of genes to be investigated further.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#selections
 sel.list <- list()
