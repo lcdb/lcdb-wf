@@ -310,17 +310,14 @@ lfc.thresh <- 0 # Must change if using an lfcThreshold other than 0
 #
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#results
 
-# NOTE: Example contrast #1----------------------------------------------------
-#   Using the example data, this compares treatment group to control group.
-#   Change to reflect your experiment.
-# IMPORTANT: Control must always be last
-#   Change the letter prefix of the contrast to adjust order of appearance in the html
-#   Each contrast will appear in the res.list without the prefix "contr_[A-z]_".
-#   Make a separate chunk for each contrast.
-contr_a_main <- list(
-    res=lfcShrink(dds.list[['main']], contrast=c('group', 'treatment', 'control'), type='normal'),
-    dds='main',
-    label='Using a log2FoldChange threshold of 0'
+contr_main <- list(
+    res=lfcShrink(
+        dds.list[['main']],
+        contrast=c('group', 'treatment', 'control'),
+        type='normal'),
+        parallel=parallel,
+        dds='main',
+        label='Using a log2FoldChange threshold of 0'
 )
 ```
 
@@ -335,10 +332,11 @@ res.lfcthresh.2 <- results(
     contrast=c('group', 'treatment', 'control'),
     lfcThreshold=2)
 
-contr_b_lfc2 <- list(
+contr_lfc2 <- list(
     res=lfcShrink(
         dds.list[['main']],
         contrast=c('group', 'treatment', 'control'),
+        parallel=parallel,
         res=res.lfcthresh.2,
         type='normal'
     ),
