@@ -297,8 +297,13 @@ dds.list <- map(lst, lcdbwf::make.dds, salmon.files=NULL, remove.version=TRUE,
                 combine.by=NULL, parallel=parallel)
 ```
 
+```{r siglevel, cache=TRUE}
+# NOTE: significance level---------------------------------------------------
+alpha <- 0.1
+lfc.thresh <- 0 # Must change if using an lfcThreshold other than 0
+```
 
-```{r results, dependson='dds_list', cache=TRUE}
+```{r results_01, dependson=c('dds_list', 'siglevel'), cache=TRUE}
 # Perform differential expression testing.
 #
 # This will need substantial editing.
@@ -319,7 +324,7 @@ contr_a_main <- list(
 )
 ```
 
-```{r results2, dependson='dds_list', cache=TRUE}
+```{r results_02, dependson=c('dds_list', 'siglevel'), cache=TRUE}
 # NOTE: Example contrast #2----------------------------------------------------
 #    Using the example data, this compares treatment group to control group but
 #    requiring genes to have >4-fold differences (log2(4) = 2). Change to
