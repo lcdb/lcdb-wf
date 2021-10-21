@@ -26,7 +26,6 @@ lim <- 2000
 
 # NOTE: Min number of genes to include----------------------------------------
 #   If fewer than this many genes, skip the clustering
-# lower.lim <- 0  # [ TEST SETTINGS +1 ]
 lower.lim <- 10
 
 # NOTE:  Correlation coefficient above which to merge clusters-----------------

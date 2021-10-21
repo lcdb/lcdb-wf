@@ -4,14 +4,26 @@
 References config
 =================
 
-The references section defines which genomes, transcriptomes, and annotations to use.
-It supports arbitrarily many species and assemblies, and supports customizing
-references for a particular project.
+The references section defines which genomes, transcriptomes, and annotations
+to use. It supports arbitrarily many species and assemblies, and supports
+customizing references for a particular project. For example, there are tools
+and examples for adding ERCC spike-in controls to references, or adjusting
+chromosome nomenclature, or removing problematic entries from GTF files, and so
+on.
+
+Another advantage is that this makes it easy to add multiple genomes to the
+screening step (which uses fastq_screen).
+
+Specifying a references directory
+---------------------------------
+
+See :ref:`cfg-references-dir` for more information on where the references are
+built (as well as how and why to adjust this).
 
 Including existing reference configs
 ------------------------------------
 We provide a number of pre-configured reference configs for common model
-organisms.  If you just want to use some references configs that work, then put
+organisms. If you just want to use some references configs that work, then put
 this in your config file:
 
 .. code-block:: yaml
@@ -20,12 +32,13 @@ this in your config file:
       - '../../include/references_configs'
 
 This will populate the config with the contents of all the files contained in
-the ``include/references_configs`` directory (the path is relative to the
-Snakefile using the config). **Note that you will still need to inspect the
-contents** of those files to decide which organsim and tag you want to use for
-your particular experiment (see :ref:`cfg-organism` and :ref:`cfg-aligner` for
-more on these fields). For example, if you are working with human RNA-seq data,
-and you use the above ``include_references``, you may want this in your config:
+the ``include/references_configs`` directory. Any paths provided under the
+``include_references`` key are relative to the Snakefile using the config.
+**Note that you will still need to inspect the contents** of those files to
+decide which organsim and tag you want to use for your particular experiment
+(see :ref:`cfg-organism` and :ref:`cfg-aligner` for more on these fields). For
+example, if you are working with human RNA-seq data, and you use the above
+``include_references``, you may want this in your config:
 
 .. code-block:: yaml
 
@@ -33,13 +46,13 @@ and you use the above ``include_references``, you may want this in your config:
     aligner:
       tag: 'gencode-v25'
       index: 'hisat2'
-    salmon: 'gencode-v25-transcriptome'
+    salmon: 'gencode-v25'
 
-since the ``gencode-v25`` and ``gencode-v25-transcriptome`` tags are configured
-for the ``human`` key in
-``../../include/references_configs/Homo_sapiens.yaml``.
+The reason for using ``gencode-v25`` is because that tag is configured for the
+``human`` key in ``../../include/references_configs/Homo_sapiens.yaml``.
 
-You can provide entire directories of reference configs, a single file, or use the references section below. The prioritization works like this:
+You can provide entire directories of reference configs, a single file, or use
+the references section below. The prioritization works like this:
 
 - an organism can show up in multiple configs; if a tag exists for an organism
   in more than one config, higher-priority configs will overwrite the contents
@@ -57,11 +70,13 @@ the references, to add your own or modify the existing examples.
 Overview
 --------
 The references workflow is based on the idea that while each genome's source
-files (FASTA, GTF) may come from different providers (Ensembl, FlyBase, UCSC,
-etc) and have slightly different formatting (strange headers, one big file or
-a tarball of individual chromosomes, etc), once they are well-formatted they
-can be used to create a hisat2 index, a bowtie2 index, a list of genes,
-intergenic regions, and so on without any further customization.
+files may differ, they can usually be modified to a uniform format. For
+example, reference files (FASTA, GTF) may come from different providers
+(Ensembl, FlyBase, UCSC, etc) and have slightly different formatting (strange
+headers, one big file or a tarball of individual chromosomes, etc), once they
+are well-formatted they can be used to create a hisat2 index, a bowtie2 index,
+a list of genes, intergenic regions, and so on without any further
+customization.
 
 The challenging part is the "well-formatted" part. To solve this, the config
 file and references building system allows a very flexible specification of how
@@ -77,6 +92,10 @@ to modify references via a plugin architecture. It works something like this:
   below.
 - For FASTA files one or more **indexes** are requested
 - For GTF files, zero or more **conversions** are requested.
+
+.. note::
+
+    If using a ``file://`` URI, it needs to be gzipped.
 
 It's probably easiest to show an example config and then describe what's
 happening.
@@ -350,8 +369,61 @@ bowtie2 index, etc) will now use this fixed version with "chr" prepended to
 chromosome names.  In this way, we can apply arbitrary code to modify
 references to get them into a uniform format.
 
-Locations of downloaded-and-post-rocessed FASTA and GTF files
--------------------------------------------------------------
+
+.. _advanced-postprocessing:
+
+More advanced postprocessing
+----------------------------
+
+If a post-processing function has a keyword argument with starts and ends with
+a double underscore (``__``), the config system will assume this is a string
+that should be interpreted as a dotted function name and the actual function
+will be resolved and passed to the post-processing function.
+
+This is useful for example when attaching ERCC spike-ins to a reference file
+that in turn needs to be modified. For example, the `S. pombe` reference
+annotations are available as a GFF file, but this needs to be converted to
+a GTF file. After that, the ERCC spike-in GTF annotations need to be added to
+the newly-created GTF.
+
+The functions in ``lib/postprocess/ercc.py`` support such a use-case. The
+config looks like this:
+
+.. code-block:: yaml
+
+    genome:
+      url:
+        # S. pombe fasta
+        - 'ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/fasta/schizosaccharomyces_pombe/dna/Schizosaccharomyces_pombe.ASM294v2.dna_sm.toplevel.fa.gz'
+        # ERCC fasta
+        - 'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+      postprocess:
+        function: "lib.postprocess.ercc.add_fasta_to_genome"
+
+    annotation:
+      url:
+        # S. pombe GFF, which needs to be converted to GTF
+        - 'ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/gff3/schizosaccharomyces_pombe/Schizosaccharomyces_pombe.ASM294v2.41.gff3.gz'
+
+        # ERCC GTF is not available; conversion function needed to convert
+        # fasta to GTF
+        - 'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+
+      postprocess:
+        function: "lib.postprocess.ercc.add_gtf_to_genome"
+        kwargs:
+          # As per the docs for add_gtf_to_genome, this function will be
+          # applied to all but the last input file. It is specified as a string
+          # here, but the config-processing system will resolve this to the
+          # actual function and pass that along to add_gtf_to_genome
+          __preprocess__: "lib.common.gff2gtf"
+
+.. versionadded:: 1.7
+    Ability to use special ``__``-prefixed variables that are interpreted as
+    dotted-path functions to import.
+
+Locations of downloaded-and-post-processed FASTA and GTF files
+--------------------------------------------------------------
 Generally speaking, the fasta and gtf files will be in::
 
     {references_dir}/{organism}/{tag}/fasta/{organism}_{tag}.fasta

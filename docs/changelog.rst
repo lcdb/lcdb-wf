@@ -1,18 +1,111 @@
 Changelog
 =========
 
+v1.8
+----
+
+General
+~~~~~~~
+
+- Complete shift to using pinned ``env.yaml`` files to specify conda
+  environments, and using ``mamba`` for building environments (consistent with
+  recent versions of Snakemake). This is now reflected in documentation and
+  the updated-and-improved ``deploy.py``.
+
+- Reorganization/cleanup of the ``include`` directory
+
+- Added conda troubleshooting notes to the documentation (see
+  :ref:`conda-troubleshooting`).
+
+- The ``lib.helpers.preflight`` function no requires the first column of the
+  sampletable to be named `samplename` when checking configs.
+
+- Improvements to the deployment script ``deploy.py``:
+
+    - now requires Python >3.6
+    - proper logs (so you can easily see how long it takes to build an env)
+    - supports downloading and running the script directly, which will clone
+      a temporary copy and deploy from there
+    - using Control-C to stop the deployment will also stop mamba/conda
+    - colored output
+    - mamba is used by default, but ``--conda-frontend`` will use conda instead
+
+- fastq-dump log is sent to file rather than printed to stdout
+
+- Threads: cutadapt single-end now uses specified threads (it was using
+  1 thread by default); use 6 threads for fastqc
+
+- Added new preflight checks for RNA-seq and ChIP-seq specific configs.
+
+- Added a ``run_complex_test.sh`` driver script for testing the workflows on
+  full-scale publicly available data 
+
+RNA-seq
+~~~~~~~
+
+- **Configuration change:** The ``stranded:`` field is now required for RNA-seq.
+  This is used to choose the correct parameters for various rules, and avoids
+  one of the main reasons to edit the Snakefile. See :ref:`cfg-stranded` for
+  more details on its use.
+
+- added ``stranded:`` field to all configs used in testing
+
+- The ``strand_check`` rule now runs MultiQC for a convenient way of evaluating
+  strandedness of a library.
+
+- Kallisto is now supported in both the RNA-seq Snakefile, references
+  Snakefile, included reference configs, and downstream ``rnaseq.Rmd``
+
+
+References
+~~~~~~~~~~
+
+- When checking URLs in reference configs, don't use ``curl`` to check
+  ``file://`` URIs.
+
+- There is a new feature for reference configs that allows chaining
+  post-processing functions together, see :ref:`advanced-postprocessing`. This
+  means that it is possible, for example, to add ERCC spike-ins (which need
+  post-processing) onto references that themselves need post-processing.
+
+- ``lib/postprocess/ercc.py`` has new helper functions for adding ERCC
+  spike-ins to fasta files and GTF files.
+
+- added ``'kallisto'`` to included reference configs
+
+ChIP-seq
+~~~~~~~~
+
+- symlinks rule is now local
+- added collectinsertsizes pattern to support PE ChIP-seq experiments
+- merging bigwigs log no longer goes to stdout
+
+
 v1.7
 ----
+
+Setup
+~~~~~
+
+Use mamba for installation of environments, consistent with Snakemake recommendations
 
 Testing
 ~~~~~~~
 
-- new test that checks all URLs identified in config files to ensure that the
-  included reference files remain valid
+- We now recommend using `mamba <https://github.com/mamba-org/mamba>`_ to
+  create conda environments. This is dramatically faster and solves some
+  dependency issues. Our automated tests now use this.
 
-- there is now a separate ``run_downstream_test`` script`
+- We have moved from requirements.txt files to env.yaml files. We also now
+  encourage the use of the strictly-pinned environments for a more stable
+  experience to hopefully avoid transient issues in the packaging ecosystem.
 
-- simplified the CircleCI DAG to optimize testing resources
+- ``tbb=2020.2`` as a dependency to fix a recent packaging issue with conda-forge.
+
+- many documentation improvements
+
+- symlinks rule is only set to localrule when it exists (it does not exist when
+  running an analysis exclusively from SRA)
 
 References
 ~~~~~~~~~~
@@ -25,7 +118,6 @@ References
   `Schizosaccharomyces_pombe.yaml`` reference config has been updated
   accordingly.
 
-- add ``bed12`` and ``refflat`` conversions to references
 
 - The references workflow no longer reads the config file in its directory.
   This fixes some subtle overwriting issues when providing config files or
@@ -40,17 +132,17 @@ RNA-seq
   wanted to run featureCounts in a mode where it excluded duplicates you would
   need to reconfigure rules.
 
-
 - improved comments in RNA-seq downstream RMarkdown files
 
-General
+Testing
 ~~~~~~~
 
-- many documentation improvements
+- new test that checks all URLs identified in config files to ensure that the
+  included reference files remain valid
 
-- symlinks rule is only set to localrule when it exists (it does not exist when
-  running an analysis exclusively from SRA)
+- there is now a separate ``run_downstream_test`` script`
 
+- simplified the CircleCI DAG to optimize testing resources
 
 v1.6
 ----

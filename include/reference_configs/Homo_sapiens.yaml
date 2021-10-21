@@ -29,6 +29,7 @@ references:
       transcriptome:
         indexes:
           - 'salmon'
+          - 'kallisto'
 
 
     gencode-v25:
@@ -64,6 +65,7 @@ references:
       transcriptome:
         indexes:
           - 'salmon'
+          - 'kallisto'
 
 
     gencode-v19:
@@ -88,6 +90,7 @@ references:
       transcriptome:
         indexes:
           - 'salmon'
+          - 'kallisto'
 
     rRNA:
       genome:
