@@ -345,13 +345,7 @@ contr_lfc2 <- list(
 )
 ```
 
-```{r assemble_variables, dependson=c('results', 'results2'), cache=TRUE}
-# NOTE: Add a new dependson for every contrast chunk to prevent this from
-# malfunctioning.
-# res.list is a named list. Each item should be a list with names c('res',
-# 'dds', 'label'). "res" is a DESeqResults object, "dds" is the corresponding
-# DESeq object the results were extracted from, and "label" is a nicer label to
-# use for headers and other text.
+```{r assemble_variables, cache=TRUE, dependson=knitr::all_labels()[grepl('^results', knitr::all_labels())]}
 res.list <- list()
 
 # Take all the contrast variables and accumulate them into the res.list
