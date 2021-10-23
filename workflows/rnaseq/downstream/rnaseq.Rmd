@@ -443,10 +443,10 @@ for (name in names(res.list)){
   genes.to.label <- res.i[1:10, 'symbol']
 
   mdcat('### M-A plot')
-  print(plotMA.label(res.i, genes.to.label=genes.to.label, col='symbol'))
+  print(lcdbwf::plotMA.label(res.i, genes.to.label=genes.to.label, col='symbol'))
 
   mdcat('### P-value distribution')
-  pval.hist(res.i)
+  lcdbwf::pval.hist(res.i)
 }
 ```
 
