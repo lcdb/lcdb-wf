@@ -199,8 +199,7 @@ explained by each principal component is indicated in the axes label.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#pca
 
 groups <- list(
-               group=c('group'),
-               layout=c('layout')
+               group=c('group')
                )
 
 p <- list()
