@@ -198,8 +198,7 @@ explained by each principal component is indicated in the axes label.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#pca
 
 groups <- list(
-               group=c('group'),
-               layout=c('layout')
+               group=c('group')
                )
 
 p <- list()
@@ -307,10 +306,11 @@ lfc.thresh <- 0 # Must change if using an lfcThreshold other than 0
 
 contr_main <- list(
     res=lfcShrink(
-        dds.list[['main']],
-        contrast=c('group', 'treatment', 'control'),
-        type='normal'),
-        parallel=parallel,
+            dds.list[['main']],
+            contrast=c('group', 'treatment', 'control'),
+            type='normal',
+            parallel=parallel
+        ),
         dds='main',
         label='Using a log2FoldChange threshold of 0'
 )
@@ -448,7 +448,7 @@ for (name in names(res.list)){
                     3))
 
   mdcat('### P-value distribution')
-  pval.hist(res.i)
+  lcdbwf::pval.hist(res.i)
 }
 ```
 
