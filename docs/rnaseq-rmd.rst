@@ -209,6 +209,11 @@ other changes should be needed.
 This chunk sets up the :term:`dds` objects to be used in the `results` section
 below for differential expression detection.
 
+For simple cases, you can just create a :term:`dds` object and store it in
+a single-item list. However this document is designed to work with quite
+complex experimental designs, and we provide tools for conveniently working with
+such complexity while hopefully reducing the possibility of errors.
+
 You may need different ``dds`` objects for testing different models, or perhaps
 removing outlier samples. If you have technical replicates you might need to
 combine them, and you might need to remove gene version identifiers. You might
@@ -218,7 +223,7 @@ each ``dds``, requiring code duplication.
 After working on many complex and/or messy experimental designs, we have
 settled on the approach of a named list of ``dds`` objects.
 
-**The** ``results`` **chunk below expects a list, one item per** ``dds`` **object.**
+**The** ``results`` **chunk below expects such a list.**
 
 The simplest example is the following where we create a single ``dds`` and put
 it into a list.
@@ -233,11 +238,14 @@ it into a list.
 
    dds.list <- list(main=dds)
 
-
-Here is a modified example where we now want to remove replicate 4. We also want to collapse technical replicates:
+Now imagine we want to try removing a replicate that we think is an outlier, but
+we still want to compare it to the results when using the full set of
+replicates. Let's say we also need to collapse the technical replicates. Such
+code would look like this:
 
 .. code-block:: r
 
+   # First object with all replicates
    dds1 <- DESeqFromCombinedFeatureCounts(
       '../data/rnaseq_aggregation/featurecounts.txt',
       sampletable=colData,
@@ -245,24 +253,43 @@ Here is a modified example where we now want to remove replicate 4. We also want
    dds1 <- collapseReplicates(dds1, 'biorep')
    dds1 <- DESeq(dds1, parallel=parallel)
 
+   # Similar to above, but remove replicate 4
    dds2 <- DESeqFromCombinedFeatureCounts(
       '../data/rnaseq_aggregation/featurecounts.txt',
       sampletable=colData %>% filter(replicate!='rep4'),
       design=~group,
-      subset.counts=TRUE  # need this to subset the featureCounts to match the colData
+      # need subset.counts=TRUE if we want to automatically
+      # subset the featureCounts to match the filtered colData
+      # we provided.
+      subset.counts=TRUE
       )
    dds2 <- collapseReplicates(dds, 'biorep')
    dds2 <- DESeq(dds2, parallel=parallel)
 
-   dds.list <- list(main=dds1, no.rep.4=dds2)
-
 Based on our experience, as we add more ``dds`` objects the code gets more
 error-prone. So for more complex use-cases, we have a function
-``lcdbwf::make.dds``. This takes as its first argument a list of sampletable
-(:term:`colData`) and a design and additional arguments can configure the
-object further.
+``lcdbwf::make.dds``.
 
-The above example becomes the following:
+To use it, first we create a list of lists. The names of this list are useful
+names you give each :term:`dds` object. Here, it's ``main`` and ``no.rep.4``.
+For each of those names, the correspdonding values are lists with at least the
+names ``sampletable`` and ``design`` which will be used to generate each
+:term:`dds`. Aditional arguments to pass to ``DESeqFromCombinedFeatureCounts``,
+like ``subset.counts=TRUE``, are provided in a separate ``args`` entry in the
+list.
+
+Then, we apply the ``make.dds`` function over that list:
+
+.. code-block:: r
+
+    map(lst, make.dds)
+
+When doing so, we can optionally apply other arguments to every :term:`dds`
+object in there. In the example below, we combine technical replicates on
+biorep for every :term:`dds`, and use the same parallel argument for all of
+them.
+
+So the above example becomes the following:
 
 .. code-block:: r
 
@@ -278,19 +305,142 @@ The above example becomes the following:
 
 Note the following:
 
-- the file is set by default to be :file:`../data/rnaseq_aggregation/featurecounts.txt`
-- we can supply additional args, like ``subset.counts=TRUE``, on a per-``dds`` basis.
-- the `combine.by` is applied to everything in the list
+- the file is set by default to be
+  :file:`../data/rnaseq_aggregation/featurecounts.txt`. Use a different file on
+  a dds-specific basis by including ``file="path/to/file.txt"``.
+- we can supply additional args, like ``subset.counts=TRUE``, on a per-dds
+  basis. If the sampletable is filtered, by default ``make.dds`` takes
+  a conservative approach and complains that the featureCounts table does not
+  match the sampletable. Specify ``subset.counts=TRUE`` to indicate that it's
+  OK.
+- the ``combine.by`` is applied to everything in the list; in this example, all
+  counts for lines in the sample table that share the same "biorep" value will
+  be summed.
 - the ``parallel`` argument is also used for everything in the list
 
 See the help for ``lcdbwf::make.dds`` for more details.
 
+This chunk becomes a dependency of all of the ``results`` chunks below.
+
 ``results``
 -----------
 
-This chunk is where the bulk of the differential expression analysis takes place.
+This is actually a series of chunks where the bulk of the differential
+expression analysis takes place.
 
-The end result of this chunk is a list of listes that is used by functions in
+For simple cases, you probably just need one of these. But for complex
+experimental designs where you end up doing lots of contrasts, it can get time
+consuming to run them every time you change the RMarkdown file.
+
+The end result of these chunks is a single list containing DESeq2 results
+objects and metadata in (sub)lists. Each of these sublists has:
+
+- ``res``, the results object
+- ``dds``, the string name in ``names(dds.list)``
+- ``label``, a "nice" label to use
+
+A two-contrast list might look like this. This continues our example from above,
+where we want to run the same contrast on all samples and after removing
+replicate 4:
+
+.. code-block:: r
+
+    res.list <- list(
+
+        # First contrast using all samples
+        ko.vs.wt=list(
+            res=results(
+                dds.list[["main"]],
+                contrast=c("genotype", "KO", "WT"),
+                parallel=parallel
+            ),
+            dds=dds.list[["main""]],
+            label="KO vs WT"
+        ),
+
+        # Same contrast, but use the dds object that had replicate 4 removed
+        ko.vs.wt.no.rep4=list(
+            res=results(
+                dds.list[["no.rep.4"]],
+                contrast=c("genotype", "KO", "WT"),
+                parallel=parallel
+            ),
+            dds=dds.list[["no.rep.4""]],
+            label="KO vs WT, without replicate 4"
+        )
+    )
+
+If you have a small number of contrasts, this works fine. For complex
+experimental designs, read on....
+
+Complex experimental designs with many contrasts
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+For complex experimental designs with many contrasts, we can take advantage of
+the ``knitr`` package's caching functionality to incrementally build results
+objects and cache them. However, if we put all ``results()`` calls into the same
+chunk and cache that, then a change anywhere in that chunk will invalidate the
+cache, causing it all to be run again. An alternative is to put each
+``results()`` call into its own chunk. But then we need to keep track of
+dependencies and ensure those dependencies are specified in downstream chunks.
+If you add a chunk and cache it, but forget to add the dependency later, the
+environment will be inconsistent.
+
+We use a modification of this second strategy. In the example above where we
+have two contrasts (labeled ``ko.vs.wt`` and ``ko.vs.wt.no.rep4``), we put each
+of those goes into its own chunk, but according to the following rules:
+
+- the chunk name must start with ``results_``
+- the variable name starts with ``contr_``, and the rest of the variable name
+  will be used as the name in the list
+
+So the above example becomes:
+
+.. code-block:: r
+
+    ```{r results_01, cache=TRUE, dependson=c('dds.list')}
+        # First contrast using all samples
+        contr_ko.vs.wt <- list(
+            res=results(
+                dds.list[["main"]],
+                contrast=c("genotype", "KO", "WT"),
+                parallel=parallel
+            ),
+            dds=dds.list[["main""]],
+            label="KO vs WT"
+        )
+    ```
+
+    ```{r results_02, cache=TRUE, dependson=c('dds.list')}
+        # Same contrast, but use the dds object that had replicate 4 removed
+        contr_ko.vs.wt.no.rep4 <- list(
+            res=results(
+                dds.list[["no.rep.4"]],
+                contrast=c("genotype", "KO", "WT"),
+                parallel=parallel
+            ),
+            dds=dds.list[["no.rep.4""]],
+            label="KO vs WT, without replicate 4"
+        )
+    ```
+
+Then we assemble everything together in a later chunk. The first trick in this
+assembly chunk is that, because of the chunk naming scheme (names starting with
+``results_``), we can automatically compile the list of chunks that are
+dependencies. This ensures that the assembled list is up-to-date. The second
+trick is that it inspects the environment to find variables with the naming
+scheme ``contr_`` and does the work of inserting them into a list where the
+names of the list come from the variable names without the ``contr_`` prefix.
+
+.. code-block:: r
+
+   ```{r assemble_variables, cache=TRUE, dependson=knitr::all_labels()[grepl('^results', knitr::all_labels())]}
+    res.list <- list()
+    contrast_list <- ls()[grepl("^contr_", ls())]
+    res.list <- map(contrast_list, function(x) eval(parse(text=x)))
+    res_names <- map(contrast_list, function(x) str_replace(x, "contr_", ""))
+    names(res.list) <- res_names
+
+The end result of this chunk is a list of lists that is used by functions in
 the `lcdbwf` R package for more downstream work. For more details, see
 :term:`res.list`.
 
@@ -303,12 +453,6 @@ automatically create a DE results section including:
 - counts plots of top 3 up- and down-regulated genes
 - p-value distribution
 - exported results tables with links
-
-
-``res.list`` is a named list. Each item should be a list with names c('res',
-'dds', 'label'). "res" is a DESeqResults object, "dds" is the corresponding
-DESeq object the results were extracted from, and "label" is a nicer label to
-use for headers and other text.
 
 .. _contrast:
 
