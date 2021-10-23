@@ -152,7 +152,7 @@ Below we show the results separately for each comparison. Links to files
 containing analysis results are shown above each set of plots, with parsed
 files showing genes on separate lines.
 
-```{r plotgo, fig.width=15, fig.height=10, results='asis', cache=TRUE, dependson='enrich_all'}
+```{r plotgo, fig.width=15, fig.height=10, results='asis', cache=TRUE, dependson='enrichall'}
 # Plot the enrichment results.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#plotgo
 
