@@ -69,11 +69,6 @@ devtools::load_all('../../../lib/lcdbwf')
 annotation_genus_species <- 'Drosophila melanogaster'
 annotation_key_override <- NA
 hub.cache <- '../../../include/AnnotationHubCache'
-orgdb <- get.orgdb(
-    annotation_genus_species,
-    cache=hub.cache,
-    annotation_key_override=annotation_key_override
-)
 ```
 
 ```{r coldata_setup}
@@ -297,27 +292,31 @@ dds.list <- map(lst, lcdbwf::make.dds, salmon.files=NULL, remove.version=TRUE,
                 combine.by=NULL, parallel=parallel)
 ```
 
+```{r siglevel, cache=TRUE}
+# NOTE: significance level---------------------------------------------------
+alpha <- 0.1
+lfc.thresh <- 0 # Must change if using an lfcThreshold other than 0
+```
 
-```{r results, dependson='dds_list', cache=TRUE}
+```{r results_01, dependson=c('dds_list', 'siglevel'), cache=TRUE}
 # Perform differential expression testing.
 #
 # This will need substantial editing.
 #
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#results
 
-res.list <- list()
-
-# NOTE: Example contrast #1----------------------------------------------------
-#   Using the example data, this compares treatment group to control group.
-#   Change to reflect your experiment.
-# IMPORTANT: Control must always be last
-res.list[['main']] <- list(
-    res=lfcShrink(dds.list[['main']], contrast=c('group', 'treatment', 'control'), type='normal'),
-    dds='main',
-    label='Using a log2FoldChange threshold of 0'
+contr_main <- list(
+    res=lfcShrink(
+        dds.list[['main']],
+        contrast=c('group', 'treatment', 'control'),
+        type='normal'),
+        parallel=parallel,
+        dds='main',
+        label='Using a log2FoldChange threshold of 0'
 )
+```
 
-
+```{r results_02, dependson=c('dds_list', 'siglevel'), cache=TRUE}
 # NOTE: Example contrast #2----------------------------------------------------
 #    Using the example data, this compares treatment group to control group but
 #    requiring genes to have >4-fold differences (log2(4) = 2). Change to
@@ -328,10 +327,11 @@ res.lfcthresh.2 <- results(
     contrast=c('group', 'treatment', 'control'),
     lfcThreshold=2)
 
-res.list[['lfc2']] <- list(
+contr_lfc2 <- list(
     res=lfcShrink(
         dds.list[['main']],
         contrast=c('group', 'treatment', 'control'),
+        parallel=parallel,
         res=res.lfcthresh.2,
         type='normal'
     ),
@@ -340,28 +340,54 @@ res.list[['lfc2']] <- list(
 )
 ```
 
+```{r assemble_variables, cache=TRUE, dependson=knitr::all_labels()[grepl('^results', knitr::all_labels())]}
+res.list <- list()
 
-```{r attach, cache=TRUE, dependson='results'}
-# Attach additional info to the results
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#attach
+# identify all variable names that start with "contr_" and store in a list
+contrast_list <- ls()[grepl("^contr_", ls())]
+
+# Convert the list of string variable names into a list of the objects
+# themselves
+res.list <- map(contrast_list, function(x) eval(parse(text=x)))
+
+# Rename the items in the list to not have the "contr_" prefix
+res_names <- map(contrast_list, function(x) str_replace(x, "contr_", ""))
+names(res.list) <- res_names
+
+orgdb <- get.orgdb(
+    annotation_genus_species,
+    cache=hub.cache,
+    annotation_key_override=annotation_key_override
+)
+
+# Ensure all results objects have the same rownames
+nms <- lapply(res.list, function (x) rownames(x[['res']]))
+if (!all(sapply(nms, function(a) all(a == nms[[1]])))){
+    stop("Gene IDs differ between results objects")}
+
+# Here we look up the other information for genes in the OrgDb once and then
+# attach that information to each results object
 keytype <- 'ENSEMBL'
-columns <- c('SYMBOL', 'UNIPROT', 'ALIAS')
+columns <- c('SYMBOL', 'ALIAS')
+lookups <- list()
+for (col in columns){
+    lookups[[col]] <- mapIds(orgdb, keys=nms[[1]], column=col, keytype=keytype, multiVal='first')
+}
+lookups <- data.frame(lookups)
 
 for (name in names(res.list)){
-    res.list[[name]][['res']] <- attach.info(
-        res.list[[name]][['res']],
-        keytype=keytype,
-        columns=columns)
+    res <- res.list[[name]][['res']]
+    for (col in columns){
+        res[[tolower(col)]] <- lookups[[col]]
+    }
+    cn <- colnames(res)
+    res$gene <- rownames(res)
+    res <- res[, c('gene', cn)]
+    res.list[[name]][['res']] <- res
 }
 ```
 
 # Differential expression {.tabset}
-
-```{r}
-# NOTE: significance level---------------------------------------------------
-alpha <- 0.1
-lfc.thresh <- 0 # Must change if using an lfcThreshold other than 0
-```
 
 Here is a table summarizing the comparisons. See the [Background and
 help](#Help) section for details.
@@ -382,7 +408,7 @@ For each comparison there is a tab and under each tab are the following:
 See the [Background and help](#Help) section for details on these.
 
 
-```{r reportresults, results='asis'}
+```{r reportresults, results='asis', dependson=c('assemble_variables'), cache=TRUE}
 # Generate a tabset for each set of results that contains a nested set of tabs
 # of various output.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#reportresults
@@ -426,7 +452,7 @@ for (name in names(res.list)){
 }
 ```
 
-```{r selections, cache=TRUE, dependson='attach'}
+```{r selections, cache=TRUE, dependson='assemble_variables'}
 # Make selections of interesting sets of genes to be investigated further.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#selections
 sel.list <- list()
