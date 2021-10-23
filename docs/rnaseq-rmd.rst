@@ -60,16 +60,17 @@ will be rerun from scratch.
 Helper functions are a set of useful utility functions used throughout the
 ``rnaseq.Rmd`` script that are stored in a package maintained in this
 repository, in the ``lib/lcdbwf`` R package. Here we include these as a child
-Rmd, so that the main document doesn't get cluttered with the functions, but
-the code is still included in the HTML output.
+Rmd, so that the code in ``rnaseq.Rmd`` doesn't get cluttered with the
+functions, but the code is still included in the HTML output when the code
+blocks are expanded.
 
 This chunk refreshes documentation and loads (or re-loads, if you run it later)
-the package using devtools.
+the package using the ``devtools`` package.
 
 ``annotationhub_setup``
 -----------------------
 
-We use AnnotationHub for downloading annotations on the fly rather than
+We will use AnnotationHub for downloading annotations on-the-fly rather than
 specifying OrgDbs in the requirements.txt of the conda environment. This allows
 as much of our code as possible remain organism-agnostic. The package default
 cache location is in the user's home directory. However this prevents other
@@ -85,13 +86,18 @@ here we reset the cache directory to
 | ``annotation_key_override``  | will use a specific key, if you know ahead of time what that is                                                      |
 +------------------------------+----------------------------------------------------------------------------------------------------------------------+
 
+Note that we do not actually download and/or access the OrgDb yet. This is just
+a configuration chunk; the OrgDb will be loaded only when it is needed later in
+the RMarkdown file.
+
 ``coldata_setup``
 -----------------
 
-This chunk prepares the :term:`colData` object that contains the metadata to be used
-for creating the dds objects. The majority of the metadata is read in from the
-sampletable. This chunk also handles things like converting to factors and
-setting up the paths to Salmon output files.
+This chunk prepares the :term:`colData` object. This dataframe contains the
+metadata to be used for creating the dds objects. The majority of the metadata
+is read in from the sampletable (configured with ``sample.table.filename``).
+This chunk also handles things like converting to factors and setting up the
+paths to Salmon output files.
 
 +---------------------------+------------------------------------------------------------------------------------------------+
 | var                       | description                                                                                    |
@@ -108,14 +114,15 @@ setting up the paths to Salmon output files.
 +---------------------------+------------------------------------------------------------------------------------------------+
 
 This is a good place to put any modifications to the sample table (like factors
-derived other columns).
+you can use in models that are derived from other columns).
 
 If you are using this Rmd outside the context of lcdb-wf, you will need to
 change the salmon output path patterns and the sampletable location.
 
 .. topic:: Note on factors
-   
-   For the test data, "control" is the base level for the "group" factor. You will
+
+   For the test data, "control" is the base level for the "group" factor simply
+   because that's the experiment design for the test data set. You will
    need to edit this as appropriate for your experimental design.
 
 
@@ -123,17 +130,37 @@ change the salmon output path patterns and the sampletable location.
 ----------
 
 If you don't want to use Salmon TPM, disable this chunk with ``eval=FALSE`` or
-delete it entirely (and do the same with the next chunk).
+delete it entirely (and do the same with the ``salmonddstxi`` chunk).
 
-``ddstxi``
-----------
+``kallisto``
+------------
+
+If you don't want to use Kallisto TPM, disable this chunk with ``eval=FALSE`` or
+delete it entirely (and do the same with the ``kallistoddstxt`` chunk).
+
+``salmonddstxi``
+----------------
 
 ``design`` will likely need to be changed depending on your experimental
 design.
 
-This chunk creates separate ``dds.txi`` and ``vsd.txi`` objects to
+This chunk creates separate ``dds.salmon.txi`` and ``vsd.salmon.txi`` objects to
 differentiate them from the ones with no ``.txi`` that are created using
-featureCounts.
+featureCounts or Kallisto.
+
+Note we're using VST rather than rlog because the DESeq2 docs say they are
+largely equivalent, and vst is substantially faster. Also note that since this
+is exploratory analysis, we use ``blind=TRUE`` to ignore the design.
+
+``kallistoddstxi``
+------------------
+
+``design`` will likely need to be changed depending on your experimental
+design.
+
+This chunk creates separate ``dds.kallisto.txi`` and ``vsd.kallisto.txi`` objects to
+differentiate them from the ones with no ``.txi`` that are created using
+featureCounts or Kallisto.
 
 Note we're using VST rather than rlog because the DESeq2 docs say they are
 largely equivalent, and vst is substantially faster. Also note that since this
@@ -141,12 +168,22 @@ is exploratory analysis, we use ``blind=TRUE`` to ignore the design.
 
 ``dds_initial``
 ---------------
-This initial :term:`dds` object will be used for exploratory data analysis, NOT
-for differential expression. So the ``design`` should be something generic like
-"group" even for complex experimental designs.
 
-This chunk creates the initial :term:`dds` and :term:`vsd` objects that will be
-used for exploratory data analysis.
+This initial :term:`dds` object will be used for exploratory data analysis
+(clustered heatmap, PCA plots) and NOT for differential expression. So the
+``design`` should be something generic like "group" even for complex
+experimental designs.
+
+If you need to collapse technical replicates or strip dotted versions from gene
+names, do so here. You will need to do it again below when creating the
+:term:`dds` objects that will be used for differential expression.
+
+.. note::
+
+    Depending on your particular use-case, you may want to consider keeping
+    technical replicates separate for the exploratory plots to make sure they
+    really are behaving as you expect.
+
 
 ``sample_heatmap``
 ------------------
@@ -171,10 +208,15 @@ metadata.
 Note that plotting interactive plotly figures in a loop is not quite possible
 (due to technical limitations) and so we have to use a workaround. Currently,
 this workaround is to "manually" step through the loop, setting ``i`` to
-a different integer and copy/pasting the same code multiple times.
+a different integer and copy/pasting the same code multiple times. Ugly, but it
+works.
 
 ``sizefactors``
 ---------------
+
+This chunk makes diagnostic plots. In general, we expect sizeFactors to
+correlate with total read count. When it doesn't, it can indicate that a small
+number of genes are very highly expressed.
 
 To more easily investigate any outliers in these plots, you can optionally
 attach columns from ``colData`` before plotting the scatterplot, e.g.:
@@ -200,6 +242,13 @@ TRUE:
 
 Calls to ``DESeq()`` below will provide the argument ``parallel=parallel`` so no
 other changes should be needed.
+
+.. note::
+
+    A note to cluster users: on some clusters, you may want to set the
+    environment variable ``OMP_NUM_THREADS=1`` to avoid the parallelization code
+    used by DESeq2 from trying to grab all cores on the node if you were only
+    allocated a subset by the batch scheduler.
 
 .. _dds_list:
 
@@ -649,7 +698,7 @@ contrasts in the :term:`res.list`.
 --------------
 
 Here we get a list of DE genes from the :term:`res.list` object
-to use for downstream analysis using the log2FoldChange (lfc) and 
+to use for downstream analysis using the log2FoldChange (lfc) and
 false discovery rate (FDR) thresholds.
 
 ``upsetplots``
