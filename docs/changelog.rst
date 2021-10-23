@@ -4,6 +4,15 @@ Changelog
 v1.9
 ----
 
+RNA-seq
+~~~~~~~
+
+- new strategy for allowing ``results()`` calls to be split across multiple,
+  independently-cached chunks that are then properly merged together into
+  a single ``res.list`` object while handling dependencies (thanks `@njohnso6
+  <https://github.com/njohnso6>`_). This dramatically speeds up the process of
+  incrementally adding contrasts to complex experimental designs.
+
 v1.8
 ----
 
