@@ -908,9 +908,9 @@ split.clusterProfiler.results <- function(x){
 #' @return List of the two files that are created on disk.
 write.clusterprofiler.results <- function(res, cprof.folder, label){
     dir.create(cprof.folder, showWarnings=FALSE, recursive=TRUE)
-    filename.orig <- file.path(cprof.folder, paste0(label, '.txt'))
+    filename.orig <- file.path(cprof.folder, paste0(label, '.tsv'))
     write.table(res, file=filename.orig, sep='\t', quote=FALSE, row.names=FALSE)
-    filename.split <- file.path(cprof.folder, paste0(label, '_split.txt'))
+    filename.split <- file.path(cprof.folder, paste0(label, '_split.tsv'))
     res.split <- split.clusterProfiler.results(res)
     write.table(res.split, file=filename.split, sep='\t', quote=FALSE, row.names=FALSE)
     return(list(orig=filename.orig, split=filename.split))
