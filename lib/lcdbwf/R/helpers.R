@@ -479,14 +479,14 @@ DESeqDataSetFromSalmon <- function (sampleTable, design,
 #'           used for all dds objects in the returned list (that is, the
 #'           returned list cannot have a mix of salmon and featureCounts; if
 #'           you want both you'll need to call this function twice).
-#' @param combine.by The column to collapse technical replicates by. Rows in
+#' @param collapse_by The column to collapse technical replicates by. Rows in
 #'           the sampletable that share the same value of this column will be
 #'           combined using DESeq2::collapseReplicates.
 #' @param ... Additional arguments will be passed on to the DESeq() call (e.g.,
 #'           parallel, fitType, etc)
 #' @param remove.version If TRUE, gene (or transcript) version information --
 #'           the ".1" in "ENSG0000102345.1" -- will be stripped off.
-make.dds <- function(design_data, salmon.files=NULL, combine.by=NULL,
+make.dds <- function(design_data, salmon.files=NULL, collapse_by=NULL,
                      remove.version=FALSE, ...){
     colData <- pluck(design_data, 'sampletable')
     design <- pluck(design_data, 'design')
@@ -518,8 +518,8 @@ make.dds <- function(design_data, salmon.files=NULL, combine.by=NULL,
                                 )
     }
 
-    if(!is.null(combine.by)){
-        dds <-collapseReplicates2(dds, dds[[combine.by]])
+    if(!is.null(collapse_by)){
+        dds <-collapseReplicates2(dds, dds[[collapse_by]])
     }
 
     dds <- DESeq(dds, ...)
@@ -538,9 +538,9 @@ make.dds <- function(design_data, salmon.files=NULL, combine.by=NULL,
 #'
 #' @return A list of dds objects.
 #'
-make.dds.list <- function(deseq_obj_list, salmon.files=NULL, combine.by=FALSE,
+make.dds.list <- function(deseq_obj_list, salmon.files=NULL, collapse_by=FALSE,
                           remove.version=TRUE, ...){
-    dds_list <- map(deseq_obj_list, make.dds, salmon.files, combine.by,
+    dds_list <- map(deseq_obj_list, make.dds, salmon.files, collapse_by,
                     remove.version, ...)
     return(dds_list)
 }

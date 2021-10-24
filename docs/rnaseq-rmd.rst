@@ -345,7 +345,7 @@ So the above example becomes the following:
          args=list(subset.counts=TRUE))
    )
 
-   dds.list <- map(lst, make.dds, combine.by='biorep', parallel=parallel)
+   dds.list <- map(lst, make.dds, collapse_by='biorep', parallel=parallel)
 
 Note the following:
 
@@ -357,7 +357,7 @@ Note the following:
   a conservative approach and complains that the featureCounts table does not
   match the sampletable. Specify ``subset.counts=TRUE`` to indicate that it's
   OK.
-- the ``combine.by`` is applied to everything in the list; in this example, all
+- the ``collapse_by`` is applied to everything in the list; in this example, all
   counts for lines in the sample table that share the same "biorep" value will
   be summed.
 - the ``parallel`` argument is also used for everything in the list
