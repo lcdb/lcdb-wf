@@ -154,24 +154,18 @@ vsd.kallisto.txi <- varianceStabilizingTransformation(dds.kallisto.txi, blind=TR
 # variance-stabiliizing transform.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#dds_initial
 
-dds_initial <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
-    '../data/rnaseq_aggregation/featurecounts.txt',
-    sampletable=colData,
-    design=~group)
+dds_initial <- lcdbwf::make.dds(
+    list(
+         sampletable=colData,
+         design=~group
+     ),
+    salmon.files=NULL,
+    remove.version=strip.dotted.version,
+    combine.by=NULL,
+    parallel=parallel
 
-# NOTE: collapse technical replicates ----------------------------------------
-#   If collapsing technical replicates, do so here
-# dds <- lcdbwf::collapseReplicates2(dds, dds$biorep)
-
-if (strip.dotted.version){
-    rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE),
-                            function (x) {ifelse(grepl('_', x[2]),
-                                                 paste(x[1], x[2], sep='.'),
-                                                 x[1])}
-                            )
-}
-
-vsd <- varianceStabilizingTransformation(dds, blind=TRUE)
+)
+vsd <- varianceStabilizingTransformation(dds_initial, blind=TRUE)
 ```
 
 The following heatmap shows a hierarchical clustering of pairwise distances
