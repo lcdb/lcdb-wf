@@ -175,6 +175,106 @@ plotMA.label <- function(res,
 
 }
 
+#' Plot a volcano plot labeled with selected genes
+#'
+#' @param res.list data.frame (or list) with log2FoldChange and padj columns (or elements).
+#'        Row names of the data.frame should be gene IDs/symbols and match the format of lab.genes
+#' @param fdr.thres FDR threshold for defining statistical significance
+#' @param fc.thres log2FoldChange cutoff for defining statistical significance
+#' @param fc.lim User-defined limits for x-axis (log2FC). If NULL, this is defined as
+#'        the (floor, ceiling) of range(res$log2FoldChange)
+#' @param genes.to.label Genes to label on the volcano plot. NULL, by default
+#' @param col Column of `res` in which to look for `genes.to.label`. If NULL,
+#'        rownames are used.
+#'
+#' @return Handle to ggplot
+plot.volcano.label <- function(res,
+                         fdr.thres=0.1,
+                         fc.thres=0,
+                         fc.lim=NULL,
+                         genes.to.label=NULL,
+                         col=NULL
+                         ){
+  # TODO: Add ggrastr option for points
+  genes.to.label <- as.character(genes.to.label)
+  nna <- sum(is.na(genes.to.label))
+  if (nna > 0){
+      warning(paste("Removing", nna, "NAs from gene list"))
+      genes.to.label <- genes.to.label[!is.na(genes.to.label)]
+  }
+  # convert res to data frame
+  res <- data.frame(res)
+
+  # if y limits not specified
+  if(is.null(fc.lim)){
+    fc.lim <- range(res$log2FoldChange, na.rm=TRUE)
+    fc.lim[1] <- floor(fc.lim[1])
+    fc.lim[2] <- ceiling(fc.lim[2])
+  }
+
+  # get data frame of genes outside plot limits
+  up.max <- res[res$log2FoldChange > fc.lim[2],]
+  up.max$log2FoldChange <- rep(fc.lim[2], dim(up.max)[1])
+  up.max <- data.frame(genes=rownames(up.max), up.max)
+
+  down.max <- res[res$log2FoldChange < fc.lim[1],]
+  down.max$log2FoldChange <- rep(fc.lim[1], dim(down.max)[1])
+  down.max <- data.frame(genes=rownames(down.max), down.max)
+
+  # get data frame of DE genes
+  de.list <- res[res$padj < fdr.thres &
+                 !is.na(res$padj) &
+                 abs(res$log2FoldChange) >= fc.thres,]
+  de.list <- data.frame(genes=rownames(de.list), de.list)
+
+  # get data frame of DE genes outside plot limits
+  up.max.de <- up.max[rownames(up.max) %in% rownames(de.list),]
+  down.max.de <- down.max[rownames(down.max) %in% rownames(de.list),]
+
+  # create ggplot with appropriate layers
+  p <- ggplot(res, aes(log2FoldChange, -log10(padj))) +
+    geom_point(col="gray40") + xlim(fc.lim[1], fc.lim[2]) +
+    theme_bw() + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
+
+  p <- p + geom_point(data=up.max, col="gray40", pch=2)                 # add points above max y
+  p <- p + geom_point(data=down.max, col="gray40", pch=6)               # add points below min y
+
+  p <- p + geom_point(data=de.list, col="red")                          # add DE points
+  p <- p + geom_point(data=up.max.de, col="red", pch=2)                 # add DE points above max y
+  p <- p + geom_point(data=down.max.de, col="red", pch=6)               # add DE points below min y
+
+
+  if(!is.null(genes.to.label)){
+    # get data frame of genes to be labeled
+    if (!is.null(col)){
+        res$gene.labels <- res[,col]
+    } else {
+        res$gene.labels <- rownames(res)
+    }
+
+    label.list <- res[res$gene.labels %in% genes.to.label,]
+    #label.list <- data.frame(genes=rownames(label.list), label.list)
+
+    # label genes outside limits
+    up.max.idx <- rownames(label.list) %in% rownames(up.max)
+    down.max.idx <- rownames(label.list) %in% rownames(down.max)
+
+    if(sum(up.max.idx) > 0){
+      label.list$log2FoldChange[up.max.idx] <- rep(fc.lim[2], sum(up.max.idx))
+    }
+
+    if(sum(down.max.idx) > 0){
+      label.list$log2FoldChange[down.max.idx] <- rep(fc.lim[1], sum(down.max.idx))
+    }
+
+    # add labels
+    p <- p + geom_point(data=label.list, col="black", pch=1, size=3)
+    p <- p + geom_label_repel(data=label.list, aes(label=label.list$gene.labels, fontface="italic"))
+  }
+  return(p)
+
+}
+
 #' Plot a clustered heatmap of samples
 #'
 #' @param rld DESeqTransform object, typically output from running rlog()
