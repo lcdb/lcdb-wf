@@ -1069,3 +1069,19 @@ sizefactors_vs_total <- function(dds){
         theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
     return(p)
 }
+
+#' Strip dotted version off of the rownames of a dds object
+#'
+#' Ensembl annotations frequently come with a dotted version number (e.g.,
+#' ENSG00000001.3), but OrgDbs do not. This function removes the dotted
+#' versions from the gene IDs of a DESeqDataSet object.
+#'
+#' @param dds DESeqDataSet object
+strip_dotted_version <- function(dds){
+    rownames(dds) <- sapply(strsplit(rownames(dds), '.', fixed=TRUE),
+                            function (x) {ifelse(grepl('_', x[2]),
+                                                 paste(x[1], x[2], sep='.'),
+                                                 x[1])}
+                            )
+    return(dds)
+}
