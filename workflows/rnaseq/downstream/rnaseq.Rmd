@@ -154,7 +154,7 @@ vsd.kallisto.txi <- varianceStabilizingTransformation(dds.kallisto.txi, blind=TR
 # variance-stabiliizing transform.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#dds_initial
 
-dds <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
+dds_initial <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
     '../data/rnaseq_aggregation/featurecounts.txt',
     sampletable=colData,
     design=~group)
