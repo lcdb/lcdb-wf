@@ -239,6 +239,8 @@ p <- lcdbwf::sizefactors_vs_total(dds_initial)
 ggplotly(p)
 ```
 
+# Differential expression {.tabset}
+
 ```{r parallel_config}
 # Configure whether or not to run DESeq2 in parallel. Take care in setting on
 # a cluster.
@@ -265,8 +267,12 @@ lst <- list(
                 args=list(subset.counts=TRUE)
             )
 )
-dds.list <- map(lst, lcdbwf::make.dds, salmon.files=NULL, remove.version=TRUE,
-                combine.by=NULL, parallel=parallel)
+dds.list <- map(lst, lcdbwf::make.dds,
+                salmon.files=NULL,
+                remove.version=strip.dotted.version,
+                combine.by=NULL,
+                parallel=parallel
+)
 ```
 
 ```{r siglevel, cache=TRUE}
@@ -364,8 +370,6 @@ for (name in names(res.list)){
     res.list[[name]][['res']] <- res
 }
 ```
-
-# Differential expression {.tabset}
 
 Here is a table summarizing the comparisons. See the [Background and
 help](#Help) section for details.
