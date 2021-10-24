@@ -933,3 +933,39 @@ collapseReplicates2 <- function(object, groupby){
     colData(collapsed)[,1] <- rownames(colData(collapsed))
     return(collapsed)
 }
+
+
+#' Barplot of size factors by sample
+#'
+#' @param dds DESeqDataSet object
+sizefactors_barplot <- function(dds){
+    dds <- DESeq2::estimateSizeFactors(dds)
+    sf <- DESeq2::sizeFactors(dds)
+    sf <- sf[order(sf)] %>%
+            enframe(value = 'Size Factor')
+    p <- ggplot(sf) +
+        aes(x=reorder(name, `Size Factor`), y=`Size Factor`) +
+        xlab('sample name') +
+        geom_col() +
+        theme_bw() +
+        theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1))
+    return(p)
+}
+
+#' Scatterplot of size factors vs total read count
+#'
+#' @param dds DESeqDataSet object
+sizefactors_vs_total <- function(dds){
+    dds <- DESeq2::estimateSizeFactors(dds)
+    sf <- DESeq2::sizeFactors(dds)
+    sf <- sf[order(sf)] %>%
+            enframe(value = 'Size Factor')
+    trc <- colSums(counts(dds)) %>%
+            enframe(value = 'Total Read Count')
+    trc_vs_sf <- full_join(sf, trc, by='name')
+    p <- ggplot(data=trc_vs_sf, aes_string(x="`Total Read Count`", y="`Size Factor`", label='name')) +
+        geom_point(size=3) +
+        theme_bw() +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+    return(p)
+}
