@@ -409,16 +409,23 @@ for (name in names(res.list)){
 
   mdcat('### M-A plot and summary')
 
-  print(knitr::kable(my.summary(res.i, dds.i)))
 
   # NOTE: gene labels --------------------------------------------------------
   #   By default we plot the symbols of the top 10 upregulated or downregulated
-  #   genes, with the lowest padj. To change this behavior edit the following
-  #   lines
-  res.i <- res.i[order(res.i$log2FoldChange),]
-  genes.to.label <- res.i[1:10, 'symbol']
-  print(plotMA.label(res.i, genes.to.label=genes.to.label, col='symbol'))
+  #   genes, with the highest magnitude log2FoldChange. To change this behavior
+  #   edit the following lines
+  res.i.filtered <- res.i %>%
+      as.data.frame() %>%
+      arrange(log2FoldChange) %>%
+      filter(!is.na(log2FoldChange))
 
+  genes.to.label <- c(
+        head(res.i.filtered, 5)[['symbol']],
+        tail(res.i.filtered, 5)[['symbol']]
+        )
+
+  print(knitr::kable(my.summary(res.i, dds.i)))
+  print(plotMA.label(res.i, genes.to.label=genes.to.label, col='symbol'))
 
   mdcat('### Volcano plot')
   print(plot.volcano.label(res.i, genes.to.label=genes.to.label, col='symbol'))
