@@ -353,6 +353,8 @@ if (!all(sapply(nms, function(a) all(a == nms[[1]])))){
 # attach that information to each results object
 keytype <- 'ENSEMBL'
 columns <- c('SYMBOL', 'ALIAS')
+fill <- c('SYMBOL')
+
 lookups <- list()
 for (col in columns){
     lookups[[col]] <- mapIds(orgdb, keys=nms[[1]], column=col, keytype=keytype, multiVal='first')
@@ -363,6 +365,12 @@ for (name in names(res.list)){
     res <- res.list[[name]][['res']]
     for (col in columns){
         res[[tolower(col)]] <- lookups[[col]]
+    }
+    for (col in columns){
+        if (col %in% fill){
+            lcol <- tolower(col)
+            res[[lcol]] <- ifelse(is.na(res[[lcol]]), rownames(res), res[[lcol]])
+        }
     }
     cn <- colnames(res)
     res$gene <- rownames(res)
