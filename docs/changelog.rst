@@ -7,6 +7,20 @@ v1.9
 RNA-seq
 ~~~~~~~
 
+Lots of minor changes to ``rnaseq.Rmd``:
+
+    - ensure 10 genes are always plotted in MA plots
+    - added volcano plots
+    - removed top 3 and bottom 3 gene plots
+    - PCA plots using plotly no longer need "unrolled" for-loops
+    - refactored some code (size factor plots, removing gene versions) to lcdbwf package
+    - use datatable to show initial sampletable
+    - make original dds_initial object the same way as later dds objects
+    - "Differential expression" header moved so that code is no longer hidden
+      under the size factors plot
+    - functional enrichment files are saved as tsv, not txt
+    - option for filling in NA in symbol with Ensembl IDs
+
 - new strategy for allowing ``results()`` calls to be split across multiple,
   independently-cached chunks that are then properly merged together into
   a single ``res.list`` object while handling dependencies (thanks `@njohnso6
