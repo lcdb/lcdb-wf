@@ -205,11 +205,6 @@ in a separate tab. This makes it easy to click through tabs to get a feel for
 the structure of the data, and allows for hoving over a point to see the
 metadata.
 
-Note that plotting interactive plotly figures in a loop is not quite possible
-(due to technical limitations) and so we have to use a workaround. Currently,
-this workaround is to "manually" step through the loop, setting ``i`` to
-a different integer and copy/pasting the same code multiple times. Ugly, but it
-works.
 
 ``sizefactors``
 ---------------

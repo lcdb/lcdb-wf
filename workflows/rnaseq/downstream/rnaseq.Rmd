@@ -201,14 +201,12 @@ explained by each principal component is indicated in the axes label.
 groups <- list(
                group=c('group')
                )
-
-p <- list()
 for(group in groups){
-    p[[group]] <- lcdbwf::plotPCA.ly(vsd, intgroup=group)
-}
+    lcdbwf::mdcat('### ', paste(group, sep=", "))
+    p <- lcdbwf::plotPCA.ly(vsd, intgroup=group)
 
-i <- 1; lcdbwf::mdcat('### ', names(p)[i]); ggplotly(p[[i]])
-i <- 2; lcdbwf::mdcat('### ', names(p)[i]); ggplotly(p[[i]])
+    print(htmltools::tagList(ggplotly(p)))
+}
 ```
 
 
@@ -230,36 +228,21 @@ These diagnostic plots show the size factors (as a ranked bar plot) and the
 relationship between the size factors and the total read count (as
 a scatterplot).
 
-```{r sizefactors, results='asis'}
+### Size factors
+
+
+```{r, results='asis'}
 # Plot size factors vs total read counts for QC.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#sizefactors
-
-cat('\n\n\n\n\n\n')
-lcdbwf::mdcat('### Size factors')
-dds <- estimateSizeFactors(dds)
-sf <- sizeFactors(dds)
-sf <- sf[order(sf)] %>%
-        enframe(value = 'Size Factor')
-
-p <- ggplot(sf) +
-    aes(x=reorder(name, `Size Factor`), y=`Size Factor`) +
-    xlab('sample name') +
-    geom_col() +
-    theme_bw() +
-    theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1))
+p <- lcdbwf::sizefactors_barplot(dds_initial)
 ggplotly(p)
-cat('\n\n\n\n\n\n')
+```
 
-lcdbwf::mdcat('### Size factors vs total read count')
-trc <- colSums(counts(dds)) %>%
-        enframe(value = 'Total Read Count')
-trc_vs_sf <- full_join(sf, trc, by='name')
-p <- ggplot(data=trc_vs_sf, aes_string(x="`Total Read Count`", y="`Size Factor`", label='name')) +
-    geom_point(size=3) +
-    theme_bw() +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+### Size factors vs total read count
+
+```{r, results='asis'}
+p <- lcdbwf::sizefactors_vs_total(dds_initial)
 ggplotly(p)
-cat('\n\n\n\n\n\n')
 ```
 
 ```{r parallel_config}
