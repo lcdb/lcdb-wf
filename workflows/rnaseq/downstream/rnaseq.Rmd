@@ -420,14 +420,8 @@ for (name in names(res.list)){
   print(plotMA.label(res.i, genes.to.label=genes.to.label, col='symbol'))
 
 
-  mdcat('### Normalized counts of top 3 upregulated genes')
-  print(lcdbwf::counts.plot(lcdbwf::counts.df(dds.i, res.i, sel.genes=lfc.filter(res.i),
-                              label='symbol', rank.col='padj'),
-                    3))
-  mdcat('### Normalized counts of top 3 downregulated genes')
-  print(lcdbwf::counts.plot(lcdbwf::counts.df(dds.i, res.i, sel.genes=lfc.filter(res.i, reverse=TRUE),
-                              label='symbol', rank.col='padj'),
-                    3))
+  mdcat('### Volcano plot')
+  print(plot.volcano.label(res.i, genes.to.label=genes.to.label, col='symbol'))
 
   mdcat('### P-value distribution')
   lcdbwf::pval.hist(res.i)
