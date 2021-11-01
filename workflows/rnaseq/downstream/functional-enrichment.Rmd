@@ -19,39 +19,27 @@ ifelse(!dir.exists(file.path('.',plots.folder)),
        dir.create(file.path('.',plots.folder), recursive = TRUE), NA)
 
 # NOTE: keyTypes to obtain from bitr-------------------------------------------
-types <- c("ENTREZID","SYMBOL","UNIPROT")
-
-# NOTE: convert IDs to symbols for KEGG?---------------------------------------
-id.convert <- TRUE
+types <- config$orgdb$orgdb_columns
 ```
 
-```{r bitrgenes, results='hide'}
-# Convert gene IDs to those useable to clusterProfiler.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#bitrgenes
-# NOTE: Gene IDs are provided in what format?----------------------------------
-from.type <- "FLYBASE"
-
-deg.list <- nested.lapply(sel.list, rownames)
-genes.df <- nested.lapply(deg.list, function (x) AnnotationDbi::select(orgdb, keys=x, columns=types, keytype=from.type))
-```
-
-```{r enrichall, results='hide', cache=TRUE, dependson='selections'}
+```{r enrichall, results='hide', cache=TRUE, config=config$functional_enrichment, dependson='selections'}
 # Perform enrichment analyses.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#enrichall
 
 # run enrichment for all gene lists over a loop
 
-# NOTE: settings for clusterProfiler and plots---------------------------------
-go.keytype <- 'ENTREZID'
-kegg.keytype <- 'ncbi-geneid'
-pvalueCutoff <- 1
-qvalueCutoff <- 1
-go.uni <- NULL
-path.uni <- NULL
-kegg.organism <- 'dme'
-RUN.REACTOME <- FALSE
-reactome.organism <- 'fly'
+# Convert gene IDs to those useable to clusterProfiler.
+# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#bitrgenes
+# NOTE: Gene IDs are provided in what format?----------------------------------
+orgdb <- lcdbwf::get.orgdb(config$orgdb)
 
+deg.list <- nested.lapply(sel.list, rownames)
+genes.df <- nested.lapply(
+    deg.list,
+    function (x) {
+        AnnotationDbi::select(
+            orgdb, keys=x, columns=config$orgdb$orgdb_columns, keytype=config$orgdb$keytype)
+    })
 
 # list to hold all enrichment results
 # will have structure:
@@ -71,13 +59,18 @@ for(comp in names(genes.df)){
         all.enrich[[comp]][[sel]] <- list()
         enrich.files[[comp]][[sel]] <- list()
 
-        gene <- genes.df[[comp]][[sel]][[go.keytype]]
+        gene <- genes.df[[comp]][[sel]][[config$functional_enrichment[['go_keytype']]]]
 
         for (ont in c('CC', 'BP', 'MF')){
             go.res <- enrichGO(
-                gene=gene, universe=go.uni, keyType=go.keytype, OrgDb=orgdb,
-                ont=ont, pvalueCutoff=pvalueCutoff, qvalueCutoff=qvalueCutoff,
-                readable = TRUE)
+                gene=gene,
+                universe=config$functional_enrichment$go_uni,
+                keyType=config$functional_enrichment$go_keytype,
+                OrgDb=orgdb,
+                ont=ont,
+                pvalueCutoff=config$functional_enrichment$pvalueCutoff,
+                qvalueCutoff=config$functional_enrichment$qvalueCutoff,
+                readable=TRUE)
 
             res.label <- paste('GO', ont, sep='_')
             all.enrich[[comp]][[sel]][[ont]] <- go.res
@@ -89,15 +82,18 @@ for(comp in names(genes.df)){
         # perform KEGG enrichment
         res.label <- 'KEGG'
         kegg.res <- enrichKEGG(
-            gene=gene, universe=path.uni, organism=kegg.organism,
-            keyType=kegg.keytype, pvalueCutoff=pvalueCutoff,
-            qvalueCutoff=qvalueCutoff)
+            gene=gene,
+            universe=config$functional_enrichment$path_uni, organism=config$functional_enrichment$kegg_organism,
+            keyType=config$functional_enrichment$kegg_keytype,
+            pvalueCutoff=config$functional_enrichment$pvalueCutoff,
+            qvalueCutoff=config$functional_enrichment$qvalueCutoff
+        )
 
 
         if (!is.null(kegg.res)){
             # convert uniprot IDs to readable symbols. This needs to be done separately
             # in the case of KEGG
-            if(id.convert){
+            if(config$functional_enrichment$id_convert){
               id.vec <- genes.df[[comp]][[sel]]$SYMBOL
               names(id.vec) <- genes.df[[comp]][[sel]]$ENTREZID
               kegg.res.genes <- kegg.res@result$geneID
@@ -113,14 +109,18 @@ for(comp in names(genes.df)){
             enrich.files[[comp]][[sel]][['kegg']] <- write.clusterprofiler.results(kegg.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
         }
 
-        if (RUN.REACTOME) {
+        if (config$toggle$run_reactome) {
             # NOTE: Install OrgDb--------------------------------------------------
             #   ReactomePA requires the relevant OrgDb package to be installed
             #   and so is disabled by default.
             res.label <- 'Reactome'
             reactome.res <-enrichPathway(
-                gene=gene, universe=path.uni, organism=reactome.organism,
-                pvalueCutoff=pvalueCutoff, qvalueCutoff=qvalueCutoff, readable=TRUE)
+                gene=gene,
+                universe=config$functional_enrichment$path_uni,
+                organism=config$functional_enrichment$reactome_organism,
+                pvalueCutoff=config$functional_enrichment$pvalueCutoff,
+                qvalueCutoff=config$functional_enrichment$qvalueCutoff,
+                readable=TRUE)
             all.enrich[[comp]][[sel]][['reactome']] <- reactome.res
 
             if (!is.null(reactome.res)){
@@ -130,22 +130,9 @@ for(comp in names(genes.df)){
     }
 }
 
-```
-
-```{r adjustcatlen}
-# Tweak the annotation names.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#adjustcatlen
-
-# This shortens the names of functional terms for better visualization
-maxcatlen <- 50
-for(comp in names(all.enrich)){
-  for(name in names(all.enrich[[comp]])){
-    for(go in names(all.enrich[[comp]][[name]])){
-      all.enrich[[comp]][[name]][[go]]@result$Description <- substr(all.enrich[[comp]][[name]][[go]]@result$Description, 1, maxcatlen)
-    }
-  }
-}
-
+# Truncate names to be <50 characters. This helps make the plot labels more
+# reasonable.
+all.enrich <- lcdbwf::truncate_names(all.enrich, 50)
 ```
 
 Below we show the results separately for each comparison. Links to files
@@ -201,9 +188,7 @@ for(comp in names(all.enrich)){
 
             dotplots[[sel]] <- dotplot(
                 res,
-                showCategory=10,
-                color='p.adjust',
-                x='GeneRatio'
+                !!!config$plotting$dotplots_args
             ) +
                 ggtitle(title) +
                 theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
@@ -213,9 +198,8 @@ for(comp in names(all.enrich)){
             if (nrow(res@result) > 1){
                 try(
                 emapplots[[sel]] <- emapplot(
-                    res,
-                    showCategory=30,
-                    color='p.adjust'
+                    enrichplot::pairwise_termsim(res),
+                    !!!config$plotting$emapplot_args
                 ) +
                     ggtitle(title) +
                     theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
@@ -224,11 +208,7 @@ for(comp in names(all.enrich)){
 
             cnetplots[[sel]] <- cnetplot(
                 res,
-                showCategory=5,
-                foldChange=NULL,
-                colorEdge=FALSE,
-                circular=FALSE,
-                node_label="all"
+                !!!config$plotting$cnetplot_args
             ) +
                 ggtitle(title) +
                 theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))

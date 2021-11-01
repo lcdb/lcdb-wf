@@ -8,19 +8,34 @@ output:
         toc_depth: 3
 ---
 
-```{r, include=FALSE}
-# Each named chunk has a corresponding entry at:
+
+```{r}
+# HOW TO CONFIGURE ------------------------------------------------------
+# Any chunks below that depend on config options should be cached and use one
+# or more sections of the config object as arbitrary additional chunk options.
+# By convention, we use the argument name "config" although there is nothing
+# special about this name e.g., 
 #
-#   https://lcdb.github.io/lcdb-wf/rnaseq-rmarkdown-docs.html
+#      {r, cache=TRUE, config=config$orgdb}
+#
+# Thereafter, any changes to config options under the "orgdb" section will then
+# invalidate that chunk's cache -- along with any other chunks that also have
+# config$orgdb included as a chunk option.
+#
+config <- yaml::yaml.load_file('config.yaml')
+
+parallel <- config$parallel$parallel
+if (config$parallel$parallel){
+    register(MulticoreParam(config$parallel$cores))
+}
 ```
 
 ```{r global_options, include=FALSE}
 # Sets up global options for rendering RMarkdown into HTML.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#global_options
 knitr::opts_chunk$set(
     warning=FALSE,
     message=FALSE,
-    cache.extra_file_dep_1=file.info('../config/sampletable.tsv')$mtime,
+    cache.extra_file_dep_1 = file.info('../config/sampletable.tsv')$mtime,
     cache.extra_file_dep_2 = file.info('../data/rnaseq_aggregation/featurecounts.txt')$mtime,
     cache.extra_file_dep_2 = file.info('../data/rnaseq_samples/*/*.kallisto/abundance.h5')$mtime
 )
@@ -32,7 +47,6 @@ knitr::opts_chunk$set(
 
 Last run: `r date()`
 
-# Sample similarity and QC
 
 ```{r}
 library(AnnotationHub)
@@ -56,128 +70,95 @@ library(UpSetR)
 
 
 ```{r load_helpers}
-# Load the lcdbwf R package, which is stored locally
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#load_helpers
-
+# Load the lcdbwf R package, which is stored locally.
+# This package has many custom functions used throughout this document.
 devtools::document('../../../lib/lcdbwf')
 devtools::load_all('../../../lib/lcdbwf')
 ```
 
-```{r annotationhub_setup}
-# Load the annotations for the specified organism (the "OrgDb")
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#annotationhub_setup
-annotation_genus_species <- 'Drosophila melanogaster'
-annotation_key_override <- NA
-hub.cache <- '../../../include/AnnotationHubCache'
-```
-
 ```{r coldata_setup}
-# Set up all of the metadata for the samples and experimental design.
-#
-# This will likely need substantial editing.
-#
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#coldata_setup
-sample.table.filename <- '../config/sampletable.tsv'
-strip.dotted.version <- TRUE
-exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'kallisto.path', 'orig_filename', 'orig_filename_R2')
-salmon.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
-kallisto.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.kallisto'), 'abundance.h5')
-
-colData <- read.table(sample.table.filename, sep='\t', header=TRUE, stringsAsFactors=FALSE)
-
-colData$salmon.path <- sapply(colData$samplename, salmon.path.func)
-colData$kallisto.path <- sapply(colData$samplename, kallisto.path.func)
-
-factor.columns <- c('group')
-for (col in factor.columns){
-    colData[[col]] <- as.factor(colData[[col]])
-}
-
-colData$group <- relevel(colData$group, ref='control')
+# Set up all of the metadata for the samples and experimental design. Use this
+# chunk to modify if needed.
+colData <- read.table(config$main$sampletable, sep='\t', header=TRUE, stringsAsFactors=FALSE)
 rownames(colData) <- colData[,1]
 ```
 
-## Experiment overview
-
-Here is the sample table with metadata used for this analysis:
-
-```{r}
-colData[, colnames(colData)[!colnames(colData) %in% exclude.for.printing]] %>%
-    datatable()
-```
-
-```{r salmon, cache=TRUE, eval=FALSE}
+```{r salmon, cache=TRUE, eval=config$toggle$salmon}
 # Load salmon quantification.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#salmon
+salmon.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
+colData$salmon.path <- sapply(colData$samplename, salmon.path.func)
 salmon.txi <- tximport(colData[, 'salmon.path'], type='salmon', txOut=TRUE)
 salmon.tpm <- salmon.txi$abundance
 colnames(salmon.tpm) <- colData$samplename
 ```
 
-```{r kallisto, cache=TRUE, eval=FALSE, cache.lazy=FALSE}
+```{r kallisto, cache=TRUE, eval=config$toggle$kallisto, cache.lazy=FALSE}
 # Load kallisto quantification.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#kallisto
+kallisto.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.kallisto'), 'abundance.h5')
+colData$kallisto.path <- sapply(colData$samplename, kallisto.path.func)
 kallisto.txi <- tximport(colData[, 'kallisto.path'], type='kallisto', txOut=TRUE)
 kallisto.tpm <- kallisto.txi$abundance
 colnames(kallisto.tpm) <- colData$samplename
 ```
 
-```{r salmonddstxi, cache=TRUE, eval=FALSE}
+```{r salmonddstxi, cache=TRUE, eval=config$toggle$salmon}
 # Convert salmon quantification into transcript-level DESeq2 object, and do
 # variance-stabilizing transform.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#ddstxi
-
 dds.salmon.txi <- DESeqDataSetFromTximport(
     salmon.txi, colData=colData[, -grepl('path', colnames(colData)), drop=FALSE],
     design=~group
 )
-
 vsd.salmon.txi <- varianceStabilizingTransformation(dds.salmon.txi, blind=TRUE)
 ```
 
-```{r kallistoddstxi, cache=TRUE, eval=FALSE}
+```{r kallistoddstxi, cache=TRUE, eval=config$toggle$kallisto}
 # Convert kallisto quantification into transcript-level DESeq2 object, and do
 # variance-stabilizing transform.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#ddstxi
-
 dds.kallisto.txi <- DESeqDataSetFromTximport(
     kallisto.txi, colData=colData[, -grepl('path', colnames(colData)), drop=FALSE],
     design=~group
 )
-
 vsd.kallisto.txi <- varianceStabilizingTransformation(dds.kallisto.txi, blind=TRUE)
 ```
 
 
-```{r dds_initial, cache=TRUE}
+```{r dds_initial, cache=TRUE, config=config$main}
 # Convert featureCounts gene-level counts into DESeq2 object, and run
 # variance-stabiliizing transform.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#dds_initial
-
-dds_initial <- lcdbwf::make.dds(
-    list(
-         sampletable=colData,
-         design=~group
-     ),
-    salmon.files=NULL,
-    remove.version=strip.dotted.version,
-    combine.by=NULL,
-    parallel=parallel
-
+dds_initial <- lcdbwf::make_dds(
+  list(sampletable=colData, design=~1),
+  config=config,
+  parallel=config$parallel$parallel
 )
 vsd <- varianceStabilizingTransformation(dds_initial, blind=TRUE)
 ```
+
+# Experiment overview
+
+Here is the sample table with metadata used for this analysis:
+
+```{r}
+exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'kallisto.path',
+                          'orig_filename', 'orig_filename_R2', 'layout',
+                          'sizeFactor')
+colData(dds_initial) %>%
+    as.data.frame() %>%
+    dplyr::select(-contains(exclude.for.printing)) %>%
+    datatable()
+```
+
+
+# Sample similarity and QC
+
+## Clustered heatmap
 
 The following heatmap shows a hierarchical clustering of pairwise distances
 between samples. Darker blue means less distant (i.e. more similar). In general
 we expect to see replicates clustering together and separation of treatments.
 
-## Clustered heatmap
-
-```{r sample_heatmap, cache=TRUE, dependson='dds_initial'}
+```{r sample_heatmap, cache=TRUE, config=config$plotting$covariates_for_plots, dependson='dds_initial'}
 # Plot a clustered heatmap of sample distances, for QC.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#sample_heatmap
-lcdbwf::plot.heatmap(vsd, colData, cols.for.grouping=c('group'))
+lcdbwf::plot.heatmap(vsd, colData, cols.for.grouping=config$plotting$covariates_for_plots)
 ```
 
 ## PCA {.tabset}
@@ -188,17 +169,11 @@ dimensions along which the samples vary the most. The amount of variance
 explained by each principal component is indicated in the axes label.
 
 
-```{r pca, results='asis', cache=TRUE, dependson='dds_initial'}
+```{r pca, results='asis', cache=TRUE, config=config$plotting$covariates_for_plots, dependson='dds_initial'}
 # Plot PCA plots, optionally tabbed with different factors colored, for QC.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#pca
-
-groups <- list(
-               group=c('group')
-               )
-for(group in groups){
+for(group in config$plotting$covariates_for_plots){
     lcdbwf::mdcat('### ', paste(group, sep=", "))
     p <- lcdbwf::plotPCA.ly(vsd, intgroup=group)
-
     print(htmltools::tagList(ggplotly(p)))
 }
 ```
@@ -227,7 +202,6 @@ a scatterplot).
 
 ```{r, results='asis'}
 # Plot size factors vs total read counts for QC.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#sizefactors
 p <- lcdbwf::sizefactors_barplot(dds_initial)
 ggplotly(p)
 ```
@@ -241,22 +215,10 @@ ggplotly(p)
 
 # Differential expression {.tabset}
 
-```{r parallel_config}
-# Configure whether or not to run DESeq2 in parallel. Take care in setting on
-# a cluster.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#parallel_config
-
-parallel <- FALSE
-# register(MulticoreParam(4))
-```
-
-```{r dds_list, cache=TRUE}
+```{r dds_list, cache=TRUE, config=config$main}
 # Create a list of dds objects used as the basis for differential expression.
 #
 # May need substantial editing.
-#
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#dds_list
-
 lst <- list(
             main=list(
                 sampletable=colData,
@@ -267,30 +229,22 @@ lst <- list(
                 args=list(subset.counts=TRUE)
             )
 )
-dds.list <- map(lst, lcdbwf::make.dds,
-                salmon.files=NULL,
-                remove.version=strip.dotted.version,
-                combine.by=NULL,
-                parallel=parallel
-)
+dds_list <- map(lst, lcdbwf::make_dds, config=config, parallel=config$parallel$parallel)
 ```
 
-```{r siglevel, cache=TRUE}
-# NOTE: significance level---------------------------------------------------
-alpha <- 0.1
-lfc.thresh <- 0 # Must change if using an lfcThreshold other than 0
-```
-
-```{r results_01, dependson=c('dds_list', 'siglevel'), cache=TRUE}
+```{r results_01, dependson='dds_list', cache=TRUE}
 # Perform differential expression testing.
 #
-# This will need substantial editing.
+# To take advantage of caching:
+#   - create each list in a different chunk
+#   - ensure chunk name starts with "results_"
+#   - ensure list name starts with "contr_". The rest of the name will be used
+#     as a label to sort results and create output files.
 #
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#results
-
+# This will need substantial editing.
 contr_main <- list(
     res=lfcShrink(
-            dds.list[['main']],
+            dds_list[['main']],
             contrast=c('group', 'treatment', 'control'),
             type='normal',
             parallel=parallel
@@ -300,20 +254,20 @@ contr_main <- list(
 )
 ```
 
-```{r results_02, dependson=c('dds_list', 'siglevel'), cache=TRUE}
+```{r results_02, dependson='dds_list', cache=TRUE}
 # NOTE: Example contrast #2----------------------------------------------------
 #    Using the example data, this compares treatment group to control group but
 #    requiring genes to have >4-fold differences (log2(4) = 2). Change to
 #    reflect your experiment.
 #    If using an lfcThreshold, must update elsewhere throughout the code.
 res.lfcthresh.2 <- results(
-    dds.list[['main']],
+    dds_list[['main']],
     contrast=c('group', 'treatment', 'control'),
     lfcThreshold=2)
 
 contr_lfc2 <- list(
     res=lfcShrink(
-        dds.list[['main']],
+        dds_list[['main']],
         contrast=c('group', 'treatment', 'control'),
         parallel=parallel,
         res=res.lfcthresh.2,
@@ -324,66 +278,16 @@ contr_lfc2 <- list(
 )
 ```
 
-```{r assemble_variables, cache=TRUE, dependson=knitr::all_labels()[grepl('^results', knitr::all_labels())]}
-res.list <- list()
-
-# identify all variable names that start with "contr_" and store in a list
-contrast_list <- ls()[grepl("^contr_", ls())]
-
-# Convert the list of string variable names into a list of the objects
-# themselves
-res.list <- map(contrast_list, function(x) eval(parse(text=x)))
-
-# Rename the items in the list to not have the "contr_" prefix
-res_names <- map(contrast_list, function(x) str_replace(x, "contr_", ""))
-names(res.list) <- res_names
-
-orgdb <- get.orgdb(
-    annotation_genus_species,
-    cache=hub.cache,
-    annotation_key_override=annotation_key_override
-)
-
-# Ensure all results objects have the same rownames
-nms <- lapply(res.list, function (x) rownames(x[['res']]))
-if (!all(sapply(nms, function(a) all(a == nms[[1]])))){
-    stop("Gene IDs differ between results objects")}
-
-# Here we look up the other information for genes in the OrgDb once and then
-# attach that information to each results object
-keytype <- 'ENSEMBL'
-columns <- c('SYMBOL', 'ALIAS')
-fill <- c('SYMBOL')
-
-lookups <- list()
-for (col in columns){
-    lookups[[col]] <- mapIds(orgdb, keys=nms[[1]], column=col, keytype=keytype, multiVal='first')
-}
-lookups <- data.frame(lookups)
-
-for (name in names(res.list)){
-    res <- res.list[[name]][['res']]
-    for (col in columns){
-        res[[tolower(col)]] <- lookups[[col]]
-    }
-    for (col in columns){
-        if (col %in% fill){
-            lcol <- tolower(col)
-            res[[lcol]] <- ifelse(is.na(res[[lcol]]), rownames(res), res[[lcol]])
-        }
-    }
-    cn <- colnames(res)
-    res$gene <- rownames(res)
-    res <- res[, c('gene', cn)]
-    res.list[[name]][['res']] <- res
-}
+```{r assemble_variables, cache=TRUE, config=config$orgdb, dependson=knitr::all_labels()[grepl("^results_", knitr::all_labels())]}
+res_list <- lcdbwf::collect_objects("^contr_")
+res_list <- lcdbwf::attach_extra(res_list, config)
 ```
 
 Here is a table summarizing the comparisons. See the [Background and
 help](#Help) section for details.
 
 ```{r, results='asis'}
-knitr::kable(summarize.res.list(res.list, alpha, lfc.thresh, dds.list))
+knitr::kable(summarize.res.list(res_list, config$main$alpha, config$main$lfc_thresh, dds_list))
 ```
 
 For each comparison there is a tab and under each tab are the following:
@@ -398,130 +302,70 @@ For each comparison there is a tab and under each tab are the following:
 See the [Background and help](#Help) section for details on these.
 
 
-```{r reportresults, results='asis', dependson=c('assemble_variables'), cache=TRUE}
-# Generate a tabset for each set of results that contains a nested set of tabs
-# of various output.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#reportresults
+```{r reportresults, results='asis', config=config$orgdb, dependson='assemble_variables', cache=TRUE}
+# Create nested tabs showing the results.
+# First level of tabs will be labels of results; second level will be different
+# output (MA plot, volcano plot, etc)
 
-# NOTE: Which columns to add to the top plots' titles?-------------------------
-#    This will add nicer titles to the plots. These may have come from the
-#    `attach.info` call above.
-add_cols <- c('symbol', 'alias')
+for (name in names(res_list)){
+  dds_i <- dds_list[[res_list[[name]][['dds']] ]]
+  res_i <- res_list[[name]][['res']]
+  label <- res_list[[name]][['label']]
+  genes_to_label <- lcdbwf::genes_to_label(res_i, n=10, config)
 
-for (name in names(res.list)){
-  dds.i <- dds.list[[ res.list[[name]][['dds']] ]]
-  res.i <- res.list[[name]][['res']]
-  label <- res.list[[name]][['label']]
+  lcdbwf::mdcat('## ', label, ' {.tabset}')
 
-  mdcat('## ', label, ' {.tabset}')
+  # TODO:
+  # https://hdgitappip01.nichd.nih.gov/bspc/core/labeled-ma-plot/-/blob/master/plotMA.label.R
+  # is the latest version
 
-  mdcat('### M-A plot and summary')
+  lcdbwf::mdcat('### M-A plot')
+  print(lcdbwf::plotMA.label(
+    res_i,
+    genes_to_label=genes_to_label,
+    label_column=config$orgdb$label_column))
 
+  lcdbwf::mdcat('### Volcano plot')
+  print(lcdbwf::plot.volcano.label(
+    res_i,
+    genes_to_label=genes_to_label,
+    label_column=config$orgdb$label_column))
 
-  # NOTE: gene labels --------------------------------------------------------
-  #   By default we plot the symbols of the top 10 upregulated or downregulated
-  #   genes, with the highest magnitude log2FoldChange. To change this behavior
-  #   edit the following lines
-  res.i.filtered <- res.i %>%
-      as.data.frame() %>%
-      arrange(log2FoldChange) %>%
-      filter(!is.na(log2FoldChange))
+  lcdbwf::mdcat('### Summary')
+  print(knitr::kable(lcdbwf::my.summary(res_i, dds_i)))
 
-  genes.to.label <- c(
-        head(res.i.filtered, 5)[['symbol']],
-        tail(res.i.filtered, 5)[['symbol']]
-        )
-
-  print(knitr::kable(my.summary(res.i, dds.i)))
-  print(plotMA.label(res.i, genes.to.label=genes.to.label, col='symbol'))
-
-  mdcat('### Volcano plot')
-  print(plot.volcano.label(res.i, genes.to.label=genes.to.label, col='symbol'))
-
-  mdcat('### P-value distribution')
-  lcdbwf::pval.hist(res.i)
+  lcdbwf::mdcat('### P-value distribution')
+  lcdbwf::pval.hist(res_i)
 }
 ```
 
-```{r selections, cache=TRUE, dependson='assemble_variables'}
-# Make selections of interesting sets of genes to be investigated further.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#selections
-sel.list <- list()
-for (name in names(res.list)){
-  res <- res.list[[name]][['res']]
 
+```{asis, echo=length(res_list)>1}
+# UpSet plots {.tabset}
 
-  # NOTE: any other selections?------------------------------------------------
-  #    Here we just get the up- and downregulated genes, but any arbitrary
-  #    subsets of the results can be added.
-  #
-  #    For each selection:
-  #      - TSV of the subset of genes will be written to file and a link
-  #        created for it in the Markdown
-  #      - GO analysis will be performed on each group separately below.
-  sel.list[[name]] <- list(
-    up=res[get.sig(res, alpha=alpha, lfc.thresh=lfc.thresh, direction='up'),],
-    dn=res[get.sig(res, alpha=alpha, lfc.thresh=lfc.thresh, direction='dn'),]
-    )
-}
+Here we gather together all the interesting gene sets into an [UpSet
+plot](http://caleydo.org/tools/upset/). These plots show the combinatorial
+overlaps of genes found to be up or down across the different contrasts
+performed. It's much like a Venn diagram, but easier to interpret and can scale
+to many comparisons.
 
-# Keep track of our sel.list entries, here just using the last one
-sel.names <- names(sel.list[[name]])
+A gene can only be found in one column in an UpSet plot. So if you want to
+confirm that the number of genes for a contrast matches the results tables and
+MA plots, you need to sum all the bars for which there is a dot in that
+contrast's row.
+
+A TSV file is linked under each plot. This file has rows for each gene and
+columns for each contrast. A `1` indicates that gene was found to be
+up/down/changed in that contrast. 
 ```
 
-```{r upsetplots, results='asis', cache=TRUE, dependson='selections'}
+```{r upsetplots, results='asis', eval=length(res_list)>1, config=config$orgdb, dependson='selections'}
 # Compare overlap across multiple differential expression contrasts.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#upsetplots
-#
-# UpSet plots only make sense for more than one set of genes. The Markdown
-# explanatory text and the plots themselves are only created if res.list has
-# multiple items in it.
-
-plot.upset <- function(sel.list.key, label) {
-    mdcat("## UpSet plot: ", label)
-    ll <- lapply(sel.list, function (x) rownames(x[[sel.list.key]]))
-    ll <- ll[lapply(ll, length) > 0]
-    if (length(ll) > 1) {
-        print(upset(fromList(ll), order.by='freq', nsets=length(ll)))
-        outfile <- file.path('upset_plots', paste0(label, '.tsv'))
-        lldf <- rownames.first.col(fromList.with.names(ll))
-        write.table(lldf, file=outfile, sep='\t', row.names=FALSE)
-        mdcat('- [', outfile, ']', '(', outfile, ')')
-        pdf.file <- file.path('upset_plots', paste0(label, '.pdf'))
-        dev.copy(pdf, file=pdf.file)
-        dev.off()
-        mdcat('- [', pdf.file, ']', '(', pdf.file, ')')
-
-    } else {
-        mdcat('not enough contrasts with upregulated genes')
-    }
-}
-
-
-if (length(res.list) > 1){
-
-    dir.create('upset_plots', showWarnings=FALSE)
-
-    mdcat("# UpSet plots {.tabset}")
-    mdcat("Here we gather together all the interesting gene sets into an ",
-          "[UpSet plot](http://caleydo.org/tools/upset/). These plots show ",
-          "the combinatorial overlaps of genes found to be up or down ",
-          "across the different contrasts performed. It's much like a ",
-          "Venn diagram, but easier to interpret and can scale to many comparisons. ",
-          "A TSV file is linked under each plot. This file has rows for each ",
-          "gene and columns for each contrast. A `1` indicates that gene was found to be ",
-          "up/down/changed in that contrast. "
-    )
-
-    for (name in names(sel.list[[1]])){
-        plot.upset(name, name)
-    }
-}
+lcdbwf::plot.upsets(res_list, label_column=config$orgdb$label_column)
 ```
 
-```{r genepatterns, child='gene-patterns.Rmd', eval=TRUE}
+```{r genepatterns, child='gene-patterns.Rmd', eval=config$toggle$gene_patterns}
 # Run the gene patterns module (see other Rmd for details).
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#genepatterns
 rmarkdown::render('gene-patterns.Rmd', run_pandoc=FALSE)
 ```
 
@@ -533,17 +377,12 @@ The files below are TSVs that can be opened in Excel:
 ```{r, results='asis'}
 # Write out files for full and each selection, and create a link to them in the
 # HTML generated by this RMarkdown.
-for (name in names(res.list)){
-  fn <- paste0(name, '.tsv')
-  write.table(res.list[[name]][['res']], file=fn, row.names=FALSE, sep='\t', quote=FALSE)
-  mdcat('- [', fn, '](', fn, '), results for ', res.list[[name]][['label']])
-}
+tbl <- lcdbwf::exported_tsvs(res_list)
+knitr::kable(tbl, row.names=FALSE)
 ```
 
-```{r functionalenrichment, child='functional-enrichment.Rmd', eval=TRUE}
+```{r functionalenrichment, child='functional-enrichment.Rmd', eval=config$toggle$functional_enrichment}
 # Perform functional enrichment for all of the sets of selected genes.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#functionalenrichment
-
 rmarkdown::render('functional-enrichment.Rmd', run_pandoc=FALSE)
 ```
 
@@ -557,11 +396,7 @@ sessionInfo()
 
 # Help
 
-```{r helpdocs, child="help_docs.Rmd", run_pandoc=FALSE}
+```{r helpdocs, child="help_docs.Rmd", run_pandoc=FALSE, eval=config$toggle$help_docs}
 # Include the help text, useful for first-time collaborators.
-#
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#helpdocs
-# NOTE: optional help section--------------------------------------------------
-#   Delete this chunk, or set to eval=FALSE, if you don't want to include the
-#   help text from "help_docs.Rmd"
 ```
