@@ -7,23 +7,22 @@
 make_dds(
   design_data,
   config = NULL,
-  salmon = NULL,
   collapse_by = NULL,
   strip_dotted_version = NULL,
   featureCounts = "../data/rnaseq_aggregation/featurecounts.txt",
+ 
+    salmon_pattern = "../data/rnaseq_samples/__SAMPLENAME__/__SAMPLENAME__.salmon/quant.sf",
+ 
+    kallisto_pattern = "../data/rnaseq_samples/__SAMPLENAME__/__SAMPLENAME__.kallisto/abundance.h5",
   ...
 )
 }
 \arguments{
-\item{design_data}{Named list of 2 to 4 items. At least "sampletable" (the
-colData, as a data.frame or tibble) and "design" (e.g., \code{~group}) are
-required. The optional named items are "file", which is the featureCounts
-file containing counts for all samples, and "args" which is a list of
-arguments to be passed to the constructor (e.g.,
+\item{design_data}{Named list of 2 to 4 items. The names "sampletable" and
+"design" are required.  The optional named items are "file", which is the
+featureCounts file containing counts for all samples, and "args" which is
+a list of arguments to be passed to the constructor (e.g.,
 \verb{args=list(subset.counts=TRUE))}.}
-
-\item{salmon}{Set to TRUE if you want to create dds objects from Salmon
-counts (will be loaded via tximport) Otherwise, use featureCounts}
 
 \item{collapse_by}{The column to collapse technical replicates by. Rows in
 the sampletable that share the same value of this column will be combined
@@ -33,6 +32,12 @@ using DESeq2::collapseReplicates.}
 version numbers from gene IDs (ENSG000001.1 -> ENSG000001)}
 
 \item{featureCounts}{Location of featureCounts output to be loaded}
+
+\item{salmon_pattern, }{kallisto_pattern Specify the patterns to locations of
+Salmon or Kallisto files. Use the special placeholder string
+\verb{__SAMPLENAME__} which will be replaced with the sample name. Only
+relevant if one of config$toggle$salmon or config$toggle$kallisto are
+TRUE.}
 
 \item{...}{Additional arguments will be passed on to the DESeq() call (e.g.,
 parallel, fitType, etc)}
@@ -45,5 +50,8 @@ a config object to create a list of dds objects:
 dds_list <- map(dds_list, make_dds, config)
 
 While the intended use is to provide a config object, individual arguments
-can be used to override individual config items.
+can be used to override individual config items. For these arguments, the
+default in the function signature is left as NULL (even if the value should
+be TRUE or FALSE) so as to detect whether or not the config should be
+overridden.
 }

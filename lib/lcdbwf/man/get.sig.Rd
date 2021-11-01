@@ -26,7 +26,8 @@ FALSE return boolean index of length(x)}
 \item{column}{If provided and return.names is TRUE, then return this column
 instead of the default rownames}
 
-\item{thresh}{Log2 fold change threshold. If e.g. 2, will return < -2 and/or2, depending on the value of "direction"}
+\item{thresh}{Log2 fold change threshold. If e.g. 2, will return < -2
+and/or > 2, depending on the value of "direction"}
 }
 \value{
 Character vector of rownames (if return.names=TRUE) or boolean vector of genes selected.

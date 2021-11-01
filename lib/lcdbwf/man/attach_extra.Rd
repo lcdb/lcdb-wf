@@ -4,7 +4,7 @@
 \alias{attach_extra}
 \title{Attach additional OrgDb information to results objects within a list}
 \usage{
-attach_extra(res_list, config)
+attach_extra(res_list, config, force_intersect)
 }
 \arguments{
 \item{res_list}{List of DESeqResults objects}

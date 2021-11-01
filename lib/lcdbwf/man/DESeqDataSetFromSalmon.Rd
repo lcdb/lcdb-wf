@@ -4,12 +4,12 @@
 \alias{DESeqDataSetFromSalmon}
 \title{Load Salmon quantification data into a DESeq object}
 \usage{
-DESeqDataSetFromSalmon(sampleTable, design, ignoreRank = FALSE, ...)
+DESeqDataSetFromSalmon(sampletable, design, ignoreRank = FALSE, ...)
 }
 \arguments{
-\item{sampleTable}{data.frame containing at least "salmon.path" column}
-
 \item{design}{Model used for creating DESeq object}
+
+\item{sampleTable}{data.frame containing at least "salmon.path" column}
 }
 \value{
 DESeq object with transcript-level counts
