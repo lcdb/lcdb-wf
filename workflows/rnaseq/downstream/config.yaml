@@ -32,6 +32,12 @@ main:
   # you want something else, change it here.
   alpha: 0.1
 
+  # When creating dds objects with featureCounts that will be compared with
+  # Salmon or Kallisto, there may be different numbers of genes in the
+  # respective dds objects. By default this will stop with an error. If instead
+  # you want to use only the intersection of genes found in all contrasts, set
+  # this to TRUE.
+  force_intersect: TRUE
 
 plotting:
   # For each item in this list you will get columns of colors in the clustered
@@ -90,19 +96,22 @@ toggle:
   help_docs: TRUE
 
 # This section configures annotations and databases.
-orgdb:
+annotation:
 
   # Specify the genus and species
-  annotation_genus_species: "Drosophila melanogaster"
+  genus_species: "Drosophila melanogaster"
 
-  # You can optionally provide a specific key for AnnotationHub which will
-  # override the annotation_genus_species. Use this if you have a specific
-  # older OrgDb to use.
-  annotation_key_override: NULL
+  # You can optionally manually search AnnotationHub to find a different
+  # annotation keys for OrgDb and/or TxDb and use them here to override the
+  # default latest versions.
+  orgdb_key_override: NULL
+  txdb_key_override: NULL
 
   # The OrgDb will be downloaded here and subsequently read directly from this
   # directory
   hub_cache: "../../../include/AnnotationHubCache"
+  localHub: FALSE
+  force: FALSE
 
   # OrgDb key indicating the format of gene IDs in rownames(dds).
   keytype: 'ENSEMBL'
