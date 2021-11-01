@@ -121,6 +121,7 @@ annotation:
     - SYMBOL
     - ALIAS
     - UNIPROT
+    - ENTREZID
 
   # For each column listed here, if a value is NA then it will be filled in
   # with the corresponding value from keytype above. Useful for when you want
