@@ -185,8 +185,16 @@ lst <- list(
                 sampletable=colData %>% filter(samplename != 'sample4'),
                 design=~group,
                 args=list(subset.counts=TRUE)
-            )
-)
+            ),
+            salmon=list(
+                sampletable=colData,
+                design=~group,
+                salmon=TRUE),
+            kallisto=list(
+                sampletable=colData,
+                design=~group,
+                kallisto=TRUE)
+          )
 dds_list <- map(lst, lcdbwf::make_dds, config=config, parallel=config$parallel$parallel)
 ```
 
@@ -236,7 +244,29 @@ contr_lfc2 <- list(
 )
 ```
 
-```{r assemble_variables, cache=TRUE, config=config$orgdb, dependson=knitr::all_labels()[grepl("^results_", knitr::all_labels())]}
+```{r results_03, dependson='dds_list', cache=TRUE}
+contr_salmon <- list(
+  res=lfcShrink(
+    dds_list[['salmon']],
+    contrast=c('group', 'treatment', 'control'),
+    type='normal',
+    parallel=parallel),
+  dds='main',
+  label='Using Salmon')
+```
+
+```{r results_04, dependson='dds_list', cache=TRUE}
+contr_kallisto <- list(
+  res=lfcShrink(
+    dds_list[['kallisto']],
+    contrast=c('group', 'treatment', 'control'),
+    type='normal',
+    parallel=parallel),
+  dds='main',
+  label='Using Kallisto')
+```
+
+
 ```{r assemble_variables, cache=TRUE, config=config$annotation, dependson=knitr::all_labels()[grepl("^results_", knitr::all_labels())]}
 res_list <- lcdbwf::collect_objects("^contr_")
 res_list <- lcdbwf::attach_extra(res_list, config)
