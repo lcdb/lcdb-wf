@@ -2,6 +2,34 @@
 # Functions for working with annotations and OrgDbs
 # ------------------------------------------------------------------------------
 
+get_annotation_hub <- function(config, localHub=NULL, force=NULL, cache=NULL){
+
+  if (missing(localHub)) localHub <- config$annotation$localHub
+  if (missing(force)) force <- config$annotation$force
+  if (missing(cache)) cache <- config$annotation$cache
+  if (is.null(cache)) cache <- AnnotationHub::getAnnotationHubOption("CACHE")
+
+
+  proxy <- Sys.getenv('http_proxy')
+  if (proxy == ""){
+      proxy <- NULL
+  }
+
+
+  if (!is.null(cache)){
+    if (!dir.exists(cache)) dir.create(cache, recursive=TRUE)
+  }
+
+  ah <- AnnotationHub(
+    hub=getAnnotationHubOption('URL'),
+    proxy=proxy,
+    localHub=localHub,
+    cache=cache
+  )
+  return(ah)
+}
+
+
 #' Get the OrgDb for the specified organism, using the cached AnnotationHub.
 #'
 #' @param config List containing the following named items:
@@ -12,46 +40,45 @@
 #'    annotation_genus_species. Use this to be exact about the version of the
 #'    OrgDb you want to use.
 #' @return OrgDb object
-get.orgdb <- function(config){
+get_annotation_db <- function(config, dbtype, genus_species=NULL, orgdb_key_override=NULL, txdb_key_override=NULL, cache=NULL){
 
-    annotation_genus_species <- config[['annotation_genus_species']]
-    annotation_key_override <- config[['annotation_key_override']]
-    cache <- config[['hub_cache']]
+    if (missing(genus_species)) genus_species <- config$annotation$genus_species
+    if (missing(cache)) cache <- config$annotation$hub_cache
+    if (missing(orgdb_key_override)) orgdb_key_override <- config$annotation$orgdb_key_override
+    if (missing(txdb_key_override)) txdb_key_override <- config$annotation$txdb_key_override
 
-    # Workaround to allow AnnotationHub to use proxy. See
-    # https://github.com/Bioconductor/AnnotationHub/issues/4, and thanks
-    # Wolfgang!
-    proxy <- Sys.getenv('http_proxy')
-    if (proxy == ""){
-        proxy <- NULL
+    ah <- get_annotation_hub(config, cache=cache)
+
+    # If an override was provided, immediately return the corresponding db.
+    if (!is.null(orgdb_key_override) & dbtype == "OrgDb") return(ah[[orgdb_key_override]])
+    if (!is.null(txdb_key_override) & dbtype == "TxDb") return(ah[[txdb_key_override]])
+
+    ah.query <- query(ah, c(genus_species, dbtype))
+
+    # Ensure that the species matches exactly
+    if (!all(ah.query$species == genus_species)){ 
+      stop(
+        "Multiple species matched '", genus_species, "' ",
+        "in the AnnotationHub search. Please use a more precise name, ",
+        "or consider manually searching an using the orgdb_key_override ",
+        "argument."
+      )
     }
 
-    if (!dir.exists(cache)){
-        dir.create(cache, recursive=TRUE)
+    hits <- mcols(ah.query) %>%
+      as.data.frame() %>%
+      arrange(desc(rdatadateadded)) %>%
+      dplyr::filter(rdataclass==dbtype)
+
+    db_to_use <- hits[1,]
+
+    if (nrow(hits) < 1){
+      warning(paste("Found multiple", dbtype, "hits for", genus_species,
+                    ". Using latest from", db_to_use$rdatadateadded))
     }
 
-    ah <- AnnotationHub(hub=getAnnotationHubOption('URL'),
-         cache=cache,
-         proxy=proxy,
-         localHub=FALSE
-    )
-
-    if (is.null(annotation_key_override)) {
-        ah.query <- query(ah, "OrgDb")
-        ah.query.speciesmatch <- grepl(paste("^", annotation_genus_species, "$", sep=""), ah.query$species)
-        ah.query.which <- which(ah.query.speciesmatch)
-        stopifnot(length(ah.query.which) > 0) #require at least one match
-        if (length(ah.query.which) > 1) { #warn of duplicate matches
-           print("WARNING: found multiple candidate species in AnnotationHub: ");
-           print(ah.query.speciesmatch)
-        }
-        annotation_key <- names(ah.query)[ah.query.which[1]]
-    } else {
-        annotation_key <- annotation_key_override
-    }
-
-    orgdb <- ah[[annotation_key]]
-    return(orgdb)
+    annotation_key <- rownames(db_to_use)
+    return(ah[[annotation_key]])
 }
 
 #' Attach additional OrgDb information to results objects within a list
