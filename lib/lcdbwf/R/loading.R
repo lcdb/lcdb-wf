@@ -104,20 +104,3 @@ DESeqDataSetFromFeatureCounts <- function (sampleTable, directory='.', design,
                                    drop=FALSE], design=design, ignoreRank, ...)
   return(object)
 }
-
-#' Load Salmon quantification data into a DESeq object
-#'
-#' @param sampleTable data.frame containing at least "salmon.path" column
-#' @param design Model used for creating DESeq object
-#'
-#' @return DESeq object with transcript-level counts
-#'
-#' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
-DESeqDataSetFromSalmon <- function (sampleTable, design,
-                                           ignoreRank=FALSE,  ...)
-{
-    txi <- tximport(sampleTable[, 'salmon.path'], type='salmon', txOut=TRUE)
-    object <- DESeqDataSetFromTximport(txi, colData=sampleTable[, -grepl('path', colnames(sampleTable)),
-                                       drop=FALSE], design=design, ignoreRank, ...)
-    return(object)
-}
