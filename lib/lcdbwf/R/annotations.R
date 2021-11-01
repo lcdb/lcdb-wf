@@ -30,6 +30,9 @@ get_annotation_hub <- function(config, localHub=NULL, force=NULL, cache=NULL){
 }
 
 
+get_orgdb <- function(...){get_annotation_db(..., dbtype="OrgDb")}
+get_txdb <- function(...){get_annotation_db(..., dbtype="TxDb")}
+
 #' Get the OrgDb for the specified organism, using the cached AnnotationHub.
 #'
 #' @param config List containing the following named items:
