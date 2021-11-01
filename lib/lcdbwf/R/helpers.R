@@ -93,8 +93,8 @@ genes_to_label <- function(res, n=5, config){
     filter(!is.na(log2FoldChange))
 
   genes <- c(
-    head(filtered, n)[[config$orgdb$label_column]],
-    tail(filtered, n)[[config$orgdb$label_column]]
+    head(filtered, n)[[config$annotation$label_column]],
+    tail(filtered, n)[[config$annotation$label_column]]
   )
   return(genes)
 }
@@ -312,8 +312,8 @@ summarize.res.list <- function(res.list, alpha, lfc.thresh, dds.list=NULL){
 #' @param x DESeq2 results object, or data.frame created from one
 #' @param direction Direction in 'up', 'dn', 'down', 'ch', 'changed'
 #' @param alpha FDR lower than this will be considered significant
-#' @param thresh Log2 fold change threshold. If e.g. 2, will return < -2 and/or
-#'   > 2, depending on the value of "direction"
+#' @param thresh Log2 fold change threshold. If e.g. 2, will return < -2
+#'   and/or > 2, depending on the value of "direction"
 #' @param return.names If TRUE, returns the rownames of selected genes; if
 #'   FALSE return boolean index of length(x)
 #' @param column If provided and return.names is TRUE, then return this column

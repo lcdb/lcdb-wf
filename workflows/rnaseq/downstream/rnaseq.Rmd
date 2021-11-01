@@ -16,11 +16,11 @@ output:
 # By convention, we use the argument name "config" although there is nothing
 # special about this name e.g., 
 #
-#      {r, cache=TRUE, config=config$orgdb}
+#      {r, cache=TRUE, config=config$annotation}
 #
-# Thereafter, any changes to config options under the "orgdb" section will then
+# Thereafter, any changes to config options under the "annotation" section will then
 # invalidate that chunk's cache -- along with any other chunks that also have
-# config$orgdb included as a chunk option.
+# config$annotation included as a chunk option.
 #
 config <- yaml::yaml.load_file('config.yaml')
 
@@ -83,9 +83,7 @@ colData <- read.table(config$main$sampletable, sep='\t', header=TRUE, stringsAsF
 rownames(colData) <- colData[,1]
 ```
 
-
-
-```{r dds_initial, cache=TRUE, config=config$main}
+```{r dds_initial, cache=TRUE, config=c(config$main, config$toggle$salmon, config$toggle$kalliso)}
 # Convert featureCounts gene-level counts into DESeq2 object, and run
 # variance-stabiliizing transform.
 dds_initial <- lcdbwf::make_dds(
@@ -141,6 +139,7 @@ for(group in config$plotting$covariates_for_plots){
 }
 ```
 
+```{asis, echo=!(config$toggle$salmon | config$toggle$kallisto)}
 
 ## Size factors {.tabset}
 
@@ -159,19 +158,15 @@ Size factors are calculated according to the median-ratio method (equation 5 of
 These diagnostic plots show the size factors (as a ranked bar plot) and the
 relationship between the size factors and the total read count (as
 a scatterplot).
+```
 
-### Size factors
-
-
-```{r, results='asis'}
+```{r, results='asis', eval=!(config$toggle$salmon | config$toggle$kallisto)}
+mdcat("### Size factors")
 # Plot size factors vs total read counts for QC.
 p <- lcdbwf::sizefactors_barplot(dds_initial)
 ggplotly(p)
-```
 
-### Size factors vs total read count
-
-```{r, results='asis'}
+mdcat("### Size factors vs total read count")
 p <- lcdbwf::sizefactors_vs_total(dds_initial)
 ggplotly(p)
 ```
@@ -242,6 +237,7 @@ contr_lfc2 <- list(
 ```
 
 ```{r assemble_variables, cache=TRUE, config=config$orgdb, dependson=knitr::all_labels()[grepl("^results_", knitr::all_labels())]}
+```{r assemble_variables, cache=TRUE, config=config$annotation, dependson=knitr::all_labels()[grepl("^results_", knitr::all_labels())]}
 res_list <- lcdbwf::collect_objects("^contr_")
 res_list <- lcdbwf::attach_extra(res_list, config)
 ```
@@ -265,7 +261,7 @@ For each comparison there is a tab and under each tab are the following:
 See the [Background and help](#Help) section for details on these.
 
 
-```{r reportresults, results='asis', config=config$orgdb, dependson='assemble_variables', cache=TRUE}
+```{r reportresults, results='asis', config=config$annotation, dependson='assemble_variables', cache=TRUE}
 # Create nested tabs showing the results.
 # First level of tabs will be labels of results; second level will be different
 # output (MA plot, volcano plot, etc)
@@ -286,13 +282,13 @@ for (name in names(res_list)){
   print(lcdbwf::plotMA.label(
     res_i,
     genes_to_label=genes_to_label,
-    label_column=config$orgdb$label_column))
+    label_column=config$annotation$label_column))
 
   lcdbwf::mdcat('### Volcano plot')
   print(lcdbwf::plot.volcano.label(
     res_i,
     genes_to_label=genes_to_label,
-    label_column=config$orgdb$label_column))
+    label_column=config$annotation$label_column))
 
   lcdbwf::mdcat('### Summary')
   print(knitr::kable(lcdbwf::my.summary(res_i, dds_i)))
@@ -322,9 +318,9 @@ columns for each contrast. A `1` indicates that gene was found to be
 up/down/changed in that contrast. 
 ```
 
-```{r upsetplots, results='asis', eval=length(res_list)>1, config=config$orgdb, dependson='selections'}
+```{r upsetplots, results='asis', eval=length(res_list)>1, config=config$annotation, dependson='selections'}
 # Compare overlap across multiple differential expression contrasts.
-lcdbwf::plot.upsets(res_list, label_column=config$orgdb$label_column)
+lcdbwf::plot.upsets(res_list, label_column=config$annotation$label_column)
 ```
 
 ```{r genepatterns, child='gene-patterns.Rmd', eval=config$toggle$gene_patterns}
