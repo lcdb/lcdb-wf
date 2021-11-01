@@ -83,43 +83,6 @@ colData <- read.table(config$main$sampletable, sep='\t', header=TRUE, stringsAsF
 rownames(colData) <- colData[,1]
 ```
 
-```{r salmon, cache=TRUE, eval=config$toggle$salmon}
-# Load salmon quantification.
-salmon.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
-colData$salmon.path <- sapply(colData$samplename, salmon.path.func)
-salmon.txi <- tximport(colData[, 'salmon.path'], type='salmon', txOut=TRUE)
-salmon.tpm <- salmon.txi$abundance
-colnames(salmon.tpm) <- colData$samplename
-```
-
-```{r kallisto, cache=TRUE, eval=config$toggle$kallisto, cache.lazy=FALSE}
-# Load kallisto quantification.
-kallisto.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.kallisto'), 'abundance.h5')
-colData$kallisto.path <- sapply(colData$samplename, kallisto.path.func)
-kallisto.txi <- tximport(colData[, 'kallisto.path'], type='kallisto', txOut=TRUE)
-kallisto.tpm <- kallisto.txi$abundance
-colnames(kallisto.tpm) <- colData$samplename
-```
-
-```{r salmonddstxi, cache=TRUE, eval=config$toggle$salmon}
-# Convert salmon quantification into transcript-level DESeq2 object, and do
-# variance-stabilizing transform.
-dds.salmon.txi <- DESeqDataSetFromTximport(
-    salmon.txi, colData=colData[, -grepl('path', colnames(colData)), drop=FALSE],
-    design=~group
-)
-vsd.salmon.txi <- varianceStabilizingTransformation(dds.salmon.txi, blind=TRUE)
-```
-
-```{r kallistoddstxi, cache=TRUE, eval=config$toggle$kallisto}
-# Convert kallisto quantification into transcript-level DESeq2 object, and do
-# variance-stabilizing transform.
-dds.kallisto.txi <- DESeqDataSetFromTximport(
-    kallisto.txi, colData=colData[, -grepl('path', colnames(colData)), drop=FALSE],
-    design=~group
-)
-vsd.kallisto.txi <- varianceStabilizingTransformation(dds.kallisto.txi, blind=TRUE)
-```
 
 
 ```{r dds_initial, cache=TRUE, config=config$main}

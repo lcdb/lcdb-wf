@@ -1,7 +1,13 @@
 # ------------------------------------------------------------------------------
 # Functions for working with DESeqDataSet (dds) objects
 # ------------------------------------------------------------------------------
-#
+
+
+salmon.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
+kallisto.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
+
+
+
 #' Make a single dds object
 #'
 #' This function is intended to be applied to a list of design data along with
@@ -10,17 +16,16 @@
 #'    dds_list <- map(dds_list, make_dds, config)
 #'
 #' While the intended use is to provide a config object, individual arguments
-#' can be used to override individual config items.
+#' can be used to override individual config items. For these arguments, the
+#' default in the function signature is left as NULL (even if the value should
+#' be TRUE or FALSE) so as to detect whether or not the config should be
+#' overridden.
 #'
-#' @param design_data Named list of 2 to 4 items. At least "sampletable" (the
-#'   colData, as a data.frame or tibble) and "design" (e.g., `~group`) are
-#'   required. The optional named items are "file", which is the featureCounts
-#'   file containing counts for all samples, and "args" which is a list of
-#'   arguments to be passed to the constructor (e.g.,
-#'   `args=list(subset.counts=TRUE))`.
-#'
-#' @param salmon Set to TRUE if you want to create dds objects from Salmon
-#' counts (will be loaded via tximport) Otherwise, use featureCounts
+#' @param design_data Named list of 2 to 4 items. The names "sampletable" and
+#' "design" are required.  The optional named items are "file", which is the
+#' featureCounts file containing counts for all samples, and "args" which is
+#' a list of arguments to be passed to the constructor (e.g.,
+#' `args=list(subset.counts=TRUE))`.
 #'
 #' @param collapse_by The column to collapse technical replicates by. Rows in
 #'   the sampletable that share the same value of this column will be combined
@@ -29,40 +34,77 @@
 #' @param strip_dotted_version If TRUE, then remove Ensembl-style dotted
 #'   version numbers from gene IDs (ENSG000001.1 -> ENSG000001)
 #'
+#' @param salmon_pattern, kallisto_pattern Specify the patterns to locations of
+#'   Salmon or Kallisto files. Use the special placeholder string
+#'   `__SAMPLENAME__` which will be replaced with the sample name. Only
+#'   relevant if one of config$toggle$salmon or config$toggle$kallisto are
+#'   TRUE.
+#'
 #' @param ... Additional arguments will be passed on to the DESeq() call (e.g.,
 #'   parallel, fitType, etc)
 #'
 #' @param featureCounts Location of featureCounts output to be loaded
-make_dds <- function(design_data, config=NULL, salmon=NULL, collapse_by=NULL,
+make_dds <- function(design_data, config=NULL, collapse_by=NULL,
                      strip_dotted_version=NULL,
                      featureCounts='../data/rnaseq_aggregation/featurecounts.txt',
+                     salmon_pattern="../data/rnaseq_samples/__SAMPLENAME__/__SAMPLENAME__.salmon/quant.sf",
+                     kallisto_pattern="../data/rnaseq_samples/__SAMPLENAME__/__SAMPLENAME__.kallisto/abundance.h5",
                      ...){
 
   # Note we're using pluck() here for the conveneience of setting defaults
-  colData <- pluck(design_data, 'sampletable')
+  coldata <- pluck(design_data, 'sampletable')
   design <- pluck(design_data, 'design')
   location <- pluck(design_data, 'file', .default=featureCounts)
+  salmon <- pluck(design_data, 'salmon')
+  kallisto <- pluck(design_data, 'kallisto')
   arg_list <- pluck(design_data, 'args')
 
   # Allow overriding of config values.
   if (!is.null(config)){
     if (is.null(salmon)) salmon <- config$toggle$salmon
+    if (is.null(kallisto)) kallisto <- config$toggle$kallisto
     if (is.null(collapse_by)) collapse_by <- config$main$collapse_by
     if (is.null(strip_dotted_version)) strip_dotted_version <- config$main$strip_dotted_version
   }
 
+  if (salmon & kallisto){
+    stop("Both salmon and kallisto are set to TRUE, not sure how to handle this.")
+  }
+
+  if (salmon | kallisto){
+    # If these arguments were provided, the corresponding loading functions
+    # don't accept them so we need to remove. Issue a warning as well.
+    if (!is.null(arg_list$subset.counts) | !is.null(arg_list$sample.func)){
+      warning("Salmon or Kallisto was specified, but additional arguments ",
+              "were provided to the loading function.")
+      arg_list$subset.counts <- NULL
+      arg_list$sample.func <- NULL
+    }
+
+    # Next, we need a tx2gene dataframe. We can get this from a TxDb, which in
+    # turn can be retrieved from AnnotationHub, which in turn can be configured
+    # with the config object. Luckily, we have it here!
+    txdb <- get_annotation_db(config, dbtype="TxDb")
+    k <- keys(txdb, keytype="TXNAME")
+    tx2gene <- select(txdb, k, "GENEID", "TXNAME")
+
+  }
+
   if (salmon){
-      dds <- exec(
-          DESeqDataSetFromTximport,
-          salmon.files,
-          colData=colData[, -grepl('path', colnames(colData)), drop=FALSE],
-          design=design,
-          !!!arg_list)
+      coldata$salmon.path <- sapply(coldata$samplename, function (x) gsub("__SAMPLENAME__", x, salmon_pattern))
+      txi <- tximport(coldata[, 'salmon.path'], type='salmon', tx2gene=tx2gene, ignoreTxVersion=strip_dotted_version)
+      dds <- DESeqDataSetFromTximport(txi, colData=coldata, design=design)
+
+  } else if (kallisto) {
+      coldata$kallisto.path <- sapply(coldata$samplename, function (x) gsub("__SAMPLENAME__", x, kallisto_pattern))
+      txi <- tximport(coldata[, 'kallisto.path'], type='kallisto', tx2gene=tx2gene, ignoreTxVersion=strip_dotted_version)
+      dds <- DESeqDataSetFromTximport(txi, colData=coldata, design=design)
+
   } else {
       dds <- exec(
           DESeqDataSetFromCombinedFeatureCounts,
               location,
-              sampletable=colData,
+              sampletable=coldata,
               design=design,
               !!!arg_list)
   }
