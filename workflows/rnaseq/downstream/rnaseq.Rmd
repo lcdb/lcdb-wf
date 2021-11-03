@@ -251,7 +251,7 @@ contr_salmon <- list(
     contrast=c('group', 'treatment', 'control'),
     type='normal',
     parallel=parallel),
-  dds='main',
+  dds='salmon',
   label='Using Salmon')
 ```
 
@@ -262,7 +262,7 @@ contr_kallisto <- list(
     contrast=c('group', 'treatment', 'control'),
     type='normal',
     parallel=parallel),
-  dds='main',
+  dds='kallisto',
   label='Using Kallisto')
 ```
 
