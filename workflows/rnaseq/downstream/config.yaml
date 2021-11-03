@@ -6,8 +6,7 @@
 #
 # This file is split into sections, indicated by the top-level keys. RMarkdown
 # chunks may depend on one or more of these sections. Changing a value in
-# a section will therefore cause all chunks depending on that section to be
-# re-run.
+# a section will cause all chunks depending on that section to be re-run.
 
 main:
 
@@ -55,11 +54,18 @@ plotting:
   dotplot_args:
     showCategory: 20
     color: p.adjust
+    size: NULL
+    split: NULL
+    font.size: 12
     x: GeneRatio
+
 
   emapplot_args:
     showCategory: 35
     color: p.adjust
+    cex_label_category: .7
+    cex_category: NULL
+    cex_line: NULL
 
   cnetplot_args:
     showCategory: 5
@@ -87,7 +93,7 @@ toggle:
   kallisto: FALSE
 
   # Run functional enrichment analysis?
-  functional_enrichment: FALSE
+  functional_enrichment: TRUE
 
   # If functional_enrichment is TRUE, you can optionally disable Reactome here
   # if noReactome database exists for your organism or the package is not
@@ -121,6 +127,9 @@ annotation:
   # OrgDb key indicating the format of gene IDs in rownames(dds).
   keytype: 'ENSEMBL'
 
+  msigdbr_keytype: "ensembl_gene"
+
+
   # Additional columns from the OrgDb to attach to the results
   orgdb_columns:
     - SYMBOL
@@ -142,26 +151,35 @@ annotation:
 # This section configures the functional enrichment.
 functional_enrichment:
 
-  # Organism code for KEGG
-  kegg_organism: dme
+  ontologies:
+    # Standard Gene Ontology
+    "BP": "GO Biological Process"
+    "CC": "GO Cellular Component"
+    "MF": "GO Molecular Function"
 
-  # Organism code for Reactome
-  reactome_organism: fly
+    # MSigDB (compiled for human, but orthologs are available which may be of
+    # questionable utility for other organisms).  To see what's available, use
+    # lcdbwf::available_msigdb_keys() and cross-reference with
+    # https://www.gsea-msigdb.org/gsea/msigdb/collections.jsp
+    "C2_CGP": "MSigDB chemical and genetic perturbations"
+    "C2_CP": "MSigDb Canonical pathways"
+    "C5_GO:BP": "MSigDB's version of BP"
+    "C5_GO:CC": "MSigDB's version of CC"
+    "C5_GO:MF": "MSigDB's version of MF"
+    "C8": "MSigDB cell-type-specific gene sets"
+    "H": "MSigDB hallmark gene sets"
 
-  # What is the OrgDb key type used for Gene Ontology?
-  go_keytype: ENTREZID
+  # Type can be "OR" for overrepresentation analysis, or "GSEA" for gene set
+  # enrichment analysis.
+  kind:
+    - "GSEA"
 
-  # What is the OrgDb key type used for KEGG?
-  kegg_keytype: ncbi-geneid
+  # Options here are "up", "down" or "changed".
+  directions:
+    - "up"
+    - "down"
 
   # Any GO terms above these cutoffs will not be reported. Set to 1 if you're
   # fine getting plots even with no statistically significant terms.
   pvalueCutoff: 1
   qvalueCutoff: 1
-
-  # For KEGG, the object returned might need to be converted
-  id_convert: TRUE
-
-  # Universe used for GO and pathway enrichment. NULL means all genes.
-  go_uni: NULL
-  path_uni: NULL
