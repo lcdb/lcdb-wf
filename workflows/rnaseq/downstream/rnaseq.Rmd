@@ -14,7 +14,7 @@ output:
 # Any chunks below that depend on config options should be cached and use one
 # or more sections of the config object as arbitrary additional chunk options.
 # By convention, we use the argument name "config" although there is nothing
-# special about this name e.g., 
+# special about this name e.g.,
 #
 #      {r, cache=TRUE, config=config$annotation}
 #
@@ -119,7 +119,7 @@ we expect to see replicates clustering together and separation of treatments.
 
 ```{r sample_heatmap, cache=TRUE, config=config$plotting$covariates_for_plots, dependson='dds_initial'}
 # Plot a clustered heatmap of sample distances, for QC.
-lcdbwf::plot.heatmap(vsd, colData, cols.for.grouping=config$plotting$covariates_for_plots)
+lcdbwf::plot_heatmap(vsd, colData, cols_for_grouping=config$plotting$covariates_for_plots)
 ```
 
 ## PCA {.tabset}
@@ -276,7 +276,7 @@ Here is a table summarizing the comparisons. See the [Background and
 help](#Help) section for details.
 
 ```{r, results='asis'}
-knitr::kable(summarize.res.list(res_list, config$main$alpha, config$main$lfc_thresh, dds_list))
+knitr::kable(summarize_res_list(res_list, config$main$alpha, config$main$lfc_thresh, dds_list))
 ```
 
 For each comparison there is a tab and under each tab are the following:
@@ -309,22 +309,22 @@ for (name in names(res_list)){
   # is the latest version
 
   lcdbwf::mdcat('### M-A plot')
-  print(lcdbwf::plotMA.label(
+  print(lcdbwf::plotMA_label(
     res_i,
     genes_to_label=genes_to_label,
     label_column=config$annotation$label_column))
 
   lcdbwf::mdcat('### Volcano plot')
-  print(lcdbwf::plot.volcano.label(
+  print(lcdbwf::plot_volcano_label(
     res_i,
     genes_to_label=genes_to_label,
     label_column=config$annotation$label_column))
 
   lcdbwf::mdcat('### Summary')
-  print(knitr::kable(lcdbwf::my.summary(res_i, dds_i)))
+  print(knitr::kable(lcdbwf::my_summary(res_i, dds_i)))
 
   lcdbwf::mdcat('### P-value distribution')
-  lcdbwf::pval.hist(res_i)
+  lcdbwf::pval_hist(res_i)
 }
 ```
 
@@ -345,23 +345,17 @@ contrast's row.
 
 A TSV file is linked under each plot. This file has rows for each gene and
 columns for each contrast. A `1` indicates that gene was found to be
-up/down/changed in that contrast. 
+up/down/changed in that contrast.
 ```
 
 ```{r upsetplots, results='asis', eval=length(res_list)>1, config=config$annotation, dependson='selections'}
 # Compare overlap across multiple differential expression contrasts.
-lcdbwf::plot.upsets(res_list, label_column=config$annotation$label_column)
-```
-
-```{r genepatterns, child='gene-patterns.Rmd', eval=config$toggle$gene_patterns}
-# Run the gene patterns module (see other Rmd for details).
-rmarkdown::render('gene-patterns.Rmd', run_pandoc=FALSE)
+lcdbwf::plot_upsets(res_list, label_column=config$annotation$label_column)
 ```
 
 # Exported results
 
 The files below are TSVs that can be opened in Excel:
-
 
 ```{r, results='asis'}
 # Write out files for full and each selection, and create a link to them in the
@@ -382,6 +376,7 @@ versions of all packages used here.
 ```{r, collapse=FALSE}
 sessionInfo()
 ```
+
 
 # Help
 
