@@ -364,6 +364,96 @@ rownames.first.col <- function(x, name='names'){
 #'
 #' @return Nested list with same structure but tranformed values
 nested.lapply <- function(x, subfunc, ...){
-    lapply(x, lapply, subfunc, ...)
+  lapply(x, lapply, subfunc, ...)
 }
+
+
+#' Compose an RDS file to be used in downstream tools.
+#'
+#' @param res_list List of results objects and associated metadata. See details
+#'   for format.
+#' @param dds_list List of dds objects used in results
+#' @param enrich_list List of enrichment results objects. See details for format.
+#'
+#' @details
+#'
+#' res_list and dds_list are required. `res_list` has the following format.
+#'
+#'    list(
+#'      ko.vs.wt=list(             # names of the list are short keys
+#'        res=DESeqResults object, # standard results object, may have columns for SYMBOL, etc
+#'        dds="main",              # string key into dds_list
+#'        label="KO vs WT"),       # Description of contrast
+#'      het.vs.wt=list(
+#'         ....
+#'      ),
+#'      ...
+#'    )
+#'
+#' Note that values of "dds" in the res_list's items must be names in
+#' `dds_list`. In this example, there is only one, "main". `dds_list` has the
+#' following format:
+#'
+#'   list(
+#'     main=DESeqDataSet,
+#'     ...
+#'   )
+#'
+#' `enrich_list` is optional. Note that `enrich_list`, if provided, must use
+#' results names available in `res_list`. In this example, the names are
+#' "ko.vs.wt" and "het.vs.wt". It has the following format:
+#'
+#'   list(
+#'     ko.vs.wt=list(
+#'       up=list(
+#'         BP=enrichResults object,
+#'         CC=enrichResults object,
+#'         MF=enrichResults object,
+#'         ...
+#'       ),
+#'       down=list(
+#'         BP=enrichResults object,
+#'         ...
+#'       ),
+#'     het.vs.wt=list(
+#'       up=list(...),
+#'       down=list(...)
+#'     ),
+#'     ...
+#'  )
+#'
+#'
+compose_results <- function(res_list, dds_list, enrich_list){
+
+  # Much of this function is just checking that the names all line up.
+  res_dds_names <- lapply(res_list, function (x) x$dds)
+  dds_dds_names <- names(dds_list)
+  res_not_dds <- setdiff(names(res_dds_names), names(dds_dds_names))
+  dds_not_res <- setdiff(names(dds_dds_names), names(res_dds_names))
+  if (length(res_not_dds) > 0){
+    stop(paste("The following dds names are in res_list but are not found in dds_list:", res_not_dds))
+  }
+  if (length(dds_not_res) > 0){
+    warning(paste("The following dds names are in dds_list but not in res_list. This OK, but may be unexpected:", dds_not_res))
+  }
+
+  obj <- list(
+    res_list=res_list,
+    dds_list=dds_list
+  )
+
+  if (!missing(enrich_list)){
+    res_names <- names(res_list)
+    enrich_names <- names(enrich_list)
+    enrich_not_res <- setdiff(enrich_names, res_names)
+    if (length(enrich_not_res) > 0){
+      stop(paste("The following results names are in enrich_list but not in res_list:", enrich_not_res))
+    }
+    obj[['enrich_list']] <- enrich_list
+  }
+
+  return(obj)
+}
+
+
 
