@@ -11,16 +11,15 @@
 get_annotation_hub <- function(config, localHub=NULL, force=NULL, cache=NULL){
 
   if (missing(localHub)) localHub <- config$annotation$localHub
+  if (is.null(localHub)) localHub <- FALSE
   if (missing(force)) force <- config$annotation$force
   if (missing(cache)) cache <- config$annotation$cache
   if (is.null(cache)) cache <- AnnotationHub::getAnnotationHubOption("CACHE")
-
 
   proxy <- Sys.getenv('http_proxy')
   if (proxy == ""){
       proxy <- NULL
   }
-
 
   if (!is.null(cache)){
     if (!dir.exists(cache)) dir.create(cache, recursive=TRUE)
