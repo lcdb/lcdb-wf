@@ -111,7 +111,7 @@ exported_tsvs <- function(res_list, directory="results"){
     fn <- file.path(directory, paste0(name, '.tsv'))
     write.table(res_list[[name]]$res, file=fn, row.names=FALSE, sep='\t', quote=FALSE)
     link <- paste0('[', fn, '](', fn, ')')
-    description <- paste0('results for ', res_list[[name]]$label)
+    description <- res_list[[name]]$label
     tbl[[name]] <- data.frame(fn=fn, link=link, description=description)
   }
   df <- do.call(rbind, tbl) %>% dplyr::select(link, description)
