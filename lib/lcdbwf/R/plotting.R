@@ -17,19 +17,19 @@ plotPCA.ly <- function(rld, intgroup){
 #'
 #' @param res.list data.frame (or list) with log2FoldChange and padj columns (or elements).
 #'        Row names of the data.frame should be gene IDs/symbols and match the format of lab.genes
-#' @param fdr.thres FDR threshold for defining statistical significance
-#' @param fc.thres log2FoldChange cutoff for defining statistical significance
-#' @param fc.lim User-defined limits for y-axis (log2FC). If NULL, this is defined as
+#' @param fdr_thres fdr_threshold for defining statistical significance
+#' @param fd_thres log2FoldChange cutoff for defining statistical significance
+#' @param fc_lim User-defined limits for y-axis (log2FC). If NULL, this is defined as
 #'        the (floor, ceiling) of range(res$log2FoldChange)
 #' @param genes_to_label genes_to_label on the MA plot. NULL, by default
 #' @param col Column of `res` in which to look for `genes_to_label`. If NULL,
 #'        rownames are used.
 #'
 #' @return Handle to ggplot
-plotMA.label <- function(res,
-                         fdr.thres=0.1,
-                         fc.thres=0,
-                         fc.lim=NULL,
+plotMA_label <- function(res,
+                         fdr_thres=0.1,
+                         fd_thres=0,
+                         fc_lim=NULL,
                          genes_to_label=NULL,
                          label_column=NULL
                          ){
@@ -44,25 +44,25 @@ plotMA.label <- function(res,
   res <- data.frame(res)
 
   # if y limits not specified
-  if(is.null(fc.lim)){
-    fc.lim <- range(res$log2FoldChange, na.rm=TRUE)
-    fc.lim[1] <- floor(fc.lim[1])
-    fc.lim[2] <- ceiling(fc.lim[2])
+  if(is.null(fc_lim)){
+    fc_lim <- range(res$log2FoldChange, na.rm=TRUE)
+    fc_lim[1] <- floor(fc_lim[1])
+    fc_lim[2] <- ceiling(fc_lim[2])
   }
 
   # get data frame of genes outside plot limits
-  up.max <- res[res$log2FoldChange > fc.lim[2],]
-  up.max$log2FoldChange <- rep(fc.lim[2], dim(up.max)[1])
+  up.max <- res[res$log2FoldChange > fc_lim[2],]
+  up.max$log2FoldChange <- rep(fc_lim[2], dim(up.max)[1])
   up.max <- data.frame(genes=rownames(up.max), up.max)
 
-  down.max <- res[res$log2FoldChange < fc.lim[1],]
-  down.max$log2FoldChange <- rep(fc.lim[1], dim(down.max)[1])
+  down.max <- res[res$log2FoldChange < fc_lim[1],]
+  down.max$log2FoldChange <- rep(fc_lim[1], dim(down.max)[1])
   down.max <- data.frame(genes=rownames(down.max), down.max)
 
   # get data frame of DE genes
-  de.list <- res[res$padj < fdr.thres &
+  de.list <- res[res$padj < fdr_thres &
                  !is.na(res$padj) &
-                 abs(res$log2FoldChange) >= fc.thres,]
+                 abs(res$log2FoldChange) >= fd_thres,]
   de.list <- data.frame(genes=rownames(de.list), de.list)
 
   # get data frame of DE genes outside plot limits
@@ -71,7 +71,7 @@ plotMA.label <- function(res,
 
   # create ggplot with appropriate layers
   p <- ggplot(res, aes(baseMean, log2FoldChange)) +
-    geom_point(col="gray40") + scale_x_log10() + ylim(fc.lim[1], fc.lim[2]) +
+    geom_point(col="gray40") + scale_x_log10() + ylim(fc_lim[1], fc_lim[2]) +
     theme_bw() + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
 
   p <- p + geom_hline(yintercept = 0, col="red", size=2, alpha=0.5)     # add horizontal line
@@ -99,11 +99,11 @@ plotMA.label <- function(res,
     down.max.idx <- rownames(label.list) %in% rownames(down.max)
 
     if(sum(up.max.idx) > 0){
-      label.list$log2FoldChange[up.max.idx] <- rep(fc.lim[2], sum(up.max.idx))
+      label.list$log2FoldChange[up.max.idx] <- rep(fc_lim[2], sum(up.max.idx))
     }
 
     if(sum(down.max.idx) > 0){
-      label.list$log2FoldChange[down.max.idx] <- rep(fc.lim[1], sum(down.max.idx))
+      label.list$log2FoldChange[down.max.idx] <- rep(fc_lim[1], sum(down.max.idx))
     }
 
     # add labels
@@ -118,19 +118,19 @@ plotMA.label <- function(res,
 #'
 #' @param res.list data.frame (or list) with log2FoldChange and padj columns (or elements).
 #'        Row names of the data.frame should be gene IDs/symbols and match the format of lab.genes
-#' @param fdr.thres FDR threshold for defining statistical significance
-#' @param fc.thres log2FoldChange cutoff for defining statistical significance
-#' @param fc.lim User-defined limits for x-axis (log2FC). If NULL, this is defined as
+#' @param fdr_thres fdr_threshold for defining statistical significance
+#' @param fd_thres log2FoldChange cutoff for defining statistical significance
+#' @param fc_lim User-defined limits for x-axis (log2FC). If NULL, this is defined as
 #'        the (floor, ceiling) of range(res$log2FoldChange)
 #' @param genes_to_label genes_to_label on the volcano plot. NULL, by default
 #' @param col Column of `res` in which to look for `genes_to_label`. If NULL,
 #'        rownames are used.
 #'
 #' @return Handle to ggplot
-plot.volcano.label <- function(res,
-                         fdr.thres=0.1,
-                         fc.thres=0,
-                         fc.lim=NULL,
+plot_volcano_label <- function(res,
+                         fdr_thres=0.1,
+                         fd_thres=0,
+                         fc_lim=NULL,
                          genes_to_label=NULL,
                          label_column=NULL
                          ){
@@ -145,25 +145,25 @@ plot.volcano.label <- function(res,
   res <- data.frame(res)
 
   # if y limits not specified
-  if(is.null(fc.lim)){
-    fc.lim <- range(res$log2FoldChange, na.rm=TRUE)
-    fc.lim[1] <- floor(fc.lim[1])
-    fc.lim[2] <- ceiling(fc.lim[2])
+  if(is.null(fc_lim)){
+    fc_lim <- range(res$log2FoldChange, na.rm=TRUE)
+    fc_lim[1] <- floor(fc_lim[1])
+    fc_lim[2] <- ceiling(fc_lim[2])
   }
 
   # get data frame of genes outside plot limits
-  up.max <- res[res$log2FoldChange > fc.lim[2],]
-  up.max$log2FoldChange <- rep(fc.lim[2], dim(up.max)[1])
+  up.max <- res[res$log2FoldChange > fc_lim[2],]
+  up.max$log2FoldChange <- rep(fc_lim[2], dim(up.max)[1])
   up.max <- data.frame(genes=rownames(up.max), up.max)
 
-  down.max <- res[res$log2FoldChange < fc.lim[1],]
-  down.max$log2FoldChange <- rep(fc.lim[1], dim(down.max)[1])
+  down.max <- res[res$log2FoldChange < fc_lim[1],]
+  down.max$log2FoldChange <- rep(fc_lim[1], dim(down.max)[1])
   down.max <- data.frame(genes=rownames(down.max), down.max)
 
   # get data frame of DE genes
-  de.list <- res[res$padj < fdr.thres &
+  de.list <- res[res$padj < fdr_thres &
                  !is.na(res$padj) &
-                 abs(res$log2FoldChange) >= fc.thres,]
+                 abs(res$log2FoldChange) >= fd_thres,]
   de.list <- data.frame(genes=rownames(de.list), de.list)
 
   # get data frame of DE genes outside plot limits
@@ -172,7 +172,7 @@ plot.volcano.label <- function(res,
 
   # create ggplot with appropriate layers
   p <- ggplot(res, aes(log2FoldChange, -log10(padj))) +
-    geom_point(col="gray40") + xlim(fc.lim[1], fc.lim[2]) +
+    geom_point(col="gray40") + xlim(fc_lim[1], fc_lim[2]) +
     theme_bw() + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
 
   p <- p + geom_point(data=up.max, col="gray40", pch=2)                 # add points above max y
@@ -202,11 +202,11 @@ plot.volcano.label <- function(res,
     down.max.idx <- rownames(label.list) %in% rownames(down.max)
 
     if(sum(up.max.idx) > 0){
-      label.list$log2FoldChange[up.max.idx] <- rep(fc.lim[2], sum(up.max.idx))
+      label.list$log2FoldChange[up.max.idx] <- rep(fc_lim[2], sum(up.max.idx))
     }
 
     if(sum(down.max.idx) > 0){
-      label.list$log2FoldChange[down.max.idx] <- rep(fc.lim[1], sum(down.max.idx))
+      label.list$log2FoldChange[down.max.idx] <- rep(fc_lim[1], sum(down.max.idx))
     }
 
     # add labels
@@ -224,13 +224,13 @@ plot.volcano.label <- function(res,
 #' @param cols.for.grouping Columns in colData to annotate heatmap with
 #'
 #' @return matrix of sample distances
-plot.heatmap <- function(rld, colData, cols.for.grouping){
+plot_heatmap <- function(rld, colData, cols_for_grouping){
     sampleDists <- dist(t(assay(rld)))
     sampleDistMatrix <- as.matrix(sampleDists)
     rownames(sampleDistMatrix) <- colnames(rld)
     colors <- colorRampPalette(rev(brewer.pal(9, 'Blues')))(255)
-    df <- as.data.frame(colData(rld)[, cols.for.grouping])
-    colnames(df) <- cols.for.grouping
+    df <- as.data.frame(colData(rld)[, cols_for_grouping])
+    colnames(df) <- cols_for_grouping
     rownames(df) <- colnames(rld)
     heatmaply(sampleDistMatrix,
               scale='none',
@@ -247,13 +247,13 @@ plot.heatmap <- function(rld, colData, cols.for.grouping){
 #' @param n Number of genes to include
 #'
 #' @return Side effect is to plot the heatmap
-vargenes.heatmap <- function(rld, cols.for.grouping, n=50){
+vargenes_heatmap <- function(rld, cols_for_grouping, n=50){
   # TODO: heatmaply?
   # TODO: allow alternative gene IDs
   topVarGenes <- head(order(rowVars(assay(rld)), decreasing=TRUE), n)
   mat <- assay(rld)[topVarGenes,]
   mat <- mat - rowMeans(mat)
-  df <- as.data.frame(colData(rld)[, cols.for.grouping])
+  df <- as.data.frame(colData(rld)[, cols_for_grouping])
   rownames(df) <- colnames(rld)
   colnames(df) <- cols.for.grouping
   pheatmap(mat, annotation_col=df, cluster_cols=TRUE)
@@ -343,7 +343,7 @@ counts.plot <- function(df, rank.nb=NULL, no.aes=FALSE, facet='label') {
 #' @param res DESeq2 results object
 #'
 #' @return Side effect is to create plot
-pval.hist <- function(res){
+pval_hist <- function(res){
     hist(res$pvalue[res$baseMean>1], breaks=0:20/20, col='grey50',
          border='white', xlab='P-value', main='Distribution of p-values')
 }

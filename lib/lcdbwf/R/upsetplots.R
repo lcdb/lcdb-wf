@@ -7,7 +7,7 @@
 #'
 #' @param res_list "reslist" object
 #' @param label_column When creating output files, use this column to label genes
-plot.upsets <- function(res_list, label_column=NULL, alpha=0.1, lfc.thresh=0){
+plot_upsets <- function(res_list, label_column=NULL, alpha=0.1, lfc_thresh=0){
 
   if (!is.null(label_column)){
     lookup <- data.frame(x=res_list[[1]][['res']][[label_column]])
@@ -19,9 +19,9 @@ plot.upsets <- function(res_list, label_column=NULL, alpha=0.1, lfc.thresh=0){
     res_list,
     function(x) {
       list(
-        up=get.sig(x$res, alpha=alpha, lfc.thresh=lfc.thresh, "up", return.names=TRUE),
-        down=get.sig(x$res, alpha=alpha, lfc.thresh=lfc.thresh, "down", return.names=TRUE),
-        changed=get.sig(x$res, alpha=alpha, lfc.thresh=lfc.thresh, "changed", return.names=TRUE)
+        up=get_sig(x$res, alpha=alpha, lfc_thresh=lfc_thresh, "up", return_type="rownames"),
+        down=get_sig(x$res, alpha=alpha, lfc_thresh=lfc_thresh, "down", return_type="rownames"),
+        changed=get_sig(x$res, alpha=alpha, lfc_thresh=lfc_thresh, "changed", return_type="rownames")
       )
     }
   )

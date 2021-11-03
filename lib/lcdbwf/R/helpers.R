@@ -254,7 +254,7 @@ lfc.filter <- function(res, reverse=FALSE){
 #' @param alpha Alpha level at which to call significantly changing genes
 #'
 #' @return Dataframe of summarized results
-my.summary <- function(res, dds, alpha, lfc.thresh=0, ...){
+my_summary <- function(res, dds, alpha, lfc.thresh=0, ...){
    if (missing(alpha)){
        alpha <- if (is.null(metadata(res)$alpha)){ 0.1 } else { metadata(res)$alpha }
    }
@@ -291,19 +291,20 @@ my.summary <- function(res, dds, alpha, lfc.thresh=0, ...){
 #'                  of lcdb-wf depends on no dds.list object being passed.
 #'
 #' @return Dataframe
-summarize.res.list <- function(res.list, alpha, lfc.thresh, dds.list=NULL){
-    slist <- list()
-    for (name in names(res.list)){
-        if(!is.null(dds.list)){
-            x <- my.summary(res.list[[name]][['res']], dds.list[[ res.list[[name]][['dds']] ]], alpha, lfc.thresh)
-        } else { x <- my.summary(res.list[[name]][['res']], res.list[[name]][['dds']], alpha, lfc.thresh)
-        }
-        rownames(x) <- res.list[[name]][['label']]
-        slist[[name]] <- x
+summarize_res_list <- function(res_list, alpha, lfc_thresh, dds_list=NULL){
+  slist <- list()
+  for (name in names(res_list)){
+    if(!is.null(dds_list)){
+      x <- my_summary(res_list[[name]][['res']], dds_list[[ res_list[[name]][['dds']] ]], alpha, lfc_thresh)
+    } else {
+      x <- my_summary(res_list[[name]][['res']], res_list[[name]][['dds']], alpha, lfc_thresh)
     }
-    slist <- do.call(rbind, slist)
-    rownames(slist) <- as.character(lapply(res.list, function (x) x[['label']]))
-    return(slist)
+    rownames(x) <- res_list[[name]][['label']]
+    slist[[name]] <- x
+  }
+  slist <- do.call(rbind, slist)
+  rownames(slist) <- as.character(lapply(res_list, function (x) x[['label']]))
+  return(slist)
 }
 
 
