@@ -23,20 +23,25 @@ main:
   # If you have technical replicates, you can automatically collapse them.
   # Provide a column in colData here, and for each unique value in the column
   # the counts across samples sharing that value will be summed. Typically this
-  # would be set to the column representing biological replicate.
+  # would be set to the column representing biological replicate, assuming
+  # technical replicates share the same biological replicate ID.
   collapse_by: NULL
 
+  # Whenever we call significant genes, we use this threshold for
+  # log2FoldChange. E.g., setting this to 1 requires a 2x change in estimated
+  # expression.
   lfc_thresh: 0
 
   # By default DESeq2 assumes alpha of 0.1 (when filtering low-count genes). If
-  # you want something else, change it here.
+  # you want something else, change it here. This is used alongside lfc_thresh
+  # to select significant genes.
   alpha: 0.1
 
-  # When creating dds objects with featureCounts that will be compared with
-  # Salmon or Kallisto, there may be different numbers of genes in the
-  # respective dds objects. By default this will stop with an error. If instead
-  # you want to use only the intersection of genes found in all contrasts, set
-  # this to TRUE.
+  # If you plan on creating dds objects with featureCounts that will be
+  # compared with Salmon or Kallisto, there may be different numbers of genes
+  # in the respective dds objects. By default, this mismatch will stop with an
+  # error. If instead you want to use only the intersection of genes found in
+  # all contrasts, set this to TRUE.
   force_intersect: TRUE
 
 plotting:
@@ -45,7 +50,7 @@ plotting:
   covariates_for_plots:
     - group
 
-  # These arguments are passed to the clusterProfiler plotting functions. Any
+  # These arguments are passed to the respective clusterProfiler plotting functions. Any
   # arguments accepted by those functions can be added here.
   dotplot_args:
     showCategory: 20

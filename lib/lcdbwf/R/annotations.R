@@ -2,6 +2,12 @@
 # Functions for working with annotations and OrgDbs
 # ------------------------------------------------------------------------------
 
+
+#' Get the AnnotationHub object, using settings from config
+#'
+#' @param config
+#' @param localHub, force, cache Arguments passed on to AnnotationHub(); these
+#'   can be used to override what's in the config.
 get_annotation_hub <- function(config, localHub=NULL, force=NULL, cache=NULL){
 
   if (missing(localHub)) localHub <- config$annotation$localHub
@@ -30,18 +36,26 @@ get_annotation_hub <- function(config, localHub=NULL, force=NULL, cache=NULL){
 }
 
 
+#' Convenience wrapper function for get_annotation_db()
 get_orgdb <- function(...){get_annotation_db(..., dbtype="OrgDb")}
+
+
+#' Convenience wrapper function for get_annotation_db()
 get_txdb <- function(...){get_annotation_db(..., dbtype="TxDb")}
+
 
 #' Get the OrgDb for the specified organism, using the cached AnnotationHub.
 #'
 #' @param config List containing the following named items:
 #'  - annotation_genus_species: e.g., "Homo sapiens"
+#'
 #'  - hub_cache: Optional path, relative to the working directory, in which
-#'               to store the downloaded OrgDb database
+#'    to store the downloaded OrgDb database
+#'
 #'  - annotation_key_override: Optional key that if specified overrides
 #'    annotation_genus_species. Use this to be exact about the version of the
 #'    OrgDb you want to use.
+#'
 #' @return OrgDb object
 get_annotation_db <- function(config, dbtype, genus_species=NULL, orgdb_key_override=NULL, txdb_key_override=NULL, cache=NULL){
 
@@ -87,7 +101,8 @@ get_annotation_db <- function(config, dbtype, genus_species=NULL, orgdb_key_over
 #' Attach additional OrgDb information to results objects within a list
 #'
 #' This can also fill in NAs in columns specified in the config with rownames
-#' (e.g., fill in missing symbols with Ensembl IDs)
+#' (e.g., fill in missing symbols with Ensembl IDs). See config documentation
+#' for details.
 #'
 #' @param res_list List of DESeqResults objects
 #' @param config Full config object, at least containing config$orgdb
