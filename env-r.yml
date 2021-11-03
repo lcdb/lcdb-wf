@@ -49,6 +49,7 @@ dependencies:
   - bioconductor-limma=3.46.0=r40hd029910_1
   - bioconductor-lpsymphony=1.18.0=r40h399db7b_1
   - bioconductor-matrixgenerics=1.2.1=r40hdfd78af_0
+  - r-msigdbr
   - bioconductor-qvalue=2.22.0=r40hdfd78af_1
   - bioconductor-reactome.db=1.74.0=r40hdfd78af_1
   - bioconductor-reactomepa=1.34.0=r40hdfd78af_1
