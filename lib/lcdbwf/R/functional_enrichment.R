@@ -1,190 +1,184 @@
+#' All-in-one enrichment function.
+#'
+#' Designed to not require an orgdb, and instead requires dataframes of
+#' term2gene and optionally term2name.
+#'
+#' @param res DESeq2 results object
+#' @param TERM2GENE A data.frame, first column GO ID, second column gene name.
+#'   It is assumed that the gene names are the same format as those in
+#'   rownames(res).
+#' @param TERM2NAME A data.frame, first column GO ID, second column description.
+#' @param config Config object. pvalueCutoff and qvalueCutoff will be taken from here.
+#' @param direction One of "up", "down", or "changed". Will use alpha and
+#'   lfc_thresh from the config.
+#' @param kind One of "OR" for overrepresentation or "GSEA" for gene set
+#'   enrichment analysis.
+#' @param ... Additional arguments are passed on to enricher() for kind="OR" or
+#'   GSEA() for kind="GSEA".
+#'
+#' @return An enrichResults object from
+run_enrichment <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR', ...){
 
+  if (kind == "OR"){
+    genes <- get_sig(
+      res$res,
+      alpha=config$main$alpha,
+      lfc_thresh=config$main$lfc_thresh,
+      direction=direction,
+      return_type="rownames"
+    )
 
-# All-in-one function that does functional enrichment on a single DESeqResults
-# object.
-functional_enrichment <- function(res, orgdb, config, ontology, kind='OR', direction, lfc_thresh=0, alpha=0.1){
-  allowed_ontologies <- c('BP', 'MF', 'CC', 'KEGG', 'Reactome')
-  if (!(ontology %in% allowed_ontologies)){
-    stop(paste("No current support for ontology ", ontology))
+    e <- clusterProfiler::enricher(
+      genes,
+      TERM2GENE=TERM2GENE,
+      TERM2NAME=TERM2NAME,
+      pvalueCutoff=config$functional_enrichment$pvalueCutoff,
+      qvalueCutoff=config$functional_enrichment$qvalueCutoff,
+      ...
+    )
+  } else if (kind == "GSEA"){
+    genes <- res$res$log2FoldChange
+    names(genes) <- rownames(res$res)
+    genes <- genes[!is.na(genes)]
+    genes <- genes[order(genes, decreasing=TRUE)]
+
+    e <- clusterProfiler::GSEA(
+      genes,
+      TERM2GENE=TERM2GENE,
+      TERM2NAME=TERM2NAME,
+      pvalueCutoff=config$functional_enrichment$pvalueCutoff,
+      ...
+    )
+
+  } else {
+    stop(paste0("Don't know how to handle enrichment type '", kind, "'."))
+  }
+  if (is.null(e)){
+    return(e)
   }
 
-  # Overrepresentation tests only work on sets
-  if (kind == 'OR'){
-    subset_res <- get.sig(res, direction=direction, alpha=0.1, lfc.thresh=lfc_thresh, return.names=FALSE)
-    genes <- rownames(subset_res)
+  # portions of this copied and simplified from clusterProfiler::setReadable(),
+  # but written here to avoid needing an orgdb. Also, comments added for
+  # clarity.
 
-    if (ontology %in% c('BP', 'MF', 'CC')){
-      or_res <- enrichGO(
-        gene=genes,
-        universe=config$functional_enrichment$go_uni,
-        keyType=config$functional_enrichment$go_keytype,
-        OrgDb=orgdb,
-        ont=ontology,
-        pvalueCutoff=config$functional_enrichment$pvalueCutoff,
-        qvalueCutoff=config$functional_enrichment$qvalueCutoff,
-        readable=TRUE)
+  # keys are term IDs, values are lists of gene IDs.
+  gc <- geneInCategory(e)
 
-    } else if (ontology == 'KEGG'){
+  # create a lookup of keytype -> label_column
+  gn <- res$res[[config$annotation$label_column]]
+  names(gn) <- rownames(res$res)
 
-      # Note that IDs will need to be converted later when we have full access to
-      # the res_list
-      or_res <- enrichKEGG(
-        gene=genes,
-        universe=config$functional_enrichment$path_uni,
-        organism=config$functional_enrichment$kegg_organism,
-        keyType=config$functional_enrichment$kegg_keytype,
-        pvalueCutoff=config$functional_enrichment$pvalueCutoff,
-        qvalueCutoff=config$functional_enrichment$qvalueCutoff
-      )
 
-      or_res <- clusterProfiler::setReadable(or_res, OrgDb=orgdb, keyType=confi$functional_enrichment$kegg_keytype)
+  # Note that `i` may be multiple genes
+  gc <- lapply(gc, function(i) gn[i])
 
-    } else if (ontology == 'Reactome') {
-      if (!config$toggle$reactome) {
-        or_res <- enrichPathway(
-          gene=genes,
-          universe=config$functional_enrichment$pathway_uni,
-          organism=config$functional_enrichment$reactome_organism,
-          pvalueCutoff=config$functional_enrichment$pvalueCutoff,
-          qvalueCutoff=config$functional_enrichment$qvalueCutoff,
-          readable=TRUE)
-      } else {
-        stop("Reactome is toggled off in the config")
-      }
-    }
+  eres <- e@result
 
-  } else if (kind == 'GSEA') {
-    genes <- rownames(res)
+  # Not quite sure why we need to re-select, but this is what setReadable()
+  # does.
+  gc <- gc[as.character(eres$ID)]
+  geneID <- sapply(gc, paste0, collapse = "/")
+
+  if (is(e, "gseaResult")){
+    eres$core_enrichment <- unlist(geneID)
+  } else {
+    eres$geneID <- unlist(geneID)
   }
-  return(or_res)
+  e@gene2Symbol <- gn
+  e@keytype <- config$annotation$label_column
+  e@readable <- TRUE
+  e@result <- eres
+  return(e)
 }
 
 
 
-
-#' Run overrepresentation analysis
+#' Return a list of GO annotation dataframes, one per ontology.
 #'
-#' @param genes.df Nested list of lists, see details below.
-#' @param orgdb OrgDb containing GO and KEGG terms
-#' @param orgdb_config Config list (documented elsewhere)
-#' @param truncate_labels_to Long labels will be truncated to this many
-#'        characters to make plots more readable
+#' @param orgdb OrgDb
+#' @param keytype Key type intended to be use with clusterProfiler::enricher
+#'   function.
 #'
-#' @details
-#' `genes.df` is a nested list of lists. The first level represents contrasts
-#' (condition1 vs condition2, etc) and within each contrast are the selections
-#' (typically "up" and "dn"). The values are character vectors of gene IDs. For
-#' example:
+#' @return List of dataframes; list names are "BP", "CC", "MF".
+get_go_term2gene <- function(config){
+
+  orgdb <- lcdbwf::get_orgdb(config)
+  keytype <- config$annotation$keytype
+
+  # This is the method used by clusterProfiler internally. See
+  # get_go_term2gene_alt for a different implementation.
+  goterms <- AnnotationDbi::Ontology(GO.db::GOTERM)
+  go2gene <- suppressMessages(
+    AnnotationDbi::mapIds(
+      orgdb, keys=names(goterms), column=keytype, keytype="GOALL",
+      multiVals='list')
+  )
+  goAnno <- stack(go2gene)
+  colnames(goAnno) <- c(keytype, "GOALL")
+  goAnno <- unique(goAnno[!is.na(goAnno[,1]), ])
+  goAnno$ONTOLOGYALL <- goterms[goAnno$GOALL]
+  lst <- list(
+      MF=goAnno %>% dplyr::filter(ONTOLOGYALL=="MF") %>% dplyr::select(GOALL, !!keytype),
+      CC=goAnno %>% dplyr::filter(ONTOLOGYALL=="CC") %>% dplyr::select(GOALL, !!keytype),
+      BP=goAnno %>% dplyr::filter(ONTOLOGYALL=="BP") %>% dplyr::select(GOALL, !!keytype)
+  )
+
+  return(lst)
+}
+
+get_msigdb_df <- function(config){
+  x <- msigdbr::msigdbr(config$annotation$genus_species)
+  return(x)
+}
+
+#' Return a list of MSigDB gene sets, one per subcategory
 #'
-#' genes.df <- list(
-#'    contrast1=list(up=c('gene1', 'gene2'),
-#'                   dn=c('gene8', 'gene9', 'gene10')
-#'                   ),
-#'    contrast2=list(...
-#'    )
-#' )
-#'
-#' `orgdb_config` is a nested list containing configuration information and is
-#' documented elsewhere.
-run_functional_enrichment <- function(genes.df, orgdb, orgdb_config, truncate_labels_to=50){
-
-    # all.enrich will hold all enrichment results. It is a nested
-    # list-of-lists-of-lists, with the structure:
-    #
-    #   all.enrich[[contrast]][[direction]][[enrichment label]]
-
-    all.enrich <- list()
-    enrich.files <- list()
-
-    # loop over each contrast
-    for(comp in names(genes.df)){
-
-        all.enrich[[comp]] <- list()
-        enrich.files[[comp]] <- list()
-
-        # loop over selection list
-        for(sel in sel.names){
-
-            all.enrich[[comp]][[sel]] <- list()
-            enrich.files[[comp]][[sel]] <- list()
-
-            gene <- genes.df[[comp]][[sel]][[functional_enrichment_config[['go_keytype']]]]
-
-            for (ont in c('CC', 'BP', 'MF')){
-                go.res <- enrichGO(
-                    gene=gene,
-                    universe=functional_enrichment_config[['go_uni']],
-                    keyType=functional_enrichment_config[['go_keytype']],
-                    OrgDb=orgdb,
-                    ont=ont,
-                    pvalueCutoff=functional_enrichment_config[['pvalueCutoff']],
-                    qvalueCutoff=functional_enrichment_config[['qvalueCutoff']],
-                    readable=TRUE)
-
-                res.label <- paste('GO', ont, sep='_')
-                all.enrich[[comp]][[sel]][[ont]] <- go.res
-                if (!is.null(go.res)){
-                    enrich.files[[comp]][[sel]][[ont]] <- write.clusterprofiler.results(go.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
-                }
-            }
-
-            # perform KEGG enrichment
-            res.label <- 'KEGG'
-            kegg.res <- enrichKEGG(
-                gene=gene,
-                universe=functional_enrichment_config$path_uni, organism=functional_enrichment_config$kegg_organism,
-                keyType=functional_enrichment_config$kegg_keytype,
-                pvalueCutoff=functional_enrichment_config$pvalueCutoff,
-                qvalueCutoff=functional_enrichment_config$qvalueCutoff
-            )
-
-
-            if (!is.null(kegg.res)){
-                # convert uniprot IDs to readable symbols. This needs to be done separately
-                # in the case of KEGG
-                if(functional_enrichment_config$id_convert){
-                  id.vec <- genes.df[[comp]][[sel]]$SYMBOL
-                  names(id.vec) <- genes.df[[comp]][[sel]]$ENTREZID
-                  kegg.res.genes <- kegg.res@result$geneID
-                  for(j in 1:length(kegg.res.genes)){
-                    id.split <- strsplit(kegg.res.genes[j], "/")[[1]]
-                    temp <- paste(id.vec[id.split], collapse="/")
-                    kegg.res@result$geneID[j] <- temp
-                  }
-                }
-
-
-                all.enrich[[comp]][[sel]][['kegg']] <- kegg.res
-                enrich.files[[comp]][[sel]][['kegg']] <- write.clusterprofiler.results(kegg.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
-            }
-
-            if (toggle$run_reactome) {
-                # NOTE: Install OrgDb--------------------------------------------------
-                #   ReactomePA requires the relevant OrgDb package to be installed
-                #   and so is disabled by default.
-                res.label <- 'Reactome'
-                reactome.res <-enrichPathway(
-                    gene=gene,
-                    universe=functional_enrichment_config[['path_uni']],
-                    organism=functional_enrichment_config[['reactome_organism']],
-                    pvalueCutoff=functional_enrichment_config[['pvalueCutoff']],
-                    qvalueCutoff=functional_enrichment_config[['qvalueCutoff']],
-                    readable=TRUE)
-                all.enrich[[comp]][[sel]][['reactome']] <- reactome.res
-
-                if (!is.null(reactome.res)){
-                    enrich.files[[comp]][[sel]][['reactome']] <- write.clusterprofiler.results(reactome.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
-                }
-            }
-        }
+#' Names of the list are concatenated category_subcategory.
+get_msigdb_term2gene_list <- function(msigdb_df){
+  x <- msigdb_df %>%
+    mutate(geneset_key=paste(gs_cat, gs_subcat, sep="_") %>% str_replace("_$", "")) %>%
+    group_by(geneset_key)
+  keys <- x %>% group_keys()
+  pieces <- x %>% group_split()
+  names(pieces) <- keys$geneset_key
+  pieces <- lapply(
+    pieces, function(x) {
+      x %>%
+        dplyr::distinct(gs_name, ensembl_gene) %>%
+        as.data.frame
     }
+  )
+  return(pieces)
+}
 
-    # Truncate names to be <50 characters. This helps make the plot labels more
-    # reasonable.
-    all.enrich <- lcdbwf::truncate_names(all.enrich, truncate_labels_to)
+#' TERM2NAME for MSigDB
+get_msigdb_term2name <- function(msigdb_df){
+  x <- msigdb_df %>% dplyr::distinct(gs_name, gs_description) %>% as.data.frame
+  return(x)
+}
+
+
+
+#' Alternative implementation of get_go_term2gene, stored here for historical
+#' comparison purposes.
+get_go_term2gene_alt <- function(orgdb, keytype){
+  kk <- keys(orgdb, keytype=keytype)
+  goAnno <- AnnotationDbi::select(orgdb, keys=kk, keytype=keytype, columns=c("GOALL", "ONTOLOGYALL"))
+  goAnno <- unique(goAnno[!is.na(goAnno[,1]), ])
+  lst <- list(
+      MF=goAnno %>% dplyr::filter(ONTOLOGYALL=="MF") %>% dplyr::select(GOALL, !!keytype),
+      CC=goAnno %>% dplyr::filter(ONTOLOGYALL=="CC") %>% dplyr::select(GOALL, !!keytype),
+      BP=goAnno %>% dplyr::filter(ONTOLOGYALL=="BP") %>% dplyr::select(GOALL, !!keytype)
+  )
+  return(lst)
 
 }
 
+#' Extract all GO IDs and their respective descriptions.
+get_go_descriptions <- function(){
+  term2name <- AnnotationDbi::select(GO.db::GO.db, keys=keys(GO.db::GO.db, "GOID"), c("GOID", "TERM"))
+  return(term2name)
+}
 
 #' Convert "1/100" to 0.01.
 #'
@@ -196,6 +190,7 @@ get.frac <- function(x){
     y <- as.numeric(strsplit(x, '/')[[1]])
     return(y[[1]] / y[[2]])
 }
+
 
 #' Summarize and aggregate multiple GO results
 #'
@@ -290,17 +285,123 @@ write.clusterprofiler.results <- function(res, cprof.folder, label){
     return(list(orig=filename.orig, split=filename.split))
 }
 
-
-truncate_names <- function(all_enrich, maxcatlen=50){
-    for(comp in names(all_enrich)){
-        for(name in names(all_enrich[[comp]])){
-            for(go in names(all_enrich[[comp]][[name]])){
-                all_enrich[[comp]][[name]][[go]]@result$Description <- substr(
-                    all_enrich[[comp]][[name]][[go]]@result$Description, 1, maxcatlen
-                )
-            }
+#' Apply a function to a nested enrichResults list
+#'
+#' @param enrich_list Nested list. First level keys are results names. Second
+#'   level keys are directions (up, down, changed). Third level keys are
+#'   ontology labels ("ont").
+#' @param func Function to apply to every identified enrichResult object
+#' @param send_names If TRUE, `func` will also be provided with arguments for
+#'   name, direction, and ont. This can be useful if the function needs to
+#'   behave differently depending on the object.
+#'
+#' @return A list of the same shape (same nesting, same keys) but with the
+#' "leaves" replaced with whatever `func` returns.
+enrich_list_lapply <- function(enrich_list, func, send_names=FALSE, ...){
+  out <- list()
+  for (name in names(enrich_list)){
+    out[[name]] <- list()
+    for (direction in names(enrich_list[[name]])){
+      out[[name]][[direction]] <- list()
+      for (ont in names(enrich_list[[name]][[direction]])){
+        x <- enrich_list[[name]][[direction]][[ont]]
+        if (send_names){
+          out[[name]][[direction]][[ont]] <- func(x, name=name, direction=direction, ont=ont, ...)
+        } else {
+          out[[name]][[direction]][[ont]] <- func(x, ...)
         }
+      }
     }
-    return(all_enrich)
+  }
+  return(out)
+}
+
+
+#' Truncate the names of an enrichment results object
+#'
+#' @param obj DOSE::enrichResult object
+#' @param truncate_to Max number of characters in a label
+#'
+#' @return enrichResult object with labels truncated
+truncate <- function(obj, truncate_to){
+  f <- function(x){
+    if (nchar(x) > truncate_to){
+      x <- paste0(substr(x, 1, truncate_to), '...')
+    }
+    return(x)
+  }
+  obj@result$Description <- sapply(obj@result$Description, f)
+  return(obj)
+}
+
+
+#' Wrapper for enrichplot::dotplot
+#'
+#' @param enrich_res enrichResult object
+#' @param config Config object
+#' @param name, direction, ont These may be passed in when iterating over
+#'   nested list of results
+#' @param truncate_to Truncate labels to this long
+dotplots <- function(enrich_res, config, name=NULL, direction=NULL, ont=NULL, truncate_to=50){
+  if (!is.null(name)){
+    title <- paste(name, direction, ont, sep=", ")
+  } else {
+    title <- ""
+  }
+  enrich_res <- truncate(enrich_res, truncate_to)
+  p <- do.call(enrichplot::dotplot, c(enrich_res, config$plotting$dotplot_args)) +
+    ggtitle(title) +
+    theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+  return(p)
+}
+
+#' Wrapper for enrichplot::emapplot
+#'
+#' @param enrich_res enrichResult object
+#' @param config Config object
+#' @param name, direction, ont These may be passed in when iterating over
+#'   nested list of results
+#' @param truncate_to Truncate labels to this long
+emapplots <- function(enrich_res, config, name=NULL, direction=NULL, ont=NULL, truncate_to=50){
+  if (!is.null(name)){
+    title <- paste(name, direction, ont, sep=", ")
+  } else {
+    title <- ""
+  }
+  enrich_res <- truncate(enrich_res, truncate_to)
+  enrich_res <- enrichplot::pairwise_termsim(enrich_res)
+  p <- do.call(enrichplot::emapplot, c(enrich_res, config$plotting$emapplot_args)) +
+    ggtitle(title) +
+    theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+  return(p)
+}
+
+#' Wrapper for enrichplot::cnetplot
+#'
+#' @param enrich_res enrichResult object
+#' @param config Config object
+#' @param name, direction, ont These may be passed in when iterating over
+#'   nested list of results
+#' @param truncate_to Truncate labels to this long
+cnetplots <- function(enrich_res, config, name=NULL, direction=NULL, ont=NULL, truncate_to=50){
+  if (!is.null(name)){
+    title <- paste(name, direction, ont, sep=", ")
+  } else {
+    title <- ""
+  }
+  enrich_res <- truncate(enrich_res, truncate_to)
+  p <- do.call(enrichplot::cnetplot, c(enrich_res, config$plotting$cnetplot_args)) +
+    ggtitle(title) +
+    theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+  return(p)
+}
+
+#' List keys for MSigDB that can be added to
+#' config$functional_enrichment$ontologies
+available_msigdb_keys <- function(){
+  df <- msigdbr::msigdbr_collections() %>%
+    as.data.frame %>%
+    mutate(x=paste(gs_cat, gs_subcat, sep='_') %>% str_replace('_$', ''))
+  return(df$x)
 }
 
