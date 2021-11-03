@@ -308,36 +308,36 @@ summarize_res_list <- function(res_list, alpha, lfc_thresh, dds_list=NULL){
 }
 
 
-#' Return index of up/down/changed genes
+#' Return up/down/changed genes
 #'
 #' @param x DESeq2 results object, or data.frame created from one
 #' @param direction Direction in 'up', 'dn', 'down', 'ch', 'changed'
 #' @param alpha FDR lower than this will be considered significant
 #' @param thresh Log2 fold change threshold. If e.g. 2, will return < -2
 #'   and/or > 2, depending on the value of "direction"
-#' @param return.names If TRUE, returns the rownames of selected genes; if
-#'   FALSE return boolean index of length(x)
-#' @param column If provided and return.names is TRUE, then return this column
-#' instead of the default rownames
+#' @param return_type If `return_type` is "rownames", return the rownames of
+#'   the dataframe of the significant genes. If "results", return a subset of
+#'   the original object. If "bool", then return an index of TRUE/FALSE.
 #'
-#' @return Character vector of rownames (if return.names=TRUE) or boolean vector of genes selected.
-get.sig <- function(x, direction='up', alpha=0.1, lfc.thresh=0, return.names=TRUE, column=NULL){
-    if (direction == 'up'){
-        idx <- (x$padj < alpha) & (x$log2FoldChange > lfc.thresh) & (!is.na(x$padj))
-    } else if (direction %in% c('down', 'dn')){
-        idx <- (x$padj < alpha) & (x$log2FoldChange < -lfc.thresh) & (!is.na(x$padj))
-    } else if (direction %in% c('changed', 'ch')){
-        idx <- (x$padj < alpha) & (abs(x$log2FoldChange) > lfc.thresh) & (!is.na(x$padj))
-    }
-    if (return.names){
-        if (!is.null(column)){
-          return(x[idx, column])
-        } else {
-          return(rownames(x)[idx])
-        }
-    } else {
-        return(idx)
-    }
+#' @return Character vector of rownames, bool vector, or subset of original
+#'   results object depending on the value of `return_type`.
+get_sig <- function(x, direction='up', alpha=0.1, lfc_thresh=0, return_type="rownames"){
+  if (direction == 'up'){
+    idx <- (x$padj < alpha) & (x$log2FoldChange > lfc_thresh) & (!is.na(x$padj))
+  } else if (direction %in% c('down', 'dn')){
+    idx <- (x$padj < alpha) & (x$log2FoldChange < -lfc_thresh) & (!is.na(x$padj))
+  } else if (direction %in% c('changed', 'ch')){
+    idx <- (x$padj < alpha) & (abs(x$log2FoldChange) > lfc_thresh) & (!is.na(x$padj))
+  }
+  if (return_type == "rownames"){
+    return(rownames(x)[idx])
+  } else if (return_type == "bool"){
+    return(idx)
+  } else if (return_type == "results"){
+    return(x[idx,])
+  } else {
+    stop(print0("Don't know how to handle return_type='", return_type, "'."))
+  }
 }
 
 
@@ -349,10 +349,10 @@ get.sig <- function(x, direction='up', alpha=0.1, lfc.thresh=0, return.names=TRU
 #' @return data.frame with original rownames moved to new first column with
 #' optional name. rownames on the new data.frame are set to NULL.
 rownames.first.col <- function(x, name='names'){
-    orig.names <- colnames(x)
-    x <- data.frame(rownames(x), x, row.names=NULL)
-    colnames(x) <- c(name, orig.names)
-    return(x)
+  orig.names <- colnames(x)
+  x <- data.frame(rownames(x), x, row.names=NULL)
+  colnames(x) <- c(name, orig.names)
+  return(x)
 }
 
 
