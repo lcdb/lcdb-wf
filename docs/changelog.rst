@@ -7,25 +7,91 @@ v1.9
 RNA-seq
 ~~~~~~~
 
-Lots of minor changes to ``rnaseq.Rmd``:
+**This version has major changes to** ``rnaseq.Rmd``. This file has been
+overhauled to be driven by a config file. This means you no longer need to dig
+through the various parts of the R code to identify all of the parts to change.
+Note that there is irreducible complexity in setting up the dds objects and
+contrasts, so that part remains. But the remaining configuration should be
+within the config file alone.
 
+The file,
+`workflows/rnaseq/downstream/config.yaml` is heavily commented to describe the
+various settings. The sections of the config are designed such that they can be
+used as additional chunk options to chunks in which they are used. This
+additional chunk option is used by RMarkdown to compute the hash of the chunk.
+The result is that making a change in the config file is sufficient to
+invalidate the cache of any chunks that specify that section as a chunk option.
+
+Another major change is that most of the complexity in the ``rnaseq.Rmd`` file
+has been factored out into the ``lcdbwf`` R package in ``lib/lcdbwf``. While
+this means that all code is no longer included in the final rendered HTML file,
+it does make the Rmd much more streamlined to work with. It also has the side
+effect of making it easier to write unit tests on separate functions.
+
+A somewhat major change is a new strategy for allowing ``results()`` calls to be
+split across multiple, independently-cached chunks that are then properly merged
+together into a single ``res.list`` object while handling dependencies (thanks
+to `@njohnso6 <https://github.com/njohnso6>`_). This dramatically speeds up the
+process of incrementally adding contrasts to complex experimental designs.
+
+Many helper functions have been added to the ``lcdbwf`` R package, including
+ones to streamline the creation of dds and results objects, composing and saving
+them
+
+In addition to these major changes, there are also many other improvements
+to ``rnaseq.Rmd``:
+
+    - AnnotationHub databases are only retrieved from cache when they are
+      needed. This dramatically speeds up rendering of the HTML, since before
+      the OrgDb would always load no matter what.
+    - Support for automatic retrieval and caching of TxDb
+    - Support for Kallisto or Salmon quantification with a simple true/false
+      toggle. Automatically sums to gene leve using automatically retrieved TxDb
+    - Expose configuration for incoming Kallisto and Salmon counts file patterns
+    - Support for creating dds objects from featureCounts, Salmon, or Kallisto
+      in such a way that they can be easily compared with each other.
+    - ``lcdbwf::compose_results()`` to combine res_list and dds_list objects
+      together
+    - Helper functions for retrieving global config and data structures (e.g.,
+      ``lcdbwf::get_config()``, ``lcdbwf::get_dds()``)
+    - Helper function ``lcdbwf::match_from_dots`` for working with `...`
+      arguments and splitting them up to only go to the functions they are
+      intended for
+    - Attaching info (e.g., adding SYMBOL to all results) is now much faster
+    - Generalized functional enrichment, currently using Gene Ontology and
+      MSigDB. MSigDb, via the ``msigdbr`` package, is available for multiple
+      species and so this incorporates Reactome and KEGG. But the generalized
+      method can be applied to any arbitrary gene sets, allowing for much more
+      customization.
+    - fixes to clusterProfiler::emapplot calls
+    - PCA plots and clustered heatmap rowsidecolors are now configured in the
+      config file.
+    - functional enrichment is now a completely separate file, using the
+      ``combined.Rds`` file as an intermediate between ``rnaseq.Rmd`` and
+      ``functional_enrichment.Rmd``.
+    - All-in-one enrichment function that runs either overrepresentation or
+      GSEA. Makes it much easier to do *ad hoc* tests.
+    - Helper function ``lcdbwf::enrich_list_lapply()`` to apply arbitrary
+      functions to the highly-nested `enrich_list` data structure
+    - Helper function ``lcdbwf::collect_objects`` to help compile discovered
+      results objects
+    - ``lcdbwf::get_sig()`` has more options for what to return
+    - Plotting wrappers for clusterProfiler plot functions, allowing plots to be
+      configured via the config file.
     - ensure 10 genes are always plotted in MA plots
-    - added volcano plots
+    - added volcano plots with labeled genes
     - removed top 3 and bottom 3 gene plots
     - PCA plots using plotly no longer need "unrolled" for-loops
-    - refactored some code (size factor plots, removing gene versions) to lcdbwf package
+    - size factor plots, removing gene versions moved to lcdbwf package
     - use datatable to show initial sampletable
     - make original dds_initial object the same way as later dds objects
     - "Differential expression" header moved so that code is no longer hidden
       under the size factors plot
-    - functional enrichment files are saved as tsv, not txt
+    - MA plots come first on the individual contrast results
     - option for filling in NA in symbol with Ensembl IDs
+    - collapseReplicates2 uses ``collapse_by`` rather than ``combine.by``
+    - updated the code style throughout to use the tidyverse/google style guide
 
-- new strategy for allowing ``results()`` calls to be split across multiple,
-  independently-cached chunks that are then properly merged together into
-  a single ``res.list`` object while handling dependencies (thanks `@njohnso6
-  <https://github.com/njohnso6>`_). This dramatically speeds up the process of
-  incrementally adding contrasts to complex experimental designs.
 
 v1.8
 ----
