@@ -24,3 +24,21 @@ A list of the same shape (same nesting, same keys) but with the
 \description{
 Apply a function to a nested enrichResults list
 }
+\details{
+The results from many functional enrichment runs across many contrasts can
+be tedious to work with. This function can be used to apply a function to
+each "leaf" enrichResults object in the list.
+
+The list is expected to have the structure:
+
+list(
+contrast_name=list(
+direction=list(
+ontology_name=enrichResults)
+)
+)
+
+That is, \code{enrich_list[["ko.vs.wt"]][["up"]][["BP"]]} will get the GO
+Biological Process enrichment results from the upregulated genes of contrast
+"ko.vs.wt".
+}

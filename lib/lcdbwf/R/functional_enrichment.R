@@ -117,6 +117,8 @@ get_go_term2gene <- function(config){
   colnames(goAnno) <- c(keytype, "GOALL")
   goAnno <- unique(goAnno[!is.na(goAnno[,1]), ])
   goAnno$ONTOLOGYALL <- goterms[goAnno$GOALL]
+
+  # Split up the dataframe and return as a list, one per annotation.
   lst <- list(
       MF=goAnno %>% dplyr::filter(ONTOLOGYALL=="MF") %>% dplyr::select(GOALL, !!keytype),
       CC=goAnno %>% dplyr::filter(ONTOLOGYALL=="CC") %>% dplyr::select(GOALL, !!keytype),
@@ -126,14 +128,25 @@ get_go_term2gene <- function(config){
   return(lst)
 }
 
+
+#' Get the MSigDB data for the organism provided in the config.
 get_msigdb_df <- function(config){
   x <- msigdbr::msigdbr(config$annotation$genus_species)
   return(x)
 }
 
+
 #' Return a list of MSigDB gene sets, one per subcategory
 #'
-#' Names of the list are concatenated category_subcategory.
+#' Note that the names of the list are concatenated gs_cat and gs_subcat, so
+#' that there is a single unique key for each subcategory. We can't use just
+#' subcategory because some categories (like "H") don't have subcategories.
+#'
+#' @param msigdb_df data.frame of MSigDB for the species, likely from
+#'   get_msigdb_df() or msigdbr::msigdbr().
+#'
+#' @return List of dataframes, item per unique category+subcategory
+#'   combination.
 get_msigdb_term2gene_list <- function(msigdb_df){
   x <- msigdb_df %>%
     mutate(geneset_key=paste(gs_cat, gs_subcat, sep="_") %>% str_replace("_$", "")) %>%
@@ -152,6 +165,9 @@ get_msigdb_term2gene_list <- function(msigdb_df){
 }
 
 #' TERM2NAME for MSigDB
+#'
+#' @param msigdb_df data.frame of MSigDB for the species, likely from
+#'   get_msigdb_df() or msigdbr::msigdbr().
 get_msigdb_term2name <- function(msigdb_df){
   x <- msigdb_df %>% dplyr::distinct(gs_name, gs_description) %>% as.data.frame
   return(x)
@@ -175,6 +191,12 @@ get_go_term2gene_alt <- function(orgdb, keytype){
 }
 
 #' Extract all GO IDs and their respective descriptions.
+#'
+#' This is used, e.g., as a TERM2NAME dataframe to provide to
+#' clusterProfiler::enricher or clusterProfiler::GSEA.
+#'
+#' @return Two-column data.frame, GO accession in first column and description
+#'   in the second.
 get_go_descriptions <- function(){
   term2name <- AnnotationDbi::select(GO.db::GO.db, keys=keys(GO.db::GO.db, "GOID"), c("GOID", "TERM"))
   return(term2name)
@@ -297,6 +319,25 @@ write.clusterprofiler.results <- function(res, cprof.folder, label){
 #'
 #' @return A list of the same shape (same nesting, same keys) but with the
 #' "leaves" replaced with whatever `func` returns.
+#' 
+#' @details
+#' The results from many functional enrichment runs across many contrasts can
+#' be tedious to work with. This function can be used to apply a function to
+#' each "leaf" enrichResults object in the list.
+#'
+#' The list is expected to have the structure:
+#'
+#'   list(
+#'     contrast_name=list(
+#'       direction=list(
+#'         ontology_name=enrichResults)
+#'       )
+#'   )
+#'
+#' That is, `enrich_list[["ko.vs.wt"]][["up"]][["BP"]]` will get the GO
+#' Biological Process enrichment results from the upregulated genes of contrast
+#' "ko.vs.wt".
+#'
 enrich_list_lapply <- function(enrich_list, func, send_names=FALSE, ...){
   out <- list()
   for (name in names(enrich_list)){
@@ -398,6 +439,9 @@ cnetplots <- function(enrich_res, config, name=NULL, direction=NULL, ont=NULL, t
 
 #' List keys for MSigDB that can be added to
 #' config$functional_enrichment$ontologies
+#"
+#' @return List of keys using the same concatenation of gs_cat and gs_subcat
+#'   that is used in the get_msigdb_term2gene_list function.
 available_msigdb_keys <- function(){
   df <- msigdbr::msigdbr_collections() %>%
     as.data.frame %>%

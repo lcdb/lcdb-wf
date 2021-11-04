@@ -6,6 +6,11 @@
 \usage{
 get_go_descriptions()
 }
+\value{
+Two-column data.frame, GO accession in first column and description
+in the second.
+}
 \description{
-Extract all GO IDs and their respective descriptions.
+This is used, e.g., as a TERM2NAME dataframe to provide to
+clusterProfiler::enricher or clusterProfiler::GSEA.
 }

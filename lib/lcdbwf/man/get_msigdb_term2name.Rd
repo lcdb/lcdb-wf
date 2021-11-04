@@ -6,6 +6,10 @@
 \usage{
 get_msigdb_term2name(msigdb_df)
 }
+\arguments{
+\item{msigdb_df}{data.frame of MSigDB for the species, likely from
+get_msigdb_df() or msigdbr::msigdbr().}
+}
 \description{
 TERM2NAME for MSigDB
 }

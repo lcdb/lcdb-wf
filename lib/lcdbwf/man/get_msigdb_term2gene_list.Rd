@@ -6,6 +6,16 @@
 \usage{
 get_msigdb_term2gene_list(msigdb_df)
 }
+\arguments{
+\item{msigdb_df}{data.frame of MSigDB for the species, likely from
+get_msigdb_df() or msigdbr::msigdbr().}
+}
+\value{
+List of dataframes, item per unique category+subcategory
+combination.
+}
 \description{
-Names of the list are concatenated category_subcategory.
+Note that the names of the list are concatenated gs_cat and gs_subcat, so
+that there is a single unique key for each subcategory. We can't use just
+subcategory because some categories (like "H") don't have subcategories.
 }

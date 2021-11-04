@@ -7,6 +7,10 @@ config$functional_enrichment$ontologies}
 \usage{
 available_msigdb_keys()
 }
+\value{
+List of keys using the same concatenation of gs_cat and gs_subcat
+that is used in the get_msigdb_term2gene_list function.
+}
 \description{
 List keys for MSigDB that can be added to
 config$functional_enrichment$ontologies

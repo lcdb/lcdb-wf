@@ -19,5 +19,6 @@ gene IDs from the first one to use as our keys.
 }
 \description{
 This can also fill in NAs in columns specified in the config with rownames
-(e.g., fill in missing symbols with Ensembl IDs)
+(e.g., fill in missing symbols with Ensembl IDs). See config documentation
+for details.
 }
