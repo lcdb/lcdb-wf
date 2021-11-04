@@ -471,3 +471,17 @@ get_config <- function(){
 
 
 
+#' Return only the list items in `dots` that are arguments for `func`
+#' 
+#' Thanks to
+#' https://community.rstudio.com/t/dots-vs-arg-lists-for-function-forwarding/4995/2
+#' for the idea.
+#'
+#' @param dots List of arguments, most often created via `list(...)`
+#' @param func Function that will be inspected for valid arguments
+#'
+#' @return List of arguments in `dots` that are valid arguments for `func`.
+match_from_dots <- function(dots, func){
+  arg <- match(names(formals(func)), names(dots))
+  dots[arg[!is.na(arg)]]
+}
