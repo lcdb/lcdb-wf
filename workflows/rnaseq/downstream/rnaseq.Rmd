@@ -364,6 +364,11 @@ tbl <- lcdbwf::exported_tsvs(res_list)
 knitr::kable(tbl, row.names=FALSE)
 ```
 
+```{r combined_rds, dependson='assemble_variables'}
+obj <- compose_results(res_list, dds_list)
+saveRDS(obj, file='combined.Rds')
+```
+
 ```{asis, eval=config$toggle$functional_enrichment}
 # Functional enrichment analysis
 
