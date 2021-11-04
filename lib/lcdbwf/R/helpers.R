@@ -426,15 +426,16 @@ nested.lapply <- function(x, subfunc, ...){
 compose_results <- function(res_list, dds_list, enrich_list){
 
   # Much of this function is just checking that the names all line up.
-  res_dds_names <- lapply(res_list, function (x) x$dds)
+  res_dds_names <- unlist(lapply(res_list, function (x) x$dds))
+  names(res_dds_names) <- NULL
   dds_dds_names <- names(dds_list)
-  res_not_dds <- setdiff(names(res_dds_names), names(dds_dds_names))
-  dds_not_res <- setdiff(names(dds_dds_names), names(res_dds_names))
+  res_not_dds <- setdiff(res_dds_names, dds_dds_names)
+  dds_not_res <- setdiff(dds_dds_names, res_dds_names)
   if (length(res_not_dds) > 0){
-    stop(paste("The following dds names are in res_list but are not found in dds_list:", res_not_dds))
+    stop(paste("The following dds names are in res_list but are not found in dds_list:", res_not_dds, '\n'))
   }
   if (length(dds_not_res) > 0){
-    warning(paste("The following dds names are in dds_list but not in res_list. This OK, but may be unexpected:", dds_not_res))
+    warning(paste("The following dds names are in dds_list but not in res_list. This OK, but may be unexpected:", dds_not_res, '\n'))
   }
 
   obj <- list(
