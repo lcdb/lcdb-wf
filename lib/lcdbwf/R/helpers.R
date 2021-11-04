@@ -457,4 +457,17 @@ compose_results <- function(res_list, dds_list, enrich_list){
 }
 
 
+#' Get config object from global env
+#'
+#' @return Config object (nested list) if in global env, otherwise NULL.
+get_config <- function(){
+  if ("config" %in% ls(.GlobalEnv)){
+    config <- get("config", .GlobalEnv)
+  } else {
+    config <- NULL
+  }
+  return(config)
+}
+
+
 
