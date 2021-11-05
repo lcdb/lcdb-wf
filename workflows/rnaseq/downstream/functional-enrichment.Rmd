@@ -1,3 +1,18 @@
+---
+title: Functional enrichment analysis
+output:
+    html_document:
+        code_folding: hide
+        toc: true
+        toc_float: true
+        toc_depth: 3
+---
+
+```{r}
+library(AnnotationHub)
+library(dplyr)
+```
+
 # Functional enrichment analysis
 
 Functional enrichment analysis tests to see if the genes of interest (e.g., up,
@@ -14,7 +29,7 @@ config <- yaml::yaml.load_file('config.yaml')
 ```
 
 ```{r load, cache=TRUE, cache.extra=file.info('combined.Rds')$mtime}
-load('combined.Rds')
+obj <- readRDS('combined.Rds')
 res_list <- obj$res_list
 dds_list <- obj$dds_list
 ```
@@ -72,19 +87,23 @@ for (name in names(res_list)){
 ```
 
 
-```{r functional_enrichment_plots, results='asis', eval=config$toggle$functional_enrichment, cache=TRUE}
-
-# Compose plots into similar structures
+```{r functional_enrichment_plots}
+# Interestingly, it's the *caching* that causes this to hang for a loooong time.
 dotplot_list <- enrich_list_lapply(all_enrich, dotplots, config=config, send_names=TRUE)
 emapplot_list <- enrich_list_lapply(all_enrich, emapplots, config=config, send_names=TRUE)
 cnetplot_list <- enrich_list_lapply(all_enrich, cnetplots, config=config, send_names=TRUE)
+```
 
+```{r, results='asis'}
 mdcat("There are many different databases that annotate genes into sets.",
       "The following sets are used here:")
 
 knitr::kable(config$functional_enrichment$ontologies %>% as.data.frame %>% t())
+```
 
-mdcat("## Plots {.tabset}")
+# Plots {.tabset}
+
+```{r, results='asis'}
 
 for (name in names(res_list)){
   mdcat("## ", name, "{.tabset}")
@@ -104,6 +123,7 @@ for (name in names(res_list)){
     }
   }
 }
+
 
 ```
 
