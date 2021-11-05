@@ -62,7 +62,7 @@ run_enrichment <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='O
   # clarity.
 
   # keys are term IDs, values are lists of gene IDs.
-  gc <- geneInCategory(e)
+  gc <- clusterProfiler::geneInCategory(e)
 
   # create a lookup of keytype -> label_column
   gn <- res$res[[config$annotation$label_column]]
@@ -149,10 +149,10 @@ get_msigdb_df <- function(config){
 #'   combination.
 get_msigdb_term2gene_list <- function(msigdb_df){
   x <- msigdb_df %>%
-    mutate(geneset_key=paste(gs_cat, gs_subcat, sep="_") %>% str_replace("_$", "")) %>%
-    group_by(geneset_key)
-  keys <- x %>% group_keys()
-  pieces <- x %>% group_split()
+    dplyr::mutate(geneset_key=paste(gs_cat, gs_subcat, sep="_") %>% str_replace("_$", "")) %>%
+    dplyr::group_by(geneset_key)
+  keys <- x %>% dplyr::group_keys()
+  pieces <- x %>% dplyr::group_split()
   names(pieces) <- keys$geneset_key
   pieces <- lapply(
     pieces, function(x) {

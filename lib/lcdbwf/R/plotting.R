@@ -5,9 +5,9 @@
 #'
 #' @return Handle to ggplot with added label field in aes_string() for plotting with ggplotly()
 plotPCA.ly <- function(rld, intgroup){
-  mat <- plotPCA(rld, intgroup, returnData=TRUE)
+  mat <- DESeq2::plotPCA(rld, intgroup, returnData=TRUE)
   pv <- attr(mat, 'percentVar')
-  p <- ggplot(data=mat, aes_string(x='PC1', y='PC2', color='group', label='name')) +
+  p <- ggplot2::ggplot(data=mat, aes_string(x='PC1', y='PC2', color='group', label='name')) +
           geom_point(size=3) + xlab(paste0('PC1: ', round(pv[1]*100), '% variance')) +
           ylab(paste0('PC2: ', round(pv[2]*100), '% variance')) + coord_fixed()
   return(p)
@@ -70,17 +70,17 @@ plotMA_label <- function(res,
   down.max.de <- down.max[rownames(down.max) %in% rownames(de.list),]
 
   # create ggplot with appropriate layers
-  p <- ggplot(res, aes(baseMean, log2FoldChange)) +
-    geom_point(col="gray40") + scale_x_log10() + ylim(fc_lim[1], fc_lim[2]) +
+  p <- ggplot2::ggplot(res, aes(baseMean, log2FoldChange)) +
+    ggplot2::geom_point(col="gray40") + scale_x_log10() + ylim(fc_lim[1], fc_lim[2]) +
     theme_bw() + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
 
-  p <- p + geom_hline(yintercept = 0, col="red", size=2, alpha=0.5)     # add horizontal line
-  p <- p + geom_point(data=up.max, col="gray40", pch=2)                 # add points above max y
-  p <- p + geom_point(data=down.max, col="gray40", pch=6)               # add points below min y
+  p <- p + ggplot2::geom_hline(yintercept = 0, col="red", size=2, alpha=0.5)     # add horizontal line
+  p <- p + ggplot2::geom_point(data=up.max, col="gray40", pch=2)                 # add points above max y
+  p <- p + ggplot2::geom_point(data=down.max, col="gray40", pch=6)               # add points below min y
 
-  p <- p + geom_point(data=de.list, col="red")                          # add DE points
-  p <- p + geom_point(data=up.max.de, col="red", pch=2)                 # add DE points above max y
-  p <- p + geom_point(data=down.max.de, col="red", pch=6)               # add DE points below min y
+  p <- p + ggplot2::geom_point(data=de.list, col="red")                          # add DE points
+  p <- p + ggplot2::geom_point(data=up.max.de, col="red", pch=2)                 # add DE points above max y
+  p <- p + ggplot2::geom_point(data=down.max.de, col="red", pch=6)               # add DE points below min y
 
 
   if(!is.null(genes_to_label)){
@@ -107,8 +107,8 @@ plotMA_label <- function(res,
     }
 
     # add labels
-    p <- p + geom_point(data=label.list, col="black", pch=1, size=3)
-    p <- p + geom_label_repel(data=label.list, aes(label=label.list$gene.labels, fontface="italic"))
+    p <- p + ggplot2::geom_point(data=label.list, col="black", pch=1, size=3)
+    p <- p + ggrepel::geom_label_repel(data=label.list, aes(label=label.list$gene.labels, fontface="italic"))
   }
   return(p)
 
@@ -175,12 +175,12 @@ plot_volcano_label <- function(res,
     geom_point(col="gray40") + xlim(fc_lim[1], fc_lim[2]) +
     theme_bw() + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
 
-  p <- p + geom_point(data=up.max, col="gray40", pch=2)                 # add points above max y
-  p <- p + geom_point(data=down.max, col="gray40", pch=6)               # add points below min y
+  p <- p + ggplot2::geom_point(data=up.max, col="gray40", pch=2)                 # add points above max y
+  p <- p + ggplot2::geom_point(data=down.max, col="gray40", pch=6)               # add points below min y
 
-  p <- p + geom_point(data=de.list, col="red")                          # add DE points
-  p <- p + geom_point(data=up.max.de, col="red", pch=2)                 # add DE points above max y
-  p <- p + geom_point(data=down.max.de, col="red", pch=6)               # add DE points below min y
+  p <- p + ggplot2::geom_point(data=de.list, col="red")                          # add DE points
+  p <- p + ggplot2::geom_point(data=up.max.de, col="red", pch=2)                 # add DE points above max y
+  p <- p + ggplot2::geom_point(data=down.max.de, col="red", pch=6)               # add DE points below min y
 
 
   if(!is.null(genes_to_label)){
@@ -210,8 +210,8 @@ plot_volcano_label <- function(res,
     }
 
     # add labels
-    p <- p + geom_point(data=label.list, col="black", pch=1, size=3)
-    p <- p + geom_label_repel(data=label.list, aes(label=label.list$gene.labels, fontface="italic"))
+    p <- p + ggplot2::geom_point(data=label.list, col="black", pch=1, size=3)
+    p <- p + ggrepel::geom_label_repel(data=label.list, aes(label=label.list$gene.labels, fontface="italic"))
   }
   return(p)
 
@@ -228,11 +228,11 @@ plot_heatmap <- function(rld, colData, cols_for_grouping){
     sampleDists <- dist(t(assay(rld)))
     sampleDistMatrix <- as.matrix(sampleDists)
     rownames(sampleDistMatrix) <- colnames(rld)
-    colors <- colorRampPalette(rev(brewer.pal(9, 'Blues')))(255)
+    colors <- colorRampPalette(rev(RColorBrewer::brewer.pal(9, 'Blues')))(255)
     df <- as.data.frame(colData(rld)[, cols_for_grouping])
     colnames(df) <- cols_for_grouping
     rownames(df) <- colnames(rld)
-    heatmaply(sampleDistMatrix,
+    heatmaply::heatmaply(sampleDistMatrix,
               scale='none',
               col=colors,
               row_side_colors=df,
@@ -269,11 +269,11 @@ my.counts <- function(gene, dds, label=NULL, intgroup='group'){
 
   # Assumption: color genes by group
   geneCounts <- plotCounts(dds, gene=gene, intgroup=intgroup, returnData=TRUE)
-  p <- ggplot(geneCounts, aes_string(x=intgroup, y='count', color=intgroup, group=intgroup)) +
+  p <- ggplot2::ggplot(geneCounts, aes_string(x=intgroup, y='count', color=intgroup, group=intgroup)) +
     scale_y_log10() +
-    geom_point(position=position_jitter(width=.1, height=0),  size=3) +
-    geom_line(color='#000000') +
-    ggtitle(gene)
+    ggplot2::geom_point(position=position_jitter(width=.1, height=0),  size=3) +
+    ggplot2::geom_line(color='#000000') +
+    ggplot2::ggtitle(gene)
 
   if (!is.null(label)){
     p <- p + ggtitle(label)
@@ -304,7 +304,7 @@ top.plots <- function(res, n, func, dds, add_cols=NULL, ...){
         }
         ps[[gene]] <- func(gene, dds, label=label, ...)
     }
-    grid.arrange(grobs=ps)
+    gridExtra::grid.arrange(grobs=ps)
 }
 
 #' Plot genes' normalized counts across samples
@@ -322,18 +322,18 @@ counts.plot <- function(df, rank.nb=NULL, no.aes=FALSE, facet='label') {
             filter(rank <= rank.nb)
     }
     df <- df %>%
-        arrange(rank) %>%
-        mutate(facet = factor(!!!syms(facet), levels = unique(!!!syms(facet))))
-    plt <- ggplot(df) +
-        scale_y_log10() +
-        geom_point(position=position_jitter(width=.1, height=0),  size=3) +
-        geom_line(color='#000000') +
-        theme_bw() +
-        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-        facet_wrap(.~facet, ncol=1, scales='free_y')
+        dplyr::arrange(rank) %>%
+        dplyr::mutate(facet = factor(!!!syms(facet), levels = unique(!!!syms(facet))))
+    plt <- ggplot2::ggplot(df) +
+        ggplot2::scale_y_log10() +
+        ggplot2::geom_point(position=position_jitter(width=.1, height=0),  size=3) +
+        ggplot2::geom_line(color='#000000') +
+        ggplot2::theme_bw() +
+        ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+        ggplot2::facet_wrap(.~facet, ncol=1, scales='free_y')
     if (!no.aes) {
         plt <- plt +
-            aes(y=normalized_counts, x=group, color=group)
+            ggplot2::aes(y=normalized_counts, x=group, color=group)
     }
     return(plt)
 }
@@ -355,13 +355,13 @@ sizefactors_barplot <- function(dds){
     dds <- DESeq2::estimateSizeFactors(dds)
     sf <- DESeq2::sizeFactors(dds)
     sf <- sf[order(sf)] %>%
-            enframe(value = 'Size Factor')
-    p <- ggplot(sf) +
-        aes(x=reorder(name, `Size Factor`), y=`Size Factor`) +
-        xlab('sample name') +
-        geom_col() +
-        theme_bw() +
-        theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1))
+            tibble::enframe(value = 'Size Factor')
+    p <- ggplot2::ggplot(sf) +
+        ggplot2::aes(x=reorder(name, `Size Factor`), y=`Size Factor`) +
+        ggplot2::xlab('sample name') +
+        ggplot2::geom_col() +
+        ggplot2::theme_bw() +
+        ggplot2::theme(axis.text.x=ggplot2::element_text(angle=90, vjust=0.5, hjust=1))
     return(p)
 }
 
@@ -372,13 +372,13 @@ sizefactors_vs_total <- function(dds){
     dds <- DESeq2::estimateSizeFactors(dds)
     sf <- DESeq2::sizeFactors(dds)
     sf <- sf[order(sf)] %>%
-            enframe(value = 'Size Factor')
+            tibble::enframe(value = 'Size Factor')
     trc <- colSums(counts(dds)) %>%
-            enframe(value = 'Total Read Count')
-    trc_vs_sf <- full_join(sf, trc, by='name')
-    p <- ggplot(data=trc_vs_sf, aes_string(x="`Total Read Count`", y="`Size Factor`", label='name')) +
-        geom_point(size=3) +
-        theme_bw() +
-        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+            tibble::enframe(value = 'Total Read Count')
+    trc_vs_sf <- dplyr::full_join(sf, trc, by='name')
+    p <- ggplot2::ggplot(data=trc_vs_sf, aes_string(x="`Total Read Count`", y="`Size Factor`", label='name')) +
+        ggplot2::geom_point(size=3) +
+        ggplot2::theme_bw() +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust=1))
     return(p)
 }

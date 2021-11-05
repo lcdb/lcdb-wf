@@ -28,7 +28,7 @@ DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable,
 
     # Read in the counts TSV, use gene ID as rownames, and get rid of the Chr,
     # Start, End, Strand, Length columns
-    m <- read_tsv(filename, comment="#") %>%
+    m <- readr::read_tsv(filename, comment="#") %>%
         remove_rownames %>%
         column_to_rownames('Geneid') %>%
         dplyr::select(-(1:5)) %>%
@@ -71,7 +71,7 @@ DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable,
 
     sampletable <- droplevels(as.data.frame(sampletable))
 
-    object <- DESeqDataSetFromMatrix(countData=m, colData=sampletable, design=design, ...)
+    object <- DESeq2::DESeqDataSetFromMatrix(countData=m, colData=sampletable, design=design, ...)
     return(object)
 }
 
@@ -100,7 +100,11 @@ DESeqDataSetFromFeatureCounts <- function (sampleTable, directory='.', design,
   colnames(tbl) <- sampleTable[, 1]
   rownames(tbl) <- l[[1]]$V1
   rownames(sampleTable) <- sampleTable[, 1]
-  object <- DESeqDataSetFromMatrix(countData=tbl, colData=sampleTable[, -grepl('path', colnames(sampleTable)),
-                                   drop=FALSE], design=design, ignoreRank, ...)
+  object <- DESeq2::DESeqDataSetFromMatrix(
+    countData=tbl,
+    colData=sampleTable[, -grepl('path', colnames(sampleTable)), drop=FALSE],
+    design=design,
+    ignoreRank,
+    ...)
   return(object)
 }

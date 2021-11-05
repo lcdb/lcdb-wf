@@ -1,17 +1,3 @@
-# -----------------------------------------------------------------------------
-library(DESeq2)
-library(pheatmap)
-library(RColorBrewer)
-library(DEGreport)
-library(ggplot2)
-library(ggrepel)
-library(heatmaply)
-library(readr)
-library(stringr)
-library(tibble)
-library(purrr)
-library(tidyr)
-
 
 # RMarkdown utilities --------------------------------------------------------
 
@@ -44,10 +30,10 @@ collect_objects <- function(pattern, fixed=FALSE){
   var_names <- var_names[grepl(pattern, var_names, fixed=fixed)]
 
   # names are variable names; values are objects
-  obj_list <- map(var_names, function(x) eval(parse(text=x)))
+  obj_list <- purrr::map(var_names, function(x) eval(parse(text=x)))
 
   # replace names with versions without the pattern
-  modified_names <- map(var_names, function(x) str_replace(x, pattern, ""))
+  modified_names <- purrr::map(var_names, function(x) stringr::str_replace(x, pattern, ""))
 
   # If there was a wildcard in the pattern there is a risk that the modified
   # names are no longer unique
@@ -75,9 +61,9 @@ mdcat <- function(...){
 #'
 lcdbwf.samplename <- function(x) {
     x <- x %>%
-        str_remove_all('data/rnaseq_samples/') %>%
-        str_remove_all('.cutadapt.bam') %>%
-        str_split(fixed('/'), simplify=TRUE)
+        stringr::str_remove_all('data/rnaseq_samples/') %>%
+        stringr::str_remove_all('.cutadapt.bam') %>%
+        stringr::str_split(stringr::fixed('/'), simplify=TRUE)
     x[,1]
 }
 
@@ -89,8 +75,8 @@ lcdbwf.samplename <- function(x) {
 genes_to_label <- function(res, n=5, config){
   filtered <- res %>%
     as.data.frame() %>%
-    arrange(log2FoldChange) %>%
-    filter(!is.na(log2FoldChange))
+    dplyr::arrange(log2FoldChange) %>%
+    dplyr::filter(!is.na(log2FoldChange))
 
   genes <- c(
     head(filtered, n)[[config$annotation$label_column]],
@@ -192,7 +178,7 @@ padj.order <- function(res, reverse=FALSE){
 counts.df <- function(dds, res, sel.genes=NULL, label=NULL, rank.col='padj', pc=0.5) {
 
     # getting normalized counts copied from plotCounts()
-    cnts <- counts(dds, normalized = TRUE, replaced = FALSE)
+    cnts <- DESeq2::counts(dds, normalized = TRUE, replaced = FALSE)
 
     # keep track of original samplenames (as we're about to add another column)
     samples <- colnames(cnts)
@@ -200,31 +186,31 @@ counts.df <- function(dds, res, sel.genes=NULL, label=NULL, rank.col='padj', pc=
     # add 0.5 like plotCounts to plot 0 on log scale
     cnts <- cnts + pc
 
-    cnts <- as.data.frame(cnts) %>% mutate(gene=rownames(.))
+    cnts <- as.data.frame(cnts) %>% dplyr::mutate(gene=rownames(.))
 
     # merge with res.i and colData
-    df <- inner_join(as_tibble(cnts), as_tibble(res))
+    df <- dplyr::inner_join(as_tibble(cnts), tibble::as_tibble(res))
 
     # add label for plotting
-    df <- df %>% mutate(label = paste(gene, !!!syms(label), sep=' | '))
+    df <- df %>% dplyr::mutate(label = paste(gene, !!!rlang::syms(label), sep=' | '))
     # subset to sel.genes if not NULL (then keep all)
     if (!is.null(sel.genes)) {
         df <- df %>%
-            filter(gene %in% sel.genes)
+            dplyr::filter(gene %in% sel.genes)
     }
     # add rank
     df <- df %>%
-        mutate(rank=rank(!!sym(rank.col), ties.method='first', na.last='keep')) %>%
-        pivot_longer(all_of(samples), names_to='samplename', values_to='normalized_counts')
+        dplyr::mutate(rank=rank(!!sym(rank.col), ties.method='first', na.last='keep')) %>%
+        tidyr::pivot_longer(all_of(samples), names_to='samplename', values_to='normalized_counts')
 
     # add colData, but without requiring the first column of colData to be
     # called exactly "samplename" -- instead we make a new column called
     # join.samplename that will be used just for joining (it becomes
     # "samplename" in the final joined df)
 
-    dat <- colData(dds) %>% as.data.frame %>% mutate(join.samplename=rownames(.))
+    dat <- colData(dds) %>% as.data.frame %>% dplyr::mutate(join.samplename=rownames(.))
     df <- left_join(df, dat, by=c('samplename'='join.samplename')) %>%
-        as_tibble
+        tibble::as_tibble
     return(df)
 }
 

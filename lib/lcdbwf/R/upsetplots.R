@@ -19,9 +19,9 @@ plot_upsets <- function(res_list, label_column=NULL, alpha=0.1, lfc_thresh=0){
     res_list,
     function(x) {
       list(
-        up=get_sig(x$res, alpha=alpha, lfc_thresh=lfc_thresh, "up", return_type="rownames"),
-        down=get_sig(x$res, alpha=alpha, lfc_thresh=lfc_thresh, "down", return_type="rownames"),
-        changed=get_sig(x$res, alpha=alpha, lfc_thresh=lfc_thresh, "changed", return_type="rownames")
+        up=lcdbwf::get_sig(x$res, alpha=alpha, lfc_thresh=lfc_thresh, "up", return_type="rownames"),
+        down=lcdbwf::get_sig(x$res, alpha=alpha, lfc_thresh=lfc_thresh, "down", return_type="rownames"),
+        changed=lcdbwf::get_sig(x$res, alpha=alpha, lfc_thresh=lfc_thresh, "changed", return_type="rownames")
       )
     }
   )
@@ -44,7 +44,7 @@ plot_upsets <- function(res_list, label_column=NULL, alpha=0.1, lfc_thresh=0){
           next
       }
 
-      print(upset(fromList(ll), order.by='freq', nsets=length(ll)))
+      print(upset(UpSetR::fromList(ll), order.by='freq', nsets=length(ll)))
       upset.df <- lcdbwf::fromList.with.names(ll)
       upset.df$names <- rownames(upset.df)
 
@@ -56,10 +56,10 @@ plot_upsets <- function(res_list, label_column=NULL, alpha=0.1, lfc_thresh=0){
 
       sort_cols <- colnames(df) %>% setdiff(first_cols)
       upset.df <- upset.df %>%
-          relocate(!!!first_cols) %>%
-          arrange(!!!sort_cols)
+          dplyr::relocate(!!!first_cols) %>%
+          dplyr::arrange(!!!sort_cols)
 
-      write.upset.plot.results(upset.df, sel.name)
+      lcdbwf::write.upset.plot.results(upset.df, sel.name)
   }
 }
 

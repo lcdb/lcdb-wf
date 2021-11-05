@@ -5,7 +5,7 @@
 
 #' Get the AnnotationHub object, using settings from config
 #'
-#' @param config
+#' @param config Config object
 #' @param localHub, force, cache Arguments passed on to AnnotationHub(); these
 #'   can be used to override what's in the config.
 get_annotation_hub <- function(config, localHub=NULL, force=NULL, cache=NULL){
@@ -25,7 +25,7 @@ get_annotation_hub <- function(config, localHub=NULL, force=NULL, cache=NULL){
     if (!dir.exists(cache)) dir.create(cache, recursive=TRUE)
   }
 
-  ah <- AnnotationHub(
+  ah <- AnnotationHub::AnnotationHub(
     hub=getAnnotationHubOption('URL'),
     proxy=proxy,
     localHub=localHub,
@@ -63,13 +63,14 @@ get_annotation_db <- function(config, dbtype, genus_species=NULL, orgdb_key_over
     if (missing(orgdb_key_override)) orgdb_key_override <- config$annotation$orgdb_key_override
     if (missing(txdb_key_override)) txdb_key_override <- config$annotation$txdb_key_override
 
-    ah <- get_annotation_hub(config, cache=cache)
+    ah <- lcdbwf::get_annotation_hub(config, cache=cache)
 
     # If an override was provided, immediately return the corresponding db.
     if (!is.null(orgdb_key_override) & dbtype == "OrgDb") return(ah[[orgdb_key_override]])
     if (!is.null(txdb_key_override) & dbtype == "TxDb") return(ah[[txdb_key_override]])
 
-    ah.query <- query(ah, c(genus_species, dbtype))
+    ah.query <- AnnotationHub::query(ah, c(genus_species, dbtype))
+
 
     # Ensure that the species matches exactly
     if (!all(ah.query$species == genus_species)){ 
@@ -83,7 +84,7 @@ get_annotation_db <- function(config, dbtype, genus_species=NULL, orgdb_key_over
 
     hits <- mcols(ah.query) %>%
       as.data.frame() %>%
-      arrange(desc(rdatadateadded)) %>%
+      dplyr::arrange(desc(rdatadateadded)) %>%
       dplyr::filter(rdataclass==dbtype)
 
     db_to_use <- hits[1,]
@@ -124,7 +125,7 @@ attach_extra <- function(res_list, config, force_intersect){
       # Take advantage of utilities originally used for UpSet plots to get the
       # set of genes found in all lists
       warning("Keeping only the intersecting set of genes across all results lists because force_intersect=TRUE.")
-      keep <- fromList.with.names(nms)
+      keep <- lcdbwf::fromList.with.names(nms)
       keep <- rownames(keep[rowSums(keep) == ncol(keep),])
       res_list <- lapply(res_list, function (x) {
           x$res <- x$res[keep,]

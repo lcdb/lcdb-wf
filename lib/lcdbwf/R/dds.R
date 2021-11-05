@@ -52,12 +52,12 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
                      ...){
 
   # Note we're using pluck() here for the conveneience of setting defaults
-  coldata <- pluck(design_data, 'sampletable')
-  design <- pluck(design_data, 'design')
-  location <- pluck(design_data, 'file', .default=featureCounts)
-  salmon <- pluck(design_data, 'salmon')
-  kallisto <- pluck(design_data, 'kallisto')
-  arg_list <- pluck(design_data, 'args')
+  coldata <- purrr::pluck(design_data, 'sampletable')
+  design <- purrr::pluck(design_data, 'design')
+  location <- purrr::pluck(design_data, 'file', .default=featureCounts)
+  salmon <- purrr::pluck(design_data, 'salmon')
+  kallisto <- purrr::pluck(design_data, 'kallisto')
+  arg_list <- purrr::pluck(design_data, 'args')
 
   # Allow overriding of config values.
   if (!is.null(config)){
@@ -92,17 +92,17 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
 
   if (salmon){
       coldata$salmon.path <- sapply(coldata$samplename, function (x) gsub("__SAMPLENAME__", x, salmon_pattern))
-      txi <- tximport(coldata[, 'salmon.path'], type='salmon', tx2gene=tx2gene, ignoreTxVersion=strip_dotted_version)
-      dds <- DESeqDataSetFromTximport(txi, colData=coldata, design=design)
+      txi <- tximport::tximport(coldata[, 'salmon.path'], type='salmon', tx2gene=tx2gene, ignoreTxVersion=strip_dotted_version)
+      dds <- DESeq2::DESeqDataSetFromTximport(txi, colData=coldata, design=design)
 
   } else if (kallisto) {
       coldata$kallisto.path <- sapply(coldata$samplename, function (x) gsub("__SAMPLENAME__", x, kallisto_pattern))
-      txi <- tximport(coldata[, 'kallisto.path'], type='kallisto', tx2gene=tx2gene, ignoreTxVersion=strip_dotted_version)
-      dds <- DESeqDataSetFromTximport(txi, colData=coldata, design=design)
+      txi <- tximport::tximport(coldata[, 'kallisto.path'], type='kallisto', tx2gene=tx2gene, ignoreTxVersion=strip_dotted_version)
+      dds <- DESeq2::DESeqDataSetFromTximport(txi, colData=coldata, design=design)
 
   } else {
-      dds <- exec(
-          DESeqDataSetFromCombinedFeatureCounts,
+      dds <- rlang::exec(
+          lcdbwf::DESeqDataSetFromCombinedFeatureCounts,
               location,
               sampletable=coldata,
               design=design,
