@@ -382,3 +382,22 @@ sizefactors_vs_total <- function(dds){
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust=1))
     return(p)
 }
+
+
+#' Version of DESeq2::plotSparsity with ggplot2
+plotSparsity2 <- function(dds){
+  x <- counts(dds, normalize=TRUE)
+  metadata <- S4Vectors::elementMetadata(dds) %>% as.data.frame()
+  metadata$rowsums <- rowSums(x)
+  metadata$rowmax <- apply(x, 1, max)
+
+  ggplot2::ggplot(
+    metadata %>%
+      filter(rowsums > 0)) +
+    ggplot2::aes(x=log10(rowsums), y=rowmax/rowsums) +
+    ggplot2::geom_point() +
+    ggplot2::xlab('sum of counts per gene') +
+    ggplot2::ylab('max count / sum')
+}
+
+
