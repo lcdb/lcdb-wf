@@ -172,7 +172,7 @@ p <- lcdbwf::sizefactors_vs_total(dds_initial)
 ggplotly(p)
 ```
 
-# Differential expression {.tabset}
+
 
 ```{r dds_list, cache=TRUE, config=config$main}
 # Create a list of dds objects used as the basis for differential expression.
@@ -198,6 +198,25 @@ lst <- list(
           )
 dds_list <- map(lst, lcdbwf::make_dds, config=config, parallel=config$parallel$parallel)
 ```
+
+## Other diagnostics {.tabset}
+
+
+```{r, results='asis', cache=TRUE, dependson='dds_list'}
+for (name in names(dds_list)){
+  mdcat("### ", name, '{.tabset}')
+  mdcat("#### Dispersion estimates")
+  DESeq2::plotDispEsts(dds_list[[name]])
+
+  mdcat("#### Sparsity plot")
+  mdcat("This plot can be used to see if the majority of genes with high counts are",
+    "coming from individual (or a small number of) samples.")
+  print(lcdbwf::plotSparsity2(dds_list[[name]]))
+
+}
+```
+
+# Differential expression {.tabset}
 
 ```{r results_01, dependson='dds_list', cache=TRUE}
 # Perform differential expression testing.
