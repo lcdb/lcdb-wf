@@ -7,6 +7,8 @@
 get_annotation_hub(config, localHub = NULL, force = NULL, cache = NULL)
 }
 \arguments{
+\item{config}{Config object}
+
 \item{localHub, }{force, cache Arguments passed on to AnnotationHub(); these
 can be used to override what's in the config.}
 }
