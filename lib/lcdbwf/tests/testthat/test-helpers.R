@@ -1,6 +1,5 @@
 # This results object, used for testing, uses the results from
 # res_list[[1]]$res which is the "main" contrast
-
 res <- new("DESeqResults", priorInfo = list(), rownames = c("FBgn0000061",
 "FBgn0000442", "FBgn0001142", "FBgn0002121", "FBgn0002563", "FBgn0002593",
 "FBgn0002931", "FBgn0002936", "FBgn0003278", "FBgn0003444", "FBgn0003916",
@@ -483,7 +482,7 @@ res <- new("DESeqResults", priorInfo = list(), rownames = c("FBgn0000061",
             0.778251782640767, 0.79542660437669, 0.812601426112614,
             0.829776247848537, 0.84695106958446, 0.864125891320384,
             0.881300713056307, 0.89847553479223, 0.915650356528153,
-            0.9328251782 "Q06453", "Q03042", "E1JHQ1",64077, 0.95), numRej = c(22, 22, 22,
+            0.932825178264077, 0.95), numRej = c(22, 22, 22,
             22, 22, 22, 22, 22, 22, 22, 21, 21, 21, 19, 18, 17,
             17, 17, 17, 17, 16, 16, 16, 15, 15, 14, 14, 14, 14,
             14, 14, 14, 14, 13, 13, 12, 11, 11, 11, 12, 11, 9,
@@ -531,9 +530,6 @@ res <- new("DESeqResults", priorInfo = list(), rownames = c("FBgn0000061",
             7.78683583982134, 7.27254473551235, 6.73785520278497,
             6.20226009509133, 5.66232431594287)), alpha = 0.1,
         lfcThreshold = 0))
-
-
-
 
 
 test_that("lcdbwf.samplename works", {

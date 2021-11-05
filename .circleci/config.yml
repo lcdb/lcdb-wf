@@ -189,6 +189,8 @@ variables:
           # outside the context of the Snakefile.
           source activate lcdb-wf-test-r
 
+          Rscript -e "devtools::test('lib/lcdbwf')"
+
           # This script runs the preprocessor on the Rmd files and stores them
           # in a new download-test directory (see the comments in the script
           # for details)

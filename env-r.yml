@@ -317,6 +317,7 @@ dependencies:
   - r-stringr=1.4.0=r40h6115d3f_2
   - r-survival=3.2_10=r40hcfec24a_0
   - r-sys=3.4=r40hcdcec82_0
+  - r-testthat
   - r-testthat=3.0.2=r40h03ef668_0
   - r-tibble=3.1.1=r40hcfec24a_0
   - r-tidygraph=1.2.0=r40h0357c0b_0
