@@ -4,7 +4,7 @@
 \alias{strip_dotted_version_from_dds}
 \title{Strip dotted version off of the rownames of a dds object}
 \usage{
-strip_dotted_version_from_dds(dds)
+strip_dotted_version_from_dds(dds, force = FALSE)
 }
 \arguments{
 \item{dds}{DESeqDataSet object}

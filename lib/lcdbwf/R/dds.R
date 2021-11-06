@@ -128,7 +128,13 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
 #' versions from the gene IDs of a DESeqDataSet object.
 #'
 #' @param dds DESeqDataSet object
-strip_dotted_version_from_dds <- function(dds){
+strip_dotted_version_from_dds <- function(dds, force=FALSE){
+
+  check <- head(rownames(dds), 500)
+  if (!all(grepl("^ENS", check)) && !force){
+    stop(paste("Gene names don't appear to be Ensembl, if you really want",
+               "to remove versions, then use force=TRUE"))
+  }
   rownames(dds) <- sapply(
     strsplit(rownames(dds),'.', fixed=TRUE),
     function (x) {ifelse(grepl('_', x[2]), paste(x[1], x[2], sep='.'), x[1])}
