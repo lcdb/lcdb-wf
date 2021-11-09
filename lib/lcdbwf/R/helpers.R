@@ -104,6 +104,25 @@ exported_tsvs <- function(res_list, directory="results"){
   return(df)
 }
 
+#' Export Excel file of results
+#'
+#' One contrast per worksheet, with normalized counts and filters enabled
+exported_excel <- function(res_list, dds_list, file='results.xlsx'){
+  wb <- openxlsx::createWorkbook()
+  for (name in names(res_list)){
+    res <- res_list[[name]]$res %>% as.data.frame()
+    label <- res_list[[name]]$label
+    dds <- dds_list[[res_list[[name]]$dds]]
+    cnts <- DESeq2::counts(dds, normalized=TRUE) %>% as.data.frame()
+    colnames(cnts) <- paste('normcounts_', colnames(cnts))
+    cnts$gene <- rownames(cnts)
+    data <- dplyr::full_join(res, cnts, by='gene')
+    openxlsx::addWorksheet(wb, name)
+    openxlsx::writeData(wb, name, x=data, withFilter=TRUE)
+  }
+  openxlsx::saveWorkbook(wb, file=file, overwrite=TRUE)
+}
+
 #' Compute label for one component of an arbitrary design matrix
 #'
 #' @param pattern.mat single row from unique(model.matrix) call from a dds object
