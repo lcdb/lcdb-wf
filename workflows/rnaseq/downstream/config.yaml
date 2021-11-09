@@ -17,7 +17,7 @@ main:
   # If you are using Ensembl annotations with gene IDs like ENSG000001.1 (with
   # the dotted version number), then these genes will not be found in the
   # OrgDb. Set this to TRUE to strip off the dotted version to fix this.
-  strip_dotted_version: TRUE
+  strip_dotted_version: FALSE
 
   # If you have technical replicates, you can automatically collapse them.
   # Provide a column in colData here, and for each unique value in the column
