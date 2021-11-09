@@ -13,5 +13,7 @@ pval_hist(res)
 Side effect is to create plot
 }
 \description{
-Plot a histogram of raw pvals
+This is right out of the DESeq2 vignette, from the section about independent
+filtering. The resulting histogram indicates pvals for those genes kept and
+removed before multiple testing adjustment.
 }
