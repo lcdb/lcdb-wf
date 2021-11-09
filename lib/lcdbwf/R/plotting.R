@@ -340,12 +340,23 @@ counts.plot <- function(df, rank.nb=NULL, no.aes=FALSE, facet='label') {
 
 #' Plot a histogram of raw pvals
 #'
+#' This is right out of the DESeq2 vignette, from the section about independent
+#' filtering. The resulting histogram indicates pvals for those genes kept and
+#' removed before multiple testing adjustment.
+#'
 #' @param res DESeq2 results object
 #'
 #' @return Side effect is to create plot
 pval_hist <- function(res){
-    hist(res$pvalue[res$baseMean>1], breaks=0:20/20, col='grey50',
-         border='white', xlab='P-value', main='Distribution of p-values')
+  use <- res$baseMean > metadata(res)$filterThreshold
+  h1 <- hist(res$pvalue[!use], breaks=0:50/50, plot=FALSE)
+  h2 <- hist(res$pvalue[use], breaks=0:50/50, plot=FALSE)
+  colori <- c(`counts too low`='khaki', `pass`="powderblue")
+  barplot(height = rbind(h1$counts, h2$counts), beside = FALSE,
+          col = colori, space = 0, main = "", ylab="frequency")
+  text(x = c(0, length(h1$counts)), y = 0, label = paste(c(0,1)),
+       adj = c(0.5,1.7), xpd=NA)
+  legend("topright", fill=rev(colori), legend=rev(names(colori)))
 }
 
 #' Barplot of size factors by sample
