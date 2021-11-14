@@ -87,6 +87,9 @@ library(UpSetR)
 # Set up all of the metadata for the samples and experimental design. Use this
 # chunk to modify if needed.
 colData <- read.table(config$main$sampletable, sep='\t', header=TRUE, stringsAsFactors=FALSE)
+
+# lcdb-wf requires that the first column of the sampletable contains sample
+# names. Use that to set the rownames.
 rownames(colData) <- colData[,1]
 ```
 
@@ -146,30 +149,12 @@ for(group in config$plotting$covariates_for_plots){
 }
 ```
 
-```{asis, echo=!(config$toggle$salmon | config$toggle$kallisto)}
-
-## Size factors {.tabset}
-
-Ideally, all libraries were sequenced to identical depth, in which case all
-size factors would be 1.0. In practice, this is almost never the case due to
-the difficulties of accurately measuring low concentrations of cDNA. These size
-factor estimates are DESeq2's way of showing how sequencing depth varies across
-libraries. If some libraries are much higher or lower than
-1 then those libraries had dramatically different coverage and we should be
-careful about interpreting results.
-
-Size factors are calculated according to the median-ratio method (equation 5 of
-[Anders & Huber
-2010](http://dx.doi.org/10.1186/gb-2010-11-10-r106)).
-
-These diagnostic plots show the size factors (as a ranked bar plot) and the
-relationship between the size factors and the total read count (as
-a scatterplot).
-```
-
 ```{r, results='asis', eval=!(config$toggle$salmon | config$toggle$kallisto)}
+# Note that when loading Salmon or Kallisto, DESeq2 does not calculate size
+# factors.
+
+mdcat(text$sizefactors)
 mdcat("### Size factors")
-# Plot size factors vs total read counts for QC.
 p <- lcdbwf::sizefactors_barplot(dds_initial)
 ggplotly(p)
 
@@ -205,24 +190,22 @@ lst <- list(
 dds_list <- map(lst, lcdbwf::make_dds, config=config, parallel=config$parallel$parallel)
 ```
 
-## Other diagnostics {.tabset}
 
-
-```{r, results='asis', cache=TRUE, dependson='dds_list'}
-for (name in names(dds_list)){
-  mdcat("### ", name, '{.tabset}')
-  mdcat("#### Dispersion estimates")
-  DESeq2::plotDispEsts(dds_list[[name]])
-
-  mdcat("#### Sparsity plot")
-  mdcat("This plot can be used to see if the majority of genes with high counts are",
-    "coming from individual (or a small number of) samples.")
-  print(lcdbwf::plotSparsity2(dds_list[[name]]))
-
-}
+```{r, results='asis', cache=TRUE, dependson='dds_list', config=config$toggle$dds_diagnostics}
+if (config$toggle$dds_diagnostics){ lcdbwf::dds_diagnostics(dds_list, text) }
 ```
 
 # Differential expression {.tabset}
+
+Now we perform differential expression analysis for the contrasts listed in the table below.
+
+Under the table are tabs, one for each contrast. Under each contrast's tab, there are more tabs for the various output.
+
+
+```{r, results='asis'}
+lcdbwf::folded_markdown(text$results_table, "Help for table")
+```
+
 
 ```{r results_01, dependson='dds_list', cache=TRUE}
 # Perform differential expression testing.
@@ -298,24 +281,9 @@ res_list <- lcdbwf::collect_objects("^contr_")
 res_list <- lcdbwf::attach_extra(res_list, config)
 ```
 
-Here is a table summarizing the comparisons. See the [Background and
-help](#Help) section for details.
-
 ```{r, results='asis'}
-knitr::kable(summarize_res_list(res_list, config$main$alpha, config$main$lfc_thresh, dds_list))
+summarize_res_list(res_list) %>% datatable
 ```
-
-For each comparison there is a tab and under each tab are the following:
-
-- summary of results (the line from the summary table above for this comparison)
-- Normalized counts plots for the top 3 upregulated genes
-- Normalized counts plots for the top 3 down-regulated genes
-- an M-A plot
-- a p-value histogram
-
-
-See the [Background and help](#Help) section for details on these.
-
 
 ```{r reportresults, results='asis', config=config$annotation, dependson='assemble_variables', cache=TRUE}
 # Create nested tabs showing the results.
@@ -326,8 +294,7 @@ for (name in names(res_list)){
   dds_i <- dds_list[[res_list[[name]][['dds']] ]]
   res_i <- res_list[[name]][['res']]
   label <- res_list[[name]][['label']]
-  genes_to_label <- lcdbwf::genes_to_label(res_i, n=10, config)
-
+  genes_to_label <- lcdbwf::genes_to_label(res_i, n=5, config)
   lcdbwf::mdcat('## ', label, ' {.tabset}')
 
   # TODO:
@@ -335,21 +302,21 @@ for (name in names(res_list)){
   # is the latest version
 
   lcdbwf::mdcat('### M-A plot')
+  lcdbwf::folded_markdown(text$results_plots$ma, "Help")
   print(lcdbwf::plotMA_label(
     res_i,
     genes_to_label=genes_to_label,
     label_column=config$annotation$label_column))
 
   lcdbwf::mdcat('### Volcano plot')
+  lcdbwf::folded_markdown(text$results_plots$volcano, "Help")
   print(lcdbwf::plot_volcano_label(
     res_i,
     genes_to_label=genes_to_label,
     label_column=config$annotation$label_column))
 
-  lcdbwf::mdcat('### Summary')
-  print(knitr::kable(lcdbwf::my_summary(res_i, dds_i)))
-
   lcdbwf::mdcat('### P-value distribution')
+  lcdbwf::folded_markdown(text$results_plots$pval_hist, "Help")
   lcdbwf::pval_hist(res_i)
 }
 ```
@@ -364,24 +331,29 @@ overlaps of genes found to be up or down across the different contrasts
 performed. It's much like a Venn diagram, but easier to interpret and can scale
 to many comparisons.
 
-A gene can only be found in one column in an UpSet plot. So if you want to
-confirm that the number of genes for a contrast matches the results tables and
-MA plots, you need to sum all the bars for which there is a dot in that
-contrast's row.
-
 A TSV file is linked under each plot. This file has rows for each gene and
 columns for each contrast. A `1` indicates that gene was found to be
 up/down/changed in that contrast.
+
+**Interpretation notes:** A gene can only be found in one column in an UpSet plot. So if you want to
+confirm that the number of genes for a contrast matches the results tables and
+MA plots, you need to sum all the bars for which there is a dot in that
+contrast's row.
 ```
 
+
 ```{r upsetplots, results='asis', eval=length(res_list)>1, config=config$annotation, dependson='selections'}
+
 # Compare overlap across multiple differential expression contrasts.
 lcdbwf::plot_upsets(res_list, label_column=config$annotation$label_column)
 ```
 
 # Exported results
 
-The files below are TSVs that can be opened in Excel:
+Single Excel file with worksheets for each contrast: [results/consolidated_results.xlsx](results/consolidated_results.xlsx)
+
+Alternatively, the files below are TSVs that can be opened in Excel or used
+progammatically with downstream tools:
 
 ```{r, results='asis'}
 # Write out files for full and each selection, and create a link to them in the
@@ -406,12 +378,4 @@ versions of all packages used here.
 
 ```{r, collapse=FALSE}
 sessionInfo()
-```
-
-
-# Help
-
-```{r helpdocs, child="help_docs.Rmd", run_pandoc=FALSE, eval=config$toggle$help_docs}
-# Include the help text, useful for first-time collaborators.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#helpdocs
 ```
