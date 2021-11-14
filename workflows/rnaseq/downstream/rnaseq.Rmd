@@ -25,6 +25,9 @@ knitr::opts_chunk$set(
 devtools::document('../../../lib/lcdbwf')
 devtools::load_all('../../../lib/lcdbwf')
 ```
+
+```{r config}
+
 # HOW TO CONFIGURE ------------------------------------------------------
 # Any chunks below that depend on config options should be cached and use one
 # or more sections of the config object as arbitrary additional chunk options.
@@ -37,7 +40,11 @@ devtools::load_all('../../../lib/lcdbwf')
 # invalidate that chunk's cache -- along with any other chunks that also have
 # config$annotation included as a chunk option.
 #
-config <- yaml::yaml.load_file('config.yaml')
+config <- lcdbwf::load_config('config.yaml')
+
+# To keep this Rmd streamlined, much of the text is stored in a different file,
+# text.yaml, and accessed via the `text` list after it is loaded here.
+text <- yaml::yaml.load_file('text.yaml')
 
 parallel <- config$parallel$parallel
 if (config$parallel$parallel){
