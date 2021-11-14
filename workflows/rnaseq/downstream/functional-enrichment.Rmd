@@ -109,6 +109,10 @@ for (name in names(res_list)){
   mdcat("## ", name, "{.tabset}")
   for (direction in config$functional_enrichment$directions){
     mdcat("### ", direction, "{.tabset}")
+    if (length(all_enrich[[name]][[direction]]) == 0){
+      mdcat("Too few genes differentially expressed.")
+      next
+    }
     for (ont in names(all_enrich[[name]][[direction]])){
       mdcat("#### ", ont, "{.tabset}")
 
