@@ -1,19 +1,20 @@
 #' Helper function to get dds object from global env.
 #'
 #' @param dds If string, then look for that name in `dds_list` in the global
-#'   env. Otherwise, return it as-is.
+#' env. Otherwise, assume it's already a dds and immmediately return it.
 get_dds <- function(dds){
-  if (class(dds) == 'character'){
-    if (!'dds_list' %in% ls(.GlobalEnv)){
-      stop("Can't find dds_list in global environment.")
-    }
-    dds_list_local <- get("dds_list", .GlobalEnv)
-
-    if (!(dds %in% names(dds_list_local))){
-      stop(paste("Can't find name", dds, "in dds_list"))
-    }
-    dds <- dds_list_local[[dds]]
+  if (class(dds) != 'character'){
+    return(dds)
   }
+
+  if (!'dds_list' %in% ls(.GlobalEnv)){
+    stop("Can't find dds_list in global environment.")
+  }
+  dds_list_local <- get("dds_list", .GlobalEnv)
+  if (!(dds %in% names(dds_list_local))){
+    stop(paste("Can't find name", dds, "in dds_list"))
+  }
+  dds <- dds_list_local[[dds]]
   return(dds)
 }
 
