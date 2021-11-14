@@ -20,6 +20,11 @@ knitr::opts_chunk$set(
 ```
 
 ```{r}
+# Load the lcdbwf R package, which is stored locally.
+# This package has many custom functions used throughout this document.
+devtools::document('../../../lib/lcdbwf')
+devtools::load_all('../../../lib/lcdbwf')
+```
 # HOW TO CONFIGURE ------------------------------------------------------
 # Any chunks below that depend on config options should be cached and use one
 # or more sections of the config object as arbitrary additional chunk options.
@@ -70,12 +75,6 @@ library(UpSetR)
 ```
 
 
-```{r load_helpers}
-# Load the lcdbwf R package, which is stored locally.
-# This package has many custom functions used throughout this document.
-devtools::document('../../../lib/lcdbwf')
-devtools::load_all('../../../lib/lcdbwf')
-```
 
 ```{r coldata_setup}
 # Set up all of the metadata for the samples and experimental design. Use this
