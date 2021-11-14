@@ -25,7 +25,7 @@ a particular annotation category.
 devtools::document('../../../lib/lcdbwf')
 devtools::load_all('../../../lib/lcdbwf')
 
-config <- yaml::yaml.load_file('config.yaml')
+config <- lcdbwf::load_config('config.yaml')
 ```
 
 ```{r load, cache=TRUE, cache.extra=file.info('combined.Rds')$mtime}
