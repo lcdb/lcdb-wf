@@ -146,7 +146,6 @@ make_results <- function(dds_name, label, ...){
   dots[['dds']] <- dds
   res <- do.call("lfcShrink", lcdbwf::match_from_dots(dots, lfcShrink))
 
-
   return(
     list(
       res=res,
@@ -156,3 +155,33 @@ make_results <- function(dds_name, label, ...){
   )
 }
 
+
+results_diagnostics <- function(res, dds, name, config, text){
+    lcdbwf::mdcat('### Other diagnostics')
+    print(knitr::kable(lcdbwf::my_summary(res, dds, name)))
+
+    lcdbwf::folded_markdown(text$results_diagnostics$filter_ma, "Help")
+    filterThreshold <- metadata(res)$filterThreshold
+    p <- ggplot(res %>% as.data.frame() %>% mutate(filtered=res$baseMean < filterThreshold)) +
+      aes(x=log10(baseMean), y=log2FoldChange, color=filtered) +
+      geom_point()
+    print(p)
+
+    lcdbwf::folded_markdown(text$results_diagnostics$outlier_ma, "Help")
+    p <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
+      aes(x=log10(baseMean), y=log2FoldChange, color=outlier) +
+      geom_point()
+    print(p)
+
+    lcdbwf::folded_markdown(text$results_diagnostics$lfcse_basemean, "Help")
+    p <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
+      aes(x=log10(baseMean), y=lfcSE, color=outlier) +
+      geom_point()
+    print(p)
+
+    lcdbwf::folded_markdown(text$results_diagnostics$lfcse_lfc, "Help")
+    p <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
+      aes(x=log2FoldChange, y=lfcSE, color=outlier) +
+      geom_point()
+    print(p)
+}
