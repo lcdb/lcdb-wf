@@ -153,16 +153,32 @@ exported_tsvs <- function(res_list, directory="results"){
 #' Export Excel file of results
 #'
 #' One contrast per worksheet, with normalized counts and filters enabled
+#'
+#' @param res_list Results list object
+#' @param dds_list List of dds objects
+#' @param file Output .xlxs file
+#'
 exported_excel <- function(res_list, dds_list, file='results.xlsx'){
   wb <- openxlsx::createWorkbook()
+  key <- lapply(names(res_list), function (x) res_list[[x]]$label)
+  names(key) <- names(res_list)
   for (name in names(res_list)){
     res <- res_list[[name]]$res %>% as.data.frame()
     label <- res_list[[name]]$label
+
+    # Add derived columns based on NA
+    res$low_count_filtered <- (!is.na(res$padj) && is.na(res$padj))
+    res$outlier <- (res$baseMean  >0 && is.na(res$padj))
+
+    # add the normalized counts as additional columns
     dds <- dds_list[[res_list[[name]]$dds]]
     cnts <- DESeq2::counts(dds, normalized=TRUE) %>% as.data.frame()
     colnames(cnts) <- paste('normcounts_', colnames(cnts))
     cnts$gene <- rownames(cnts)
     data <- dplyr::full_join(res, cnts, by='gene')
+
+    # Note that we can't use `label` here because there are restrictions on the
+    # size and content of sheet names.
     openxlsx::addWorksheet(wb, name)
     openxlsx::writeData(wb, name, x=data, withFilter=TRUE)
   }
