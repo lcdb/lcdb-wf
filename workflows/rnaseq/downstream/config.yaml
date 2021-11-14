@@ -8,6 +8,9 @@
 # chunks may depend on one or more of these sections. Changing a value in
 # a section will cause all chunks depending on that section to be re-run.
 
+
+# MAIN -------------------------------------------------------------------------
+# This section configures global options
 main:
 
   # Path to sample table. It can be modified in the colData chunk if needed.
@@ -26,11 +29,6 @@ main:
   # technical replicates share the same biological replicate ID.
   collapse_by: NULL
 
-  # Whenever we call significant genes, we use this threshold for
-  # log2FoldChange. E.g., setting this to 1 requires a 2x change in estimated
-  # expression.
-  lfc_thresh: 0
-
   # By default DESeq2 assumes alpha of 0.1 (when filtering low-count genes). If
   # you want something else, change it here. This is used alongside lfc_thresh
   # to select significant genes.
@@ -43,14 +41,19 @@ main:
   # all contrasts, set this to TRUE.
   force_intersect: TRUE
 
+# PLOTTING ---------------------------------------------------------------------
+# This section configures plotting options for PCA, clustered heatmap, and
+# functional enrichment plots.
 plotting:
+
   # For each item in this list you will get columns of colors in the clustered
   # heatmap and tabs for PCA plots.
   covariates_for_plots:
     - group
 
-  # These arguments are passed to the respective clusterProfiler plotting functions. Any
-  # arguments accepted by those functions can be added here.
+  # Arguments for dotplot_args, emapplot_args, and cnetplot_args are passed to
+  # the respective clusterProfiler plotting functions. Any arguments accepted
+  # by those functions can be added here.
   dotplot_args:
     showCategory: 20
     color: p.adjust
@@ -59,13 +62,10 @@ plotting:
     font.size: 12
     x: GeneRatio
 
-
   emapplot_args:
     showCategory: 35
     color: p.adjust
     cex_label_category: .7
-    cex_category: NULL
-    cex_line: NULL
 
   cnetplot_args:
     showCategory: 5
@@ -74,39 +74,36 @@ plotting:
     circular: FALSE
     node_label: all
 
-# Parallel configuration
+# PARALLEL ---------------------------------------------------------------------
+# Configure parallelization here.
 parallel:
 
   parallel: FALSE
   # If integer, use that many cores. If string, assume it's the name of an
   # environment variable that stores the number of cores (e.g.,
-  # "SLURM_CPUS_PER_TASK")
-  cores: 8
+  # "SLURM_CPUS_PER_TASK"), and if that env var is empty then default to
+  # 1 core.
+  cores: "SLURM_CPUS_PER_TASK"
 
-# This section provides toggles for various parts of the analysis.
+# TOGGLE -----------------------------------------------------------------------
+# This section provides an easy way to turn on or off entire parts of the
+# analysis.
 toggle:
 
-  # Import Salmon results instead of featureCounts?
+  # Import Salmon results instead of featureCounts? This is global; 
   salmon: FALSE
 
   # Import Kallisto results instead of featureCounts?
   kallisto: FALSE
 
-  # Run functional enrichment analysis?
-  functional_enrichment: TRUE
+  # Create diagnostic plots for all dds objects?
+  dds_diagnostics: TRUE
 
-  # If functional_enrichment is TRUE, you can optionally disable Reactome here
-  # if noReactome database exists for your organism or the package is not
-  # installed.
-  run_reactome: FALSE
+  # Create diagnostic plots for all results objects?
+  results_diagnostics: TRUE
 
-  # Run gene patterns analysis?
-  gene_patterns: FALSE
-
-  # Include help docs at the end of the HTML?
-  help_docs: TRUE
-
-# This section configures annotations and databases.
+# ANNOTATION -------------------------------------------------------------------
+# Configuration specific to annotations and databases
 annotation:
 
   # Specify the genus and species
@@ -124,13 +121,13 @@ annotation:
   localHub: FALSE
   force: FALSE
 
-  # OrgDb key indicating the format of gene IDs in rownames(dds).
+  # What is the format of the gene IDs in rownames(dds)?
   keytype: 'ENSEMBL'
 
   msigdbr_keytype: "ensembl_gene"
 
 
-  # Additional columns from the OrgDb to attach to the results
+  # Each column here will be added to the results
   orgdb_columns:
     - SYMBOL
     - ALIAS
@@ -148,31 +145,33 @@ annotation:
   label_column: SYMBOL
 
 
-# This section configures the functional enrichment.
+# FUNCTIONAL ENRICHMENT --------------------------------------------------------
+# Configuration specific to functional enrichment as performed in
+# functional_enrichment.Rmd
 functional_enrichment:
 
   ontologies:
     # Standard Gene Ontology
     "BP": "GO Biological Process"
-    "CC": "GO Cellular Component"
-    "MF": "GO Molecular Function"
+    #"CC": "GO Cellular Component"
+    #"MF": "GO Molecular Function"
 
-    # MSigDB (compiled for human, but orthologs are available which may be of
-    # questionable utility for other organisms).  To see what's available, use
-    # lcdbwf::available_msigdb_keys() and cross-reference with
-    # https://www.gsea-msigdb.org/gsea/msigdb/collections.jsp
-    "C2_CGP": "MSigDB chemical and genetic perturbations"
-    "C2_CP": "MSigDb Canonical pathways"
-    "C5_GO:BP": "MSigDB's version of BP"
-    "C5_GO:CC": "MSigDB's version of CC"
-    "C5_GO:MF": "MSigDB's version of MF"
-    "C8": "MSigDB cell-type-specific gene sets"
-    "H": "MSigDB hallmark gene sets"
+    ## MSigDB (compiled for human, but orthologs are available which may be of
+    ## questionable utility for other organisms).  To see what's available, use
+    ## lcdbwf::available_msigdb_keys() and cross-reference with
+    ## https://www.gsea-msigdb.org/gsea/msigdb/collections.jsp
+    #"C2_CGP": "MSigDB chemical and genetic perturbations"
+    #"C2_CP": "MSigDb Canonical pathways"
+    #"C5_GO:BP": "MSigDB's version of BP"
+    #"C5_GO:CC": "MSigDB's version of CC"
+    #"C5_GO:MF": "MSigDB's version of MF"
+    #"C8": "MSigDB cell-type-specific gene sets"
+    #"H": "MSigDB hallmark gene sets"
 
   # Type can be "OR" for overrepresentation analysis, or "GSEA" for gene set
   # enrichment analysis.
   kind:
-    - "GSEA"
+    - "OR"
 
   # Options here are "up", "down" or "changed".
   directions:
