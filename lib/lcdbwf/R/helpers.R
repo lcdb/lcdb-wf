@@ -1,6 +1,52 @@
 
 # RMarkdown utilities --------------------------------------------------------
 
+#' Load config file
+#'
+#' @param filename YAML filename to load
+#'
+#' @return Nested list object containing configuration
+#' 
+#' @details
+#' For testing purposes, if the environment variable LCDB_WF_TEST exists then
+#' assume we are running a test and set config$toggle$test to TRUE. This will
+#' override any settings in the config YAML. Otherwise, use what is in the
+#' config, and if not specified in the config then default to FALSE.
+load_config <- function(filename){
+  config <- yaml::yaml.load_file(filename)
+
+  cores <- config$parallel$cores
+  if (class(cores) == "character"){
+
+    # It's possible that parallel$cores was configured with a string integer
+    # rather than a bare integer. In that case we should consider it an
+    # integer.
+    int_cores <- as.integer(cores)
+    if (!is.na(int_cores)){
+      cores <- int_cores
+    } else {
+      cores <- Sys.getenv(cores, NA)
+      if (is.na(cores)){
+        warning(paste("Could not find env var", cores, "so defaulting to 1 core"))
+        cores <- 1
+      }
+    }
+  }
+  # Reset value of cores based on what we've figured out above.
+  config$parallel$cores <- cores
+
+  # If test toggle is missing, default to FALSE...
+  if (is.null(config$toggle$test)){ config$toggle$test <- FALSE }
+
+  # ...but always override with env var
+  is_test <- Sys.getenv('LCDB_WF_TEST', NA)
+  if (!is.na(is_test)){
+    config$toggle$test <- TRUE
+  }
+  return(config)
+}
+
+
 #' Find named chunks that match a pattern
 #'
 #' Useful for depending on chunks that are named a certain way.
