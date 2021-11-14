@@ -160,3 +160,47 @@ collapseReplicates2 <- function(object, groupby){
     return(collapsed)
 }
 
+
+#' Plot various diagnostics for dds objects.
+#'
+#' @param dds_list
+#' @param text
+dds_diagnostics <- function(dds_list, text){
+  mdcat('## Other diagnostics {.tabset}')
+  mdcat('This section provides details on the DESeqDataSet object created above. These ',
+        'can be useful for diagnosing any issues.')
+
+  for (name in names(dds_list)){
+    mdcat("### ", name, '{.tabset}')
+
+    mdcat("#### Dispersion estimates")
+    mdcat(text$dds_diagnostics$dispersion)
+    DESeq2::plotDispEsts(dds_list[[name]])
+
+    mdcat("#### Sparsity plot")
+    mdcat(text$dds_diagnostics$sparsity)
+    print(lcdbwf::plotSparsity2(dds_list[[name]]))
+
+    mdcat("#### Outliers")
+    mdcat(text$dds_diagnostics$outliers)
+    p <- assays(dds_list[[name]])[['cooks']] %>%
+      as.data.frame() %>%
+      tidyr::pivot_longer(everything()) %>%
+      ggplot() +
+        aes(x=name, y=log10(value)) +
+        geom_boxplot() +
+        ylab("log10(Cook's distance)")
+    print(p)
+
+    mdcat("#### colData")
+    mdcat(text$dds_diagnostics$colData)
+    cdata <- colData(dds_list[[name]]) %>% as.data.frame
+    cdata <- cdata[, !grepl("filename", colnames(cdata))]
+    print(htmltools::tagList(datatable(cdata)))
+
+    mdcat("#### Design matrix")
+    mdcat(text$dds_diagnostics$design_matrix)
+    mmat <- model.matrix(design(dds_list[[name]]), data=colData(dds_list[[name]])) %>% as.data.frame()
+    print(htmltools::tagList(datatable(mmat)))
+  }
+}
