@@ -149,7 +149,7 @@ get_msigdb_df <- function(config){
 #'   combination.
 get_msigdb_term2gene_list <- function(msigdb_df){
   x <- msigdb_df %>%
-    dplyr::mutate(geneset_key=paste(gs_cat, gs_subcat, sep="_") %>% str_replace("_$", "")) %>%
+    dplyr::mutate(geneset_key=paste(gs_cat, gs_subcat, sep="_") %>% stringr::str_replace("_$", "")) %>%
     dplyr::group_by(geneset_key)
   keys <- x %>% dplyr::group_keys()
   pieces <- x %>% dplyr::group_split()
