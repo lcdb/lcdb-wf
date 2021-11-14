@@ -8,6 +8,16 @@ output:
         toc_depth: 3
 ---
 
+```{r global_options, include=FALSE}
+# Sets up global options for rendering RMarkdown into HTML.
+knitr::opts_chunk$set(
+    warning=FALSE,
+    message=FALSE,
+    cache.extra_file_dep_1 = file.info('../config/sampletable.tsv')$mtime,
+    cache.extra_file_dep_2 = file.info('../data/rnaseq_aggregation/featurecounts.txt')$mtime,
+    cache.extra_file_dep_2 = file.info('../data/rnaseq_samples/*/*.kallisto/abundance.h5')$mtime
+)
+```
 
 ```{r}
 # HOW TO CONFIGURE ------------------------------------------------------
@@ -30,16 +40,6 @@ if (config$parallel$parallel){
 }
 ```
 
-```{r global_options, include=FALSE}
-# Sets up global options for rendering RMarkdown into HTML.
-knitr::opts_chunk$set(
-    warning=FALSE,
-    message=FALSE,
-    cache.extra_file_dep_1 = file.info('../config/sampletable.tsv')$mtime,
-    cache.extra_file_dep_2 = file.info('../data/rnaseq_aggregation/featurecounts.txt')$mtime,
-    cache.extra_file_dep_2 = file.info('../data/rnaseq_samples/*/*.kallisto/abundance.h5')$mtime
-)
-```
 
 # Changelog
 
