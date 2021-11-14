@@ -40,23 +40,25 @@ dds_list <- obj$dds_list
 term2gene_list <- get_go_term2gene(config)
 term2name <- get_go_descriptions()
 
-# Get all of MSigDB, although we may only use subsets of it
-msigdb_df <- get_msigdb_df(config)
-msigdb_term2gene_list <- get_msigdb_term2gene_list(msigdb_df)
-msigdb_term2name <- get_msigdb_term2name(msigdb_df)
-
 # We need to assign each key to its respective term2name dataframe (or NULL if
 # none)
-ontology_term2name_mapping <- c(
-  lapply(term2gene_list, function(x) term2name),
-  lapply(msigdb_term2gene_list, function(x) NULL)
-)
+ontology_term2name_mapping <- lapply(term2gene_list, function(x) term2name)
+ontology_list <- c(term2gene_list)
 
-ontology_list <- c(term2gene_list, msigdb_term2gene_list)
+# Get all of MSigDB, although we may only use subsets of it.
+# This can take up a lot of memory on CI/CD, so we only do this if not doing
+# a test.
+if (!config$toggle$test){
+  msigdb_df <- get_msigdb_df(config)
+  msigdb_term2gene_list <- get_msigdb_term2gene_list(msigdb_df)
+  msigdb_term2name <- get_msigdb_term2name(msigdb_df)
+  ontology_term2name_mapping <- c(ontology_term2name_mapping, lapply(msigdb_term2gene_list, function(x) NULL))
+  ontology_list <- c(ontology_list, msigdb_term2gene_list)
+}
+
 ```
 
 ```{r enrich, cache=TRUE, eval=config$toggle$functional_enrichment, config=c(config$main, config$functional_enrichment), dependson=c('functional_enrichment_prep', 'assemble_variables')}
-
 all_enrich <- list()
 
 for (name in names(res_list)){
