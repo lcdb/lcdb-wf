@@ -22,7 +22,7 @@ kallisto.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, 
 #' overridden.
 #'
 #' @param design_data Named list of 2 to 4 items. The names "sampletable" and
-#' "design" are required.  The optional named items are "file", which is the
+#' "design" are required.  The optional named items are "filename", which is the
 #' featureCounts file containing counts for all samples, and "args" which is
 #' a list of arguments to be passed to the constructor (e.g.,
 #' `args=list(subset.counts=TRUE))`.
@@ -51,13 +51,16 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
                      kallisto_pattern="../data/rnaseq_samples/__SAMPLENAME__/__SAMPLENAME__.kallisto/abundance.h5",
                      ...){
 
-  # Note we're using pluck() here for the conveneience of setting defaults
+  # Note we're using pluck() here for the convenience of setting defaults
+  
+
   coldata <- purrr::pluck(design_data, 'sampletable')
   design <- purrr::pluck(design_data, 'design')
-  location <- purrr::pluck(design_data, 'file', .default=featureCounts)
+  location <- purrr::pluck(design_data, 'filename', .default=featureCounts)
   salmon <- purrr::pluck(design_data, 'salmon')
   kallisto <- purrr::pluck(design_data, 'kallisto')
-  arg_list <- purrr::pluck(design_data, 'args')
+  subset.counts <- purrr::pluck(design_data, 'subset.counts')
+  sample.func <- purrr::pluck(design_data, 'sample.func', .default=lcdbwf.samplename)
 
   # Allow overriding of config values.
   if (!is.null(config)){
@@ -74,20 +77,20 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
   if (salmon | kallisto){
     # If these arguments were provided, the corresponding loading functions
     # don't accept them so we need to remove. Issue a warning as well.
-    if (!is.null(arg_list$subset.counts) | !is.null(arg_list$sample.func)){
+    if (!is.null(subset.counts) | !is.null(sample.func)){
       warning("Salmon or Kallisto was specified, but additional arguments ",
               "were provided to the loading function.")
-      arg_list$subset.counts <- NULL
-      arg_list$sample.func <- NULL
+      subset.counts <- NULL
+      sample.func <- NULL
     }
 
-    # Next, we need a tx2gene dataframe. We can get this from a TxDb, which in
-    # turn can be retrieved from AnnotationHub, which in turn can be configured
-    # with the config object. Luckily, we have it here!
+    # For Salmon and Kallisto, we need a tx2gene dataframe. We can get this
+    # from a TxDb, which in turn can be retrieved from AnnotationHub, which in
+    # turn can be configured with the config object. Luckily, we have the
+    # config object here!
     txdb <- get_annotation_db(config, dbtype="TxDb")
     k <- keys(txdb, keytype="TXNAME")
     tx2gene <- select(txdb, k, "GENEID", "TXNAME")
-
   }
 
   if (salmon){
@@ -101,12 +104,13 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
       dds <- DESeq2::DESeqDataSetFromTximport(txi, colData=coldata, design=design)
 
   } else {
-      dds <- rlang::exec(
-          lcdbwf::DESeqDataSetFromCombinedFeatureCounts,
-              location,
-              sampletable=coldata,
-              design=design,
-              !!!arg_list)
+    dds <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
+      location,
+      sampletable=coldata,
+      design=design,
+      sample.func=sample.func,
+      subset.counts=subset.counts
+    )
   }
 
   if (strip_dotted_version){
