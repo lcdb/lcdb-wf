@@ -366,9 +366,10 @@ tbl <- lcdbwf::exported_tsvs(res_list)
 knitr::kable(tbl, row.names=FALSE)
 ```
 
-```{r}
-lcdbwf::exported_excel(res_list, dds_list)
+```{r, results='asis'}
+lcdbwf::exported_excel(res_list, dds_list, file='results/consolidated_results.xlsx')
 ```
+
 
 ```{r combined_rds, dependson='assemble_variables'}
 obj <- compose_results(res_list, dds_list)
