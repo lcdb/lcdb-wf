@@ -163,13 +163,14 @@ p <- lcdbwf::sizefactors_vs_total(dds_initial)
 ggplotly(p)
 ```
 
-
-
 ```{r dds_list, cache=TRUE, config=config$main}
 # Create a list of dds objects used as the basis for differential expression.
 #
 # May need substantial editing.
 lst <- list(
+            # NOTE: Delete these for real data! They are just examples to
+            # demonstrate functionality.
+            # ------------------------------------------------------------------
             main=list(
                 sampletable=colData,
                 design=~group),
@@ -186,6 +187,7 @@ lst <- list(
                 sampletable=colData,
                 design=~group,
                 kallisto=TRUE)
+            # ------------------------------------------------------------------
           )
 dds_list <- map(lst, lcdbwf::make_dds, config=config, parallel=config$parallel$parallel)
 ```
@@ -197,9 +199,11 @@ if (config$toggle$dds_diagnostics){ lcdbwf::dds_diagnostics(dds_list, text) }
 
 # Differential expression {.tabset}
 
-Now we perform differential expression analysis for the contrasts listed in the table below.
+Now we perform differential expression analysis for the contrasts listed in the
+table below.
 
-Under the table are tabs, one for each contrast. Under each contrast's tab, there are more tabs for the various output.
+Under the table are tabs, one for each contrast. Under each contrast's tab,
+there are more tabs for the various output.
 
 
 ```{r, results='asis'}
@@ -376,6 +380,6 @@ saveRDS(obj, file='combined.Rds')
 For reproducibility purposes, here is the output of `sessionInfo()` showing the
 versions of all packages used here.
 
-```{r, collapse=FALSE}
+```{r}
 sessionInfo()
 ```

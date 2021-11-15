@@ -167,8 +167,8 @@ collapseReplicates2 <- function(object, groupby){
 
 #' Plot various diagnostics for dds objects.
 #'
-#' @param dds_list
-#' @param text
+#' @param dds_list List of dds objects
+#' @param text Text config object
 dds_diagnostics <- function(dds_list, text){
   mdcat('## Other diagnostics {.tabset}')
   mdcat('This section provides details on the DESeqDataSet object created above. These ',
