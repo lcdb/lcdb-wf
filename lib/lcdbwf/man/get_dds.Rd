@@ -8,7 +8,7 @@ get_dds(dds)
 }
 \arguments{
 \item{dds}{If string, then look for that name in \code{dds_list} in the global
-env. Otherwise, return it as-is.}
+env. Otherwise, assume it's already a dds and immmediately return it.}
 }
 \description{
 Helper function to get dds object from global env.

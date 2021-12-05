@@ -4,7 +4,7 @@
 \alias{my_summary}
 \title{Summarize DESeq2 results into a dataframe}
 \usage{
-my_summary(res, dds, alpha, lfc.thresh = 0, ...)
+my_summary(res, dds, name, ...)
 }
 \arguments{
 \item{res}{DESeq2 results object}

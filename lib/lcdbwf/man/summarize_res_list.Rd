@@ -4,18 +4,17 @@
 \alias{summarize_res_list}
 \title{Combine everything in the results list into a single table}
 \usage{
-summarize_res_list(res_list, alpha, lfc_thresh, dds_list = NULL)
+summarize_res_list(res_list)
 }
 \arguments{
-\item{res.list}{Named list of lists, where each sublist contains the following
-names: c('res', 'dds', 'label'). "res" is a DESeqResults object,
-"dds" is either the indexing label for the dds.list object or
-the DESeq object, and "label" is a nicer-looking
-label to use. NOTE: backwards compatibility with older versions
-of lcdb-wf depends on no dds.list object being passed.}
+\item{res.list}{Named list of lists, where each sublist contains the
+following names: c('res', 'dds', 'label'). "res" is a DESeqResults
+object, "dds" is the indexing label into the dds_list object, and "label"
+is a nicer-looking label to use. NOTE: backwards compatibility with older
+versions of lcdb-wf depends on no dds.list object being passed.}
 }
 \value{
-Dataframe
+data.frame
 }
 \description{
 Combine everything in the results list into a single table

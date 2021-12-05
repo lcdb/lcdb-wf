@@ -19,7 +19,7 @@ make_dds(
 }
 \arguments{
 \item{design_data}{Named list of 2 to 4 items. The names "sampletable" and
-"design" are required.  The optional named items are "file", which is the
+"design" are required.  The optional named items are "filename", which is the
 featureCounts file containing counts for all samples, and "args" which is
 a list of arguments to be passed to the constructor (e.g.,
 \verb{args=list(subset.counts=TRUE))}.}

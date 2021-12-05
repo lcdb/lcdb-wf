@@ -19,3 +19,8 @@ Thanks to
 https://community.rstudio.com/t/dots-vs-arg-lists-for-function-forwarding/4995/2
 for the idea.
 }
+\details{
+Example usage is:
+
+do.call("functioname", lcdbwf::match_from_dots(list(...), functionname)))
+}
