@@ -6,6 +6,7 @@
 # When adding new entries, note that the "|" is important -- see
 # https://yaml-multiline.info/ for more details.
 
+# SIZE FACTORS -----------------------------------------------------------------
 sizefactors: |
   ## Size factors {.tabset}
 
@@ -25,7 +26,7 @@ sizefactors: |
   relationship between the size factors and the total read count (as
   a scatterplot).
 
-# Help for the dds diagnostics
+# DDS DIAGNOSTICS --------------------------------------------------------------
 dds_diagnostics:
   dispersion: |
     See the [dispersion
@@ -48,7 +49,7 @@ dds_diagnostics:
     pass
 
 
-# RESULT TABLE -----------------------------------------------------------------
+# RESULTS TABLE ---------------------------------------------------------------
 # Help for the columns in the results summary table.
 results_table: |
   - row names of the table are the long-format human-readable labels of
@@ -84,6 +85,7 @@ results_table: |
     check the design matrix tab in the diagnostics section for the
     corresponding dds object.
 
+
 # RESULTS PLOTS ----------------------------------------------------------------
 # Help for the tabbed results plots
 results_plots:
@@ -114,19 +116,40 @@ results_plots:
     testing](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#independent-filtering-and-multiple-testing)
     for more details.
 
+
 # RESULTS DIAGNOSTICS ----------------------------------------------------------
 # Individual help for the diagnostic plots for results objects
 results_diagnostics:
-  filter_ma:
+  filter_ma: |
     This MA plot colors genes by whether or not they were filtered out in the
     independent filtering step.</details>
 
-  outlier_ma:
+  outlier_ma: |
     This MA plots colors genes by whether or not they were considered an outlier.
 
-  lfcse_basemean:
+  lfcse_basemean: |
     This plots the standard error of the log2FoldChange vs baseMean. In
     general, as baseMean increases the lfcSE decreases.
 
-  lfcse_lfc:
+  lfcse_lfc: |
     Standard error of the log2FoldChange vs the log2FoldChange itself.
+
+
+# UPSET PLOTS ------------------------------------------------------------------
+upset_plots: |
+  # UpSet plots {.tabset}
+
+  Here we gather together all the interesting gene sets into an [UpSet
+  plot](http://caleydo.org/tools/upset/). These plots show the combinatorial
+  overlaps of genes found to be up or down across the different contrasts
+  performed. It's much like a Venn diagram, but easier to interpret and can scale
+  to many comparisons.
+
+  A TSV file is linked under each plot. This file has rows for each gene and
+  columns for each contrast. A `1` indicates that gene was found to be
+  up/down/changed in that contrast.
+
+  **Interpretation notes:** A gene can only be found in one column in an UpSet plot. So if you want to
+  confirm that the number of genes for a contrast matches the results tables and
+  MA plots, you need to sum all the bars for which there is a dot in that
+  contrast's row.
