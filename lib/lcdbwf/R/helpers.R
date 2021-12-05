@@ -1,6 +1,3 @@
-
-# RMarkdown utilities --------------------------------------------------------
-
 #' Load config file
 #'
 #' @param filename YAML filename to load
@@ -321,51 +318,59 @@ lfc.filter <- function(res, reverse=FALSE){
 #' @param alpha Alpha level at which to call significantly changing genes
 #'
 #' @return Dataframe of summarized results
-my_summary <- function(res, dds, alpha, lfc.thresh=0, ...){
-   if (missing(alpha)){
-       alpha <- if (is.null(metadata(res)$alpha)){ 0.1 } else { metadata(res)$alpha }
-   }
-   notallzero <- sum(res$baseMean > 0)
-   up <- sum(res$padj < alpha & res$log2FoldChange > lfc.thresh, na.rm=TRUE)
-   down <- sum(res$padj < alpha & res$log2FoldChange < -lfc.thresh, na.rm=TRUE)
-   filt <- sum(!is.na(res$pvalue) & is.na(res$padj))
-   outlier <- sum(res$baseMean > 0 & is.na(res$pvalue))
-   ft <- if(is.null(metadata(res)$filterThreshold)){ 0 } else { round(metadata(res)$filterThreshold) }
-   # adjust width.cutoff as newline insertion causes this to return a df with
-   # multiple duplicate rows!
-   df <- data.frame(
-                    total.annotated.genes=nrow(res),
-                    total.nonzero.read.count=notallzero,
-                    alpha=alpha,
-                    lfcThreshold=lfc.thresh,
-                    up=up,
-                    down=down,
-                    outliers=outlier,
-                    low.counts=filt,
-                    design=deparse(design(dds), width.cutoff=500L)
-                    )
-   return(df)
+my_summary <- function(res, dds, name, ...){
+  dds_label <- dds
+  if (class(dds) != 'character'){
+    stop("expecting dds to be a string")
+  }
+  dds <- lcdbwf::get_dds(dds_label)
+  alpha <- metadata(res)$alpha
+  lfc.thresh <- metadata(res)$lfcThreshold
+  lfc.thresh <- ifelse(is.null(lfc.thresh), 0, lfc.thresh)
+  notallzero <- sum(res$baseMean > 0)
+  up <- sum(res$padj < alpha & res$log2FoldChange > lfc.thresh, na.rm=TRUE)
+  down <- sum(res$padj < alpha & res$log2FoldChange < -lfc.thresh, na.rm=TRUE)
+  filt <- sum(!is.na(res$pvalue) & is.na(res$padj))
+  outlier <- sum(res$baseMean > 0 & is.na(res$pvalue))
+
+  test <- mcols(res)['log2FoldChange', 'description']
+  match <- stringr::str_match(test, ": (.*)")
+  if (length(match) != 2){
+    stop(paste("Expected a 1x2 matrix for matching pattern, got", match))
+  }
+  test <- match[1, 2]
+  df <- data.frame(
+    name=name,
+    up=up,
+    down=down,
+    nonzero.vs.total=paste0(notallzero, '/', nrow(res)), 
+    alpha=alpha,
+    lfcThreshold=lfc.thresh,
+    outliers=outlier,
+    low.counts=filt,
+    # adjust width.cutoff here because newline insertion causes this to return
+    # a df with multiple duplicate rows
+    dds=dds_label,
+    design=deparse(design(dds), width.cutoff=500L),
+    test=test
+  )
+  return(df)
 }
 
 
 #' Combine everything in the results list into a single table
 #'
-#' @param res.list Named list of lists, where each sublist contains the following
-#'                 names: c('res', 'dds', 'label'). "res" is a DESeqResults object,
-#'                 "dds" is either the indexing label for the dds.list object or
-#'                  the DESeq object, and "label" is a nicer-looking
-#'                 label to use. NOTE: backwards compatibility with older versions
-#'                  of lcdb-wf depends on no dds.list object being passed.
+#' @param res.list Named list of lists, where each sublist contains the
+#'    following names: c('res', 'dds', 'label'). "res" is a DESeqResults
+#'    object, "dds" is the indexing label into the dds_list object, and "label"
+#'    is a nicer-looking label to use. NOTE: backwards compatibility with older
+#'    versions of lcdb-wf depends on no dds.list object being passed.
 #'
-#' @return Dataframe
-summarize_res_list <- function(res_list, alpha, lfc_thresh, dds_list=NULL){
+#' @return data.frame
+summarize_res_list <- function(res_list){
   slist <- list()
   for (name in names(res_list)){
-    if(!is.null(dds_list)){
-      x <- my_summary(res_list[[name]][['res']], dds_list[[ res_list[[name]][['dds']] ]], alpha, lfc_thresh)
-    } else {
-      x <- my_summary(res_list[[name]][['res']], res_list[[name]][['dds']], alpha, lfc_thresh)
-    }
+    x <- my_summary(res_list[[name]][['res']], res_list[[name]][['dds']], name=name)
     rownames(x) <- res_list[[name]][['label']]
     slist[[name]] <- x
   }
@@ -537,7 +542,6 @@ get_config <- function(){
 }
 
 
-
 #' Return only the list items in `dots` that are arguments for `func`
 #' 
 #' Thanks to
@@ -548,6 +552,13 @@ get_config <- function(){
 #' @param func Function that will be inspected for valid arguments
 #'
 #' @return List of arguments in `dots` that are valid arguments for `func`.
+#'
+#' @details
+#'
+#' Example usage is:
+#'
+#'  do.call("functioname", lcdbwf::match_from_dots(list(...), functionname)))
+#'
 match_from_dots <- function(dots, func){
   arg <- match(names(formals(func)), names(dots))
   dots[arg[!is.na(arg)]]
