@@ -168,21 +168,30 @@ ggplotly(p)
 #
 # May need substantial editing.
 lst <- list(
-            # NOTE: Delete these for real data! They are just examples to
-            # demonstrate functionality.
             # ------------------------------------------------------------------
+            # NOTE: Delete these for real data!
+            # They are just examples to demonstrate functionality.
+            #
+            # Example 1: simplest case
             main=list(
                 sampletable=colData,
                 design=~group),
+
+            # Example 2: demonstrates how to filter samples.
+            # Note subset.counts=TRUE
             no_rep4=list(
                 sampletable=colData %>% filter(samplename != 'sample4'),
                 design=~group,
                 subset.counts=TRUE
             ),
+
+            # Example 3: use salmon
             salmon=list(
                 sampletable=colData,
                 design=~group,
                 salmon=TRUE),
+
+            # Example 4: use kallisto
             kallisto=list(
                 sampletable=colData,
                 design=~group,
@@ -214,6 +223,7 @@ lcdbwf::folded_markdown(text$results_table, "Help for table")
 ```{r results_01, dependson='dds_list', cache=TRUE}
 # Perform differential expression testing.
 #
+# ------------------------------------------------------------------------------
 # To take advantage of caching:
 #   - create each list in a different chunk
 #   - ensure chunk name starts with "results_"
@@ -221,62 +231,44 @@ lcdbwf::folded_markdown(text$results_table, "Help for table")
 #     as a label to sort results and create output files.
 #
 # This will need substantial editing.
-contr_main <- list(
-    res=lfcShrink(
-            dds_list[['main']],
-            contrast=c('group', 'treatment', 'control'),
-            type='normal',
-            parallel=parallel
-        ),
-        dds='main',
-        label='Using a log2FoldChange threshold of 0'
-)
+#
+# See ?make_results for details.
+# ------------------------------------------------------------------------------
+
+# Delete these for real data!
+#
+# Example 1: 
+control <- dds_coefs('main', group=='control')
+treatment <- dds_coefs('main', group=='treatment')
+contr_main <- make_results('main', 'LFC>0', contrast=treatment - control, type='ashr')
 ```
 
 ```{r results_02, dependson='dds_list', cache=TRUE}
-# NOTE: Example contrast #2----------------------------------------------------
-#    Using the example data, this compares treatment group to control group but
-#    requiring genes to have >4-fold differences (log2(4) = 2). Change to
-#    reflect your experiment.
-#    If using an lfcThreshold, must update elsewhere throughout the code.
-res.lfcthresh.2 <- results(
-    dds_list[['main']],
-    contrast=c('group', 'treatment', 'control'),
-    lfcThreshold=2)
-
-contr_lfc2 <- list(
-    res=lfcShrink(
-        dds_list[['main']],
-        contrast=c('group', 'treatment', 'control'),
-        parallel=parallel,
-        res=res.lfcthresh.2,
-        type='normal'
-    ),
-    dds='main',
-    label='Using a log2FoldChange threshold of >2'
+contr_lfc1 <- make_results(
+  dds="no_rep4",
+  contrast=c("group", "treatment", "control"),
+  lfcThreshold=1,
+  type="ashr",
+  label="No rep 4 and using log2FoldChange of >1"
 )
 ```
 
 ```{r results_03, dependson='dds_list', cache=TRUE}
-contr_salmon <- list(
-  res=lfcShrink(
-    dds_list[['salmon']],
-    contrast=c('group', 'treatment', 'control'),
-    type='normal',
-    parallel=parallel),
-  dds='salmon',
-  label='Using Salmon')
+contr_salmon <- make_results(
+  dds="salmon",
+  contrast=c("group", "treatment", "control"),
+  type="normal",
+  label="Using Salmon"
+)
 ```
 
 ```{r results_04, dependson='dds_list', cache=TRUE}
-contr_kallisto <- list(
-  res=lfcShrink(
-    dds_list[['kallisto']],
-    contrast=c('group', 'treatment', 'control'),
-    type='normal',
-    parallel=parallel),
-  dds='kallisto',
-  label='Using Kallisto')
+contr_kallisto <- make_results(
+  dds="kallisto",
+  contrast=c('group', 'treatment', 'control'),
+  type='normal',
+  label='Using Kallisto'
+)
 ```
 
 
