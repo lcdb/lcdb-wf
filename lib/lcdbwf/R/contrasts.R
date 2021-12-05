@@ -102,31 +102,41 @@ dds_coefs <- function(dds, ..., expand=FALSE){
 
 #' Convenience function for building contrasts using the data structures
 #' expected by lcdbwf.
-#'
-#' NOTE: this function makes some assumptions about the global environment. For
-#' example, it looks for the config object there, and expects a list called
-#' "dds_list" to exist as well. Currently the config is only used for
-#' parallelization.
-#'
+#"
 #' This function is useful for ensuring that the dds object used when creating
 #' the results is the same one that is labeled, so that when the dds_list and
 #' res_list are composed together things match up nicely.
 #'
-#' @param dds_name String key into dds_list
-#' @param contrast Any contrast supported by DESeq2::lfcShrink
-#' @param label Label or description to describe this contrast
-#' @param ... Additional arguments are passed to lfcShrink
+#' This function first runs results and then runs lfcShrink on that results
+#' object. Arguments in ... are passed through to results() and then to
+#' lfcShrink(), using formals() to detect which function accepts which
+#' arguments. Those arguments accepted by both (contrast, lfcThreshold,
+#' format, saveCols, parallel, BPPARAM) are passed to both.
 #'
-#' @return List with names "res", "dds", and "label".
+#' NOTE: this function expects `dds_list` and `config` objects to be available
+#' in the global environment.
+#'
+#' This function also adds the shrinkage type as an additional item to the
+#' metadata of the results object.
+#'
+#' @param dds_name String key into dds_list. Will be used to extract the actual
+#'   dds object to provide to results()
+#' @param contrast Any contrast supported by DESeq2::results and DESeq2::lfcShrink
+#' @param label Label to describe this contrast which will be used in headings.
+#' @param ... Additional arguments are passed to results() and lfcShrink().
+#'
+#' @return List with names "res" (the results object), "dds" (the string value
+#'   passed in that was used to retrieve the actual dds object used for the
+#'   results), and "label" (exactly as passed in).
 make_results <- function(dds_name, label, ...){
 
+  # Get the actual dds object from the global dds_list.
   dds <- get_dds(dds_name)
 
-
-  # Modify the args based on what we detected
+  # Save a copy of the arbitrary arguments
   dots <- list(...)
-  dots[['object']] <- dds
 
+  # If not provided, detect parallel based on global config.
   if (!"parallel" %in% names(dots)){
     parallel <- FALSE
     config <- get_config()
@@ -134,17 +144,33 @@ make_results <- function(dds_name, label, ...){
     if (is.null(parallel)) parallel <- FALSE
   }
 
-  #if (parallel) dots[['parallel']] <- parallel
+  # Modify the args based on what we detected. Note that results() expects the
+  # argument 'object' (rather than, say, 'dds').
+  dots[['object']] <- dds
+  dots['parallel'] <- parallel
 
-  # Call results()
+  # Call results() with the subset of dots that it accepts.
   res_dots <- lcdbwf::match_from_dots(dots, results)
-  res <- do.call("results", lcdbwf::match_from_dots(dots, results))
+  res <- do.call("results", res_dots)
 
   # We're about to call lfcShrink, but it needs the res object...so inject the
   # one we just made into dots.
   dots[['res']] <- res
   dots[['dds']] <- dds
-  res <- do.call("lfcShrink", lcdbwf::match_from_dots(dots, lfcShrink))
+  lfcShrink_dots <- lcdbwf::match_from_dots(dots, lfcShrink)
+  res <- do.call("lfcShrink", lfcShrink_dots)
+
+  shrinkage_type <- dots[['type']]
+  if (is.null(shrinkage_type)){
+    # The eval() is because formals() retuns strings; lfcShrink has a character
+    # vector as the type argument, and we want to extract the first thing in
+    # that vector. Currently it should be "apeglm", but this way we inspect the
+    # function itself if it ever changes.
+    shrinkage_type <- eval(formals(DESeq2::lfcShrink)$type)[1]
+  }
+
+  # Add to results object so we can report it out later.
+  metadata(res)$type <- shrinkage_type
 
   return(
     list(
