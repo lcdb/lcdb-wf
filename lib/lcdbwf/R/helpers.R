@@ -563,3 +563,14 @@ match_from_dots <- function(dots, func){
   arg <- match(names(formals(func)), names(dots))
   dots[arg[!is.na(arg)]]
 }
+
+#' Print markdown enclosed by <details> HTML tags.
+#'
+#' @param text Markdown text to print
+#' @param summary Text to use next to dropdown arrow
+folded_markdown <- function(text, summary){
+  mdcat("<details>")
+  mdcat("<summary>", summary, "</summary>")
+  mdcat(text)
+  mdcat("</details>")
+}
