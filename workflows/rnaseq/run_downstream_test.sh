@@ -17,5 +17,6 @@ done
 
 # Make sure we move the config file there too
 cp downstream/config.yaml downstream-test/config.yaml
+cp downstream/text.yaml downstream-test/text.yaml
 
 Rscript -e "rmarkdown::render('downstream-test/rnaseq.Rmd')"
