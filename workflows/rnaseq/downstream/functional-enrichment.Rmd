@@ -1,266 +1,142 @@
+---
+title: Functional enrichment analysis
+output:
+    html_document:
+        code_folding: hide
+        toc: true
+        toc_float: true
+        toc_depth: 3
+---
+
+```{r}
+library(AnnotationHub)
+library(dplyr)
+```
+
 # Functional enrichment analysis
 
-Here we perform gene ontology, KEGG pathway and Reactome pathway enrichment using the
-[clusterProfiler](https://bioconductor.org/packages/release/bioc/vignettes/clusterProfiler/inst/doc/clusterProfiler.html)
-package with some custom plotting functions.
+Functional enrichment analysis tests to see if the genes of interest (e.g., up,
+down, changed in a particular contrast) are found more often than expected in
+a particular annotation category.
 
-```{r cprofsetup, results='hide'}
-# Initial setup for clusterProfiler chunks below.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#cprofsetup
+```{r load_helpers}
+# Load the lcdbwf R package, which is stored locally.
+# This package has many custom functions used throughout this document.
+devtools::document('../../../lib/lcdbwf')
+devtools::load_all('../../../lib/lcdbwf')
 
-# output directory for clusterProfiler results
-cprof.folder <- "clusterprofiler"
-plots.folder <- "clusterprofiler/plots"
-
-# check for subfolder and create if absent
-ifelse(!dir.exists(file.path('.',cprof.folder)),
-       dir.create(file.path('.',cprof.folder), recursive = TRUE), NA)
-ifelse(!dir.exists(file.path('.',plots.folder)),
-       dir.create(file.path('.',plots.folder), recursive = TRUE), NA)
-
-# NOTE: keyTypes to obtain from bitr-------------------------------------------
-types <- c("ENTREZID","SYMBOL","UNIPROT")
-
-# NOTE: convert IDs to symbols for KEGG?---------------------------------------
-id.convert <- TRUE
+config <- lcdbwf::load_config('config.yaml')
 ```
 
-```{r bitrgenes, results='hide'}
-# Convert gene IDs to those useable to clusterProfiler.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#bitrgenes
-# NOTE: Gene IDs are provided in what format?----------------------------------
-from.type <- "FLYBASE"
-
-deg.list <- nested.lapply(sel.list, rownames)
-genes.df <- nested.lapply(deg.list, function (x) AnnotationDbi::select(orgdb, keys=x, columns=types, keytype=from.type))
+```{r load, cache=TRUE, cache.extra=file.info('combined.Rds')$mtime}
+obj <- readRDS('combined.Rds')
+res_list <- obj$res_list
+dds_list <- obj$dds_list
 ```
 
-```{r enrichall, results='hide', cache=TRUE, dependson='selections'}
-# Perform enrichment analyses.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#enrichall
+```{r functional_enrichment_prep, cache=TRUE, config=config$annotation$keytype, eval=config$toggle$functional_enrichment, dependson='load'}
 
-# run enrichment for all gene lists over a loop
+# We assume that keys are unique across all term2gene_lists.
+term2gene_list <- get_go_term2gene(config)
+term2name <- get_go_descriptions()
 
-# NOTE: settings for clusterProfiler and plots---------------------------------
-go.keytype <- 'ENTREZID'
-kegg.keytype <- 'ncbi-geneid'
-pvalueCutoff <- 1
-qvalueCutoff <- 1
-go.uni <- NULL
-path.uni <- NULL
-kegg.organism <- 'dme'
-RUN.REACTOME <- FALSE
-reactome.organism <- 'fly'
+# We need to assign each key to its respective term2name dataframe (or NULL if
+# none)
+ontology_term2name_mapping <- lapply(term2gene_list, function(x) term2name)
+ontology_list <- c(term2gene_list)
 
-
-# list to hold all enrichment results
-# will have structure:
-#
-#   all.enrich[[contrast]][[direction]][[enrichment label]]
-all.enrich <- list()
-enrich.files <- list()
-# loop over each contrast
-for(comp in names(genes.df)){
-
-    all.enrich[[comp]] <- list()
-    enrich.files[[comp]] <- list()
-
-    # loop over selection list
-    for(sel in sel.names){
-
-        all.enrich[[comp]][[sel]] <- list()
-        enrich.files[[comp]][[sel]] <- list()
-
-        gene <- genes.df[[comp]][[sel]][[go.keytype]]
-
-        for (ont in c('CC', 'BP', 'MF')){
-            go.res <- enrichGO(
-                gene=gene, universe=go.uni, keyType=go.keytype, OrgDb=orgdb,
-                ont=ont, pvalueCutoff=pvalueCutoff, qvalueCutoff=qvalueCutoff,
-                readable = TRUE)
-
-            res.label <- paste('GO', ont, sep='_')
-            all.enrich[[comp]][[sel]][[ont]] <- go.res
-            if (!is.null(go.res)){
-                enrich.files[[comp]][[sel]][[ont]] <- write.clusterprofiler.results(go.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
-            }
-        }
-
-        # perform KEGG enrichment
-        res.label <- 'KEGG'
-        kegg.res <- enrichKEGG(
-            gene=gene, universe=path.uni, organism=kegg.organism,
-            keyType=kegg.keytype, pvalueCutoff=pvalueCutoff,
-            qvalueCutoff=qvalueCutoff)
-
-
-        if (!is.null(kegg.res)){
-            # convert uniprot IDs to readable symbols. This needs to be done separately
-            # in the case of KEGG
-            if(id.convert){
-              id.vec <- genes.df[[comp]][[sel]]$SYMBOL
-              names(id.vec) <- genes.df[[comp]][[sel]]$ENTREZID
-              kegg.res.genes <- kegg.res@result$geneID
-              for(j in 1:length(kegg.res.genes)){
-                id.split <- strsplit(kegg.res.genes[j], "/")[[1]]
-                temp <- paste(id.vec[id.split], collapse="/")
-                kegg.res@result$geneID[j] <- temp
-              }
-            }
-
-
-            all.enrich[[comp]][[sel]][['kegg']] <- kegg.res
-            enrich.files[[comp]][[sel]][['kegg']] <- write.clusterprofiler.results(kegg.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
-        }
-
-        if (RUN.REACTOME) {
-            # NOTE: Install OrgDb--------------------------------------------------
-            #   ReactomePA requires the relevant OrgDb package to be installed
-            #   and so is disabled by default.
-            res.label <- 'Reactome'
-            reactome.res <-enrichPathway(
-                gene=gene, universe=path.uni, organism=reactome.organism,
-                pvalueCutoff=pvalueCutoff, qvalueCutoff=qvalueCutoff, readable=TRUE)
-            all.enrich[[comp]][[sel]][['reactome']] <- reactome.res
-
-            if (!is.null(reactome.res)){
-                enrich.files[[comp]][[sel]][['reactome']] <- write.clusterprofiler.results(reactome.res, cprof.folder, paste0(res.label, '_', comp, '_', sel))
-            }
-        }
-    }
+# Get all of MSigDB, although we may only use subsets of it.
+# This can take up a lot of memory on CI/CD, so we only do this if not doing
+# a test.
+if (!config$toggle$test){
+  msigdb_df <- get_msigdb_df(config)
+  msigdb_term2gene_list <- get_msigdb_term2gene_list(msigdb_df)
+  msigdb_term2name <- get_msigdb_term2name(msigdb_df)
+  ontology_term2name_mapping <- c(ontology_term2name_mapping, lapply(msigdb_term2gene_list, function(x) NULL))
+  ontology_list <- c(ontology_list, msigdb_term2gene_list)
 }
 
 ```
 
-```{r adjustcatlen}
-# Tweak the annotation names.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#adjustcatlen
+```{r enrich, cache=TRUE, eval=config$toggle$functional_enrichment, config=c(config$main, config$functional_enrichment), dependson=c('functional_enrichment_prep', 'assemble_variables')}
+all_enrich <- list()
 
-# This shortens the names of functional terms for better visualization
-maxcatlen <- 50
-for(comp in names(all.enrich)){
-  for(name in names(all.enrich[[comp]])){
-    for(go in names(all.enrich[[comp]][[name]])){
-      all.enrich[[comp]][[name]][[go]]@result$Description <- substr(all.enrich[[comp]][[name]][[go]]@result$Description, 1, maxcatlen)
+for (name in names(res_list)){
+  all_enrich[[name]] <- list()
+
+  for (direction in config$functional_enrichment$directions){
+    all_enrich[[name]][[direction]] <- list()
+
+    for (ont in names(config$functional_enrichment$ontologies)){
+      term2gene <- ontology_list[[ont]]
+      term2name <- ontology_term2name_mapping[[ont]]
+      enrich_res <- run_enrichment(
+        res_list[[name]],
+        direction=direction,
+        TERM2GENE=term2gene,
+        TERM2NAME=term2name,
+        config=config,
+        kind=config$functional_enrichment$kind
+      )
+      if (!is.null(enrich_res) && nrow(enrich_res@result) > 5){
+        all_enrich[[name]][[direction]][[ont]] <- enrich_res
+      } else {
+        all_enrich[[name]][[direction]][[ont]] <- NULL
+      }
+    }
+  }
+}
+```
+
+
+```{r functional_enrichment_plots}
+# Interestingly, it's the *caching* that causes this to hang for a loooong time.
+dotplot_list <- enrich_list_lapply(all_enrich, dotplots, config=config, send_names=TRUE)
+emapplot_list <- enrich_list_lapply(all_enrich, emapplots, config=config, send_names=TRUE)
+cnetplot_list <- enrich_list_lapply(all_enrich, cnetplots, config=config, send_names=TRUE)
+```
+
+```{r, results='asis'}
+mdcat("There are many different databases that annotate genes into sets.",
+      "The following sets are used here:")
+
+knitr::kable(config$functional_enrichment$ontologies %>% as.data.frame %>% t())
+```
+
+# Plots {.tabset}
+
+```{r, results='asis'}
+
+for (name in names(res_list)){
+  mdcat("## ", name, "{.tabset}")
+  for (direction in config$functional_enrichment$directions){
+    mdcat("### ", direction, "{.tabset}")
+    if (length(all_enrich[[name]][[direction]]) == 0){
+      mdcat("Too few genes differentially expressed.")
+      next
+    }
+    for (ont in names(all_enrich[[name]][[direction]])){
+      mdcat("#### ", ont, "{.tabset}")
+
+      mdcat("##### dotplot")
+      print(dotplot_list[[name]][[direction]][[ont]])
+
+      mdcat("##### emapplot")
+      print(emapplot_list[[name]][[direction]][[ont]])
+
+      mdcat("##### cnetplot")
+      print(cnetplot_list[[name]][[direction]][[ont]])
     }
   }
 }
 
+
 ```
 
-Below we show the results separately for each comparison. Links to files
-containing analysis results are shown above each set of plots, with parsed
-files showing genes on separate lines.
+# Session info
+For reproducibility purposes, here is the output of `sessionInfo()` showing the
+versions of all packages used here.
 
-```{r plotgo, fig.width=15, fig.height=10, results='asis', cache=TRUE, dependson='enrichall'}
-# Plot the enrichment results.
-# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#plotgo
-
-# go labels for file names
-go.label <- list(
-    BP='GO Biological Process',
-    CC='GO Cellular Component',
-    MF='GO Molecular Function',
-    kegg='KEGG Pathways',
-    reactome='Reactome Pathways')
-
-comp.label <- lapply(res.list, function (x) x[['label']])
-
-for(comp in names(all.enrich)){
-    mdcat('## ', comp.label[[comp]], ' {.tabset}')
-    for(go in names(go.label)){
-
-        mdcat('### ', go.label[[go]], ' {.tabset}')
-
-        mdcat('TSV format results (condensed and split versions):\n')
-
-        dotplots <- list()
-        emapplots <- list()
-        cnetplots <- list()
-
-        for (sel in sel.names){
-
-            res <- all.enrich[[comp]][[sel]][[go]]
-
-            if (is.null(res))
-            {
-                cat('\n\n\nNo genes enriched for:', comp, sel, go, '\n\n\n')
-                next
-            }
-
-            outfiles <- enrich.files[[comp]][[sel]][[go]]
-            f1 <- outfiles[['orig']]
-            f2 <- outfiles[['split']]
-            mdcat(' - ', sel, ' [', f1, '](', f1 ,')', ', [', f2, '](', f2 ,')')
-            title <- paste(sel, go)
-
-            # NOTE: arguments to dotplot, emapplot, and cnetplot---------------
-            #   Arguments provided are package defaults, explicitly provided
-            #   here for better visibility on what to tweak. Most commonly
-            #   adjusted is probably the showCategory argument.
-
-            dotplots[[sel]] <- dotplot(
-                res,
-                showCategory=10,
-                color='p.adjust',
-                x='GeneRatio'
-            ) +
-                ggtitle(title) +
-                theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
-
-            # If there is only one gene, then we don't have a directed graph --
-            # "Error in graph_to_tree(graph, mode = direction) : Graph must be directed"
-            if (nrow(res@result) > 1){
-                try(
-                emapplots[[sel]] <- emapplot(
-                    res,
-                    showCategory=30,
-                    color='p.adjust'
-                ) +
-                    ggtitle(title) +
-                    theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
-                )
-            }
-
-            cnetplots[[sel]] <- cnetplot(
-                res,
-                showCategory=5,
-                foldChange=NULL,
-                colorEdge=FALSE,
-                circular=FALSE,
-                node_label="all"
-            ) +
-                ggtitle(title) +
-                theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
-        }
-
-        save.and.link <- function(plottype){
-            f <- file.path(plots.folder, paste0(go,"_", comp,"_", plottype, ".pdf"))
-            dev.copy(pdf, file=f, width=15, height=10)
-            dev.off()
-            mdcat('Link to pdf - [', f, '](', f, ')')
-            cat('\n')
-        }
-
-        # It's possible that we got this far without any results to plot; if so
-        # then skip creating the tabs and plots
-        skip <- (length(dotplots) == 0) & (length(emapplots) == 0) & (length(cnetplots) == 0)
-
-        if (length(dotplots) > 0){
-            mdcat('#### Dotplot')
-            print(plot_grid(plotlist=dotplots, align='hv'))
-            save.and.link('dotplot')
-        }
-        if (length(emapplots) > 0){
-            mdcat('#### Emapplot')
-            print(plot_grid(plotlist=emapplots, align='hv'))
-            save.and.link('emapplot')
-        }
-        if (length(cnetplots) > 0){
-            mdcat('#### Cnetplot')
-            print(plot_grid(plotlist=cnetplots, align='hv'))
-            save.and.link('cnetplot')
-        }
-    }
-}
+```{r, collapse=FALSE}
+sessionInfo()
 ```
