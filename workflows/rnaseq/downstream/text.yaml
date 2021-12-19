@@ -6,6 +6,21 @@
 # When adding new entries, note that the "|" is important -- see
 # https://yaml-multiline.info/ for more details.
 
+
+# SAMPLE SIMILARITY AND QC
+qc:
+  clustered_heatmap: |
+    The following heatmap shows a hierarchical clustering of pairwise distances
+    between samples. Darker blue means less distant (i.e. more similar). In general
+    we expect to see replicates clustering together and separation of treatments.
+
+  pca: |
+    Another way of looking at sample clustering is principal components
+    analysis (PCA). The x- and y-axes do not have units, rather, they represent
+    the dimensions along which the samples vary the most. The amount of
+    variance explained by each principal component is indicated in the axes
+    label.
+
 # SIZE FACTORS -----------------------------------------------------------------
 sizefactors: |
   ## Size factors {.tabset}
