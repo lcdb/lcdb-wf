@@ -170,7 +170,7 @@ lst <- list(
                 design=~group),
 
             # Example 2: demonstrates how to filter samples.
-            # Note subset.counts=TRUE
+            # Note that subset.counts=TRUE is required when filtering.
             no_rep4=list(
                 sampletable=colData %>% filter(samplename != 'sample4'),
                 design=~group,
@@ -194,7 +194,7 @@ dds_list <- map(lst, lcdbwf::make_dds, config=config, parallel=config$parallel$p
 ```
 
 
-```{r, results='asis', cache=TRUE, dependson='dds_list', config=config$toggle$dds_diagnostics}
+```{r dds_diagnostics, results='asis', cache=TRUE, dependson='dds_list', config=config$toggle$dds_diagnostics}
 if (config$toggle$dds_diagnostics){ lcdbwf::dds_diagnostics(dds_list, text) }
 ```
 
@@ -281,15 +281,18 @@ lcdbwf::build_results_tabs(res_list, dds_list, config, text)
 ```
 
 ```{r upsetplots, results='asis', eval=length(res_list)>1, config=config$annotation, dependson='selections'}
-lcdbwf::mdcat(text$upset_plots)
-
 # Compare overlap across multiple differential expression contrasts.
+lcdbwf::mdcat(text$upset_plots)
 lcdbwf::plot_upsets(res_list, label_column=config$annotation$label_column)
 ```
 
 # Exported results
 
-Single Excel file with worksheets for each contrast: [results/consolidated_results.xlsx](results/consolidated_results.xlsx)
+```{r, results='asis'}
+lcdbwf::exported_excel(res_list, dds_list, file='results/consolidated_results.xlsx')
+```
+
+Here is a single Excel file with one worksheet for each contrast: [results/consolidated_results.xlsx](results/consolidated_results.xlsx)
 
 Alternatively, the files below are TSVs that can be opened in Excel or used
 progammatically with downstream tools:
@@ -301,12 +304,7 @@ tbl <- lcdbwf::exported_tsvs(res_list)
 knitr::kable(tbl, row.names=FALSE)
 ```
 
-```{r, results='asis'}
-lcdbwf::exported_excel(res_list, dds_list, file='results/consolidated_results.xlsx')
-```
-
-
-```{r combined_rds, dependson='assemble_variables'}
+```{r combined_rds, cache=TRUE, dependson='assemble_variables'}
 obj <- compose_results(res_list, dds_list)
 saveRDS(obj, file='combined.Rds')
 ```
