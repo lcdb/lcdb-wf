@@ -93,7 +93,7 @@ colData <- read.table(config$main$sampletable, sep='\t', header=TRUE, stringsAsF
 rownames(colData) <- colData[,1]
 ```
 
-```{r dds_initial, cache=TRUE, config=c(config$main, config$toggle$salmon, config$toggle$kalliso)}
+```{r dds_initial, cache=TRUE, config=c(config$main, config$toggle$salmon, config$toggle$kallisto)}
 # Convert featureCounts gene-level counts into DESeq2 object, and run
 # variance-stabiliizing transform.
 dds_initial <- lcdbwf::make_dds(
