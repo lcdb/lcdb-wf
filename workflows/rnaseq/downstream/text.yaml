@@ -61,18 +61,20 @@ dds_diagnostics:
     are coming from individual (or a small number of) samples.
 
   design_matrix: |
-    pass
+    This table shows the design matrix of the dds object.
 
 
 # RESULTS TABLE ---------------------------------------------------------------
 # Help for the columns in the results summary table.
 results_table: |
-  - row names of the table are the long-format human-readable labels of
+  - The **row names** of the table are the long-format human-readable labels of
   each contrast
-  - **name:** column is the short name used to generate filenames.
+  - **name** column is the short name used to generate filenames. Upset plots,
+    output TSVs and worksheets in the Excel spreadsheet will be labeled with
+    this short name.
   - **up** and **down** are the numbers of up- and downregulated genes respectively.
-  - **nonzero:** the number of genes with nonzero read counts
-    out of the total number of annotated genes.
+  - **nonzero.vs.total:** the number of genes with nonzero read counts
+    and the total number of annotated genes.
   - **alpha:** genes with an adjusted pvalue lower than this are considered
     significantly changed.
   - **lfcThreshold:** by default, the null hypothesis is that the log2 fold
@@ -96,9 +98,9 @@ results_table: |
     as well.
   - **test:** The contrast performed using the design. Words in this column
     indicate the contrast was specified to DESeq2 using a 3-item character
-    vector. Numbers (like `0,+1`) indicate a numeric contrast. In this case,
-    check the design matrix tab in the diagnostics section for the
-    corresponding dds object.
+    vector. Numbers (like `0,+1`) indicate a numeric contrast. For more details
+    on the design, check the design matrix tab in the diagnostics section for
+    the corresponding dds object matching the name in the *dds* column.
 
 
 # RESULTS PLOTS ----------------------------------------------------------------
@@ -108,11 +110,12 @@ results_plots:
     An **M-A plot** gives a good overview of the comparison. There is one dot per gene.
     It shows three dimensions: the normalized counts (baseMean, on a log10 scale,
     x-axis), the effect size (log2FoldChange, y-axis) and whether or not a gene was
-    signficant (color). Note that baseMean should **not** be interpreted as
-    "expression level", because the values are only normalized to library size, not
-    transcript length. We can say that a gene with higher baseMean than another
-    gene has more observed reads, but we cannot say whether that is because it has
-    a longer transcript or because there are more transcripts.
+    signficant (color). While it is tempting to interpret baseMean as
+    "expression level", this would not be correct because the values are only
+    normalized to library size, not transcript length. We can say that a gene
+    with higher baseMean than another gene has more observed reads, but we
+    cannot say whether that is because it has a longer transcript or because
+    there are more transcripts.
 
   volcano: |
     A **volcano plot** shows fewer dimensions than an M-A plot (it does not show
@@ -143,7 +146,7 @@ results_diagnostics:
     This MA plots colors genes by whether or not they were considered an outlier.
 
   lfcse_basemean: |
-    This plots the standard error of the log2FoldChange vs baseMean. In
+    This plots the standard error of the log2FoldChange (lfcSE) vs baseMean. In
     general, as baseMean increases the lfcSE decreases.
 
   lfcse_lfc: |
@@ -160,11 +163,35 @@ upset_plots: |
   performed. It's much like a Venn diagram, but easier to interpret and can scale
   to many comparisons.
 
-  A TSV file is linked under each plot. This file has rows for each gene and
-  columns for each contrast. A `1` indicates that gene was found to be
-  up/down/changed in that contrast.
+  The plot shows a summary of which genes were found in common across
+  contrasts. If you want to know the details of *which* genes were found in
+  common, a TSV file is linked under each plot. This file has rows for each
+  gene and columns for each contrast. A `1` indicates that gene was found to be
+  up/down/changed in that contrast. You can sort this TSV to identify the genes
+  of interest. For example, sorting all columns in descending order will cause
+  genes shared in all contrasts (a `1` in each column) to come to the top.
 
-  **Interpretation notes:** A gene can only be found in one column in an UpSet plot. So if you want to
-  confirm that the number of genes for a contrast matches the results tables and
-  MA plots, you need to sum all the bars for which there is a dot in that
-  contrast's row.
+  **Interpretation notes:** A gene can only be found in one column in an UpSet
+  plot. So if you want to confirm that the number of genes for a contrast
+  matches the results tables and MA plots, sum all the bars for which there is
+  a dot in that contrast's row.
+
+results_files:
+  The output files have the following columns.
+
+  - **gene** is typically the most stable accession. For most organisms, this
+    is Ensembl. Human-readable names can be inconsistent (or missing in many
+    cases), so these IDs provide the most robust way of ensuring each gene has
+    a unique ID.
+  - **SYMBOL, ALIAS, UNIPROT, ENTREZID**, and possibly others, are columns with
+    additional gene identifiers. Typically SYMBOL and ALIAS will be the most
+    human-readable.
+  - **baseMean** is the average number of normalized reads across all samples.
+    It is used for estimating dispersion and gives an indication of how much
+    evidence there is for a gene. It should not be interpreted as expression
+    level, since these values are not normalized by transcript length (which
+    would introduce various biases).
+  - **log2FoldChange** is the effect size of differential expression. DESeq2
+    first calculates log2(mean(normalized counts across condition 1 samples)
+    / mean(normalized counts across condition 2 samples)) to get the simple
+    log2 fold change. Then it shrinks
