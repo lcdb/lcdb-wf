@@ -147,7 +147,7 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
   dots <- list(...)
 
   # If not provided, detect parallel based on global config.
-  if (!"parallel" %in% names(dots)){
+  if (!("parallel" %in% names(dots))){
     parallel <- FALSE
     config <- get_config()
     parallel <- config$parallel$parallel
@@ -155,13 +155,15 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
   }
 
   # Modify the args based on what we detected. Note that results() expects the
-  # argument 'object' (rather than, say, 'dds').
-  dots[['object']] <- dds
   dots['parallel'] <- parallel
 
+  # Note that results() expects the argument to be called 'object' rather than,
+  # say, 'dds'.
+  dots[['object']] <- dds
+
   # Call results() with the subset of dots that it accepts.
-  res_dots <- lcdbwf::match_from_dots(dots, results)
-  res <- do.call("results", res_dots)
+  results_dots <- lcdbwf::match_from_dots(dots, results)
+  res <- do.call("results", results_dots)
 
   # We're about to call lfcShrink, but it needs the res object...so inject the
   # one we just made into dots.
@@ -169,8 +171,9 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
 
   # lfcShrink also needs the dds object, so inject that too
   dots[['dds']] <- dds
+
   lfcShrink_dots <- lcdbwf::match_from_dots(dots, lfcShrink)
-  res <- do.call("lfcShrink", lfcShrink_dots)
+    res <- do.call("lfcShrink", lfcShrink_dots)
 
   # Add the shrinkage type to the metadata of the results object.
   #
