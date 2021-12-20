@@ -203,7 +203,7 @@ dds_diagnostics <- function(dds_list, text){
     print(htmltools::tagList(datatable(cdata)))
 
     mdcat("#### Design matrix")
-    mdcat(text$dds_diagnostics$design_matrix)
+    mdcat(text$dds_diagnostics$design_matrix, " The design is: `", deparse(design(dds_list[[name]])), "`")
     mmat <- model.matrix(design(dds_list[[name]]), data=colData(dds_list[[name]])) %>% as.data.frame()
     print(htmltools::tagList(datatable(mmat)))
   }
