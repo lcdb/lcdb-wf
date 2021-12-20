@@ -74,6 +74,14 @@ plotting:
     circular: FALSE
     node_label: all
 
+  # If empty or missing, and toggle$results_diagnostics is TRUE, then run
+  # diagnostics for all results objects. Otherwise if
+  # toggle$results_diagnostics is TRUE then only run diagnostics for the
+  # following names in res_list. This can be useful in cases where you ran many
+  # contrasts but only want to run diagnostics on a subset of them.
+  diagnostics_results_names: []
+
+
 # PARALLEL ---------------------------------------------------------------------
 # Configure parallelization here.
 parallel:
@@ -99,7 +107,8 @@ toggle:
   # Create diagnostic plots for all dds objects?
   dds_diagnostics: TRUE
 
-  # Create diagnostic plots for all results objects?
+  # Create diagnostic plots for results objects? If TRUE, will check the
+  # config$plotting$diagnostics_for_results list.
   results_diagnostics: TRUE
 
 # ANNOTATION -------------------------------------------------------------------
