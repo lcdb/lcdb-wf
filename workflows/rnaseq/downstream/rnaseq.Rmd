@@ -286,7 +286,7 @@ res_list <- lcdbwf::attach_extra(res_list, config)
 summarize_res_list(res_list) %>% datatable
 ```
 
-```{r reportresults, results='asis', config=config$annotation, dependson='assemble_variables', cache=TRUE}
+```{r reportresults, results='asis', config=c(config$toggle$results_diagnostics, config$plotting$diagnostics_results_names), dependson='assemble_variables', cache=TRUE}
 # Create nested tabs showing the results.
 # First level of tabs will be labels of results; second level will be different
 # output (MA plot, volcano plot, etc)
