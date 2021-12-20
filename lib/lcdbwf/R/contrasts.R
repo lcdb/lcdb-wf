@@ -136,6 +136,12 @@ dds_coefs <- function(dds, ..., expand=FALSE){
 #'   - "label" (exactly as passed in)
 make_results <- function(dds_name, label, dds_list=NULL, ...){
 
+  if (!is.null(dds_list)){
+    dds <- dds_list[[dds_name]]
+  } else {
+    # Get the dds object from the global dds_list.
+    dds <- get_dds(dds_name)
+  }
 
   # Save a copy of the arbitrary arguments
   dots <- list(...)
