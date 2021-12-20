@@ -177,7 +177,26 @@ upset_plots: |
   a dot in that contrast's row.
 
 results_files:
+
+  The best way to use these is to rank by the log2FoldChange column, and then
+  consider genes whos padj value falls below 0.1.
+
+  **A note on NA values:** DESeq2 uses NA to encode extra information about
+  a gene, depending on which column the NA is found in.
+
+  - If log2FoldChange, pvalue, and padj all NA it means that the baseMean was
+    0. That is, no samples in this contrast had any reads.
+
+  - If only pvalue and padj are NA it means that the gene was detected as
+    a count outlier.
+
+  - If only padj is NA, it means the gene had too low counts and was filtered
+    out from multiple testing because it had no chance of being significant,
+    thereby reducing the harshness of the rest of the multiple testing
+    adjustments.
+
   The output files have the following columns.
+
 
   - **gene** is typically the most stable accession. For most organisms, this
     is Ensembl. Human-readable names can be inconsistent (or missing in many
@@ -192,6 +211,31 @@ results_files:
     level, since these values are not normalized by transcript length (which
     would introduce various biases).
   - **log2FoldChange** is the effect size of differential expression. DESeq2
-    first calculates log2(mean(normalized counts across condition 1 samples)
-    / mean(normalized counts across condition 2 samples)) to get the simple
-    log2 fold change. Then it shrinks
+    first calculates the simple log2 fold change using the mean of normalized
+    counts for the condtions being compared. However, both 1/5 and 1000/5000
+    give a fold change of 5x, but the latter has much more information and we
+    would want to put more stake in that. So DESeq2 uses log2 fold change
+    shrinkage methods to down-weight 1/5 to something smaller than 5x so that
+    we don't design follow-up experiments on results with low information. For
+    more details, see the papers on
+    [apeglm](https://doi.org/10.1093/bioinformatics/bty895),
+    [ashr](https://doi.org/10.1093/biostatistics/kxw041), and
+    [normal](https://doi.org/10.1186/s13059-014-0550-8). **This is designed to
+    be the most important column to sort on.**.
+  - **lfcSE** is the standard error of the log2FoldChange estimate. In general,
+    the log2 fold change for genes with high lfcSE will be shrunken more. This
+    column is sometimes useful for diagnostics but not routinely used.
+  - **stat** is the test statistic used for generating the p-value. It can
+    sometimes be useful for diagnostics but is not routinely used.
+  - **pvalue** is the *raw pvalue*. **Do not interpret these values** because
+    they are not adjusted for multiple comparisons. This column is included
+    because sometimes it has an NA, which can be informative (see above notes
+    on NA values).
+  - **padj** is the pvalue, adjusted for multiple tests. This is required to
+    weed out bad data that looks good. See this [StatQuest
+    video](https://www.youtube.com/watch?v=K8LQSvtjcEo) for an explanation.
+    **Use this column** to assess statistical significance. It is equivalent to
+    the false discovery rate. Unless otherwise noted, use the default of 0.1 as
+    the threshold. This means that out of all the genes that have padj values
+    less than 0.1, we may be wrong on 10% of those. In other words, 10% of the
+    significant genes aren't actually significant.
