@@ -229,13 +229,21 @@ lcdbwf::folded_markdown(text$results_table, "Help for table")
 
 # Delete these for real data!
 #
-# Example 1: 
+# Example 1:
+#  - demonstrates creating and manipulating coefficients
 control <- dds_coefs('main', group=='control')
 treatment <- dds_coefs('main', group=='treatment')
-contr_main <- make_results('main', 'LFC>0', contrast=treatment - control, type='ashr')
+contr_main <- make_results(
+  dds='main',
+  label='LFC>0',
+  contrast=treatment - control,
+  type='ashr'
+)
 ```
 
 ```{r results_02, dependson='dds_list', cache=TRUE}
+# Example 2:
+#  - demonstrates using a log2FoldChange threshold
 contr_lfc1 <- make_results(
   dds="no_rep4",
   contrast=c("group", "treatment", "control"),
@@ -246,6 +254,9 @@ contr_lfc1 <- make_results(
 ```
 
 ```{r results_03, dependson='dds_list', cache=TRUE}
+# Example 3:
+#   - demonstrates using normal shrinkage
+#   - demonstrates how to use salmon
 contr_salmon <- make_results(
   dds="salmon",
   contrast=c("group", "treatment", "control"),
@@ -255,6 +266,8 @@ contr_salmon <- make_results(
 ```
 
 ```{r results_04, dependson='dds_list', cache=TRUE}
+# Example 4:
+#   - like example 3, but kallisto instead of salmon
 contr_kallisto <- make_results(
   dds="kallisto",
   contrast=c('group', 'treatment', 'control'),
