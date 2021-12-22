@@ -123,7 +123,7 @@ colData(dds_initial) %>%
 
 ## Clustered heatmap
 
-```{r sample_heatmap, results='asis', cache=TRUE, config=config$plotting$covariates_for_plots, dependson='dds_initial'}
+```{r sample_heatmap, results='asis', cache=TRUE, config=c(text$qc$clustered_heatmap, config$plotting$covariates_for_plots), dependson='dds_initial'}
 # Plot a clustered heatmap of sample distances, for QC.
 lcdbwf::mdcat(text$qc$clustered_heatmap)
 lcdbwf::plot_heatmap(vsd, colData, cols_for_grouping=config$plotting$covariates_for_plots)
@@ -131,7 +131,7 @@ lcdbwf::plot_heatmap(vsd, colData, cols_for_grouping=config$plotting$covariates_
 
 ## PCA {.tabset}
 
-```{r pca, results='asis', cache=TRUE, config=config$plotting$covariates_for_plots, dependson='dds_initial'}
+```{r pca, results='asis', cache=TRUE, config=c(text$qc$pca, config$plotting$covariates_for_plots), dependson='dds_initial'}
 # Plot PCA plots, optionally tabbed with different factors colored, for QC.
 lcdbwf::mdcat(text$qc$pca)
 for(group in config$plotting$covariates_for_plots){
@@ -286,7 +286,7 @@ res_list <- lcdbwf::attach_extra(res_list, config)
 lcdbwf::summarize_res_list(res_list) %>% datatable
 ```
 
-```{r reportresults, results='asis', config=c(config$toggle$results_diagnostics, config$plotting$diagnostics_results_names), dependson='assemble_variables', cache=TRUE}
+```{r reportresults, results='asis', config=c(text$results_plots, config$toggle$results_diagnostics, config$plotting$diagnostics_results_names), dependson='assemble_variables', cache=TRUE}
 # Create nested tabs showing the results.
 # First level of tabs will be labels of results; second level will be different
 # output (MA plot, volcano plot, etc)
