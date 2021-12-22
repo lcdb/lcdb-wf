@@ -6,8 +6,10 @@
 #'
 #' @param res_list List of results objects
 #' @param dds_list List of dds objects
-#' @param config Config object
-#' @param text Text config object
+#' @param config Config object. Use config$plotting$diagnostics_results_names
+#'   to configure which results names (default is all). Use
+#'   config$toggle$results_diagnostics to enable/disable diagnostics.
+#' @param text Text config object. text$results_plots is the relevant section used by this function.
 #'
 #' @return NULL, but creates the plots and tabs as a side effect.
 build_results_tabs <- function(res_list, dds_list, config, text){
@@ -15,7 +17,8 @@ build_results_tabs <- function(res_list, dds_list, config, text){
   # Default to no diagnostics
   diagnostics_names <- c()
 
-  # If not oth
+  # If diagnostics are toggled on, then default running them on all results
+  # names. Otherwise restrict to what was provided.
   if (config$toggle$results_diagnostics){
     if (
         is.null(config$plotting$diagnostics_results_names) ||
