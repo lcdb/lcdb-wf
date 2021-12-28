@@ -4,7 +4,7 @@
 \alias{summarize.go}
 \title{Summarize and aggregate multiple GO results}
 \usage{
-\method{summarize}{go}(ego, labels)
+summarize.go(ego, labels)
 }
 \arguments{
 \item{ego}{List of clusterProfiler results objects}
