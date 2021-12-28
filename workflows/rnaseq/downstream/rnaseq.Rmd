@@ -234,7 +234,7 @@ lcdbwf::folded_markdown(text$results_table, "Help for table")
 control <- lcdbwf::dds_coefs('main', group=='control')
 treatment <- lcdbwf::dds_coefs('main', group=='treatment')
 contr_main <- lcdbwf::make_results(
-  dds='main',
+  dds_name='main',
   label='LFC>0',
   contrast=treatment - control,
   type='ashr'
@@ -245,7 +245,7 @@ contr_main <- lcdbwf::make_results(
 # Example 2:
 #  - demonstrates using a log2FoldChange threshold
 contr_lfc1 <- lcdbwf::make_results(
-  dds="no_rep4",
+  dds_name="no_rep4",
   contrast=c("group", "treatment", "control"),
   lfcThreshold=1,
   type="ashr",
@@ -258,7 +258,7 @@ contr_lfc1 <- lcdbwf::make_results(
 #   - demonstrates using normal shrinkage
 #   - demonstrates how to use salmon
 contr_salmon <- lcdbwf::make_results(
-  dds="salmon",
+  dds_name="salmon",
   contrast=c("group", "treatment", "control"),
   type="normal",
   label="Using Salmon"
@@ -269,7 +269,7 @@ contr_salmon <- lcdbwf::make_results(
 # Example 4:
 #   - like example 3, but kallisto instead of salmon
 contr_kallisto <- lcdbwf::make_results(
-  dds="kallisto",
+  dds_name="kallisto",
   contrast=c('group', 'treatment', 'control'),
   type='normal',
   label='Using Kallisto'
