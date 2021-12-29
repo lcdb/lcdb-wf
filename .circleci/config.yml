@@ -60,6 +60,7 @@ variables:
       name: Setup conda
       command: |
         set -e
+        apt update
         apt install -y locales-all locales
         export LC_ALL=en_US.utf8
         export LANG=en_US.utf8
@@ -110,13 +111,18 @@ variables:
   # Run the doctests across the included modules
   pytest-step: &pytest-step
     run:
-      name: Run pytest suite
+      name: Run pytest suite and testthat suite
       command: |
         source activate lcdb-wf-test
         pytest --doctest-modules lib
 
         # find all URLs in reference configs and make sure they exist
         python -c 'from lib.common import check_all_urls_found; check_all_urls_found()'
+
+        source deactivate
+        source activate lcdb-wf-test-r
+        Rscript -e "devtools::test('lib/lcdbwf')"
+
 
   # --------------------------------------------------------------------------
   # Other downstream jobs depend on this so that we can catch trivial errors
@@ -408,23 +414,23 @@ jobs:
       - store_artifacts:
           path: /tmp/docs.tar.gz
 
-#   report-env:
-#     <<: *defaults
-#     resource_class: small
-#     steps:
-#       - checkout
-#       - *restore_cache
-#       - *set-path
-#       - run:
-#           name: Report environment
-#           command: |
-#             conda env export -n lcdb-wf-test > /tmp/env.yaml
-#             cat /tmp/env.yaml
-#             conda env export -n lcdb-wf-test-r > /tmp/env-r.yaml
-#       - store_artifacts:
-#           path: /tmp/env.yaml
-#       - store_artifacts:
-#           path: /tmp/env-r.yaml
+  report-env:
+    <<: *defaults
+    resource_class: small
+    steps:
+      - checkout
+      - *restore_cache
+      - *set-path
+      - run:
+          name: Report environment
+          command: |
+            conda env export -n lcdb-wf-test > /tmp/env.yaml
+            cat /tmp/env.yaml
+            conda env export -n lcdb-wf-test-r > /tmp/env-r.yaml
+      - store_artifacts:
+          path: /tmp/env.yaml
+      - store_artifacts:
+          path: /tmp/env-r.yaml
 
 # ----------------------------------------------------------------------------
 # This section configures the dependencies across jobs.
@@ -463,11 +469,11 @@ workflows:
       - build-docs:
           requires:
             - initial-setup
-      # - report-env:
-      #     requires:
-      #       - rnaseq
-      #       - rnaseq-misc
-      #       - chipseq
-      #       - chipseq-misc
-      #       - references
-      #       - colocalization
+      - report-env:
+          requires:
+            - rnaseq
+            - rnaseq-misc
+            - chipseq
+            - chipseq-misc
+            - references
+            - colocalization
