@@ -391,8 +391,8 @@ dotplots <- function(enrich_res, config, name=NULL, direction=NULL, ont=NULL, tr
   }
   enrich_res <- truncate(enrich_res, truncate_to)
   p <- do.call(enrichplot::dotplot, c(enrich_res, config$plotting$dotplot_args)) +
-    ggtitle(title) +
-    theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+    ggplot2::ggtitle(title) +
+    ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, size=15, face='bold'))
   return(p)
 }
 
@@ -412,8 +412,8 @@ emapplots <- function(enrich_res, config, name=NULL, direction=NULL, ont=NULL, t
   enrich_res <- truncate(enrich_res, truncate_to)
   enrich_res <- enrichplot::pairwise_termsim(enrich_res)
   p <- do.call(enrichplot::emapplot, c(enrich_res, config$plotting$emapplot_args)) +
-    ggtitle(title) +
-    theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+    ggplot2::ggtitle(title) +
+    ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, size=15, face='bold'))
   return(p)
 }
 
@@ -432,8 +432,8 @@ cnetplots <- function(enrich_res, config, name=NULL, direction=NULL, ont=NULL, t
   }
   enrich_res <- truncate(enrich_res, truncate_to)
   p <- do.call(enrichplot::cnetplot, c(enrich_res, config$plotting$cnetplot_args)) +
-    ggtitle(title) +
-    theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+    ggplot2::ggtitle(title) +
+    ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, size=15, face='bold'))
   return(p)
 }
 
