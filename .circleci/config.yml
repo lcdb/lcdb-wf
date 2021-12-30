@@ -114,6 +114,10 @@ variables:
       name: Run pytest suite and testthat suite
       command: |
         source activate lcdb-wf-test
+
+        # Ensure that the chunks in rnaseq.Rmd have matching documentation
+        (cd ci && python ensure_docs.py)
+
         pytest --doctest-modules lib
 
         # find all URLs in reference configs and make sure they exist
