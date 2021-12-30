@@ -174,7 +174,7 @@ lst <- list(
             no_rep4=list(
                 sampletable=colData %>% filter(samplename != 'sample4'),
                 design=~group,
-                subset.counts=TRUE
+                subset_counts=TRUE
             ),
 
             # Example 3: use salmon
