@@ -207,12 +207,6 @@ table below.
 Under the table are tabs, one for each contrast. Under each contrast's tab,
 there are more tabs for the various output.
 
-
-```{r, results='asis'}
-lcdbwf::folded_markdown(text$results_table, "Help for table")
-```
-
-
 ```{r results_01, dependson='dds_list', cache=TRUE}
 # Perform differential expression testing.
 #
@@ -284,6 +278,7 @@ res_list <- lcdbwf::attach_extra(res_list, config)
 ```
 
 ```{r summary, results='asis'}
+lcdbwf::folded_markdown(text$results_table, "Help for table")
 lcdbwf::summarize_res_list(res_list) %>% datatable
 ```
 
