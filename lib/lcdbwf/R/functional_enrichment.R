@@ -19,11 +19,17 @@
 #' @return An enrichResults object from
 run_enrichment <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR', ...){
 
+  if (is.null(config$main$lfc_thresh)){
+    lfc_thresh <- 0
+  } else {
+    lfc_thresh <- config$main$lfc_thresh
+  }
+
   if (kind == "OR"){
     genes <- get_sig(
       res$res,
       alpha=config$main$alpha,
-      lfc_thresh=config$main$lfc_thresh,
+      lfc_thresh=lfc_thresh,
       direction=direction,
       return_type="rownames"
     )
@@ -448,4 +454,3 @@ available_msigdb_keys <- function(){
     mutate(x=paste(gs_cat, gs_subcat, sep='_') %>% str_replace('_$', ''))
   return(df$x)
 }
-
