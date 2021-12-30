@@ -15,7 +15,8 @@ knitr::opts_chunk$set(
     message=FALSE,
     cache.extra_file_dep_1 = file.info('../config/sampletable.tsv')$mtime,
     cache.extra_file_dep_2 = file.info('../data/rnaseq_aggregation/featurecounts.txt')$mtime,
-    cache.extra_file_dep_2 = file.info('../data/rnaseq_samples/*/*.kallisto/abundance.h5')$mtime
+    cache.extra_file_dep_3 = file.info('../data/rnaseq_samples/*/*.kallisto/abundance.h5')$mtime,
+    cache.extra_file_dep_4 = file.info('../data/rnaseq_samples/*/*.salmon/quant.sf')$mtime
 )
 ```
 
