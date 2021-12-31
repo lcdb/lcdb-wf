@@ -22,7 +22,7 @@ make_dds(
 "design" are required.  The optional named items are "filename", which is the
 featureCounts file containing counts for all samples, and "args" which is
 a list of arguments to be passed to the constructor (e.g.,
-\verb{args=list(subset.counts=TRUE))}.}
+\code{subset_counts=TRUE}).}
 
 \item{collapse_by}{The column to collapse technical replicates by. Rows in
 the sampletable that share the same value of this column will be combined

@@ -4,7 +4,7 @@
 \alias{summarize.kegg}
 \title{Summarize KEGG results}
 \usage{
-summarize.kegg(ekg, labels)
+\method{summarize}{kegg}(ekg, labels)
 }
 \arguments{
 \item{ekg}{Results from clusterProfiler KEGG enrichment}

@@ -25,7 +25,7 @@ kallisto.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, 
 #' "design" are required.  The optional named items are "filename", which is the
 #' featureCounts file containing counts for all samples, and "args" which is
 #' a list of arguments to be passed to the constructor (e.g.,
-#' `args=list(subset.counts=TRUE))`.
+#' `subset_counts=TRUE`).
 #'
 #' @param collapse_by The column to collapse technical replicates by. Rows in
 #'   the sampletable that share the same value of this column will be combined
@@ -59,8 +59,8 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
   location <- purrr::pluck(design_data, 'filename', .default=featureCounts)
   salmon <- purrr::pluck(design_data, 'salmon')
   kallisto <- purrr::pluck(design_data, 'kallisto')
-  subset.counts <- purrr::pluck(design_data, 'subset.counts')
-  sample.func <- purrr::pluck(design_data, 'sample.func', .default=lcdbwf.samplename)
+  subset_counts <- purrr::pluck(design_data, 'subset_counts')
+  sample_func <- purrr::pluck(design_data, 'sample_func', .default=lcdbwf_samplename)
 
   # Allow overriding of config values.
   if (!is.null(config)){
@@ -77,11 +77,11 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
   if (salmon | kallisto){
     # If these arguments were provided, the corresponding loading functions
     # don't accept them so we need to remove. Issue a warning as well.
-    if (!is.null(subset.counts) | !is.null(sample.func)){
+    if (!is.null(subset_counts) | !is.null(sample_func)){
       warning("Salmon or Kallisto was specified, but additional arguments ",
               "were provided to the loading function.")
-      subset.counts <- NULL
-      sample.func <- NULL
+      subset_counts <- NULL
+      sample_func <- NULL
     }
 
     # For Salmon and Kallisto, we need a tx2gene dataframe. We can get this
@@ -108,8 +108,8 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
       location,
       sampletable=coldata,
       design=design,
-      sample.func=sample.func,
-      subset.counts=subset.counts
+      sample_func=sample_func,
+      subset_counts=subset_counts
     )
   }
 

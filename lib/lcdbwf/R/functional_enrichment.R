@@ -19,11 +19,17 @@
 #' @return An enrichResults object from
 run_enrichment <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR', ...){
 
+  if (is.null(config$main$lfc_thresh)){
+    lfc_thresh <- 0
+  } else {
+    lfc_thresh <- config$main$lfc_thresh
+  }
+
   if (kind == "OR"){
     genes <- get_sig(
       res$res,
       alpha=config$main$alpha,
-      lfc_thresh=config$main$lfc_thresh,
+      lfc_thresh=lfc_thresh,
       direction=direction,
       return_type="rownames"
     )
@@ -391,8 +397,8 @@ dotplots <- function(enrich_res, config, name=NULL, direction=NULL, ont=NULL, tr
   }
   enrich_res <- truncate(enrich_res, truncate_to)
   p <- do.call(enrichplot::dotplot, c(enrich_res, config$plotting$dotplot_args)) +
-    ggtitle(title) +
-    theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+    ggplot2::ggtitle(title) +
+    ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, size=15, face='bold'))
   return(p)
 }
 
@@ -412,8 +418,8 @@ emapplots <- function(enrich_res, config, name=NULL, direction=NULL, ont=NULL, t
   enrich_res <- truncate(enrich_res, truncate_to)
   enrich_res <- enrichplot::pairwise_termsim(enrich_res)
   p <- do.call(enrichplot::emapplot, c(enrich_res, config$plotting$emapplot_args)) +
-    ggtitle(title) +
-    theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+    ggplot2::ggtitle(title) +
+    ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, size=15, face='bold'))
   return(p)
 }
 
@@ -432,8 +438,8 @@ cnetplots <- function(enrich_res, config, name=NULL, direction=NULL, ont=NULL, t
   }
   enrich_res <- truncate(enrich_res, truncate_to)
   p <- do.call(enrichplot::cnetplot, c(enrich_res, config$plotting$cnetplot_args)) +
-    ggtitle(title) +
-    theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+    ggplot2::ggtitle(title) +
+    ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, size=15, face='bold'))
   return(p)
 }
 
@@ -448,4 +454,3 @@ available_msigdb_keys <- function(){
     mutate(x=paste(gs_cat, gs_subcat, sep='_') %>% str_replace('_$', ''))
   return(df$x)
 }
-

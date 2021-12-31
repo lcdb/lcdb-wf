@@ -102,7 +102,7 @@ mdcat <- function(...){
 #' @param x Character vector of BAM filenames (e.g., from the header of
 #'        featureCounts)
 #'
-lcdbwf.samplename <- function(x) {
+lcdbwf_samplename <- function(x) {
     x <- x %>%
         stringr::str_remove_all('data/rnaseq_samples/') %>%
         stringr::str_remove_all('.cutadapt.bam') %>%
