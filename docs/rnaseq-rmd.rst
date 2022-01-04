@@ -3,9 +3,10 @@
 Detailed documentation of RNA-Seq downstream
 ============================================
 
-Here we describe in detail the downstream analysis of RNA-Seq data done using RMarkdown.
-The code is broken into chunks or modules and the documentation follows the same
-structure. For instance, if :file:`rnaseq.Rmd` has the following code:
+Here we describe in detail the downstream analysis of RNA-Seq data performed in :file:`workflows/rnaseq/downstream/rnaseq.Rmd`. 
+
+This page has one section per named chunk. For example, if :file:`rnaseq.Rmd`
+has the following code:
 
 .. code-block:: r
 
@@ -15,191 +16,116 @@ structure. For instance, if :file:`rnaseq.Rmd` has the following code:
     ```
 
 Then you can find the corresponding documentation on this page under the
-``load_libraries`` heading. Note that an RMarkdown code chunk must be named
-in order to be documented. RMarkdown requires uniquely-named chunks, so we
-can use them as uniquely-named headings.
+``load_libraries`` heading.
 
 The file :file:`ci/ensure_docs.py` double-checks to make sure all chunks are
 documented and all documentation corresponds to a chunk, as part of the testing
 framework.
 
-To further modularize the code and because certain parts of the analysis are self-contained,
-the downstream analysis code is broken up into three main components:
-
-- `Primary analysis script`_: ``rnaseq.Rmd``
-- `Gene patterns analysis`_: ``gene-patterns.Rmd``
-- `Functional enrichment analysis`_: ``functional-enrichment.Rmd``
-
-The ``gene_patterns.Rmd`` and ``functional-enrichment.Rmd`` scripts are called
-from within the primary analysis Rmd in the genepatterns_ and functionalenrichment_
-chunks below.
-
 .. _rnaseqrmd:
 
-Primary analysis script
-~~~~~~~~~~~~~~~~~~~~~~~
 
 ``global_options``
 ------------------
-This chunk sets global rmarkdown options. The following lines provide
+This chunk sets global rmarkdown options. Some of the lines provide
 a mechanism for all cached chunks to have their cache invalidated if either of
-the filenames' modification times have changed.
+the filenames' modification times have changed. For example, the following
+argument to ``knitr::opts_chunk$set`` will inject the option
+``cache.extra_file_dep_1`` into all chunks:
 
 .. code-block:: r
 
     cache.extra_file_dep_1=file.info('../config/sampletable.tsv')$mtime,
-    cache.extra_file_dep_2 = file.info('../data/rnaseq_aggregation/featurecounts.txt')$mtime
 
-In other words, if the sample table of the RNA-Seq workflow or the counts table from
-the samples have been updated since the last time the analysis script was run, everything
-will be rerun from scratch.
+Therefore if the sample table of the RNA-Seq workflow has been updated since
+the last time the analysis script was run, the modification time (mtime) will
+be changed, so the ``cache.extra_file_dep_1`` value will be different than it
+was before for every chunk, and so every chunk will be re-run.
 
-``load_helpers``
-----------------
+``lcdbwf``
+----------
 
-Helper functions are a set of useful utility functions used throughout the
-``rnaseq.Rmd`` script that are stored in a package maintained in this
-repository, in the ``lib/lcdbwf`` R package. Here we include these as a child
-Rmd, so that the main document doesn't get cluttered with the functions, but
-the code is still included in the HTML output.
+Loads the ``lcdbwf`` R package, stored in ``../../../lib/lcdbwf/R``. This chunk
+is not cached and fully reloads the package each time using
+``devtools::load_all``, so any changes to the code in that package will show up
+when this file is rendered. Documentation is also automatically re-generated.
 
-This chunk refreshes documentation and loads (or re-loads, if you run it later)
-the package using devtools.
+Note that throughout this RMarkdown file, functions from this package will use
+the ``lcdbwf::`` namespace prefix to be explicit about where that function is
+coming from.
 
-``annotationhub_setup``
------------------------
+``config``
+----------
 
-We use AnnotationHub for downloading annotations on the fly rather than
-specifying OrgDbs in the requirements.txt of the conda environment. This allows
-as much of our code as possible remain organism-agnostic. The package default
-cache location is in the user's home directory. However this prevents other
-people using the same environment from using the cached download. Therefore
-here we reset the cache directory to
-:file:`../../../include/AnnotationHubCache`.
+This chunk loads the config files :file:`config.yaml` and :file:`text.yaml`.
+This chunk is not cached, so any changes in the config files automatically show
+up here.
 
-+------------------------------+----------------------------------------------------------------------------------------------------------------------+
-| var                          | description                                                                                                          |
-+==============================+======================================================================================================================+
-| ``annotation_genus_species`` | change this to what is relevant for this experiment. will search for and use the latest annotations for that species |
-+------------------------------+----------------------------------------------------------------------------------------------------------------------+
-| ``annotation_key_override``  | will use a specific key, if you know ahead of time what that is                                                      |
-+------------------------------+----------------------------------------------------------------------------------------------------------------------+
+See the :file:`config.yaml` file for configuring the code.
+
+See the :file:`text.yaml` file for editing the explanatory text.
+
+This chunk also configures the parallelization options in a chunk that is not
+cached.
+
+``libraries``
+-------------
+
+Standard loading of the library dependencies used throughout the code.
 
 ``coldata_setup``
 -----------------
+This chunk loads the sample table.
 
-This chunk prepares the :term:`colData` object that contains the metadata to be used
-for creating the dds objects. The majority of the metadata is read in from the
-sampletable. This chunk also handles things like converting to factors and
-setting up the paths to Salmon output files.
+Use this chunk to add additional columns to your sampletable.
 
-+---------------------------+------------------------------------------------------------------------------------------------+
-| var                       | description                                                                                    |
-+===========================+================================================================================================+
-| ``sample.table.filename`` | path to sampletable, generally you don't need to change this                                   |
-+---------------------------+------------------------------------------------------------------------------------------------+
-| ``strip.dotted.version``  | if TRUE, then Ensembl versions (the ".1" in "ENSG000012345.1") will be removed from gene names |
-+---------------------------+------------------------------------------------------------------------------------------------+
-| ``exclude.for.printing``  | default columns in the default sampletable that shouldn't necessarily be printed in tables     |
-+---------------------------+------------------------------------------------------------------------------------------------+
-| ``factor.columns``        | columns to ensure are factor types                                                             |
-+---------------------------+------------------------------------------------------------------------------------------------+
-| ``salmon.path.func``      | given a samplename ``x``, this function returns the sample's ``quant.sf`` file.                |
-+---------------------------+------------------------------------------------------------------------------------------------+
-
-This is a good place to put any modifications to the sample table (like factors
-derived other columns).
-
-If you are using this Rmd outside the context of lcdb-wf, you will need to
-change the salmon output path patterns and the sampletable location.
-
-.. topic:: Note on factors
-   
-   For the test data, "control" is the base level for the "group" factor. You will
-   need to edit this as appropriate for your experimental design.
-
-
-``salmon``
-----------
-
-If you don't want to use Salmon TPM, disable this chunk with ``eval=FALSE`` or
-delete it entirely (and do the same with the next chunk).
-
-``ddstxi``
-----------
-
-``design`` will likely need to be changed depending on your experimental
-design.
-
-This chunk creates separate ``dds.txi`` and ``vsd.txi`` objects to
-differentiate them from the ones with no ``.txi`` that are created using
-featureCounts.
-
-Note we're using VST rather than rlog because the DESeq2 docs say they are
-largely equivalent, and vst is substantially faster. Also note that since this
-is exploratory analysis, we use ``blind=TRUE`` to ignore the design.
+The only requirement is that the rownames correspond to sample names.
 
 ``dds_initial``
 ---------------
-This initial :term:`dds` object will be used for exploratory data analysis, NOT
-for differential expression. So the ``design`` should be something generic like
-"group" even for complex experimental designs.
 
-This chunk creates the initial :term:`dds` and :term:`vsd` objects that will be
-used for exploratory data analysis.
+Constructs the initial dds object and the variance stabilized counts.
+
+Note that the design used is ``~1`` and the call to
+``varianceStabilizingTransformation`` uses ``blind=TRUE``, so you don't need to
+change anything here.
+
+Also note that the entire ``config`` object is passed to the ``make_dds``
+function, which reads options like whether to strip version numbers off of gene
+IDs or whether (and how) to collapse technical replicates.
+
+``print_coldata``
+-----------------
+
+Simply prints the colData for reference -- excluding columns that might be in
+there that would clutter the output.
 
 ``sample_heatmap``
 ------------------
 
-This chunk creates a clustered heatmap of sample distances.
+This chunk creates a clustered heatmap of sample distances. The columns
+specified in the config file's "covariates_for_plots" item will show up as
+colors along the right side.
 
-It can be helpful to add colors along the side to indicate different aspects of the
-sample metadata. Any number of columns from the :term:`colData` can be provided
-as ``cols.for.grouping``.
 
 ``pca``
 -------
 
-Create PCA plots, colored by possibly many different :term:`colData` columns
-(specified using the ``groups`` list).
+Creates PCA plots, one tab per entry in the config file's
+"covariates_for_plots" item. Each plot has the same points, but the colors
+differ. This can help assess the experimental design and set expectations on
+how many differentially expressed genes one may find.
 
-Each of the values in ``groups`` will have a corresponding interactive PCA plot
-in a separate tab. This makes it easy to click through tabs to get a feel for
-the structure of the data, and allows for hoving over a point to see the
-metadata.
+These are interactive plots, and hovering over a point indicates the sample.
 
-Note that plotting interactive plotly figures in a loop is not quite possible
-(due to technical limitations) and so we have to use a workaround. Currently,
-this workaround is to "manually" step through the loop, setting ``i`` to
-a different integer and copy/pasting the same code multiple times.
 
 ``sizefactors``
 ---------------
 
-To more easily investigate any outliers in these plots, you can optionally
-attach columns from ``colData`` before plotting the scatterplot, e.g.:
+This chunk makes diagnostic plots. In general, we expect sizeFactors to
+correlate with total read count. When it doesn't, it can indicate that a small
+number of genes are very highly expressed.
 
-.. code-block:: r
-
-   color_by <- 'group'
-   group_names <- tibble(name=dds$samplename, group=dds[[color_by]])
-   trc_vs_sf <- full_join(sf, trc, by='name')
-
-``parallel_config``
--------------------
-
-By default we do not run in parallel, however this can be very useful in
-experiments with many samples and complex designs. To run in parallel, manually
-configure the parallel workers, set the number of cores, and set parallel to
-TRUE:
-
-.. code-block:: r
-
-   parallel <- TRUE
-   register(MulticoreParam(4))
-
-Calls to ``DESeq()`` below will provide the argument ``parallel=parallel`` so no
-other changes should be needed.
 
 .. _dds_list:
 
@@ -216,9 +142,10 @@ want to use salmon instead of featureCounts. These would need to be done for
 each ``dds``, requiring code duplication.
 
 After working on many complex and/or messy experimental designs, we have
-settled on the approach of a named list of ``dds`` objects.
+settled on the approach of a named list of ``dds`` objects, where later code
+refers to these objects by their name in the list.
 
-**The** ``results`` **chunk below expects a list, one item per** ``dds`` **object.**
+**The** ``results`` **chunk below expects such a list.**
 
 The simplest example is the following where we create a single ``dds`` and put
 it into a list.
@@ -233,11 +160,16 @@ it into a list.
 
    dds.list <- list(main=dds)
 
-
-Here is a modified example where we now want to remove replicate 4. We also want to collapse technical replicates:
+Now imagine a case where we want to remove a replicate that we think is an
+outlier, but we still want to compare it to the results when it is included.
+Let's say we also need to collapse the technical replicates. Such code would
+look like this:
 
 .. code-block:: r
 
+   # The long way...
+   #
+   # First object with all replicates
    dds1 <- DESeqFromCombinedFeatureCounts(
       '../data/rnaseq_aggregation/featurecounts.txt',
       sampletable=colData,
@@ -245,56 +177,168 @@ Here is a modified example where we now want to remove replicate 4. We also want
    dds1 <- collapseReplicates(dds1, 'biorep')
    dds1 <- DESeq(dds1, parallel=parallel)
 
+   # Similar to above, but remove replicate 4
    dds2 <- DESeqFromCombinedFeatureCounts(
       '../data/rnaseq_aggregation/featurecounts.txt',
       sampletable=colData %>% filter(replicate!='rep4'),
       design=~group,
-      subset.counts=TRUE  # need this to subset the featureCounts to match the colData
+      # need subset_counts=TRUE if we want to automatically
+      # subset the featureCounts to match the filtered colData
+      # we provided.
+      subset_counts=TRUE
       )
    dds2 <- collapseReplicates(dds, 'biorep')
    dds2 <- DESeq(dds2, parallel=parallel)
 
-   dds.list <- list(main=dds1, no.rep.4=dds2)
-
 Based on our experience, as we add more ``dds`` objects the code gets more
 error-prone. So for more complex use-cases, we have a function
-``lcdbwf::make.dds``. This takes as its first argument a list of sampletable
-(:term:`colData`) and a design and additional arguments can configure the
-object further.
+``lcdbwf::make_dds``.
 
-The above example becomes the following:
+Here is how the code above would look using this method:
 
 .. code-block:: r
 
    lst <- list(
+
       main=list(sampletable=colData, design=~group),
+
       no.rep.4=list(
          sampletable=colData %>% filter(replicate!='rep4'),
          design=~group,
-         args=list(subset.counts=TRUE))
+         subset.counts=TRUE))
    )
 
-   dds.list <- map(lst, make.dds, combine.by='biorep', parallel=parallel)
+   dds.list <- map(lst, lcdbwf::make_dds, config=config, parallel=config$parallel$parallel)
 
-Note the following:
+That is, first we create a list of lists (``lst``), and then we used ``map()`` to apply
+the ``make_dds`` function to all items in the list. The collapsing of
+replicates and other dds-creation configuration like stripping dotted version
+names is determined by the config object which is passed along.
 
-- the file is set by default to be :file:`../data/rnaseq_aggregation/featurecounts.txt`
-- we can supply additional args, like ``subset.counts=TRUE``, on a per-``dds`` basis.
-- the `combine.by` is applied to everything in the list
-- the ``parallel`` argument is also used for everything in the list
+See the help for ``lcdbwf::make_dds`` for more details.
 
-See the help for ``lcdbwf::make.dds`` for more details.
+This chunk becomes a dependency of all of the ``results`` chunks below.
 
-``results``
------------
+``dds_diagnostics``
+-------------------
 
-This chunk is where the bulk of the differential expression analysis takes place.
+If configured, this chunk will run the diagnostics on the dds objects and show
+tabbed reports on each dds.
 
-The end result of this chunk is a list of listes that is used by functions in
-the `lcdbwf` R package for more downstream work. For more details, see
-:term:`res.list`.
+``results_*``
+-------------
 
-For each contrast (that is, each entry in `res.list`) the below chunks will
+.. note::
+
+  This is where most of the customization needs to happen for each project.
+
+This is actually a series of chunks where the bulk of the differential
+expression analysis takes place.
+
+For simple cases, you probably just need one of these. But for complex
+experimental designs where you end up doing lots of contrasts, it can get time
+consuming to run them every time you change the RMarkdown file.
+
+The end result of these chunks is a single list containing DESeq2 results
+objects and associated metadata in (sub)lists. Each of these sublists has:
+
+
+- ``res``, the results object
+- ``dds``, the string name in ``names(dds.list)``
+- ``label``, a "nice" label which is used for headings and other output
+- additional optional arguments that are passed along to ``DESeq2::results()``
+  and/or ``DESeq2::lfcshrink()``
+
+To continue our example from above, we might want to run the same contrast on
+all samples (the "main" dds) and after removing replicate 4 (the "no.rep.4"
+dds). To illustrate how additional arguments are used, let's imagine we also
+want to use `ashr` as the shrinkage method for the second contrast.
+
+Use the ``lcdbwf::make_results()`` function for this. This function is
+a loose wrapper around ``DESeq2::results()`` and ``DESeq2::lfcshrink()`` that
+adds some extra convenience when working with lists of dds objects, including
+the detection of parallelization as set up in the config object. See the help
+for ``lcdbwf::make_results()`` for more details.
+
+.. _rules:
+
+To take advantage of this infrastructure, we put each of those contrasts into
+its own chunk **according to the following rules**:
+
+- the chunk name must start with ``results_``
+- the chunk is cached
+- the chunk depends on the ``'dds_list'`` chunk
+- the variable name starts with ``contr_``, and the rest of the variable name
+  will be used as the name in the list
+
+Our example would look like the following. Note that we're showing the chunks
+here because that will be come meaningful in a moment. They are shown as
+comments here just to get the syntax highlighting to look OK.
+
+.. code-block:: r
+
+    # ```{r results_01, dependson='dds_list', cache=TRUE}
+    contr_ko.vs.wt <- lcdbwf::make_results(
+      dds_name='main',
+      label='Using all samples',
+      contrast=c('genotype', 'KO', 'WT')
+    )
+    # ```
+
+    # ```{r results_02, dependson='dds_list', cache=TRUE}
+    contr_no.rep.4 <- lcdbwf::make_results(
+      dds_name='no.rep.4',
+      label='Removing replicate 4 and using ashr for shrinkage',
+      contrast=c('genotype', 'KO', 'WT'),
+      type='ashr'
+    )
+    # ```
+
+
+When combined with the ``assemble_variables`` chunk described below, this
+allows us to:
+
+- retain caching at the level of individual contrasts
+- combine all results into a single list used in later code while still respecting dependencies
+- reduce the bookkeeping overhead
+
+In our experience this scales well with very complex experimental designs with
+lots of contrasts. For more information on creating complex contrasts, see
+:ref:`contrast`. For more information on how these results are collected, see :ref:`assemble_variables`.
+
+
+.. _assemble_variables:
+
+``assemble_variables``
+----------------------
+
+If we had put all ``results()`` calls into the same chunk and cached that, then
+a change anywhere in that chunk would invalidate the cache which would cause
+all results to be regenerated. With many contrasts, this can get quite
+time-consuming. An alternative would be to put each ``results()`` call into its
+own chunk. But then we would need to keep track of dependencies and ensure
+those dependencies were specified in downstream chunks.
+
+For example, if you add a new results chunk and cache it, but forget to add
+that chunk as a dependency in a later chunk, that later chunk will be
+inconsistent and may even be missing the new results. Keeping track of this can
+be error-prone.
+
+Our solution is to set up the contrasts according to the :ref:`rules described
+above <rules>`. By following those rules, the following becomes possible:
+
+- we can detect all chunks creating results by looking for ``results_`` in the
+  chunk name and automatically inject these into dependencies of future chunks.
+- we can detect all results objects created by looking for variables starting
+  with ``contr_``
+- we can assemble all results objects into a list, and name each item in the
+  list according to its variable name (minus the ``contr_``).
+
+The ``assemble_variables`` chunk does all of this. The end result of this chunk
+is a list of lists that is used by functions in the `lcdbwf` R package for
+downstream work. For more details, see :term:`res_list`.
+
+For each contrast (that is, each entry in `res_list`) the below chunks will
 automatically create a DE results section including:
 
 - a tabbed section using the label as a header
@@ -303,12 +347,6 @@ automatically create a DE results section including:
 - counts plots of top 3 up- and down-regulated genes
 - p-value distribution
 - exported results tables with links
-
-
-``res.list`` is a named list. Each item should be a list with names c('res',
-'dds', 'label'). "res" is a DESeqResults object, "dds" is the corresponding
-DESeq object the results were extracted from, and "label" is a nicer label to
-use for headers and other text.
 
 .. _contrast:
 
@@ -454,94 +492,51 @@ Interaction term, that is, (IA vs IB) vs (IIA vs IIB). This is effectively ``(IA
    res <- results(dds, contrast=c(1, -1, -1, 1)
 
 
-Notes on using lfcShrink
-^^^^^^^^^^^^^^^^^^^^^^^^
-As currently implemented (05 apr 2018), lfcShrink checks its arguments for an
-existing results table. If it exists, it applies shrinkage to the lfc and se
-in that table. If it *doesn't* exist, it calls results on dds with the syntax
+``summary``
+-----------
 
-    res <- results(dds, name=coef)
+This chunk prints a high-level overview of all the contrasts.
 
-or
-
-    res <- results(dds, contrast=contrast)
-
-It does not pass any further arguments to results, and it doesn't warn you
-that results-style arguments were unrecognized and ignored. Therefore,
-lfcShrink DOES NOT directly support lfcThreshold, or other alternative
-hypotheses, or any of the custom analysis methods you can access through
-results(). To get those, you have to call results first, without shrinkage,
-and then apply lfcShrink.
-
-Here we use the lfcShrink version of the results. In DESeq2 versions >1.16,
-the lfc shrinkage is performed in a separate step, so that's what we do here.
-This is slightly different results than if you used betaPrior=TRUE when
-creating the DESeq object.
-
-
-
-``attach``
-----------
-
-Typically the genes as labeled in the counts tables use Ensembl or other
-not-quite-human-readable names. This chunk allows you to add additional gene
-information to the results objects.
-
-+---------+----------------------------------------------------------------------------------+
-| var     | description                                                                      |
-+=========+==================================================================================+
-| keytype | in the counts table, what format are the gene IDs? Must be a column in the OrgDb |
-+---------+----------------------------------------------------------------------------------+
-| columns | what additional gene IDs to add? Must be columns in the OrgDb                    |
-+---------+----------------------------------------------------------------------------------+
 
 ``reportresults``
 -----------------
 
 This is the section that creates multiple, tabbed outputs for each of the
-contrasts in the :term:`res.list`.
+contrasts in the :term:`res_list`.
 
-``selections``
---------------
-
-Here we get a list of DE genes from the :term:`res.list` object
-to use for downstream analysis using the log2FoldChange (lfc) and 
-false discovery rate (FDR) thresholds.
+If the config specifies results diagnostics
+(``config$toggle$results_diagnostics`` is TRUE), then this chunk will also run
+the diagnostics. You can select just the ones you want diagnostics on using the
+``config$plotting$diagnostics_results_names`` config option.
 
 ``upsetplots``
 --------------
 
-This chunk produces Upset plots comparing the selected lists of genes.
+This chunk produces UpSet plots comparing the contrasts.
 
-``helpdocs``
-------------
+``excel``
+---------
 
-For new users, or when distributing the output to collaborators who might
-not be familiar with the plots contained in the report, a background and
-help section are included as a child Rmd. This can be disabled by setting
-`eval=FALSE` for this chunk.
+This chunk outputs an Excel spreadsheet with one contrast per sheet. Normalized
+counts for each sample, from the respective dds object used for the contrast,
+are also included on each sheet.
 
-``genepatterns``
+``write_output``
 ----------------
 
-Here we perform pattern analysis of the differentially expressed genes
-to find co-regulated sets of genes using the ``DEGreport`` R package
-in a separate child Rmd. For more details see `Gene patterns analysis`_ below.
+TSVs for each contrast's results are written to disk.
 
-``functionalenrichment``
-------------------------
+``combined_rds``
+----------------
 
-Here we perform functional enrichment analysis of the differentially expressed genes
-to find enriched functional terms or pathways using the ``clusterProfiler`` R package.
-This analysis is also performed in a separate child Rmd; for more details see `Functional enrichment analysis`_ below.
+A single object is written as an .Rds file. This can then be used for
+downstream visualization or it can be used as input to the functional
+enrichment RMarkdown document.
 
-Gene patterns analysis
-~~~~~~~~~~~~~~~~~~~~~~
-See :ref:`gene-patterns` for details.
+``sessioninfo``
+---------------
 
-Functional enrichment analysis
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-See :ref:`functional-enrichment` for details.
+The output of sessionInfo records the versions of packages used in the analysis.
 
 Glossary
 --------
@@ -560,17 +555,9 @@ Glossary
       The variance-stabilized transformed version of the counts. Used for PCA,
       clustered heatmaps, and gene patterns.
 
-   res.list
+   res_list
       A list, with one item per contrast. Each of those items in turn is a list
-      of objects that together compose the contrast (dds, results object, and
-      label). This list-of-lists, which we call `res.list` for short, is used
-      by functions in the `lcdbwf` R package for more downstream work.
-
-      For a single contrast, it might look something like this:
-
-      .. code-block:: r
-
-         res.list[['contrast1']][['dds']] <- dds
-         res.list[['contrast1']][['res']] <- res
-         res.list[['contrast1']][['label']] <- 'Treatment vs control'
-
+      of objects that together compose the contrast (dds name, results object, and
+      label). This list-of-lists, which we call `res_list` for short, is used
+      by functions in the `lcdbwf` R package for more downstream work, like
+      gene patterns, functional enrichment, and Shiny apps.
