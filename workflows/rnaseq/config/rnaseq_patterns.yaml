@@ -41,3 +41,5 @@ downstream:
    rnaseq: 'downstream/rnaseq.html'
 patterns_by_aggregate:
   merged_bigwig: 'data/rnaseq_aggregation/merged_bigwigs/{merged_bigwig_label}.bigwig'
+samtools:
+  idxstats: 'data/rnaseq_samples/{sample}/idxstat_{sample}.txt'

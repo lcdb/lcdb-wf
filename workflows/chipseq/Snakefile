@@ -793,4 +793,20 @@ if 'merged_bigwigs' in config:
         script:
             wrapper_for('average-bigwigs/wrapper.py')
 
+rule idxstats:
+    """
+    Run samtools idxstats on sample bams
+    """
+    input:
+        bam=c.patterns['markduplicates']['bam'],
+        bai=c.patterns['markduplicates']['bam'] + '.bai'
+    output:
+        txt=c.patterns['samtools']['idxstats']
+    log: 
+        c.patterns['samtools']['idxstats'] + '.log'
+    run:
+        shell(
+            'samtools idxstats {input.bam} 2> {log} 1> {output.txt}'
+        )
+
 # vim: ft=python
