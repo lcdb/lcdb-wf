@@ -1063,7 +1063,7 @@ rule rnaseq_rmarkdown:
         # [TEST_SETTINGS -1]
 
 
-rule sam_idxstats:
+rule idxstats:
     """
     Run samtools idxstats on sample bams
     """

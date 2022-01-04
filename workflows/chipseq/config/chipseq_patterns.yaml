@@ -47,6 +47,9 @@ patterns_by_sample:
     pdf: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.collectinsertsizemetrics.pdf'
     metrics: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.collectinsertsizemetrics.metrics'
 
+  samtools:
+    idxstats: 'data/rnaseq_samples/{sample}/idxstat_{sample}.txt'
+
 patterns_by_peaks:
   peaks:
     macs2: 'data/chipseq_peaks/macs2/{macs2_run}/peaks.bed'
