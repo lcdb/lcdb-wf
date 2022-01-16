@@ -4,10 +4,10 @@
 #' @param sampletable data.frame containing at least sample names as first
 #'        column
 #' @param design Model used for creating DESeq object
-#' @param sample.func Function that will be applied to each column name
+#' @param sample_func Function that will be applied to each column name
 #'        to align it to the input sampletable. Takes a character vector as
 #'        input and returns a character vector of adjusted strings.
-#' @param subset.counts If TRUE, then counts are subsetted by the provided
+#' @param subset_counts If TRUE, then counts are subsetted by the provided
 #'        sampletable. That is, only the counts columns that match a rowname of
 #'        the provided sampletable are included. If FALSE (default), an error
 #'        is raised reporting the differences in sampletable and counts data.
@@ -19,8 +19,8 @@
 #' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
 DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable,
                                                 design,
-                                                sample.func=lcdbwf.samplename,
-                                                subset.counts=FALSE, ...){
+                                                sample_func=lcdbwf.samplename,
+                                                subset_counts=FALSE, ...){
 
   # The sampletable may be data.frame or tibble; if it's a tibble then it
   # likely doesn't have rownames. So in this function we assume that it's the
@@ -38,9 +38,9 @@ DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable,
   # samples in the metadata, so we need to make sure things match up
   # correctly when renaming columns.
   #
-  # sample.func should convert filenames (which are columns in featurecounts
+  # sample_func should convert filenames (which are columns in featurecounts
   # table) with samples (as listed in the sampletable)
-  x <- colnames(m) %>% sample.func()
+  x <- colnames(m) %>% sample_func()
 
   samplenames <- sampletable[,1]
   counts.not.sampletable <- setdiff(x, samplenames)
@@ -49,11 +49,11 @@ DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable,
 
   if (!all(x %in% samplenames)){
     # sampletable is missing:
-    if (!subset.counts){
+    if (!subset_counts){
       stop(
         paste(
           'The following samples are in the counts data but not the',
-          'sampletable. If this is intended, consider using `subset.counts=TRUE`',
+          'sampletable. If this is intended, consider using `subset_counts=TRUE`',
           'to remove them from the counts:', paste(counts.not.sampletable, collapse=', ')
         )
       )
@@ -62,7 +62,7 @@ DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable,
   if (!all(samplenames %in% x)){
     stop(
      paste(
-       'The following samples are in the sampletable but not in the counts data. Check sample.func?',
+       'The following samples are in the sampletable but not in the counts data. Check sample_func?',
        paste(sampletable.not.counts, collapse=', '))
     )
   }

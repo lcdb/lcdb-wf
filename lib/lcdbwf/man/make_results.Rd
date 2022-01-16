@@ -22,9 +22,9 @@ a variable called "config" and find the parallel config setting from there.}
 \value{
 List as expected by lcdbwf, with the following names:
 \itemize{
-\item "res" (the results object)
-\item "dds" (the string value passed in that was used to retrieve the actual
-dds object used for the results)
+\item "res" (the results object after results() and lfcShrink())
+\item "dds" (the string value passed in used to retrieve the actual dds object
+used for the results)
 \item "label" (exactly as passed in)
 }
 }

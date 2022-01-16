@@ -8,8 +8,8 @@ DESeqDataSetFromCombinedFeatureCounts(
   filename,
   sampletable,
   design,
-  sample.func = lcdbwf.samplename,
-  subset.counts = FALSE,
+  sample_func = lcdbwf.samplename,
+  subset_counts = FALSE,
   ...
 )
 }
@@ -21,11 +21,11 @@ column}
 
 \item{design}{Model used for creating DESeq object}
 
-\item{sample.func}{Function that will be applied to each column name
+\item{sample_func}{Function that will be applied to each column name
 to align it to the input sampletable. Takes a character vector as
 input and returns a character vector of adjusted strings.}
 
-\item{subset.counts}{If TRUE, then counts are subsetted by the provided
+\item{subset_counts}{If TRUE, then counts are subsetted by the provided
 sampletable. That is, only the counts columns that match a rowname of
 the provided sampletable are included. If FALSE (default), an error
 is raised reporting the differences in sampletable and counts data.

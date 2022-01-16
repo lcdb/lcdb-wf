@@ -11,9 +11,11 @@ build_results_tabs(res_list, dds_list, config, text)
 
 \item{dds_list}{List of dds objects}
 
-\item{config}{Config object}
+\item{config}{Config object. Use config$plotting$diagnostics_results_names
+to configure which results names (default is all). Use
+config$toggle$results_diagnostics to enable/disable diagnostics.}
 
-\item{text}{Text config object}
+\item{text}{Text config object. text$results_plots is the relevant section used by this function.}
 }
 \value{
 NULL, but creates the plots and tabs as a side effect.

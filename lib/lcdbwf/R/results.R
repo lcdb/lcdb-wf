@@ -26,6 +26,7 @@ build_results_tabs <- function(res_list, dds_list, config, text){
       diagnostics_names <- names(res_list)
     } else {
       diagnostics_names <- config$plotting$diagnostics_results_names
+    }
   }
 
   for (name in names(res_list)){

@@ -27,19 +27,22 @@ sizefactors: |
 
   Ideally, all libraries were sequenced to identical depth, in which case all
   size factors would be 1.0. In practice, this is almost never the case due to
-  the difficulties of accurately measuring low concentrations of cDNA. These size
-  factor estimates are DESeq2's way of showing how sequencing depth varies across
+  the difficulties of accurately measuring low concentrations of cDNA. DESeq2 uses size
+  factor estimates to normalized for sequencing depth across
   libraries. If some libraries are much higher or lower than
   1 then those libraries had dramatically different coverage and we should be
   careful about interpreting results.
 
-  Size factors are calculated according to the median-ratio method (equation 5 of
-  [Anders & Huber
+  Simply taking the total number of reads has been shown to be too sensitive to
+  a small number of highly-expressed genes. DESeq2's size factors are
+  calculated according to the median-ratio method (equation 5 of [Anders
+  & Huber
   2010](http://dx.doi.org/10.1186/gb-2010-11-10-r106)).
 
   These diagnostic plots show the size factors (as a ranked bar plot) and the
   relationship between the size factors and the total read count (as
-  a scatterplot).
+  a scatterplot). Samples whose total read count differs from size factor may
+  indicate that the sample has a small number of highly expressed genes.
 
 # DDS DIAGNOSTICS --------------------------------------------------------------
 dds_diagnostics:
