@@ -35,7 +35,6 @@ helpers.preflight(config)
 c = RNASeqConfig(config, config.get('patterns', 'config/rnaseq_patterns.yaml'))
 
 SAMPLES = c.sampletable.iloc[:, 0].values
-
 wildcard_constraints:
     n = '[1,2]',
     sample = '|'.join(SAMPLES)
@@ -704,6 +703,7 @@ rule libsizes_table:
             yaml.dump(y, fout, default_flow_style=False)
 
 
+
 rule multiqc:
     """
     Aggregate various QC stats and logs into a single HTML report with MultiQC
@@ -722,7 +722,8 @@ rule multiqc:
             utils.flatten(c.targets['rseqc']) +
             utils.flatten(c.targets['fastq_screen']) +
             utils.flatten(c.targets['preseq']) +
-            utils.flatten(c.targets['collectrnaseqmetrics'])
+            utils.flatten(c.targets['collectrnaseqmetrics']) +
+            utils.flatten(c.targets['samtools'])
         ),
         config='config/multiqc_config.yaml'
     output: c.targets['multiqc']
@@ -1060,5 +1061,23 @@ rule rnaseq_rmarkdown:
         '''"rmarkdown::render('{input.rmd}')" '''
         '> {log} 2>&1'
         # [TEST_SETTINGS -1]
+
+
+rule idxstats:
+    """
+    Run samtools idxstats on sample bams
+    """
+    input:
+        bam=c.patterns['markduplicates']['bam'],
+        bai=c.patterns['markduplicates']['bam'] + '.bai'
+    output:
+        txt=c.patterns['samtools']['idxstats']
+    log: 
+        c.patterns['samtools']['idxstats'] + '.log'
+    run:
+        shell(
+            'samtools idxstats {input.bam} 2> {log} 1> {output.txt}'
+        )
+
 
 # vim: ft=python

@@ -14,4 +14,9 @@ mkdir -p downstream-test
 for i in downstream/*.Rmd; do
     python ../../ci/preprocessor.py $i > downstream-test/$(basename $i)
 done
+
+# Make sure we move the config file there too
+cp downstream/config.yaml downstream-test/config.yaml
+cp downstream/text.yaml downstream-test/text.yaml
+
 Rscript -e "rmarkdown::render('downstream-test/rnaseq.Rmd')"
