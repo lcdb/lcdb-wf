@@ -14,6 +14,12 @@ workflows/rnaseq/downstream/*tsv
 workflows/chipseq/data
 workflows/rnaseq/data
 workflows/colocalization/results
+workflows/rnaseq/downstream/functional-enrichment.html
+workflows/rnaseq/downstream/functional-enrichment_cache/
+workflows/rnaseq/downstream/functional-enrichment_files/
+workflows/rnaseq/downstream/Rplots.pdf
+*.Rds
+*.Rd (covers new additions to lib/lcdbwf/)
 work
 logs
 slurm*out
