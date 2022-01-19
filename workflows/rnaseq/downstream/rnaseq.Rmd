@@ -214,8 +214,9 @@ there are more tabs for the various output.
 # To take advantage of caching:
 #   - create each list in a different chunk
 #   - ensure chunk name starts with "results_"
-#   - ensure list name starts with "contr_". The rest of the name will be used
-#     as a label to sort results and create output files.
+#   - ensure list name starts with "contr_NN_". The rest of the name will be used
+#     as a readable label for each constrast. NN should be a 2 digit number
+#     (ex: contr_01_*) that will dictate the order of contrasts in output files.
 #
 # This will need substantial editing.
 #
@@ -228,7 +229,7 @@ there are more tabs for the various output.
 #  - demonstrates creating and manipulating coefficients
 control <- lcdbwf::dds_coefs('main', group=='control')
 treatment <- lcdbwf::dds_coefs('main', group=='treatment')
-contr_main <- lcdbwf::make_results(
+contr_01_main <- lcdbwf::make_results(
   dds_name='main',
   label='LFC>0',
   contrast=treatment - control,
@@ -239,7 +240,7 @@ contr_main <- lcdbwf::make_results(
 ```{r results_02, dependson='dds_list', cache=TRUE}
 # Example 2:
 #  - demonstrates using a log2FoldChange threshold
-contr_lfc1 <- lcdbwf::make_results(
+contr_02_lfc1 <- lcdbwf::make_results(
   dds_name="no_rep4",
   contrast=c("group", "treatment", "control"),
   lfcThreshold=1,
@@ -252,7 +253,7 @@ contr_lfc1 <- lcdbwf::make_results(
 # Example 3:
 #   - demonstrates using normal shrinkage
 #   - demonstrates how to use salmon
-contr_salmon <- lcdbwf::make_results(
+contr_03_salmon <- lcdbwf::make_results(
   dds_name="salmon",
   contrast=c("group", "treatment", "control"),
   type="normal",
@@ -263,7 +264,7 @@ contr_salmon <- lcdbwf::make_results(
 ```{r results_04, dependson='dds_list', cache=TRUE}
 # Example 4:
 #   - like example 3, but kallisto instead of salmon
-contr_kallisto <- lcdbwf::make_results(
+contr_04_kallisto <- lcdbwf::make_results(
   dds_name="kallisto",
   contrast=c('group', 'treatment', 'control'),
   type='normal',
@@ -273,7 +274,7 @@ contr_kallisto <- lcdbwf::make_results(
 
 
 ```{r assemble_variables, cache=TRUE, config=config$annotation, dependson=knitr::all_labels()[grepl("^results_", knitr::all_labels())]}
-res_list <- lcdbwf::collect_objects("^contr_")
+res_list <- lcdbwf::collect_objects("^contr_[0-9]{2}_")
 res_list <- lcdbwf::attach_extra(res_list, config)
 ```
 
