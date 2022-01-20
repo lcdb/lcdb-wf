@@ -114,8 +114,8 @@ collapse_names <- function(res_list, config, sep='*'){
 #' @param config Config object. pvalueCutoff and qvalueCutoff will be taken from here.
 #' @param direction One of "up", "down", or "changed". Will use alpha and
 #'   lfc_thresh from the config.
-#' @param kind One of "OR" for overrepresentation or "GSEA" for gene set
-#'   enrichment analysis.
+#' @param ... Additional arguments are passed on to enricher() for kind="OR" or
+#'   GSEA() for kind="GSEA".
 #'
 #' @return An enrichResults object from
 enrich_test <- function(res, TERM2GENE, TERM2NAME, config, direction, ...){
