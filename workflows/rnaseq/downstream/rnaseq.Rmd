@@ -214,9 +214,10 @@ there are more tabs for the various output.
 # To take advantage of caching:
 #   - create each list in a different chunk
 #   - ensure chunk name starts with "results_"
-#   - ensure list name starts with "contr_NN_". The rest of the name will be used
-#     as a readable label for each constrast. NN should be a 2 digit number
-#     (ex: contr_01_*) that will dictate the order of contrasts in output files.
+#   - ensure list name starts with "contr_[index]_". The rest of the name will be used
+#     as a readable label for each constrast. [index] is an alphanumeric string 
+#     (ex: contr_01_* or contr_2b_*) that will be used to sort contrasts for output files.
+#     The index string must contain at least 1 character and cannot contain "_"
 #
 # This will need substantial editing.
 #
@@ -253,7 +254,7 @@ contr_02_lfc1 <- lcdbwf::make_results(
 # Example 3:
 #   - demonstrates using normal shrinkage
 #   - demonstrates how to use salmon
-contr_03_salmon <- lcdbwf::make_results(
+contr_03a_salmon <- lcdbwf::make_results(
   dds_name="salmon",
   contrast=c("group", "treatment", "control"),
   type="normal",
@@ -264,7 +265,7 @@ contr_03_salmon <- lcdbwf::make_results(
 ```{r results_04, dependson='dds_list', cache=TRUE}
 # Example 4:
 #   - like example 3, but kallisto instead of salmon
-contr_04_kallisto <- lcdbwf::make_results(
+contr_03_kallisto <- lcdbwf::make_results(
   dds_name="kallisto",
   contrast=c('group', 'treatment', 'control'),
   type='normal',
@@ -274,7 +275,7 @@ contr_04_kallisto <- lcdbwf::make_results(
 
 
 ```{r assemble_variables, cache=TRUE, config=config$annotation, dependson=knitr::all_labels()[grepl("^results_", knitr::all_labels())]}
-res_list <- lcdbwf::collect_objects("^contr_[0-9]{2}_")
+res_list <- lcdbwf::collect_objects("^contr_[^_]+_")
 res_list <- lcdbwf::attach_extra(res_list, config)
 ```
 
