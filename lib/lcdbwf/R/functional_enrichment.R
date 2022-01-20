@@ -1,3 +1,25 @@
+
+#' Function to collapse res_list names with ontologies
+#'
+#' @param res_list list of DESeq2 results objects
+#' @param config Config object
+#' @param collapse character string to separate the res_list names
+#'
+#' @return vector of strings with collapsed res_list names
+collapse_names <- function(res_list, config, sep='*'){
+    names <- NULL
+    for(comp in names(res_list)){
+        for(ch in config$functional_enrichment$directions){
+            for(ont in names(config$functional_enrichment$ontologies)){
+                names <- c(names,
+                           paste(comp, ch, ont, sep=sep))
+            }
+        }
+    }
+    names(names) <- names
+    return(names)
+}
+
 #' All-in-one enrichment function.
 #'
 #' Designed to not require an orgdb, and instead requires dataframes of
