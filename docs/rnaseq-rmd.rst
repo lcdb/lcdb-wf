@@ -268,8 +268,10 @@ its own chunk **according to the following rules**:
 - the chunk name must start with ``results_``
 - the chunk is cached
 - the chunk depends on the ``'dds_list'`` chunk
-- the variable name starts with ``contr_``, and the rest of the variable name
-  will be used as the name in the list
+- the variable name starts with ``contr_[index]_``, and the rest of the variable name
+  will be used as the name in the list. index is a string, containing 1 or more alphanumeric
+  characters, and will be used as a sorting index for contrasts when generating output files.
+  Note that the index string cannot contain "_".
 
 Our example would look like the following. Note that we're showing the chunks
 here because that will be come meaningful in a moment. They are shown as
@@ -278,7 +280,7 @@ comments here just to get the syntax highlighting to look OK.
 .. code-block:: r
 
     # ```{r results_01, dependson='dds_list', cache=TRUE}
-    contr_ko.vs.wt <- lcdbwf::make_results(
+    contr_1_ko.vs.wt <- lcdbwf::make_results(
       dds_name='main',
       label='Using all samples',
       contrast=c('genotype', 'KO', 'WT')
@@ -286,7 +288,7 @@ comments here just to get the syntax highlighting to look OK.
     # ```
 
     # ```{r results_02, dependson='dds_list', cache=TRUE}
-    contr_no.rep.4 <- lcdbwf::make_results(
+    contr_2a_no.rep.4 <- lcdbwf::make_results(
       dds_name='no.rep.4',
       label='Removing replicate 4 and using ashr for shrinkage',
       contrast=c('genotype', 'KO', 'WT'),
@@ -330,9 +332,13 @@ above <rules>`. By following those rules, the following becomes possible:
 - we can detect all chunks creating results by looking for ``results_`` in the
   chunk name and automatically inject these into dependencies of future chunks.
 - we can detect all results objects created by looking for variables starting
-  with ``contr_``
+  with ``contr_[index]_``
 - we can assemble all results objects into a list, and name each item in the
-  list according to its variable name (minus the ``contr_``).
+  list according to its variable name (minus the ``contr_[index]_``).
+- we can alter the order of contrasts by simply modifying the index string in a single chunk.
+  For example, if we have three contrasts contr_1_ko.vs.wt, contr_2_no.rep.4, and contr_3_no.rep.3, 
+  we can change the order of contrasts simply by modifying one index string (ex: change contr_3_no.rep.3 to
+  contr_1a_no.rep.3).
 
 The ``assemble_variables`` chunk does all of this. The end result of this chunk
 is a list of lists that is used by functions in the `lcdbwf` R package for
