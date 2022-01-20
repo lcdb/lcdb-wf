@@ -96,16 +96,12 @@ run_enrichment <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='O
   gn <- res$res[[config$annotation$label_column]]
   names(gn) <- rownames(res$res)
 
-
-  # Note that `i` may be multiple genes
-  gc <- lapply(gc, function(i) gn[i])
+  # rebuild geneID column after ID conversion
+  geneID <- lapply(gc, function(x){
+                       paste0(gn[x], collapse='/')
+            })
 
   eres <- e@result
-
-  # Not quite sure why we need to re-select, but this is what setReadable()
-  # does.
-  gc <- gc[as.character(eres$ID)]
-  geneID <- sapply(gc, paste0, collapse = "/")
 
   if (is(e, "gseaResult")){
     eres$core_enrichment <- unlist(geneID)
