@@ -116,11 +116,9 @@ collapse_names <- function(res_list, config, sep='*'){
 #'   lfc_thresh from the config.
 #' @param kind One of "OR" for overrepresentation or "GSEA" for gene set
 #'   enrichment analysis.
-#' @param ... Additional arguments are passed on to enricher() for kind="OR" or
-#'   GSEA() for kind="GSEA".
 #'
 #' @return An enrichResults object from
-run_enrichment <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR', ...){
+enrich_test <- function(res, TERM2GENE, TERM2NAME, config, direction, ...){
 
   if (is.null(config$main$lfc_thresh)){
     lfc_thresh <- 0
@@ -128,6 +126,7 @@ run_enrichment <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='O
     lfc_thresh <- config$main$lfc_thresh
   }
 
+  kind <- config$functional_enrichment$kind
   if (kind == "OR"){
     genes <- get_sig(
       res$res,
