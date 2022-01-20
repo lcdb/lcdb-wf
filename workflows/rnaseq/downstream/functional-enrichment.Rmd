@@ -39,7 +39,6 @@ config <- lcdbwf::load_config('config.yaml')
 ```{r load, cache=TRUE, cache.extra=file.info('combined.Rds')$mtime}
 obj <- readRDS('combined.Rds')
 res_list <- obj$res_list
-dds_list <- obj$dds_list
 ```
 
 ```{r functional_enrichment_prep, cache=TRUE, config=config$annotation$keytype, eval=config$toggle$functional_enrichment, dependson='load'}
