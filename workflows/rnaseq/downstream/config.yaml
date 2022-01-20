@@ -137,6 +137,9 @@ toggle:
   # config$plotting$diagnostics_for_results list.
   results_diagnostics: TRUE
 
+  # Run functional enrichment?
+  functional_enrichment: TRUE
+
 # ANNOTATION -------------------------------------------------------------------
 # Configuration specific to annotations and databases
 annotation:
