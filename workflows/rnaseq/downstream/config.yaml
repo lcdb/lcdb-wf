@@ -162,6 +162,12 @@ annotation:
   # What is the format of the gene IDs in rownames(dds)?
   keytype: 'ENSEMBL'
 
+  # What is the format of the gene IDs in KEGG?
+  #
+  # - 'ENTREZID' values map to 'ncbi-geneid' which is the only keytype
+  #   supported here.
+  kegg_keytype: "ncbi-geneid"
+
   # What is the format of the gene IDs in msigdbr?
   msigdbr_keytype: "ensembl_gene"
 
