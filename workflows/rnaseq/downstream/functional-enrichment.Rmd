@@ -43,26 +43,8 @@ res_list <- obj$res_list
 
 ```{r functional_enrichment_prep, cache=TRUE, config=config$annotation$keytype, eval=config$toggle$functional_enrichment, dependson='load'}
 
-# We assume that keys are unique across all term2gene_lists.
-term2gene_list <- lcdbwf::get_go_term2gene(config)
-term2name <- lcdbwf::get_go_descriptions()
-
-# We need to assign each key to its respective term2name dataframe (or NULL if
-# none)
-ontology_term2name_mapping <- lapply(term2gene_list, function(x) term2name)
-ontology_list <- c(term2gene_list)
-
-# Get all of MSigDB, although we may only use subsets of it.
-# This can take up a lot of memory on CI/CD, so we only do this if not doing
-# a test.
-if (!config$toggle$test){
-  msigdb_df <- lcdbwf::get_msigdb_df(config)
-  msigdb_term2gene_list <- lcdbwf::get_msigdb_term2gene_list(msigdb_df)
-  msigdb_term2name <- lcdbwf::get_msigdb_term2name(msigdb_df)
-  ontology_term2name_mapping <- c(ontology_term2name_mapping, lapply(msigdb_term2gene_list, function(x) NULL))
-  ontology_list <- c(ontology_list, msigdb_term2gene_list)
-}
-
+# obtain ontology information
+ontology_list <- get_ontology_list(config)
 ```
 
 ```{r enrich, cache=TRUE, eval=config$toggle$functional_enrichment, config=c(config$main, config$functional_enrichment), dependson=c('functional_enrichment_prep', 'assemble_variables')}
