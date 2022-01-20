@@ -346,6 +346,97 @@ get_kegg_species <- function(config){
     return(kegg_species)
 }
 
+#' All-in-one function to get ontology information
+#'
+#' @param config Config object.
+#'
+#' @return List of lists where top-level elements are ontology
+#'      names. Each element is a list with TERM2GENE & TERM2NAME
+#'      data frames
+get_ontology_list <- function(config){
+
+    orgdb <- lcdbwf::get_orgdb(config)
+    keytype <- config$annotation$keytype
+
+    # This is the method used by clusterProfiler internally. See
+    # get_go_term2gene_alt for a different implementation.
+    goterms <- AnnotationDbi::Ontology(GO.db::GOTERM)
+    go2gene <- suppressMessages(
+      AnnotationDbi::mapIds(
+        orgdb, keys=names(goterms), column=keytype, keytype="GOALL",
+        multiVals='list')
+    )
+    goAnno <- stack(go2gene)
+    colnames(goAnno) <- c(keytype, "GOALL")
+    goAnno <- unique(goAnno[!is.na(goAnno[,1]), ])
+    goAnno$ONTOLOGYALL <- goterms[goAnno$GOALL]
+
+    # get GO descriptions
+    go2name <- AnnotationDbi::select(GO.db::GO.db,
+                    keys=keys(GO.db::GO.db, "GOID"),
+                    c("GOID", "TERM"))
+
+    # Split up the dataframe into a list, one per annotation.
+    go2gene <- list(
+        MF=goAnno %>% dplyr::filter(ONTOLOGYALL=="MF") %>% dplyr::select(GOALL, !!keytype),
+        CC=goAnno %>% dplyr::filter(ONTOLOGYALL=="CC") %>% dplyr::select(GOALL, !!keytype),
+        BP=goAnno %>% dplyr::filter(ONTOLOGYALL=="BP") %>% dplyr::select(GOALL, !!keytype)
+    )
+
+    # We need to assign each key to its respective term2name dataframe (or NULL if
+    # none)
+    ontology_list <- list(term2gene=go2gene,
+                          term2name=lapply(go2gene,
+                            function(x) go2name %>% dplyr::filter(GOID %in% x$GOALL)))
+
+    # only kegg keytype supported is 'ncbi-geneid'
+    kegg_keytype <- config$annotation$kegg_keytype
+    if(kegg_keytype == 'ncbi-geneid'){
+        kegg_species <- get_kegg_species(config)
+
+        # download KEGG information
+        kegg_list <- clusterProfiler::download_KEGG(kegg_species,
+                                    keyType=kegg_keytype)
+        term2gene <- as.data.frame(kegg_list[[1]])
+        term2name <- as.data.frame(kegg_list[[2]])
+
+        term2id <- suppressMessages(
+                        AnnotationDbi::mapIds(
+                            orgdb, keys=term2gene[,2],
+                            column=keytype, keytype="ENTREZID",
+                            multiVals='first')
+                    )
+        term2gene[,2] <- term2id[term2gene[,2]]
+        colnames(term2gene) <- c('KEGG', keytype)
+        colnames(term2name) <- c('KEGG', 'Description')
+
+        # add kegg info to ontology_list
+        ontology_list$term2gene[['KEGG']] <- term2gene
+        ontology_list$term2name[['KEGG']] <- term2name
+    } else {
+        stop("'kegg_keytype' must be 'ncbi-geneid'")
+    }
+
+    # Get all of MSigDB, although we may only use subsets of it.
+    # This can take up a lot of memory on CI/CD, so we only do this if not doing
+    # a test.
+    if (!config$toggle$test){
+      msigdb_df <- get_msigdb_df(config)
+      msigdb_term2gene_list <- get_msigdb_term2gene_list(msigdb_df)
+      ontology_list$term2gene <- c(ontology_list$term2gene,
+                                   msigdb_term2gene_list)
+
+      # MSigDB term names are very long and don't convey
+      # that much more information than the names. So,
+      # setting that to NULL here
+      ontology_list$term2name <- c(ontology_list$term2name,
+                                   lapply(msigdb_term2gene_list,
+                                          function(x) NULL))
+    }
+
+    return(ontology_list)
+}
+
 #' Convert "1/100" to 0.01.
 #'
 #' clusterProfiler report columns that are strings of numbers; this converts to
