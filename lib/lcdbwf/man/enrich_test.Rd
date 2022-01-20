@@ -20,8 +20,8 @@ rownames(res).}
 \item{direction}{One of "up", "down", or "changed". Will use alpha and
 lfc_thresh from the config.}
 
-\item{kind}{One of "OR" for overrepresentation or "GSEA" for gene set
-enrichment analysis.}
+\item{...}{Additional arguments are passed on to enricher() for kind="OR" or
+GSEA() for kind="GSEA".}
 }
 \value{
 An enrichResults object from
