@@ -248,6 +248,23 @@ get_kegg_list <- function(config){
                 term2name=as.data.frame(kegg_list[[2]])))
 }
 
+#' Get the species name that works with the KEGG database
+#'
+#' The KEGG pathway needs the species name in a
+#' specific format, e.g. for 'Homo sapiens' the
+#' KEGG version would be 'hsa'.
+#'
+#' @param config Config object
+#'
+#' @return KEGG-compatible species name
+get_kegg_species <- function(config){
+    species <- config$annotation$genus_species
+    species_split <- unlist(strsplit(species, "\\s+"))
+    kegg_species <- paste0(tolower(substr(species_split[1],1,1)),
+                           substr(species_split[2],1,2))
+    return(kegg_species)
+}
+
 #' Convert "1/100" to 0.01.
 #'
 #' clusterProfiler report columns that are strings of numbers; this converts to
