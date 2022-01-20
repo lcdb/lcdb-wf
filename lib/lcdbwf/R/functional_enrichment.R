@@ -101,6 +101,7 @@ run_enrichment <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='O
                        paste0(gn[x], collapse='/')
             })
 
+  # plug back into enrichResult
   eres <- e@result
 
   if (is(e, "gseaResult")){
