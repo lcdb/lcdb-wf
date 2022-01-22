@@ -31,6 +31,19 @@ get_annotation_hub <- function(config, localHub=NULL, force=NULL, cache=NULL){
     localHub=localHub,
     cache=cache
   )
+
+  # AnnotationHub uses a safe permissions approach, setting the AnnotationHub
+  # lock file to be only visible by the creating user and the cache database to
+  # be read-only for the group. However, this can cause permission errors when
+  # working in a group setting. If this setting is TRUE, then the permissions
+  # will be set on BiocFileCache.sqlite and BiocFileCache.sqlite.LOCK to be
+  # read/write for both user and group.
+  if (config$main$group_permissions){
+    files <- dir(cache)
+    files <- files[grep('BiocFileCache.sqlite', files)]
+    Sys.chmod(files, mode="0660", use_umask=TRUE)
+  }
+
   return(ah)
 }
 
