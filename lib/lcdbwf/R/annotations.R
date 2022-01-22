@@ -39,7 +39,7 @@ get_annotation_hub <- function(config, localHub=NULL, force=NULL, cache=NULL){
   # will be set on BiocFileCache.sqlite and BiocFileCache.sqlite.LOCK to be
   # read/write for both user and group.
   if (config$main$group_permissions){
-    files <- dir(cache)
+    files <- dir(cache, full.names=TRUE)
     files <- files[grep('BiocFileCache.sqlite', files)]
     Sys.chmod(files, mode="0660", use_umask=TRUE)
   }
