@@ -17,9 +17,27 @@ include/AnnotationHubCache
 logs
 __pycache__
 references_data
+workflows/rnaseq/downstream/group.tsv
+workflows/rnaseq/downstream/rnaseq.html
+workflows/rnaseq/downstream/rnaseq_cache
+workflows/rnaseq/downstream/rnaseq_files
+workflows/rnaseq/downstream/clusterprofiler
+workflows/rnaseq/downstream/upset_plots
+workflows/rnaseq/downstream/final_clusters
+workflows/rnaseq/downstream/rnaseq.log
+workflows/rnaseq/downstream/*tsv
+workflows/chipseq/data
+workflows/rnaseq/data
+workflows/colocalization/results
+workflows/rnaseq/downstream/functional-enrichment.html
+workflows/rnaseq/downstream/functional-enrichment_cache/
+workflows/rnaseq/downstream/functional-enrichment_files/
+workflows/rnaseq/downstream/Rplots.pdf
+*.Rds
+*.Rd
+work
+logs
 references_dir/
-
-# cluster log files
 slurm*out
 
 # log files from workflows
