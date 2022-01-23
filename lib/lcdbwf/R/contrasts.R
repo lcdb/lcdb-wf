@@ -1,7 +1,7 @@
 #' Helper function to get dds object from global env.
 #'
 #' @param dds If string, then look for that name in `dds_list` in the global
-#' env. Otherwise, assume it's already a dds and immmediately return it.
+#'   env. Otherwise, assume it's already a dds and immmediately return it.
 get_dds <- function(dds){
   if (class(dds) != 'character'){
     return(dds)
@@ -20,6 +20,7 @@ get_dds <- function(dds){
 
 #' Prepare coefficients that can be combined for more complex models.
 #'
+#' @description
 #' Heavily influenced by
 #' https://github.com/tavareshugo/tutorial_DESeq2_contrasts/blob/main/DESeq2_contrasts.md
 #'
@@ -32,9 +33,7 @@ get_dds <- function(dds){
 #' @return A named vector, representing the coefficients of the samples
 #'   selected via `...`
 #'
-#'
 #' @details
-#'
 #' First we simulate some data to work with:
 #'
 #'   dds <- makeExampleDESeqDataSet(n = 1000, m = 9, betaSD = 2)
@@ -47,7 +46,7 @@ get_dds <- function(dds){
 #' colData(dds)
 #' ## DataFrame with 9 rows and 1 column
 #' ##           colour
-#' ##         <factor>
+#' ##         factor>
 #' ## sample1   pink
 #' ## sample2   pink
 #' ## sample3   pink
@@ -103,7 +102,6 @@ dds_coefs <- function(dds, ..., expand=FALSE){
 #' Convenience function for building contrasts 
 #'
 #' @description
-#'
 #' This function first runs DESeq2::results() and then runs DESeq2::lfcShrink()
 #' on that results object. Arguments in ... are passed through to results() and
 #' then to lfcShrink(), using formals() to detect which function accepts which
@@ -206,11 +204,20 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
   )
 }
 
-
+#' Perform diagnostics on results objects and plot
+#'
+#' This function runs some diagnostic functions on results objects which can be
+#' helpful during troubleshooting odd behavior.
+#'
+#' @param res Results object
+#' @param dds Corresponding dds object used to generate results
+#' @param config Config object
+#' @param text Text config object, used for labeling plots
 results_diagnostics <- function(res, dds, name, config, text){
     lcdbwf::mdcat('### Other diagnostics')
     print(knitr::kable(lcdbwf::my_summary(res, dds, name)))
 
+    # MA plot colored by whether a gene was below the filter threshold
     lcdbwf::folded_markdown(text$results_diagnostics$filter_ma, "Help")
     filterThreshold <- metadata(res)$filterThreshold
     p <- ggplot(res %>% as.data.frame() %>% mutate(filtered=res$baseMean < filterThreshold)) +
@@ -218,18 +225,21 @@ results_diagnostics <- function(res, dds, name, config, text){
       geom_point()
     print(p)
 
+    # MA plot colored by whether or not a point was considered an outlier
     lcdbwf::folded_markdown(text$results_diagnostics$outlier_ma, "Help")
     p <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
       aes(x=log10(baseMean), y=log2FoldChange, color=outlier) +
       geom_point()
     print(p)
 
+    # Plot lfcSE vs baseMean
     lcdbwf::folded_markdown(text$results_diagnostics$lfcse_basemean, "Help")
     p <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
       aes(x=log10(baseMean), y=lfcSE, color=outlier) +
       geom_point()
     print(p)
 
+    # Plot lcfSE vs lfc
     lcdbwf::folded_markdown(text$results_diagnostics$lfcse_lfc, "Help")
     p <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
       aes(x=log2FoldChange, y=lfcSE, color=outlier) +

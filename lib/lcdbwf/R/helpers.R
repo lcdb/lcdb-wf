@@ -1,14 +1,17 @@
 #' Load config file
 #'
+#' @description
+#' Load config file from YAML into a nested list
+#'
 #' @param filename YAML filename to load
 #'
 #' @return Nested list object containing configuration
-#' 
+#'
 #' @details
 #' For testing purposes, if the environment variable LCDB_WF_TEST exists then
-#' assume we are running a test and set config$toggle$test to TRUE. This will
-#' override any settings in the config YAML. Otherwise, use what is in the
-#' config, and if not specified in the config then default to FALSE.
+#' assume we are running a test and set config's toggle for testing to TRUE.
+#' This will override any settings in the config YAML. Otherwise, use what is
+#' in the config, and if not specified in the config then default to FALSE.
 load_config <- function(filename){
   config <- yaml::yaml.load_file(filename)
 
@@ -279,7 +282,7 @@ padj.order <- function(res, reverse=FALSE){
 #' @param sel.genes list of genes to consider
 #' @param label column(s) to be included to the plot labels
 #' @param pc count number to be added to the normalized counts
-#'        Typically a pc of 0.5 is added to allow plotting in log scale
+#'   Typically a pc of 0.5 is added to allow plotting in log scale
 #'
 #' @return dataframe
 counts.df <- function(dds, res, sel.genes=NULL, label=NULL, rank.col='padj', pc=0.5) {
@@ -448,7 +451,7 @@ get_sig <- function(x, direction='up', alpha=0.1, lfc_thresh=0, return_type="row
 #' @param name Name to use as the new first column
 #'
 #' @return data.frame with original rownames moved to new first column with
-#' optional name. rownames on the new data.frame are set to NULL.
+#'   optional name. rownames on the new data.frame are set to NULL.
 rownames.first.col <- function(x, name='names'){
   orig.names <- colnames(x)
   x <- data.frame(rownames(x), x, row.names=NULL)
@@ -477,7 +480,6 @@ nested.lapply <- function(x, subfunc, ...){
 #' @param enrich_list List of enrichment results objects. See details for format.
 #'
 #' @details
-#'
 #' res_list and dds_list are required. `res_list` has the following format.
 #'
 #'    list(
@@ -573,6 +575,7 @@ get_config <- function(){
 
 #' Return only the list items in `dots` that are arguments for `func`
 #' 
+#' @description
 #' Thanks to
 #' https://community.rstudio.com/t/dots-vs-arg-lists-for-function-forwarding/4995/2
 #' for the idea.
@@ -583,7 +586,6 @@ get_config <- function(){
 #' @return List of arguments in `dots` that are valid arguments for `func`.
 #'
 #' @details
-#'
 #' Example usage is:
 #'
 #'  do.call("functioname", lcdbwf::match_from_dots(list(...), functionname)))
@@ -593,7 +595,7 @@ match_from_dots <- function(dots, func){
   dots[arg[!is.na(arg)]]
 }
 
-#' Print markdown enclosed by <details> HTML tags.
+#' Print markdown enclosed by "details" HTML tags.
 #'
 #' @param text Markdown text to print
 #' @param summary Text to use next to dropdown arrow
