@@ -28,12 +28,14 @@ Functional enrichment analysis tests to see if the genes of interest (e.g., up,
 down, changed in a particular contrast) are found more often than expected in
 a particular annotation category.
 
-```{r load_helpers}
+```{r lcdbwf, results='hide'}
 # Load the lcdbwf R package, which is stored locally.
 # This package has many custom functions used throughout this document.
 devtools::document('../../../lib/lcdbwf')
 devtools::load_all('../../../lib/lcdbwf')
+```
 
+```{r config}
 config <- lcdbwf::load_config('config.yaml')
 
 # set cores for operation
