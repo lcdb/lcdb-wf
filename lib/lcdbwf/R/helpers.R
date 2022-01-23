@@ -40,9 +40,38 @@ load_config <- function(filename){
   if (!is.na(is_test)){
     config$toggle$test <- TRUE
   }
+
+  if (config$toggle$test){
+    config <- modify_test_config(config)
+  }
+
   return(config)
 }
 
+
+#' Modify config file for testing
+#'
+#' When running tests in resource-limited environments, we may need to adjust
+#' the config file accordingly. Make all such adjustments in this function.
+#'
+#' @param config Config object
+#'
+modify_test_config <- function(config){
+
+  # Fix cores to 2 for testing
+  config$parallel$cores <- 2
+
+  # Test ability to run individual dds names
+  config$diagnostics_results_names <- c('main', 'salmon')
+
+  # Note that there is a check in functional_enrichment.R that avoids download
+  # MSigDb.
+  config$functional_enrichment$ontologies <- list(
+    BP="GO Biological Process",
+    CC="GO Cellular Component")
+
+  return(config)
+}
 
 #' Find named chunks that match a pattern
 #'
