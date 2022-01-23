@@ -204,8 +204,8 @@ functional_enrichment:
   ontologies:
     # Standard Gene Ontology
     "BP": "GO Biological Process"
-    #"CC": "GO Cellular Component"
-    #"MF": "GO Molecular Function"
+    "CC": "GO Cellular Component"
+    "MF": "GO Molecular Function"
 
     ## MSigDB (compiled for human, but orthologs are available which may be of
     ## questionable utility for other organisms).  To see what's available, use
