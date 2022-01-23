@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers.R
 \name{folded_markdown}
 \alias{folded_markdown}
-\title{Print markdown enclosed by <details> HTML tags.}
+\title{Print markdown enclosed by "details" HTML tags.}
 \usage{
 folded_markdown(text, summary)
 }
@@ -12,5 +12,5 @@ folded_markdown(text, summary)
 \item{summary}{Text to use next to dropdown arrow}
 }
 \description{
-Print markdown enclosed by <details> HTML tags.
+Print markdown enclosed by "details" HTML tags.
 }

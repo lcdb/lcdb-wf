@@ -13,11 +13,11 @@ load_config(filename)
 Nested list object containing configuration
 }
 \description{
-Load config file
+Load config file from YAML into a nested list
 }
 \details{
 For testing purposes, if the environment variable LCDB_WF_TEST exists then
-assume we are running a test and set config$toggle$test to TRUE. This will
-override any settings in the config YAML. Otherwise, use what is in the
-config, and if not specified in the config then default to FALSE.
+assume we are running a test and set config's toggle for testing to TRUE.
+This will override any settings in the config YAML. Otherwise, use what is
+in the config, and if not specified in the config then default to FALSE.
 }

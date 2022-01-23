@@ -39,7 +39,7 @@ colData(dds)
 \subsection{colour}{
 }
 
-\subsection{<factor>}{
+\subsection{factor>}{
 }
 
 \subsection{sample1   pink}{
