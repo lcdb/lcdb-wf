@@ -442,10 +442,10 @@ workflows:
   version: 2
   test-suite:
     jobs:
-#      - initial-setup
-#      - pytest:
-#         requires:
-#           - initial-setup
+      - initial-setup
+      - pytest:
+         requires:
+           - initial-setup
 #      - chipseq:
 #         requires:
 #           - initial-setup
