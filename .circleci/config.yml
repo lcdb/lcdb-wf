@@ -52,6 +52,10 @@ variables:
           echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
           echo 'export LC_ALL=en_US.utf8' >> $BASH_ENV
           echo 'export LANG=en_US.utf8' >> $BASH_ENV
+
+          # Indicates to various code that we're running tests
+          echo 'export LCDB_WF_TEST=1' >> $BASH_ENV
+
           source $BASH_ENV
   # --------------------------------------------------------------------------
   # Set up conda if the environments do not already exist
