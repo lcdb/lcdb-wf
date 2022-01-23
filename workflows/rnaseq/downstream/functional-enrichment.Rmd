@@ -81,7 +81,7 @@ knitr::kable(config$functional_enrichment$ontologies %>% as.data.frame %>% t())
 
 # Plots {.tabset}
 
-```{r, results='asis'}
+```{r, results='asis', fig.width=10, fig.height=10}
 
 for (name in names(res_list)){
   mdcat("## ", name, "{.tabset}")
