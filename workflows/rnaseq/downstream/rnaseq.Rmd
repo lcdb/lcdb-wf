@@ -27,7 +27,7 @@ devtools::document('../../../lib/lcdbwf')
 devtools::load_all('../../../lib/lcdbwf')
 ```
 
-```{r}
+```{r libraries}
 library(AnnotationHub)
 library(BiocParallel)
 library(clusterProfiler)
@@ -80,28 +80,6 @@ if (config$parallel$parallel){
 **Initial results**
 
 Last run: `r date()`
-
-
-```{r libraries}
-library(AnnotationHub)
-library(BiocParallel)
-library(clusterProfiler)
-library(cowplot)
-library(DESeq2)
-library(dplyr)
-library(DT)
-library(genefilter)
-library(ggplot2)
-library(gridExtra)
-library(plotly)
-library(purrr)
-library(ReactomePA)
-library(readr)
-library(reshape)
-library(tibble)
-library(tximport)
-library(UpSetR)
-```
 
 
 
