@@ -1,0 +1,30 @@
+on: [push]
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    container: continuumio/miniconda3
+    steps:
+
+      - uses: actions/checkout@v1
+
+      - name: Cache conda env
+        id: cache-conda
+        uses: actions/cache@v1
+        with:
+          path: /opt/conda
+          key: ${{ hashFiles('env.yml') }}
+
+      - name: Rebuild cache
+        if: steps.cache-conda.outputs.cache-hit != 'true'
+        run: |
+          conda config --add channels defaults
+          conda config --add channels bioconda
+          conda config --add channels conda-forge
+          conda env create -n lcdb-wf-test --file env.yml
+
+      - name: STAR available?
+        shell: bash
+        run: |
+          source activate lcdb-wf-test
+          STAR --version
