@@ -21,7 +21,9 @@ jobs:
           conda config --add channels defaults
           conda config --add channels bioconda
           conda config --add channels conda-forge
-          conda env create -n lcdb-wf-test --file env.yml
+          conda install mamba -y
+          mamba env create -n lcdb-wf-test --file env.yml
+          mamba env create -n lcdb-wf-test-r --file env-r.yml
 
       - name: STAR available?
         shell: bash
