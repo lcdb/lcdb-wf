@@ -4,7 +4,7 @@ bioconductor-biocparallel
 bioconductor-clusterprofiler
 bioconductor-degreport
 bioconductor-deseq2
-bioconductor-do.db==2.9=r41hdfd78af_12
+bioconductor-do.db
 bioconductor-dupradar
 bioconductor-genomeinfodbdata
 bioconductor-genomicfeatures
@@ -15,7 +15,7 @@ bioconductor-s4vectors
 bioconductor-sva
 bioconductor-tximport
 r-ashr
-r-base
+r-base<4.1
 r-devtools
 r-dt
 r-ggally
