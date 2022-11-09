@@ -43,5 +43,4 @@ fastq_screen:
 
 include_references:
   - '../../include/reference_configs/test.yaml'
-  - '../../include/reference_configs/PhiX.yaml'
   - '../../include/reference_configs/Drosophila_melanogaster.yaml'
