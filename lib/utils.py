@@ -123,7 +123,7 @@ def update_recursive(orig, update_with):
     >>> assert result == expected, result
     """
     for k, v in update_with.items():
-        if isinstance(v, collections.Mapping):
+        if isinstance(v, collections.abc.Mapping):
             orig[k] = update_recursive(orig.get(k, {}), v)
         else:
             orig[k] = v
