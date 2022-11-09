@@ -66,7 +66,7 @@ def fill_patterns(patterns, fill, combination=product):
 
     def update(d, u, c):
         for k, v in u.items():
-            if isinstance(v, collections.Mapping):
+            if isinstance(v, collections.abc.Mapping):
                 r = update(d.get(k, {}), v, c)
                 d[k] = r
             else:
