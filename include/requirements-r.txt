@@ -4,18 +4,14 @@ bioconductor-biocparallel
 bioconductor-clusterprofiler
 bioconductor-degreport
 bioconductor-deseq2
-bioconductor-do.db
-bioconductor-dupradar
-bioconductor-genomeinfodbdata
 bioconductor-genomicfeatures
-bioconductor-rhdf5
+bioconductor-go.db
 bioconductor-ihw
-bioconductor-reactomepa
-bioconductor-s4vectors
+bioconductor-rhdf5
 bioconductor-sva
 bioconductor-tximport
 r-ashr
-r-base<4.1
+r-base >4.1
 r-devtools
 r-dt
 r-ggally
@@ -31,6 +27,5 @@ r-readr
 r-rvcheck
 r-rmarkdown
 r-sparsem
-r-spp
 r-testthat
 r-upsetr
