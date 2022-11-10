@@ -20,9 +20,6 @@ fastq_screen:
   - label: rRNA
     organism: dmel
     tag: test
-  - label: PhiX
-    organism: phix
-    tag: default
   - label: Fly
     organism: dmel
     tag: test
