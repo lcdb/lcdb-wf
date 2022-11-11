@@ -72,6 +72,7 @@ repository to a location of your choosing. Once you deploy you can remove it. Fo
       --staging /tmp/lcdb-wf-tmp \
       --branch $BRANCH \
       --flavor rnaseq \
+      --clone \
       --build-envs
 
     # You can clean up the cloned copy if you want:

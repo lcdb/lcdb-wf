@@ -1,0 +1,244 @@
+# Text to be included into RMarkdown files.
+#
+# This keeps the RMarkdown uncluttered and avoids cumbersome lcdbwf::mdcat()
+# calls within for-loops, while still retaining the ability to easily edit.
+#
+# When adding new entries, note that the "|" is important -- see
+# https://yaml-multiline.info/ for more details.
+
+
+# SAMPLE SIMILARITY AND QC
+qc:
+  clustered_heatmap: |
+    The following heatmap shows a hierarchical clustering of pairwise distances
+    between samples. Darker blue means less distant (i.e. more similar). In general
+    we expect to see replicates clustering together and separation of treatments.
+
+  pca: |
+    Another way of looking at sample clustering is principal components
+    analysis (PCA). The x- and y-axes do not have units, rather, they represent
+    the dimensions along which the samples vary the most. The amount of
+    variance explained by each principal component is indicated in the axes
+    label.
+
+# SIZE FACTORS -----------------------------------------------------------------
+sizefactors: |
+  ## Size factors {.tabset}
+
+  Ideally, all libraries were sequenced to identical depth, in which case all
+  size factors would be 1.0. In practice, this is almost never the case due to
+  the difficulties of accurately measuring low concentrations of cDNA. DESeq2 uses size
+  factor estimates to normalized for sequencing depth across
+  libraries. If some libraries are much higher or lower than
+  1 then those libraries had dramatically different coverage and we should be
+  careful about interpreting results.
+
+  Simply taking the total number of reads has been shown to be too sensitive to
+  a small number of highly-expressed genes. DESeq2's size factors are
+  calculated according to the median-ratio method (equation 5 of [Anders
+  & Huber
+  2010](http://dx.doi.org/10.1186/gb-2010-11-10-r106)).
+
+  These diagnostic plots show the size factors (as a ranked bar plot) and the
+  relationship between the size factors and the total read count (as
+  a scatterplot). Samples whose total read count differs from size factor may
+  indicate that the sample has a small number of highly expressed genes.
+
+# DDS DIAGNOSTICS --------------------------------------------------------------
+dds_diagnostics:
+  dispersion: |
+    See the [dispersion
+    estimates](http://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#dispersion-plot-and-fitting-alternatives)
+    section of the DESeq2 vignette for details.
+
+  colData: |
+    This table lists the samples included in the dds object.
+
+  outliers: |
+    Are there any samples with many outliers? See the [approach to count
+    outliers](http://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#approach-to-count-outliers)
+    section of the DESeq2 vignette for details.
+
+  sparsity: |
+    This plot can be used to see if the majority of genes with high counts
+    are coming from individual (or a small number of) samples.
+
+  design_matrix: |
+    This table shows the design matrix of the dds object.
+
+
+# RESULTS TABLE ---------------------------------------------------------------
+# Help for the columns in the results summary table.
+results_table: |
+  - The **row names** of the table are the long-format human-readable labels of
+  each contrast
+  - **name** column is the short name used to generate filenames. Upset plots,
+    output TSVs and worksheets in the Excel spreadsheet will be labeled with
+    this short name.
+  - **up** and **down** are the numbers of up- and downregulated genes respectively.
+  - **nonzero.vs.total:** the number of genes with nonzero read counts
+    and the total number of annotated genes.
+  - **alpha:** genes with an adjusted pvalue lower than this are considered
+    significantly changed.
+  - **lfcThreshold:** by default, the null hypothesis is that the log2 fold
+    change of genes is not different from zero. In some circumstances, it is
+    useful to use a different threshold, which will be reported here.
+  - **outliers:** Cook's distance is used as a measure of how much a single
+    sample is influencing the fitted coefficients for a gene. If that value
+    is too high, the gene is marked as an outlier and the pvalue and adjusted
+    pvalue will be set to NA. If there are many (hundreds to thousands) of
+    outliers, this is an indication that a sample may be problematic. In this
+    case, the dds diagnostics plots may help identify the culprit.
+  - **low.counts:** How many genes were not even tested for differential
+    expression because they had too low counts.
+  - **dds:** The name of the DESeqDataSet object used for the contrast (see
+    "other diagnostics" section above for details).
+  - **design:** the design, using R syntax. Originally described by
+    [Wilkinson
+    1973](https://www.jstor.org/stable/2346786?seq=2#metadata_info_tab_contents),
+    but see the [section in R for Data
+    Science](https://r4ds.had.co.nz/model-basics.html#formulas-and-model-families)
+    as well.
+  - **test:** The contrast performed using the design. Words in this column
+    indicate the contrast was specified to DESeq2 using a 3-item character
+    vector. Numbers (like `0,+1`) indicate a numeric contrast. For more details
+    on the design, check the design matrix tab in the diagnostics section for
+    the corresponding dds object matching the name in the *dds* column.
+
+
+# RESULTS PLOTS ----------------------------------------------------------------
+# Help for the tabbed results plots
+results_plots:
+  ma: |
+    An **M-A plot** gives a good overview of the comparison. There is one dot per gene.
+    It shows three dimensions: the normalized counts (baseMean, on a log10 scale,
+    x-axis), the effect size (log2FoldChange, y-axis) and whether or not a gene was
+    signficant (color). While it is tempting to interpret baseMean as
+    "expression level", this would not be correct because the values are only
+    normalized to library size, not transcript length. We can say that a gene
+    with higher baseMean than another gene has more observed reads, but we
+    cannot say whether that is because it has a longer transcript or because
+    there are more transcripts.
+
+  volcano: |
+    A **volcano plot** shows fewer dimensions than an M-A plot (it does not show
+    normalized counts) but it can be useful for looking at the relationship of
+    adjusted p-value and log2FoldChange.
+
+  pval_hist: |
+    The **raw p-value distribution** helps us assess if the data met the
+    assumptions of DESeq2. This [Variance Explained blog
+    post](http://varianceexplained.org/statistics/interpreting-pvalue-histogram/)
+    has a good explanation of intepretation. Additionally, we color the p-values
+    for genes that have been removed from independent filtering due to having too
+    low counts.
+
+    See the DESeq2 vignette on [independent filtering and multiple
+    testing](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#independent-filtering-and-multiple-testing)
+    for more details.
+
+
+# RESULTS DIAGNOSTICS ----------------------------------------------------------
+# Individual help for the diagnostic plots for results objects
+results_diagnostics:
+  filter_ma: |
+    This MA plot colors genes by whether or not they were filtered out in the
+    independent filtering step.</details>
+
+  outlier_ma: |
+    This MA plots colors genes by whether or not they were considered an outlier.
+
+  lfcse_basemean: |
+    This plots the standard error of the log2FoldChange (lfcSE) vs baseMean. In
+    general, as baseMean increases the lfcSE decreases.
+
+  lfcse_lfc: |
+    Standard error of the log2FoldChange vs the log2FoldChange itself.
+
+
+# UPSET PLOTS ------------------------------------------------------------------
+upset_plots: |
+  # UpSet plots {.tabset}
+
+  Here we gather together all the interesting gene sets into an [UpSet
+  plot](http://caleydo.org/tools/upset/). These plots show the combinatorial
+  overlaps of genes found to be up or down across the different contrasts
+  performed. It's much like a Venn diagram, but easier to interpret and can scale
+  to many comparisons.
+
+  The plot shows a summary of which genes were found in common across
+  contrasts. If you want to know the details of *which* genes were found in
+  common, a TSV file is linked under each plot. This file has rows for each
+  gene and columns for each contrast. A `1` indicates that gene was found to be
+  up/down/changed in that contrast. You can sort this TSV to identify the genes
+  of interest. For example, sorting all columns in descending order will cause
+  genes shared in all contrasts (a `1` in each column) to come to the top.
+
+  **Interpretation notes:** A gene can only be found in one column in an UpSet
+  plot. So if you want to confirm that the number of genes for a contrast
+  matches the results tables and MA plots, sum all the bars for which there is
+  a dot in that contrast's row.
+
+results_files:
+
+  The best way to use these is to rank by the log2FoldChange column, and then
+  consider genes whos padj value falls below 0.1.
+
+  **A note on NA values:** DESeq2 uses NA to encode extra information about
+  a gene, depending on which column the NA is found in.
+
+  - If log2FoldChange, pvalue, and padj all NA it means that the baseMean was
+    0. That is, no samples in this contrast had any reads.
+
+  - If only pvalue and padj are NA it means that the gene was detected as
+    a count outlier.
+
+  - If only padj is NA, it means the gene had too low counts and was filtered
+    out from multiple testing because it had no chance of being significant,
+    thereby reducing the harshness of the rest of the multiple testing
+    adjustments.
+
+  The output files have the following columns.
+
+
+  - **gene** is typically the most stable accession. For most organisms, this
+    is Ensembl. Human-readable names can be inconsistent (or missing in many
+    cases), so these IDs provide the most robust way of ensuring each gene has
+    a unique ID.
+  - **SYMBOL, ALIAS, UNIPROT, ENTREZID**, and possibly others, are columns with
+    additional gene identifiers. Typically SYMBOL and ALIAS will be the most
+    human-readable.
+  - **baseMean** is the average number of normalized reads across all samples.
+    It is used for estimating dispersion and gives an indication of how much
+    evidence there is for a gene. It should not be interpreted as expression
+    level, since these values are not normalized by transcript length (which
+    would introduce various biases).
+  - **log2FoldChange** is the effect size of differential expression. DESeq2
+    first calculates the simple log2 fold change using the mean of normalized
+    counts for the condtions being compared. However, both 1/5 and 1000/5000
+    give a fold change of 5x, but the latter has much more information and we
+    would want to put more stake in that. So DESeq2 uses log2 fold change
+    shrinkage methods to down-weight 1/5 to something smaller than 5x so that
+    we don't design follow-up experiments on results with low information. For
+    more details, see the papers on
+    [apeglm](https://doi.org/10.1093/bioinformatics/bty895),
+    [ashr](https://doi.org/10.1093/biostatistics/kxw041), and
+    [normal](https://doi.org/10.1186/s13059-014-0550-8). **This is designed to
+    be the most important column to sort on.**.
+  - **lfcSE** is the standard error of the log2FoldChange estimate. In general,
+    the log2 fold change for genes with high lfcSE will be shrunken more. This
+    column is sometimes useful for diagnostics but not routinely used.
+  - **stat** is the test statistic used for generating the p-value. It can
+    sometimes be useful for diagnostics but is not routinely used.
+  - **pvalue** is the *raw pvalue*. **Do not interpret these values** because
+    they are not adjusted for multiple comparisons. This column is included
+    because sometimes it has an NA, which can be informative (see above notes
+    on NA values).
+  - **padj** is the pvalue, adjusted for multiple tests. This is required to
+    weed out bad data that looks good. See this [StatQuest
+    video](https://www.youtube.com/watch?v=K8LQSvtjcEo) for an explanation.
+    **Use this column** to assess statistical significance. It is equivalent to
+    the false discovery rate. Unless otherwise noted, use the default of 0.1 as
+    the threshold. This means that out of all the genes that have padj values
+    less than 0.1, we may be wrong on 10% of those. In other words, 10% of the
+    significant genes aren't actually significant.
