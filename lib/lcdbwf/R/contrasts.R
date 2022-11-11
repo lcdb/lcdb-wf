@@ -162,7 +162,7 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
   dots[['object']] <- dds
 
   # Call results() with the subset of dots that it accepts.
-  results_dots <- lcdbwf::match_from_dots(dots, results)
+  results_dots <- lcdbwf:::match_from_dots(dots, results)
   res <- do.call("results", results_dots)
 
   # We're about to call lfcShrink, but it needs the res object...so inject the
@@ -172,7 +172,7 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
   # lfcShrink also needs the dds object, so inject that too
   dots[['dds']] <- dds
 
-  lfcShrink_dots <- lcdbwf::match_from_dots(dots, lfcShrink)
+  lfcShrink_dots <- lcdbwf:::match_from_dots(dots, lfcShrink)
     res <- do.call("lfcShrink", lfcShrink_dots)
 
   # Add the shrinkage type to the metadata of the results object.
@@ -208,29 +208,29 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
 
 
 results_diagnostics <- function(res, dds, name, config, text){
-    lcdbwf::mdcat('### Other diagnostics')
-    print(knitr::kable(lcdbwf::my_summary(res, dds, name)))
+    lcdbwf:::mdcat('### Other diagnostics')
+    print(knitr::kable(lcdbwf:::my_summary(res, dds, name)))
 
-    lcdbwf::folded_markdown(text$results_diagnostics$filter_ma, "Help")
+    lcdbwf:::folded_markdown(text$results_diagnostics$filter_ma, "Help")
     filterThreshold <- metadata(res)$filterThreshold
     p <- ggplot(res %>% as.data.frame() %>% mutate(filtered=res$baseMean < filterThreshold)) +
       aes(x=log10(baseMean), y=log2FoldChange, color=filtered) +
       geom_point()
     print(p)
 
-    lcdbwf::folded_markdown(text$results_diagnostics$outlier_ma, "Help")
+    lcdbwf:::folded_markdown(text$results_diagnostics$outlier_ma, "Help")
     p <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
       aes(x=log10(baseMean), y=log2FoldChange, color=outlier) +
       geom_point()
     print(p)
 
-    lcdbwf::folded_markdown(text$results_diagnostics$lfcse_basemean, "Help")
+    lcdbwf:::folded_markdown(text$results_diagnostics$lfcse_basemean, "Help")
     p <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
       aes(x=log10(baseMean), y=lfcSE, color=outlier) +
       geom_point()
     print(p)
 
-    lcdbwf::folded_markdown(text$results_diagnostics$lfcse_lfc, "Help")
+    lcdbwf:::folded_markdown(text$results_diagnostics$lfcse_lfc, "Help")
     p <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
       aes(x=log2FoldChange, y=lfcSE, color=outlier) +
       geom_point()

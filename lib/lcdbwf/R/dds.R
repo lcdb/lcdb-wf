@@ -104,7 +104,7 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
       dds <- DESeq2::DESeqDataSetFromTximport(txi, colData=coldata, design=design)
 
   } else {
-    dds <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
+    dds <- lcdbwf:::DESeqDataSetFromCombinedFeatureCounts(
       location,
       sampletable=coldata,
       design=design,
@@ -114,11 +114,11 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
   }
 
   if (strip_dotted_version){
-    dds <- lcdbwf::strip_dotted_version_from_dds(dds)
+    dds <- lcdbwf:::strip_dotted_version_from_dds(dds)
   }
 
   if(!is.null(collapse_by)){
-      dds <- lcdbwf::collapseReplicates2(dds, dds[[collapse_by]])
+      dds <- lcdbwf:::collapseReplicates2(dds, dds[[collapse_by]])
   }
 
   dds <- DESeq(dds, ...)
@@ -183,7 +183,7 @@ dds_diagnostics <- function(dds_list, text){
 
     mdcat("#### Sparsity plot")
     mdcat(text$dds_diagnostics$sparsity)
-    print(lcdbwf::plotSparsity2(dds_list[[name]]))
+    print(lcdbwf:::plotSparsity2(dds_list[[name]]))
 
     mdcat("#### Outliers")
     mdcat(text$dds_diagnostics$outliers)

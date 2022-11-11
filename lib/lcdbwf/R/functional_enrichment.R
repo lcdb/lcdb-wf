@@ -108,7 +108,7 @@ run_enrichment <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='O
 #' @return List of dataframes; list names are "BP", "CC", "MF".
 get_go_term2gene <- function(config){
 
-  orgdb <- lcdbwf::get_orgdb(config)
+  orgdb <- lcdbwf:::get_orgdb(config)
   keytype <- config$annotation$keytype
 
   # This is the method used by clusterProfiler internally. See
