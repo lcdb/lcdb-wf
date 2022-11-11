@@ -35,7 +35,7 @@ else:
         'fastq-dump '
         '{srr} '
         '-Z '
-        # '-X 100000 ' # [TEST SETTINGS]
+        '{limit} '
         '2> {log} | gzip -c > {output[0]}.tmp '
         '&& mv {output[0]}.tmp {output[0]} '
     )
