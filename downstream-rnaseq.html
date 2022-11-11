@@ -1,18 +1,20 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>RNA-Seq downstream analysis &#8212; lcdb-wf 0.1 documentation</title>
+    <title>RNA-Seq downstream analysis &#8212; lcdb-wf 1.9 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Detailed documentation of RNA-Seq downstream" href="rnaseq-rmd.html" />
@@ -50,8 +52,7 @@
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">RNA-Seq downstream analysis</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#how-to-use-this-script">How to use this script</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#points-of-interest">Points of interest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-use-this-code">How to use this code</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#more-details">More details</a></li>
 </ul>
 </li>
@@ -79,12 +80,12 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,49 +95,50 @@
           <div class="body" role="main">
             
   <section id="rna-seq-downstream-analysis">
-<span id="downstream"></span><h1>RNA-Seq downstream analysis<a class="headerlink" href="#rna-seq-downstream-analysis" title="Permalink to this headline">¶</a></h1>
+<span id="downstream"></span><h1>RNA-Seq downstream analysis<a class="headerlink" href="#rna-seq-downstream-analysis" title="Permalink to this heading">¶</a></h1>
 <p>In a typical RNA-seq analysis, it is relatively straightforward to go from raw
 reads to read counts in features to importing them into R. After that however,
 expression analysis gets a bit more complicated and highly depends on the
-design of the experiment. There are two approaches we considered:</p>
-<ol class="arabic simple">
-<li><p>Condense all configuration options to a configuration file</p></li>
-<li><p>Work within R and allow users full flexibility</p></li>
-</ol>
-<p>We chose to go with the second option. This meant that users would have
-to have familiarity with the R environment and coding syntax in order to
-fully utilize the various ways the analysis could be customized: a fairly
-daunting task! To ease the complexity for the users, we wrote and tested
-a RMarkdown script where we clearly annotated sections that needed user
-intervention, so that the code can be largely plug-and-play.</p>
-<p>This file is <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq/downstream/rnaseq.Rmd</span></code>, and it
-is run by the <code class="docutils literal notranslate"><span class="pre">rnaseq</span></code> rule in the RNA-seq workflow, which renders it through
-Knitr to create an HTML file. The inputs for the rule are the featureCounts output,
-the sample table, and the Rmd itself, so if any of these change the Rmd will be
-re-run.</p>
+design of the experiment.</p>
+<p>We attempted to strike the balance between simplicity – where as much
+configuration as possible takes place via a config file – and flexibility
+where the R code can be modified as needed depending on the project.</p>
+<p>This file is <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq/downstream/rnaseq.Rmd</span></code>. It uses a separate
+conda environment that just has the R dependencies. It is rendered via
+<code class="docutils literal notranslate"><span class="pre">knitr</span></code> to create an HTML file. The inputs for the rule are the featureCounts
+output, the sample table, the <code class="docutils literal notranslate"><span class="pre">lib/lcdbwf</span></code> R package, and the Rmd.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>This RMarkdown file is <strong>intended to be edited and customized per experiment</strong>.</p>
 </div>
-<section id="how-to-use-this-script">
-<h2>How to use this script<a class="headerlink" href="#how-to-use-this-script" title="Permalink to this headline">¶</a></h2>
+<section id="how-to-use-this-code">
+<h2>How to use this code<a class="headerlink" href="#how-to-use-this-code" title="Permalink to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Activate the <code class="docutils literal notranslate"><span class="pre">env-r</span></code> conda environment (created as part of setting up the
+<cite>lcdb-wf</cite> deployment)</p></li>
+<li><p>Edit the <code class="file docutils literal notranslate"><span class="pre">workflows/rnaseq/downstream/config.yaml</span></code> file. It is
+heavily commented and should be self-explanatory.</p></li>
+<li><p>Customize the contrasts you want to run (see below for details on this)</p></li>
+<li><p>From the <code class="file docutils literal notranslate"><span class="pre">workflows/rnaseq/downstream</span></code> directory, run
+<code class="docutils literal notranslate"><span class="pre">rmarkdown::render(&quot;rnaseq.Rmd&quot;)</span></code> to get <code class="file docutils literal notranslate"><span class="pre">rnaseq.html</span></code></p></li>
+</ol>
+<p>Here are some additional notes:</p>
 <ul>
-<li><p>The script is highly customizable, and the configuration options
-scattered through the script are flanked by comments containing the
-string <code class="docutils literal notranslate"><span class="pre">NOTE:</span></code>. So, before running the script, make sure to search
-for the string <code class="docutils literal notranslate"><span class="pre">NOTE:</span></code> and check if you want to change default parameters.</p></li>
-<li><p>Many of the code chunks have the <code class="docutils literal notranslate"><span class="pre">cached=TRUE</span></code> option to speed up
+<li><p>Many of the code chunks have the <code class="docutils literal notranslate"><span class="pre">cache=TRUE</span></code> option to speed up
 re-rendering and make iterative development quicker. When everything’s in
 a final state, you may want to delete the <code class="docutils literal notranslate"><span class="pre">rnaseq_cache</span></code> directory and
 re-run.</p></li>
+<li><p>Many of the cached code chunks also specify a config argument. These config
+items are taken from the <code class="file docutils literal notranslate"><span class="pre">config.yaml</span></code> file living alongside the
+<code class="file docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code>. If a cached chunk specifies a config option, and the
+value in the config file changes, the chunk will be re-run because its cache
+is invalidated.</p></li>
 <li><p>As with many analyses in R, the work is highly iterative. You may want to
-consider using RStudio when working on the analysis, and then run the Snakefile
-when complete.  To ensure that RStudio is using the same packages as the
-workflows, you should set the <code class="docutils literal notranslate"><span class="pre">RSTUDIO_WHICH_R</span></code> environment variable.</p>
+consider using an interactive interpreter, either via the command line or
+RStudio. To ensure that RStudio is using the same packages as the workflows,
+you should set the <code class="docutils literal notranslate"><span class="pre">RSTUDIO_WHICH_R</span></code> environment variable.</p>
 <p>The easiest way to do this is to activate the conda environment you’re using
 for the analysis, then export the identified location of R to that variable:</p>
-</li>
-</ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span> activate lcdb-wf
 <span class="nb">export</span> <span class="nv">RSTUDIO_WHICH_R</span><span class="o">=</span><span class="k">$(</span>which R<span class="k">)</span>
 </pre></div>
@@ -146,84 +148,38 @@ for the analysis, then export the identified location of R to that variable:</p>
 </pre></div>
 </div>
 <p>Then run RStudio, which should pick up the conda environment’s version of R and
-should already have packages like DESeq2 installed in the environment.</p>
-</section>
-<section id="points-of-interest">
-<h2>Points of interest<a class="headerlink" href="#points-of-interest" title="Permalink to this headline">¶</a></h2>
-<section id="standard-qc">
-<h3>Standard QC<a class="headerlink" href="#standard-qc" title="Permalink to this headline">¶</a></h3>
-<p>Clustered correlation heatmaps, PCA plots, and clustered heatmaps of the most
-variable genes are created much like the <a class="reference external" href="https://www.bioconductor.org/packages/release/workflows/vignettes/rnaseqGene/inst/doc/rnaseqGene.html">Bioconductor RNA-seq workflow</a>.</p>
-</section>
-<section id="use-salmon-counts-or-featurecounts">
-<h3>Use Salmon counts or featureCounts<a class="headerlink" href="#use-salmon-counts-or-featurecounts" title="Permalink to this headline">¶</a></h3>
-<p>Both Salmon quantification and featureCounts are imported into <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code>,
-and you can decide which to use for any particular analysis.</p>
-</section>
-<section id="easy-support-for-multiple-contrasts-and-comparing-them">
-<h3>Easy support for multiple contrasts, and comparing them<a class="headerlink" href="#easy-support-for-multiple-contrasts-and-comparing-them" title="Permalink to this headline">¶</a></h3>
-<p>For complex experimental designs, populate the <code class="docutils literal notranslate"><span class="pre">res.list</span></code> list with lists
-containing the results, the DESeq object, and a nice label. For example:</p>
-<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">res.list</span><span class="p">[[</span><span class="s">&#39;mut1&#39;</span><span class="p">]]</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span>
-    <span class="n">res</span><span class="o">=</span><span class="nf">lfcShrink</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="s">&#39;group&#39;</span><span class="p">,</span> <span class="s">&#39;mutant1&#39;</span><span class="p">,</span> <span class="s">&#39;control&#39;</span><span class="p">)),</span>
-    <span class="n">dds</span><span class="o">=</span><span class="n">dds</span><span class="p">,</span>
-    <span class="n">label</span><span class="o">=</span><span class="s">&#39;Effect of mutant 1&#39;</span>
-<span class="p">)</span>
-<span class="n">res.list</span><span class="p">[[</span><span class="s">&#39;time&#39;</span><span class="p">]]</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span>
-    <span class="n">res</span><span class="o">=</span><span class="nf">lfcShrink</span><span class="p">(</span><span class="n">dds.with.different.design</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="s">&#39;time&#39;</span><span class="p">,</span> <span class="s">&#39;t1&#39;</span><span class="p">,</span> <span class="s">&#39;t0&#39;</span><span class="p">)),</span>
-    <span class="n">dds</span><span class="o">=</span><span class="n">dds.with.different.design</span><span class="p">,</span>
-    <span class="n">label</span><span class="o">=</span><span class="s">&#39;Effect of time in WT&#39;</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-<p>For each entry in <code class="docutils literal notranslate"><span class="pre">res.list</span></code>, a section will be built with a header
-reflecting the label, a summary table, counts plots of the top 3 up- and top
-3 down-regulated genes, an M-A plot, a p-value distribution histogram, and
-links to the exported results. In addition if there were multiple contrasts
-with detected DE genes, these will be compared in UpSet plots to identify the
-genes that are shared as DE across contrasts.</p>
-<p>For a more detailed discussion see <a class="reference internal" href="rnaseq-rmd.html#contrast"><span class="std std-ref">Specifying contrasts</span></a>.</p>
-</section>
-<section id="functional-enrichment-analysis">
-<h3>Functional enrichment analysis<a class="headerlink" href="#functional-enrichment-analysis" title="Permalink to this headline">¶</a></h3>
-<p>For each of the entries in <code class="docutils literal notranslate"><span class="pre">res.list</span></code> (as described above), functional enrichment analysis will
-be performed using clusterProfiler, using gene ontology (GO), KEGG pathways and optionally, Reactome pathways.
-The results are depicted using three different visualizations, dotplots, emapplots and cnetplots,
-with plots from up- and down-regulated shown side-by-side for easy comparison.</p>
-</section>
-<section id="gene-patterns-analysis">
-<h3>Gene patterns analysis<a class="headerlink" href="#gene-patterns-analysis" title="Permalink to this headline">¶</a></h3>
-<p>To look for clusters of co-expressed or co-regulated genes in a time-series
-or dose-response experiment, we perform a pattern analysis of the differentially
-expressed genes using a clustering method implemented in the R package <code class="docutils literal notranslate"><span class="pre">DEGreport</span></code>.
-The clusters of similar genes found from this analysis are visualized and
-also saved as individual files and as cluster memberships in the differential
-analysis reports.</p>
-</section>
-<section id="help-docs">
-<h3>Help docs<a class="headerlink" href="#help-docs" title="Permalink to this headline">¶</a></h3>
-<p>For new users, or when distributing the output to collaborators who might
-not be familiar with the plots containined in the report, a background and
-help section are included. This can be disabled by deleting the “helpdocs”
-chunk at the end of the file.</p>
-</section>
-<section id="helper-functions">
-<h3>Helper functions<a class="headerlink" href="#helper-functions" title="Permalink to this headline">¶</a></h3>
-<p>The file <code class="docutils literal notranslate"><span class="pre">helpers.Rmd</span></code> contains lots of helper functions that are
-included in <code class="docutils literal notranslate"><span class="pre">rnaseq.Rmd</span></code> as a child document. This way the main document
-doesn’t get cluttered with all the functions while you’re editing it, but
-the code for those functions is still included in the HTML output.</p>
-</section>
+which will already have packages like DESeq2 installed in the environment.</p>
+</li>
+</ul>
 </section>
 <section id="more-details">
-<h2>More details<a class="headerlink" href="#more-details" title="Permalink to this headline">¶</a></h2>
+<h2>More details<a class="headerlink" href="#more-details" title="Permalink to this heading">¶</a></h2>
 <p>For more detailed documentation, see <a class="reference internal" href="rnaseq-rmd.html#downstream-detailed"><span class="std std-ref">Detailed documentation of RNA-Seq downstream</span></a>.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="rnaseq-rmd.html">Detailed documentation of RNA-Seq downstream</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#primary-analysis-script">Primary analysis script</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#gene-patterns-analysis">Gene patterns analysis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#functional-enrichment-analysis">Functional enrichment analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#global-options"><code class="docutils literal notranslate"><span class="pre">global_options</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#lcdbwf"><code class="docutils literal notranslate"><span class="pre">lcdbwf</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#config"><code class="docutils literal notranslate"><span class="pre">config</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#libraries"><code class="docutils literal notranslate"><span class="pre">libraries</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#coldata-setup"><code class="docutils literal notranslate"><span class="pre">coldata_setup</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#dds-initial"><code class="docutils literal notranslate"><span class="pre">dds_initial</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#print-coldata"><code class="docutils literal notranslate"><span class="pre">print_coldata</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#sample-heatmap"><code class="docutils literal notranslate"><span class="pre">sample_heatmap</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#pca"><code class="docutils literal notranslate"><span class="pre">pca</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#sizefactors"><code class="docutils literal notranslate"><span class="pre">sizefactors</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#dds-list"><code class="docutils literal notranslate"><span class="pre">dds_list</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#dds-diagnostics"><code class="docutils literal notranslate"><span class="pre">dds_diagnostics</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#results"><code class="docutils literal notranslate"><span class="pre">results_*</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#assemble-variables"><code class="docutils literal notranslate"><span class="pre">assemble_variables</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#summary"><code class="docutils literal notranslate"><span class="pre">summary</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#reportresults"><code class="docutils literal notranslate"><span class="pre">reportresults</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#upsetplots"><code class="docutils literal notranslate"><span class="pre">upsetplots</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#excel"><code class="docutils literal notranslate"><span class="pre">excel</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#write-output"><code class="docutils literal notranslate"><span class="pre">write_output</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#combined-rds"><code class="docutils literal notranslate"><span class="pre">combined_rds</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#sessioninfo"><code class="docutils literal notranslate"><span class="pre">sessioninfo</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq-rmd.html#glossary">Glossary</a></li>
 </ul>
 </li>
 </ul>
@@ -242,7 +198,7 @@ the code for those functions is still included in the HTML output.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

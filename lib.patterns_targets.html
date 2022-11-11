@@ -1,18 +1,20 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Module lib.patterns_targets &#8212; lcdb-wf 0.1 documentation</title>
+    <title>Module lib.patterns_targets &#8212; lcdb-wf 1.9 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Module lib.chipseq" href="lib.chipseq.html" />
@@ -77,12 +79,12 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -92,15 +94,11 @@
           <div class="body" role="main">
             
   <section id="module-lib-patterns-targets">
-<h1>Module <code class="docutils literal notranslate"><span class="pre">lib.patterns_targets</span></code><a class="headerlink" href="#module-lib-patterns-targets" title="Permalink to this headline">¶</a></h1>
+<h1>Module <code class="docutils literal notranslate"><span class="pre">lib.patterns_targets</span></code><a class="headerlink" href="#module-lib-patterns-targets" title="Permalink to this heading">¶</a></h1>
 <p>The classes in module control how <code class="docutils literal notranslate"><span class="pre">rnaseq_patterns.yaml</span></code> and
 <code class="docutils literal notranslate"><span class="pre">chipseq_patterns.yaml</span></code> are filled in with the information from their
 respective sample tables and config files.</p>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#lib.patterns_targets.SeqConfig" title="lib.patterns_targets.SeqConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SeqConfig</span></code></a>(config, patterns[, workdir])</p></td>
 <td><p>This class takes care of common tasks related to config and patterns files (reading the sampletable, etc) but is intended to be subclassed.</p></td>
@@ -114,18 +112,18 @@ respective sample tables and config files.</p>
 </tbody>
 </table>
 <section id="details">
-<h2>Details<a class="headerlink" href="#details" title="Permalink to this headline">¶</a></h2>
+<h2>Details<a class="headerlink" href="#details" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="lib.patterns_targets.SeqConfig">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">lib.patterns_targets.</span></span><span class="sig-name descname"><span class="pre">SeqConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patterns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#SeqConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.patterns_targets.SeqConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lib.patterns_targets.</span></span><span class="sig-name descname"><span class="pre">SeqConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patterns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#SeqConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.patterns_targets.SeqConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class takes care of common tasks related to config and patterns
 files (reading the sampletable, etc) but is intended to be subclassed.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – </p></li>
-<li><p><strong>patterns</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Path to patterns YAML file</p></li>
-<li><p><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Config, patterns, and all paths in <cite>config</cite> should be interpreted
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – </p></li>
+<li><p><strong>patterns</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Path to patterns YAML file</p></li>
+<li><p><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Config, patterns, and all paths in <cite>config</cite> should be interpreted
 as relative to <cite>workdir</cite></p></li>
 </ul>
 </dd>
@@ -134,16 +132,16 @@ as relative to <cite>workdir</cite></p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="lib.patterns_targets.RNASeqConfig">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">lib.patterns_targets.</span></span><span class="sig-name descname"><span class="pre">RNASeqConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patterns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#RNASeqConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.patterns_targets.RNASeqConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lib.patterns_targets.</span></span><span class="sig-name descname"><span class="pre">RNASeqConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patterns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#RNASeqConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.patterns_targets.RNASeqConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Config object specific to RNA-seq workflows.</p>
 <p>Fills in patterns to create targets by handling the by-sample and
 by-aggregate sections separately.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – </p></li>
-<li><p><strong>patterns</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Path to patterns YAML file</p></li>
-<li><p><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Config, patterns, and all paths in <cite>config</cite> should be interpreted
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – </p></li>
+<li><p><strong>patterns</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Path to patterns YAML file</p></li>
+<li><p><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Config, patterns, and all paths in <cite>config</cite> should be interpreted
 as relative to <cite>workdir</cite></p></li>
 </ul>
 </dd>
@@ -152,16 +150,16 @@ as relative to <cite>workdir</cite></p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="lib.patterns_targets.ChIPSeqConfig">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">lib.patterns_targets.</span></span><span class="sig-name descname"><span class="pre">ChIPSeqConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patterns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#ChIPSeqConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.patterns_targets.ChIPSeqConfig" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lib.patterns_targets.</span></span><span class="sig-name descname"><span class="pre">ChIPSeqConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patterns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/patterns_targets.html#ChIPSeqConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.patterns_targets.ChIPSeqConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Config object specific to ChIP-seq workflows.</p>
 <p>Fills in patterns to create targets by handling the by-sample, by-peak,
 and by-aggregate sections separately.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – </p></li>
-<li><p><strong>patterns</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Path to patterns YAML file</p></li>
-<li><p><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Config, patterns, and all paths in <cite>config</cite> should be interpreted
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – </p></li>
+<li><p><strong>patterns</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Path to patterns YAML file</p></li>
+<li><p><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Config, patterns, and all paths in <cite>config</cite> should be interpreted
 as relative to <cite>workdir</cite></p></li>
 </ul>
 </dd>
@@ -182,7 +180,7 @@ as relative to <cite>workdir</cite></p></li>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

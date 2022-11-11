@@ -1,18 +1,20 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Module lib.common &#8212; lcdb-wf 0.1 documentation</title>
+    <title>Module lib.common &#8212; lcdb-wf 1.9 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Module lib.chipseq" href="lib.chipseq.html" />
@@ -79,12 +81,12 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,17 +96,13 @@
           <div class="body" role="main">
             
   <section id="module-lib-common">
-<h1>Module <code class="docutils literal notranslate"><span class="pre">lib.common</span></code><a class="headerlink" href="#module-lib-common" title="Permalink to this headline">¶</a></h1>
+<h1>Module <code class="docutils literal notranslate"><span class="pre">lib.common</span></code><a class="headerlink" href="#module-lib-common" title="Permalink to this heading">¶</a></h1>
 <p>This module contains various helper functions used by the workflows. It has two
 main types of functions, those for handling configuration information those for
 handling references.</p>
 <section id="functions-for-handling-configuration">
-<h2>Functions for handling configuration<a class="headerlink" href="#functions-for-handling-configuration" title="Permalink to this headline">¶</a></h2>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<h2>Functions for handling configuration<a class="headerlink" href="#functions-for-handling-configuration" title="Permalink to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#lib.common.resolve_config" title="lib.common.resolve_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_config</span></code></a>(config[, workdir])</p></td>
 <td><p>Finds the config file.</p></td>
@@ -122,12 +120,8 @@ handling references.</p>
 </table>
 </section>
 <section id="functions-for-handling-references">
-<h2>Functions for handling references<a class="headerlink" href="#functions-for-handling-references" title="Permalink to this headline">¶</a></h2>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<h2>Functions for handling references<a class="headerlink" href="#functions-for-handling-references" title="Permalink to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#lib.common.gzipped" title="lib.common.gzipped"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gzipped</span></code></a>(tmpfiles, outfile)</p></td>
 <td><p>Cat-and-gzip a list of uncompressed files into a compressed output file.</p></td>
@@ -141,14 +135,14 @@ handling references.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#lib.common.twobit_to_fasta" title="lib.common.twobit_to_fasta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">twobit_to_fasta</span></code></a>(tmpfiles, outfile)</p></td>
 <td><p>Converts .2bit files to fasta.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#lib.common.download_and_postprocess" title="lib.common.download_and_postprocess"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download_and_postprocess</span></code></a>(outfile, config, …)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#lib.common.download_and_postprocess" title="lib.common.download_and_postprocess"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download_and_postprocess</span></code></a>(outfile, config, ...)</p></td>
 <td><p>Given an output file, figure out what to do based on the config.</p></td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="module-lib.common">
-<span id="details"></span><h2>Details<a class="headerlink" href="#module-lib.common" title="Permalink to this headline">¶</a></h2>
+<span id="details"></span><h2>Details<a class="headerlink" href="#module-lib.common" title="Permalink to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="lib.common.cat">
 <span class="sig-prename descclassname"><span class="pre">lib.common.</span></span><span class="sig-name descname"><span class="pre">cat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmpfiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#cat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.cat" title="Permalink to this definition">¶</a></dt>
@@ -177,11 +171,11 @@ Reports out if there are any failures.</p>
 <dd><p>Given a config filename or existing object, extract the URLs and check
 them.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Config object to inspect</p></li>
-<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Print which URL is being checked</p></li>
-<li><p><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of seconds to wait in between checking URLs, to avoid
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – Config object to inspect</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – Print which URL is being checked</p></li>
+<li><p><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – Number of seconds to wait in between checking URLs, to avoid
 too-many-connection issues</p></li>
 </ul>
 </dd>
@@ -201,15 +195,15 @@ too-many-connection issues</p></li>
 <dd><p>Given an output file, figure out what to do based on the config.</p>
 <p>See notes below for details.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – </p></li>
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – </p></li>
-<li><p><strong>organism</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Which organism to use. Must be a key in the “references” section of the
+<li><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – </p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – </p></li>
+<li><p><strong>organism</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Which organism to use. Must be a key in the “references” section of the
 config.</p></li>
-<li><p><strong>tag</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Which tag for the organism to use. Must be a tag for the organism in
+<li><p><strong>tag</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Which tag for the organism to use. Must be a tag for the organism in
 the config</p></li>
-<li><p><strong>type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – A supported references type (gtf, fasta) to use.</p></li>
+<li><p><strong>type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – A supported references type (gtf, fasta) to use.</p></li>
 </ul>
 </dd>
 </dl>
@@ -291,12 +285,12 @@ Specifically, given a pattern (which is expected to contain a placeholder
 for “{sample}” and “{n}”), look up in the sampletable whether or not it is
 paired-end.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>sampletable</strong> (<em>pandas.DataFrame</em>) – Contains a “layout” column with either “SE” or “PE”, or “LibraryLayout”
 column with “SINGLE” or “PAIRED”. If column does not exist, assume SE.</p></li>
-<li><p><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Must contain at least a “{sample}” placeholder.</p></li>
-<li><p><strong>r1_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, then only return the file for R1 even if PE is configured.</p></li>
+<li><p><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Must contain at least a “{sample}” placeholder.</p></li>
+<li><p><strong>r1_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – If True, then only return the file for R1 even if PE is configured.</p></li>
 </ul>
 </dd>
 </dl>
@@ -309,11 +303,11 @@ column with “SINGLE” or “PAIRED”. If column does not exist, assume SE.</
 <p>Given input gzipped FASTAs, create a new gzipped fasta containing only
 records whose description matches <cite>pattern</cite>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tmpfiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – gzipped fasta files to look through</p></li>
-<li><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – gzipped output fastq file</p></li>
-<li><p><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Look for this string in each record’s description</p></li>
+<li><p><strong>tmpfiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a>) – gzipped fasta files to look through</p></li>
+<li><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – gzipped output fastq file</p></li>
+<li><p><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Look for this string in each record’s description</p></li>
 </ul>
 </dd>
 </dl>
@@ -327,8 +321,8 @@ records whose description matches <cite>pattern</cite>.</p>
 variable <cite>REFERENCES_DIR</cite> over the config entry “references_dir”. Raise an
 error if either can’t be found.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – </p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – </p>
 </dd>
 </dl>
 </dd></dl>
@@ -341,8 +335,8 @@ error if either can’t be found.</p>
 in the config.</p>
 <p>The sample IDs are assumed to be the first column of the sampletable.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – </p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – </p>
 </dd>
 </dl>
 </dd></dl>
@@ -370,12 +364,12 @@ in the config.</p>
 <span class="sig-prename descclassname"><span class="pre">lib.common.</span></span><span class="sig-name descname"><span class="pre">is_paired_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampletable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#is_paired_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.is_paired_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>Inspects the sampletable to see if the sample is paired-end or not</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>sampletable</strong> (<em>pandas.DataFrame</em>) – Contains a “layout” or “LibraryLayout” column (but not both). If the
 lowercase value is “pe” or “paired”, consider the sample paired-end.
 Otherwise consider single-end.</p></li>
-<li><p><strong>sample</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Assumed to be found in the first column of <cite>sampletable</cite></p></li>
+<li><p><strong>sample</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Assumed to be found in the first column of <cite>sampletable</cite></p></li>
 </ul>
 </dd>
 </dl>
@@ -425,8 +419,8 @@ this example, in the dictionary returned below we can then get that path
 with <cite>d[‘human’][‘gencode’][‘hisat2’]</cite>, or more generally,
 <cite>d[organism][tag][type]</cite>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – </p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – </p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
@@ -480,10 +474,10 @@ config file which has the format:</p>
 <span class="sig-prename descclassname"><span class="pre">lib.common.</span></span><span class="sig-name descname"><span class="pre">resolve_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#resolve_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.resolve_config" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finds the config file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – If str, assume it’s a YAML file and parse it; otherwise pass through</p></li>
-<li><p><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Optional location to specify relative location of all paths in <cite>config</cite></p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – If str, assume it’s a YAML file and parse it; otherwise pass through</p></li>
+<li><p><strong>workdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Optional location to specify relative location of all paths in <cite>config</cite></p></li>
 </ul>
 </dd>
 </dl>
@@ -494,10 +488,10 @@ config file which has the format:</p>
 <span class="sig-prename descclassname"><span class="pre">lib.common.</span></span><span class="sig-name descname"><span class="pre">twobit_to_fasta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmpfiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lib/common.html#twobit_to_fasta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.common.twobit_to_fasta" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts .2bit files to fasta.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tmpfiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – 2bit files to convert</p></li>
-<li><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – gzipped output fastq file</p></li>
+<li><p><strong>tmpfiles</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a>) – 2bit files to convert</p></li>
+<li><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – gzipped output fastq file</p></li>
 </ul>
 </dd>
 </dl>
@@ -517,7 +511,7 @@ config file which has the format:</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
