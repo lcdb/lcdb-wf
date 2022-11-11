@@ -127,8 +127,6 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
     rule fastq_dump:
         output:
             fastq=render_r1_r2(c.patterns['fastq'])
-        conda:
-            'envs/sratools.yml'
         log:
             r1_only(c.patterns['fastq'])[0] + '.log'
         run:
