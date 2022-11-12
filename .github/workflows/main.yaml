@@ -13,7 +13,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: /opt/conda
-          key: ${{ hashFiles('env.yml') }}
+          key: ${{ hashFiles('env.yml') }}-${{ hashFiles('env-r.yml') }}
 
       - name: Rebuild cache
         if: steps.cache-conda.outputs.cache-hit != 'true'
@@ -21,6 +21,8 @@ jobs:
           conda config --add channels defaults
           conda config --add channels bioconda
           conda config --add channels conda-forge
+          conda config --set channel_priority strict
+
           conda install mamba -y
           mamba env create -n lcdb-wf-test --file env.yml
           mamba env create -n lcdb-wf-test-r --file env-r.yml
