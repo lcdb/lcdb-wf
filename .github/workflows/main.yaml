@@ -10,7 +10,7 @@ jobs:
 
       - name: Cache conda env
         id: cache-conda
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: /opt/conda
           key: ${{ hashFiles('env.yml') }}-${{ hashFiles('env-r.yml') }}
