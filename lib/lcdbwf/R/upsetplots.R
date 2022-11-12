@@ -19,9 +19,9 @@ plot_upsets <- function(res_list, label_column=NULL, alpha=0.1, lfc_thresh=0){
     res_list,
     function(x) {
       list(
-        up=lcdbwf::get_sig(x$res, alpha=alpha, lfc_thresh=lfc_thresh, "up", return_type="rownames"),
-        down=lcdbwf::get_sig(x$res, alpha=alpha, lfc_thresh=lfc_thresh, "down", return_type="rownames"),
-        changed=lcdbwf::get_sig(x$res, alpha=alpha, lfc_thresh=lfc_thresh, "changed", return_type="rownames")
+        up=lcdbwf:::get_sig(x$res, alpha=alpha, lfc_thresh=lfc_thresh, "up", return_type="rownames"),
+        down=lcdbwf:::get_sig(x$res, alpha=alpha, lfc_thresh=lfc_thresh, "down", return_type="rownames"),
+        changed=lcdbwf:::get_sig(x$res, alpha=alpha, lfc_thresh=lfc_thresh, "changed", return_type="rownames")
       )
     }
   )
@@ -31,7 +31,7 @@ plot_upsets <- function(res_list, label_column=NULL, alpha=0.1, lfc_thresh=0){
   sel.list.transformed <- purrr::transpose(sel.list)
 
   for (sel.name in names(sel.list.transformed)){
-      lcdbwf::mdcat("## UpSet plot: ", sel.name)
+      lcdbwf:::mdcat("## UpSet plot: ", sel.name)
 
       # Only consider contrasts with sig genes in this selection
       ll <- purrr::keep(
@@ -40,12 +40,12 @@ plot_upsets <- function(res_list, label_column=NULL, alpha=0.1, lfc_thresh=0){
       )
 
       if (length(ll) <= 1){
-          lcdbwf::mdcat('not enough contrasts with upregulated genes')
+          lcdbwf:::mdcat('not enough contrasts with upregulated genes')
           next
       }
 
       print(upset(UpSetR::fromList(ll), order.by='freq', nsets=length(ll)))
-      upset.df <- lcdbwf::fromList.with.names(ll)
+      upset.df <- lcdbwf:::fromList.with.names(ll)
       upset.df$names <- rownames(upset.df)
 
       first_cols <- c('names')
@@ -59,7 +59,7 @@ plot_upsets <- function(res_list, label_column=NULL, alpha=0.1, lfc_thresh=0){
           dplyr::relocate(!!!first_cols) %>%
           dplyr::arrange(!!!sort_cols)
 
-      lcdbwf::write.upset.plot.results(upset.df, sel.name)
+      lcdbwf:::write.upset.plot.results(upset.df, sel.name)
   }
 }
 
@@ -95,10 +95,10 @@ write.upset.plot.results <- function(lldf, label){
   outfile <- file.path('results', 'upset_plots', paste0(label, '.tsv'))
   dir.create(dirname(outfile), showWarnings=FALSE, recursive=TRUE)
   write.table(lldf, file=outfile, sep='\t', row.names=FALSE, quote=FALSE)
-  lcdbwf::mdcat('- [', outfile, ']', '(', outfile, ')')
+  lcdbwf:::mdcat('- [', outfile, ']', '(', outfile, ')')
   pdf.file <- file.path('results', 'upset_plots', paste0(label, '.pdf'))
   dev.copy(pdf, file=pdf.file)
   dev.off()
-  lcdbwf::mdcat('- [', pdf.file, ']', '(', pdf.file, ')')
+  lcdbwf:::mdcat('- [', pdf.file, ']', '(', pdf.file, ')')
 }
 

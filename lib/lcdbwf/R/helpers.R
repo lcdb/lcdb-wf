@@ -355,7 +355,7 @@ my_summary <- function(res, dds, name, ...){
   if (class(dds) != 'character'){
     stop("expecting dds to be a string")
   }
-  dds <- lcdbwf::get_dds(dds_label)
+  dds <- lcdbwf:::get_dds(dds_label)
   alpha <- metadata(res)$alpha
   lfc.thresh <- metadata(res)$lfcThreshold
   lfc.thresh <- ifelse(is.null(lfc.thresh), 0, lfc.thresh)
@@ -588,7 +588,7 @@ get_config <- function(){
 #' @details
 #' Example usage is:
 #'
-#'  do.call("functioname", lcdbwf::match_from_dots(list(...), functionname)))
+#'  do.call("functioname", lcdbwf:::match_from_dots(list(...), functionname)))
 #'
 match_from_dots <- function(dots, func){
   arg <- match(names(formals(func)), names(dots))

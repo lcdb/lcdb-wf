@@ -20,6 +20,8 @@ if [[ ! -e logs ]]; then mkdir -p logs; fi
     --use-conda \
     --configfile config/config.yaml \
     --latency-wait=300 \
+    --max-jobs-per-second 1 \
+    --max-status-checks-per-second 0.01 \
     "$@"
     ) > "Snakefile.log" 2>&1
 
