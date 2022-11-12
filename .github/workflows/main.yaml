@@ -3,6 +3,8 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
     container: continuumio/miniconda3
     steps:
 
