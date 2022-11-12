@@ -41,7 +41,7 @@ devtools::load_all('../../../lib/lcdbwf')
 # invalidate that chunk's cache -- along with any other chunks that also have
 # config$annotation included as a chunk option.
 #
-config <- lcdbwf::load_config('config.yaml')
+config <- lcdbwf:::load_config('config.yaml')
 
 # To keep this Rmd streamlined, much of the text is stored in a different file,
 # text.yaml, and accessed via the `text` list after it is loaded here.
@@ -74,7 +74,6 @@ library(ggplot2)
 library(gridExtra)
 library(plotly)
 library(purrr)
-library(ReactomePA)
 library(readr)
 library(reshape)
 library(tibble)
@@ -97,7 +96,7 @@ rownames(colData) <- colData[,1]
 ```{r dds_initial, cache=TRUE, config=c(config$main, config$toggle$salmon, config$toggle$kallisto)}
 # Convert featureCounts gene-level counts into DESeq2 object, and run
 # variance-stabiliizing transform.
-dds_initial <- lcdbwf::make_dds(
+dds_initial <- lcdbwf:::make_dds(
   list(sampletable=colData, design=~1),
   config=config,
   parallel=config$parallel$parallel
@@ -126,18 +125,18 @@ colData(dds_initial) %>%
 
 ```{r sample_heatmap, results='asis', cache=TRUE, config=c(text$qc$clustered_heatmap, config$plotting$covariates_for_plots), dependson='dds_initial'}
 # Plot a clustered heatmap of sample distances, for QC.
-lcdbwf::mdcat(text$qc$clustered_heatmap)
-lcdbwf::plot_heatmap(vsd, colData, cols_for_grouping=config$plotting$covariates_for_plots)
+lcdbwf:::mdcat(text$qc$clustered_heatmap)
+lcdbwf:::plot_heatmap(vsd, colData, cols_for_grouping=config$plotting$covariates_for_plots)
 ```
 
 ## PCA {.tabset}
 
 ```{r pca, results='asis', cache=TRUE, config=c(text$qc$pca, config$plotting$covariates_for_plots), dependson='dds_initial'}
 # Plot PCA plots, optionally tabbed with different factors colored, for QC.
-lcdbwf::mdcat(text$qc$pca)
+lcdbwf:::mdcat(text$qc$pca)
 for(group in config$plotting$covariates_for_plots){
-    lcdbwf::mdcat('### ', paste(group, sep=", "))
-    p <- lcdbwf::plotPCA.ly(vsd, intgroup=group)
+    lcdbwf:::mdcat('### ', paste(group, sep=", "))
+    p <- lcdbwf:::plotPCA.ly(vsd, intgroup=group)
     print(htmltools::tagList(ggplotly(p)))
 }
 ```
@@ -146,13 +145,13 @@ for(group in config$plotting$covariates_for_plots){
 # Note that when loading Salmon or Kallisto, DESeq2 does not calculate size
 # factors.
 
-lcdbwf::mdcat(text$sizefactors)
-lcdbwf::mdcat("### Size factors")
-p <- lcdbwf::sizefactors_barplot(dds_initial)
+lcdbwf:::mdcat(text$sizefactors)
+lcdbwf:::mdcat("### Size factors")
+p <- lcdbwf:::sizefactors_barplot(dds_initial)
 ggplotly(p)
 
-lcdbwf::mdcat("### Size factors vs total read count")
-p <- lcdbwf::sizefactors_vs_total(dds_initial)
+lcdbwf:::mdcat("### Size factors vs total read count")
+p <- lcdbwf:::sizefactors_vs_total(dds_initial)
 ggplotly(p)
 ```
 
@@ -191,12 +190,12 @@ lst <- list(
                 kallisto=TRUE)
             # ------------------------------------------------------------------
           )
-dds_list <- map(lst, lcdbwf::make_dds, config=config, parallel=config$parallel$parallel)
+dds_list <- map(lst, lcdbwf:::make_dds, config=config, parallel=config$parallel$parallel)
 ```
 
 
 ```{r dds_diagnostics, results='asis', cache=TRUE, dependson='dds_list', config=config$toggle$dds_diagnostics}
-if (config$toggle$dds_diagnostics){ lcdbwf::dds_diagnostics(dds_list, text) }
+if (config$toggle$dds_diagnostics){ lcdbwf:::dds_diagnostics(dds_list, text) }
 ```
 
 # Differential expression {.tabset}
@@ -228,9 +227,9 @@ there are more tabs for the various output.
 #
 # Example 1:
 #  - demonstrates creating and manipulating coefficients
-control <- lcdbwf::dds_coefs('main', group=='control')
-treatment <- lcdbwf::dds_coefs('main', group=='treatment')
-contr_01_main <- lcdbwf::make_results(
+control <- lcdbwf:::dds_coefs('main', group=='control')
+treatment <- lcdbwf:::dds_coefs('main', group=='treatment')
+contr_01_main <- lcdbwf:::make_results(
   dds_name='main',
   label='LFC>0',
   contrast=treatment - control,
@@ -241,7 +240,7 @@ contr_01_main <- lcdbwf::make_results(
 ```{r results_02, dependson='dds_list', cache=TRUE}
 # Example 2:
 #  - demonstrates using a log2FoldChange threshold
-contr_02_lfc1 <- lcdbwf::make_results(
+contr_02_lfc1 <- lcdbwf:::make_results(
   dds_name="no_rep4",
   contrast=c("group", "treatment", "control"),
   lfcThreshold=1,
@@ -254,7 +253,7 @@ contr_02_lfc1 <- lcdbwf::make_results(
 # Example 3:
 #   - demonstrates using normal shrinkage
 #   - demonstrates how to use salmon
-contr_03a_salmon <- lcdbwf::make_results(
+contr_03a_salmon <- lcdbwf:::make_results(
   dds_name="salmon",
   contrast=c("group", "treatment", "control"),
   type="normal",
@@ -265,7 +264,7 @@ contr_03a_salmon <- lcdbwf::make_results(
 ```{r results_04, dependson='dds_list', cache=TRUE}
 # Example 4:
 #   - like example 3, but kallisto instead of salmon
-contr_03_kallisto <- lcdbwf::make_results(
+contr_03_kallisto <- lcdbwf:::make_results(
   dds_name="kallisto",
   contrast=c('group', 'treatment', 'control'),
   type='normal',
@@ -275,32 +274,32 @@ contr_03_kallisto <- lcdbwf::make_results(
 
 
 ```{r assemble_variables, cache=TRUE, config=config$annotation, dependson=knitr::all_labels()[grepl("^results_", knitr::all_labels())]}
-res_list <- lcdbwf::collect_objects("^contr_[^_]+_")
-res_list <- lcdbwf::attach_extra(res_list, config)
+res_list <- lcdbwf:::collect_objects("^contr_[^_]+_")
+res_list <- lcdbwf:::attach_extra(res_list, config)
 ```
 
 ```{r summary, results='asis'}
-lcdbwf::folded_markdown(text$results_table, "Help for table")
-lcdbwf::summarize_res_list(res_list) %>% datatable
+lcdbwf:::folded_markdown(text$results_table, "Help for table")
+lcdbwf:::summarize_res_list(res_list) %>% datatable
 ```
 
 ```{r reportresults, results='asis', config=c(text$results_plots, config$toggle$results_diagnostics, config$plotting$diagnostics_results_names), dependson='assemble_variables', cache=TRUE}
 # Create nested tabs showing the results.
 # First level of tabs will be labels of results; second level will be different
 # output (MA plot, volcano plot, etc)
-lcdbwf::build_results_tabs(res_list, dds_list, config, text)
+lcdbwf:::build_results_tabs(res_list, dds_list, config, text)
 ```
 
 ```{r upsetplots, results='asis', eval=length(res_list)>1, config=config$annotation, dependson='selections'}
 # Compare overlap across multiple differential expression contrasts.
-lcdbwf::mdcat(text$upset_plots)
-lcdbwf::plot_upsets(res_list, label_column=config$annotation$label_column)
+lcdbwf:::mdcat(text$upset_plots)
+lcdbwf:::plot_upsets(res_list, label_column=config$annotation$label_column)
 ```
 
 # Exported results
 
 ```{r excel, results='asis'}
-lcdbwf::exported_excel(res_list, dds_list, file='results/consolidated_results.xlsx')
+lcdbwf:::exported_excel(res_list, dds_list, file='results/consolidated_results.xlsx')
 ```
 
 Here is a single Excel file with one worksheet for each contrast: [results/consolidated_results.xlsx](results/consolidated_results.xlsx)
@@ -311,12 +310,12 @@ progammatically with downstream tools:
 ```{r write_output, results='asis'}
 # Write out files for full and each selection, and create a link to them in the
 # HTML generated by this RMarkdown.
-tbl <- lcdbwf::exported_tsvs(res_list)
+tbl <- lcdbwf:::exported_tsvs(res_list)
 knitr::kable(tbl, row.names=FALSE)
 ```
 
 ```{r combined_rds, cache=TRUE, dependson='assemble_variables'}
-obj <- lcdbwf::compose_results(res_list, dds_list)
+obj <- lcdbwf:::compose_results(res_list, dds_list)
 saveRDS(obj, file='combined.Rds')
 ```
 
