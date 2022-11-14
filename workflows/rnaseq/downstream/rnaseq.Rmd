@@ -27,6 +27,26 @@ devtools::document('../../../lib/lcdbwf')
 devtools::load_all('../../../lib/lcdbwf')
 ```
 
+```{r libraries}
+library(AnnotationHub)
+library(BiocParallel)
+library(clusterProfiler)
+library(cowplot)
+library(DESeq2)
+library(dplyr)
+library(DT)
+library(genefilter)
+library(ggplot2)
+library(gridExtra)
+library(plotly)
+library(purrr)
+library(readr)
+library(reshape)
+library(tibble)
+library(tximport)
+library(UpSetR)
+```
+
 ```{r config}
 
 # HOW TO CONFIGURE ------------------------------------------------------
@@ -59,29 +79,6 @@ if (config$parallel$parallel){
 **Initial results**
 
 Last run: `r date()`
-
-
-```{r libraries}
-library(AnnotationHub)
-library(BiocParallel)
-library(clusterProfiler)
-library(cowplot)
-library(DESeq2)
-library(dplyr)
-library(DT)
-library(genefilter)
-library(ggplot2)
-library(gridExtra)
-library(plotly)
-library(purrr)
-library(readr)
-library(reshape)
-library(tibble)
-library(tximport)
-library(UpSetR)
-```
-
-
 
 ```{r coldata_setup}
 # Set up all of the metadata for the samples and experimental design. Use this
