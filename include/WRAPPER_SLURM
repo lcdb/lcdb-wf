@@ -2,6 +2,7 @@
 #SBATCH --job-name="lcdb-wf"
 #SBATCH --partition="norm"
 #SBATCH --time=12:00:00
+#SBATHC --gres=lscratch:5
 
 # make logdir
 if [[ ! -e logs ]]; then mkdir -p logs; fi
