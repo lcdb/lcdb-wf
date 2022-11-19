@@ -719,6 +719,21 @@ def is_paired_end(sampletable, sample):
     sample : str
         Assumed to be found in the first column of `sampletable`
     """
+    # We can't fall back to detecting PE based on two fastq files provided for
+    # each sample when it's an SRA sampletable (which only has SRR accessions).
+    #
+    # So detect first detect if SRA sampletable based on presence of "Run"
+    # column and all values of that column starting with "SRR", and then raise
+    # an error if the Layout column does not exist.
+
+    if "Run" in sampletable.columns:
+        if all(sampletable["Run"].str.startswith("SRR")):
+            if "Layout" not in sampletable.columns and "layout" not in sampletable.columns:
+                raise ValueError(
+                    "Sampletable appears to be SRA, but no 'Layout' column "
+                    "found. This is required to specify single- or paired-end "
+                    "libraries.")
+
     row = sampletable.set_index(sampletable.columns[0]).loc[sample]
     if 'orig_filename_R2' in row:
         return True
