@@ -98,6 +98,8 @@ variables:
         cp workflows/colocalization/run_test.sh $DEPLOY/workflows/references
         cp workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization
         mkdir $DEPLOY/ci
+        mkdir $DEPLOY/test
+        cp test/lcdb-wf-test $DEPLOY/test
         cp ci/get-data.py $DEPLOY/ci
 
         # the ./run_test.sh scripts run this
@@ -105,7 +107,7 @@ variables:
 
         # download example data
         cd $DEPLOY
-        python ci/get-data.py
+        test/lcdb-wf-test --get-data --kinds all
 
   # --------------------------------------------------------------------------
   # Run the doctests across the included modules
@@ -137,7 +139,8 @@ variables:
         command: |
           cd $DEPLOY/workflows/rnaseq
           source activate lcdb-wf-test
-          ./run_test.sh --use-conda -n
+          $DEPLOY/test/lcdb-wf-test --rnaseq dryrun
+
   # --------------------------------------------------------------------------
   # Standard chipseq workflow
   chipseq-step: &chipseq-step
