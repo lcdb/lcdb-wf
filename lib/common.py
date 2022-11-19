@@ -629,6 +629,9 @@ def load_config(config, missing_references_ok=False):
     # Here we populate a list of reference sections. Items later on the list
     # will have higher priority
     includes = config.get('include_references', [])
+    for i in includes:
+        if not os.path.exists(i):
+            raise ValueError("include_references: '{}' does not exist".format(i))
     reference_sections = []
 
     # First the directories. Directories that come earlier lose to those that
