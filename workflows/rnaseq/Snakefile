@@ -921,7 +921,7 @@ rule rseqc_read_distribution:
 BAMCOVERAGE_ARGS = (
     '--minMappingQuality 20 '  # excludes multimappers
     '--smoothLength 10 '       # smooth signal with specified window
-    '--normalizeUsing BPM '    # equivalent to TPM
+    # '--normalizeUsing BPM '    # equivalent to TPM # [TEST SETTINGS]
 )
 
 rule bigwig_neg:
