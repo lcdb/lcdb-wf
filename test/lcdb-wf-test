@@ -89,7 +89,7 @@ def get_data(kinds="all", branch="master", verbose=True):
     cwd = os.getcwd()
     if str(cwd) != str(TOPLEVEL):
         raise ValueError(f"cwd: {cwd}; Please run this from the top level of the repo")
-    if kinds == "all":
+    if "all" in kinds:
         kinds = list(data_files.keys())
     for kind in kinds:
         for fn, dest in data_files[kind]:
