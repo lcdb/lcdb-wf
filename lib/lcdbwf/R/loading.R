@@ -19,7 +19,7 @@
 #' Additional args are passed to DESeq2::DESeqDataSetFromMatrix.
 DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable,
                                                 design,
-                                                sample_func=lcdbwf.samplename,
+                                                sample_func=lcdbwf_samplename,
                                                 subset_counts=FALSE, ...){
 
   # The sampletable may be data.frame or tibble; if it's a tibble then it
