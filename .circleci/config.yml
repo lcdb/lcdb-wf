@@ -211,7 +211,7 @@ variables:
           # This run the preprocessor on the Rmd files and stores them
           # in a new download-test directory (see the comments in the script
           # for details)
-         $DEPLOY/ test/lcdb-wf-test rnaseq --downstream
+          $DEPLOY/test/lcdb-wf-test rnaseq --downstream
 
           # bundle up the entire directory to be used as an artifact
           tar -zcf downstream.tar.gz downstream-test/
