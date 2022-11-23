@@ -90,7 +90,7 @@ class Runner(object):
             help="Kind of data to download",
         )
         parser.add_argument(
-            "--branch", default="main", help="Branch from lcdb-test-data to use"
+            "--branch", default="master", help="Branch from lcdb-test-data to use"
         )
         parser.add_argument(
             "--verbose",
