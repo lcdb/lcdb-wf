@@ -1,0 +1,61 @@
+# NOTE:
+#
+# The "__ORIG__" placeholder is a mechanism for allowing the CI to run config
+# files from a full cloned repo within a deployed directory. The __ORIG__ will
+# be filled in with the lcdb-wf-test "--orig" argument, which defaults to the
+# top-level repo dir. 
+#
+# In other words, "__ORIG__/" will be replaced with the top-level dir unless
+# you specify --orig.
+#
+#
+# NOTE:
+# These arguments are pulled into the test/lcdb-wf-test runner script
+# automatically.
+
+rnaseq:
+  sra-pe:
+    args: |
+      --until cutadapt
+      --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
+      --config sampletable=__ORIG__/test/test_configs/test_sra_sampletable.tsv
+
+  sra-se:
+    args: |
+      --until cutadapt
+      --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
+      --config sampletable=__ORIG__/test/test_configs/test_sra_sampletable_SE_only.tsv
+
+  strandedness-pe:
+    args: |
+      --until strand_check
+      --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
+      --config sampletable=__ORIG__/test/test_configs/test_pe_sampletable.tsv
+
+  strandedness-se:
+    args: |
+      --until strand_check
+      --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
+      --config sampletable=__ORIG__/test/test_configs/two_samples.tsv
+
+  star-2pass:
+    args: |
+        --until star_pass2
+        --configfile
+        __ORIG__/test/test_configs/test_rnaseq_config.yaml
+        __ORIG__/test/test_configs/star_override_2pass.yaml
+        --config sampletable=__ORIG__/test/test_configs/star_2pass.tsv
+
+  star-1pass:
+    args: |
+        --until star
+        --configfile
+        __ORIG__/test/test_configs/test_rnaseq_config.yaml
+        __ORIG__/test/test_configs/star_override_1pass.yaml
+        --config sampletable=__ORIG__/test/test_configs/star_1pass.tsv
+
+pe:
+  args: |
+    --until multiqc
+    --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
+    --config sampletable=__ORIG__/test/test_configs/test_pe_sampletable.tsv

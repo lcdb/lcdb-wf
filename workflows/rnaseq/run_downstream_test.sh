@@ -19,4 +19,12 @@ done
 cp downstream/config.yaml downstream-test/config.yaml
 cp downstream/text.yaml downstream-test/text.yaml
 
+if [ -z "$ENV_R" ]; then
+    echo Please set \$ENV_R to the conda env containing R and retry. Exiting.
+    exit 1
+fi
+
+eval "$(conda shell.bash hook)"
+conda activate $ENV_R
 Rscript -e "rmarkdown::render('downstream-test/rnaseq.Rmd')"
+conda deactivate

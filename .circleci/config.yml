@@ -107,7 +107,7 @@ variables:
 
         # download example data
         cd $DEPLOY
-        test/lcdb-wf-test --get-data --kinds all
+        test/lcdb-wf-test data --kinds=all --verbose
 
   # --------------------------------------------------------------------------
   # Run the doctests across the included modules
@@ -117,17 +117,17 @@ variables:
       command: |
         source activate lcdb-wf-test
 
-        # Ensure that the chunks in rnaseq.Rmd have matching documentation
-        (cd ci && python ensure_docs.py)
+        # run unit tests and doctests for the modules in lib
+        test/lcdb-wf-test unit_tests --pytest
 
-        pytest --doctest-modules lib
+        # Ensure that the chunks in rnaseq.Rmd have matching documentation
+        test/lcdb-wf-test unit_tests --ensure-docs
 
         # find all URLs in reference configs and make sure they exist
-        python -c 'from lib.common import check_all_urls_found; check_all_urls_found()'
+        test/lcdb-wf-test unit_tests --url-check
 
-        source deactivate
-        source activate lcdb-wf-test-r
-        Rscript -e "devtools::test('lib/lcdbwf')"
+        # run R package unit tests using the R env
+        test/lcdb-wf-test unit_tests --r-test --env-r lcdb-wf-test-r
 
 
   # --------------------------------------------------------------------------
@@ -137,7 +137,6 @@ variables:
       run:
         name: dry run
         command: |
-          cd $DEPLOY/workflows/rnaseq
           source activate lcdb-wf-test
           $DEPLOY/test/lcdb-wf-test --rnaseq dryrun
 
@@ -190,27 +189,29 @@ variables:
         command: |
           cd $DEPLOY/workflows/references
           source activate lcdb-wf-test
-          ./run_test.sh  --use-conda -j2 -k -p -r --configfile config/config.yaml
+          $DEPLOY/test/lcdb-wf-test --references
+
   # --------------------------------------------------------------------------
   # Standard RNA-seq workflow
   rnaseq-step: &rnaseq-step
       run:
         name: rnaseq workflow
         command: |
-          cd $DEPLOY/workflows/rnaseq
+          cd $DEPLOY
           source activate lcdb-wf-test
-          ./run_test.sh --use-conda -j2 -k -p -r
-          python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --use-conda -j2 -k -p -r
+
+          $DEPLOY/test/lcdb-wf-test rnaseq --trackhub
 
           # Starting in v1.6, we separate out the non-R from the
           # R environments. So we need to test the rnaseq.Rmd separately
           # outside the context of the Snakefile.
           source activate lcdb-wf-test-r
 
-          # This script runs the preprocessor on the Rmd files and stores them
+          # This run the preprocessor on the Rmd files and stores them
           # in a new download-test directory (see the comments in the script
           # for details)
-          bash run_downstream_test.sh
+         $DEPLOY/ test/lcdb-wf-test rnaseq --downstream
 
           # bundle up the entire directory to be used as an artifact
           tar -zcf downstream.tar.gz downstream-test/
@@ -224,63 +225,17 @@ variables:
         command: |
           ORIG=$(pwd)
           cd $DEPLOY
-          cp -r workflows/rnaseq workflows/rnaseq-misc-test
-
-          # make a copy of the data so we can get a fresh copy each time below
-          cp -r workflows/rnaseq/data /tmp/data
-          cd workflows/rnaseq-misc-test
           source activate lcdb-wf-test
 
-          echo "test SRA, PE"
-          rm -r data
-          ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
-            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
-            --config sampletable=$ORIG/test/test_configs/test_sra_sampletable.tsv
+          # Check the help for test/lcdb-wf-test to see what args these
+          # provide; some of them use the --until argument to restrict the
+          # rules that are run.
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --sra-pe          -k -r -p -j2 --use-conda
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --sra-se          -k -r -p -j2 --use-conda
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --strandedness-pe -k -r -p -j2 --use-conda
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --star-2pass      -k -r -p -j2 --use-conda
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --star-1pass      -k -r -p -j2 --use-conda
 
-          echo "test SRA, SE"
-          rm -r data
-          ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
-            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
-            --config sampletable=$ORIG/test/test_configs/test_sra_sampletable_SE_only.tsv
-
-          echo "test strandedness, PE"
-          rm -r data && cp -r /tmp/data data
-          ./run_test.sh -j 2 --use-conda -k -p -r --until strand_check \
-            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
-            --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
-
-          echo "test strandedness, SE"
-          rm -r data && cp -r /tmp/data data
-          ./run_test.sh -j 2 --use-conda -k -p -r --until strand_check \
-            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
-            --config sampletable=$ORIG/test/test_configs/two_samples.tsv
-
-          echo "test STAR 2-pass alignment"
-          rm -r data && cp -r /tmp/data data
-          ./run_test.sh -j 2 --use-conda -k -p -r \
-            --forcerun star_pass1 \
-            --configfile \
-              $ORIG/test/test_configs/test_rnaseq_config.yaml \
-              $ORIG/test/test_configs/star_override_2pass.yaml \
-            --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
-            --until star_pass2
-
-          echo "test STAR 1-pass alignment"
-          rm -r data && cp -r /tmp/data data
-          ./run_test.sh -j 2 --use-conda -k -p -r \
-            --forcerun star \
-            --configfile \
-              $ORIG/test/test_configs/test_rnaseq_config.yaml \
-              $ORIG/test/test_configs/star_override_1pass.yaml \
-            --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
-            --until star
-
-          echo "test PE reads"
-          rm -r data && cp -r /tmp/data data
-          ./run_test.sh -j 2 --use-conda -k -p -r --until multiqc \
-            --configfile \
-              $ORIG/test/test_configs/test_rnaseq_config.yaml \
-            --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
 
   # --------------------------------------------------------------------------
   # Standard colocalization workflow
