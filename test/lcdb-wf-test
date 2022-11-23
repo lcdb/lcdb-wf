@@ -232,12 +232,14 @@ class Runner(object):
             check_all_urls_found()
 
         if args.r_test:
+            print_header("R test")
             sp.run(
-                [
-                    f"{args.env_r}/bin/Rscript",
-                    "-e",
-                    "devtools::test('lib/lcdbwf', export_all=TRUE)",
-                ]
+                'eval "$(conda shell.bash hook)" '
+                f"&& conda activate {args.env_r} "
+                '''&& Rscript -e "devtools::test('lib/lcdbwf', export_all=TRUE)"''',
+                shell=True,
+                check=True,
+                executable="/bin/bash"
             )
 
         if args.ensure_docs:
