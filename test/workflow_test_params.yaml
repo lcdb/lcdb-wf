@@ -1,44 +1,48 @@
+# This file configures arguments for running various workflows that are  pulled
+# into the test/lcdb-wf-test runner script automatically. It is a way of 
+#
 # NOTE:
 #
 # The "__ORIG__" placeholder is a mechanism for allowing the CI to run config
-# files from a full cloned repo within a deployed directory. The __ORIG__ will
-# be filled in with the lcdb-wf-test "--orig" argument, which defaults to the
-# top-level repo dir. 
+# files living in a full cloned repo, but within a (different) deployed
+# directory. The __ORIG__ indicates the full cloned repo and will be filled in
+# with the lcdb-wf-test "--orig" argument, which defaults to the top-level repo
+# dir.
 #
-# In other words, "__ORIG__/" will be replaced with the top-level dir unless
-# you specify --orig.
-#
-#
-# NOTE:
-# These arguments are pulled into the test/lcdb-wf-test runner script
-# automatically.
+# For local testing, don't specify --orig and leave the default. This will
+# automatically fill in the top-level dir of the current repo.
 
 rnaseq:
   sra-pe:
+    desc: Tests paired-end data downloaded directly from SRA. Only run until the cutadapt rule.
     args: |
       --until cutadapt
       --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
       --config sampletable=__ORIG__/test/test_configs/test_sra_sampletable.tsv
 
   sra-se:
+    desc: Tests single-end data downloaded directly from SRA. Only run until the cutadapt rule.
     args: |
       --until cutadapt
       --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
       --config sampletable=__ORIG__/test/test_configs/test_sra_sampletable_SE_only.tsv
 
   strandedness-pe:
+    desc: Tests running the strandedness pre-check using paired-end data.
     args: |
       --until strand_check
       --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
       --config sampletable=__ORIG__/test/test_configs/test_pe_sampletable.tsv
 
   strandedness-se:
+    desc: Tests running the strandedness pre-check using single-ended data.
     args: |
       --until strand_check
       --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
       --config sampletable=__ORIG__/test/test_configs/two_samples.tsv
 
   star-2pass:
+    desc: Tests running STAR in 2-pass mode. Only runs until the star_pass2 rule.
     args: |
         --until star_pass2
         --configfile
@@ -47,6 +51,7 @@ rnaseq:
         --config sampletable=__ORIG__/test/test_configs/star_2pass.tsv
 
   star-1pass:
+    desc: Tests running STAR in 1-pass (default) mode. Only runs until the star rule.
     args: |
         --until star
         --configfile
@@ -55,6 +60,7 @@ rnaseq:
         --config sampletable=__ORIG__/test/test_configs/star_1pass.tsv
 
 pe:
+  desc: Tests paired-end data
   args: |
     --until multiqc
     --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml

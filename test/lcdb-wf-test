@@ -203,12 +203,13 @@ class Runner(object):
         parser.add_argument(
             "--url-check",
             action="store_true",
-            help="Ensure that URLs in config files (e.g., to genome references) are still valid",
+            help="Ensure that URLs found in config files (e.g., to genome references) are still valid",
         )
         parser.add_argument(
             "--r-test",
             action="store_true",
-            help="Run devtools::test on the lcdbwf R package. Be sure to check --env-r.",
+            help="""Run devtools::test on the lcdbwf R package. Activates the
+            conda environment specified by --env-r just before running.""",
         )
 
         parser.add_argument(
@@ -243,6 +244,10 @@ class Runner(object):
             sp.run(["./ensure_docs.py"], check=True, cwd=TOPLEVEL / "ci")
 
     def _cmd_rnaseq(self):
+        """
+        This function handles the "rnaseq" subcommand.
+        """
+
         parser = argparse.ArgumentParser(
             description="Run rnaseq workflow and downstream tests",
             parents=[self.global_parser],
@@ -267,6 +272,7 @@ class Runner(object):
             on the files to allow the use of # [TEST SETTINGS] comments; see
             that script for detail.s Make sure --env-r is set correctly""",
         )
+
         group = parser.add_mutually_exclusive_group()
         workflow_prefix = "bash run_test.sh"
         workflow_dir = "workflow/rnaseq"
@@ -279,7 +285,7 @@ class Runner(object):
                 const=val["args"],
                 help=f"""GROUP: Part of mutually exclusive rnaseq group. Runs the
                 following: cd {workflow_dir} && {workflow_prefix}
-                {val['args']}. See workflow_test_params.yaml for details.""",
+                {val['args']}. {val['desc']} Configured in workflow_test_params.yaml.""",
             )
 
         args, extra = parser.parse_known_args(sys.argv[2:])
