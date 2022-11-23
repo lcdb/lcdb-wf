@@ -51,9 +51,7 @@ def wrapper_for(path):
 # See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
     utils.flatten(c.targets['fastqc']),
-    utils.flatten(c.targets['libsizes']),
     [c.targets['fastq_screen']],
-    [c.targets['libsizes_table']],
     [c.targets['rrna_percentages_table']],
     [c.targets['multiqc']],
     utils.flatten(c.targets['featurecounts']),
@@ -625,59 +623,6 @@ rule rrna_libsizes_table:
             yaml.dump(y, fout, default_flow_style=False)
 
 
-rule libsizes_table:
-    """
-    Aggregate fastq and bam counts in to a single table
-    """
-    input:
-        utils.flatten(c.targets['libsizes'])
-    output:
-        json=c.patterns['libsizes_yaml'],
-        tsv=c.patterns['libsizes_table']
-    run:
-        def sample(f):
-            return os.path.basename(os.path.dirname(f))
-
-        def million(f):
-            return float(open(f).read()) / 1e6
-
-        def stage(f):
-            return os.path.basename(f).split('.', 1)[1].replace('.gz', '').replace('.count', '')
-
-        df = pd.DataFrame(dict(filename=list(map(str, input))))
-        df['sample'] = df.filename.apply(sample)
-        df['million'] = df.filename.apply(million)
-        df['stage'] = df.filename.apply(stage)
-        df = df.set_index('filename')
-        df = df.pivot('sample', columns='stage', values='million')
-
-        # make nicer column names
-        convert = {
-            'fastq.libsize': 'stage1_raw',
-            'cutadapt.fastq.libsize' : 'stage2_trimmed',
-            'cutadapt.bam.libsize': 'stage3_aligned',
-        }
-
-        df.columns = [convert[i] for i in df.columns]
-
-        df.to_csv(output.tsv, sep='\t')
-        y = {
-            'id': 'libsizes_table',
-            'section_name': 'Library sizes',
-            'description': 'Library sizes at various stages of the pipeline',
-            'plot_type': 'table',
-            'pconfig': {
-                'id': 'libsizes_table_table',
-                'title': 'Library size table',
-                'min': 0
-            },
-            'data': yaml.load(df.transpose().to_json(), Loader=yaml.FullLoader),
-        }
-        with open(output.json, 'w') as fout:
-            yaml.dump(y, fout, default_flow_style=False)
-
-
-
 rule multiqc:
     """
     Aggregate various QC stats and logs into a single HTML report with MultiQC
@@ -687,7 +632,6 @@ rule multiqc:
     input:
         files=(
             utils.flatten(c.targets['fastqc']) +
-            utils.flatten(c.targets['libsizes_yaml']) +
             utils.flatten(c.targets['rrna_percentages_yaml']) +
             utils.flatten(c.targets['cutadapt']) +
             utils.flatten(c.targets['featurecounts']) +
