@@ -22,6 +22,9 @@ DESeqDataSetFromCombinedFeatureCounts <- function(filename, sampletable,
                                                 sample_func=lcdbwf_samplename,
                                                 subset_counts=FALSE, ...){
 
+  if (is.null(subset_counts)){
+    subset_counts <- FALSE
+  }
   # The sampletable may be data.frame or tibble; if it's a tibble then it
   # likely doesn't have rownames. So in this function we assume that it's the
   # first column that contains the samplenames.
