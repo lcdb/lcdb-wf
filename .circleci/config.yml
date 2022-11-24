@@ -48,7 +48,7 @@ variables:
         name: Set path
         command: |
           # x11-utils required to avoid R::png() segfaulting
-          apt update && apt install -y locales-all locales x11-utils
+          apt update && apt install -y locales-all locales rsync x11-utils
           echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
           echo 'export LCDBWF_ENV=lcdb-wf-test' >> $BASH_ENV
           echo 'export LCDBWF_ENV_R=lcdb-wf-test-r' >> $BASH_ENV
@@ -62,10 +62,6 @@ variables:
       name: Setup conda
       command: |
         set -e
-        apt update
-        apt install -y locales-all locales
-        export LC_ALL=en_US.utf8
-        export LANG=en_US.utf8
         # We only do the installation if the conda environment does not already
         # exist.
         if ! conda env list | grep -q "lcdb-wf-test"; then
@@ -118,6 +114,9 @@ variables:
       name: Run pytest suite and testthat suite
       command: |
         source activate lcdb-wf-test
+
+        echo LCDBWF_ENV_R=$LCDBWF_ENV_R
+        echo LCDBWF_ENV=$LCDBWF_ENV
 
         # run unit tests and doctests for the modules in lib
         test/lcdb-wf-test unit_tests --pytest

@@ -3,19 +3,6 @@
 """
 This script aims to make it more convenient to run various tests using
 different configs.
-
-data: gets example data
-unit: runs unit tests (pytest, testthat, check urls, check docs)
-workflows: runs workflows and downstream tasks
-
-rnaseq:
-  standard:
-    desc: "Run main rnaseq workflow. Supply additional snakemake args."
-    command: "cd workflows/rnaseq && ./run_test.sh $SNAKEMAKE_ARGS"
-  trackhub:
-    desc: "Build the trackhub for rnaseq. Requires 'standard' to have been run"
-    command: "cd workflows/rnaseq && python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml"
-
 """
 import os
 import shlex
