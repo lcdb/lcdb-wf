@@ -50,6 +50,8 @@ variables:
           # x11-utils required to avoid R::png() segfaulting
           apt update && apt install -y locales-all locales x11-utils
           echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
+          echo 'export LCDBWF_ENV=lcdb-wf-test' >> $BASH_ENV
+          echo 'export LCDBWF_ENV_R=lcdb-wf-test-r' >> $BASH_ENV
           echo 'export LC_ALL=en_US.utf8' >> $BASH_ENV
           echo 'export LANG=en_US.utf8' >> $BASH_ENV
           source $BASH_ENV
@@ -72,8 +74,8 @@ variables:
             conda config --system --add channels bioconda
             conda config --system --add channels conda-forge
             conda install mamba -y
-            mamba env create -n lcdb-wf-test --file env.yml
-            mamba env create -n lcdb-wf-test-r --file env-r.yml
+            mamba env create -n $LCDBWF_ENV --file env.yml
+            mamba env create -n $LCDBWF_ENV_R --file env-r.yml
         fi
 
   # --------------------------------------------------------------------------
@@ -127,7 +129,7 @@ variables:
         test/lcdb-wf-test unit_tests --url-check
 
         # run R package unit tests using the R env
-        test/lcdb-wf-test unit_tests --r-test --env-r lcdb-wf-test-r
+        test/lcdb-wf-test unit_tests --r-test
 
 
   # --------------------------------------------------------------------------
@@ -199,9 +201,9 @@ variables:
         command: |
           cd $DEPLOY
           source activate lcdb-wf-test
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --use-conda -j2 -k -p -r
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --use-conda -j2 -k -p -r --orig $ORIG
 
-          $DEPLOY/test/lcdb-wf-test rnaseq --trackhub
+          $DEPLOY/test/lcdb-wf-test rnaseq --trackhub --orig $ORIG
 
           # Starting in v1.6, we separate out the non-R from the
           # R environments. So we need to test the rnaseq.Rmd separately
@@ -229,12 +231,15 @@ variables:
 
           # Check the help for test/lcdb-wf-test to see what args these
           # provide; some of them use the --until argument to restrict the
-          # rules that are run.
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --sra-pe          -k -r -p -j2 --use-conda
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --sra-se          -k -r -p -j2 --use-conda
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --strandedness-pe -k -r -p -j2 --use-conda
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --star-2pass      -k -r -p -j2 --use-conda
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --star-1pass      -k -r -p -j2 --use-conda
+          # rules that are run. Note the use of --orig $ORIG to use the test
+          # configs from the original clone rather than the deployed directory.
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --sra-pe          -k -r -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --sra-se          -k -r -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --strandedness-pe -k -r -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --star-2pass      -k -r -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --star-1pass      -k -r -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --pe              -k -r -p -j2 --use-conda --orig $ORIG
+
 
 
   # --------------------------------------------------------------------------

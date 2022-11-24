@@ -43,27 +43,32 @@ class Runner(object):
     "_cmd_", create a new ArgumentParser.
     """
 
+    default_env = os.getenv("LCDBWF_ENV", str(TOPLEVEL / "env"))
+    default_env_r = os.getenv("LCDBWF_ENV_R", str(TOPLEVEL / "env-r"))
     global_parser = argparse.ArgumentParser(add_help=False)
     global_parser.add_argument(
-        "--env", default=str(TOPLEVEL / "env"), help="Main conda environment to use"
+        "--env", default=default_env,
+        help=f"""Main conda environment to use. Override
+        by setting $LCDBWF_ENV or override that by explicity setting --env. Currently will use {default_env}"""
     )
     global_parser.add_argument(
         "--env-r",
-        default=str(TOPLEVEL / "env-r"),
-        help="Conda environment containing R to use",
+        default=default_env_r,
+        help=f"""Main R conda environment to use. Override by setting
+        $LCDBWF_ENV_R or override that by explicity setting --env-r. Currently
+        will use {default_env_r}"""
     )
     global_parser.add_argument(
         "--orig",
         default=str(TOPLEVEL),
         help=f"""If specified, you can use the special string '__ORIG__' in
-        command line arguments (for example, when specifying config files).
-        Mostly used in CI.""",
+        command line arguments which will be filled in with the value provided
+        here. Mostly used in CI.""",
     )
 
     def __init__(self):
         parser = argparse.ArgumentParser(
             description="Test runner for lcdb-wf",
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         )
 
         choices = [i.replace("_cmd_", "") for i in dir(self) if i.startswith("_cmd_")]
@@ -79,7 +84,6 @@ class Runner(object):
     def _cmd_data(self):
         parser = argparse.ArgumentParser(
             description="Download data",
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
             parents=[self.global_parser],
         )
 
@@ -193,7 +197,6 @@ class Runner(object):
         parser = argparse.ArgumentParser(
             description="Run various unit tests and checks",
             parents=[self.global_parser],
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         )
         parser.add_argument(
             "--pytest",
@@ -253,7 +256,6 @@ class Runner(object):
         parser = argparse.ArgumentParser(
             description="Run rnaseq workflow and downstream tests",
             parents=[self.global_parser],
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         )
         parser.add_argument(
             "--run-workflow",
@@ -272,9 +274,15 @@ class Runner(object):
             help="""Run the downstream rnaseq.Rmd, via
             workflows/rnaseq/run_downstream_test.sh. This runs the preprocessor
             on the files to allow the use of # [TEST SETTINGS] comments; see
-            that script for detail.s Make sure --env-r is set correctly""",
+            that script for details. Activates environment configured in
+            --env-r before running.""",
         )
 
+        # Here we programmatically build the parser from the
+        # workflow_test_params.yaml file. They are added to
+        # a mutually-exclusive group to avoid overwriting each others' config
+        # file params. They all write their params to the args.additional_args
+        # attribute.
         group = parser.add_mutually_exclusive_group()
         workflow_prefix = "bash run_test.sh"
         workflow_dir = "workflow/rnaseq"
@@ -285,9 +293,10 @@ class Runner(object):
                 default="",
                 dest="additional_args",
                 const=val["args"],
-                help=f"""GROUP: Part of mutually exclusive rnaseq group. Runs the
-                following: cd {workflow_dir} && {workflow_prefix}
-                {val['args']}. {val['desc']} Configured in workflow_test_params.yaml.""",
+                help=f"""GROUP: Part of mutually exclusive rnaseq group. Runs
+                the following: cd {workflow_dir} && {workflow_prefix}
+                {val['args']}. {val['desc']} Configured in
+                workflow_test_params.yaml.""",
             )
 
         args, extra = parser.parse_known_args(sys.argv[2:])
@@ -322,12 +331,12 @@ class Runner(object):
         if args.downstream:
             print_header("running downstream rnaseq.Rmd")
             sp.run(
-                [
-                    "bash",
-                    "run_downstream_test.sh",
-                ],
-                env={"ENV_R": args.env_r, **os.environ},
-                cwd="workflows/rnaseq",
+                'eval "$(conda shell.bash hook)" '
+                f"&& conda activate {args.env_r} "
+                "&& (cd workflows/rnaseq && bash run_downstream_test.sh)",
+                shell=True,
+                check=True,
+                executable="/bin/bash"
             )
 
 
