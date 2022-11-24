@@ -98,6 +98,7 @@ variables:
         mkdir $DEPLOY/ci
         mkdir $DEPLOY/test
         cp test/lcdb-wf-test $DEPLOY/test
+        cp test/workflow_test_params.yaml $DEPLOY/test
         cp ci/get-data.py $DEPLOY/ci
 
         # the ./run_test.sh scripts run this
