@@ -299,6 +299,7 @@ jobs:
     steps:
       - checkout
       - *restore_cache
+      - *set-path
       - *setup
       - *pytest-step
 
