@@ -54,6 +54,7 @@ variables:
           echo 'export LCDBWF_ENV_R=lcdb-wf-test-r' >> $BASH_ENV
           echo 'export LC_ALL=en_US.utf8' >> $BASH_ENV
           echo 'export LANG=en_US.utf8' >> $BASH_ENV
+          echo 'export ORIG=$(pwd)' >> $BASH_ENV
           source $BASH_ENV
   # --------------------------------------------------------------------------
   # Set up conda if the environments do not already exist
@@ -160,7 +161,6 @@ variables:
       run:
         name: chipseq misc
         command: |
-          ORIG=$(pwd)
           cd $DEPLOY/workflows/chipseq
           source activate lcdb-wf-test
           ./run_test.sh --use-conda -j2 -k -p -r \
