@@ -77,7 +77,7 @@ class Runner(object):
         parser.add_argument(
             "--kind",
             default="all",
-            choices=["rnaseq", "chipseq"],
+            choices=["all", "rnaseq", "chipseq"],
             help="Kind of data to download",
         )
         parser.add_argument(
