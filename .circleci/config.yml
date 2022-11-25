@@ -198,11 +198,6 @@ variables:
 
           $DEPLOY/test/lcdb-wf-test rnaseq --trackhub --orig $ORIG
 
-          # Starting in v1.6, we separate out the non-R from the
-          # R environments. So we need to test the rnaseq.Rmd separately
-          # outside the context of the Snakefile.
-          source activate lcdb-wf-test-r
-
           # This run the preprocessor on the Rmd files and stores them
           # in a new download-test directory (see the comments in the script
           # for details)
