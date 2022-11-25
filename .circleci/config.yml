@@ -204,7 +204,7 @@ variables:
           $DEPLOY/test/lcdb-wf-test rnaseq --downstream
 
           # bundle up the entire directory to be used as an artifact
-          tar -zcf downstream.tar.gz downstream-test/
+          tar -zcf downstream.tar.gz workflows/rnaseq/downstream-test/
 
   # --------------------------------------------------------------------------
   # Various tests on RNA-seq workflow that don't warrant the overhead of a new
