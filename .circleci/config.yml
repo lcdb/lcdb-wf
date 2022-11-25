@@ -63,7 +63,6 @@ variables:
       name: Setup conda
       command: |
         set -e
-        echo $LCDBWF_ENV
         # We only do the installation if the conda environment does not already
         # exist.
         if ! conda env list | grep -q "lcdb-wf-test"; then
@@ -71,6 +70,8 @@ variables:
             conda config --system --add channels defaults
             conda config --system --add channels bioconda
             conda config --system --add channels conda-forge
+            echo "env: $LCDBWF_ENV"
+            echo "env-r: $LCDBWF_ENV_R"
             conda install mamba -y
             mamba env create -n $LCDBWF_ENV --file env.yml
             mamba env create -n $LCDBWF_ENV_R --file env-r.yml
