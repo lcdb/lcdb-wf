@@ -55,7 +55,60 @@ class Runner(object):
 
     def __init__(self):
         parser = argparse.ArgumentParser(
-            description="Test runner for lcdb-wf",
+            description="""
+            Test runner for lcdb-wf. There are many things to test; as a first pass use
+            these with appropriate Snakemake args (-n, -j, --use-conda, etc)
+
+                %(prog)s data --kind all
+                %(prog)s unit_tests --pytest
+                %(prog)s unit_tests --r-test
+                %(prog)s rnaseq --run-workflow
+                %(prog)s rnaseq --trackhub
+                %(prog)s rnaseq --downstream
+                %(prog)s chipseq --run-workflow
+                %(prog)s references --run-workflow --configfile=config/config.yaml
+
+            DATA
+            ----
+            %(prog)s data --kind all --verbose
+
+            UNIT TESTS
+            ----------
+            # Run the pytest unit tests on the lib/
+            %(prog)s unit_tests --pytest
+
+            # Run tests on lcdbwf R package
+            %(prog)s unit_tests --r-test
+
+            # Ensure URLs in the configs exist
+            %(prog)s unit_tests --url-check
+
+            # Ensure rnaseq.Rmd has matching sections in the docs
+            %(prog)s unit_tests --ensure-docs
+
+            RNASEQ
+            ------
+            # Run main workflow
+            %(prog)s rnaseq --run-workflow
+
+            # Build RNA-seq trackhub from output of main workflow
+            %(prog)s rnaseq --trackhub
+
+            # Run rnaseq.Rmd
+            %(prog)s rnaseq --downstream
+
+            # Each of these runs a restricted subset of the workflow with
+            # customized configs; they should be run one at a time.
+            %(prog)s rnaseq --run-workflow --sra-pe
+            %(prog)s rnaseq --run-workflow --sra-se
+            %(prog)s rnaseq --run-workflow --strandedness-pe
+            %(prog)s rnaseq --run-workflow --strandedness-se
+            %(prog)s rnaseq --run-workflow --star-2pass
+            %(prog)s rnaseq --run-workflow --star-1pass
+            %(prog)s rnaseq --run-workflow --pe
+
+            """,
+            formatter_class=argparse.RawDescriptionHelpFormatter
         )
 
         choices = [i.replace("_cmd_", "") for i in dir(self) if i.startswith("_cmd_")]
@@ -272,7 +325,7 @@ class Runner(object):
         # attribute.
         group = parser.add_mutually_exclusive_group()
         workflow_prefix = "bash run_test.sh"
-        workflow_dir = "workflow/rnaseq"
+        workflow_dir = TOPLEVEL / "workflows/rnaseq"
         for key, val in WORKFLOW_ARGS["rnaseq"].items():
             group.add_argument(
                 "--" + key,
@@ -295,11 +348,17 @@ class Runner(object):
 
             extra = [i.replace("__ORIG__", args.orig) for i in extra]
             strargs = " ".join(extra)
-            print_header(f"Running workflows/rnaseq/run_test.sh with args: {strargs}")
+            cmd = (
+                'eval "$(conda shell.bash hook)" '
+                f"&& conda activate {args.env} "
+                f"&& (cd {workflow_dir} && {workflow_prefix} {strargs})"
+            )
+            print_header(f"Running the following command:\n{cmd}")
             sp.run(
-                shlex.split(workflow_prefix) + extra,
-                cwd=TOPLEVEL / "workflows/rnaseq",
+                cmd,
                 check=True,
+                shell=True,
+                executable="/bin/bash"
             )
         if args.trackhub:
             print_header("running trackhub script")
@@ -326,24 +385,75 @@ class Runner(object):
                 executable="/bin/bash"
             )
 
+    def _cmd_chipseq(self):
+        """
+        This function handles the "chipseq" subcommand.
+        """
+
+        parser = argparse.ArgumentParser(
+            description="Run chipseq workflow",
+            parents=[self.global_parser],
+        )
+        parser.add_argument(
+            "--run-workflow",
+            action="store_true",
+            help="""Run chipseq workflow using the run_tesh.sh harness, which
+            edits the Snakefile to use test settings before running. Additional
+            args not specified here are passed to Snakemake, or use other flags
+            below to easily specify config sets.""",
+        )
+        args, extra = parser.parse_known_args(sys.argv[2:])
+        workflow_prefix = "bash run_test.sh"
+        workflow_dir = TOPLEVEL / "workflows/chipseq"
+        if args.run_workflow:
+            extra = [i.replace("__ORIG__", args.orig) for i in extra]
+            strargs = " ".join(extra)
+            cmd = (
+                'eval "$(conda shell.bash hook)" '
+                f"&& conda activate {args.env} "
+                f"&& (cd {workflow_dir} && {workflow_prefix} {strargs})"
+            )
+            print_header(f"Running the following command:\n{cmd}")
+            sp.run(
+                cmd,
+                shell=True,
+                check=True,
+                executable="/bin/bash"
+            )
+
+    def _cmd_references(self):
+        parser = argparse.ArgumentParser(
+            description="Run references workflow",
+            parents=[self.global_parser],
+        )
+        parser.add_argument(
+            "--run-workflow",
+            action="store_true",
+            help="""Run references workflow using the run_tesh.sh harness, which
+            edits the Snakefile to use test settings before running."""
+        )
+        args, extra = parser.parse_known_args(sys.argv[2:])
+
+        workflow_prefix = "bash run_test.sh"
+        workflow_dir = TOPLEVEL / "workflows/references"
+        if args.run_workflow:
+            extra = [i.replace("__ORIG__", args.orig) for i in extra]
+            strargs = " ".join(extra)
+            cmd = (
+                'eval "$(conda shell.bash hook)" '
+                f"&& conda activate {args.env} "
+                f"&& (cd {workflow_dir} && {workflow_prefix} {strargs})"
+            )
+            print_header(f"Running the following command:\n{cmd}")
+            sp.run(
+                cmd,
+                shell=True,
+                check=True,
+                executable="/bin/bash"
+            )
+
 
 if __name__ == "__main__":
     Runner()
 
-if __name__ == "__mn__":
-    if args.references:
-        print_header("references")
-        snakefile(
-            "workflows/references",
-            snakemake_args=[
-                "--use-conda",
-                "-j",
-                args.cpus,
-                "-k",
-                "-p",
-                "-r",
-                "--configfile",
-                "config/config.yaml",
-            ],
-        )
 # vim: ft=python

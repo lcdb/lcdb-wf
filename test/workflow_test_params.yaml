@@ -59,9 +59,9 @@ rnaseq:
         __ORIG__/test/test_configs/star_override_1pass.yaml
         --config sampletable=__ORIG__/test/test_configs/star_1pass.tsv
 
-pe:
-  desc: Tests paired-end data
-  args: |
-    --until multiqc
-    --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
-    --config sampletable=__ORIG__/test/test_configs/test_pe_sampletable.tsv
+  pe:
+    desc: Tests paired-end data
+    args: |
+      --until multiqc
+      --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
+      --config sampletable=__ORIG__/test/test_configs/test_pe_sampletable.tsv

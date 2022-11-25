@@ -134,16 +134,6 @@ variables:
 
 
   # --------------------------------------------------------------------------
-  # Other downstream jobs depend on this so that we can catch trivial errors
-  # quickly
-  rnaseq-dryrun: &rnaseq-dryrun
-      run:
-        name: dry run
-        command: |
-          source activate lcdb-wf-test
-          $DEPLOY/test/lcdb-wf-test --rnaseq dryrun
-
-  # --------------------------------------------------------------------------
   # Standard chipseq workflow
   chipseq-step: &chipseq-step
       run:
@@ -189,9 +179,8 @@ variables:
       run:
         name: references workflow
         command: |
-          cd $DEPLOY/workflows/references
           source activate lcdb-wf-test
-          $DEPLOY/test/lcdb-wf-test --references
+          $DEPLOY/test/lcdb-wf-test references --run-workflow --configfile=config/config.yaml -j2 -p -r -k --orig $ORIG
 
   # --------------------------------------------------------------------------
   # Standard RNA-seq workflow
@@ -201,6 +190,7 @@ variables:
         command: |
           cd $DEPLOY
           source activate lcdb-wf-test
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow -n
           $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --use-conda -j2 -k -p -r --orig $ORIG
 
           $DEPLOY/test/lcdb-wf-test rnaseq --trackhub --orig $ORIG
