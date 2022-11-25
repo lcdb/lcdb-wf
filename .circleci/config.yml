@@ -49,6 +49,7 @@ variables:
         command: |
           # x11-utils required to avoid R::png() segfaulting
           apt update && apt install -y locales-all locales rsync x11-utils
+          conda install -y yaml
           echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
           echo 'export LCDBWF_ENV=lcdb-wf-test' >> $BASH_ENV
           echo 'export LCDBWF_ENV_R=lcdb-wf-test-r' >> $BASH_ENV
@@ -71,9 +72,7 @@ variables:
             conda config --system --add channels defaults
             conda config --system --add channels bioconda
             conda config --system --add channels conda-forge
-            echo "env: $LCDBWF_ENV"
-            echo "env-r: $LCDBWF_ENV_R"
-            conda install mamba -y
+            conda install mamba yaml -y
             mamba env create -n $LCDBWF_ENV --file env.yml
             mamba env create -n $LCDBWF_ENV_R --file env-r.yml
         fi
