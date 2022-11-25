@@ -361,16 +361,19 @@ class Runner(object):
                 executable="/bin/bash"
             )
         if args.trackhub:
-            print_header("running trackhub script")
+            cmd = (
+                'eval "$(conda shell.bash hook)" '
+                f"&& conda activate {args.env} "
+                f"&& (cd {workflow_dir} "
+                "&& python rnaseq_trackhub config/config.yaml config/hub_config.yaml)"
+            )
+            print_header(f"Building trackhub with command: {cmd}")
+
             sp.run(
-                [
-                    "python",
-                    "rnaseq_trackhub.py",
-                    "config/config.yaml",
-                    "config/hub_config.yaml",
-                ],
+                cmd,
+                shell=True,
                 check=True,
-                cwd="workflows/rnaseq",
+                executable="/bin/bash"
             )
             print("See workflows/rnaseq/staging for the built trackhub")
 
@@ -402,9 +405,13 @@ class Runner(object):
             args not specified here are passed to Snakemake, or use other flags
             below to easily specify config sets.""",
         )
+        parser.add_argument(
+            "--trackhub", action="store_true", help="Build the rnaseq track hub"
+        )
         args, extra = parser.parse_known_args(sys.argv[2:])
         workflow_prefix = "bash run_test.sh"
         workflow_dir = TOPLEVEL / "workflows/chipseq"
+
         if args.run_workflow:
             extra = [i.replace("__ORIG__", args.orig) for i in extra]
             strargs = " ".join(extra)
@@ -420,6 +427,22 @@ class Runner(object):
                 check=True,
                 executable="/bin/bash"
             )
+        if args.trackhub:
+            cmd = (
+                'eval "$(conda shell.bash hook)" '
+                f"&& conda activate {args.env} "
+                f"&& (cd {workflow_dir} "
+                "&& python chipseq_trackhub config/config.yaml config/hub_config.yaml)"
+            )
+            print_header(f"Building trackhub with command: {cmd}")
+
+            sp.run(
+                cmd,
+                shell=True,
+                check=True,
+                executable="/bin/bash"
+            )
+            print("See workflows/chipseq/staging for the built trackhub")
 
     def _cmd_references(self):
         parser = argparse.ArgumentParser(
