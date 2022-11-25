@@ -63,6 +63,7 @@ variables:
       name: Setup conda
       command: |
         set -e
+        source $BASH_ENV
         # We only do the installation if the conda environment does not already
         # exist.
         if ! conda env list | grep -q "lcdb-wf-test"; then
