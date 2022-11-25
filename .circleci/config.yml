@@ -264,6 +264,7 @@ jobs:
     <<: *defaults
     steps:
       - checkout
+      - *set-path
 
       # Check the hashes of requirements files. If they match a cache, load it.
       # The cache is set up to be the entire miniconda installation, so that
