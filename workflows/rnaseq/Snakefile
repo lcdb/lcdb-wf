@@ -23,11 +23,6 @@ config = common.load_config(config)
 
 include: '../references/Snakefile'
 
-shell.prefix(
-    'set -euo pipefail; export R_PROFILE_USER=; export TMPDIR={};'
-    .format(cluster_specific.tempdir_for_biowulf())
-)
-shell.executable('/bin/bash')
 
 # Verify configuration of config and sampletable files
 helpers.preflight(config)
