@@ -16,8 +16,6 @@ if [[ ! -e logs ]]; then mkdir -p logs; fi
     --rerun-incomplete \
     --jobname "s.{rulename}.{jobid}.sh" \
     -j 999 \
-    --cluster-config config/clusterconfig.yaml \
-    --cluster 'sbatch {cluster.prefix} --cpus-per-task={threads}  --output=logs/{rule}.o.%j --error=logs/{rule}.e.%j' \
     --use-conda \
     --configfile config/config.yaml \
     --latency-wait=300 \
