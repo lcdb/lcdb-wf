@@ -24,11 +24,13 @@ config = common.load_config(config)
 
 include: '../references/Snakefile'
 
-shell.prefix(
-    'set -euo pipefail; export R_PROFILE_USER=; export TMPDIR={};'
-    .format(cluster_specific.tempdir_for_biowulf())
-)
-shell.executable('/bin/bash')
+def autobump(value):
+    """
+    Increments value for each attempt.
+    """
+    def f(wildcards, attempt):
+        return attempt * value
+    return f
 
 # Verify configuration of config and sampletable files
 helpers.preflight(config)
@@ -114,6 +116,10 @@ if 'orig_filename' in c.sampletable.columns:
             orig_for_sample
         output:
             render_r1_r2(c.patterns['fastq'])
+        threads: 1
+        resources:
+            mem_mb=100,
+            runtime=10,
         run:
             assert len(output) == len(input), (input, output)
             for src, linkname in zip(input, output):
@@ -139,6 +145,9 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
             is_paired=c.is_paired,
             sampletable=_st,
             # limit = 100000, # [TEST SETTINGS]
+        resources:
+            mem_mb=autobump(1024),
+            runtime=autobump(120)
         conda:
             '../../wrappers/wrappers/fastq-dump/environment.yaml'
         script:
@@ -152,6 +161,9 @@ rule cutadapt:
         fastq=render_r1_r2(c.patterns['fastq'])
     output:
         fastq=render_r1_r2(c.patterns['cutadapt'])
+    resources:
+        mem_mb=1024 * 2,
+        runtime=autobump(120)
     log:
         render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
     threads: 6
@@ -196,6 +208,9 @@ rule fastqc:
     output:
         html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
         zip='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
+    resources:
+        mem_mb=1024 * 2,
+        runtime=autobump(120)
     script:
         wrapper_for('fastqc/wrapper.py')
 
@@ -212,6 +227,9 @@ rule bowtie2:
     log:
         c.patterns['bam'] + '.log'
     threads: 16
+    resources:
+        mem_mb=1024 * 32,
+        runtime=autobump(120)
     run:
         prefix = aligners.prefix_from_bowtie2_index(input.index)
         sam = output.bam.replace('.bam', '.sam')
@@ -248,6 +266,10 @@ rule unique:
         c.patterns['bam']
     output:
         c.patterns['unique']
+    threads: 1
+    resources:
+        mem_mb=1024,
+        runtime=autobump(120)
     shell:
         # NOTE: the quality score chosen here should reflect the scores output
         # by the aligner used. For example, STAR uses 255 as max mapping
@@ -263,6 +285,10 @@ rule fastq_count:
         fastq='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz'
     output:
         '{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
+    threads: 1
+    resources:
+        mem_mb=1024 * 1,
+        runtime=autobump(120)
     shell:
         'zcat {input} | echo $((`wc -l`/4)) > {output}'
 
@@ -275,6 +301,10 @@ rule bam_count:
         bam='{sample_dir}/{sample}/{suffix}.bam'
     output:
         '{sample_dir}/{sample}/{suffix}.bam.libsize'
+    threads: 1
+    resources:
+        mem_mb=1024 * 2,
+        runtime=autobump(120)
     shell:
         'samtools view -c {input} > {output}'
 
@@ -287,6 +317,10 @@ rule bam_index:
         bam='{prefix}.bam'
     output:
         bai='{prefix}.bam.bai'
+    threads: 1
+    resources:
+        mem_mb=1024 * 2,
+        runtime=autobump(120)
     shell:
         'samtools index {input} {output}'
 
@@ -313,6 +347,10 @@ rule fastq_screen:
         txt=c.patterns['fastq_screen']
     log:
         c.patterns['fastq_screen'] + '.log'
+    threads: 6
+    resources:
+        mem_mb=autobump(1024 * 4),
+        runtime=autobump(120)
     params: subset=100000
     script:
         wrapper_for('fastq_screen/wrapper.py')
@@ -345,6 +383,10 @@ rule multiqc:
         c.targets['multiqc']
     log:
         c.targets['multiqc'][0] + '.log'
+    threads: 1
+    resources:
+        mem_mb=1024 * 2,
+        runtime=autobump(120)
     run:
         analysis_directory = set([os.path.dirname(i) for i in input])
         outdir = os.path.dirname(c.targets['multiqc'][0])
@@ -373,6 +415,11 @@ rule markduplicates:
         metrics=c.patterns['markduplicates']['metrics']
     log:
         c.patterns['markduplicates']['bam'] + '.log'
+    threads: 1
+    resources:
+        mem_mb=1024 * 32,
+        runtime=autobump(120),
+        disk_mb=1024 *100
     params:
         # NOTE: Be careful with the memory here; make sure you have enough
         # and/or it matches the resources you're requesting in the cluster
@@ -408,6 +455,11 @@ rule merge_techreps:
         metrics=c.patterns['merged_techreps'] + '.metrics'
     log:
         c.patterns['merged_techreps'] + '.log'
+    threads: 1
+    resources:
+        mem_mb=1024 * 32,
+        runtime=autobump(120),
+        disk_mb=1024 *100
     params:
         # NOTE: Be careful with the memory here; make sure you have enough
         # and/or it matches the resources you're requesting in the cluster
@@ -426,6 +478,10 @@ if c.is_paired:
             metrics=c.patterns['collectinsertsizemetrics']['metrics']
         log:
             c.patterns['collectinsertsizemetrics']['metrics'] + '.log'
+        threads: 1
+        resources:
+            mem_mb=1024 * 32,
+            runtime=autobump(120),
         params:
             java_args='-Xmx20g'
             # java_args='-Xmx2g'  # [TEST SETTINGS -1]
@@ -451,6 +507,10 @@ rule bigwig:
         c.patterns['bigwig']
     log:
         c.patterns['bigwig'] + '.log'
+    threads: 1
+    resources:
+        mem_mb=1024 * 16,
+        runtime=autobump(120)
     shell:
         'bamCoverage '
         '--bam {input.bam} '
@@ -484,6 +544,10 @@ rule fingerprint:
         metrics=c.patterns['fingerprint']['metrics']
     threads: 8
     log: c.patterns['fingerprint']['metrics'] + '.log'
+    threads: 1
+    resources:
+        mem_mb=1024 * 32,
+        runtime=autobump(120)
     run:
         if len(input.control) == 0:
             jsdsample_arg = ""
@@ -529,6 +593,9 @@ rule sicer:
         bed=c.patterns['peaks']['sicer']
     log:
         c.patterns['peaks']['sicer'] + '.log'
+    resources:
+        mem_mb=1024 * 16,
+        runtime=autobump(120)
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.sicer_run, 'sicer')
     wrapper:
@@ -552,6 +619,9 @@ rule macs2:
         chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
     output:
         bed=c.patterns['peaks']['macs2']
+    resources:
+        mem_mb=1024 * 16,
+        runtime=autobump(120)
     log:
         c.patterns['peaks']['macs2'] + '.log'
     params:
@@ -583,6 +653,9 @@ rule spp:
         rdata=c.patterns['peaks']['spp'] + '.RData'
     log:
         c.patterns['peaks']['spp'] + '.log'
+    resources:
+        mem_mb=1024 * 16,
+        runtime=autobump(120)
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.spp_run, 'spp'),
         keep_tempfiles=False,
@@ -604,6 +677,9 @@ rule bed_to_bigbed:
         bed='{prefix}.bed',
         chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes']
     output: '{prefix}.bigbed'
+    resources:
+        mem_mb=1024 * 2,
+        runtime=autobump(120)
     log: '{prefix}.bigbed.log'
     run:
         # Based on the filename, identify the algorithm. Based on the contents,
@@ -652,6 +728,9 @@ rule multibigwigsummary:
         npz=c.targets['multibigwigsummary']['npz'],
         tab=c.targets['multibigwigsummary']['tab']
     threads: 16
+    resources:
+        mem_mb=1024 * 16,
+        runtime=autobump(120)
     run:
         # from the input files, figure out the sample name.
         labels = ' '.join([i.split('/')[-2] for i in input])
@@ -675,6 +754,9 @@ rule plotcorrelation:
     output:
         heatmap=c.targets['plotcorrelation']['heatmap'],
         tab=c.targets['plotcorrelation']['tab']
+    resources:
+        mem_mb=1024 * 2,
+        runtime=autobump(120)
     shell:
         'plotCorrelation '
         '--corData {input} '
@@ -705,6 +787,9 @@ if 'merged_bigwigs' in config:
             chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
         output:
             c.patterns['merged_bigwig']
+        resources:
+            mem_mb=1024 * 16,
+            runtime=autobump(120)
         log:
             c.patterns['merged_bigwig'] + '.log'
         script:
@@ -719,6 +804,9 @@ rule idxstats:
         bai=c.patterns['markduplicates']['bam'] + '.bai'
     output:
         txt=c.patterns['samtools']['idxstats']
+    resources:
+        mem_mb=1024 * 16,
+        runtime=autobump(120)
     log: 
         c.patterns['samtools']['idxstats'] + '.log'
     run:
