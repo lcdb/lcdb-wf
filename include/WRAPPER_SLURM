@@ -7,6 +7,22 @@
 # make logdir
 if [[ ! -e logs ]]; then mkdir -p logs; fi
 
+# use SNAKEMAKE_PROFILE if one is set in the environment variables
+if [ -z "$LCDBWF_SNAKE_PROFILE" ]; then
+    if [ -z "$SNAKEMAKE_PROFILE" ]; then
+        # no snakemake profile found
+        PROFILE_CMD=""
+        echo "No environment variable SNAKEMAKE_PROFILE or LCDBWF_SNAKE_PROFILE found."
+        echo "snakemake will run in single job."
+    else
+        # generic SNAKEMAKE_PROFILE found
+        PROFILE_CMD="--profile $SNAKEMAKE_PROFILE"
+    fi
+else
+# LCDBWF_SNAKE_PROFILE found, this takes priority if both profile variables are set
+PROFILE_CMD="--profile $LCDBWF_SNAKE_PROFILE"
+fi
+
 # Run snakemake
 (
     time snakemake \
@@ -18,6 +34,7 @@ if [[ ! -e logs ]]; then mkdir -p logs; fi
     -j 999 \
     --use-conda \
     --configfile config/config.yaml \
+    $PROFILE_CMD \
     --latency-wait=300 \
     --max-jobs-per-second 1 \
     --max-status-checks-per-second 0.01 \
