@@ -552,7 +552,7 @@ rule fingerprint:
         if len(input.control) == 0:
             jsdsample_arg = ""
         else:
-            jsdsample_arg = '--JSDsample {input.control}'
+            jsdsample_arg = '--JSDsample ' + str(input.control)
         shell(
             'plotFingerprint ' '--bamfiles {input.bams} '
             '-p {threads} '
