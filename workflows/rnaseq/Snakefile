@@ -138,7 +138,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
             sampletable=_st,
             # limit = 100000, # [TEST SETTINGS]
         resources:
-            mem_mb=1024,
+            mem_mb=autobump(1024),
             runtime=autobump(120)
         conda:
             '../../wrappers/wrappers/fastq-dump/environment.yaml'
