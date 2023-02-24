@@ -29,6 +29,7 @@ fi
     -p \
     --directory $PWD \
     -k \
+    --restart-times 3 \
     --rerun-incomplete \
     --jobname "s.{rulename}.{jobid}.sh" \
     -j 999 \
