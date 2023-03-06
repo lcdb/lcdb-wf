@@ -340,7 +340,7 @@ counts.plot <- function(df, rank.nb=NULL, no.aes=FALSE, facet='label') {
 
 #' Plot a histogram of raw pvals
 #'
-#' This is right out of the DESeq2 vignette, from the section about independent
+#' This is edited from the DESeq2 vignette, from the section about independent
 #' filtering. The resulting histogram indicates pvals for those genes kept and
 #' removed before multiple testing adjustment.
 #'
@@ -352,11 +352,17 @@ pval_hist <- function(res){
   h1 <- hist(res$pvalue[!use], breaks=0:50/50, plot=FALSE)
   h2 <- hist(res$pvalue[use], breaks=0:50/50, plot=FALSE)
   colori <- c(`counts too low`='khaki', `pass`="powderblue")
-  barplot(height = rbind(h1$counts, h2$counts), beside = FALSE,
-          col = colori, space = 0, main = "", ylab="frequency")
-  text(x = c(0, length(h1$counts)), y = 0, label = paste(c(0,1)),
-       adj = c(0.5,1.7), xpd=NA)
-  legend("topright", fill=rev(colori), legend=rev(names(colori)))
+  df <- rbind(data.frame(x=h1$mids, counts=h1$counts, label='counts too low'),
+              data.frame(x=h2$mids, counts=h2$counts, label='pass')
+              )
+  plt <- ggplot2::ggplot(df, aes(x=x, y=counts, fill=label)) +
+    geom_bar(stat = 'identity', color='gray20') +
+    theme_classic() +
+    scale_fill_manual(values=c("#EBE379", "#A3DAE0")) +
+    xlab('p-value') +
+    ylab('frequency') +
+    theme(legend.position = c(0.8, 0.8))
+  return(plt)
 }
 
 #' Barplot of size factors by sample
