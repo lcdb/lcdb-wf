@@ -1,3 +1,45 @@
+---
+title: Gene pattern analysis
+output:
+    html_document:
+        code_folding: hide
+        toc: true
+        toc_float: true
+        toc_depth: 3
+---
+
+```{r global_options, include=FALSE}
+# Sets up global options for rendering RMarkdown into HTML.
+knitr::opts_chunk$set(
+    warning=FALSE,
+    message=FALSE
+)
+```
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(clusterProfiler)
+library(DESeq2)
+library(DEGreport)
+```
+
+```{r load_helpers}
+# Load the lcdbwf R package, which is stored locally.
+# This package has many custom functions used throughout this document.
+devtools::document('../../../lib/lcdbwf')
+devtools::load_all('../../../lib/lcdbwf')
+
+config <- lcdbwf:::load_config('config.yaml')
+```
+
+```{r load, cache=TRUE, cache.extra=file.info('combined.Rds')$mtime}
+obj <- readRDS('combined.Rds')
+res.list <- obj$res_list
+dds.list <- obj$dds_list
+```
+
+
 # Gene patterns {.tabset}
 
 We can roughly group genes into expression patterns. This uses the [DEGreport
@@ -55,16 +97,22 @@ low.minc <- 1
   more, they are merged together
 - Clusters with fewer than `r minc` genes are not shown.
 
+Gene pattern for changed genes in individual contrasts are also indicated below.
+
 ```{r finalclusters, fig.width=12, results='asis', cache=TRUE, dependson='selections'}
 # Run the clustering, identify patterns, and generate plots.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#finalclusters
 # NOTE: which genes to cluster?------------------------------------------------
 #    By default, we get all the changed genes, but you may want only the up or
 #    down genes.
-ll <- lapply(res.list, function (x) get.sig(x[['res']], 'changed'))
+ll <- lapply(res.list, function (x) lcdbwf:::get_sig(x[['res']], 'changed'))
 
 # Filter out results where there were zero genes detected.
 ll <- ll[lapply(ll, length) > 0]
+
+# get the list of all changed in any contrast
+all.changed <- list('union_all_contrasts' = unlist(ll) %>% unique())
+ll <- c(all.changed, ll)
 
 add.cluster.id <- function(clusters, res, label){
     # Merges the degPattern cluster IDs `cluster` with DESeqresults `res`
@@ -79,9 +127,16 @@ add.cluster.id <- function(clusters, res, label){
     return(res)
 }
 
+# n.list will store all the clusters to later add the cluster ID to res.list
+n.list <- list()
+
 for (name in names(ll)){
     # Print a nice Markdown header
-    mdcat('## ', res.list[[name]][['label']])
+    if (name == 'union_all_contrasts') {
+        mdcat('## ', name)
+    } else {
+        mdcat('## ', res.list[[name]][['label']])
+    }
 
     genes <- ll[[name]]
 
@@ -98,15 +153,23 @@ for (name in names(ll)){
     }
 
     # Extract the normalized counts for these genes
-    vsd.i <- varianceStabilizingTransformation(dds.list[[ res.list[[name]][['dds']] ]], blind=TRUE)
+    if (name == 'union_all_contrasts') {
+        vsd.i <- varianceStabilizingTransformation(dds.list[[ 1 ]], blind=TRUE)
+    } else {
+        vsd.i <- varianceStabilizingTransformation(dds.list[[ res.list[[name]][['dds']] ]], blind=TRUE)
+    }
     idx <- rownames(vsd.i) %in% genes
     ma <- assay(vsd.i)[idx,]
 
     # Remove genes with identical normalized counts across all samples
     ma <- ma[apply(as.data.frame(ma), 1, n_distinct) > 1, ]
 
-    colData.i <- colData(dds.list[[ res.list[[name]][['dds']] ]])
-    colData.i <- colData.i[,!(colnames(colData.i) %in% exclude.for.printing)]
+    if (name == 'union_all_contrasts') {
+        colData.i <- colData(dds.list[[ 1 ]])
+    } else {
+        colData.i <- colData(dds.list[[ res.list[[name]][['dds']] ]])
+    }
+    #colData.i <- colData.i[,!(colnames(colData.i) %in% exclude.for.printing)]
 
 
     # Sometimes, if there are limited clusters, degPattern fails. The solution
@@ -151,6 +214,7 @@ for (name in names(ll)){
         )
     )
 
+    n.list[[name]] <- n2
 
     # In the final_clusters directory, this creates files containing lists of
     # the genes in each cluster, and adds a link to the Markdown.
@@ -167,8 +231,37 @@ for (name in names(ll)){
     dev.copy(pdf, file=pdf.file)
     dev.off()
     mdcat('- [', pdf.file, '](', pdf.file, '), PDF')
-
-    # merge the degPattern cluster IDs with res.list
-    res.list[[name]][['res']] <- add.cluster.id(clusters=n2, res=res.list[[name]][['res']], label=name)
 }
+```
+
+```{r add_cluster_id_res}
+# merge the degPattern cluster IDs with res.list
+for (name in names(res.list)) {
+    for (llname in names(ll)) {
+        res.list[[name]][['res']] <- add.cluster.id(clusters=n.list[[llname]],
+                                                    res=res.list[[name]][['res']],
+                                                    label=llname)
+    }
+}
+```
+
+
+
+# Exported results
+
+```{r excel, results='asis'}
+lcdbwf:::exported_excel(res.list, dds.list, file='final_clusters/consolidated_results.xlsx')
+```
+
+Here is a single Excel file with one worksheet for each contrast:
+[final_clusters/consolidated_results.xlsx](final_clusters/consolidated_results.xlsx)
+
+Alternatively, the files below are TSVs that can be opened in Excel or used
+progammatically with downstream tools:
+
+```{r write_output, results='asis'}
+# Write out files for full and each selection, and create a link to them in the
+# HTML generated by this RMarkdown.
+tbl <- lcdbwf:::exported_tsvs(res.list, directory='final_clusters')
+knitr::kable(tbl, row.names=FALSE)
 ```
