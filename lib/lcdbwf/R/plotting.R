@@ -418,3 +418,80 @@ plotSparsity2 <- function(dds){
 }
 
 
+
+
+#' Plot a scatterplot of two contrasts' LFCs, color-coded by significance
+#'
+#' This is edited from the DESeq2 vignette, from the section about independent
+#' filtering. The resulting histogram indicates pvals for those genes kept and
+#' removed before multiple testing adjustment.
+#'
+#' @param res_i DESeq2 results object
+#' @param res_j second DESeq2 results object
+#' @param padj.thr float, p.adj threshold
+#' @param name.col string, gene name column to merge the 2 results, also used for labelling plots
+#' @param label_i, label_j string, label for res_i and res_j
+#' @param return.values boolean,  whether to return the ggplot object (FALSE) or the dataframe (TRUE)
+#' @param' color.palette list of string, colors to use for significance categories 'Both - same LFC sign',
+#'         'Both - opposite LFC sign 'None', label_i, label_j
+
+#' @return Either returns a ggplot object of the scatterplot, or the corresponding dataframe if return.values=TRUE
+
+lfc_scatter <- function(res_i, res_j, padj.thr=0.1, name.col='SYMBOL', label_i=NULL, label_j=NULL,
+                        return.values=FALSE, color.palette=c('#FF3333', "#FF6699", '#999999', '#66CCCC', '#0072B2')) {
+    #  colors from color-blind palette                        red        pink       grey       cyan       blue
+    # check whether the genes match in res_i and res_j, emits a warning if not
+    diff.genes <- c(setdiff(rownames(res_i), rownames(res_j)),
+                    setdiff(rownames(res_j), rownames(res_i))) %>%
+                    unlist() %>%
+                    unique()
+    if( length(diff.genes) > 0 ) {
+        warning(paste0(length(diff.genes),
+                       ' genes were discarded because found in one res but not the other'))
+    }
+
+    # use generic labels if not provided
+    if (is.null(label_i)) {
+        label_i <- 'LFCs contrast 1'
+    }
+    if (is.null(label_j)) {
+        label_j <- 'LFCs contrast 2'
+    }
+
+    # join results into dataframe
+    cols.sub <- c('log2FoldChange', 'padj', name.col)
+    df <- merge(as.data.frame(res_i)[cols.sub],
+                as.data.frame(res_j)[cols.sub],
+                by= name.col)
+    # add significance column
+    df <- df %>%
+        mutate('Significance' = case_when(
+                        (padj.x <= padj.thr) & (padj.y <= padj.thr) & (log2FoldChange.x * log2FoldChange.y >= 0) ~ 'Both - same LFC sign',
+                        (padj.x <= padj.thr) & (padj.y <= padj.thr) & (log2FoldChange.x * log2FoldChange.y < 0) ~ 'Both - opposite LFC sign',
+                        (padj.x <= padj.thr) ~ label_i,
+                        (padj.y <= padj.thr) ~ label_j,
+                        TRUE ~ 'None'))
+
+    # if return.values, return the dataframe now, no need to generate the plot
+    if (return.values == TRUE) {
+        return(df)
+    }
+
+    # Significance as factor, to reorder in the graph
+    df[['Significance']] <- factor(df[['Significance']], levels=c('None', label_j, label_i, 'Both - opposite LFC sign', 'Both - same LFC sign'))
+
+    names(color.palette) <- c('Both - same LFC sign', 'Both - opposite LFC sign', 'None', label_i, label_j)
+
+    p <- ggplot(df %>% arrange(Significance), aes_string(x='log2FoldChange.x', y='log2FoldChange.y',
+                               color='Significance', label=name.col)) +
+            geom_point(size=1) +
+            theme_bw() +
+            scale_color_manual(values=color.palette) +
+            geom_abline(color="#333333", linetype="dashed", size=0.5, alpha=0.7) +
+            geom_hline(yintercept=0, color="#333333", linetype="dashed", size=0.5, alpha=0.7) +
+            geom_vline(xintercept=0, color="#333333", linetype="dashed", size=0.5, alpha=0.7) +
+            xlab(label_i) +
+            ylab(label_j)
+
+    return(p)
+}
