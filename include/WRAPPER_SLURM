@@ -8,7 +8,7 @@
 if [[ ! -e logs ]]; then mkdir -p logs; fi
 
 # use SNAKEMAKE_PROFILE if one is set in the environment variables
-if [ -z "$LCDBWF_SNAKE_PROFILE" ]; then
+if [ -z "$LCDBWF_SNAKEMAKE_PROFILE" ]; then
     if [ -z "$SNAKEMAKE_PROFILE" ]; then
         # no snakemake profile found
         PROFILE_CMD=""
@@ -19,8 +19,8 @@ if [ -z "$LCDBWF_SNAKE_PROFILE" ]; then
         PROFILE_CMD="--profile $SNAKEMAKE_PROFILE"
     fi
 else
-# LCDBWF_SNAKE_PROFILE found, this takes priority if both profile variables are set
-PROFILE_CMD="--profile $LCDBWF_SNAKE_PROFILE"
+# LCDBWF_SNAKEMAKE_PROFILE found, this takes priority if both profile variables are set
+PROFILE_CMD="--profile $LCDBWF_SNAKEMAKE_PROFILE"
 fi
 
 # Run snakemake
