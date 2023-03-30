@@ -69,6 +69,7 @@ variables:
         # exist.
         if ! conda env list | grep -q "lcdb-wf-test"; then
             echo "Setting up conda..."
+            conda update conda
             conda config --system --add channels defaults
             conda config --system --add channels bioconda
             conda config --system --add channels conda-forge
