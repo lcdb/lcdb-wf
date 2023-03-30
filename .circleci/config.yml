@@ -404,9 +404,9 @@ workflows:
   test-suite:
     jobs:
       - initial-setup
-#      - pytest:
-#         requires:
-#           - initial-setup
+      - pytest:
+         requires:
+           - initial-setup
 #      - chipseq:
 #         requires:
 #           - initial-setup
