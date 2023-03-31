@@ -26,7 +26,7 @@ variables:
 
   save_cache: &save_cache
     save_cache:
-      key: v2-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
+      key: v0-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
       paths:
         - /opt/conda
 
@@ -67,8 +67,6 @@ variables:
         source $BASH_ENV
         # We only do the installation if the conda environment does not already
         # exist.
-        conda env export | grep mamba
-        conda env list
         if ! conda env list | grep -q "lcdb-wf-test"; then
             echo "Setting up conda..."
             conda update conda
