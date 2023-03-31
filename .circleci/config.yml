@@ -433,9 +433,9 @@ workflows:
 #          requires:
 #            - initial-setup
 #            - pytest
-#      - build-docs:
-#          requires:
-#            - initial-setup
+      - build-docs:
+          requires:
+            - initial-setup
 #      - report-env:
 #          requires:
 #            - rnaseq
