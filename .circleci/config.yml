@@ -49,7 +49,7 @@ variables:
         command: |
           # x11-utils required to avoid R::png() segfaulting
           apt update && apt install -y locales-all locales rsync x11-utils
-          conda install -y yaml gcc
+          conda install -y yaml
           echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
           echo 'export LCDBWF_ENV=lcdb-wf-test' >> $BASH_ENV
           echo 'export LCDBWF_ENV_R=lcdb-wf-test-r' >> $BASH_ENV
