@@ -67,7 +67,8 @@ variables:
         source $BASH_ENV
         # We only do the installation if the conda environment does not already
         # exist.
-        conda env export | grep mamba
+        conda env export | grep glib
+        which mamba
         exit 1
         if ! conda env list | grep -q "lcdb-wf-test"; then
             echo "Setting up conda..."
