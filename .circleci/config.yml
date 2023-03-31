@@ -86,6 +86,7 @@ variables:
     run:
       name: Download example data
       command: |
+        conda info --envs
         source activate lcdb-wf-test
 
         # rsync is required for the deployment process
