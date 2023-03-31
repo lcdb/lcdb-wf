@@ -38,7 +38,7 @@ variables:
   restore_cache: &restore_cache
     restore_cache:
       keys:
-        - v0-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
+        - v1-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
 
   # --------------------------------------------------------------------------
   # The path needs to be set each time; in jobs below this will be called as
