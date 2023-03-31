@@ -26,7 +26,7 @@ variables:
 
   save_cache: &save_cache
     save_cache:
-      key: v0-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
+      key: v1-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
       paths:
         - /opt/conda
 
@@ -49,7 +49,7 @@ variables:
         command: |
           # x11-utils required to avoid R::png() segfaulting
           apt update && apt install -y locales-all locales rsync x11-utils
-          conda install -y yaml
+          conda install -y yaml gcc
           echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
           echo 'export LCDBWF_ENV=lcdb-wf-test' >> $BASH_ENV
           echo 'export LCDBWF_ENV_R=lcdb-wf-test-r' >> $BASH_ENV
@@ -67,19 +67,17 @@ variables:
         source $BASH_ENV
         # We only do the installation if the conda environment does not already
         # exist.
-        conda env export | grep libc
         conda env export | grep mamba
         conda env list
-        which mamba
-        mamba --version
-        exit 1
         if ! conda env list | grep -q "lcdb-wf-test"; then
             echo "Setting up conda..."
             conda update conda
             conda config --system --add channels defaults
             conda config --system --add channels bioconda
             conda config --system --add channels conda-forge
-            conda install mamba yaml -y
+            conda install gcc mamba yaml -y
+            which mamba
+            mamba --version
             mamba env create -n $LCDBWF_ENV --file env.yml
             mamba env create -n $LCDBWF_ENV_R --file env-r.yml
         fi
