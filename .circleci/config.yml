@@ -71,6 +71,7 @@ variables:
         conda env export | grep mamba
         conda env list
         which mamba
+        mamba --version
         exit 1
         if ! conda env list | grep -q "lcdb-wf-test"; then
             echo "Setting up conda..."
