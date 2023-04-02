@@ -85,7 +85,6 @@ variables:
             which conda
             which mamba
             mamba --version
-            conda config --show
 
             # Note that mambaforge doesn't come with the defaults channel, but
             # we're adding it here at the beginning to simulate what most users
@@ -101,6 +100,7 @@ variables:
             mamba install -n base yq -y
             mamba env create -n $LCDBWF_ENV --file env.yml
             mamba env create -n $LCDBWF_ENV_R --file env-r.yml
+            conda config --show
         fi
 
   # --------------------------------------------------------------------------
