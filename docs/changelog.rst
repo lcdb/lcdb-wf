@@ -1,5 +1,17 @@
 Changelog
 =========
+v1.10
+-----
+
+General
+~~~~~~~
+- Migrated to a unified testing script that simplifies local and CI testing
+- Added "--gres:lscratch" to all slurm-related params
+- If sampletable is from SRA, raise an error if a Layout column can't be found
+  (to prevent incorrect interpretation of samples as single-end)
+- Fix R tests
+- ensure bam indexes are made for the markdups bams, even if bigwigs are not created
+- fix library loads in rnaseq.Rmd to ensure they come before parallelization configuration
 
 v1.9
 ----

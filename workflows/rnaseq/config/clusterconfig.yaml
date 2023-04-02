@@ -20,16 +20,16 @@ collectrnaseqmetrics:
   prefix: "--gres=lscratch:20 --time=4:00:00 --mem=32g --partition=quick"
 
 salmon_index:
-  prefix: "--mem=32g"
+  prefix: "--gres=lscratch:20 --mem=32g"
 
 salmon:
-  prefix: "--mem=32g"
+  prefix: "--gres=lscratch:20 --mem=32g"
 
 kallisto_index:
-  prefix: "--mem=32g"
+  prefix: "--gres=lscratch:20 --mem=32g"
 
 kallisto:
-  prefix: "--mem=32g"
+  prefix: "--gres=lscratch:20 --mem=32g"
 
 bigwig_neg:
   prefix: "--gres=lscratch:20 --mem=16g"
@@ -38,7 +38,7 @@ bigwig_pos:
   prefix: "--gres=lscratch:20 --mem=16g"
 
 star:
-  prefix: "--time=8:00:00 --mem=64g"
+  prefix: "--gres=lscratch:20 --time=8:00:00 --mem=64g"
 
 star_index:
-  prefix: "--time=8:00:00 --mem=64g"
+  prefix: "--gres=lscratch:20 --time=8:00:00 --mem=64g"

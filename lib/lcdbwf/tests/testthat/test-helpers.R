@@ -532,8 +532,8 @@ res <- new("DESeqResults", priorInfo = list(), rownames = c("FBgn0000061",
         lfcThreshold = 0))
 
 
-test_that("lcdbwf.samplename works", {
-  res <- lcdbwf.samplename("data/rnaseq_samples/sampleNNN.cutadapt.bam")
+test_that("lcdbwf_samplename works", {
+  res <- lcdbwf_samplename("data/rnaseq_samples/sampleNNN.cutadapt.bam")
   expect_equal(res, "sampleNNN")
 })
 

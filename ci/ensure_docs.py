@@ -96,3 +96,7 @@ if errors:
     print("\n")
     print("\n".join(errors))
     sys.exit(1)
+
+else:
+    print("OK: found documentation for these identified chunks:")
+    print("- " + "\n- ".join(sorted(headings)))
