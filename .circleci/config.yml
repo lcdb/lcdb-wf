@@ -159,7 +159,15 @@ variables:
         name: chipseq misc
         command: |
           cd $DEPLOY/workflows/chipseq
+
+          echo "main env"
+          mamba --version
+          which mamba
           source activate lcdb-wf-test
+          echo "proj env"
+          mamba --version
+          which mamba
+
           ./run_test.sh --use-conda -j2 -k -p -r \
             --configfile $ORIG/test/test_configs/test_chipseq_regression.yaml \
             --config sampletable=$ORIG/test/test_configs/chipseq_one_run.tsv \
