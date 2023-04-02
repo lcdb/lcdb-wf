@@ -71,6 +71,7 @@ variables:
       name: Setup conda
       command: |
         source $BASH_ENV
+        echo $PATH
         which conda
         which mamba
         mamba --version
