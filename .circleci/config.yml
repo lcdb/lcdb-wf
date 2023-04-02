@@ -35,10 +35,6 @@ variables:
         # mis-configured.
         - /root/.ncbi/user-settings.mkfg
 
-  restore_cache: &restore_cache
-    restore_cache:
-      keys:
-        - v4-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
 
   # --------------------------------------------------------------------------
   # The path needs to be set each time; in jobs below this will be called as
@@ -56,6 +52,14 @@ variables:
           echo 'export LANG=en_US.utf8' >> $BASH_ENV
           echo 'export ORIG=$(pwd)' >> $BASH_ENV
           source $BASH_ENV
+
+          # clear directory so cache can be loaded
+          rm -rf /opt/conda
+
+  restore_cache: &restore_cache
+    restore_cache:
+      keys:
+        - v4-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
   # --------------------------------------------------------------------------
   # Set up conda if the environments do not already exist
   setup: &setup
