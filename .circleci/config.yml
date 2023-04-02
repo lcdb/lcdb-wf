@@ -72,6 +72,7 @@ variables:
             conda config --system --add channels defaults
             conda config --system --add channels bioconda
             conda config --system --add channels conda-forge
+            conda config --system --set channel_priority strict
             conda install gcc mamba yaml -y
             which mamba
             mamba --version
