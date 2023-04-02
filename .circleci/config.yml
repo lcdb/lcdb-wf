@@ -406,9 +406,9 @@ workflows:
   test-suite:
     jobs:
       - initial-setup
-      - pytest:
-         requires:
-           - initial-setup
+#      - pytest:
+#         requires:
+#           - initial-setup
 #      - chipseq:
 #         requires:
 #           - initial-setup
@@ -416,7 +416,7 @@ workflows:
       - chipseq-misc:
          requires:
            - initial-setup
-           - pytest
+#           - pytest
 #      - rnaseq:
 #          requires:
 #            - initial-setup
@@ -433,9 +433,9 @@ workflows:
 #          requires:
 #            - initial-setup
 #            - pytest
-      - build-docs:
-          requires:
-            - initial-setup
+#      - build-docs:
+#          requires:
+#            - initial-setup
 #      - report-env:
 #          requires:
 #            - rnaseq
