@@ -50,7 +50,7 @@ variables:
           # x11-utils required to avoid R::png() segfaulting
           apt update && apt install -y \
             curl \
-            git
+            git \
             locales \
             locales-all \
             rsync \
