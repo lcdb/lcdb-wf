@@ -5,7 +5,7 @@ variables:
   # default settings for all steps
   defaults: &defaults
     docker:
-      - image: continuumio/miniconda3
+      - image: ubuntu:20.04
 
   # --------------------------------------------------------------------------
   # The caching dramatically speeds up testing time, because we can do the
@@ -26,9 +26,9 @@ variables:
 
   save_cache: &save_cache
     save_cache:
-      key: v4-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
+      key: v1-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
       paths:
-        - /opt/conda
+        - /opt/mambaforge
 
         # this file is created by sra-tools upon installation by conda, and so
         # needs to be included in the cache otherwise fastq-dump thinks it's
@@ -45,21 +45,25 @@ variables:
         command: |
           # x11-utils required to avoid R::png() segfaulting
           apt update && apt install -y locales-all locales rsync x11-utils
+
+          # support en_US.utf8
+          rm -rf /var/lib/apt/lists/*
+          localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+
           echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
           echo 'export LCDBWF_ENV=lcdb-wf-test' >> $BASH_ENV
           echo 'export LCDBWF_ENV_R=lcdb-wf-test-r' >> $BASH_ENV
           echo 'export LC_ALL=en_US.utf8' >> $BASH_ENV
           echo 'export LANG=en_US.utf8' >> $BASH_ENV
           echo 'export ORIG=$(pwd)' >> $BASH_ENV
+          echo "export PATH=/opt/mambaforge/bin:${PATH}" >> $BASH_ENV
           source $BASH_ENV
 
-          # clear directory so cache can be loaded
-          rm -rf /opt/conda
 
   restore_cache: &restore_cache
     restore_cache:
       keys:
-        - v4-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
+        - v1-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
   # --------------------------------------------------------------------------
   # Set up conda if the environments do not already exist
   setup: &setup
@@ -68,18 +72,19 @@ variables:
       command: |
         set -e
         source $BASH_ENV
+        which conda
+        which mamba
+        mamba --version
+
         # We only do the installation if the conda environment does not already
         # exist.
         if ! conda env list | grep -q "lcdb-wf-test"; then
-            echo "Setting up conda..."
-            conda update conda
-            conda config --system --add channels defaults
+            wget -O - https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh > mambaforge.sh
+            bash mambaforge.sh -b -p /opt/mambaforge
             conda config --system --add channels bioconda
             conda config --system --add channels conda-forge
+            conda config --system --remove channels defaults
             conda config --system --set channel_priority strict
-            conda install gcc mamba yaml -y
-            which mamba
-            mamba --version
             mamba env create -n $LCDBWF_ENV --file env.yml
             mamba env create -n $LCDBWF_ENV_R --file env-r.yml
         fi
