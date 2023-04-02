@@ -70,7 +70,6 @@ variables:
     run:
       name: Setup conda
       command: |
-        set -e
         source $BASH_ENV
         which conda
         which mamba
