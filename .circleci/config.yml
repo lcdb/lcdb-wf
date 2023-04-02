@@ -78,6 +78,9 @@ variables:
         if [ ! -e /opt/mambaforge ]; then
             curl -L https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh > mambaforge.sh
             bash mambaforge.sh -b -p /opt/mambaforge
+            source "/opt/mambaforge/etc/profile.d/conda.sh"
+            source "/opt/mambaforge/etc/profile.d/mamba.sh"
+            conda activate
 
             which conda
             which mamba
