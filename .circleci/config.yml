@@ -79,6 +79,11 @@ variables:
             curl -L https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh > mambaforge.sh
             bash mambaforge.sh -b -p /opt/mambaforge
 
+            which conda
+            which mamba
+            mamba --version
+            conda config --show
+
             # Note that mambaforge doesn't come with the defaults channel, but
             # we're adding it here at the beginning to simulate what most users
             # probably have locally (and following the bioconda docs). Using
@@ -90,9 +95,9 @@ variables:
             conda config --system --add channels bioconda
             conda config --system --add channels conda-forge
             conda config --system --set channel_priority strict
+            mamba install -n base yq -y
             mamba env create -n $LCDBWF_ENV --file env.yml
             mamba env create -n $LCDBWF_ENV_R --file env-r.yml
-            mamba install -n base yq -y
         fi
 
   # --------------------------------------------------------------------------
