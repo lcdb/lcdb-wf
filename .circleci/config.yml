@@ -75,7 +75,7 @@ variables:
 
         # We only do the installation if the conda environment does not already
         # exist.
-        if ! conda env list | grep -q "lcdb-wf-test"; then
+        if [ ! -e /opt/mambaforge ]; then
             wget -O - https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh > mambaforge.sh
             bash mambaforge.sh -b -p /opt/mambaforge
             conda config --system --add channels bioconda
