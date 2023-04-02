@@ -1,4 +1,11 @@
 on: [push]
+env:
+  DEPLOY: /tmp/lcdb-wf-test
+  LCDBWF_ENV: lcdb-wf-test
+  LCDBWF_ENV_R: lcdb-wf-test-r
+  LC_ALL: en_US.utf8
+  LANG: en_US.utf8
+
 jobs:
 
   build:
@@ -29,8 +36,43 @@ jobs:
           mamba env create -n lcdb-wf-test --file env.yml
           mamba env create -n lcdb-wf-test-r --file env-r.yml
 
-      - name: STAR available?
-        shell: bash
+      - name: Download example data
         run: |
+        conda info --envs
+        source activate lcdb-wf-test
+
+        # rsync is required for the deployment process
+        apt install -y rsync
+
+        # Deploy to the new directory, so we are testing the real-world case of post-deployment.
+        # Note that $DEPLOY is set in the "set-paths" step configured above.
+        python deploy.py --flavor full --dest $DEPLOY --branch $GITHUB_HEAD_REF --clone
+
+        # Separately copy over some test-specific files
+        cp workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq
+        cp workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq
+        cp workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq
+        cp workflows/colocalization/run_test.sh $DEPLOY/workflows/references
+        cp workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization
+        mkdir $DEPLOY/ci
+        mkdir $DEPLOY/test
+        cp test/lcdb-wf-test $DEPLOY/test
+        cp test/workflow_test_params.yaml $DEPLOY/test
+        cp ci/get-data.py $DEPLOY/ci
+
+        # the ./run_test.sh scripts run this
+        cp ci/preprocessor.py $DEPLOY/ci
+
+        # download example data
+        cd $DEPLOY
+        test/lcdb-wf-test data --kind=all --verbose
+
+      - name: chipseq misc
+        run: |
+          cd $DEPLOY/workflows/chipseq
           source activate lcdb-wf-test
-          STAR --version
+          ./run_test.sh --use-conda -j2 -k -p -r \
+            --configfile $ORIG/test/test_configs/test_chipseq_regression.yaml \
+            --config sampletable=$ORIG/test/test_configs/chipseq_one_run.tsv \
+            merged_bigwigs="{}" \
+            --until bed_to_bigbed
