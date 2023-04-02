@@ -48,7 +48,7 @@ variables:
         name: Set path
         command: |
           # x11-utils required to avoid R::png() segfaulting
-          apt update && apt install -y locales-all locales rsync x11-utils
+          apt update && apt install -y locales-all locales rsync x11-utils curl
 
           # support en_US.utf8
           rm -rf /var/lib/apt/lists/*
