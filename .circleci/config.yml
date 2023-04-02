@@ -72,18 +72,27 @@ variables:
       command: |
         source $BASH_ENV
         echo $PATH
-
-        # We only do the installation if the conda environment does not already
-        # exist.
+        # /opt/mambaforge will only exist if there was a cache restore; otherwise we'll make it here.
+        #
+        # Use mambaforge which comes with mamba.
         if [ ! -e /opt/mambaforge ]; then
             curl -L https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh > mambaforge.sh
             bash mambaforge.sh -b -p /opt/mambaforge
+
+            # Note that mambaforge doesn't come with the defaults channel, but
+            # we're adding it here at the beginning to simulate what most users
+            # probably have locally (and following the bioconda docs). Using
+            # strict channel priority means we should [theoretically] never
+            # pull packages from defaults because they all exist on
+            # conda-forge.
             conda config --system --add channels defaults
+
             conda config --system --add channels bioconda
             conda config --system --add channels conda-forge
             conda config --system --set channel_priority strict
             mamba env create -n $LCDBWF_ENV --file env.yml
             mamba env create -n $LCDBWF_ENV_R --file env-r.yml
+            mamba install -n base yq -y
         fi
 
   # --------------------------------------------------------------------------
@@ -93,10 +102,7 @@ variables:
       name: Download example data
       command: |
         conda info --envs
-        source activate lcdb-wf-test
-
-        # rsync is required for the deployment process
-        apt install -y rsync
+        source activate $LCDBWF_ENV
 
         # Deploy to the new directory, so we are testing the real-world case of post-deployment.
         # Note that $DEPLOY is set in the "set-paths" step configured above.
