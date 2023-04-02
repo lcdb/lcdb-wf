@@ -56,7 +56,7 @@ build_results_tabs <- function(res_list, dds_list, config, text){
 
     lcdbwf:::mdcat('### P-value distribution')
     lcdbwf:::folded_markdown(text$results_plots$pval_hist, "Help")
-    lcdbwf:::pval_hist(res_i)
+    print(lcdbwf:::pval_hist(res_i))
 
     if (config$toggle$results_diagnostics){
       lcdbwf:::results_diagnostics(res=res_i, dds=res_list[[name]]$dds, name=name, config=config, text=text)

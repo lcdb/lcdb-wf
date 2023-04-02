@@ -1,0 +1,482 @@
+#!/usr/bin/env python
+
+"""
+This script aims to make it more convenient to run various tests using
+different configs.
+"""
+import os
+import shlex
+import subprocess as sp
+import sys
+from pathlib import Path
+import argparse
+import yaml
+
+HERE = Path(__file__).resolve().parent
+TOPLEVEL = Path(__file__).resolve().parent.parent
+
+WORKFLOW_ARGS = yaml.safe_load(open(TOPLEVEL / "test" / "workflow_test_params.yaml"))
+
+
+def print_header(name):
+    print("-" * 80)
+    print("lcdb-wf-test: ", name)
+    print("-" * 80)
+
+
+class Runner(object):
+    """
+    To add a new command, create a new method with a name starting with
+    "_cmd_", create a new ArgumentParser.
+    """
+
+    default_env = os.getenv("LCDBWF_ENV", str(TOPLEVEL / "env"))
+    default_env_r = os.getenv("LCDBWF_ENV_R", str(TOPLEVEL / "env-r"))
+    global_parser = argparse.ArgumentParser(add_help=False)
+    global_parser.add_argument(
+        "--env", default=default_env,
+        help=f"""Main conda environment to use. Override
+        by setting $LCDBWF_ENV or override that by explicity setting --env. Currently will use {default_env}"""
+    )
+    global_parser.add_argument(
+        "--env-r",
+        default=default_env_r,
+        help=f"""Main R conda environment to use. Override by setting
+        $LCDBWF_ENV_R or override that by explicity setting --env-r. Currently
+        will use {default_env_r}"""
+    )
+    global_parser.add_argument(
+        "--orig",
+        default=str(TOPLEVEL),
+        help=f"""If specified, you can use the special string '__ORIG__' in
+        command line arguments which will be filled in with the value provided
+        here. Mostly used in CI.""",
+    )
+
+    def __init__(self):
+        parser = argparse.ArgumentParser(
+            description="""
+            Test runner for lcdb-wf. There are many things to test; as a first pass use
+            these with appropriate Snakemake args (-n, -j, --use-conda, etc)
+
+                %(prog)s data --kind all
+                %(prog)s unit_tests --pytest
+                %(prog)s unit_tests --r-test
+                %(prog)s rnaseq --run-workflow
+                %(prog)s rnaseq --trackhub
+                %(prog)s rnaseq --downstream
+                %(prog)s chipseq --run-workflow
+                %(prog)s references --run-workflow --configfile=config/config.yaml
+
+            DATA
+            ----
+            %(prog)s data --kind all --verbose
+
+            UNIT TESTS
+            ----------
+            # Run the pytest unit tests on the lib/
+            %(prog)s unit_tests --pytest
+
+            # Run tests on lcdbwf R package
+            %(prog)s unit_tests --r-test
+
+            # Ensure URLs in the configs exist
+            %(prog)s unit_tests --url-check
+
+            # Ensure rnaseq.Rmd has matching sections in the docs
+            %(prog)s unit_tests --ensure-docs
+
+            RNASEQ
+            ------
+            # Run main workflow
+            %(prog)s rnaseq --run-workflow
+
+            # Build RNA-seq trackhub from output of main workflow
+            %(prog)s rnaseq --trackhub
+
+            # Run rnaseq.Rmd
+            %(prog)s rnaseq --downstream
+
+            # Each of these runs a restricted subset of the workflow with
+            # customized configs; they should be run one at a time.
+            %(prog)s rnaseq --run-workflow --sra-pe
+            %(prog)s rnaseq --run-workflow --sra-se
+            %(prog)s rnaseq --run-workflow --strandedness-pe
+            %(prog)s rnaseq --run-workflow --strandedness-se
+            %(prog)s rnaseq --run-workflow --star-2pass
+            %(prog)s rnaseq --run-workflow --star-1pass
+            %(prog)s rnaseq --run-workflow --pe
+
+            """,
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
+
+        choices = [i.replace("_cmd_", "") for i in dir(self) if i.startswith("_cmd_")]
+
+        parser.add_argument("command", help="Subcommand to run", choices=choices)
+        args = parser.parse_args(sys.argv[1:2])
+        if not hasattr(self, "_cmd_" + args.command):
+            print("Unrecognized command")
+            parser.print_help()
+            sys.exit(1)
+        getattr(self, "_cmd_" + args.command)()
+
+    def _cmd_data(self):
+        parser = argparse.ArgumentParser(
+            description="Download data",
+            parents=[self.global_parser],
+        )
+
+        parser.add_argument(
+            "--kind",
+            default="all",
+            choices=["all", "rnaseq", "chipseq"],
+            help="Kind of data to download",
+        )
+        parser.add_argument(
+            "--branch", default="master", help="Branch from lcdb-test-data to use"
+        )
+        parser.add_argument(
+            "--verbose",
+            action="store_true",
+            help="Be verbose about what's being downloaded",
+        )
+
+        args = parser.parse_args(sys.argv[2:])
+
+        repo = "lcdb-test-data"
+        URL = f"https://github.com/lcdb/{repo}/blob/{args.branch}/data/{{}}?raw=true"
+
+        # This dict maps files in the `data` directory of the repo to a local
+        # path to which it should be downloaded.
+        data_files = {
+            "rnaseq": [
+                (
+                    "rnaseq_samples/sample1/sample1.small_R1.fastq.gz",
+                    "workflows/rnaseq/data/example_data/rnaseq_sample1.fq.gz",
+                ),
+                (
+                    "rnaseq_samples/sample2/sample2.small_R1.fastq.gz",
+                    "workflows/rnaseq/data/example_data/rnaseq_sample2.fq.gz",
+                ),
+                (
+                    "rnaseq_samples/sample3/sample3.small_R1.fastq.gz",
+                    "workflows/rnaseq/data/example_data/rnaseq_sample3.fq.gz",
+                ),
+                (
+                    "rnaseq_samples/sample4/sample4.small_R1.fastq.gz",
+                    "workflows/rnaseq/data/example_data/rnaseq_sample4.fq.gz",
+                ),
+                (
+                    "rnaseq_samples/sample1/sample1.small_R1.fastq.gz",
+                    "workflows/rnaseq/data/example_data/rnaseq_sample1PE_1.fq.gz",
+                ),
+                (
+                    "rnaseq_samples/sample1/sample1.small_R2.fastq.gz",
+                    "workflows/rnaseq/data/example_data/rnaseq_sample1PE_2.fq.gz",
+                ),
+                (
+                    "rnaseq_samples/sample2/sample2.small_R1.fastq.gz",
+                    "workflows/rnaseq/data/example_data/rnaseq_sample2PE_1.fq.gz",
+                ),
+                (
+                    "rnaseq_samples/sample2/sample2.small_R2.fastq.gz",
+                    "workflows/rnaseq/data/example_data/rnaseq_sample2PE_2.fq.gz",
+                ),
+            ],
+            "chipseq": [
+                (
+                    "chipseq_samples/input_1/input_1.tiny_R1.fastq.gz",
+                    "workflows/chipseq/data/example_data/chipseq_input1.fq.gz",
+                ),
+                (
+                    "chipseq_samples/input_2/input_2.tiny_R1.fastq.gz",
+                    "workflows/chipseq/data/example_data/chipseq_input2.fq.gz",
+                ),
+                (
+                    "chipseq_samples/input_3/input_3.tiny_R1.fastq.gz",
+                    "workflows/chipseq/data/example_data/chipseq_input3.fq.gz",
+                ),
+                (
+                    "chipseq_samples/ip_1/ip_1.tiny_R1.fastq.gz",
+                    "workflows/chipseq/data/example_data/chipseq_ip1.fq.gz",
+                ),
+                (
+                    "chipseq_samples/ip_2/ip_2.tiny_R1.fastq.gz",
+                    "workflows/chipseq/data/example_data/chipseq_ip2.fq.gz",
+                ),
+                (
+                    "chipseq_samples/ip_3/ip_3.tiny_R1.fastq.gz",
+                    "workflows/chipseq/data/example_data/chipseq_ip3.fq.gz",
+                ),
+                (
+                    "chipseq_samples/ip_4/ip_4.tiny_R1.fastq.gz",
+                    "workflows/chipseq/data/example_data/chipseq_ip4.fq.gz",
+                ),
+            ],
+        }
+
+        if args.kind == "all":
+            kinds = list(data_files.keys())
+        else:
+            kinds = [args.kind]
+        for kind in kinds:
+            for fn, dest in data_files[kind]:
+                url = URL.format(fn)
+                if args.verbose:
+                    print(f"downloading {url}")
+                if dest is None:
+                    dest = fn
+                dest = Path(dest)
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                sp.run(
+                    f"wget -q -O- {url} > {dest}", shell=True, check=True, cwd=TOPLEVEL
+                )
+
+    def _cmd_unit_tests(self):
+        parser = argparse.ArgumentParser(
+            description="Run various unit tests and checks",
+            parents=[self.global_parser],
+        )
+        parser.add_argument(
+            "--pytest",
+            action="store_true",
+            help="Run pytest unit tests and module doctests on lib/ directory",
+        )
+        parser.add_argument(
+            "--url-check",
+            action="store_true",
+            help="Ensure that URLs found in config files (e.g., to genome references) are still valid",
+        )
+        parser.add_argument(
+            "--r-test",
+            action="store_true",
+            help="""Run devtools::test on the lcdbwf R package. Activates the
+            conda environment specified by --env-r just before running.""",
+        )
+
+        parser.add_argument(
+            "--ensure-docs",
+            action="store_true",
+            help="Ensure that all named R chunks are documented in the online help docs",
+        )
+
+        args = parser.parse_args(sys.argv[2:])
+
+        if args.pytest:
+            print_header("pytest")
+            sp.run(["pytest", "--doctest-modules", "lib"], check=True, cwd=TOPLEVEL)
+
+        if args.url_check:
+            print_header("url check")
+            sys.path.insert(0, str(TOPLEVEL))
+            from lib.common import check_all_urls_found
+
+            check_all_urls_found()
+
+        if args.r_test:
+            print_header("R test")
+            sp.run(
+                'eval "$(conda shell.bash hook)" '
+                f"&& conda activate {args.env_r} "
+                '''&& Rscript -e "devtools::test('lib/lcdbwf', export_all=TRUE)"''',
+                shell=True,
+                check=True,
+                executable="/bin/bash"
+            )
+
+        if args.ensure_docs:
+            sp.run(["./ensure_docs.py"], check=True, cwd=TOPLEVEL / "ci")
+
+    def _cmd_rnaseq(self):
+        """
+        This function handles the "rnaseq" subcommand.
+        """
+
+        parser = argparse.ArgumentParser(
+            description="Run rnaseq workflow and downstream tests",
+            parents=[self.global_parser],
+        )
+        parser.add_argument(
+            "--run-workflow",
+            action="store_true",
+            help="""Run rnaseq workflow using the run_tesh.sh harness, which
+            edits the Snakefile to use test settings before running. Additional
+            args not specified here are passed to Snakemake, or use other flags
+            below to easily specify config sets.""",
+        )
+        parser.add_argument(
+            "--trackhub", action="store_true", help="Build the rnaseq track hub"
+        )
+        parser.add_argument(
+            "--downstream",
+            action="store_true",
+            help="""Run the downstream rnaseq.Rmd, via
+            workflows/rnaseq/run_downstream_test.sh. This runs the preprocessor
+            on the files to allow the use of # [TEST SETTINGS] comments; see
+            that script for details. Activates environment configured in
+            --env-r before running.""",
+        )
+
+        # Here we programmatically build the parser from the
+        # workflow_test_params.yaml file. They are added to
+        # a mutually-exclusive group to avoid overwriting each others' config
+        # file params. They all write their params to the args.additional_args
+        # attribute.
+        group = parser.add_mutually_exclusive_group()
+        workflow_prefix = "bash run_test.sh"
+        workflow_dir = TOPLEVEL / "workflows/rnaseq"
+        for key, val in WORKFLOW_ARGS["rnaseq"].items():
+            group.add_argument(
+                "--" + key,
+                action="store_const",
+                default="",
+                dest="additional_args",
+                const=val["args"],
+                help=f"""GROUP: Part of mutually exclusive rnaseq group. Runs
+                the following: cd {workflow_dir} && {workflow_prefix}
+                {val['args']}. {val['desc']} Configured in
+                workflow_test_params.yaml.""",
+            )
+
+        args, extra = parser.parse_known_args(sys.argv[2:])
+
+        if args.run_workflow:
+            print(args)
+            if args.additional_args:
+                extra.extend(shlex.split(args.additional_args))
+
+            extra = [i.replace("__ORIG__", args.orig) for i in extra]
+            strargs = " ".join(extra)
+            cmd = (
+                'eval "$(conda shell.bash hook)" '
+                f"&& conda activate {args.env} "
+                f"&& (cd {workflow_dir} && {workflow_prefix} {strargs})"
+            )
+            print_header(f"Running the following command:\n{cmd}")
+            sp.run(
+                cmd,
+                check=True,
+                shell=True,
+                executable="/bin/bash"
+            )
+        if args.trackhub:
+            cmd = (
+                'eval "$(conda shell.bash hook)" '
+                f"&& conda activate {args.env} "
+                f"&& (cd {workflow_dir} "
+                "&& python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml)"
+            )
+            print_header(f"Building trackhub with command: {cmd}")
+
+            sp.run(
+                cmd,
+                shell=True,
+                check=True,
+                executable="/bin/bash"
+            )
+            print("See workflows/rnaseq/staging for the built trackhub")
+
+        if args.downstream:
+            print_header("running downstream rnaseq.Rmd")
+            sp.run(
+                'eval "$(conda shell.bash hook)" '
+                f"&& conda activate {args.env_r} "
+                "&& (cd workflows/rnaseq && bash run_downstream_test.sh)",
+                shell=True,
+                check=True,
+                executable="/bin/bash"
+            )
+
+    def _cmd_chipseq(self):
+        """
+        This function handles the "chipseq" subcommand.
+        """
+
+        parser = argparse.ArgumentParser(
+            description="Run chipseq workflow",
+            parents=[self.global_parser],
+        )
+        parser.add_argument(
+            "--run-workflow",
+            action="store_true",
+            help="""Run chipseq workflow using the run_tesh.sh harness, which
+            edits the Snakefile to use test settings before running. Additional
+            args not specified here are passed to Snakemake, or use other flags
+            below to easily specify config sets.""",
+        )
+        parser.add_argument(
+            "--trackhub", action="store_true", help="Build the rnaseq track hub"
+        )
+        args, extra = parser.parse_known_args(sys.argv[2:])
+        workflow_prefix = "bash run_test.sh"
+        workflow_dir = TOPLEVEL / "workflows/chipseq"
+
+        if args.run_workflow:
+            extra = [i.replace("__ORIG__", args.orig) for i in extra]
+            strargs = " ".join(extra)
+            cmd = (
+                'eval "$(conda shell.bash hook)" '
+                f"&& conda activate {args.env} "
+                f"&& (cd {workflow_dir} && {workflow_prefix} {strargs})"
+            )
+            print_header(f"Running the following command:\n{cmd}")
+            sp.run(
+                cmd,
+                shell=True,
+                check=True,
+                executable="/bin/bash"
+            )
+        if args.trackhub:
+            cmd = (
+                'eval "$(conda shell.bash hook)" '
+                f"&& conda activate {args.env} "
+                f"&& (cd {workflow_dir} "
+                "&& python chipseq_trackhub.py config/config.yaml config/hub_config.yaml)"
+            )
+            print_header(f"Building trackhub with command: {cmd}")
+
+            sp.run(
+                cmd,
+                shell=True,
+                check=True,
+                executable="/bin/bash"
+            )
+            print("See workflows/chipseq/staging for the built trackhub")
+
+    def _cmd_references(self):
+        parser = argparse.ArgumentParser(
+            description="Run references workflow",
+            parents=[self.global_parser],
+        )
+        parser.add_argument(
+            "--run-workflow",
+            action="store_true",
+            help="""Run references workflow using the run_tesh.sh harness, which
+            edits the Snakefile to use test settings before running."""
+        )
+        args, extra = parser.parse_known_args(sys.argv[2:])
+
+        workflow_prefix = "bash run_test.sh"
+        workflow_dir = TOPLEVEL / "workflows/references"
+        if args.run_workflow:
+            extra = [i.replace("__ORIG__", args.orig) for i in extra]
+            strargs = " ".join(extra)
+            cmd = (
+                'eval "$(conda shell.bash hook)" '
+                f"&& conda activate {args.env} "
+                f"&& (cd {workflow_dir} && {workflow_prefix} {strargs})"
+            )
+            print_header(f"Running the following command:\n{cmd}")
+            sp.run(
+                cmd,
+                shell=True,
+                check=True,
+                executable="/bin/bash"
+            )
+
+
+if __name__ == "__main__":
+    Runner()
+
+# vim: ft=python

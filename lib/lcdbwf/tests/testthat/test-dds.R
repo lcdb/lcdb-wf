@@ -5,13 +5,13 @@ test_that("stripping gene versions", {
 
   rownames(dds) <- paste(rownames(dds), seq(1000), sep='.')
 
-  expect_error(lcdbwf::strip_dotted_version_from_dds(dds), "Gene names don't appear to be Ensembl")
+  expect_error(lcdbwf:::strip_dotted_version_from_dds(dds), "Gene names don't appear to be Ensembl")
 
-  forced <- lcdbwf::strip_dotted_version_from_dds(dds, force=TRUE)
+  forced <- lcdbwf:::strip_dotted_version_from_dds(dds, force=TRUE)
   expect_equal(rownames(forced)[1], "gene1")
 
   rownames(dds) <- paste0("ENS", rownames(dds), '.', seq(1000))
-  fixed <- lcdbwf::strip_dotted_version_from_dds(dds)
+  fixed <- lcdbwf:::strip_dotted_version_from_dds(dds)
   expect_equal(rownames(fixed)[1], "ENSgene1")
 
 })

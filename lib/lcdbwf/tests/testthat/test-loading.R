@@ -5,7 +5,7 @@ sampletable <- data.frame(
 
 
 test_that("load from combined featurecounts", {
-    dds <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
+    dds <- lcdbwf:::DESeqDataSetFromCombinedFeatureCounts(
         "featurecounts.txt",
         sampletable,
         design=~group
@@ -15,7 +15,7 @@ test_that("load from combined featurecounts", {
 
 test_that("load from combined featurecounts, subset sampletable, no subset.counts", {
   expect_error(
-    lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
+    lcdbwf:::DESeqDataSetFromCombinedFeatureCounts(
       "featurecounts.txt",
       sampletable %>% dplyr::filter(samplename != "sample4"),
       design=~group),
@@ -27,10 +27,10 @@ test_that("load from combined featurecounts, subset sampletable, no subset.count
 })
 
 test_that("load from combined featurecounts, subset sampletable, with subset.counts", {
-    dds <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
+    dds <- lcdbwf:::DESeqDataSetFromCombinedFeatureCounts(
         "featurecounts.txt",
         sampletable %>% dplyr::filter(samplename != "sample4"),
-        design=~group, subset.counts=TRUE)
+        design=~group, subset_counts=TRUE)
     expect_s4_class(dds, "DESeqDataSet")
 })
 
@@ -47,10 +47,10 @@ test_that("load from combined featurecounts, using custom func", {
         stringr::str_split(stringr::fixed('/'), simplify=TRUE)
     x[,1]
 }
-  dds <- lcdbwf::DESeqDataSetFromCombinedFeatureCounts(
+  dds <- lcdbwf:::DESeqDataSetFromCombinedFeatureCounts(
       "featurecounts.txt",
       sampletable2,
-      sample.func=custom.func,
+      sample_func=custom.func,
       design=~group)
 
     expect_s4_class(dds, "DESeqDataSet")

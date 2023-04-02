@@ -33,7 +33,7 @@ a particular annotation category.
 devtools::document('../../../lib/lcdbwf')
 devtools::load_all('../../../lib/lcdbwf')
 
-config <- lcdbwf::load_config('config.yaml')
+config <- lcdbwf:::load_config('config.yaml')
 ```
 
 ```{r load, cache=TRUE, cache.extra=file.info('combined.Rds')$mtime}
@@ -45,8 +45,8 @@ dds_list <- obj$dds_list
 ```{r functional_enrichment_prep, cache=TRUE, config=config$annotation$keytype, eval=config$toggle$functional_enrichment, dependson='load'}
 
 # We assume that keys are unique across all term2gene_lists.
-term2gene_list <- lcdbwf::get_go_term2gene(config)
-term2name <- lcdbwf::get_go_descriptions()
+term2gene_list <- lcdbwf:::get_go_term2gene(config)
+term2name <- lcdbwf:::get_go_descriptions()
 
 # We need to assign each key to its respective term2name dataframe (or NULL if
 # none)
@@ -57,9 +57,9 @@ ontology_list <- c(term2gene_list)
 # This can take up a lot of memory on CI/CD, so we only do this if not doing
 # a test.
 if (!config$toggle$test){
-  msigdb_df <- lcdbwf::get_msigdb_df(config)
-  msigdb_term2gene_list <- lcdbwf::get_msigdb_term2gene_list(msigdb_df)
-  msigdb_term2name <- lcdbwf::get_msigdb_term2name(msigdb_df)
+  msigdb_df <- lcdbwf:::get_msigdb_df(config)
+  msigdb_term2gene_list <- lcdbwf:::get_msigdb_term2gene_list(msigdb_df)
+  msigdb_term2name <- lcdbwf:::get_msigdb_term2name(msigdb_df)
   ontology_term2name_mapping <- c(ontology_term2name_mapping, lapply(msigdb_term2gene_list, function(x) NULL))
   ontology_list <- c(ontology_list, msigdb_term2gene_list)
 }
@@ -78,7 +78,7 @@ for (name in names(res_list)){
     for (ont in names(config$functional_enrichment$ontologies)){
       term2gene <- ontology_list[[ont]]
       term2name <- ontology_term2name_mapping[[ont]]
-      enrich_res <- lcdbwf::run_enrichment(
+      enrich_res <- lcdbwf:::run_enrichment(
         res_list[[name]],
         direction=direction,
         TERM2GENE=term2gene,
@@ -99,13 +99,13 @@ for (name in names(res_list)){
 
 ```{r functional_enrichment_plots}
 # Interestingly, it's the *caching* that causes this to hang for a loooong time.
-dotplot_list <- lcdbwf::enrich_list_lapply(all_enrich, dotplots, config=config, send_names=TRUE)
-emapplot_list <- lcdbwf::enrich_list_lapply(all_enrich, emapplots, config=config, send_names=TRUE)
-cnetplot_list <- lcdbwf::enrich_list_lapply(all_enrich, cnetplots, config=config, send_names=TRUE)
+dotplot_list <- lcdbwf:::enrich_list_lapply(all_enrich, dotplots, config=config, send_names=TRUE)
+emapplot_list <- lcdbwf:::enrich_list_lapply(all_enrich, emapplots, config=config, send_names=TRUE)
+cnetplot_list <- lcdbwf:::enrich_list_lapply(all_enrich, cnetplots, config=config, send_names=TRUE)
 ```
 
 ```{r, results='asis'}
-lcdbwf::mdcat("There are many different databases that annotate genes into sets.",
+lcdbwf:::mdcat("There are many different databases that annotate genes into sets.",
       "The following sets are used here:")
 
 knitr::kable(config$functional_enrichment$ontologies %>% as.data.frame %>% t())
@@ -120,19 +120,19 @@ for (name in names(res_list)){
   for (direction in config$functional_enrichment$directions){
     mdcat("### ", direction, "{.tabset}")
     if (length(all_enrich[[name]][[direction]]) == 0){
-      lcdbwf::mdcat("Too few genes differentially expressed.")
+        lcdbwf:::mdcat("Too few genes differentially expressed.")
       next
     }
     for (ont in names(all_enrich[[name]][[direction]])){
-      lcdbwf::mdcat("#### ", ont, "{.tabset}")
+        lcdbwf:::mdcat("#### ", ont, "{.tabset}")
 
-      lcdbwf::mdcat("##### dotplot")
+    lcdbwf:::mdcat("##### dotplot")
       print(dotplot_list[[name]][[direction]][[ont]])
 
-      lcdbwf::mdcat("##### emapplot")
+      lcdbwf:::mdcat("##### emapplot")
       print(emapplot_list[[name]][[direction]][[ont]])
 
-      lcdbwf::mdcat("##### cnetplot")
+      lcdbwf:::mdcat("##### cnetplot")
       print(cnetplot_list[[name]][[direction]][[ont]])
     }
   }

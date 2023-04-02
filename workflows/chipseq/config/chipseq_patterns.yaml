@@ -24,6 +24,7 @@ patterns_by_sample:
 
   markduplicates:
     bam: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam'
+    bai: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.bai'
     metrics: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.metrics'
 
   merged_techreps: 'data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam'

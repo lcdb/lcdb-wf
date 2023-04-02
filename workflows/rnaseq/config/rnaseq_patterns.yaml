@@ -25,6 +25,7 @@ rrna:
 multiqc: 'data/rnaseq_aggregation/multiqc.html'
 markduplicates:
    bam: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam'
+   bai: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.bai'
    metrics: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.metrics'
 collectrnaseqmetrics:
    metrics: 'data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.metrics'
