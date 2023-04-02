@@ -98,9 +98,9 @@ variables:
             conda config --system --add channels conda-forge
             conda config --system --set channel_priority strict
             mamba install -n base yq -y
-            mamba env create -n $LCDBWF_ENV --file env.yml
-            mamba env create -n $LCDBWF_ENV_R --file env-r.yml
             conda config --show
+            time mamba env create -n $LCDBWF_ENV --file env.yml
+            time mamba env create -n $LCDBWF_ENV_R --file env-r.yml
         fi
 
   # --------------------------------------------------------------------------
