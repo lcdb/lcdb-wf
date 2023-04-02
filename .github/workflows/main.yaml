@@ -38,34 +38,34 @@ jobs:
 
       - name: Download example data
         run: |
-        conda info --envs
-        source activate lcdb-wf-test
+          conda info --envs
+          source activate lcdb-wf-test
 
-        # rsync is required for the deployment process
-        apt install -y rsync
+          # rsync is required for the deployment process
+          apt install -y rsync
 
-        # Deploy to the new directory, so we are testing the real-world case of post-deployment.
-        # Note that $DEPLOY is set in the "set-paths" step configured above.
-        python deploy.py --flavor full --dest $DEPLOY --branch $GITHUB_HEAD_REF --clone
+          # Deploy to the new directory, so we are testing the real-world case of post-deployment.
+          # Note that $DEPLOY is set in the "set-paths" step configured above.
+          python deploy.py --flavor full --dest $DEPLOY --branch $GITHUB_HEAD_REF --clone
 
-        # Separately copy over some test-specific files
-        cp workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq
-        cp workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq
-        cp workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq
-        cp workflows/colocalization/run_test.sh $DEPLOY/workflows/references
-        cp workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization
-        mkdir $DEPLOY/ci
-        mkdir $DEPLOY/test
-        cp test/lcdb-wf-test $DEPLOY/test
-        cp test/workflow_test_params.yaml $DEPLOY/test
-        cp ci/get-data.py $DEPLOY/ci
+          # Separately copy over some test-specific files
+          cp workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq
+          cp workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq
+          cp workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq
+          cp workflows/colocalization/run_test.sh $DEPLOY/workflows/references
+          cp workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization
+          mkdir $DEPLOY/ci
+          mkdir $DEPLOY/test
+          cp test/lcdb-wf-test $DEPLOY/test
+          cp test/workflow_test_params.yaml $DEPLOY/test
+          cp ci/get-data.py $DEPLOY/ci
 
-        # the ./run_test.sh scripts run this
-        cp ci/preprocessor.py $DEPLOY/ci
+          # the ./run_test.sh scripts run this
+          cp ci/preprocessor.py $DEPLOY/ci
 
-        # download example data
-        cd $DEPLOY
-        test/lcdb-wf-test data --kind=all --verbose
+          # download example data
+          cd $DEPLOY
+          test/lcdb-wf-test data --kind=all --verbose
 
       - name: chipseq misc
         run: |
