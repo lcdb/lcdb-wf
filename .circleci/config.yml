@@ -98,6 +98,12 @@ variables:
             conda config --system --add channels conda-forge
             conda config --system --set channel_priority strict
             conda config --show
+
+            # https://docs.conda.io/projects/conda-build/en/latest/resources/link-scripts.html,
+            # post-link scripts should not depend on any installed or
+            # to-be-installed conda packages...but they do.
+            mamba install -n base r-base yq
+
             time mamba env create -n $LCDBWF_ENV --file env.yml
             time mamba env create -n $LCDBWF_ENV_R --file env-r.yml
         fi
