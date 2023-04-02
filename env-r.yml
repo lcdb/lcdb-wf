@@ -3,8 +3,9 @@ channels:
   - bioconda
 dependencies:
   - _libgcc_mutex=0.1
-  - _openmp_mutex=4.5=2_gnu
+  - _openmp_mutex=4.5
   - _r-mutex=1.0.1
+  - argcomplete=3.0.5
   - binutils_impl_linux-64=2.40
   - bioconductor-all=1.40.0
   - bioconductor-annotate=1.76.0
@@ -33,7 +34,7 @@ dependencies:
   - bioconductor-genefilter=1.80.0
   - bioconductor-geneplotter=1.76.0
   - bioconductor-genomeinfodb=1.34.8
-  - bioconductor-genomeinfodbdata
+  - bioconductor-genomeinfodbdata=1.2.9
   - bioconductor-genomicalignments=1.34.0
   - bioconductor-genomicfeatures=1.50.2
   - bioconductor-genomicranges=1.50.0
@@ -74,8 +75,8 @@ dependencies:
   - font-ttf-source-code-pro=2.038
   - font-ttf-ubuntu=0.83
   - fontconfig=2.14.2
-  - fonts-conda-ecosystem=1=0
-  - fonts-conda-forge=1=0
+  - fonts-conda-ecosystem=1
+  - fonts-conda-forge=1
   - freetype=2.12.1
   - fribidi=1.0.10
   - gcc_impl_linux-64=12.2.0
@@ -95,12 +96,13 @@ dependencies:
   - krb5=1.20.1
   - ld_impl_linux-64=2.40
   - lerc=4.0.0
-  - libblas=3.9.0=16_linux64_openblas
-  - libcblas=3.9.0=16_linux64_openblas
+  - libblas=3.9.0
+  - libcblas=3.9.0
   - libcurl=7.87.0
   - libdeflate=1.17
   - libedit=3.1.20191231
   - libev=4.33
+  - libexpat=2.5.0
   - libffi=3.4.2
   - libgcc-devel_linux-64=12.2.0
   - libgcc-ng=12.2.0
@@ -110,7 +112,7 @@ dependencies:
   - libglib=2.74.1
   - libgomp=12.2.0
   - libiconv=1.17
-  - liblapack=3.9.0=16_linux64_openblas
+  - liblapack=3.9.0
   - libnghttp2=1.51.0
   - libnsl=2.0.0
   - libopenblas=0.3.21
@@ -133,10 +135,12 @@ dependencies:
   - pandoc=2.19.2
   - pango=1.50.14
   - pcre2=10.40
+  - pip=23.0.1
   - pixman=0.40.0
   - pthread-stubs=0.4
   - python=3.11.0
-  - python_abi=3.11=3_cp311
+  - python_abi=3.11
+  - pyyaml=6.0
   - r-ape=5.7_1
   - r-aplot=0.1.10
   - r-ashr=2.2_54
@@ -373,10 +377,14 @@ dependencies:
   - r-zip=2.2.2
   - readline=8.2
   - sed=4.8
+  - setuptools=67.6.1
   - sysroot_linux-64=2.12
   - tk=8.6.12
   - tktable=2.10
+  - toml=0.10.2
   - tzdata=2023c
+  - wheel=0.40.0
+  - xmltodict=0.13.0
   - xorg-kbproto=1.0.7
   - xorg-libice=1.0.10
   - xorg-libsm=1.2.3
@@ -391,13 +399,6 @@ dependencies:
   - xorg-xproto=7.0.31
   - xz=5.2.6
   - yaml=0.2.5
+  - yq=3.1.1
   - zlib=1.2.13
   - zstd=1.5.2
-  - argcomplete=3.0.5
-  - pip=23.0.1
-  - pyyaml=6.0
-  - setuptools=67.6.1
-  - toml=0.10.2
-  - wheel=0.40.0
-  - xmltodict=0.13.0
-  - yq=3.1.1
