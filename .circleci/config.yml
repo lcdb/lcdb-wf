@@ -72,9 +72,6 @@ variables:
       command: |
         source $BASH_ENV
         echo $PATH
-        which conda
-        which mamba
-        mamba --version
 
         # We only do the installation if the conda environment does not already
         # exist.
