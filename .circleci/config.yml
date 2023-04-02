@@ -26,7 +26,7 @@ variables:
 
   save_cache: &save_cache
     save_cache:
-      key: v1-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
+      key: v5-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
       paths:
         - /opt/mambaforge
 
@@ -35,6 +35,10 @@ variables:
         # mis-configured.
         - /root/.ncbi/user-settings.mkfg
 
+  restore_cache: &restore_cache
+    restore_cache:
+      keys:
+        - v5-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
 
   # --------------------------------------------------------------------------
   # The path needs to be set each time; in jobs below this will be called as
@@ -60,10 +64,6 @@ variables:
           source $BASH_ENV
 
 
-  restore_cache: &restore_cache
-    restore_cache:
-      keys:
-        - v1-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
   # --------------------------------------------------------------------------
   # Set up conda if the environments do not already exist
   setup: &setup
