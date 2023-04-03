@@ -123,7 +123,7 @@ variables:
       command: |
         conda info --envs
         source activate $LCDBWF_ENV
-        mamba install -y rsync=3.1.2
+        mamba install -n base rsync=3.1.2 -y
 
         # Deploy to the new directory, so we are testing the real-world case of post-deployment.
         # Note that $DEPLOY is set in the "set-paths" step configured above.
