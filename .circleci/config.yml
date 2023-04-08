@@ -72,7 +72,6 @@ variables:
           # PATH defined here, which will break anything needing conda envs.
           echo "export PATH=\$PATH:/opt/mambaforge/bin" >> $BASH_ENV
           source $BASH_ENV
-          conda config --show
 
 
   # --------------------------------------------------------------------------
@@ -128,6 +127,7 @@ variables:
         source /opt/mambaforge/etc/profile.d/conda.sh
         conda activate $LCDBWF_ENV
         conda info --envs
+        conda config --show
 
         # Deploy to the new directory, so we are testing the real-world case of post-deployment.
         # Note that $DEPLOY is set in the "set-paths" step configured above.
