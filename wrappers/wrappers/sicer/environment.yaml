@@ -1,11 +1,10 @@
 channels:
   - bioconda
   - conda-forge
-  - defaults
 dependencies:
   - python=2
   - numpy
   - sicer
   - bedtools
-  - ucsc-bedsort
-  - ucsc-wigtobigwig
+  - ucsc-bedsort=377
+  - ucsc-wigtobigwig=377
