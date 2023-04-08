@@ -121,8 +121,9 @@ variables:
     run:
       name: Download example data
       command: |
+        source /opt/mambaforge/etc/profile.d/conda.sh
+        conda activate $LCDBWF_ENV
         conda info --envs
-        source activate $LCDBWF_ENV
 
         # Deploy to the new directory, so we are testing the real-world case of post-deployment.
         # Note that $DEPLOY is set in the "set-paths" step configured above.
@@ -153,11 +154,8 @@ variables:
     run:
       name: Run pytest suite and testthat suite
       command: |
-        source activate lcdb-wf-test
-
-        echo LCDBWF_ENV_R=$LCDBWF_ENV_R
-        echo LCDBWF_ENV=$LCDBWF_ENV
-
+        source /opt/mambaforge/etc/profile.d/conda.sh
+        conda activate $LCDBWF_ENV
         # run unit tests and doctests for the modules in lib
         test/lcdb-wf-test unit_tests --pytest
 
@@ -178,7 +176,8 @@ variables:
         name: chipseq workflow
         command: |
           cd $DEPLOY/workflows/chipseq
-          source activate lcdb-wf-test
+          source /opt/mambaforge/etc/profile.d/conda.sh
+          conda activate $LCDBWF_ENV
           $DEPLOY/test/lcdb-wf-test chipseq --run-workflow --use-conda -j2 -k -p -r
           $DEPLOY/test/lcdb-wf-test chipseq --trackhub
 
@@ -191,14 +190,8 @@ variables:
         name: chipseq misc
         command: |
           cd $DEPLOY/workflows/chipseq
-
-          echo "main env"
-          mamba --version
-          which mamba
-          source activate lcdb-wf-test
-          echo "proj env"
-          mamba --version
-          which mamba
+          source /opt/mambaforge/etc/profile.d/conda.sh
+          conda activate $LCDBWF_ENV
 
           ./run_test.sh --use-conda -j2 -k -p -r \
             --configfile $ORIG/test/test_configs/test_chipseq_regression.yaml \
@@ -226,7 +219,8 @@ variables:
       run:
         name: references workflow
         command: |
-          source activate lcdb-wf-test
+          source /opt/mambaforge/etc/profile.d/conda.sh
+          conda activate $LCDBWF_ENV
           $DEPLOY/test/lcdb-wf-test references --run-workflow --configfile=config/config.yaml -j2 -p -r -k --orig $ORIG
 
   # --------------------------------------------------------------------------
@@ -236,7 +230,8 @@ variables:
         name: rnaseq workflow
         command: |
           cd $DEPLOY
-          source activate lcdb-wf-test
+          source /opt/mambaforge/etc/profile.d/conda.sh
+          conda activate $LCDBWF_ENV
           $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow -n
           $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --use-conda -j2 -k -p -r --orig $ORIG
 
@@ -259,7 +254,8 @@ variables:
         command: |
           ORIG=$(pwd)
           cd $DEPLOY
-          source activate lcdb-wf-test
+          source /opt/mambaforge/etc/profile.d/conda.sh
+          conda activate $LCDBWF_ENV
 
           # Check the help for test/lcdb-wf-test to see what args these
           # provide; some of them use the --until argument to restrict the
@@ -281,7 +277,8 @@ variables:
         name: colocalization workflow
         command: |
           cd $DEPLOY/workflows/colocalization
-          source activate lcdb-wf-test
+          source /opt/mambaforge/etc/profile.d/conda.sh
+          conda activate $LCDBWF_ENV
           ./run_test.sh -j 1 --use-conda -j2 -k -p -r
 
 # --------------------------------------------------------------------------
