@@ -72,6 +72,7 @@ variables:
           # PATH defined here, which will break anything needing conda envs.
           echo "export PATH=\$PATH:/opt/mambaforge/bin" >> $BASH_ENV
           source $BASH_ENV
+          conda config --show
 
 
   # --------------------------------------------------------------------------
