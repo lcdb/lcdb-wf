@@ -93,9 +93,17 @@ def write_include_file(flavor=None):
             'recursive-include lib *', 
             'include env.yml env-r.yml .gitignore',
             'include workflows/references/Snakefile',
-            'include workflows/references/config',
+            'recursive-include workflows/references/config *',
             'global-exclude __pycache__',
         ],
+        'full': [
+            'include colocalization/Snakefile',
+            'recursive-include workflows/colocalization/config *',
+            'recursive-include workflows/colocalization/scripts *',
+            'recursive-include workflows/figures *',
+            'recursive-include workflows/external *',
+        ]
+
     }
 
     patterns = []
@@ -103,6 +111,8 @@ def write_include_file(flavor=None):
         patterns.extend(PATTERN_DICT['rnaseq'])
     if flavor is None or 'chipseq':
         patterns.extend(PATTERN_DICT['chipseq'])
+    if flavor is None or 'full':
+        patterns.extend(PATTERN_DICT['full'])
     patterns.extend(PATTERN_DICT['all'])
 
     HERE = Path(__file__).resolve().parent
