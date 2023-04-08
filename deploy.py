@@ -97,7 +97,7 @@ def write_include_file(flavor=None):
             'global-exclude __pycache__',
         ],
         'full': [
-            'include colocalization/Snakefile',
+            'include workflows/colocalization/Snakefile',
             'recursive-include workflows/colocalization/config *',
             'recursive-include workflows/colocalization/scripts *',
             'recursive-include workflows/figures *',
