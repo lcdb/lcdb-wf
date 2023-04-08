@@ -67,7 +67,10 @@ variables:
           echo 'export LC_ALL=en_US.utf8' >> $BASH_ENV
           echo 'export LANG=en_US.utf8' >> $BASH_ENV
           echo 'export ORIG=$(pwd)' >> $BASH_ENV
-          echo "export PATH=/opt/mambaforge/bin:${PATH}" >> $BASH_ENV
+
+          # Note that if we don't escape \$PATH, we'll be stuck with the exact
+          # PATH defined here, which will break anything needing conda envs.
+          echo "export PATH=\$PATH:/opt/mambaforge/bin" >> $BASH_ENV
           source $BASH_ENV
 
 
