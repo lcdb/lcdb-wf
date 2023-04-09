@@ -273,7 +273,7 @@ rule fastqc:
         html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
         zip='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
     resources:
-        mem_mb=1024 * 2,
+        mem_mb=1024 * 8,
         runtime=autobump(120)
     script:
         wrapper_for('fastqc/wrapper.py')
@@ -294,7 +294,7 @@ if config['aligner']['index'] == 'hisat2':
         threads: 6
         resources:
             mem_mb=1024 * 32,
-            runtime=autobump(120)
+            runtime=autobump(60 * 8)
         run:
             prefix = aligners.prefix_from_bowtie2_index(input.index)
             sam = output.bam.replace('.bam', '.sam')
@@ -369,7 +369,7 @@ if config['aligner']['index'] == 'star':
         threads: 16
         resources:
             mem_mb=1024 * 64,
-            runtime=autobump(120)
+            runtime=autobump(60 * 8)
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
@@ -404,7 +404,7 @@ if config['aligner']['index'] == 'star-twopass':
         threads: 16
         resources:
             mem_mb=1024 * 64,
-            runtime=autobump(120)
+            runtime=autobump(60 * 8)
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
@@ -444,7 +444,7 @@ if config['aligner']['index'] == 'star-twopass':
         threads: 16
         resources:
             mem_mb=1024 * 64,
-            runtime=autobump(120)
+            runtime=autobump(60 * 8)
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
@@ -600,7 +600,7 @@ rule featurecounts:
         '{sample_dir}/rnaseq_aggregation/featurecounts.txt.log'
     threads: 8
     resources:
-        mem_mb=1024 * 2,
+        mem_mb=1024 * 16,
         runtime=autobump(120)
     run:
         # NOTE: By default, we use -p for paired-end
