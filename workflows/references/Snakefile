@@ -10,7 +10,6 @@ from snakemake.utils import makedirs
 from lib.imports import resolve_name
 from lib import utils
 from lib import aligners, helpers
-from lib import cluster_specific
 from lib import common
 
 # Note: when running this workflow on its own (say, to generate all references
