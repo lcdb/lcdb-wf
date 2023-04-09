@@ -141,12 +141,6 @@ the primary analysis workflows.
   ``c.patterns``, ``c.targets``, and ``c.refdict`` are frequently used in rules
   throughout the Snakefiles.
 
-- Various files can be used to specify cluster-specific parameters if the workflows
-  are being run in a high-performance cluster environment. For example, a config file
-  ``config/clusterconfig.yaml`` can be used to specify global and rule-specific
-  memory and disk-space requirements for the Snakefile to use at run-time. For more
-  details, see :ref:`cluster`.
-
 Next Steps
 ~~~~~~~~~~
 

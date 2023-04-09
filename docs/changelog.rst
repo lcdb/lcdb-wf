@@ -2,13 +2,14 @@ Changelog
 =========
 v1.10
 -----
-The major change in this version is moving away from the deprecated
-clusterconfig system to using a site profile.
+The major change here is refactoring the Snakefiles to use the ``resources:``
+directive in each rule, and removing the ``--clusterconfig`` mechanism which
+has long been deprecated.
 
-Configuration of all resources (threads, RAM, disk space, run time) are
-specified in the rules, and requires a profile to be created and installed for
-HPC clusters. For NIH Biowulf, use
-https://github.com/NIH-HPC/snakemake_profile. 
+For running on a cluster, this requires a `profile
+<https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles>`_.
+E.g., on `NIH's Biowulf <https://hpc.ni.gov>`_, use the `NIH-HPC
+snakemake_profile <https://github.com/NIH-HPC/snakemake_profile>`_.
 
 General
 ~~~~~~~

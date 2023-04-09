@@ -111,8 +111,6 @@ Files in bold are the most important.
     
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/config/rnaseq_patterns.yaml" data-balloon=" Output filename patterns used by the RNA-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rnaseq_patterns.yaml</span></a></p>
     
-    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/config/clusterconfig.yaml" data-balloon=" Cluster-specific parameters for the RNA-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clusterconfig.yaml</span></a></p>
-    
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/downstream/rnaseq.Rmd" data-balloon=" Rmd file called by the RNA-Seq Snakefile" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rnaseq.Rmd</span></a></p>
     
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/rnaseq/downstream/gene-patterns.Rmd" data-balloon=" Rmd file called by rnaseq.Rmd to perform gene patterns analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gene-patterns.Rmd</span></a></p>
@@ -129,15 +127,7 @@ Files in bold are the most important.
     
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/config/chipseq_patterns.yaml" data-balloon=" Output filename patterns used by the ChIP-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;chipseq_patterns.yaml</span></a></p>
     
-    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//workflows/chipseq/config/clusterconfig.yaml" data-balloon=" Cluster-specific parameters for the ChIP-seq workflow" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clusterconfig.yaml</span></a></p>
-    
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//requirements.txt" data-balloon=" Dependencies required for running lcdb-wf" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">requirements.txt</span></a></p>
-    
-    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//.travis.yml" style="text-decoration:none;"><span class="file undoc">.travis.yml</span></a></p>
-    
-    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//.buildkite/" style="text-decoration:none;"><span class="dir undoc">.buildkite/</span></a></p>
-    
-    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//.buildkite/pipeline.yml" style="text-decoration:none;"><span class="file undoc">&nbsp;&nbsp;&nbsp;pipeline.yml</span></a></p>
     
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//ci/" data-balloon=" Tools for managing the continuous integration tests" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="dir">ci/</span></a></p>
     
@@ -158,8 +148,6 @@ Files in bold are the most important.
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//config/sampletable.tsv" data-balloon=" Table of sample metadata" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;sampletable.tsv</span></a></p>
     
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//config/config.yml" data-balloon=" Main config file" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;config.yml</span></a></p>
-    
-    <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//config/clusterconfig.yaml" data-balloon=" Example cluster config file for running jobs on a cluster." data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file important">&nbsp;&nbsp;&nbsp;clusterconfig.yaml</span></a></p>
     
     <p style="margin:0px;"><a href="https://github.com/lcdb/lcdb-wf/blob/master//config/4c-sampletable.tsv" data-balloon=" Example sampletable for running a 4C analysis" data-balloon-pos="right" data-balloon-length="xlarge" style="text-decoration:none;"><span class="file">&nbsp;&nbsp;&nbsp;4c-sampletable.tsv</span></a></p>
     

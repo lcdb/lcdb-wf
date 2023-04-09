@@ -68,10 +68,11 @@ for free:
 
 Run locally or on a cluster with the same code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Run the same workflow locally or on a cluster with only a slight command-line
-modification. SLURM support for the NIH Biowulf cluster is built in; edit the
-``clusterconfig.yaml`` file to specify cluster arguments specific to your
-system whether global or rule-specific.
+Run the same workflow locally or on a cluster with a single command-line flag.
+Use `Snakemake profiles
+<https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles>`_ to
+translate from general resources to cluster-specific
+arguments.
 
 Only run the required jobs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
