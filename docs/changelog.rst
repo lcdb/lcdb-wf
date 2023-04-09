@@ -2,16 +2,31 @@ Changelog
 =========
 v1.10
 -----
+The major change in this version is moving away from the deprecated
+clusterconfig system to using a site profile.
+
+Configuration of all resources (threads, RAM, disk space, run time) are
+specified in the rules, and requires a profile to be created and installed for
+HPC clusters. For NIH Biowulf, use
+https://github.com/NIH-HPC/snakemake_profile. 
 
 General
 ~~~~~~~
+- No longer using clusterconfig, instead using resources to configure cluster resources
 - Migrated to a unified testing script that simplifies local and CI testing
-- Added "--gres:lscratch" to all slurm-related params
 - If sampletable is from SRA, raise an error if a Layout column can't be found
   (to prevent incorrect interpretation of samples as single-end)
+- Ensure bam indexes are made for the markdups bams, even if bigwigs are not created
+- Remove libsizes table, which was largely redundant with fastqc results
+
+RNA-seq
+~~~~~~~
 - Fix R tests
-- ensure bam indexes are made for the markdups bams, even if bigwigs are not created
-- fix library loads in rnaseq.Rmd to ensure they come before parallelization configuration
+- All ``lcdbwf`` R functions use the ``:::`` namespace lookup syntax
+- Fix library loads in rnaseq.Rmd to ensure they come before parallelization configuration
+- New function ``lcdbwf:::lfc_scatter`` for comparing multiple DESeq2 contrasts
+- Updates and fixes to ``gene-patterns.Rmd``
+
 
 v1.9
 ----
