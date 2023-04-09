@@ -11,7 +11,7 @@ references_dir: 'references_data'
 stranded: 'fr-firststrand'
 
 aligner:
-  index: 'hisat2'
+  index: 'star'
   tag: 'test'
 
 rrna:
