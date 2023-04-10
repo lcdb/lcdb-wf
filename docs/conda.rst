@@ -128,16 +128,19 @@ dependency tree and come up with a solution that works to satisfy the entire
 set of specified requirements.
 
 We chose to split the conda environments in two: the **main** environment and the **R**
-environment (see :ref:`conda-design-decisons`). These environments are
+environment (see :ref:`conda-design-decisions`). These environments are
 described by both "strict" and "loose" files. By default we use the "strict"
 version, which pins all versions of all packages exactly. This is preferred
 wherever possible. However we also provide a "loose" version that is not
 specific about versions. The following table describes these files:
 
++----------------+--------------------------------+----------------------------------+
 | strict version | loose version                  | used for                         |
 +================+================================+==================================+
 | ``env.yml``    | ``include/requirements.txt``   | Main Snakefiles                  |
++----------------+--------------------------------+----------------------------------+
 | ``env-r.yaml`` | ``include/requirements-r.txt`` | Downstream RNA-seq analysis in R |
++----------------+--------------------------------+----------------------------------+
 
 When deploying new instances, use the ``--build-envs`` argument which will use
 the strict version. Or use the following commands in a deployed directory:

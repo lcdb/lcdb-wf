@@ -2,8 +2,8 @@
 .. _config:
 
 
-Configuration details
-=====================
+Configuration
+=============
 
 General configuration
 ~~~~~~~~~~~~~~~~~~~~~

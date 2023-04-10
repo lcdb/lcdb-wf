@@ -3,22 +3,14 @@
 Getting started
 ===============
 
-The main prerequisite for `lcdb-wf` is `conda
-<https://docs.conda.io/en/latest/>_`, with the `bioconda
-<https://bioconda.github.io>`_. channel set up and the `mamba
-<https://github.com/mamba-org/mamba>`_ drop-in replacement for conda.
+The main prerequisite for `lcdb-wf` is `conda <https://docs.conda.io/en/latest/>_`, with the `bioconda <https://bioconda.github.io>`_. channel set up and the `mamba <https://github.com/mamba-org/mamba>`_ drop-in replacement for conda installed.
 
 If this is new to you, please see :ref:`conda-envs`.
 
 .. note::
 
-    `lcdb-wf` is tested and heavily used on Linux.
-
-    It is likely to work on macOS as long as all relevant conda packages are
-    available for macOS -- though this is not tested.
-
-    It will **not** work on Windows due to a general lack of support of Windows
-    in bioinformatics tools.
+    `lcdb-wf` is tested and heavily used on Linux. It is only supported on
+    Linux.
 
 .. _setup-proj:
 
@@ -27,7 +19,7 @@ Setting up a project
 
 The general steps to use lcdb-wf in a new project are:
 
-1. **Deploy:** download and run ``deploy.py``
+1. **Deploy:** download and run ``deploy.py`` to copy files into a project directory
 2. **Configure:** set up samples table for experiments and edit configuration file
 3. **Run:** activate environment and run the Snakemake file either locally or on a cluster
 
@@ -35,13 +27,16 @@ The general steps to use lcdb-wf in a new project are:
 
 1. Deploying lcdb-wf
 --------------------
+Using `lcdb-wf` starts with copying files to a project directory, or
+"deploying".
 
 Unlike other tools you may have used, `lcdb-wf` is not actually installed per
 se. Rather, it is "deployed" by copying over relevant files from the `lcdb-wf`
 repository to your project directory. This includes Snakefiles, config files,
 and other infrastructure required to run, and excludes files like these docs
-and testing files that are not necessary for an actual project. The reason to
-use this script is so you end up with a cleaner project directory. 
+and testing files that are not necessary for an actual project. The reason is
+to use this script is so you end up with a cleaner project directory, compared
+to cloning the repo directly.
 
 This script also writes a file to the destination called
 ``.lcdb-wf-deployment.json``. It stores the timestamp and details about what
@@ -53,8 +48,8 @@ There are a few ways of doing this.
 Option 1: Download and run the deployment script
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Note that you will not be able to run tests with this method, but it is likely
-the most convenient method.
+This is the most convenient method, although it does not allow running tests
+locally.
 
 .. code-block:: bash
 
@@ -63,7 +58,8 @@ the most convenient method.
 
 Run ``python deploy.py -h`` to see help. Be sure to use the ``--staging`` and
 ``--branch=$BRANCH`` arguments when using this method, which will clone the
-repository to a location of your choosing. Once you deploy you can remove it. For example:
+repository to a location of your choosing. Once you deploy you can remove the
+script. For example:
 
 .. code-block:: bash
 
@@ -77,6 +73,12 @@ repository to a location of your choosing. Once you deploy you can remove it. Fo
 
     # You can clean up the cloned copy if you want:
     # rm -rf /tmp/lcdb-wf-tmp
+
+This will clone the full git repo to ``/tmp/lcdb-wf-tmp``, check out the master
+branch (or whatever branch ``$BRANCH`` is set to), copy the files required for
+an RNA-seq project over to ``analysis/project``, build the main conda
+environment and the R environment, save the ``.lcdb-wf-deployment.json`` file
+there, and then delete the temporary repo.
 
 Option 2: Clone repo manually
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -140,9 +142,9 @@ and run the following:
 
 If all goes well, this should print a list of jobs to be run.
 
-You can run locally, but this is NOT recommended. To run locally, choose the
-number of CPUs you want to use with the ``-j`` argument as is standard for
-Snakemake.
+You can run locally, but this is NOT recommended for a typicaly RNA-seq
+project. To run locally, choose the number of CPUs you want to use with the
+``-j`` argument as is standard for Snakemake.
 
 .. warning::
 
@@ -157,18 +159,35 @@ Snakemake.
     # run locally (not recommended)
     snakemake --use-conda -j 8
 
-The recommended way is to run on a cluster. On NIH's Biowulf cluster, the way
-to do this is to submit the wrapper script as a batch job:
+The recommended way is to run on a cluster.
+
+To run on a cluster, you will need a `Snakemake profile
+<https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles>`_ for
+your cluster that translates generic resource requirements into arguments for
+your cluster's batch system.
+
+On NIH's Biowulf cluster, the profile can be found at
+https://github.com/NIH-HPC/snakemake_profile. If you are not already using this for other Snakemake workflows, you can set it up the first time like this:
+
+1. Clone the profile to a location of your choosing, maybe
+   ``~/snakemake_profile``
+2. Set the environment variable ``LCDBWF_SNAKEMAKE_PROFILE``, perhaps in your
+   ``~/.bashrc`` file.
+
+Then back in your deployed and configured project, submit the wrapper script as
+a batch job:
 
 .. code-block:: bash
 
     sbatch ../../include/WRAPPER_SLURM
 
-and then monitor the various jobs that will be submitted on your behalf. See
+This will submit Snakemake as a batch job, use the profile to translate
+resources to cluster arguments and set default command-line arguments, and
+submit the various jobs created by Snakemake to the cluster on your behalf. See
 :ref:`cluster` for more details on this.
 
-Other clusters will need different configuration, but everything is standard
-Snakemake. The Snakemake documentation on `cluster execution
+Other clusters will need different configuration, but everything in `lcdb-wf`
+is standard Snakemake. The Snakemake documentation on `cluster execution
 <https://snakemake.readthedocs.io/en/stable/executing/cluster.html>`_ and
 `cloud execution
 <https://snakemake.readthedocs.io/en/stable/executing/cloud.html>`_ can be
