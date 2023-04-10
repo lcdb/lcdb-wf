@@ -6,19 +6,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Configuration details &#8212; lcdb-wf 1.9 documentation</title>
+    <title>Configuration &#8212; lcdb-wf 1.9 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Config YAML" href="config-yaml.html" />
-    <link rel="prev" title="Integrative workflows" href="integrative.html" />
+    <link rel="prev" title="Overview of workflows" href="workflows.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -46,10 +43,15 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration details</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#general-configuration">General configuration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#general-configuration">General configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="config-yaml.html">Config YAML</a></li>
+<li class="toctree-l3"><a class="reference internal" href="references-config.html">References config</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sampletable.html">Sample tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="patterns-targets.html">Patterns and targets</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#running-on-a-cluster">Running on a cluster</a></li>
 </ul>
 </li>
@@ -58,6 +60,8 @@
 <li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conda.html">conda and conda envs in <cite>lcdb-wf</cite></a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
@@ -67,7 +71,7 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="toc.html">Documentation overview</a><ul>
-      <li>Previous: <a href="integrative.html" title="previous chapter">Integrative workflows</a></li>
+      <li>Previous: <a href="workflows.html" title="previous chapter">Overview of workflows</a></li>
       <li>Next: <a href="config-yaml.html" title="next chapter">Config YAML</a></li>
   </ul></li>
 </ul>
@@ -90,8 +94,8 @@
 
           <div class="body" role="main">
             
-  <section id="configuration-details">
-<span id="config"></span><h1>Configuration details<a class="headerlink" href="#configuration-details" title="Permalink to this heading">¶</a></h1>
+  <section id="configuration">
+<span id="config"></span><h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">¶</a></h1>
 <section id="general-configuration">
 <h2>General configuration<a class="headerlink" href="#general-configuration" title="Permalink to this heading">¶</a></h2>
 <p>The majority of the work in setting up a new project is in the configuration –
@@ -157,64 +161,22 @@ locally. For larger data sets, you’ll want to run them on an HPC cluster.
 Snakemake <a class="reference external" href="http://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html">supports arbitrary cluster commands</a>,
 making it easy to run these workflows on many different cluster environments.</p>
 <p>Snakemake and these workflows are designed to decouple the code from the
-configuration. If you are running the workflows on NIH’s Biowulf cluster, you
-don’t need to change anything.</p>
-<p>If you are running on a different cluster, you should inspect the following files:</p>
-<ul class="simple">
-<li><p><cite>include/WRAPPER_SLURM</cite></p></li>
-<li><p>the <cite>config/clusterconfig.yaml</cite> files in each workflow directory you will be
-using (see <a class="reference internal" href="#clusterconfig"><span class="std std-ref">clusterconfig.yaml files</span></a>)</p></li>
-<li><p><cite>lib/cluster_specific.py</cite>. This module currently has a single function that,
-when called, will inspect the current environment variables and make any
-necessary changes, returning the temp dir. Other cluster-specific code may go
-here (see <cite>cluster_specific</cite>)</p></li>
-</ul>
-<p>The default configuration we provide is specific to the NIH Biowulf cluster.
-To run a workflow on Biowulf, from the workflow directory (e.g.,
-<code class="docutils literal notranslate"><span class="pre">workflows/rnaseq</span></code>, run the following command:</p>
+configuration. Each rule has resources specified. When running with
+a cluster-specific <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles">Snakemake profile</a>,
+these resources are translated into cluster-specific commands.</p>
+<p>For example, if runnng NIH’s Biowulf HPC cluster, use the <a class="reference external" href="https://github.com/NIH-HPC/snakemake_profile">Biowulf profile</a>.</p>
+<p>Generally, you shouldn’t run long-running tasks on a login node of a cluster,
+and this includes long-running Snakemake workflows. So lcdb-wf comes with
+a wrapper script, <code class="docutils literal notranslate"><span class="pre">include/WRAPPER_SLURM</span></code>, that runs Snakemake which can be
+submitted to a compute node on a Slurm cluster.</p>
+<p>For example, to run a workflow on a Slurm cluster, from the workflow directory
+(e.g., <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq</span></code>, run the following command:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sbatch</span> <span class="o">../../</span><span class="n">include</span><span class="o">/</span><span class="n">WRAPPER_SLURM</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">WRAPPER_SLURM</span></code> script submits the main Snakemake process on a separate
 node to avoid any restrictions from running on the head node. That main
-Snakemake process then submits each rule separately to the cluster scheduler.
-As configured in that script, we specify <code class="docutils literal notranslate"><span class="pre">config/clusterconfig.yaml</span></code> as
-containing the rule-specific cluster arguments.</p>
-<p>That script also contains the Snakemake arguments:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">--</span><span class="n">jobname</span> <span class="s2">&quot;s.</span><span class="si">{rulename}</span><span class="s2">.</span><span class="si">{jobid}</span><span class="s2">.sh&quot;</span> \
-<span class="o">--</span><span class="n">cluster</span> <span class="s1">&#39;sbatch </span><span class="si">{cluster.prefix}</span><span class="s1"> --cpus-per-task=</span><span class="si">{threads}</span><span class="s1">  --output=logs/</span><span class="si">{rule}</span><span class="s1">.o.%j --error=logs/</span><span class="si">{rule}</span><span class="s1">.e.%j&#39;</span> \
-</pre></div>
-</div>
-<p>This means that each job will be named after the rule and job id (the
-<code class="docutils literal notranslate"><span class="pre">--jobname</span></code> arg). The stdout and stderr go to files in <code class="docutils literal notranslate"><span class="pre">logs</span></code> and are
-named after the rule, followed by a <code class="docutils literal notranslate"><span class="pre">.o</span></code> or <code class="docutils literal notranslate"><span class="pre">.e</span></code>, followed by the cluster
-job ID (the <code class="docutils literal notranslate"><span class="pre">--cluster</span></code> arg).</p>
-<section id="tmpdir-handling">
-<span id="cluster-specific"></span><h3>TMPDIR handling<a class="headerlink" href="#tmpdir-handling" title="Permalink to this heading">¶</a></h3>
-<p>The top of each snakefile sets up a shell prefix that exports the TMPDIR
-variable. The reason for this is that the NIH Biowulf cluster supports nodes
-with temporary local storage in a directory named after the SLURM job ID. This
-ID is not known ahead of time, but is stored in the <code class="docutils literal notranslate"><span class="pre">SLURM_JOBID</span></code> env var.</p>
-<p>Since each rule executed on a cluster node calls the snakefile (see the job
-scripts created by snakemake for more on this), we can look for the job ID and
-set the tempdir appropriately. Upon setting <code class="docutils literal notranslate"><span class="pre">$TMPDIR</span></code>, the Python
-<code class="docutils literal notranslate"><span class="pre">tempfile</span></code> module will use that directory to store temp files. Any wrappers
-can additionally use <code class="docutils literal notranslate"><span class="pre">$TMPDIR</span></code> in shell commands and it will use this
-directory.</p>
-<p>Note that the default behavior – if the <code class="docutils literal notranslate"><span class="pre">SLURM_JOBID</span></code> env var is not set –
-is to set <code class="docutils literal notranslate"><span class="pre">$TMPDIR</span></code> to the default temp directory as documented in Python’s
-<a class="reference external" href="https://docs.python.org/3/library/tempfile.html#tempfile.gettempdir">tempfile module</a>.
-However if you use these workflows on a different cluster, you may need to
-provide a different function to return the job-specific temp directory.</p>
-</section>
-<section id="clusterconfig-yaml-files">
-<span id="clusterconfig"></span><h3><code class="docutils literal notranslate"><span class="pre">clusterconfig.yaml</span></code> files<a class="headerlink" href="#clusterconfig-yaml-files" title="Permalink to this heading">¶</a></h3>
-<p>The <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html#cluster-configuration">snakemake cluster configuration docs</a>
-describe how to configure cluster-specific settings so that rules will run on
-the correct size node when submitting batch jobs. This is not needed if you are
-running the workflows locally, but you may need to edit the
-<cite>config/clusterconfig.yaml</cite> file found in each workflow directory.</p>
-</section>
+Snakemake process then submits each rule separately to the cluster scheduler.</p>
 </section>
 </section>
 
@@ -229,8 +191,8 @@ running the workflows locally, but you may need to edit the
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="_sources/config.rst.txt"

@@ -10,9 +10,6 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -46,18 +43,22 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="downstream-rnaseq.html#how-to-use-this-code">How to use this code</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="downstream-rnaseq.html#more-details">More details</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="downstream-rnaseq.html#more-details">More details</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Detailed documentation of RNA-Seq downstream</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conda.html">conda and conda envs in <cite>lcdb-wf</cite></a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
@@ -67,12 +68,10 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="toc.html">Documentation overview</a><ul>
-  <li><a href="workflows.html">Overview of workflows</a><ul>
   <li><a href="rnaseq.html">RNA-seq workflow</a><ul>
   <li><a href="downstream-rnaseq.html">RNA-Seq downstream analysis</a><ul>
       <li>Previous: <a href="downstream-rnaseq.html" title="previous chapter">RNA-Seq downstream analysis</a></li>
       <li>Next: <a href="chipseq.html" title="next chapter">ChIP-seq workflow</a></li>
-  </ul></li>
   </ul></li>
   </ul></li>
   </ul></li>
@@ -207,13 +206,13 @@ refers to these objects by their name in the list.</p>
 <p><strong>The</strong> <code class="docutils literal notranslate"><span class="pre">results</span></code> <strong>chunk below expects such a list.</strong></p>
 <p>The simplest example is the following where we create a single <code class="docutils literal notranslate"><span class="pre">dds</span></code> and put
 it into a list.</p>
-<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">dds</span> <span class="o">&lt;-</span> <span class="nf">DESeqFromCombinedFeatureCounts</span><span class="p">(</span>
-   <span class="s">&#39;../data/rnaseq_aggregation/featurecounts.txt&#39;</span><span class="p">,</span>
-   <span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span><span class="p">,</span>
-   <span class="n">design</span><span class="o">=~</span><span class="n">group</span><span class="p">)</span>
-<span class="n">dds</span> <span class="o">&lt;-</span> <span class="nf">DESeq</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">)</span>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">dds</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">DESeqFromCombinedFeatureCounts</span><span class="p">(</span>
+<span class="w">   </span><span class="s">&#39;../data/rnaseq_aggregation/featurecounts.txt&#39;</span><span class="p">,</span>
+<span class="w">   </span><span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span><span class="p">,</span>
+<span class="w">   </span><span class="n">design</span><span class="o">=~</span><span class="n">group</span><span class="p">)</span>
+<span class="n">dds</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">DESeq</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span><span class="w"> </span><span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">)</span>
 
-<span class="n">dds.list</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span><span class="n">main</span><span class="o">=</span><span class="n">dds</span><span class="p">)</span>
+<span class="n">dds.list</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="n">main</span><span class="o">=</span><span class="n">dds</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Now imagine a case where we want to remove a replicate that we think is an
@@ -223,42 +222,42 @@ look like this:</p>
 <div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># The long way...</span>
 <span class="c1">#</span>
 <span class="c1"># First object with all replicates</span>
-<span class="n">dds1</span> <span class="o">&lt;-</span> <span class="nf">DESeqFromCombinedFeatureCounts</span><span class="p">(</span>
-   <span class="s">&#39;../data/rnaseq_aggregation/featurecounts.txt&#39;</span><span class="p">,</span>
-   <span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span><span class="p">,</span>
-   <span class="n">design</span><span class="o">=~</span><span class="n">group</span><span class="p">)</span>
-<span class="n">dds1</span> <span class="o">&lt;-</span> <span class="nf">collapseReplicates</span><span class="p">(</span><span class="n">dds1</span><span class="p">,</span> <span class="s">&#39;biorep&#39;</span><span class="p">)</span>
-<span class="n">dds1</span> <span class="o">&lt;-</span> <span class="nf">DESeq</span><span class="p">(</span><span class="n">dds1</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">)</span>
+<span class="n">dds1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">DESeqFromCombinedFeatureCounts</span><span class="p">(</span>
+<span class="w">   </span><span class="s">&#39;../data/rnaseq_aggregation/featurecounts.txt&#39;</span><span class="p">,</span>
+<span class="w">   </span><span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span><span class="p">,</span>
+<span class="w">   </span><span class="n">design</span><span class="o">=~</span><span class="n">group</span><span class="p">)</span>
+<span class="n">dds1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">collapseReplicates</span><span class="p">(</span><span class="n">dds1</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;biorep&#39;</span><span class="p">)</span>
+<span class="n">dds1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">DESeq</span><span class="p">(</span><span class="n">dds1</span><span class="p">,</span><span class="w"> </span><span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">)</span>
 
 <span class="c1"># Similar to above, but remove replicate 4</span>
-<span class="n">dds2</span> <span class="o">&lt;-</span> <span class="nf">DESeqFromCombinedFeatureCounts</span><span class="p">(</span>
-   <span class="s">&#39;../data/rnaseq_aggregation/featurecounts.txt&#39;</span><span class="p">,</span>
-   <span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span> <span class="o">%&gt;%</span> <span class="nf">filter</span><span class="p">(</span><span class="n">replicate</span><span class="o">!=</span><span class="s">&#39;rep4&#39;</span><span class="p">),</span>
-   <span class="n">design</span><span class="o">=~</span><span class="n">group</span><span class="p">,</span>
-   <span class="c1"># need subset_counts=TRUE if we want to automatically</span>
-   <span class="c1"># subset the featureCounts to match the filtered colData</span>
-   <span class="c1"># we provided.</span>
-   <span class="n">subset_counts</span><span class="o">=</span><span class="kc">TRUE</span>
-   <span class="p">)</span>
-<span class="n">dds2</span> <span class="o">&lt;-</span> <span class="nf">collapseReplicates</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="s">&#39;biorep&#39;</span><span class="p">)</span>
-<span class="n">dds2</span> <span class="o">&lt;-</span> <span class="nf">DESeq</span><span class="p">(</span><span class="n">dds2</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">)</span>
+<span class="n">dds2</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">DESeqFromCombinedFeatureCounts</span><span class="p">(</span>
+<span class="w">   </span><span class="s">&#39;../data/rnaseq_aggregation/featurecounts.txt&#39;</span><span class="p">,</span>
+<span class="w">   </span><span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="n">replicate</span><span class="o">!=</span><span class="s">&#39;rep4&#39;</span><span class="p">),</span>
+<span class="w">   </span><span class="n">design</span><span class="o">=~</span><span class="n">group</span><span class="p">,</span>
+<span class="w">   </span><span class="c1"># need subset_counts=TRUE if we want to automatically</span>
+<span class="w">   </span><span class="c1"># subset the featureCounts to match the filtered colData</span>
+<span class="w">   </span><span class="c1"># we provided.</span>
+<span class="w">   </span><span class="n">subset_counts</span><span class="o">=</span><span class="kc">TRUE</span>
+<span class="w">   </span><span class="p">)</span>
+<span class="n">dds2</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">collapseReplicates</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;biorep&#39;</span><span class="p">)</span>
+<span class="n">dds2</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">DESeq</span><span class="p">(</span><span class="n">dds2</span><span class="p">,</span><span class="w"> </span><span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Based on our experience, as we add more <code class="docutils literal notranslate"><span class="pre">dds</span></code> objects the code gets more
 error-prone. So for more complex use-cases, we have a function
 <code class="docutils literal notranslate"><span class="pre">lcdbwf::make_dds</span></code>.</p>
 <p>Here is how the code above would look using this method:</p>
-<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">lst</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">lst</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span>
 
-   <span class="n">main</span><span class="o">=</span><span class="nf">list</span><span class="p">(</span><span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span><span class="p">,</span> <span class="n">design</span><span class="o">=~</span><span class="n">group</span><span class="p">),</span>
+<span class="w">   </span><span class="n">main</span><span class="o">=</span><span class="nf">list</span><span class="p">(</span><span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span><span class="p">,</span><span class="w"> </span><span class="n">design</span><span class="o">=~</span><span class="n">group</span><span class="p">),</span>
 
-   <span class="n">no.rep.4</span><span class="o">=</span><span class="nf">list</span><span class="p">(</span>
-      <span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span> <span class="o">%&gt;%</span> <span class="nf">filter</span><span class="p">(</span><span class="n">replicate</span><span class="o">!=</span><span class="s">&#39;rep4&#39;</span><span class="p">),</span>
-      <span class="n">design</span><span class="o">=~</span><span class="n">group</span><span class="p">,</span>
-      <span class="n">subset.counts</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">))</span>
+<span class="w">   </span><span class="n">no.rep.4</span><span class="o">=</span><span class="nf">list</span><span class="p">(</span>
+<span class="w">      </span><span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="n">replicate</span><span class="o">!=</span><span class="s">&#39;rep4&#39;</span><span class="p">),</span>
+<span class="w">      </span><span class="n">design</span><span class="o">=~</span><span class="n">group</span><span class="p">,</span>
+<span class="w">      </span><span class="n">subset.counts</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">))</span>
 <span class="p">)</span>
 
-<span class="n">dds.list</span> <span class="o">&lt;-</span> <span class="nf">map</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">lcdbwf</span><span class="o">::</span><span class="n">make_dds</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">config</span><span class="o">$</span><span class="n">parallel</span><span class="o">$</span><span class="n">parallel</span><span class="p">)</span>
+<span class="n">dds.list</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">map</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span><span class="w"> </span><span class="n">lcdbwf</span><span class="o">::</span><span class="n">make_dds</span><span class="p">,</span><span class="w"> </span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span><span class="w"> </span><span class="n">parallel</span><span class="o">=</span><span class="n">config</span><span class="o">$</span><span class="n">parallel</span><span class="o">$</span><span class="n">parallel</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>That is, first we create a list of lists (<code class="docutils literal notranslate"><span class="pre">lst</span></code>), and then we used <code class="docutils literal notranslate"><span class="pre">map()</span></code> to apply
@@ -317,19 +316,19 @@ Note that the index string cannot contain “_”.</p></li>
 here because that will be come meaningful in a moment. They are shown as
 comments here just to get the syntax highlighting to look OK.</p>
 <div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># ```{r results_01, dependson=&#39;dds_list&#39;, cache=TRUE}</span>
-<span class="n">contr_1_ko.vs.wt</span> <span class="o">&lt;-</span> <span class="n">lcdbwf</span><span class="o">::</span><span class="nf">make_results</span><span class="p">(</span>
-  <span class="n">dds_name</span><span class="o">=</span><span class="s">&#39;main&#39;</span><span class="p">,</span>
-  <span class="n">label</span><span class="o">=</span><span class="s">&#39;Using all samples&#39;</span><span class="p">,</span>
-  <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="s">&#39;genotype&#39;</span><span class="p">,</span> <span class="s">&#39;KO&#39;</span><span class="p">,</span> <span class="s">&#39;WT&#39;</span><span class="p">)</span>
+<span class="n">contr_1_ko.vs.wt</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">lcdbwf</span><span class="o">::</span><span class="nf">make_results</span><span class="p">(</span>
+<span class="w">  </span><span class="n">dds_name</span><span class="o">=</span><span class="s">&#39;main&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">label</span><span class="o">=</span><span class="s">&#39;Using all samples&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="s">&#39;genotype&#39;</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;KO&#39;</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;WT&#39;</span><span class="p">)</span>
 <span class="p">)</span>
 <span class="c1"># ```</span>
 
 <span class="c1"># ```{r results_02, dependson=&#39;dds_list&#39;, cache=TRUE}</span>
-<span class="n">contr_2a_no.rep.4</span> <span class="o">&lt;-</span> <span class="n">lcdbwf</span><span class="o">::</span><span class="nf">make_results</span><span class="p">(</span>
-  <span class="n">dds_name</span><span class="o">=</span><span class="s">&#39;no.rep.4&#39;</span><span class="p">,</span>
-  <span class="n">label</span><span class="o">=</span><span class="s">&#39;Removing replicate 4 and using ashr for shrinkage&#39;</span><span class="p">,</span>
-  <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="s">&#39;genotype&#39;</span><span class="p">,</span> <span class="s">&#39;KO&#39;</span><span class="p">,</span> <span class="s">&#39;WT&#39;</span><span class="p">),</span>
-  <span class="n">type</span><span class="o">=</span><span class="s">&#39;ashr&#39;</span>
+<span class="n">contr_2a_no.rep.4</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">lcdbwf</span><span class="o">::</span><span class="nf">make_results</span><span class="p">(</span>
+<span class="w">  </span><span class="n">dds_name</span><span class="o">=</span><span class="s">&#39;no.rep.4&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">label</span><span class="o">=</span><span class="s">&#39;Removing replicate 4 and using ashr for shrinkage&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="s">&#39;genotype&#39;</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;KO&#39;</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;WT&#39;</span><span class="p">),</span>
+<span class="w">  </span><span class="n">type</span><span class="o">=</span><span class="s">&#39;ashr&#39;</span>
 <span class="p">)</span>
 <span class="c1"># ```</span>
 </pre></div>
@@ -401,7 +400,7 @@ object was created with the design <code class="docutils literal notranslate"><s
 <li><p>name of the numerator for the fold change</p></li>
 <li><p>the name of the denominator for the fold change. E.g.,</p></li>
 </ul>
-<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">res</span> <span class="o">&lt;-</span> <span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="s">&#39;group&#39;</span><span class="p">,</span> <span class="s">&#39;treatment&#39;</span><span class="p">,</span> <span class="s">&#39;control&#39;</span><span class="p">)</span>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">res</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span><span class="w"> </span><span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="s">&#39;group&#39;</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;treatment&#39;</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;control&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>That is, <strong>the control must be last</strong>.</p>
@@ -413,7 +412,7 @@ object was created with the design <code class="docutils literal notranslate"><s
 <div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="nf">resultsNames</span><span class="p">(</span><span class="n">dds</span><span class="p">)</span>
 <span class="c1"># [1] &quot;Intercept&quot;  &quot;group_treatment_vs_control&quot;</span>
 
-<span class="n">res</span> <span class="o">&lt;-</span> <span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;group_treatment_vs_control&#39;</span><span class="p">)</span>
+<span class="n">res</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="o">=</span><span class="s">&#39;group_treatment_vs_control&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>
@@ -423,7 +422,7 @@ in multi-factor designs with a grouping variable.</p>
 <div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="nf">resultsNames</span><span class="p">(</span><span class="n">dds</span><span class="p">)</span>
 <span class="c1"># [1] &quot;Intercept&quot;  &quot;group_treatment_vs_control&quot;</span>
 
-<span class="n">res</span> <span class="o">&lt;-</span> <span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">0</span><span class="p">,</span> <span class="m">1</span><span class="p">))</span>
+<span class="n">res</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span><span class="w"> </span><span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">))</span>
 </pre></div>
 </div>
 </li>
@@ -450,13 +449,13 @@ group):</p>
 </div>
 <p>We can make arbitrary comparisons by fitting an ‘intercept-less’ model, e.g.
 <code class="docutils literal notranslate"><span class="pre">design=~group</span> <span class="pre">+</span> <span class="pre">0</span></code>, and numeric contrast vectors:</p>
-<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">dds</span> <span class="o">&lt;-</span> <span class="nf">DESeqDataSetFromCombinedFeatureCounts</span><span class="p">(</span>
-    <span class="s">&#39;../data/rnaseq_aggregation/featurecounts.txt&#39;</span><span class="p">,</span>
-    <span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span><span class="p">,</span>
-    <span class="c1"># NOTE: the design is now different</span>
-    <span class="n">design</span><span class="o">=~</span><span class="n">group</span> <span class="o">+</span> <span class="m">0</span>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">dds</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">DESeqDataSetFromCombinedFeatureCounts</span><span class="p">(</span>
+<span class="w">    </span><span class="s">&#39;../data/rnaseq_aggregation/featurecounts.txt&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="n">sampletable</span><span class="o">=</span><span class="n">colData</span><span class="p">,</span>
+<span class="w">    </span><span class="c1"># NOTE: the design is now different</span>
+<span class="w">    </span><span class="n">design</span><span class="o">=~</span><span class="n">group</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">0</span>
 <span class="p">)</span>
-<span class="n">dds</span> <span class="o">&lt;-</span> <span class="nf">DESeq</span><span class="p">(</span><span class="n">dds</span><span class="p">)</span>
+<span class="n">dds</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">DESeq</span><span class="p">(</span><span class="n">dds</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Check <code class="docutils literal notranslate"><span class="pre">resultsNames</span></code>:</p>
@@ -471,21 +470,21 @@ coefficients are indicated above the resultsNames to make it easier to see.</p>
 <div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1">#     1          -1         0           0</span>
 <span class="c1"># &quot;groupIA&quot;  &quot;groupIB&quot;  &quot;groupIIA&quot;  &quot;groupIIB&quot;</span>
 
-<span class="n">res</span> <span class="o">&lt;-</span> <span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">-1</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="m">0</span><span class="p">)</span>
+<span class="n">res</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span><span class="w"> </span><span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">-1</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Effect of genotype B (that is, disregard information about condition):</p>
 <div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1">#     1          -1         1           -1</span>
 <span class="c1"># &quot;groupIA&quot;  &quot;groupIB&quot;  &quot;groupIIA&quot;  &quot;groupIIB&quot;</span>
 
-<span class="n">res</span> <span class="o">&lt;-</span> <span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">-1</span><span class="p">,</span> <span class="m">1</span><span class="p">,</span> <span class="m">-1</span><span class="p">)</span>
+<span class="n">res</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span><span class="w"> </span><span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">-1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">-1</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Effect of condition II (that is, disregard information about genotype):</p>
 <div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1">#     1           1         -1          -1</span>
 <span class="c1"># &quot;groupIA&quot;  &quot;groupIB&quot;  &quot;groupIIA&quot;  &quot;groupIIB&quot;</span>
 
-<span class="n">res</span> <span class="o">&lt;-</span> <span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">1</span><span class="p">,</span> <span class="m">-1</span><span class="p">,</span> <span class="m">-1</span><span class="p">)</span>
+<span class="n">res</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span><span class="w"> </span><span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">-1</span><span class="p">,</span><span class="w"> </span><span class="m">-1</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Interaction term, that is, (IA vs IB) vs (IIA vs IIB). This is effectively <code class="docutils literal notranslate"><span class="pre">(IA</span>
@@ -493,7 +492,7 @@ coefficients are indicated above the resultsNames to make it easier to see.</p>
 <div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1">#     1          -1         -1          1</span>
 <span class="c1"># &quot;groupIA&quot;  &quot;groupIB&quot;  &quot;groupIIA&quot;  &quot;groupIIB&quot;</span>
 
-<span class="n">res</span> <span class="o">&lt;-</span> <span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span> <span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">-1</span><span class="p">,</span> <span class="m">-1</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
+<span class="n">res</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">results</span><span class="p">(</span><span class="n">dds</span><span class="p">,</span><span class="w"> </span><span class="n">contrast</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">-1</span><span class="p">,</span><span class="w"> </span><span class="m">-1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -569,8 +568,8 @@ gene patterns, functional enrichment, and Shiny apps.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="_sources/rnaseq-rmd.rst.txt"

@@ -10,15 +10,12 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="References config" href="references-config.html" />
-    <link rel="prev" title="Configuration details" href="config.html" />
+    <link rel="prev" title="Configuration" href="config.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -46,10 +43,15 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="config.html">Configuration details</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="config.html#general-configuration">General configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="config.html">Configuration</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="config.html#general-configuration">General configuration</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Config YAML</a></li>
+<li class="toctree-l3"><a class="reference internal" href="references-config.html">References config</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sampletable.html">Sample tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="patterns-targets.html">Patterns and targets</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="config.html#running-on-a-cluster">Running on a cluster</a></li>
 </ul>
 </li>
@@ -58,6 +60,8 @@
 <li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conda.html">conda and conda envs in <cite>lcdb-wf</cite></a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
@@ -67,8 +71,8 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="toc.html">Documentation overview</a><ul>
-  <li><a href="config.html">Configuration details</a><ul>
-      <li>Previous: <a href="config.html" title="previous chapter">Configuration details</a></li>
+  <li><a href="config.html">Configuration</a><ul>
+      <li>Previous: <a href="config.html" title="previous chapter">Configuration</a></li>
       <li>Next: <a href="references-config.html" title="next chapter">References config</a></li>
   </ul></li>
   </ul></li>
@@ -202,49 +206,49 @@ provided later; this is just to provide some context:</p>
 <h3>RNA-seq<a class="headerlink" href="#rna-seq" title="Permalink to this heading">¶</a></h3>
 <p>The config file for RNA-seq is expected to be in
 <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq/config/config.yaml</span></code>:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">references_dir</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/data/references&quot;</span><span class="w"></span>
-<span class="nt">sampletable</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;config/sampletable.tsv&quot;</span><span class="w"></span>
-<span class="nt">organism</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;human&#39;</span><span class="w"></span>
-<span class="nt">aligner</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;gencode-v25&#39;</span><span class="w"></span>
-<span class="w">  </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;hisat2&#39;</span><span class="w"></span>
-<span class="nt">rrna</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;rRNA&#39;</span><span class="w"></span>
-<span class="w">  </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;bowtie2&#39;</span><span class="w"></span>
-<span class="nt">gtf</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;gencode-v25&#39;</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">references_dir</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/data/references&quot;</span>
+<span class="nt">sampletable</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;config/sampletable.tsv&quot;</span>
+<span class="nt">organism</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;human&#39;</span>
+<span class="nt">aligner</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;gencode-v25&#39;</span>
+<span class="w">  </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;hisat2&#39;</span>
+<span class="nt">rrna</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;rRNA&#39;</span>
+<span class="w">  </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;bowtie2&#39;</span>
+<span class="nt">gtf</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;gencode-v25&#39;</span>
 
-<span class="nt">fastq_screen</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Human</span><span class="w"></span>
-<span class="w">    </span><span class="nt">organism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">human</span><span class="w"></span>
-<span class="w">    </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gencode-v25</span><span class="w"></span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rRNA</span><span class="w"></span>
-<span class="w">    </span><span class="nt">organism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">human</span><span class="w"></span>
-<span class="w">    </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rRNA</span><span class="w"></span>
+<span class="nt">fastq_screen</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Human</span>
+<span class="w">    </span><span class="nt">organism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">human</span>
+<span class="w">    </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gencode-v25</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rRNA</span>
+<span class="w">    </span><span class="nt">organism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">human</span>
+<span class="w">    </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rRNA</span>
 
-<span class="c1"># Portions have been omitted from &quot;references&quot; section below for</span><span class="w"></span>
-<span class="c1"># simplicity; see references config section for details.</span><span class="w"></span>
+<span class="c1"># Portions have been omitted from &quot;references&quot; section below for</span>
+<span class="c1"># simplicity; see references config section for details.</span>
 
-<span class="nt">references</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">human</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">gencode-v25</span><span class="p">:</span><span class="w"></span>
-<span class="w">      </span><span class="nt">genome</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;ftp://.../genome.fa.gz&#39;</span><span class="w"></span>
-<span class="w">        </span><span class="nt">indexes</span><span class="p">:</span><span class="w"></span>
-<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;hisat2&#39;</span><span class="w"></span>
-<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;bowtie2&#39;</span><span class="w"></span>
-<span class="w">      </span><span class="nt">annotation</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;ftp://.../annotation.gtf.gz&#39;</span><span class="w"></span>
+<span class="nt">references</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">human</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">gencode-v25</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">genome</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;ftp://.../genome.fa.gz&#39;</span>
+<span class="w">        </span><span class="nt">indexes</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;hisat2&#39;</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;bowtie2&#39;</span>
+<span class="w">      </span><span class="nt">annotation</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;ftp://.../annotation.gtf.gz&#39;</span>
 
-<span class="w">      </span><span class="nt">transcriptome</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="nt">indexes</span><span class="p">:</span><span class="w"></span>
-<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;salmon&#39;</span><span class="w"></span>
+<span class="w">      </span><span class="nt">transcriptome</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">indexes</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;salmon&#39;</span>
 
-<span class="w">    </span><span class="nt">rRNA</span><span class="p">:</span><span class="w"></span>
-<span class="w">      </span><span class="nt">genome</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;https://...&#39;</span><span class="w"></span>
-<span class="w">        </span><span class="nt">indexes</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;bowtie2&#39;</span><span class="w"></span>
+<span class="w">    </span><span class="nt">rRNA</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">genome</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;https://...&#39;</span>
+<span class="w">        </span><span class="nt">indexes</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;bowtie2&#39;</span>
 </pre></div>
 </div>
 </section>
@@ -257,86 +261,86 @@ provided later; this is just to provide some context:</p>
 <li><p>ChIP-seq has no <code class="docutils literal notranslate"><span class="pre">annotation</span></code> or <code class="docutils literal notranslate"><span class="pre">rrna</span></code> fields</p></li>
 <li><p>ChIP-seq has an addition section <code class="docutils literal notranslate"><span class="pre">chipseq:</span> <span class="pre">peak_calling:</span></code></p></li>
 </ul>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">sampletable</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;config/sampletable.tsv&#39;</span><span class="w"></span>
-<span class="nt">organism</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;dmel&#39;</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">sampletable</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;config/sampletable.tsv&#39;</span>
+<span class="nt">organism</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;dmel&#39;</span>
 
-<span class="nt">aligner</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;bowtie2&#39;</span><span class="w"></span>
-<span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;test&#39;</span><span class="w"></span>
+<span class="nt">aligner</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;bowtie2&#39;</span>
+<span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;test&#39;</span>
 
-<span class="nt">chipseq</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">peak_calling</span><span class="p">:</span><span class="w"></span>
+<span class="nt">chipseq</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">peak_calling</span><span class="p">:</span>
 
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span><span class="w"></span>
-<span class="w">      </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">macs2</span><span class="w"></span>
-<span class="w">      </span><span class="nt">ip</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span><span class="w"></span>
-<span class="w">      </span><span class="nt">control</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+<span class="w">      </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">macs2</span>
+<span class="w">      </span><span class="nt">ip</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+<span class="w">      </span><span class="nt">control</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span>
 
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span><span class="w"></span>
-<span class="w">      </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">spp</span><span class="w"></span>
-<span class="w">      </span><span class="nt">ip</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span><span class="w"></span>
-<span class="w">      </span><span class="nt">control</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+<span class="w">      </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">spp</span>
+<span class="w">      </span><span class="nt">ip</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+<span class="w">      </span><span class="nt">control</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span>
 
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-pooled</span><span class="w"></span>
-<span class="w">      </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">macs2</span><span class="w"></span>
-<span class="w">      </span><span class="nt">ip</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-1</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-2</span><span class="w"></span>
-<span class="w">      </span><span class="nt">control</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-wingdisc-1</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-wingdisc-2</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-pooled</span>
+<span class="w">      </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">macs2</span>
+<span class="w">      </span><span class="nt">ip</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-1</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-2</span>
+<span class="w">      </span><span class="nt">control</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-wingdisc-1</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-wingdisc-2</span>
 
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-pooled</span><span class="w"></span>
-<span class="w">      </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">spp</span><span class="w"></span>
-<span class="w">      </span><span class="nt">ip</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-1</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-2</span><span class="w"></span>
-<span class="w">      </span><span class="nt">control</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-wingdisc-1</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-wingdisc-2</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-pooled</span>
+<span class="w">      </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">spp</span>
+<span class="w">      </span><span class="nt">ip</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-1</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-2</span>
+<span class="w">      </span><span class="nt">control</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-wingdisc-1</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-wingdisc-2</span>
 
-<span class="nt">fastq_screen</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Human</span><span class="w"></span>
-<span class="w">    </span><span class="nt">organism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">human</span><span class="w"></span>
-<span class="w">    </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gencode-v25</span><span class="w"></span>
+<span class="nt">fastq_screen</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Human</span>
+<span class="w">    </span><span class="nt">organism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">human</span>
+<span class="w">    </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gencode-v25</span>
 
-<span class="nt">merged_bigwigs</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">input-wingdisc</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-wingdisc-1</span><span class="w"></span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-wingdisc-2</span><span class="w"></span>
-<span class="w">  </span><span class="nt">gaf-wingdisc</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-1</span><span class="w"></span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-2</span><span class="w"></span>
-<span class="w">  </span><span class="nt">gaf-embryo</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span><span class="w"></span>
+<span class="nt">merged_bigwigs</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">input-wingdisc</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-wingdisc-1</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-wingdisc-2</span>
+<span class="w">  </span><span class="nt">gaf-wingdisc</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-1</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-wingdisc-2</span>
+<span class="w">  </span><span class="nt">gaf-embryo</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
 
 
-<span class="c1"># Portions have been omitted from &quot;references&quot; section below for</span><span class="w"></span>
-<span class="c1"># simplicity; see references config section for details.</span><span class="w"></span>
+<span class="c1"># Portions have been omitted from &quot;references&quot; section below for</span>
+<span class="c1"># simplicity; see references config section for details.</span>
 
-<span class="nt">references</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">human</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">gencode-v25</span><span class="p">:</span><span class="w"></span>
-<span class="w">      </span><span class="nt">genome</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;ftp://.../genome.fa.gz&#39;</span><span class="w"></span>
-<span class="w">        </span><span class="nt">indexes</span><span class="p">:</span><span class="w"></span>
-<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;hisat2&#39;</span><span class="w"></span>
-<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;bowtie2&#39;</span><span class="w"></span>
-<span class="w">      </span><span class="nt">annotation</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;ftp://.../annotation.gtf.gz&#39;</span><span class="w"></span>
+<span class="nt">references</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">human</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">gencode-v25</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">genome</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;ftp://.../genome.fa.gz&#39;</span>
+<span class="w">        </span><span class="nt">indexes</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;hisat2&#39;</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;bowtie2&#39;</span>
+<span class="w">      </span><span class="nt">annotation</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;ftp://.../annotation.gtf.gz&#39;</span>
 
-<span class="w">  </span><span class="nt">fly</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">test</span><span class="p">:</span><span class="w"></span>
-<span class="w">      </span><span class="nt">genome</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa&quot;</span><span class="w"></span>
-<span class="w">        </span><span class="nt">postprocess</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;lib.common.gzipped&#39;</span><span class="w"></span>
-<span class="w">        </span><span class="nt">indexes</span><span class="p">:</span><span class="w"></span>
-<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;bowtie2&#39;</span><span class="w"></span>
-<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;hisat2&#39;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">fly</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">test</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">genome</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa&quot;</span>
+<span class="w">        </span><span class="nt">postprocess</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;lib.common.gzipped&#39;</span>
+<span class="w">        </span><span class="nt">indexes</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;bowtie2&#39;</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;hisat2&#39;</span>
 </pre></div>
 </div>
 </section>
@@ -388,7 +392,7 @@ an existing references directory to avoid having to rebuild references.</p>
 FASTQ files. The path of this filename is relative to the Snakefile. See
 <a class="reference internal" href="sampletable.html#sampletable"><span class="std std-ref">Sample tables</span></a> for more info on the expected contents of the file.</p>
 <p>Example:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">sampletable</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;config/sampletable.tsv&quot;</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">sampletable</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;config/sampletable.tsv&quot;</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -401,7 +405,7 @@ will be used for the analysis. In RNA-seq example above, “human” is the
 only organism configured. In the ChIP-seq example, there is “human” as well
 as “fly”.</p>
 <p>Example:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">organism</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;human&quot;</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">organism</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;human&quot;</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -418,9 +422,9 @@ be built. For RNA-seq we would likely choose “hisat2”; for ChIP-seq
 “bowtie2”.</p>
 <p>Currently-configured options are <code class="docutils literal notranslate"><span class="pre">hisat2</span></code>, <code class="docutils literal notranslate"><span class="pre">bowtie2</span></code>, and <code class="docutils literal notranslate"><span class="pre">star</span></code>.</p>
 <p>Example:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">aligner</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;gencode-v25&quot;</span><span class="w"></span>
-<span class="w">  </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;hisat2&quot;</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">aligner</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;gencode-v25&quot;</span>
+<span class="w">  </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;hisat2&quot;</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -455,18 +459,18 @@ various rule to set the parameters correctly. For example,
 </tbody>
 </table>
 <p>Example:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">stranded</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;fr-firststrand&quot;</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">stranded</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;fr-firststrand&quot;</span>
 </pre></div>
 </div>
 <p>Rules that require information about strand will check the config file at
 run time and raise an error if this field doesn’t exist.</p>
 <p>If you don’t know the strandedness of the library, run the Snakefile in
 such a way to only run the <code class="docutils literal notranslate"><span class="pre">strand_check</span></code> rule:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake -j <span class="m">2</span> strand_check
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake<span class="w"> </span>-j<span class="w"> </span><span class="m">2</span><span class="w"> </span>strand_check
 </pre></div>
 </div>
 <p>Or, when using the Slurm wrapper on cluster,</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sbatch ../../include/WRAPPER_SLURM strand_check
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sbatch<span class="w"> </span>../../include/WRAPPER_SLURM<span class="w"> </span>strand_check
 </pre></div>
 </div>
 <p>When complete, there will be a MultiQC HTML file in the <code class="docutils literal notranslate"><span class="pre">strand_check/</span></code>
@@ -498,13 +502,13 @@ dictionary has the keys:</p>
 </div></blockquote>
 <p>Each entry in the list must have a Bowtie2 index configured to be built.</p>
 <p>Example:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">fastq_screen</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Human</span><span class="w"></span>
-<span class="w">    </span><span class="nt">organism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">human</span><span class="w"></span>
-<span class="w">    </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gencode-v25</span><span class="w"></span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rRNA</span><span class="w"></span>
-<span class="w">    </span><span class="nt">organism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">human</span><span class="w"></span>
-<span class="w">    </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rRNA</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">fastq_screen</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Human</span>
+<span class="w">    </span><span class="nt">organism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">human</span>
+<span class="w">    </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gencode-v25</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rRNA</span>
+<span class="w">    </span><span class="nt">organism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">human</span>
+<span class="w">    </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rRNA</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -519,14 +523,14 @@ the human gencode-v25 reference, and the human rRNA reference.</p>
 Its format differs depending on RNA-seq or ChIP-seq, due to how strands are
 handled in those workflows.</p>
 <p>Here is an RNA-seq example:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">merged_bigwigs</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">arbitrary_label_to_use</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">pos</span><span class="p">:</span><span class="w"></span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;sample1&#39;</span><span class="w"></span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;sample2&#39;</span><span class="w"></span>
-<span class="w">    </span><span class="nt">neg</span><span class="p">:</span><span class="w"></span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;sample1&#39;</span><span class="w"></span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;sample2&#39;</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">merged_bigwigs</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">arbitrary_label_to_use</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">pos</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;sample1&#39;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;sample2&#39;</span>
+<span class="w">    </span><span class="nt">neg</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;sample1&#39;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;sample2&#39;</span>
 </pre></div>
 </div>
 <p>This will result in a single bigWig file called
@@ -540,22 +544,22 @@ table</span></a>.</p>
 gets us a single merged (averaged) track for that condition.</p>
 <p>Here’s another RNA-seq example, where we merge the samples again but keep
 the strands separate. This will result in two output bigwigs.</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">merged_bigwigs</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">merged_sense</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">sense</span><span class="p">:</span><span class="w"></span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;sample1&#39;</span><span class="w"></span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;sample2&#39;</span><span class="w"></span>
-<span class="w">  </span><span class="nt">merged_antisense</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">antisense</span><span class="p">:</span><span class="w"></span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;sample1&#39;</span><span class="w"></span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;sample</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">merged_bigwigs</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">merged_sense</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">sense</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;sample1&#39;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;sample2&#39;</span>
+<span class="w">  </span><span class="nt">merged_antisense</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">antisense</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;sample1&#39;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;sample</span>
 </pre></div>
 </div>
 <p>Here is a ChIP-seq example:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">merged_bigwigs</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">arbitrary_label_to_use</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;label1&#39;</span><span class="w"></span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;label2&#39;</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">merged_bigwigs</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">arbitrary_label_to_use</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;label1&#39;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;label2&#39;</span>
 </pre></div>
 </div>
 <p>This will result in a single bigWig file called
@@ -578,9 +582,9 @@ Similar to the <code class="docutils literal notranslate"><span class="pre">alig
 key. The specified index must have been configured to be built for the
 specified tag. It uses the already configured <code class="docutils literal notranslate"><span class="pre">organism</span></code>.</p>
 <p>Example:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">rrna</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;rRNA&#39;</span><span class="w"></span>
-<span class="w">  </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;bowtie2&#39;</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">rrna</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;rRNA&#39;</span>
+<span class="w">  </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;bowtie2&#39;</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -593,8 +597,8 @@ The tag must have had a <code class="docutils literal notranslate"><span class="
 <a class="reference internal" href="references-config.html#references-config"><span class="std std-ref">References config</span></a> for details.</p>
 <p>The organism is inherited from the <code class="docutils literal notranslate"><span class="pre">organism:</span></code> field.</p>
 <p>Example:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">gtf</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;gencode-v25&quot;</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">gtf</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;gencode-v25&quot;</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -634,15 +638,15 @@ assessing the peak-calling performance.</p>
 a single peak-calling run using the <cite>macs2</cite> algorithm. Note that the
 <code class="docutils literal notranslate"><span class="pre">ip:</span></code> and <code class="docutils literal notranslate"><span class="pre">control:</span></code> keys are lists of <strong>labels</strong> from the ChIP-seq
 sample table’s <code class="docutils literal notranslate"><span class="pre">label</span></code> column, <strong>not sample IDs</strong> from the first column.</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">chipseq</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">peak_calling</span><span class="p">:</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">chipseq</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">peak_calling</span><span class="p">:</span>
 
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span><span class="w"></span>
-<span class="w">      </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">macs2</span><span class="w"></span>
-<span class="w">      </span><span class="nt">ip</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span><span class="w"></span>
-<span class="w">      </span><span class="nt">control</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+<span class="w">      </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">macs2</span>
+<span class="w">      </span><span class="nt">ip</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+<span class="w">      </span><span class="nt">control</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span>
 </pre></div>
 </div>
 <p>The above peak-calling config will result in a file
@@ -650,16 +654,16 @@ sample table’s <code class="docutils literal notranslate"><span class="pre">la
 defined in <code class="docutils literal notranslate"><span class="pre">chipseq_patterns.yaml</span></code> if you need to change it).</p>
 <p>We can specify additional command-line arguments that are passed verbatim
 to <cite>macs2</cite> with the <code class="docutils literal notranslate"><span class="pre">extra:</span></code> section, for example:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">chipseq</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">peak_calling</span><span class="p">:</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">chipseq</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">peak_calling</span><span class="p">:</span>
 
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span><span class="w"></span>
-<span class="w">      </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">macs2</span><span class="w"></span>
-<span class="w">      </span><span class="nt">ip</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span><span class="w"></span>
-<span class="w">      </span><span class="nt">control</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span><span class="w"></span>
-<span class="w">      </span><span class="nt">extra</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;--nomodel</span><span class="nv"> </span><span class="s">--extsize</span><span class="nv"> </span><span class="s">147&#39;</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+<span class="w">      </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">macs2</span>
+<span class="w">      </span><span class="nt">ip</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+<span class="w">      </span><span class="nt">control</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span>
+<span class="w">      </span><span class="nt">extra</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;--nomodel</span><span class="nv"> </span><span class="s">--extsize</span><span class="nv"> </span><span class="s">147&#39;</span>
 </pre></div>
 </div>
 <p><cite>macs2</cite> supports multiple IP and input files, which internally are merged
@@ -667,26 +671,26 @@ by <cite>macs2</cite>. We can supply multiple IP and input labels for biological
 replicates to get a set of peaks called on pooled samples. Note that we
 give it a different label so it doesn’t overwrite the other peak-calling
 run we already have configured.</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">chipseq</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">peak_calling</span><span class="p">:</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">chipseq</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">peak_calling</span><span class="p">:</span>
 
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span><span class="w"></span>
-<span class="w">      </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">macs2</span><span class="w"></span>
-<span class="w">      </span><span class="nt">ip</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span><span class="w"></span>
-<span class="w">      </span><span class="nt">control</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span><span class="w"></span>
-<span class="w">      </span><span class="nt">extra</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;--nomodel</span><span class="nv"> </span><span class="s">--extsize</span><span class="nv"> </span><span class="s">147&#39;</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+<span class="w">      </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">macs2</span>
+<span class="w">      </span><span class="nt">ip</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+<span class="w">      </span><span class="nt">control</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span>
+<span class="w">      </span><span class="nt">extra</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;--nomodel</span><span class="nv"> </span><span class="s">--extsize</span><span class="nv"> </span><span class="s">147&#39;</span>
 
 
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-pooled</span><span class="w"></span>
-<span class="w">      </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">macs2</span><span class="w"></span>
-<span class="w">      </span><span class="nt">ip</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-2</span><span class="w"></span>
-<span class="w">      </span><span class="nt">control</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span><span class="w"></span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-embryo-2</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-pooled</span>
+<span class="w">      </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">macs2</span>
+<span class="w">      </span><span class="nt">ip</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-1</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gaf-embryo-2</span>
+<span class="w">      </span><span class="nt">control</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-embryo-1</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">input-embryo-2</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -707,8 +711,8 @@ run we already have configured.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="_sources/config-yaml.rst.txt"

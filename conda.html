@@ -10,15 +10,12 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Overview of workflows" href="workflows.html" />
-    <link rel="prev" title="Testing the installation" href="tests.html" />
+    <link rel="next" title="Testing the installation" href="tests.html" />
+    <link rel="prev" title="Integrative workflows" href="integrative.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -46,24 +43,22 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="tests.html">Testing the installation</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="tests.html#create-conda-envs">Create conda envs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tests.html#activate-the-main-env">Activate the main env</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tests.html#download-example-data">Download example data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tests.html#a-note-about-test-settings">A note about test settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tests.html#run-the-rna-seq-workflow-with-example-data">Run the RNA-seq workflow with example data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tests.html#run-the-chip-seq-workflow-with-example-data">Run the ChIP-seq workflow with example data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tests.html#exhaustive-tests">Exhaustive tests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tests.html#next-steps">Next steps</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">conda and conda envs in <cite>lcdb-wf</cite></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#conda-basics">Conda basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-the-environments">Building the environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting-environments">Troubleshooting environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#conda-envs-in-lcdb-wf">Conda envs in lcdb-wf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#design-decisions">Design decisions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
@@ -73,10 +68,8 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="toc.html">Documentation overview</a><ul>
-  <li><a href="tests.html">Testing the installation</a><ul>
-      <li>Previous: <a href="tests.html" title="previous chapter">Testing the installation</a></li>
-      <li>Next: <a href="workflows.html" title="next chapter">Overview of workflows</a></li>
-  </ul></li>
+      <li>Previous: <a href="integrative.html" title="previous chapter">Integrative workflows</a></li>
+      <li>Next: <a href="tests.html" title="next chapter">Testing the installation</a></li>
   </ul></li>
 </ul>
 </div>
@@ -114,7 +107,7 @@ the <a class="reference external" href="https://bioconda.github.io">Bioconda doc
 is a drop-in replacement for conda that is faster and more robust. In fact, it
 is now the default conda front-end for Snakemake. If you don’t already have
 mamba, you can install it into your base conda environment with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install -n base -c conda-forge mamba
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-n<span class="w"> </span>base<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>mamba
 </pre></div>
 </div>
 <p>It’s recommended that you install mamba into the base env (just like conda
@@ -142,8 +135,8 @@ which has the R packages used in particular for downstream RNA-seq analysis.
 These environments will use the fully-pinned environments in <code class="docutils literal notranslate"><span class="pre">env.yml</span></code> and
 <code class="docutils literal notranslate"><span class="pre">env-r.yml</span></code>. If you’ve already deployed but didn’t use the <code class="docutils literal notranslate"><span class="pre">--build-envs</span></code>
 argument, then then the equivalent command to run in the deployed directory is:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mamba env create -p ./env --file env.yml
-mamba env create -p ./env-r --file env-r.yml
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mamba<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-p<span class="w"> </span>./env<span class="w"> </span>--file<span class="w"> </span>env.yml
+mamba<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-p<span class="w"> </span>./env-r<span class="w"> </span>--file<span class="w"> </span>env-r.yml
 </pre></div>
 </div>
 </section>
@@ -200,35 +193,47 @@ take a lot of time to build because the solver needs to figure out the entire
 dependency tree and come up with a solution that works to satisfy the entire
 set of specified requirements.</p>
 <p>We chose to split the conda environments in two: the <strong>main</strong> environment and the <strong>R</strong>
-environment (see <span class="xref std std-ref">conda-design-decisons</span>). These environments are
+environment (see <a class="reference internal" href="#conda-design-decisions"><span class="std std-ref">Design decisions</span></a>). These environments are
 described by both “strict” and “loose” files. By default we use the “strict”
 version, which pins all versions of all packages exactly. This is preferred
 wherever possible. However we also provide a “loose” version that is not
 specific about versions. The following table describes these files:</p>
-<div class="line-block">
-<div class="line">strict version | loose version                  | used for                         |</div>
-</div>
-<p>+================+================================+==================================+
-| <code class="docutils literal notranslate"><span class="pre">env.yml</span></code>    | <code class="docutils literal notranslate"><span class="pre">include/requirements.txt</span></code>   | Main Snakefiles                  |
-| <code class="docutils literal notranslate"><span class="pre">env-r.yaml</span></code> | <code class="docutils literal notranslate"><span class="pre">include/requirements-r.txt</span></code> | Downstream RNA-seq analysis in R |</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>strict version</p></th>
+<th class="head"><p>loose version</p></th>
+<th class="head"><p>used for</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">env.yml</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">include/requirements.txt</span></code></p></td>
+<td><p>Main Snakefiles</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">env-r.yaml</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">include/requirements-r.txt</span></code></p></td>
+<td><p>Downstream RNA-seq analysis in R</p></td>
+</tr>
+</tbody>
+</table>
 <p>When deploying new instances, use the <code class="docutils literal notranslate"><span class="pre">--build-envs</span></code> argument which will use
 the strict version. Or use the following commands in a deployed directory:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mamba env create -p ./env --file env.yml
-mamba env create -p ./env-r --file env-r.yml
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mamba<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-p<span class="w"> </span>./env<span class="w"> </span>--file<span class="w"> </span>env.yml
+mamba<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-p<span class="w"> </span>./env-r<span class="w"> </span>--file<span class="w"> </span>env-r.yml
 </pre></div>
 </div>
 <p>When getting ready to release a new lcdb-wf version, create a new environment
 using the loose version to prepare the env and then when tests pass, export it
 to yaml. That is:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># use loose version when preparing a new version of lcdb-wf</span>
-mamba create -p ./env --file include/requirements.txt
-mamba create -p ./env-r --file include/requirements-r.txt
+mamba<span class="w"> </span>create<span class="w"> </span>-p<span class="w"> </span>./env<span class="w"> </span>--file<span class="w"> </span>include/requirements.txt
+mamba<span class="w"> </span>create<span class="w"> </span>-p<span class="w"> </span>./env-r<span class="w"> </span>--file<span class="w"> </span>include/requirements-r.txt
 
 <span class="c1"># then do testing....</span>
 
 <span class="c1"># when tests pass, export the envs</span>
-conda env <span class="nb">export</span> -p ./env &gt; env.yml
-conda env <span class="nb">export</span> -p ./env-r &gt; env-r.yaml
+conda<span class="w"> </span>env<span class="w"> </span><span class="nb">export</span><span class="w"> </span>-p<span class="w"> </span>./env<span class="w"> </span>&gt;<span class="w"> </span>env.yml
+conda<span class="w"> </span>env<span class="w"> </span><span class="nb">export</span><span class="w"> </span>-p<span class="w"> </span>./env-r<span class="w"> </span>&gt;<span class="w"> </span>env-r.yaml
 
 <span class="c1"># commit, push, finalize release</span>
 </pre></div>
@@ -280,8 +285,8 @@ issues.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="_sources/conda.rst.txt"

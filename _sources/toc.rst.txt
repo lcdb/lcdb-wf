@@ -2,12 +2,11 @@ Table of Contents
 =================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    index
    getting-started
    guide
-   tests
    workflows
    config
    references
@@ -15,6 +14,8 @@ Table of Contents
    downstream-rnaseq
    chipseq
    integrative
+   conda
+   tests
    faqs
    changelog
    developers

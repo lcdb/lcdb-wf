@@ -42,6 +42,34 @@ Each workflow is driven by a ``Snakefile`` and is configured by plain text
 <https://en.wikipedia.org/wiki/Tab-separated_values>`_ format files (see
 :ref:`config` for much more on this).
 
+Features common to workflows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In this section, we will take a higher-level look at the features common to
+the primary analysis workflows.
+
+- The ``lib`` module is imported in each Snakefile, allowing various helper
+  functions to be used.
+
+- The config file is hard-coded to be ``config/config.yaml`` by default, but
+  a custom config can be specified at the command-line, using  ``snakemake
+  --configfile <path to other config file>``.
+
+- The config file is loaded using ``lib.common.load_config``. This function
+  resolves various paths (especially the references config section) and checks
+  to see if the config is well-formatted.
+
+- The ``c`` object: To make it easier to work with the config, a `SeqConfig`
+  object is created. It needs that parsed config file as well as the patterns
+  file (see :ref:`patterns-and-targets` for more on this). The act of creating
+  this object reads the sample table, fills in the patterns with sample names,
+  creates a reference dictionary (see ``common.references_dict``) for easy
+  access to reference files, and for ChIP-seq, also fills in the filenames for
+  the configured peak-calling runs. This object, called ``c`` for convenience,
+  can be accessed to get all sort of information -- ``c.sampletable``,
+  ``c.config``, ``c.patterns``, ``c.targets``, and ``c.refdict`` are frequently
+  used in rules throughout the Snakefiles.
+
+
 Primary analysis workflows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 The primary analysis workflows are generally used for transforming raw data
@@ -51,12 +79,11 @@ peaks or differentially bound chromatin regions.
 
 The primary analysis workflows are:
 
-.. toctree::
-   :maxdepth: 1
+   - References
+   - RNA-seq
+   - ChIP-seq
 
-   references
-   rnaseq
-   chipseq
+These are each described further in their respective sections.
 
 While the references workflow can be stand-alone, usually it is run as
 a by-product of running the RNA-seq or ChIP-seq workflows. Here we will
@@ -95,8 +122,8 @@ comments that say `# [TEST SETTINGS]`; you can ignore these, and see
         cp -r workflows/rnaseq workflows/genome1-rnaseq
         cp -r workflows/rnaseq workflows/genome2-rnaseq
 
-    Now, downstream analyses can link to and utilize results from these individual
-    folders, while the whole project remains self-contained.
+    This way, downstream analyses can link to and utilize results from these
+    individual folders, while the whole project remains self-contained.
 
 Integrative analysis workflows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -105,58 +132,14 @@ tie them together.
 
 The integrative analysis workflows are described in :ref:`integrative`:
 
-.. toctree::
-   :maxdepth: 2
+- Colocalization
+- "External"
+- Figures
 
-   integrative
-
-Features common to workflows
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In this section, we will take a higher-level look at the features common to
-the primary analysis workflows.
-
-- There is some shared code across the multiple Snakefiles. For instance,
-  The directory ``../..`` is added to Python's path. This way, the ``../../lib``
-  module can be found, and we can use the various helper functions there. This is
-  also simpler than providing a `setup.py` to install the helper functions.
-
-- The config file is hard-coded to be `config/config.yaml`. This allows the config file to be
-  in the `config` dir with other config files without having to be specified on
-  the command line, while also affording the user flexibility. For instance, a custom
-  config can be specified at the command-line, using  ``snakemake
-  --configfile <path to other config file>``.
-
-- The config file is loaded using ``common.load_config``. This function resolves
-  various paths (especially the references config section) and checks to see
-  if the config is well-formatted.
-
-- To make it easier to work with the config, a `SeqConfig` object is created. It
-  needs that parsed config file as well as the patterns file (see
-  :ref:`patterns-and-targets` for more on this). The act of creating this object
-  reads the sample table, fills in the patterns with sample names, creates
-  a reference dictionary (see ``common.references_dict``) for easy access to
-  reference files, and for ChIP-seq, also fills in the filenames for the
-  configured peak-calling runs. This object, called ``c`` for convenience, can be
-  accessed to get all sort of information -- ``c.sampletable``, ``c.config``,
-  ``c.patterns``, ``c.targets``, and ``c.refdict`` are frequently used in rules
-  throughout the Snakefiles.
-
-- Various files can be used to specify cluster-specific parameters if the workflows
-  are being run in a high-performance cluster environment. For example, a config file
-  ``config/clusterconfig.yaml`` can be used to specify global and rule-specific
-  memory and disk-space requirements for the Snakefile to use at run-time. For more
-  details, see :ref:`cluster`.
+These are each described in more detail in their respective sections.
 
 Next Steps
 ~~~~~~~~~~
 
-Next we look at :ref:`config` for details on how to configure specific workflows,
-before going into the implemented workflows:
-
-- Primary analysis workflows
-   - :ref:`references`
-   - :ref:`rnaseq`
-   - :ref:`chipseq`
-
-- :ref:`integrative`
-
+Next we look at :ref:`config` for details on how to configure specific
+workflows.

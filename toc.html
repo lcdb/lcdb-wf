@@ -10,9 +10,6 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -45,14 +42,15 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conda.html">conda and conda envs in <cite>lcdb-wf</cite></a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a></li>
@@ -90,23 +88,90 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="index.html#designed-with-customization-in-mind">Designed with customization in mind</a></li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#tested-automatically">Tested automatically</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#extensive-downstream-rna-seq">Extensive downstream RNA-seq</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#extenstive-exploration-of-chip-seq-peaks">Extenstive exploration of ChIP-seq peaks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#track-hubs">Track hubs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#unified-approach-to-reference-genomes">Unified approach to reference genomes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#integration-with-external-data-and-figure-making">Integration with external data and figure-making</a></li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#all-the-advantages-of-snakemake">All the advantages of Snakemake</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#tested-automatically">Tested automatically</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#all-the-advantages-of-snakemake">All the advantages of Snakemake</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="index.html#run-locally-or-on-a-cluster-with-the-same-code">Run locally or on a cluster with the same code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#only-run-the-required-jobs">Only run the required jobs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#parallelization">Parallelization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#software-installation">Software installation</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="getting-started.html#setting-up-a-project">Setting up a project</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#deploying-lcdb-wf">1. Deploying lcdb-wf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#deploying-lcdb-wf">1. Deploying lcdb-wf</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#option-1-download-and-run-the-deployment-script">Option 1: Download and run the deployment script</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#option-2-clone-repo-manually">Option 2: Clone repo manually</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="getting-started.html#configure">2. Configure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started.html#run">3. Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#run">3. Run</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#next-steps">Next steps</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="guide.html">Guide to file hierarchy</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="guide.html#folder-organization">Folder organization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="guide.html#annotated-tree">Annotated tree</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#features-common-to-workflows">Features common to workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#primary-analysis-workflows">Primary analysis workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#integrative-analysis-workflows">Integrative analysis workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config.html#general-configuration">General configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="config-yaml.html">Config YAML</a></li>
+<li class="toctree-l3"><a class="reference internal" href="references-config.html">References config</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sampletable.html">Sample tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="patterns-targets.html">Patterns and targets</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#running-on-a-cluster">Running on a cluster</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="references.html#a-dictionary-of-references">A dictionary of references</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rnaseq.html#downstream-analysis">Downstream analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="downstream-rnaseq.html#how-to-use-this-code">How to use this code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="downstream-rnaseq.html#more-details">More details</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rnaseq-rmd.html">Detailed documentation of RNA-Seq downstream</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="integrative.html#colocalization-workflow">Colocalization workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integrative.html#external-workflow">“External” workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integrative.html#figures-workflow">“Figures” workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="conda.html">conda and conda envs in <cite>lcdb-wf</cite></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="conda.html#conda-basics">Conda basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conda.html#building-the-environments">Building the environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conda.html#troubleshooting-environments">Troubleshooting environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conda.html#conda-envs-in-lcdb-wf">Conda envs in lcdb-wf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conda.html#design-decisions">Design decisions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a><ul>
@@ -117,73 +182,142 @@
 <li class="toctree-l2"><a class="reference internal" href="tests.html#run-the-rna-seq-workflow-with-example-data">Run the RNA-seq workflow with example data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tests.html#run-the-chip-seq-workflow-with-example-data">Run the ChIP-seq workflow with example data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tests.html#exhaustive-tests">Exhaustive tests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tests.html#next-steps">Next steps</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="workflows.html">Overview of workflows</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="workflows.html#primary-analysis-workflows">Primary analysis workflows</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows.html#integrative-analysis-workflows">Integrative analysis workflows</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows.html#features-common-to-workflows">Features common to workflows</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows.html#next-steps">Next Steps</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration details</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="config.html#general-configuration">General configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="config.html#running-on-a-cluster">Running on a cluster</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="references.html#a-dictionary-of-references">A dictionary of references</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="rnaseq.html">RNA-seq workflow</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="rnaseq.html#downstream-analysis">Downstream analysis</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="downstream-rnaseq.html">RNA-Seq downstream analysis</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="downstream-rnaseq.html#how-to-use-this-code">How to use this code</a></li>
-<li class="toctree-l2"><a class="reference internal" href="downstream-rnaseq.html#more-details">More details</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="chipseq.html">ChIP-seq workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="integrative.html">Integrative workflows</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="integrative.html#colocalization-workflow">Colocalization workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="integrative.html#external-workflow">“External” workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="integrative.html#figures-workflow">“Figures” workflow</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="faqs.html#can-i-run-multiple-workflows-at-once">Can I run multiple workflows at once?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="faqs.html#how-do-i-handle-multiple-experiments-in-the-same-project">How do I handle multiple experiments in the same project?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faqs.html#how-do-i-handle-multiple-experiments-in-the-same-project">How do I handle multiple experiments in the same project?</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="faqs.html#samples-need-the-same-library-layout">Samples need the same library layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faqs.html#samples-need-to-use-the-same-parameters">Samples need to use the same parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faqs.html#samples-must-use-the-same-assembly">Samples must use the same assembly</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="faqs.html#how-are-low-counts-handled-during-differential-expression-analysis-should-we-use-a-read-count-threshold-to-filter-genes">How are low counts handled during differential expression analysis? Should we use a read-count threshold to filter genes?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="faqs.html#how-do-i-troubleshoot-failed-jobs">How do I troubleshoot failed jobs?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="faqs.html#how-do-i-update-my-deployment">How do I update my deployment?</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-9">v1.9</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-8">v1.8</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-7">v1.7</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-6">v1.6</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-5-3">v1.5.3</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-5-2">v1.5.2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-5-1">v1.5.1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-5-sept-2019">v1.5 (Sept 2019)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-4-2-jul-2019">v1.4.2 (Jul 2019)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-4-1-jul-2019">v1.4.1 (Jul 2019)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-4-may-2019">v1.4 (May 2019)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-3-may-2019">v1.3 (May 2019)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-2-mar-2019">v1.2 (Mar 2019)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-1-aug-2018">v1.1 (Aug 2018)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-0-1-jun-2018">v1.0.1 (Jun 2018)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-10">v1.10</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#general">General</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#rna-seq">RNA-seq</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-9">v1.9</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id1">General</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id2">RNA-seq</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#tests">Tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-8">v1.8</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id3">General</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id4">RNA-seq</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id5">References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#chip-seq">ChIP-seq</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-7">v1.7</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#setup">Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#testing">Testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id6">References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id7">RNA-seq</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id8">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-6">v1.6</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id9">References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#chip-seq-workflow">ChIP-seq workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#rna-seq-workflow">RNA-seq workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#rna-seq-downstream">RNA-seq downstream</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id10">General</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-5-3">v1.5.3</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id11">General</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#bugs">Bugs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id14">RNA-seq</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id19">Tests</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-5-2">v1.5.2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#bug-fixes">Bug fixes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-5-1">v1.5.1</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id20">Bug fixes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id21">General</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#chip-seq-and-rna-seq">ChIP-seq and RNA-seq</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id22">RNA-seq</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-5-sept-2019">v1.5 (Sept 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id25">RNA-seq</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id39">References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#all-workflows">All workflows</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-4-2-jul-2019">v1.4.2 (Jul 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#bugfixes">Bugfixes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-4-1-jul-2019">v1.4.1 (Jul 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id41">RNA-seq</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id42">References</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-4-may-2019">v1.4 (May 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id43">RNA-seq</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-3-may-2019">v1.3 (May 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id44">Bugfixes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#infrastructure">Infrastructure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id45">ChIP-seq and RNA-seq</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-2-mar-2019">v1.2 (Mar 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id46">RNA-seq</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id47">References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id48">ChIP-seq and RNA-seq</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id49">Infrastructure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#colocalization">Colocalization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-1-aug-2018">v1.1 (Aug 2018)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id50">Infrastructure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id51">References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#both-rna-seq-and-chip-seq">Both RNA-seq and ChIP-seq</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id52">ChIP-seq</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id53">RNA-seq</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-0-1-jun-2018">v1.0.1 (Jun 2018)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id54">Infrastructure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id55">RNA-seq</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#downstream-rnaseq-rmd"><code class="docutils literal notranslate"><span class="pre">downstream/rnaseq.Rmd</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id56">ChIP-seq</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id57">Both RNA-seq and ChIP-seq</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v1-0-may-2018">v1.0 (May 2018)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="developers.html">For Developers</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="developers.html#creating-and-updating-conda-envs">Creating and updating conda envs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="developers.html#running-the-full-complex-datasets">Running the full complex datasets</a></li>
-<li class="toctree-l2"><a class="reference internal" href="developers.html#module-documentation">Module documentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="developers.html#adding-a-new-aligner">Adding a new aligner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#module-documentation">Module documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="lib.common.html">Module <code class="docutils literal notranslate"><span class="pre">lib.common</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="lib.chipseq.html">Module <code class="docutils literal notranslate"><span class="pre">lib.chipseq</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="lib.patterns_targets.html">Module <code class="docutils literal notranslate"><span class="pre">lib.patterns_targets</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#adding-a-new-aligner">Adding a new aligner</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="developers.html#modules">Modules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developers.html#configuration">Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developers.html#testing">Testing</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="developers.html#adding-a-new-peak-caller">Adding a new peak-caller</a></li>
 </ul>
 </li>
@@ -202,8 +336,8 @@
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="_sources/toc.rst.txt"

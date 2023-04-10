@@ -1,5 +1,33 @@
 Changelog
 =========
+v1.10
+-----
+The major change here is refactoring the Snakefiles to use the ``resources:``
+directive in each rule, and removing the ``--clusterconfig`` mechanism which
+has long been deprecated.
+
+For running on a cluster, this requires a `profile
+<https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles>`_.
+E.g., on `NIH's Biowulf <https://hpc.ni.gov>`_, use the `NIH-HPC
+snakemake_profile <https://github.com/NIH-HPC/snakemake_profile>`_.
+
+General
+~~~~~~~
+- No longer using clusterconfig, instead using resources to configure cluster resources
+- Migrated to a unified testing script that simplifies local and CI testing
+- If sampletable is from SRA, raise an error if a Layout column can't be found
+  (to prevent incorrect interpretation of samples as single-end)
+- Ensure bam indexes are made for the markdups bams, even if bigwigs are not created
+- Remove libsizes table, which was largely redundant with fastqc results
+
+RNA-seq
+~~~~~~~
+- Fix R tests
+- All ``lcdbwf`` R functions use the ``:::`` namespace lookup syntax
+- Fix library loads in rnaseq.Rmd to ensure they come before parallelization configuration
+- New function ``lcdbwf:::lfc_scatter`` for comparing multiple DESeq2 contrasts
+- Updates and fixes to ``gene-patterns.Rmd``
+
 
 v1.9
 ----
