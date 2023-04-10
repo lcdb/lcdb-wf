@@ -23,11 +23,7 @@ sys.path.insert(0, srcdir('../..'))
 import os
 from lib import utils
 from lib import common
-from lib import cluster_specific
 from lib.patterns_targets import RNASeqConfig, ChIPSeqConfig
-
-shell.prefix('set -euo pipefail; export TMPDIR={};'.format(cluster_specific.tempdir_for_biowulf()))
-shell.executable('/bin/bash')
 
 rnaseq_config = RNASeqConfig('config/config.yaml', 'config/rnaseq_patterns.yaml', workdir='../rnaseq')
 chipseq_config = ChIPSeqConfig('config/config.yaml', 'config/chipseq_patterns.yaml', workdir='../chipseq')

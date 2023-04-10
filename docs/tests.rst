@@ -33,12 +33,7 @@ This assumes you have set up the `bioconda channel
 
 We **highly recommend** using conda for isolating projects and for analysis
 reproducibility. If you are unfamiliar with conda, we provide a more detailed look
-at:
-
-.. toctree::
-   :maxdepth: 2
-
-   conda
+at :ref:`conda-envs`.
 
 
 Activate the main env
@@ -186,13 +181,3 @@ Exhaustive tests
 The file ``.circleci/config.yml`` configures all of the tests that are run on
 CircleCI. There's a lot of configuration happening there, but look for the
 entries that have ``./run_test.sh`` in them to see the commands that are run.
-
-Next steps
-----------
-
-Now that you have tested your installation of ``lcdb-wf`` you can learn about the
-different workflows implemented here at the :ref:`workflows` page and see details
-on configuration at :ref:`config`, before getting started on your analysis.
-
-In addition, :ref:`setup-proj` explains the process of deploying ``lcdb-wf``
-to a project directory.

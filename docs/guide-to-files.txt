@@ -15,8 +15,6 @@
     Sample metadata for the RNA-seq workflow
 /workflows/rnaseq/config/rnaseq_patterns.yaml
     Output filename patterns used by the RNA-seq workflow
-/workflows/rnaseq/config/clusterconfig.yaml
-    Cluster-specific parameters for the RNA-seq workflow
 /workflows/rnaseq/downstream/rnaseq.Rmd
     Rmd file called by the RNA-Seq Snakefile***
 /workflows/rnaseq/downstream/gene-patterns.Rmd
@@ -33,13 +31,8 @@
     Sample metadata for the ChIP-seq workflow
 /workflows/chipseq/config/chipseq_patterns.yaml
     Output filename patterns used by the ChIP-seq workflow
-/workflows/chipseq/config/clusterconfig.yaml
-    Cluster-specific parameters for the ChIP-seq workflow
 /requirements.txt
     Dependencies required for running lcdb-wf
-/.travis.yml
-/.buildkite/
-/.buildkite/pipeline.yml
 /ci/
     Tools for managing the continuous integration tests
 /ci/build-docs.sh
@@ -62,8 +55,6 @@
     Table of sample metadata***
 /config/config.yml
     Main config file***
-/config/clusterconfig.yaml
-    Example cluster config file for running jobs on a cluster.***
 /config/4c-sampletable.tsv
     Example sampletable for running a 4C analysis
 /config/envs/

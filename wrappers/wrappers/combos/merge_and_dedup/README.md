@@ -62,5 +62,5 @@ Threads are passed to `samtools merge`.
 - `markduplicates_extra`: addtional args passed verbatim to `markduplicates_extra`
 
 - `java_args`: passed to MarkDuplicates, often used to provide more memory
-  (e.g., `-Xmx32g`). Be sure to increase the corresponding rule's clusterconfig
-  memory to account for the additional allocation.
+  (e.g., `-Xmx32g`). Be sure to increase the corresponding rule's memory
+  resource to account for the additional allocation
