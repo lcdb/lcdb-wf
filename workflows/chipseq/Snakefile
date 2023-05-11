@@ -9,6 +9,7 @@ import numpy as np
 import pybedtools
 from lib import common, utils, helpers, aligners, chipseq
 from lib.patterns_targets import ChIPSeqConfig
+from lib.utils import autobump, gb, hours
 
 # ----------------------------------------------------------------------------
 #
@@ -23,14 +24,6 @@ if not workflow.overwrite_configfiles:
 config = common.load_config(config)
 
 include: '../references/Snakefile'
-
-def autobump(value):
-    """
-    Increments value for each attempt.
-    """
-    def f(wildcards, attempt):
-        return attempt * value
-    return f
 
 # Verify configuration of config and sampletable files
 helpers.preflight(config)

@@ -7,6 +7,7 @@ import yaml
 import tempfile
 import pandas as pd
 from lib import common, utils, helpers, aligners
+from lib.utils import autobump, gb, hours
 from lib.patterns_targets import RNASeqConfig
 
 # ----------------------------------------------------------------------------
@@ -22,14 +23,6 @@ if not workflow.overwrite_configfiles:
 config = common.load_config(config)
 
 include: '../references/Snakefile'
-
-def autobump(value):
-    """
-    Increments value for each attempt.
-    """
-    def f(wildcards, attempt):
-        return attempt * value
-    return f
 
 # Verify configuration of config and sampletable files
 helpers.preflight(config)

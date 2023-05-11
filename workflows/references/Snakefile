@@ -9,6 +9,7 @@ import pandas
 from snakemake.utils import makedirs
 from lib.imports import resolve_name
 from lib import utils
+from lib.utils import autobump, gb, hours
 from lib import aligners, helpers
 from lib import common
 
