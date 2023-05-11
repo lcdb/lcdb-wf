@@ -251,7 +251,7 @@ def autobump(*args, **kwargs):
 
     if len(args) == 1 and not kwargs:
         baseline_value = args[0]
-        increment_value = baseline
+        increment_value = baseline_value
 
     if len(args) == 2 and not kwargs:
         baseline, increment = args
