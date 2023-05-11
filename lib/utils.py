@@ -249,14 +249,14 @@ def autobump(*args, **kwargs):
     if len(kwargs) > 2:
         raise ValueError("Only 2 kwargs allowed for autobump()")
 
-    if len(args) == 1 and not kwargs:
-        baseline_value = args[0]
-        increment_value = baseline_value
+    elif len(args) == 1 and not kwargs:
+        baseline_converted = args[0]
+        increment_converted = baseline_converted
 
-    if len(args) == 2 and not kwargs:
-        baseline, increment = args
+    elif len(args) == 2 and not kwargs:
+        baseline_converted, increment_converted = args
 
-    if len(kwargs) <= 2:
+    elif len(kwargs) <= 2:
         baseline_kwargs = [k for k in kwargs.keys() if k in units]
         if len(baseline_kwargs) != 1:
             raise ValueError(
@@ -286,11 +286,14 @@ def autobump(*args, **kwargs):
                 f"Increment unit {increment_unit} not in valid units {units}"
             )
 
-        baseline = baseline_value * multiplier[baseline_unit]
-        increment = increment_value * multiplier[increment_unit]
+        baseline_converted = baseline_value * multiplier[baseline_unit]
+        increment_converted = increment_value * multiplier[increment_unit]
+
+    else:
+        raise ValueError(f"Unhandled args and kwargs: {args}, {kwargs}")
 
     def f(wildcards, attempt):
-        baseline + (attempt - 1) * increment
+        return  baseline_converted + (attempt - 1) * increment_converted
 
     return f
 
