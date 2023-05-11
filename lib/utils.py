@@ -212,23 +212,38 @@ def autobump(*args, **kwargs):
     increment each time. For example, this is the equivalent of 10 GB for the
     first attempt, and 20 GB for the second:
 
-    >>> autobump(1024 * 10)
+    >>> f = autobump(1024 * 10)
+    >>> f(None, 1)
+    10240
 
     Adding a second unnamed argument will use it as a value to increment by for
     each subsequent attempt. This will use 10 GB for the first attempt, and 110
     GB for the second attempt.
 
-    >>> autobump(1024 * 10, 1024 * 100)
+    >>> f = autobump(1024 * 10, 1024 * 100)
+    >>> f(None, 1)
+    10240
+
+    >>> f(None, 2)
+    112640
 
     Instead of bare numbers, keyword arguments can be used for more convenient
     specification of units. The above two examples can also take this form:
 
-    >>> autobump(gb=10)
-    >>> autobump(gb=10, increment_gb=100)
+    >>> f = autobump(gb=10)
+    >>> f(None, 1)
+    10240
+
+    >>> f = autobump(gb=10, increment_gb=100)
+    >>> f(None, 2)
+    112640
+
 
     Units can be minutes, hours, days, mb, gb, or tb. For example:
 
-    >>> autobump(hours=2, increment_hours=5)
+    >>> f = autobump(hours=2, increment_hours=5)
+    >>> f(None, 2)
+    420
 
     """
     multiplier = {
