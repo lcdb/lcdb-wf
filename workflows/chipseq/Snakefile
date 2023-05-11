@@ -170,7 +170,7 @@ rule cutadapt:
                 "-p {output[1]} "
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
-                '-q 20 '
+                '--nextseq-trim 20 '
                 '-j {threads} '
                 '--minimum-length 25 '
                 "{input.fastq[0]} "
@@ -182,7 +182,7 @@ rule cutadapt:
                 "cutadapt "
                 "-o {output[0]} "
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
-                '-q 20 '
+                '--nextseq-trim 20 '
                 '-j {threads} '
                 '--minimum-length 25 '
                 "{input.fastq[0]} "
