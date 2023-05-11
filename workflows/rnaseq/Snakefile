@@ -131,9 +131,9 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
             sampletable=_st,
             # limit = 100000, # [TEST SETTINGS]
         resources:
-            mem_mb=1024,
-            disk_mb=autobump(1024),
-            runtime=autobump(120)
+            mem_mb=gb(1),
+            disk_mb=autobump(gb=1),
+            runtime=autobump(hours=2)
         conda:
             '../../wrappers/wrappers/fastq-dump/environment.yaml'
         script:
@@ -156,8 +156,8 @@ rule sample_strand_check:
         c.patterns['strand_check']['tsv'] + '.log'
     threads: 6
     resources:
-        mem_mb=1024 * 8,
-        runtime=autobump(120)
+        mem_mb=gb(8),
+        runtime=autobump(hours=2)
     run:
         prefix = aligners.prefix_from_bowtie2_index(input.index)
         nreads = int(config['strand_check_reads']) * 4
@@ -195,8 +195,8 @@ rule strand_check:
     log:
         'strand_check/strandedness.log'
     resources:
-        mem_mb=1024 * 1,
-        runtime=autobump(120)
+        mem_mb=gb(1),
+        runtime=autobump(hours=2)
     run:
         with open(output.filelist, 'w') as fout:
             for i in  input:
@@ -222,8 +222,8 @@ rule cutadapt:
         render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
     threads: 6
     resources:
-        mem_mb=1024 * 2,
-        runtime=autobump(120)
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     run:
 
         # NOTE: Change cutadapt params here
@@ -266,8 +266,8 @@ rule fastqc:
         html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
         zip='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
     resources:
-        mem_mb=1024 * 8,
-        runtime=autobump(120)
+        mem_mb=gb(8),
+        runtime=autobump(hours=2)
     script:
         wrapper_for('fastqc/wrapper.py')
 
@@ -286,8 +286,8 @@ if config['aligner']['index'] == 'hisat2':
             c.patterns['bam'] + '.log'
         threads: 6
         resources:
-            mem_mb=1024 * 32,
-            runtime=autobump(60 * 8)
+            mem_mb=gb(32),
+            runtime=autobump(hours=8)
         run:
             prefix = aligners.prefix_from_bowtie2_index(input.index)
             sam = output.bam.replace('.bam', '.sam')
@@ -361,8 +361,8 @@ if config['aligner']['index'] == 'star':
             c.patterns['bam'].replace('.bam', '.star.bam.log')
         threads: 16
         resources:
-            mem_mb=1024 * 64,
-            runtime=autobump(60 * 8)
+            mem_mb=gb(64),
+            runtime=autobump(hours=8)
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
@@ -396,8 +396,8 @@ if config['aligner']['index'] == 'star-twopass':
             c.patterns['bam'].replace('.bam', '.star-pass1.bam.log')
         threads: 16
         resources:
-            mem_mb=1024 * 64,
-            runtime=autobump(60 * 8)
+            mem_mb=gb(64),
+            runtime=autobump(hours=8)
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
@@ -436,8 +436,8 @@ if config['aligner']['index'] == 'star-twopass':
             c.patterns['bam'].replace('.bam', '.star-pass2.bam.log')
         threads: 16
         resources:
-            mem_mb=1024 * 64,
-            runtime=autobump(60 * 8)
+            mem_mb=gb(64),
+            runtime=autobump(hours=8)
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
@@ -477,8 +477,8 @@ rule rRNA:
         c.patterns['rrna']['bam'] + '.log'
     threads: 6
     resources:
-        mem_mb=1024 * 2,
-        runtime=autobump(120)
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     run:
         prefix = aligners.prefix_from_bowtie2_index(input.index)
         sam = output.bam.replace('.bam', '.sam')
@@ -511,8 +511,8 @@ rule fastq_count:
         '{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
     threads: 1
     resources:
-        mem_mb=1024 * 1,
-        runtime=autobump(120)
+        mem_mb=gb(1),
+        runtime=autobump(hours=2)
     shell:
         'zcat {input} | echo $((`wc -l`/4)) > {output}'
 
@@ -527,8 +527,8 @@ rule bam_count:
         '{sample_dir}/{sample}/{suffix}.bam.libsize'
     threads: 1
     resources:
-        mem_mb=1024 * 2,
-        runtime=autobump(120)
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     shell:
         'samtools view -c {input} > {output}'
 
@@ -543,8 +543,8 @@ rule bam_index:
         bai='{prefix}.bam.bai'
     threads: 1
     resources:
-        mem_mb=1024 * 2,
-        runtime=autobump(120)
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     shell:
         'samtools index {input} {output}'
 
@@ -573,8 +573,8 @@ rule fastq_screen:
         c.patterns['fastq_screen'] + '.log'
     threads: 6
     resources:
-        mem_mb=1024 * 4,
-        runtime=autobump(120)
+        mem_mb=gb(4),
+        runtime=autobump(hours=2)
     params: subset=100000
     script:
         wrapper_for('fastq_screen/wrapper.py')
@@ -593,8 +593,8 @@ rule featurecounts:
         '{sample_dir}/rnaseq_aggregation/featurecounts.txt.log'
     threads: 8
     resources:
-        mem_mb=1024 * 16,
-        runtime=autobump(120)
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
     run:
         # NOTE: By default, we use -p for paired-end
         p_arg = ''
@@ -633,8 +633,8 @@ rule rrna_libsizes_table:
         tsv=c.patterns['rrna_percentages_table']
     threads: 1
     resources:
-        mem_mb=1024 * 2,
-        runtime=autobump(120)
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     run:
         def rrna_sample(f):
             return helpers.extract_wildcards(c.patterns['rrna']['libsize'], f)['sample']
@@ -701,8 +701,8 @@ rule multiqc:
     log: c.targets['multiqc'][0] + '.log'
     threads: 1
     resources:
-        mem_mb=1024 * 2,
-        runtime=autobump(120)
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     run:
         analysis_directory = set([os.path.dirname(i) for i in input])
         outdir = os.path.dirname(c.targets['multiqc'][0])
@@ -739,9 +739,9 @@ rule markduplicates:
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     threads: 1
     resources:
-        mem_mb=1024 * 32,
-        runtime=autobump(120),
-        disk_mb=1024 *100
+        mem_mb=gb(32),
+        runtime=autobump(hours=2),
+        disk_mb=autobump(gb=100),
     shell:
         'picard '
         '{params.java_args} '
@@ -772,8 +772,8 @@ rule collectrnaseqmetrics:
         c.patterns['collectrnaseqmetrics']['metrics'] + '.log'
     threads: 1
     resources:
-        mem_mb=1024 * 32,
-        runtime=autobump(120)
+        mem_mb=gb(32),
+        runtime=autobump(hours=2)
     run:
         strand_arg = helpers.strand_arg_lookup(
             c, {
@@ -805,8 +805,8 @@ rule preseq:
         c.patterns['preseq']
     threads: 1
     resources:
-        mem_mb=1024 * 1,
-        runtime=autobump(120)
+        mem_mb=gb(1),
+        runtime=autobump(hours=2)
     shell:
         'preseq '
         'c_curve '
@@ -830,8 +830,8 @@ rule salmon:
         c.patterns['salmon'] + '.log'
     threads: 6
     resources:
-        mem_mb=1024 * 32,
-        runtime=autobump(120)
+        mem_mb=gb(32),
+        runtime=autobump(hours=2)
     run:
         if c.is_paired:
             fastq_arg = f'-1 {input.fastq[0]} -2 {input.fastq[1]} '
@@ -873,8 +873,8 @@ rule kallisto:
     threads:
         8
     resources:
-        mem_mb=1024 * 32,
-        runtime=autobump(120)
+        mem_mb=gb(32),
+        runtime=autobump(hours=2),
     run:
         if c.is_paired:
             se_args = ''
@@ -919,8 +919,8 @@ rule rseqc_infer_experiment:
     log:
         c.patterns['rseqc']['infer_experiment'] + '.log'
     resources:
-        mem_mb=1024 * 2,
-        runtime=autobump(120)
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
 
     shell:
         'infer_experiment.py -r {input.bed12} -i {input.bam} > {output} &> {log}'
@@ -937,8 +937,8 @@ rule rseqc_read_distribution:
     log:
         c.patterns['rseqc']['read_distribution'] + '.log'
     resources:
-        mem_mb=1024 * 2,
-        runtime=autobump(120)
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     shell:
         'read_distribution.py -i {input.bam} -r {input.bed12} > {output} &> {log}'
 
@@ -955,8 +955,8 @@ rule idxstats:
     log: 
         c.patterns['samtools']['idxstats'] + '.log'
     resources:
-        mem_mb=1024 * 16,
-        runtime=autobump(120)
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
     run:
         shell(
             'samtools idxstats {input.bam} 2> {log} 1> {output.txt}'
@@ -980,8 +980,8 @@ rule bigwig_neg:
     output: c.patterns['bigwig']['neg']
     threads: 8
     resources:
-        mem_mb=1024 * 16,
-        runtime=autobump(120)
+        mem_mb=gb(16),,
+        runtime=autobump(hours=2)
     log:
         c.patterns['bigwig']['neg'] + '.log'
     run:
@@ -1013,8 +1013,8 @@ rule bigwig_pos:
     output: c.patterns['bigwig']['pos']
     threads: 8
     resources:
-        mem_mb=1024 * 16,
-        runtime=autobump(120)
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
     log:
         c.patterns['bigwig']['pos'] + '.log'
 
@@ -1064,8 +1064,8 @@ if 'merged_bigwigs' in config:
         log:
             c.patterns['merged_bigwig'] + '.log'
         resources:
-            mem_mb=1024 * 16,
-            runtime=autobump(120)
+            mem_mb=gb(16),
+            runtime=autobump(hours=2)
         script:
             wrapper_for('average-bigwigs/wrapper.py')
 
