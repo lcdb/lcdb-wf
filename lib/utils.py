@@ -44,6 +44,7 @@ def flatten(iter, unlist=False):
                 yield from flatten(item)
             else:
                 yield item
+
     results = list(gen())
     if unlist and len(results) == 1:
         return results[0]
@@ -51,22 +52,27 @@ def flatten(iter, unlist=False):
 
 
 def test_flatten():
-    assert sorted(flatten({
-        'a': {
-            'b': {
-                'c': ['a', 'b', 'c'],
-            },
-        },
-        'x': ['e', 'f', 'g'],
-        'y': {
-            'z': 'd'
-        },
-    })) == ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+    assert (
+        sorted(
+            flatten(
+                {
+                    "a": {
+                        "b": {
+                            "c": ["a", "b", "c"],
+                        },
+                    },
+                    "x": ["e", "f", "g"],
+                    "y": {"z": "d"},
+                }
+            )
+        )
+        == ["a", "b", "c", "d", "e", "f", "g"]
+    )
 
-    assert flatten('a', True) == 'a'
-    assert flatten(['a'], True) == 'a'
-    assert flatten('a') == ['a']
-    assert flatten(['a']) == ['a']
+    assert flatten("a", True) == "a"
+    assert flatten(["a"], True) == "a"
+    assert flatten("a") == ["a"]
+    assert flatten(["a"]) == ["a"]
 
 
 def updatecopy(orig, update_with, keys=None, override=False):
@@ -129,8 +135,8 @@ def update_recursive(orig, update_with):
             orig[k] = v
     return orig
 
-def boolean_labels(names, idx, mapping={True: 'AND', False: 'NOT'},
-                   strip='AND_'):
+
+def boolean_labels(names, idx, mapping={True: "AND", False: "NOT"}, strip="AND_"):
     """
     Creates labels for boolean lists.
 
@@ -166,10 +172,10 @@ def boolean_labels(names, idx, mapping={True: 'AND', False: 'NOT'},
     """
     s = []
     for i, (n, x) in enumerate(zip(names, idx)):
-        s.append(mapping[x] + '_' + n)
-    s = '_'.join(s)
+        s.append(mapping[x] + "_" + n)
+    s = "_".join(s)
     if s.startswith(strip):
-        s = s.replace(strip, '', 1)
+        s = s.replace(strip, "", 1)
     return s
 
 
@@ -184,5 +190,5 @@ def make_relative_symlink(target, linkname):
     relative_target = os.path.relpath(target, start=linkdir)
     linkbase = os.path.basename(linkname)
     if not os.path.exists(linkdir):
-        shell('mkdir -p {linkdir}')
-    shell('cd {linkdir}; ln -sf {relative_target} {linkbase}')
+        shell("mkdir -p {linkdir}")
+    shell("cd {linkdir}; ln -sf {relative_target} {linkbase}")
