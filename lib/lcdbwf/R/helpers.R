@@ -529,7 +529,7 @@ compose_results <- function(res_list,
     rld_list=rld_list
   )
 
-  if (!missing(enrich_list)){
+  if (!is.null(enrich_list)){
     res_names <- names(res_list)
     enrich_names <- names(enrich_list)
     enrich_not_res <- setdiff(enrich_names, res_names)
