@@ -35,8 +35,24 @@ config <- lcdbwf:::load_config('config.yaml')
 
 ```{r load, cache=TRUE, cache.extra=file.info('combined.Rds')$mtime}
 obj <- readRDS('combined.Rds')
-res.list <- obj$res_list
-dds.list <- obj$dds_list
+res_list <- obj$res_list
+dds_list <- obj$dds_list
+
+# make rld_list if not present in obj
+if(!'rld_list' %in% names(obj)){
+  rld_list <- lapply(dds_list,
+                function(x) varianceStabilizingTransformation(x, blind=TRUE)
+              )
+} else {
+  rld_list <- obj$rld_list
+}
+
+# check for enrich_list object
+if(!'enrich_list' %in% names(obj)){
+  enrich_list <- NULL
+} else {
+  enrich_list <- obj$enrich_list
+}
 ```
 
 
