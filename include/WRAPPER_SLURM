@@ -37,8 +37,6 @@ fi
     --configfile config/config.yaml \
     $PROFILE_CMD \
     --latency-wait=300 \
-    --max-jobs-per-second 1 \
-    --max-status-checks-per-second 0.01 \
     "$@"
     ) > "Snakefile.log" 2>&1
 
