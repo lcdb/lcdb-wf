@@ -74,13 +74,13 @@ if (!config$toggle$test){
 ```
 
 ```{r enrich, cache=TRUE, eval=config$toggle$functional_enrichment, config=c(config$main, config$functional_enrichment), dependson=c('functional_enrichment_prep', 'assemble_variables')}
-all_enrich <- list()
+enrich_list <- list()
 
 for (name in names(res_list)){
-  all_enrich[[name]] <- list()
+  enrich_list[[name]] <- list()
 
   for (direction in config$functional_enrichment$directions){
-    all_enrich[[name]][[direction]] <- list()
+    enrich_list[[name]][[direction]] <- list()
 
     for (ont in names(config$functional_enrichment$ontologies)){
       term2gene <- ontology_list[[ont]]
@@ -94,9 +94,9 @@ for (name in names(res_list)){
         kind=config$functional_enrichment$kind
       )
       if (!is.null(enrich_res) && nrow(enrich_res@result) > 5){
-        all_enrich[[name]][[direction]][[ont]] <- enrich_res
+        enrich_list[[name]][[direction]][[ont]] <- enrich_res
       } else {
-        all_enrich[[name]][[direction]][[ont]] <- NULL
+        enrich_list[[name]][[direction]][[ont]] <- NULL
       }
     }
   }
