@@ -171,6 +171,7 @@ rule cutadapt:
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
                 '--nextseq-trim 20 '
+                "--overlap 6 "
                 '-j {threads} '
                 '--minimum-length 25 '
                 "{input.fastq[0]} "
@@ -183,6 +184,7 @@ rule cutadapt:
                 "-o {output[0]} "
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 '--nextseq-trim 20 '
+                "--overlap 6 "
                 '-j {threads} '
                 '--minimum-length 25 '
                 "{input.fastq[0]} "
