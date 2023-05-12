@@ -516,6 +516,13 @@ compose_results <- function(res_list,
     warning(paste("The following dds names are in dds_list but not in res_list. This OK, but may be unexpected:", dds_not_res, '\n'))
   }
 
+  # check if rld_list was specified, if not make it
+  if(is.null(rld_list)){
+    rld_list <- lapply(dds_list,
+                  function(x) varianceStabilizingTransformation(x, blind=TRUE)
+                )
+  }
+
   obj <- list(
     res_list=res_list,
     dds_list=dds_list
