@@ -173,9 +173,9 @@ for (name in names(ll)){
 
     # Extract the normalized counts for these genes
     if (name == 'union_all_contrasts') {
-        vsd.i <- varianceStabilizingTransformation(dds.list[[ 1 ]], blind=TRUE)
+        vsd.i <- rld_list[[ 1 ]]
     } else {
-        vsd.i <- varianceStabilizingTransformation(dds.list[[ res.list[[name]][['dds']] ]], blind=TRUE)
+        vsd.i <- rld_list[[ res_list[[name]][['dds']] ]]
     }
     idx <- rownames(vsd.i) %in% genes
     ma <- assay(vsd.i)[idx,]
