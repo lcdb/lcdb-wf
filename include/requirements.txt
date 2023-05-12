@@ -25,7 +25,10 @@ pysam
 pytest
 pytest-xdist
 rseqc
-salmon
+
+# earlier versions of salmon can segfault on Slurm
+salmon>=1.10.1
+
 samtools
 seaborn
 snakemake-minimal
