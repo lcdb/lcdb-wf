@@ -115,7 +115,7 @@ low.minc <- 1
 
 Gene pattern for changed genes in individual contrasts are also indicated below.
 
-```{r finalclusters, fig.width=12, results='asis', cache=TRUE, dependson='selections'}
+```{r finalclusters, fig.width=12, results='asis', cache=TRUE, dependson='load'}
 # Run the clustering, identify patterns, and generate plots.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#finalclusters
 # NOTE: which genes to cluster?------------------------------------------------
