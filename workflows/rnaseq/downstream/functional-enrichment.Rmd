@@ -115,9 +115,9 @@ saveRDS(obj, file='combined.Rds', compress=FALSE)
 
 ```{r functional_enrichment_plots}
 # Interestingly, it's the *caching* that causes this to hang for a loooong time.
-dotplot_list <- lcdbwf:::enrich_list_lapply(all_enrich, dotplots, config=config, send_names=TRUE)
-emapplot_list <- lcdbwf:::enrich_list_lapply(all_enrich, emapplots, config=config, send_names=TRUE)
-cnetplot_list <- lcdbwf:::enrich_list_lapply(all_enrich, cnetplots, config=config, send_names=TRUE)
+dotplot_list <- lcdbwf:::enrich_list_lapply(enrich_list, dotplots, config=config, send_names=TRUE)
+emapplot_list <- lcdbwf:::enrich_list_lapply(enrich_list, emapplots, config=config, send_names=TRUE)
+cnetplot_list <- lcdbwf:::enrich_list_lapply(enrich_list, cnetplots, config=config, send_names=TRUE)
 ```
 
 ```{r, results='asis'}
@@ -135,11 +135,11 @@ for (name in names(res_list)){
   mdcat("## ", name, "{.tabset}")
   for (direction in config$functional_enrichment$directions){
     mdcat("### ", direction, "{.tabset}")
-    if (length(all_enrich[[name]][[direction]]) == 0){
+    if (length(enrich_list[[name]][[direction]]) == 0){
         lcdbwf:::mdcat("Too few genes differentially expressed.")
       next
     }
-    for (ont in names(all_enrich[[name]][[direction]])){
+    for (ont in names(enrich_list[[name]][[direction]])){
         lcdbwf:::mdcat("#### ", ont, "{.tabset}")
 
     lcdbwf:::mdcat("##### dotplot")
