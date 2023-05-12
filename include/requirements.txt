@@ -17,7 +17,10 @@ kallisto
 multiqc
 pandas
 pandoc
-picard
+
+# Pin to earlier version to avoid issue with older openjdk
+picard <3.0
+
 preseq
 pybedtools
 pyfaidx
