@@ -293,3 +293,11 @@ progammatically with downstream tools:
 tbl <- lcdbwf:::exported_tsvs(res_list, directory='final_clusters')
 knitr::kable(tbl, row.names=FALSE)
 ```
+
+# Session info
+For reproducibility purposes, here is the output of `sessionInfo()` showing the
+versions of all packages used here.
+
+```{r, collapse=FALSE}
+sessionInfo()
+```
