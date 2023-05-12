@@ -61,7 +61,7 @@ The default general flow is as follows:
 #  multiple degPatterns calls.
 
 # NOTE:  Max number of genes to include----------------------------------------
-#   If more genes are differeentially expressed, they will be downsampled to
+#   If more genes are differentially expressed, they will be downsampled to
 #   this many
 lim <- 2000
 
