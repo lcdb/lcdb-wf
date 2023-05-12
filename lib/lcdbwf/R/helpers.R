@@ -539,6 +539,10 @@ compose_results <- function(res_list,
     obj[['enrich_list']] <- enrich_list
   }
 
+  if(!is.null(degpatterns_list)){
+    obj[['degpatterns']] <- degpatterns_list
+  }
+
   return(obj)
 }
 
