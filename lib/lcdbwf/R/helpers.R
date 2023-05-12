@@ -445,7 +445,9 @@ nested.lapply <- function(x, subfunc, ...){
 #' @param res_list List of results objects and associated metadata. See details
 #'   for format.
 #' @param dds_list List of dds objects used in results
+#' @param rld_list List of normalized dds objects
 #' @param enrich_list List of enrichment results objects. See details for format.
+#' @param degpatterns_list List of degpatterns objects
 #'
 #' @details
 #'
