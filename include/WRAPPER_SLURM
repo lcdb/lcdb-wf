@@ -36,7 +36,6 @@ fi
     --use-conda \
     --configfile config/config.yaml \
     $PROFILE_CMD \
-    --latency-wait=300 \
     "$@"
     ) > "Snakefile.log" 2>&1
 
