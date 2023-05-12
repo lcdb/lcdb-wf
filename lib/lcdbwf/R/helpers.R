@@ -497,7 +497,11 @@ nested.lapply <- function(x, subfunc, ...){
 #'  )
 #'
 #'
-compose_results <- function(res_list, dds_list, rld_list, enrich_list, degpatterns_list){
+compose_results <- function(res_list,
+                            dds_list,
+                            rld_list=NULL,
+                            enrich_list=NULL,
+                            degpatterns_list=NULL){
 
   # Much of this function is just checking that the names all line up.
   res_dds_names <- unlist(lapply(res_list, function (x) x$dds))
