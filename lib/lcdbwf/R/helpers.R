@@ -525,7 +525,8 @@ compose_results <- function(res_list,
 
   obj <- list(
     res_list=res_list,
-    dds_list=dds_list
+    dds_list=dds_list,
+    rld_list=rld_list
   )
 
   if (!missing(enrich_list)){
