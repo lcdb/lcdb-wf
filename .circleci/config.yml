@@ -283,7 +283,7 @@ variables:
           cd $DEPLOY/workflows/colocalization
           source /opt/mambaforge/etc/profile.d/conda.sh
           conda activate $LCDBWF_ENV
-          ./run_test.sh -j 1 --use-conda -j2 -k -p -r
+          $DEPLOY/test/lcdb-wf-test colocalization --run-workflow -k -r -p -j2 --use-conda --orig $ORIG
 
 # --------------------------------------------------------------------------
 # Syntax note: All of the steps above, with their "&step-name" labels, can be

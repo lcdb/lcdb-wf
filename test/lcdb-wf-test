@@ -475,6 +475,34 @@ class Runner(object):
                 executable="/bin/bash"
             )
 
+    def _cmd_colocalization(self):
+        parser = argparse.ArgumentParser(
+            description="Run colocalization workflow",
+            parents=[self.global_parser],
+        )
+        parser.add_argument(
+            "--run-workflow",
+            action="store_true",
+            help="""Run colocalization workflow using the run_test.sh harness"""
+        )
+        args, extra = parser.parse_known_args(sys.argv[2:])
+        workflow_prefix = "bash run_test.sh"
+        workflow_dir = TOPLEVEL / "workflows/colocalization"
+        if args.run_workflow:
+            extra = [i.replace("__ORIG__", args.orig) for i in extra]
+            strargs = " ".join(extra)
+            cmd = (
+                'eval "$(conda shell.bash hook)" '
+                f"&& conda activate {args.env} "
+                f"&& (cd {workflow_dir} && {workflow_prefix} {strargs})"
+            )
+            print_header(f"Running the following command:\n{cmd}")
+            sp.run(
+                cmd,
+                shell=True,
+                check=True,
+                executable="/bin/bash"
+            )
 
 if __name__ == "__main__":
     Runner()
