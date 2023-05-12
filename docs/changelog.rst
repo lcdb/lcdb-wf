@@ -41,6 +41,8 @@ This is a bugfix and minor patch release.
   This can have a dramatic improvement on downstream performance for
   a reasonable disk space cost.
 
+- added ``--overlap 6`` to cutadapt to avoid greedy trimming
+
 v1.10
 -----
 The major change here is refactoring the Snakefiles to use the ``resources:``
