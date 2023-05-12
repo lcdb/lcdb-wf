@@ -264,7 +264,16 @@ for (name in names(res_list)) {
 }
 ```
 
+```{r combined_rds, cache=TRUE, dependson='finalclusters'}
 
+obj <- lcdbwf:::compose_results(res_list=res_list,
+                                dds_list=dds_list,
+                                rld_list=rld_list,
+                                enrich_list=enrich_list,
+                                degpatterns_list=degpatterns_list)
+
+saveRDS(obj, file='combined.Rds', compress=FALSE)
+```
 
 # Exported results
 
