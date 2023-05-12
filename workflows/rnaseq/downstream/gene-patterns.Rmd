@@ -184,9 +184,9 @@ for (name in names(ll)){
     ma <- ma[apply(as.data.frame(ma), 1, n_distinct) > 1, ]
 
     if (name == 'union_all_contrasts') {
-        colData.i <- colData(dds.list[[ 1 ]])
+        colData.i <- colData(rld_list[[ 1 ]])
     } else {
-        colData.i <- colData(dds.list[[ res.list[[name]][['dds']] ]])
+        colData.i <- colData(rld_list[[ res_list[[name]][['dds']] ]])
     }
 
 
