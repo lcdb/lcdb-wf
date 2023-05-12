@@ -40,6 +40,13 @@ config <- lcdbwf:::load_config('config.yaml')
 obj <- readRDS('combined.Rds')
 res_list <- obj$res_list
 dds_list <- obj$dds_list
+
+# check if 'rld_list' exists in the object, if not sets to NULL
+if(!'rld_list' %in% names(obj)){
+  rld_list <- NULL
+} else {
+  rld_list <- obj$rld_list
+}
 ```
 
 ```{r functional_enrichment_prep, cache=TRUE, config=config$annotation$keytype, eval=config$toggle$functional_enrichment, dependson='load'}
