@@ -35,6 +35,12 @@ This is a bugfix and minor patch release.
   <https://cutadapt.readthedocs.io/en/stable/guide.html#nextseq-trim>`_ for
   details.
 
+- Updated requirements to use a recent version of salmon to avoid segfaults
+
+- rnaseq.Rmd, when saving the Rds file at the end, now disables compression.
+  This can have a dramatic improvement on downstream performance for
+  a reasonable disk space cost.
+
 v1.10
 -----
 The major change here is refactoring the Snakefiles to use the ``resources:``
