@@ -1,5 +1,40 @@
 Changelog
 =========
+
+v1.10.1
+-------
+This is a bugfix and minor patch release.
+
+- Bugfix: the references workflow was missing the ``resources:`` directives;
+  they have now been added.
+
+- The new ``utils.autobump`` function can be used to easily specify default and
+  incremented resources, and the ``utils.gb`` and ``utils.hours`` make it
+  a little easier to specify when autobump is not required.
+
+  In the following example, memory will be set to 8 * 1024 MB and will
+  increment by that much each retry. The runtime will be set to 2 * 60 minutes,
+  and will increment by 10 * 60 minutes each retry. The disk will be set to 100
+  * 1024 MB, and will not increase each retry.
+
+  .. code-block:: python
+
+      resources:
+          mem_mb=autobump(gb=8),
+          runtime=autobump(hours=2, increment_hours=10),
+          disk_mb=gb(100)
+
+- WRAPPER_SLURM no longer has the ``--latency-wait=300``,
+  ``--max-jobs-per-second=1``, and ``--max-status-checks-per-second=0.01``
+  which would override any profile settings.
+
+- In RNA-seq and ChIP-seq, the cutadpt rule now defaults to using
+  ``--nextseq-trim 20`` instead of ``-q 20``, to better handle the majority of
+  sequencing data we have recently been working with (NovaSeq). See `this
+  section of the cutadapt docs
+  <https://cutadapt.readthedocs.io/en/stable/guide.html#nextseq-trim>`_ for
+  details.
+
 v1.10
 -----
 The major change here is refactoring the Snakefiles to use the ``resources:``
