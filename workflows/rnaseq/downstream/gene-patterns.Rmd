@@ -146,6 +146,9 @@ add.cluster.id <- function(clusters, res, label){
 # n.list will store all the clusters to later add the cluster ID to res_list
 n.list <- list()
 
+# list to store degpatterns objects
+degpatterns_list <- list()
+
 for (name in names(ll)){
     # Print a nice Markdown header
     if (name == 'union_all_contrasts') {
@@ -230,6 +233,7 @@ for (name in names(ll)){
         )
     )
 
+    degpatterns_list[[name]] <- p
     n.list[[name]] <- n2
 
     # In the final_clusters directory, this creates files containing lists of
