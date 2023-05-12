@@ -103,6 +103,15 @@ for (name in names(res_list)){
 }
 ```
 
+```{r combined_rds, cache=TRUE, dependson='enrich'}
+
+obj <- lcdbwf:::compose_results(res_list=res_list,
+                                dds_list=dds_list,
+                                rld_list=rld_list,
+                                enrich_list=enrich_list)
+
+saveRDS(obj, file='combined.Rds', compress=FALSE)
+```
 
 ```{r functional_enrichment_plots}
 # Interestingly, it's the *caching* that causes this to hang for a loooong time.
