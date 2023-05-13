@@ -409,7 +409,10 @@ jobs:
       - *set-path
       - run:
           name: Install sphinx
-          command: source activate lcdb-wf-test && conda install -y sphinx make yaml
+          command: |
+            source /opt/mambaforge/etc/profile.d/conda.sh
+            conda activate lcdb-wf-test
+            mamba install -y sphinx make yaml
       - run:
           name: OK for unknown github host
           command: mkdir -p ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
@@ -418,7 +421,10 @@ jobs:
             - 2d:0c:b4:27:44:cf:f4:50:cc:14:a4:2b:c2:3c:09:06
       - run:
           name: Build and upload docs
-          command: source activate lcdb-wf-test && ci/build-docs.sh
+          command: |
+            source /opt/mambaforge/etc/profile.d/conda.sh
+            conda activate lcdb-wf-test
+            ci/build-docs.sh
       - store_artifacts:
           path: /tmp/docs.tar.gz
 
@@ -432,8 +438,8 @@ jobs:
       - run:
           name: Report environment
           command: |
+            source /opt/mambaforge/etc/profile.d/conda.sh
             conda env export -n lcdb-wf-test > /tmp/env.yaml
-            cat /tmp/env.yaml
             conda env export -n lcdb-wf-test-r > /tmp/env-r.yaml
       - store_artifacts:
           path: /tmp/env.yaml
