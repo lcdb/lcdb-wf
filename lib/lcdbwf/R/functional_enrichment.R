@@ -95,43 +95,6 @@ enrich_test <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR',
 }
 
 
-
-#' Return a list of GO annotation dataframes, one per ontology.
-#'
-#' @param orgdb OrgDb
-#' @param keytype Key type intended to be use with clusterProfiler::enricher
-#'   function.
-#'
-#' @return List of dataframes; list names are "BP", "CC", "MF".
-get_go_term2gene <- function(config){
-
-  orgdb <- lcdbwf:::get_orgdb(config)
-  keytype <- config$annotation$keytype
-
-  # This is the method used by clusterProfiler internally. See
-  # get_go_term2gene_alt for a different implementation.
-  goterms <- AnnotationDbi::Ontology(GO.db::GOTERM)
-  go2gene <- suppressMessages(
-    AnnotationDbi::mapIds(
-      orgdb, keys=names(goterms), column=keytype, keytype="GOALL",
-      multiVals='list')
-  )
-  goAnno <- stack(go2gene)
-  colnames(goAnno) <- c(keytype, "GOALL")
-  goAnno <- unique(goAnno[!is.na(goAnno[,1]), ])
-  goAnno$ONTOLOGYALL <- goterms[goAnno$GOALL]
-
-  # Split up the dataframe and return as a list, one per annotation.
-  lst <- list(
-      MF=goAnno %>% dplyr::filter(ONTOLOGYALL=="MF") %>% dplyr::select(GOALL, !!keytype),
-      CC=goAnno %>% dplyr::filter(ONTOLOGYALL=="CC") %>% dplyr::select(GOALL, !!keytype),
-      BP=goAnno %>% dplyr::filter(ONTOLOGYALL=="BP") %>% dplyr::select(GOALL, !!keytype)
-  )
-
-  return(lst)
-}
-
-
 #' Get the MSigDB data for the organism provided in the config.
 get_msigdb_df <- function(config){
   x <- msigdbr::msigdbr(config$annotation$genus_species)
