@@ -65,37 +65,11 @@ ontology_list <- lcdbwf:::get_ontology_list(config)
 ```
 
 ```{r enrich, cache=TRUE, eval=config$toggle$functional_enrichment, config=c(config$main, config$functional_enrichment), dependson=c('functional_enrichment_prep', 'assemble_variables')}
-enrich_list <- list()
 enrich_list <- lcdbwf:::run_enricher(res_list=res_list,
                                      ontology_list=ontology_list,
                                      config=config,
                                      cores=cores, sep='*')
 
-for (name in names(res_list)){
-  enrich_list[[name]] <- list()
-
-  for (direction in config$functional_enrichment$directions){
-    enrich_list[[name]][[direction]] <- list()
-
-    for (ont in names(config$functional_enrichment$ontologies)){
-      term2gene <- ontology_list[[ont]]
-      term2name <- ontology_term2name_mapping[[ont]]
-      enrich_res <- lcdbwf:::run_enrichment(
-        res_list[[name]],
-        direction=direction,
-        TERM2GENE=term2gene,
-        TERM2NAME=term2name,
-        config=config,
-        kind=config$functional_enrichment$kind
-      )
-      if (!is.null(enrich_res) && nrow(enrich_res@result) > 5){
-        enrich_list[[name]][[direction]][[ont]] <- enrich_res
-      } else {
-        enrich_list[[name]][[direction]][[ont]] <- NULL
-      }
-    }
-  }
-}
 ```
 
 ```{r combined_rds, cache=TRUE, dependson='enrich'}
