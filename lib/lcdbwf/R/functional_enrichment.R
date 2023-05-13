@@ -1,3 +1,84 @@
+#' Function to run enrichment on a res_list
+#'
+#' @param res_list list of DESeq2 results objects
+#' @param config Config object
+#' @param cores Number of cores to run it on
+#' @param sep Character to separate res_list names
+#'
+#' @return nested list of enrichResult objects
+run_enricher <- function(res_list, ontology_list, config,
+                         cores=1, sep='*'){
+    # make sure the sep character is not in res_list names
+    if(sum(grepl(sep, names(res_list), fixed=TRUE)) > 0){
+        stop(
+             paste0("'res_list' names must not contain '",
+                    sep, "'. Try running lcdbwf::run_enricher ",
+                    "with a different 'sep' parameter."))
+    }
+
+    # Collapse names of nested res_list & ontologies
+    # These will be used as keys to create a flat list structure
+    n <- collapse_names(res_list=res_list,
+                        config=config,
+                        sep=sep)
+
+    if(cores > 1){
+        # parallel mode
+        enrich_list_flat <- BiocParallel::bplapply(n,
+            function(x){
+                # split name into 3 fields:
+                #   comparison, direction, ontology
+                toks <- unlist(strsplit(x, split=sep, fixed=TRUE))
+                name <- toks[1]
+                direction <- toks[2]
+                ont <- toks[3]
+
+                enrich_res <- enrich_test(
+                  res_list[[name]],
+                  direction=direction,
+                  TERM2GENE=ontology_list[['term2gene']][[ont]],
+                  TERM2NAME=ontology_list[['term2name']][[ont]],
+                  config=config
+                )
+                enrich_res
+            }, BPPARAM=BiocParallel::MulticoreParam(cores))
+    } else {
+        # non-parallel mode
+        enrich_list_flat <- lapply(n,
+            function(x){
+                # split name into 3 fields:
+                #   comparison, direction, ontology
+                toks <- unlist(strsplit(x, split=sep, fixed=TRUE))
+                name <- toks[1]
+                direction <- toks[2]
+                ont <- toks[3]
+
+                enrich_res <- enrich_test(
+                  res_list[[name]],
+                  direction=direction,
+                  TERM2GENE=ontology_list[['term2gene']][[ont]],
+                  TERM2NAME=ontology_list[['term2name']][[ont]],
+                  config=config
+                )
+                enrich_res
+            })
+    }
+
+    # create nested list structure keyed by
+    # comparison, direction, ontology
+    enrich_list <- list()
+    for(name in names(res_list)){
+        enrich_list[[name]] <- list()
+        for(direction in config$functional_enrichment$directions){
+            enrich_list[[name]][[direction]] <- list()
+            for(ont in names(config$functional_enrichment$ontologies)){
+                key <- paste(name, direction, ont, sep=sep)
+                enrich_list[[name]][[direction]][[ont]] <- enrich_list_flat[[key]]
+            }
+        }
+    }
+    return(enrich_list)
+}
 
 #' Function to collapse res_list names with ontologies
 #'
