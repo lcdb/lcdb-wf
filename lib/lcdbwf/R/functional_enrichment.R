@@ -193,10 +193,7 @@ get_go_term2gene_alt <- function(orgdb, keytype){
 
 }
 
-#' Extract all GO IDs and their respective descriptions.
 #'
-#' This is used, e.g., as a TERM2NAME dataframe to provide to
-#' clusterProfiler::enricher or clusterProfiler::GSEA.
 #' Get the species name that works with the KEGG database
 #'
 #' The KEGG pathway needs the species name in a
@@ -205,11 +202,6 @@ get_go_term2gene_alt <- function(orgdb, keytype){
 #'
 #' @param config Config object
 #'
-#' @return Two-column data.frame, GO accession in first column and description
-#'   in the second.
-get_go_descriptions <- function(){
-  term2name <- AnnotationDbi::select(GO.db::GO.db, keys=keys(GO.db::GO.db, "GOID"), c("GOID", "TERM"))
-  return(term2name)
 #' @return KEGG-compatible species name
 get_kegg_species <- function(config){
     species <- config$annotation$genus_species
