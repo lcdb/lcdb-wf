@@ -17,7 +17,7 @@
 #'   GSEA() for kind="GSEA".
 #'
 #' @return An enrichResults object from
-run_enrichment <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR', ...){
+enrich_test <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR', ...){
 
   if (is.null(config$main$lfc_thresh)){
     lfc_thresh <- 0
