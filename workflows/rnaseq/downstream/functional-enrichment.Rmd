@@ -66,6 +66,10 @@ ontology_list <- lcdbwf:::get_ontology_list(config)
 
 ```{r enrich, cache=TRUE, eval=config$toggle$functional_enrichment, config=c(config$main, config$functional_enrichment), dependson=c('functional_enrichment_prep', 'assemble_variables')}
 enrich_list <- list()
+enrich_list <- lcdbwf:::run_enricher(res_list=res_list,
+                                     ontology_list=ontology_list,
+                                     config=config,
+                                     cores=cores, sep='*')
 
 for (name in names(res_list)){
   enrich_list[[name]] <- list()
