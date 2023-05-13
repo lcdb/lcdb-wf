@@ -259,7 +259,6 @@ get_go_term2gene_alt <- function(orgdb, keytype){
 
 }
 
-#'
 #' Get the species name that works with the KEGG database
 #'
 #' The KEGG pathway needs the species name in a
