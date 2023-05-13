@@ -8,6 +8,11 @@
 #' @return nested list of enrichResult objects
 run_enricher <- function(res_list, ontology_list, config,
                          cores=1, sep='*'){
+    # This function supports running in parallel which works best with a flat
+    # list; however for organizational purposese we want a nested structure. So
+    # we convert between the two by collapsing nested keys for flat list, and
+    # splitting the collapsed keys to reconstruct the nested.
+
     # make sure the sep character is not in res_list names
     if(sum(grepl(sep, names(res_list), fixed=TRUE)) > 0){
         stop(
@@ -81,6 +86,8 @@ run_enricher <- function(res_list, ontology_list, config,
 }
 
 #' Function to collapse res_list names with ontologies
+#'
+#' Used for converting from nested form to flattened form.
 #'
 #' @param res_list list of DESeq2 results objects
 #' @param config Config object
