@@ -35,6 +35,13 @@ devtools::document('../../../lib/lcdbwf')
 devtools::load_all('../../../lib/lcdbwf')
 
 config <- lcdbwf:::load_config('config.yaml')
+
+# set cores for operation
+if (config$parallel$parallel){
+    cores <- as.numeric(config$parallel$cores)
+} else {
+    cores <- 1
+}
 ```
 
 ```{r load, cache=TRUE, cache.extra=file.info('combined.Rds')$mtime}
