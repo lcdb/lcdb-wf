@@ -230,6 +230,7 @@ functional_enrichment:
   directions:
     - "up"
     - "down"
+    - "changed"
 
   # Any GO terms above these cutoffs will not be reported. Set to 1 if you're
   # fine getting plots even with no statistically significant terms.
