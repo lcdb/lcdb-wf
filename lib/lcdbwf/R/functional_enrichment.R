@@ -22,47 +22,25 @@ run_enricher <- function(res_list, ontology_list, config,
                         config=config,
                         sep=sep)
 
-    if(cores > 1){
-        # parallel mode
-        enrich_list_flat <- BiocParallel::bplapply(n,
-            function(x){
-                # split name into 3 fields:
-                #   comparison, direction, ontology
-                toks <- unlist(strsplit(x, split=sep, fixed=TRUE))
-                name <- toks[1]
-                direction <- toks[2]
-                ont <- toks[3]
+    # run enrichment on flattened res_list
+    enrich_list_flat <- BiocParallel::bplapply(n,
+        function(x){
+            # split name into 3 fields:
+            #   comparison, direction, ontology
+            toks <- unlist(strsplit(x, split=sep, fixed=TRUE))
+            name <- toks[1]
+            direction <- toks[2]
+            ont <- toks[3]
 
-                enrich_res <- enrich_test(
-                  res_list[[name]],
-                  direction=direction,
-                  TERM2GENE=ontology_list[['term2gene']][[ont]],
-                  TERM2NAME=ontology_list[['term2name']][[ont]],
-                  config=config
-                )
-                enrich_res
-            }, BPPARAM=BiocParallel::MulticoreParam(cores))
-    } else {
-        # non-parallel mode
-        enrich_list_flat <- lapply(n,
-            function(x){
-                # split name into 3 fields:
-                #   comparison, direction, ontology
-                toks <- unlist(strsplit(x, split=sep, fixed=TRUE))
-                name <- toks[1]
-                direction <- toks[2]
-                ont <- toks[3]
-
-                enrich_res <- enrich_test(
-                  res_list[[name]],
-                  direction=direction,
-                  TERM2GENE=ontology_list[['term2gene']][[ont]],
-                  TERM2NAME=ontology_list[['term2name']][[ont]],
-                  config=config
-                )
-                enrich_res
-            })
-    }
+            enrich_res <- enrich_test(
+              res_list[[name]],
+              direction=direction,
+              TERM2GENE=ontology_list[['term2gene']][[ont]],
+              TERM2NAME=ontology_list[['term2name']][[ont]],
+              config=config
+            )
+            enrich_res
+        }, BPPARAM=BiocParallel::MulticoreParam(cores))
 
     # create nested list structure keyed by
     # comparison, direction, ontology
