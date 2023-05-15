@@ -297,34 +297,37 @@ get_ontology_list <- function(config){
                           term2name=lapply(go2gene,
                             function(x) go2name %>% dplyr::filter(GOID %in% x$GOALL)))
 
-    # only kegg keytype supported is 'ncbi-geneid'
-    kegg_keytype <- config$annotation$kegg_keytype
-    if(kegg_keytype == 'kegg'){
-        kegg_species <- lcdbwf:::get_kegg_species(config)
 
-        # download KEGG information
-        kegg_list <- clusterProfiler::download_KEGG(kegg_species,
-                                    keyType=kegg_keytype)
-        term2gene <- as.data.frame(kegg_list[[1]])
-        term2name <- as.data.frame(kegg_list[[2]])
+    # download KEGG information
+    kegg_species <- lcdbwf:::get_kegg_species(config)
 
-        term2id <- suppressMessages(
-                        AnnotationDbi::mapIds(
-                            orgdb, keys=term2gene[,2],
-                            column=keytype, keytype="ENTREZID",
-                            multiVals='first')
-                    )
+    # NOTE: KEGG API changes breaks clusterProfiler enrichKEGG
+    #       and download_KEGG functions pre v4.7.2. Using
+    #       internal patched versions in its place here.
+    #       Can switch back to clusterProfiler version later
+    #       if needed, so leaving the alternate command here.
+    #
+    #kegg_list <- clusterProfiler::download_KEGG(kegg_species,
+    #                            keyType='kegg')
+    kegg_list <- get_KEGG_info(kegg_species)
 
-        term2gene[,2] <- term2id[term2gene[,2]]
-        colnames(term2gene) <- c('KEGG', keytype)
-        colnames(term2name) <- c('KEGG', 'Description')
+    term2gene <- kegg_list[['term2gene']]
+    term2name <- kegg_list[['term2name']]
 
-        # add kegg info to ontology_list
-        ontology_list$term2gene[['KEGG']] <- term2gene
-        ontology_list$term2name[['KEGG']] <- term2name
-    } else {
-        stop("'kegg_keytype' must be 'kegg'")
-    }
+    term2id <- suppressMessages(
+                    AnnotationDbi::mapIds(
+                        orgdb, keys=term2gene[,2],
+                        column=keytype, keytype="ENTREZID",
+                        multiVals='first')
+                )
+
+    term2gene[,2] <- term2id[term2gene[,2]]
+    colnames(term2gene) <- c('KEGG', keytype)
+    colnames(term2name) <- c('KEGG', 'Description')
+
+    # add kegg info to ontology_list
+    ontology_list$term2gene[['KEGG']] <- term2gene
+    ontology_list$term2name[['KEGG']] <- term2name
 
     # Get all of MSigDB, although we may only use subsets of it.
     # This can take up a lot of memory on CI/CD, so we only do this if not doing
