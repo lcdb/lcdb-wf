@@ -349,6 +349,71 @@ get_ontology_list <- function(config){
     return(ontology_list)
 }
 
+#' Download KEGG info from API
+#'
+#' This function is a simplified version combining clusterProfiler
+#' functions 'kegg_rest' & 'kegg_link' to reflect KEGG API
+#' changes.
+#'
+#' @param target_db KEGG species db name, e.g. 'hsa' for human
+#' @param source_db KEGG source db name, e.g. 'pathway'.
+#' @param type type of information to download. Can be 'term2gene' or 'term2name'
+#'
+download_KEGG_db <- function(target_db, source_db, type){
+  if(type == 'term2gene') type <- 'link'
+  else if(type == 'term2name') type <- 'list'
+  else {
+    stop('Unrecognized "type": must be "term2gene" or "term2name"')
+  }
+
+  # first get: pathway -> gene id mapping
+  url <- paste("https://rest.kegg.jp", type,
+                target_db, source_db, sep = "/")
+
+  # download data to tempfile and save to data frame
+  f <- tempfile()
+  dl <- tryCatch(
+          utils::download.file(url, quiet=TRUE,
+                               method='libcurl',
+                               destfile=f),
+                 error = function(e) NULL
+        )
+
+  if (is.null(dl)) {
+      message("Failed to download KEGG data.")
+      return(NULL)
+  }
+  content <- readLines(f)
+  content %<>% strsplit(., "\t") %>% do.call("rbind", .)
+  res <- data.frame(from = content[, 1], to = content[, 2])
+
+  # next get pathway -> pathway name mapping
+
+  return(res)
+}
+
+#' Build annotation list from KEGG info
+#'
+#' This wrapper function downloads term -> gene & term -> name
+#' mappings from KEGG and returns as a list of data frames.
+#'
+#' @param species KEGG species name, e.g. 'hsa'
+#'
+get_KEGG_info <- function(species){
+  term2gene <- download_KEGG_db(species, 'pathway', 'term2gene')
+  term2name <- download_KEGG_db('pathway', species, 'term2name')
+
+  # clean up term2gene prefixes
+  term2gene[, 'from'] <- gsub('.+\\:', '', term2gene[, 'from'])
+  term2gene[, 'to'] <- gsub('.+\\:', '', term2gene[, 'to'])
+
+  return(
+    list(term2gene=term2gene,
+         term2name=term2name)
+  )
+}
+
+
 #' Convert "1/100" to 0.01.
 #'
 #' clusterProfiler report columns that are strings of numbers; this converts to
