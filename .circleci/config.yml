@@ -247,7 +247,11 @@ variables:
           $DEPLOY/test/lcdb-wf-test rnaseq --downstream
 
           # bundle up the entire directory to be used as an artifact
-          tar -zcf downstream.tar.gz workflows/rnaseq/downstream-test/
+          tar -zcf /tmp/downstream.tar.gz workflows/rnaseq/downstream-test/
+          cp workflows/rnaseq/downstream-test/rnaseq.html /tmp/rnaseq.html
+          cp workflows/rnaseq/downstream-test/functional-enrichment.html /tmp/functional-enrichment.html
+          cp workflows/rnaseq/downstream-test/gene-patterns.html /tmp/gene-patterns.html
+          cp workflows/rnaseq/data/rnaseq_aggregation/multiqc.html /tmp/rnaseq.html
 
   # --------------------------------------------------------------------------
   # Various tests on RNA-seq workflow that don't warrant the overhead of a new
@@ -367,11 +371,21 @@ jobs:
       - *get-data
       - *rnaseq-step
       - store_artifacts:
-          path: /tmp/lcdb-wf-test/workflows/rnaseq/downstream.tar.gz
+          path: /tmp/downstream.tar.gz
+          destination: downstream.tar.gz
       - store_artifacts:
-          path: /tmp/lcdb-wf-test/workflows/rnaseq/downstream/rnaseq.html
+          path: /tmp/rnaseq.html
+          destination: rnaseq.html
       - store_artifacts:
-          path: /tmp/lcdb-wf-test/workflows/rnaseq/data/rnaseq_aggregation/multiqc.html
+          path: /tmp/multiqc.html
+          destination: multiqc.html
+      - store_artifacts:
+          path: /tmp/functional-enrichment.html
+          destination: functional-enrichment.html
+      - store_artifacts:
+          path: /tmp/gene-patterns.html
+          destination: gene-patterns.html
+
 
   rnaseq-misc:
     <<: *defaults
