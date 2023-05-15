@@ -206,6 +206,9 @@ functional_enrichment:
     #"CC": "GO Cellular Component"
     #"MF": "GO Molecular Function"
 
+    # KEGG pathway analysis
+    #"KEGG": "KEGG Pathways"
+
     ## MSigDB (compiled for human, but orthologs are available which may be of
     ## questionable utility for other organisms).  To see what's available, use
     ## lcdbwf::available_msigdb_keys() and cross-reference with
