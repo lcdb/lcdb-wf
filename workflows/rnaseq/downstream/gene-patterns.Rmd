@@ -131,7 +131,7 @@ all.changed <- list('union_all_contrasts' = unlist(ll) %>% unique())
 ll <- c(all.changed, ll)
 
 add.cluster.id <- function(clusters, res, label){
-    if(nrow(clusters) == 0) return(NULL)
+    if(is.null(clusters)) return(NULL)
 
     # Merges the degPattern cluster IDs `cluster` with DESeqresults `res`
     # `label` will be used to create a cluster column with a unique column name 
