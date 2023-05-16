@@ -321,12 +321,30 @@ get_ontology_list <- function(config){
     term2gene <- kegg_list[['term2gene']]
     term2name <- kegg_list[['term2name']]
 
-    term2id <- suppressMessages(
-                    AnnotationDbi::mapIds(
-                        orgdb, keys=term2gene[,2],
-                        column=keytype, keytype="ENTREZID",
-                        multiVals='first')
-                )
+    # get pathway to gene ID mapping
+    term2id <- NULL
+    while(is.null(term2id)){
+      term2id <- tryCatch(
+        suppressMessages(
+          AnnotationDbi::mapIds(
+              orgdb, keys=term2gene[,2],
+              column=keytype, keytype="ENTREZID",
+              multiVals='first')
+        ),
+        error = function(e){ NULL }
+      )
+
+      # if null, convert IDs to 'ncbi-geneid' ('ENTREZID') first
+      if(is.null(term2id)){
+        idconv <- download_KEGG_db('ncbi-geneid', kegg_species,
+                                   'conv')
+        idconv[, 1] <- gsub('.+\\:', '', idconv[,1])
+        idconv[, 2] <- gsub('.+\\:', '', idconv[,2])
+        rownames(idconv) <- idconv[,1]
+
+        term2gene[, 2] <- idconv[term2gene[,2], 2]
+      }
+    }
 
     term2gene[,2] <- term2id[term2gene[,2]]
     colnames(term2gene) <- c('KEGG', keytype)
