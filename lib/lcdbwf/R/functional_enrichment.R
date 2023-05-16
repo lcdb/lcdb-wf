@@ -382,13 +382,14 @@ get_ontology_list <- function(config){
 #'
 #' @param target_db KEGG species db name, e.g. 'hsa' for human
 #' @param source_db KEGG source db name, e.g. 'pathway'.
-#' @param type type of information to download. Can be 'term2gene' or 'term2name'
+#' @param type type of information to download. Can be 'term2gene', 'term2name' or 'conv'
 #'
 download_KEGG_db <- function(target_db, source_db, type){
   if(type == 'term2gene') type <- 'link'
   else if(type == 'term2name') type <- 'list'
+  else if(type == 'conv') type <- 'conv'
   else {
-    stop('Unrecognized "type": must be "term2gene" or "term2name"')
+    stop('Unrecognized "type": must be "term2gene", "term2name" or "conv"')
   }
 
   # first get: pathway -> gene id mapping
