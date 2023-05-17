@@ -891,7 +891,7 @@ rule kallisto:
             c, {
                 'unstranded': '',
                 'fr-firststrand': '--rf-stranded',
-                'fr-secondstrand': '--rf-stranded',
+                'fr-secondstrand': '--fr-stranded',
             }
         )
 
