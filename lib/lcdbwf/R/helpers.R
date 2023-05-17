@@ -546,6 +546,32 @@ compose_results <- function(res_list,
   return(obj)
 }
 
+#' Add cluster ID columns to res_list objects
+#'
+#' @param clusters DegPatterns data frame with gene -> cluster mapping
+#' @param res DESeq2 results object
+#' @param label Cluster column prefix
+#'
+#' @return DESeq2 results object with added cluster column
+add.cluster.id <- function(clusters, res, label){
+    if(is.null(res)) return(NULL)
+    else if(is.null(clusters)){
+      # add NA cluster column
+      res[[paste0(label, '_cluster')]] <- NA
+      return(res)
+    }
+    # Merges the degPattern cluster IDs `cluster` with DESeqresults `res`
+    # `label` will be used to create a cluster column with a unique column name 
+    # returns a DESeqresults with cluster IDs
+    unq <- unique(clusters[, c('genes', 'cluster')])
+    names(unq)[names(unq) == 'genes'] <- 'gene'
+    merged <- merge(as.data.frame(res) %>% tibble::rowid_to_column("ID"),
+                    unq, by='gene', all.x=TRUE) %>%
+        arrange(ID)
+    res[[paste0(label, '_cluster')]] <- merged[['cluster']]
+    return(res)
+}
+
 
 #' Get config object from global env
 #'

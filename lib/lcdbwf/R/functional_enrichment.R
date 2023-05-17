@@ -27,47 +27,25 @@ run_enricher <- function(res_list, ontology_list, config,
                         config=config,
                         sep=sep)
 
-    if(cores > 1){
-        # parallel mode
-        enrich_list_flat <- BiocParallel::bplapply(n,
-            function(x){
-                # split name into 3 fields:
-                #   comparison, direction, ontology
-                toks <- unlist(strsplit(x, split=sep, fixed=TRUE))
-                name <- toks[1]
-                direction <- toks[2]
-                ont <- toks[3]
+    # run enrichment on flattened res_list
+    enrich_list_flat <- BiocParallel::bplapply(n,
+        function(x){
+            # split name into 3 fields:
+            #   comparison, direction, ontology
+            toks <- unlist(strsplit(x, split=sep, fixed=TRUE))
+            name <- toks[1]
+            direction <- toks[2]
+            ont <- toks[3]
 
-                enrich_res <- enrich_test(
-                  res_list[[name]],
-                  direction=direction,
-                  TERM2GENE=ontology_list[['term2gene']][[ont]],
-                  TERM2NAME=ontology_list[['term2name']][[ont]],
-                  config=config
-                )
-                enrich_res
-            }, BPPARAM=BiocParallel::MulticoreParam(cores))
-    } else {
-        # non-parallel mode
-        enrich_list_flat <- lapply(n,
-            function(x){
-                # split name into 3 fields:
-                #   comparison, direction, ontology
-                toks <- unlist(strsplit(x, split=sep, fixed=TRUE))
-                name <- toks[1]
-                direction <- toks[2]
-                ont <- toks[3]
-
-                enrich_res <- enrich_test(
-                  res_list[[name]],
-                  direction=direction,
-                  TERM2GENE=ontology_list[['term2gene']][[ont]],
-                  TERM2NAME=ontology_list[['term2name']][[ont]],
-                  config=config
-                )
-                enrich_res
-            })
-    }
+            enrich_res <- enrich_test(
+              res_list[[name]],
+              direction=direction,
+              TERM2GENE=ontology_list[['term2gene']][[ont]],
+              TERM2NAME=ontology_list[['term2name']][[ont]],
+              config=config
+            )
+            enrich_res
+        }, BPPARAM=BiocParallel::MulticoreParam(cores))
 
     # create nested list structure keyed by
     # comparison, direction, ontology
@@ -326,34 +304,55 @@ get_ontology_list <- function(config){
                           term2name=lapply(go2gene,
                             function(x) go2name %>% dplyr::filter(GOID %in% x$GOALL)))
 
-    # only kegg keytype supported is 'ncbi-geneid'
-    kegg_keytype <- config$annotation$kegg_keytype
-    if(kegg_keytype == 'kegg'){
-        kegg_species <- lcdbwf:::get_kegg_species(config)
 
-        # download KEGG information
-        kegg_list <- clusterProfiler::download_KEGG(kegg_species,
-                                    keyType=kegg_keytype)
-        term2gene <- as.data.frame(kegg_list[[1]])
-        term2name <- as.data.frame(kegg_list[[2]])
+    # download KEGG information
+    kegg_species <- lcdbwf:::get_kegg_species(config)
 
-        term2id <- suppressMessages(
-                        AnnotationDbi::mapIds(
-                            orgdb, keys=term2gene[,2],
-                            column=keytype, keytype="ENTREZID",
-                            multiVals='first')
-                    )
+    # NOTE: KEGG API changes breaks clusterProfiler enrichKEGG
+    #       and download_KEGG functions pre v4.7.2. Using
+    #       internal patched versions in its place here.
+    #       Can switch back to clusterProfiler version later
+    #       if needed, so leaving the alternate command here.
+    #
+    #kegg_list <- clusterProfiler::download_KEGG(kegg_species,
+    #                            keyType='kegg')
+    kegg_list <- get_KEGG_info(kegg_species)
 
-        term2gene[,2] <- term2id[term2gene[,2]]
-        colnames(term2gene) <- c('KEGG', keytype)
-        colnames(term2name) <- c('KEGG', 'Description')
+    term2gene <- kegg_list[['term2gene']]
+    term2name <- kegg_list[['term2name']]
 
-        # add kegg info to ontology_list
-        ontology_list$term2gene[['KEGG']] <- term2gene
-        ontology_list$term2name[['KEGG']] <- term2name
-    } else {
-        stop("'kegg_keytype' must be 'kegg'")
+    # get pathway to gene ID mapping
+    term2id <- NULL
+    while(is.null(term2id)){
+      term2id <- tryCatch(
+        suppressMessages(
+          AnnotationDbi::mapIds(
+              orgdb, keys=term2gene[,2],
+              column=keytype, keytype="ENTREZID",
+              multiVals='first')
+        ),
+        error = function(e){ NULL }
+      )
+
+      # if null, convert IDs to 'ncbi-geneid' ('ENTREZID') first
+      if(is.null(term2id)){
+        idconv <- download_KEGG_db('ncbi-geneid', kegg_species,
+                                   'conv')
+        idconv[, 1] <- gsub('.+\\:', '', idconv[,1])
+        idconv[, 2] <- gsub('.+\\:', '', idconv[,2])
+        rownames(idconv) <- idconv[,1]
+
+        term2gene[, 2] <- idconv[term2gene[,2], 2]
+      }
     }
+
+    term2gene[,2] <- term2id[term2gene[,2]]
+    colnames(term2gene) <- c('KEGG', keytype)
+    colnames(term2name) <- c('KEGG', 'Description')
+
+    # add kegg info to ontology_list
+    ontology_list$term2gene[['KEGG']] <- term2gene
+    ontology_list$term2name[['KEGG']] <- term2name
 
     # Get all of MSigDB, although we may only use subsets of it.
     # This can take up a lot of memory on CI/CD, so we only do this if not doing
@@ -374,6 +373,72 @@ get_ontology_list <- function(config){
 
     return(ontology_list)
 }
+
+#' Download KEGG info from API
+#'
+#' This function is a simplified version combining clusterProfiler
+#' functions 'kegg_rest' & 'kegg_link' to reflect KEGG API
+#' changes.
+#'
+#' @param target_db KEGG species db name, e.g. 'hsa' for human
+#' @param source_db KEGG source db name, e.g. 'pathway'.
+#' @param type type of information to download. Can be 'term2gene', 'term2name' or 'conv'
+#'
+download_KEGG_db <- function(target_db, source_db, type){
+  if(type == 'term2gene') type <- 'link'
+  else if(type == 'term2name') type <- 'list'
+  else if(type == 'conv') type <- 'conv'
+  else {
+    stop('Unrecognized "type": must be "term2gene", "term2name" or "conv"')
+  }
+
+  # first get: pathway -> gene id mapping
+  url <- paste("https://rest.kegg.jp", type,
+                target_db, source_db, sep = "/")
+
+  # download data to tempfile and save to data frame
+  f <- tempfile()
+  dl <- tryCatch(
+          utils::download.file(url, quiet=TRUE,
+                               method='libcurl',
+                               destfile=f),
+                 error = function(e) NULL
+        )
+
+  if (is.null(dl)) {
+      message("Failed to download KEGG data.")
+      return(NULL)
+  }
+  content <- readLines(f)
+  content %<>% strsplit(., "\t") %>% do.call("rbind", .)
+  res <- data.frame(from = content[, 1], to = content[, 2])
+
+  # next get pathway -> pathway name mapping
+
+  return(res)
+}
+
+#' Build annotation list from KEGG info
+#'
+#' This wrapper function downloads term -> gene & term -> name
+#' mappings from KEGG and returns as a list of data frames.
+#'
+#' @param species KEGG species name, e.g. 'hsa'
+#'
+get_KEGG_info <- function(species){
+  term2gene <- download_KEGG_db(species, 'pathway', 'term2gene')
+  term2name <- download_KEGG_db('pathway', species, 'term2name')
+
+  # clean up term2gene prefixes
+  term2gene[, 'from'] <- gsub('.+\\:', '', term2gene[, 'from'])
+  term2gene[, 'to'] <- gsub('.+\\:', '', term2gene[, 'to'])
+
+  return(
+    list(term2gene=term2gene,
+         term2name=term2name)
+  )
+}
+
 
 #' Convert "1/100" to 0.01.
 #'

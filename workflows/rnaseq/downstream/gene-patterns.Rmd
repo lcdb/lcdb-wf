@@ -130,19 +130,6 @@ ll <- ll[lapply(ll, length) > 0]
 all.changed <- list('union_all_contrasts' = unlist(ll) %>% unique())
 ll <- c(all.changed, ll)
 
-add.cluster.id <- function(clusters, res, label){
-    # Merges the degPattern cluster IDs `cluster` with DESeqresults `res`
-    # `label` will be used to create a cluster column with a unique column name 
-    # returns a DESeqresults with cluster IDs
-    unq <- unique(clusters[, c('genes', 'cluster')])
-    names(unq)[names(unq) == 'genes'] <- 'gene'
-    merged <- merge(as.data.frame(res) %>% tibble::rowid_to_column("ID"),
-                    unq, by='gene', all.x=TRUE) %>%
-        arrange(ID)
-    res[[paste0(label, '_cluster')]] <- merged[['cluster']]
-    return(res)
-}
-
 # n.list will store all the clusters to later add the cluster ID to res_list
 n.list <- list()
 
