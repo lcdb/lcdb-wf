@@ -8,6 +8,9 @@ This is a bugfix and minor patch release.
 - Bugfix: the references workflow was missing the ``resources:`` directives;
   they have now been added.
 
+- Bugfix: kallisto strandedness was set incorrectly for libraries using
+  ligation prep (fr-secondstrand)
+
 - The new ``utils.autobump`` function can be used to easily specify default and
   incremented resources, and the ``utils.gb`` and ``utils.hours`` make it
   a little easier to specify when autobump is not required.
@@ -42,6 +45,7 @@ This is a bugfix and minor patch release.
   a reasonable disk space cost.
 
 - added ``--overlap 6`` to cutadapt to avoid greedy trimming
+
 
 v1.10
 -----
