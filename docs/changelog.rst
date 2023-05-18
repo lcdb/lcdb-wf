@@ -44,6 +44,11 @@ This is a bugfix and minor patch release.
   This can have a dramatic improvement on downstream performance for
   a reasonable disk space cost.
 
+- functional-enrichment.Rmd, now supports KEGG pathways & parallel operation.
+
+- functional-enrichment.Rmd, gene-patterns.Rmd, now saves Rds file at the
+  end (without compression) adding the respective object lists.
+
 - added ``--overlap 6`` to cutadapt to avoid greedy trimming
 
 
