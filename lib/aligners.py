@@ -83,3 +83,28 @@ def fastq_arg_from_input(fastqs):
         fastqs = '-1 {0} -2 {1} '.format(*fastqs)
     return fastqs
 
+def bwa_index_from_prefix(prefix):
+    """
+    Given a prefix, return a list of the corresponding bwa index files
+    """
+    ext_list = ["amb", "ann", "bwt", "pac", "sa"]
+    return ['{prefix}.{ext}'.format(prefix=prefix, ext=ext_list[i]) for i in range(len(ext_list))]
+
+def bwa_prefix_from_index(index_files):
+    """
+    Given a list of index files, return the corresponding prefix
+    """
+    if isinstance(index_files, str):
+        return '.'.join(index_files.split('.')[:-1])
+    else:
+        prefixes = list(
+            set(
+                map(
+                    lambda x: '.'.join(x.split('.')[:-1]), index_files)
+            )
+        )
+        if len(prefixes) != 1:
+            raise ValueError(
+                "More than one prefix detected from '{0}'".format(prefixes)
+            )
+        return prefixes[0]

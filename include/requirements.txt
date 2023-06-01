@@ -1,13 +1,17 @@
+bcftools>=1.15.1
 bedtools
 biopython
 bowtie
 bowtie2
-cutadapt
+bwa
+curl
+cutadapt>=3.0
 deeptools
 fastq-screen
 fastqc
 font-ttf-dejavu-sans-mono
 gat
+gatk4
 gffread
 gffutils
 hisat2
@@ -27,14 +31,17 @@ pyfaidx
 pysam
 pytest
 pytest-xdist
+python>=3.10
 rseqc
+rust-bio-tools
 
 # earlier versions of salmon can segfault on Slurm
 salmon>=1.10.1
-
 samtools
 seaborn
 snakemake-minimal
+snpeff
+snpsift
 sra-tools
 star
 subread

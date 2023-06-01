@@ -1,0 +1,74 @@
+samples: config/samples.tsv
+units: config/units.tsv
+ref:
+  # Set to true only if you want your references to come from lcdb-wf references
+  use_references_workflow: false
+  # Match these to the reference config that is included at the bottom of this file
+  # Only configure this section if use_references_workflow is set to true
+  organism: 'human'
+  genome:
+    tag: 'ensembl-104'
+    build: 'GRCh38'
+  aligner:
+    index: 'bwa'
+    tag: 'ensembl-104'
+  faidx:
+    index: 'faidx'
+    tag: 'ensembl-104'
+  variation:
+    known: 'known'
+    dbnsfp: 'dbNSFPv4.4'
+  # If you are providing your own references, include their paths here.
+  paths:
+    # When using BWA, you should not use a top level genome assembly for human, see http://lh3.github.io/2017/11/13/which-human-reference-genome-to-use
+    ref: 'references/GRCh38.6.20.fa.gz'
+    known: 'references/known_variation_noiupac.vcf.gz'
+    index:
+    dbnsfp: 'references/dbnsfp_6_20.vcf.gz'
+processing:
+  remove-duplicates: true
+  remove-mitochondrial: true
+  # See https://gatk.broadinstitute.org/hc/en-us/articles/360036465912-HaplotypeCaller#--pcr-indel-model for pcr
+  pcr: "NONE"
+  # Point to a bed file, e.g. captured regions
+  restrict-regions: 'references/exons_subset.bed'
+  # If regions are restricted, optionally enlarge them by a given value
+  region-padding:
+filtering:
+  # Set to true in order to apply machine learning based recalibration of
+  # quality scores instead of hard filtering.
+  bqsr: true
+  hard:
+    # hard filtering as outlined in GATK docs
+    # (https://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set)
+    snvs:
+      "QD < 2.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0"
+    indels:
+      "QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0"
+snpeff:
+  # MultiQC rule needs these set to collect summary files from the snpeff and snpeff_cancer rule
+  # Set each to true respectively if you plan on generating annotations for somatic or germline data
+  somatic: true
+  germline: true
+  # Run snpEff databases to see available databases (https://pcingola.github.io/SnpEff/se_commandline/)
+  # See https://pcingola.github.io/SnpEff/se_build_db/ for docs on building your own database
+  genome: 'GRCh38.p14'
+  # Add annotations in the form of a comma-separated string to attach from dbnsfp for snpsift.
+  # These annotations should be column names in the dbnsfp file.
+  # Leave this blank if you are not using dbnsfp.
+  annotations: 'FATHMM_pred,SIFT_pred'
+# Supple a panel of normals file if you have one for your genome. It is OK to leave this blank. 
+# See https://gatk.broadinstitute.org/hc/en-us/articles/360035890631-Panel-of-Normals-PON- for details on the PON file.
+PON:
+mutect2:
+  # See the docs on how to configure this section
+  tumor-normal:
+    tumor:
+      - 'tumor'
+    normal:
+      - 'normal'
+
+
+
+include_references:
+  - '../../include/reference_configs/variant-calling.yaml'
