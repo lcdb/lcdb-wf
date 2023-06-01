@@ -652,7 +652,7 @@ rule snpeff:
     resources:
         disk_mb=gb(20),
         mem_mb=gb(16),
-        # mem_mb = gb(5.5), # [ TEST SETTINGS -1 ]
+        # mem_mb = gb(5), # [ TEST SETTINGS -1 ]
         runtime=autobump(120)
     input:
         vcf='results/filtered/all.normed.vcf.gz',
@@ -888,7 +888,7 @@ rule snpeff_cancer:
     resources:
         disk_mb=gb(20),
         mem_mb=gb(16),
-        # mem_mb = gb(5.5), # [ TEST SETTINGS -1 ]
+        # mem_mb = gb(5), # [ TEST SETTINGS -1 ]
         runtime=autobump(120)
     input:
         vcf='results/somatic_filtered/normed.{comp}.vcf.gz',
