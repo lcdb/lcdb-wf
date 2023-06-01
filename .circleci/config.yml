@@ -289,6 +289,22 @@ variables:
           conda activate $LCDBWF_ENV
           $DEPLOY/test/lcdb-wf-test colocalization --run-workflow -k -r -p -j2 --use-conda --orig $ORIG
 
+
+  # --------------------------------------------------------------------------
+  # REVIEW: not RNA-seq
+  # Standard RNA-seq workflow
+  variantcalling-step: &variantcalling-step
+      run:
+        name: variantcalling workflow
+        command: |
+          cd $DEPLOY
+          source /opt/mambaforge/etc/profile.d/conda.sh
+          conda activate $LCDBWF_ENV
+          $DEPLOY/test/lcdb-wf-test variantcalling --run-workflow -n
+          $DEPLOY/test/lcdb-wf-test variantcalling --run-workflow --use-conda -j2
+
+          tar -zcf variantcalling.tar.gz workflows/variant-calling/results
+
 # --------------------------------------------------------------------------
 # Syntax note: All of the steps above, with their "&step-name" labels, can be
 # referred to by a corresponding "*step-name" below. The "<<: *defaults"
@@ -386,6 +402,17 @@ jobs:
           path: /tmp/gene-patterns.html
           destination: gene-patterns.html
 
+
+  variantcalling:
+    <<: *defaults
+    steps:
+      - checkout
+      - *restore_cache
+      - *set-path
+      - *get-data
+      - *variantcalling-step
+      - store_artifacts:
+        path: /tmp/lcdb-wf-test/workflows/variant-calling/variantcalling.tar.gz
 
   rnaseq-misc:
     <<: *defaults

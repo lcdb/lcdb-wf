@@ -67,6 +67,8 @@ class Runner(object):
                 %(prog)s rnaseq --downstream
                 %(prog)s chipseq --run-workflow
                 %(prog)s references --run-workflow --configfile=config/config.yaml
+                %(prog)s variantcalling --run-workflow
+
 
             DATA
             ----
@@ -130,7 +132,7 @@ class Runner(object):
         parser.add_argument(
             "--kind",
             default="all",
-            choices=["all", "rnaseq", "chipseq"],
+            choices=["all", "rnaseq", "chipseq", "variantcalling"],
             help="Kind of data to download",
         )
         parser.add_argument(
@@ -144,8 +146,22 @@ class Runner(object):
 
         args = parser.parse_args(sys.argv[2:])
 
-        repo = "lcdb-test-data"
-        URL = f"https://github.com/lcdb/{repo}/blob/{args.branch}/data/{{}}?raw=true"
+        # Create a repo lookup for the different assays
+        # For variantcalling, the `args.branch` should be "main" instead of "master", unless we can fix this
+        repo_lookup = {
+            'rnaseq': {
+                'repo': "lcdb-test-data",
+                'URL': f"https://github.com/lcdb/{{repo}}/blob/{args.branch}/data/{{}}?raw=true"
+            },
+            'chipseq': {
+                'repo': "lcdb-test-data",
+                'URL': f"https://github.com/lcdb/{{repo}}/blob/{args.branch}/data/{{}}?raw=true"
+            },
+            'variantcalling': {
+                'repo': 'lcdb-wf-variant-calling-test-data', 
+                'URL': f"https://github.com/lcdb/{{repo}}/blob/{args.branch}/data/{{}}?raw=true"
+            }
+        }
 
         # This dict maps files in the `data` directory of the repo to a local
         # path to which it should be downloaded.
@@ -214,6 +230,41 @@ class Runner(object):
                     "workflows/chipseq/data/example_data/chipseq_ip4.fq.gz",
                 ),
             ],
+            "variantcalling": [
+                (
+                    "GRCh38.6.20.fa.gz",
+                    "workflows/variant-calling/references/GRCh38.6.20.fa.gz",
+                ),
+                (
+                    "known_variation_noiupac.vcf.gz",
+                    "workflows/variant-calling/references/known_variation_noiupac.vcf.gz"
+
+                ),
+                (
+                    "normal_R1.6.20.fq.gz",
+                    "workflows/variant-calling/data/example_data/normal_R1.fq.gz"
+                ),
+                (
+                    "normal_R2.6.20.fq.gz",
+                    "workflows/variant-calling/data/example_data/normal_R2.fq.gz"
+                ),
+                (
+                    "tumor_R1.6.20.fq.gz",
+                    "workflows/variant-calling/data/example_data/tumor_R1.fq.gz"
+                ),
+                (
+                    "tumor_R2.6.20.fq.gz",
+                    "workflows/variant-calling/data/example_data/tumor_R2.fq.gz"
+                ),
+                (
+                    "dbnsfp_6_20.vcf.gz",
+                    "workflows/variant-calling/references/dbnsfp_6_20.vcf.gz"
+                ),
+                (
+                    "dbnsfp_6_20.vcf.gz.tbi",
+                    "workflows/variant-calling/references/dbnsfp_6_20.vcf.gz.tbi"
+                ),
+            ]
         }
 
         if args.kind == "all":
@@ -222,7 +273,7 @@ class Runner(object):
             kinds = [args.kind]
         for kind in kinds:
             for fn, dest in data_files[kind]:
-                url = URL.format(fn)
+                url = repo_lookup[kind]['URL'].format(fn, repo=repo_lookup[kind]['repo'])
                 if args.verbose:
                     print(f"downloading {url}")
                 if dest is None:
@@ -501,6 +552,44 @@ class Runner(object):
                 cmd,
                 shell=True,
                 check=True,
+                executable="/bin/bash"
+            )
+
+    def _cmd_variantcalling(self):
+        """
+        This function handles the "variantcalling" subcommand.
+        """
+
+        parser = argparse.ArgumentParser(
+            description="Run variant calling workflow and downstream tests",
+            parents=[self.global_parser],
+        )
+        parser.add_argument(
+            "--run-workflow",
+            action="store_true",
+            help="""Run variant workflow using run_tesh.sh, which runs preprocess.py 
+            on the snakefile, converting it to a test file to be run.""",
+        )
+
+
+        workflow_prefix = "bash run_test.sh"
+        workflow_dir = TOPLEVEL / "workflows/variant-calling"
+        args, extra = parser.parse_known_args(sys.argv[2:])
+
+        if args.run_workflow:
+            print(args)
+            extra = [i.replace("__ORIG__", args.orig) for i in extra]
+            strargs = " ".join(extra)
+            cmd = (
+                'eval "$(conda shell.bash hook)" '
+                f"&& conda activate {args.env} "
+                f"&& (cd {workflow_dir} && {workflow_prefix} {strargs})"
+            )
+            print_header(f"Running the following command:\n{cmd}")
+            sp.run(
+                cmd,
+                check=True,
+                shell=True,
                 executable="/bin/bash"
             )
 
