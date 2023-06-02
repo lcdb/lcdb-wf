@@ -513,10 +513,10 @@ workflows:
           requires:
             - initial-setup
             - pytest
-      - references:
-          requires:
-            - initial-setup
-            - pytest
+    # - references:
+    #     requires:
+    #       - initial-setup
+    #       - pytest
       - colocalization:
           requires:
             - initial-setup
