@@ -292,8 +292,7 @@ variables:
 
 
   # --------------------------------------------------------------------------
-  # REVIEW: not RNA-seq
-  # Standard RNA-seq workflow
+  # Variant-calling workflow
   variantcalling-step: &variantcalling-step
       run:
         name: variantcalling workflow
