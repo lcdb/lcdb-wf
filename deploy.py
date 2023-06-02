@@ -87,6 +87,10 @@ def write_include_file(flavor=None):
             'recursive-include workflows/chipseq/config *',
             'include workflows/chipseq/chipseq_trackhub.py',
         ],
+        'variant-calling': [
+            'include workflows/variant-calling/Snakefile',
+            'recursive-include workflows/variant-calling/config *',
+        ],
         'all': [
             'recursive-include wrappers *',
             'recursive-include include *',
@@ -104,6 +108,7 @@ def write_include_file(flavor=None):
             'recursive-include workflows/external *',
         ]
 
+
     }
 
     patterns = []
@@ -111,6 +116,8 @@ def write_include_file(flavor=None):
         patterns.extend(PATTERN_DICT['rnaseq'])
     if flavor is None or 'chipseq':
         patterns.extend(PATTERN_DICT['chipseq'])
+    if flavor is None or 'variant-calling':
+        patterns.extend(PATTERN_DICT['variant-calling'])
     if flavor is None or 'full':
         patterns.extend(PATTERN_DICT['full'])
     patterns.extend(PATTERN_DICT['all'])
@@ -324,7 +331,7 @@ if __name__ == "__main__":
     ap.add_argument(
         "--flavor",
         default="full",
-        help="""Options are {0}. Default is full.""".format(['full', 'rnaseq', 'chipseq']),
+        help="""Options are {0}. Default is full.""".format(['full', 'rnaseq', 'chipseq', 'variant-calling']),
     )
     ap.add_argument(
         "--dest", help="""Destination directory in which to copy files""", required=True
