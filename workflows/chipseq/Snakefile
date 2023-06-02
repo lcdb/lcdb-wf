@@ -9,6 +9,7 @@ import numpy as np
 import pybedtools
 from lib import common, utils, helpers, aligners, chipseq
 from lib.patterns_targets import ChIPSeqConfig
+from lib.utils import autobump, gb, hours
 
 # ----------------------------------------------------------------------------
 #
@@ -23,14 +24,6 @@ if not workflow.overwrite_configfiles:
 config = common.load_config(config)
 
 include: '../references/Snakefile'
-
-def autobump(value):
-    """
-    Increments value for each attempt.
-    """
-    def f(wildcards, attempt):
-        return attempt * value
-    return f
 
 # Verify configuration of config and sampletable files
 helpers.preflight(config)
@@ -118,7 +111,7 @@ if 'orig_filename' in c.sampletable.columns:
             render_r1_r2(c.patterns['fastq'])
         threads: 1
         resources:
-            mem_mb=100,
+            mem_mb=gb(1),
             runtime=10,
         run:
             assert len(output) == len(input), (input, output)
@@ -146,8 +139,8 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
             sampletable=_st,
             # limit = 100000, # [TEST SETTINGS]
         resources:
-            mem_mb=autobump(1024),
-            runtime=autobump(120)
+            mem_mb=autobump(gb=8),
+            runtime=autobump(hours=2)
         conda:
             '../../wrappers/wrappers/fastq-dump/environment.yaml'
         script:
@@ -162,8 +155,8 @@ rule cutadapt:
     output:
         fastq=render_r1_r2(c.patterns['cutadapt'])
     resources:
-        mem_mb=1024 * 2,
-        runtime=autobump(120)
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     log:
         render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
     threads: 6
@@ -177,7 +170,8 @@ rule cutadapt:
                 "-p {output[1]} "
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
-                '-q 20 '
+                '--nextseq-trim 20 '
+                "--overlap 6 "
                 '-j {threads} '
                 '--minimum-length 25 '
                 "{input.fastq[0]} "
@@ -189,7 +183,8 @@ rule cutadapt:
                 "cutadapt "
                 "-o {output[0]} "
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
-                '-q 20 '
+                '--nextseq-trim 20 '
+                "--overlap 6 "
                 '-j {threads} '
                 '--minimum-length 25 '
                 "{input.fastq[0]} "
@@ -209,8 +204,8 @@ rule fastqc:
         html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
         zip='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
     resources:
-        mem_mb=1024 * 2,
-        runtime=autobump(120)
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     script:
         wrapper_for('fastqc/wrapper.py')
 
@@ -228,8 +223,8 @@ rule bowtie2:
         c.patterns['bam'] + '.log'
     threads: 16
     resources:
-        mem_mb=1024 * 32,
-        runtime=autobump(120)
+        mem_mb=gb(32),
+        runtime=autobump(hours=2)
     run:
         prefix = aligners.prefix_from_bowtie2_index(input.index)
         sam = output.bam.replace('.bam', '.sam')
@@ -268,8 +263,8 @@ rule unique:
         c.patterns['unique']
     threads: 1
     resources:
-        mem_mb=1024,
-        runtime=autobump(120)
+        mem_mb=gb(1),
+        runtime=autobump(hours=2)
     shell:
         # NOTE: the quality score chosen here should reflect the scores output
         # by the aligner used. For example, STAR uses 255 as max mapping
@@ -287,8 +282,8 @@ rule fastq_count:
         '{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
     threads: 1
     resources:
-        mem_mb=1024 * 1,
-        runtime=autobump(120)
+        mem_mb=gb(1),
+        runtime=autobump(hours=2)
     shell:
         'zcat {input} | echo $((`wc -l`/4)) > {output}'
 
@@ -303,8 +298,8 @@ rule bam_count:
         '{sample_dir}/{sample}/{suffix}.bam.libsize'
     threads: 1
     resources:
-        mem_mb=1024 * 2,
-        runtime=autobump(120)
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     shell:
         'samtools view -c {input} > {output}'
 
@@ -319,8 +314,8 @@ rule bam_index:
         bai='{prefix}.bam.bai'
     threads: 1
     resources:
-        mem_mb=1024 * 2,
-        runtime=autobump(120)
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     shell:
         'samtools index {input} {output}'
 
@@ -349,8 +344,8 @@ rule fastq_screen:
         c.patterns['fastq_screen'] + '.log'
     threads: 6
     resources:
-        mem_mb=autobump(1024 * 4),
-        runtime=autobump(120)
+        mem_mb=autobump(gb=4),
+        runtime=autobump(hours=2)
     params: subset=100000
     script:
         wrapper_for('fastq_screen/wrapper.py')
@@ -385,8 +380,8 @@ rule multiqc:
         c.targets['multiqc'][0] + '.log'
     threads: 1
     resources:
-        mem_mb=1024 * 2,
-        runtime=autobump(120)
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     run:
         analysis_directory = set([os.path.dirname(i) for i in input])
         outdir = os.path.dirname(c.targets['multiqc'][0])
@@ -417,9 +412,9 @@ rule markduplicates:
         c.patterns['markduplicates']['bam'] + '.log'
     threads: 1
     resources:
-        mem_mb=1024 * 32,
-        runtime=autobump(120),
-        disk_mb=1024 *100
+        mem_mb=gb(32),
+        runtime=autobump(hours=2),
+        disk_mb=gb(100)
     params:
         # NOTE: Be careful with the memory here; make sure you have enough
         # and/or it matches the resources you're requesting in the cluster
@@ -457,9 +452,9 @@ rule merge_techreps:
         c.patterns['merged_techreps'] + '.log'
     threads: 1
     resources:
-        mem_mb=1024 * 32,
-        runtime=autobump(120),
-        disk_mb=1024 *100
+        mem_mb=gb(32),
+        runtime=autobump(hours=2),
+        disk_mb=gb(100),
     params:
         # NOTE: Be careful with the memory here; make sure you have enough
         # and/or it matches the resources you're requesting in the cluster
@@ -480,8 +475,8 @@ if c.is_paired:
             c.patterns['collectinsertsizemetrics']['metrics'] + '.log'
         threads: 1
         resources:
-            mem_mb=1024 * 32,
-            runtime=autobump(120),
+            mem_mb=gb(32),
+            runtime=autobump(hours=2)
         params:
             java_args='-Xmx20g'
             # java_args='-Xmx2g'  # [TEST SETTINGS -1]
@@ -509,8 +504,8 @@ rule bigwig:
         c.patterns['bigwig'] + '.log'
     threads: 1
     resources:
-        mem_mb=1024 * 16,
-        runtime=autobump(120)
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
     shell:
         'bamCoverage '
         '--bam {input.bam} '
@@ -546,8 +541,8 @@ rule fingerprint:
     log: c.patterns['fingerprint']['metrics'] + '.log'
     threads: 1
     resources:
-        mem_mb=1024 * 32,
-        runtime=autobump(120)
+        mem_mb=gb(32),
+        runtime=autobump(hours=2)
     run:
         if len(input.control) == 0:
             jsdsample_arg = ""
@@ -594,8 +589,8 @@ rule sicer:
     log:
         c.patterns['peaks']['sicer'] + '.log'
     resources:
-        mem_mb=1024 * 16,
-        runtime=autobump(120)
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.sicer_run, 'sicer')
     wrapper:
@@ -620,8 +615,8 @@ rule macs2:
     output:
         bed=c.patterns['peaks']['macs2']
     resources:
-        mem_mb=1024 * 16,
-        runtime=autobump(120)
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
     log:
         c.patterns['peaks']['macs2'] + '.log'
     params:
@@ -654,8 +649,8 @@ rule spp:
     log:
         c.patterns['peaks']['spp'] + '.log'
     resources:
-        mem_mb=1024 * 16,
-        runtime=autobump(120)
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.spp_run, 'spp'),
         keep_tempfiles=False,
@@ -678,8 +673,8 @@ rule bed_to_bigbed:
         chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes']
     output: '{prefix}.bigbed'
     resources:
-        mem_mb=1024 * 2,
-        runtime=autobump(120)
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     log: '{prefix}.bigbed.log'
     run:
         # Based on the filename, identify the algorithm. Based on the contents,
@@ -729,8 +724,8 @@ rule multibigwigsummary:
         tab=c.targets['multibigwigsummary']['tab']
     threads: 16
     resources:
-        mem_mb=1024 * 16,
-        runtime=autobump(120)
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
     run:
         # from the input files, figure out the sample name.
         labels = ' '.join([i.split('/')[-2] for i in input])
@@ -755,8 +750,8 @@ rule plotcorrelation:
         heatmap=c.targets['plotcorrelation']['heatmap'],
         tab=c.targets['plotcorrelation']['tab']
     resources:
-        mem_mb=1024 * 2,
-        runtime=autobump(120)
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     shell:
         'plotCorrelation '
         '--corData {input} '
@@ -788,8 +783,8 @@ if 'merged_bigwigs' in config:
         output:
             c.patterns['merged_bigwig']
         resources:
-            mem_mb=1024 * 16,
-            runtime=autobump(120)
+            mem_mb=gb(16),
+            runtime=autobump(hours=2)
         log:
             c.patterns['merged_bigwig'] + '.log'
         script:
@@ -805,8 +800,8 @@ rule idxstats:
     output:
         txt=c.patterns['samtools']['idxstats']
     resources:
-        mem_mb=1024 * 16,
-        runtime=autobump(120)
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
     log: 
         c.patterns['samtools']['idxstats'] + '.log'
     run:

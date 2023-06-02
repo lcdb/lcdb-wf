@@ -7,8 +7,11 @@ organism: 'dmel'
 
 # If not specified here, use the environment variable REFERENCES_DIR.
 references_dir: 'references_data'
-
-stranded: 'fr-firststrand'
+ 
+# See https://rnabio.org/module-09-appendix/0009/12/01/StrandSettings for more info.
+stranded: 'fr-firststrand'     # for dUTP libraries
+#         'fr-secondstrand'    # for ligation libraries
+#         'unstranded'         # for libraries without strand specificity
 
 aligner:
   index: 'star'

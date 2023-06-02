@@ -287,7 +287,7 @@ lcdbwf:::summarize_res_list(res_list) %>% datatable
 lcdbwf:::build_results_tabs(res_list, dds_list, config, text)
 ```
 
-```{r upsetplots, results='asis', eval=length(res_list)>1, config=config$annotation, dependson='selections'}
+```{r upsetplots, results='asis', eval=length(res_list)>1, config=config$annotation}
 # Compare overlap across multiple differential expression contrasts.
 lcdbwf:::mdcat(text$upset_plots)
 lcdbwf:::plot_upsets(res_list, label_column=config$annotation$label_column)
@@ -313,7 +313,7 @@ knitr::kable(tbl, row.names=FALSE)
 
 ```{r combined_rds, cache=TRUE, dependson='assemble_variables'}
 obj <- lcdbwf:::compose_results(res_list, dds_list)
-saveRDS(obj, file='combined.Rds')
+saveRDS(obj, file='combined.Rds', compress=FALSE)
 ```
 
 

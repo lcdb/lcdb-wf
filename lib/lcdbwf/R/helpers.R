@@ -445,7 +445,9 @@ nested.lapply <- function(x, subfunc, ...){
 #' @param res_list List of results objects and associated metadata. See details
 #'   for format.
 #' @param dds_list List of dds objects used in results
+#' @param rld_list List of normalized dds objects
 #' @param enrich_list List of enrichment results objects. See details for format.
+#' @param degpatterns_list List of degpatterns objects
 #'
 #' @details
 #'
@@ -495,7 +497,11 @@ nested.lapply <- function(x, subfunc, ...){
 #'  )
 #'
 #'
-compose_results <- function(res_list, dds_list, enrich_list){
+compose_results <- function(res_list,
+                            dds_list,
+                            rld_list=NULL,
+                            enrich_list=NULL,
+                            degpatterns_list=NULL){
 
   # Much of this function is just checking that the names all line up.
   res_dds_names <- unlist(lapply(res_list, function (x) x$dds))
@@ -510,12 +516,20 @@ compose_results <- function(res_list, dds_list, enrich_list){
     warning(paste("The following dds names are in dds_list but not in res_list. This OK, but may be unexpected:", dds_not_res, '\n'))
   }
 
+  # check if rld_list was specified, if not make it
+  if(is.null(rld_list)){
+    rld_list <- lapply(dds_list,
+                  function(x) varianceStabilizingTransformation(x, blind=TRUE)
+                )
+  }
+
   obj <- list(
     res_list=res_list,
-    dds_list=dds_list
+    dds_list=dds_list,
+    rld_list=rld_list
   )
 
-  if (!missing(enrich_list)){
+  if (!is.null(enrich_list)){
     res_names <- names(res_list)
     enrich_names <- names(enrich_list)
     enrich_not_res <- setdiff(enrich_names, res_names)
@@ -525,7 +539,37 @@ compose_results <- function(res_list, dds_list, enrich_list){
     obj[['enrich_list']] <- enrich_list
   }
 
+  if(!is.null(degpatterns_list)){
+    obj[['degpatterns']] <- degpatterns_list
+  }
+
   return(obj)
+}
+
+#' Add cluster ID columns to res_list objects
+#'
+#' @param clusters DegPatterns data frame with gene -> cluster mapping
+#' @param res DESeq2 results object
+#' @param label Cluster column prefix
+#'
+#' @return DESeq2 results object with added cluster column
+add.cluster.id <- function(clusters, res, label){
+    if(is.null(res)) return(NULL)
+    else if(is.null(clusters)){
+      # add NA cluster column
+      res[[paste0(label, '_cluster')]] <- NA
+      return(res)
+    }
+    # Merges the degPattern cluster IDs `cluster` with DESeqresults `res`
+    # `label` will be used to create a cluster column with a unique column name 
+    # returns a DESeqresults with cluster IDs
+    unq <- unique(clusters[, c('genes', 'cluster')])
+    names(unq)[names(unq) == 'genes'] <- 'gene'
+    merged <- merge(as.data.frame(res) %>% tibble::rowid_to_column("ID"),
+                    unq, by='gene', all.x=TRUE) %>%
+        arrange(ID)
+    res[[paste0(label, '_cluster')]] <- merged[['cluster']]
+    return(res)
 }
 
 

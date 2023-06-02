@@ -247,7 +247,11 @@ variables:
           $DEPLOY/test/lcdb-wf-test rnaseq --downstream
 
           # bundle up the entire directory to be used as an artifact
-          tar -zcf downstream.tar.gz workflows/rnaseq/downstream-test/
+          tar -zcf /tmp/downstream.tar.gz workflows/rnaseq/downstream-test/
+          cp workflows/rnaseq/downstream-test/rnaseq.html /tmp/rnaseq.html
+          cp workflows/rnaseq/downstream-test/functional-enrichment.html /tmp/functional-enrichment.html
+          cp workflows/rnaseq/downstream-test/gene-patterns.html /tmp/gene-patterns.html
+          cp workflows/rnaseq/data/rnaseq_aggregation/multiqc.html /tmp/rnaseq.html
 
   # --------------------------------------------------------------------------
   # Various tests on RNA-seq workflow that don't warrant the overhead of a new
@@ -283,7 +287,7 @@ variables:
           cd $DEPLOY/workflows/colocalization
           source /opt/mambaforge/etc/profile.d/conda.sh
           conda activate $LCDBWF_ENV
-          ./run_test.sh -j 1 --use-conda -j2 -k -p -r
+          $DEPLOY/test/lcdb-wf-test colocalization --run-workflow -k -r -p -j2 --use-conda --orig $ORIG
 
 # --------------------------------------------------------------------------
 # Syntax note: All of the steps above, with their "&step-name" labels, can be
@@ -367,11 +371,21 @@ jobs:
       - *get-data
       - *rnaseq-step
       - store_artifacts:
-          path: /tmp/lcdb-wf-test/workflows/rnaseq/downstream.tar.gz
+          path: /tmp/downstream.tar.gz
+          destination: downstream.tar.gz
       - store_artifacts:
-          path: /tmp/lcdb-wf-test/workflows/rnaseq/downstream/rnaseq.html
+          path: /tmp/rnaseq.html
+          destination: rnaseq.html
       - store_artifacts:
-          path: /tmp/lcdb-wf-test/workflows/rnaseq/data/rnaseq_aggregation/multiqc.html
+          path: /tmp/multiqc.html
+          destination: multiqc.html
+      - store_artifacts:
+          path: /tmp/functional-enrichment.html
+          destination: functional-enrichment.html
+      - store_artifacts:
+          path: /tmp/gene-patterns.html
+          destination: gene-patterns.html
+
 
   rnaseq-misc:
     <<: *defaults
@@ -409,7 +423,10 @@ jobs:
       - *set-path
       - run:
           name: Install sphinx
-          command: source activate lcdb-wf-test && conda install -y sphinx make yaml
+          command: |
+            source /opt/mambaforge/etc/profile.d/conda.sh
+            conda activate lcdb-wf-test
+            mamba install -y sphinx make yaml
       - run:
           name: OK for unknown github host
           command: mkdir -p ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
@@ -418,7 +435,10 @@ jobs:
             - 2d:0c:b4:27:44:cf:f4:50:cc:14:a4:2b:c2:3c:09:06
       - run:
           name: Build and upload docs
-          command: source activate lcdb-wf-test && ci/build-docs.sh
+          command: |
+            source /opt/mambaforge/etc/profile.d/conda.sh
+            conda activate lcdb-wf-test
+            ci/build-docs.sh
       - store_artifacts:
           path: /tmp/docs.tar.gz
 
@@ -432,8 +452,8 @@ jobs:
       - run:
           name: Report environment
           command: |
+            source /opt/mambaforge/etc/profile.d/conda.sh
             conda env export -n lcdb-wf-test > /tmp/env.yaml
-            cat /tmp/env.yaml
             conda env export -n lcdb-wf-test-r > /tmp/env-r.yaml
       - store_artifacts:
           path: /tmp/env.yaml

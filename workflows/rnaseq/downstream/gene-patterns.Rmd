@@ -35,8 +35,24 @@ config <- lcdbwf:::load_config('config.yaml')
 
 ```{r load, cache=TRUE, cache.extra=file.info('combined.Rds')$mtime}
 obj <- readRDS('combined.Rds')
-res.list <- obj$res_list
-dds.list <- obj$dds_list
+res_list <- obj$res_list
+dds_list <- obj$dds_list
+
+# make rld_list if not present in obj
+if(!'rld_list' %in% names(obj)){
+  rld_list <- lapply(dds_list,
+                function(x) varianceStabilizingTransformation(x, blind=TRUE)
+              )
+} else {
+  rld_list <- obj$rld_list
+}
+
+# check for enrich_list object
+if(!'enrich_list' %in% names(obj)){
+  enrich_list <- NULL
+} else {
+  enrich_list <- obj$enrich_list
+}
 ```
 
 
@@ -61,7 +77,7 @@ The default general flow is as follows:
 #  multiple degPatterns calls.
 
 # NOTE:  Max number of genes to include----------------------------------------
-#   If more genes are differeentially expressed, they will be downsampled to
+#   If more genes are differentially expressed, they will be downsampled to
 #   this many
 lim <- 2000
 
@@ -99,13 +115,13 @@ low.minc <- 1
 
 Gene pattern for changed genes in individual contrasts are also indicated below.
 
-```{r finalclusters, fig.width=12, results='asis', cache=TRUE, dependson='selections'}
+```{r finalclusters, fig.width=12, results='asis', cache=TRUE, dependson='load'}
 # Run the clustering, identify patterns, and generate plots.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#finalclusters
 # NOTE: which genes to cluster?------------------------------------------------
 #    By default, we get all the changed genes, but you may want only the up or
 #    down genes.
-ll <- lapply(res.list, function (x) lcdbwf:::get_sig(x[['res']], 'changed'))
+ll <- lapply(res_list, function (x) lcdbwf:::get_sig(x[['res']], 'changed'))
 
 # Filter out results where there were zero genes detected.
 ll <- ll[lapply(ll, length) > 0]
@@ -114,28 +130,18 @@ ll <- ll[lapply(ll, length) > 0]
 all.changed <- list('union_all_contrasts' = unlist(ll) %>% unique())
 ll <- c(all.changed, ll)
 
-add.cluster.id <- function(clusters, res, label){
-    # Merges the degPattern cluster IDs `cluster` with DESeqresults `res`
-    # `label` will be used to create a cluster column with a unique column name 
-    # returns a DESeqresults with cluster IDs
-    unq <- unique(clusters[, c('genes', 'cluster')])
-    names(unq)[names(unq) == 'genes'] <- 'gene'
-    merged <- merge(as.data.frame(res) %>% tibble::rowid_to_column("ID"),
-                    unq, by='gene', all.x=TRUE) %>%
-        arrange(ID)
-    res[[paste0(label, '_cluster')]] <- merged[['cluster']]
-    return(res)
-}
-
-# n.list will store all the clusters to later add the cluster ID to res.list
+# n.list will store all the clusters to later add the cluster ID to res_list
 n.list <- list()
+
+# list to store degpatterns objects
+degpatterns_list <- list()
 
 for (name in names(ll)){
     # Print a nice Markdown header
     if (name == 'union_all_contrasts') {
         mdcat('## ', name)
     } else {
-        mdcat('## ', res.list[[name]][['label']])
+        mdcat('## ', res_list[[name]][['label']])
     }
 
     genes <- ll[[name]]
@@ -154,9 +160,9 @@ for (name in names(ll)){
 
     # Extract the normalized counts for these genes
     if (name == 'union_all_contrasts') {
-        vsd.i <- varianceStabilizingTransformation(dds.list[[ 1 ]], blind=TRUE)
+        vsd.i <- rld_list[[ 1 ]]
     } else {
-        vsd.i <- varianceStabilizingTransformation(dds.list[[ res.list[[name]][['dds']] ]], blind=TRUE)
+        vsd.i <- rld_list[[ res_list[[name]][['dds']] ]]
     }
     idx <- rownames(vsd.i) %in% genes
     ma <- assay(vsd.i)[idx,]
@@ -165,11 +171,10 @@ for (name in names(ll)){
     ma <- ma[apply(as.data.frame(ma), 1, n_distinct) > 1, ]
 
     if (name == 'union_all_contrasts') {
-        colData.i <- colData(dds.list[[ 1 ]])
+        colData.i <- colData(rld_list[[ 1 ]])
     } else {
-        colData.i <- colData(dds.list[[ res.list[[name]][['dds']] ]])
+        colData.i <- colData(rld_list[[ res_list[[name]][['dds']] ]])
     }
-    #colData.i <- colData.i[,!(colnames(colData.i) %in% exclude.for.printing)]
 
 
     # Sometimes, if there are limited clusters, degPattern fails. The solution
@@ -214,6 +219,7 @@ for (name in names(ll)){
         )
     )
 
+    degpatterns_list[[name]] <- p
     n.list[[name]] <- n2
 
     # In the final_clusters directory, this creates files containing lists of
@@ -235,22 +241,31 @@ for (name in names(ll)){
 ```
 
 ```{r add_cluster_id_res}
-# merge the degPattern cluster IDs with res.list
-for (name in names(res.list)) {
+# merge the degPattern cluster IDs with res_list
+for (name in names(res_list)) {
     for (llname in names(ll)) {
-        res.list[[name]][['res']] <- add.cluster.id(clusters=n.list[[llname]],
-                                                    res=res.list[[name]][['res']],
+        res_list[[name]][['res']] <- add.cluster.id(clusters=n.list[[llname]],
+                                                    res=res_list[[name]][['res']],
                                                     label=llname)
     }
 }
 ```
 
+```{r combined_rds, cache=TRUE, dependson='finalclusters'}
 
+obj <- lcdbwf:::compose_results(res_list=res_list,
+                                dds_list=dds_list,
+                                rld_list=rld_list,
+                                enrich_list=enrich_list,
+                                degpatterns_list=degpatterns_list)
+
+saveRDS(obj, file='combined.Rds', compress=FALSE)
+```
 
 # Exported results
 
 ```{r excel, results='asis'}
-lcdbwf:::exported_excel(res.list, dds.list, file='final_clusters/consolidated_results.xlsx')
+lcdbwf:::exported_excel(res_list, dds_list , file='final_clusters/consolidated_results.xlsx')
 ```
 
 Here is a single Excel file with one worksheet for each contrast:
@@ -262,6 +277,14 @@ progammatically with downstream tools:
 ```{r write_output, results='asis'}
 # Write out files for full and each selection, and create a link to them in the
 # HTML generated by this RMarkdown.
-tbl <- lcdbwf:::exported_tsvs(res.list, directory='final_clusters')
+tbl <- lcdbwf:::exported_tsvs(res_list, directory='final_clusters')
 knitr::kable(tbl, row.names=FALSE)
+```
+
+# Session info
+For reproducibility purposes, here is the output of `sessionInfo()` showing the
+versions of all packages used here.
+
+```{r, collapse=FALSE}
+sessionInfo()
 ```

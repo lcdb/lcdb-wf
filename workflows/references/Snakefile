@@ -9,6 +9,7 @@ import pandas
 from snakemake.utils import makedirs
 from lib.imports import resolve_name
 from lib import utils
+from lib.utils import autobump, gb, hours
 from lib import aligners, helpers
 from lib import common
 
@@ -71,6 +72,10 @@ rule bowtie2_index:
         protected(aligners.bowtie2_index_from_prefix('{references_dir}/{organism}/{tag}/genome/bowtie2/{organism}_{tag}'))
     log:
         '{references_dir}/logs/{organism}/{tag}/genome/bowtie2/{organism}_{tag}.log'
+    resources:
+        runtime=autobump(hours=8),
+        mem_mb=autobump(gb=32),
+        disk_mb=autobump(gb=50)
     run:
         prefix = aligners.prefix_from_bowtie2_index(output)
         shell(
@@ -90,6 +95,9 @@ rule star_index:
         '{references_dir}/{organism}/{tag}/genome/star/{organism}_{tag}/Genome.log'
     threads:
         8
+    resources:
+        runtime=autobump(hours=8),
+        mem_mb=gb(64)
     run:
         genomedir = os.path.dirname(output[0])
         shell('rm -r {genomedir}')
@@ -128,6 +136,10 @@ rule hisat2_index:
         protected(aligners.hisat2_index_from_prefix('{references_dir}/{organism}/{tag}/genome/hisat2/{organism}_{tag}'))
     log:
         '{references_dir}/logs/{organism}/{tag}/genome/hisat2/{organism}_{tag}.log'
+    resources:
+        runtime=autobump(hours=8),
+        mem_mb=gb(32),
+        disk_mb=gb(50)
     run:
         prefix = aligners.prefix_from_hisat2_index(output)
         shell(
@@ -145,6 +157,8 @@ rule symlink_fasta_to_index_dir:
         fasta='{references_dir}/{organism}/{tag}/{_type}/{organism}_{tag}.fasta'
     output:
         '{references_dir}/{organism}/{tag}/{_type}/{index}/{organism}_{tag}.fasta'
+    resources:
+        runtime=hours(1)
     log:
         '{references_dir}/logs/{organism}/{tag}/{_type}/{index}/{organism}_{tag}.fasta.log'
     run:
@@ -157,6 +171,8 @@ rule transcriptome_fasta:
         gtf='{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.gtf'
     output:
         protected('{references_dir}/{organism}/{tag}/transcriptome/{organism}_{tag}.fasta')
+    resources:
+        runtime=hours(1)
     shell:
         'gffread {input.gtf} -w {output} -g {input.fasta}'
 
@@ -171,6 +187,9 @@ rule salmon_index:
         '{references_dir}/logs/{organism}/{tag}/transcriptome/salmon/{organism}_{tag}.log'
     params:
         outdir='{references_dir}/{organism}/{tag}/transcriptome/salmon/{organism}_{tag}'
+    resources:
+        mem_mb=gb(32),
+        runtime=hours(2)
     shell:
         'salmon index '
         '--transcripts {input.fasta} '
@@ -186,6 +205,9 @@ rule kallisto_index:
         fasta='{references_dir}/{organism}/{tag}/transcriptome/{organism}_{tag}.fasta'
     log:
         '{references_dir}/logs/{organism}/{tag}/transcriptome/kallisto/{organism}_{tag}.log'
+    resources:
+        runtime=hours(2),
+        mem_mb=gb(32),
     shell:
         'kallisto index '
         '--index {output.index} '
@@ -202,6 +224,9 @@ rule conversion_refflat:
         protected('{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.refflat')
     log:
         '{references_dir}/logs/{organism}/{tag}/annotation/{organism}_{tag}.refflat.log'
+    resources:
+        runtime=hours(2),
+        mem_mb=gb(2)
     shell:
         'gtfToGenePred -ignoreGroupsWithoutExons {input} {output}.tmp '
         '''&& awk '{{print $1"\t"$0}}' {output}.tmp > {output} '''
@@ -213,6 +238,9 @@ rule conversion_bed12:
         '{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.gtf'
     output:
         protected('{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.bed12')
+    resources:
+        runtime=hours(2),
+        mem_mb=gb(2)
     shell:
         'gtfToGenePred -ignoreGroupsWithoutExons {input} {output}.tmp '
         '&& genePredToBed {output}.tmp {output} '
@@ -227,6 +255,9 @@ rule conversion_gffutils:
         db=protected('{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.gtf.db')
     log:
         '{references_dir}/logs/{organism}/{tag}/annotation/{organism}_{tag}.gtf.db.log'
+    resources:
+        runtime=hours(2),
+        mem_mb=gb(4)
     run:
         import gffutils
         kwargs = conversion_kwargs[output[0]]
@@ -250,6 +281,9 @@ rule chromsizes:
         # config.
         java_args='-Xmx20g'
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
+    resources:
+        mem_mb=gb(24),
+        runtime=hours(2)
     shell:
         'export LC_COLLATE=C; '
         'rm -f {output}.tmp '
@@ -270,6 +304,9 @@ rule genelist:
         gtf='{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.gtf'
     output:
         protected('{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.genelist')
+    resources:
+        runtime=hours(1),
+        mem_mb=gb(2)
     run:
         attribute = conversion_kwargs[output[0]]['gene_id']
         import gffutils
@@ -291,6 +328,9 @@ rule mappings:
         protected('{references_dir}/{organism}/{tag}/annotation/{organism}_{tag}.mapping.tsv.gz')
     params:
         include_featuretypes=lambda wildcards, output: conversion_kwargs[output[0]].get('include_featuretypes', [])
+    resources:
+        runtime=hours(2),
+        mem_mb=gb(2)
     run:
         import gffutils
 

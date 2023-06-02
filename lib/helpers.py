@@ -139,7 +139,7 @@ def check_unique_fn(df):
     """
     fns = df["orig_filename"]
     if "orig_filename_R2" in df.columns:
-        fns = fns.append(df["orig_filename_R2"])
+        fns = pd.concat([fns, df["orig_filename_R2"]])
     if len(fns.unique()) < len(fns):
         raise ValueError("Fastq filenames non unique, check the sampletable\n")
 

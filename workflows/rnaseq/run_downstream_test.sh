@@ -19,3 +19,5 @@ done
 cp downstream/config.yaml downstream-test/config.yaml
 cp downstream/text.yaml downstream-test/text.yaml
 Rscript -e "rmarkdown::render('downstream-test/rnaseq.Rmd')"
+Rscript -e "rmarkdown::render('downstream-test/functional-enrichment.Rmd')"
+Rscript -e "rmarkdown::render('downstream-test/gene-patterns.Rmd')"

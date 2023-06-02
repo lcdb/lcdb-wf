@@ -44,6 +44,7 @@ def flatten(iter, unlist=False):
                 yield from flatten(item)
             else:
                 yield item
+
     results = list(gen())
     if unlist and len(results) == 1:
         return results[0]
@@ -51,22 +52,27 @@ def flatten(iter, unlist=False):
 
 
 def test_flatten():
-    assert sorted(flatten({
-        'a': {
-            'b': {
-                'c': ['a', 'b', 'c'],
-            },
-        },
-        'x': ['e', 'f', 'g'],
-        'y': {
-            'z': 'd'
-        },
-    })) == ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+    assert (
+        sorted(
+            flatten(
+                {
+                    "a": {
+                        "b": {
+                            "c": ["a", "b", "c"],
+                        },
+                    },
+                    "x": ["e", "f", "g"],
+                    "y": {"z": "d"},
+                }
+            )
+        )
+        == ["a", "b", "c", "d", "e", "f", "g"]
+    )
 
-    assert flatten('a', True) == 'a'
-    assert flatten(['a'], True) == 'a'
-    assert flatten('a') == ['a']
-    assert flatten(['a']) == ['a']
+    assert flatten("a", True) == "a"
+    assert flatten(["a"], True) == "a"
+    assert flatten("a") == ["a"]
+    assert flatten(["a"]) == ["a"]
 
 
 def updatecopy(orig, update_with, keys=None, override=False):
@@ -129,8 +135,8 @@ def update_recursive(orig, update_with):
             orig[k] = v
     return orig
 
-def boolean_labels(names, idx, mapping={True: 'AND', False: 'NOT'},
-                   strip='AND_'):
+
+def boolean_labels(names, idx, mapping={True: "AND", False: "NOT"}, strip="AND_"):
     """
     Creates labels for boolean lists.
 
@@ -166,10 +172,10 @@ def boolean_labels(names, idx, mapping={True: 'AND', False: 'NOT'},
     """
     s = []
     for i, (n, x) in enumerate(zip(names, idx)):
-        s.append(mapping[x] + '_' + n)
-    s = '_'.join(s)
+        s.append(mapping[x] + "_" + n)
+    s = "_".join(s)
     if s.startswith(strip):
-        s = s.replace(strip, '', 1)
+        s = s.replace(strip, "", 1)
     return s
 
 
@@ -184,5 +190,132 @@ def make_relative_symlink(target, linkname):
     relative_target = os.path.relpath(target, start=linkdir)
     linkbase = os.path.basename(linkname)
     if not os.path.exists(linkdir):
-        shell('mkdir -p {linkdir}')
-    shell('cd {linkdir}; ln -sf {relative_target} {linkbase}')
+        shell("mkdir -p {linkdir}")
+    shell("cd {linkdir}; ln -sf {relative_target} {linkbase}")
+
+
+def autobump(*args, **kwargs):
+    """
+    Used to automatically bump resources depending on how many times the job
+    was attempted. This will return a function that is appropriate to use for
+    an entry in Snakemake's `resources:` directive::
+
+        rule example:
+            input: "a.txt"
+            resources:
+                mem_mb=autobump(gb=10),
+                runtime=autobump(hours=2, increment_hours=10)
+
+    Values can be specified in multiple ways.
+
+    A single number will be provided as the resource, and will be used to
+    increment each time. For example, this is the equivalent of 10 GB for the
+    first attempt, and 20 GB for the second:
+
+    >>> f = autobump(1024 * 10)
+    >>> f(None, 1)
+    10240
+
+    Adding a second unnamed argument will use it as a value to increment by for
+    each subsequent attempt. This will use 10 GB for the first attempt, and 110
+    GB for the second attempt.
+
+    >>> f = autobump(1024 * 10, 1024 * 100)
+    >>> f(None, 1)
+    10240
+
+    >>> f(None, 2)
+    112640
+
+    Instead of bare numbers, keyword arguments can be used for more convenient
+    specification of units. The above two examples can also take this form:
+
+    >>> f = autobump(gb=10)
+    >>> f(None, 1)
+    10240
+
+    >>> f = autobump(gb=10, increment_gb=100)
+    >>> f(None, 2)
+    112640
+
+
+    Units can be minutes, hours, days, mb, gb, or tb. For example:
+
+    >>> f = autobump(hours=2, increment_hours=5)
+    >>> f(None, 2)
+    420
+
+    """
+    multiplier = {
+        "mb": 1,
+        "minutes": 1,
+        "gb": 1024,
+        "hours": 60,
+        "days": 1440,
+        "tb": 1024 * 1024,
+    }
+    units = list(multiplier.keys())
+
+    if args and kwargs:
+        raise ValueError(
+            "Mixture of unnamed and keyword arguments not supported with autobump()"
+        )
+
+    if len(kwargs) > 2:
+        raise ValueError("Only 2 kwargs allowed for autobump()")
+
+    elif len(args) == 1 and not kwargs:
+        baseline_converted = args[0]
+        increment_converted = baseline_converted
+
+    elif len(args) == 2 and not kwargs:
+        baseline_converted, increment_converted = args
+
+    elif len(kwargs) <= 2:
+        baseline_kwargs = [k for k in kwargs.keys() if k in units]
+        if len(baseline_kwargs) != 1:
+            raise ValueError(
+                "Multiple baseline kwargs found. Do you need to change one to have an 'increment_' prefix?"
+            )
+
+        baseline_kwarg = baseline_kwargs[0]
+        baseline_value = kwargs[baseline_kwarg]
+        baseline_unit = baseline_kwarg
+
+        increment_kwargs = [k for k in kwargs if k.startswith("increment_")]
+        if increment_kwargs:
+            assert len(increment_kwargs) == 1
+            increment_kwarg = increment_kwargs[0]
+            increment_value = kwargs[increment_kwarg]
+            increment_unit = increment_kwarg.split("_")[-1]
+        else:
+            increment_value = baseline_value
+            increment_unit = baseline_unit
+
+        if baseline_unit not in multiplier:
+            raise ValueError(
+                f"Baseline unit {baseline_unit} not in valid units {units}"
+            )
+        if increment_unit not in multiplier:
+            raise ValueError(
+                f"Increment unit {increment_unit} not in valid units {units}"
+            )
+
+        baseline_converted = baseline_value * multiplier[baseline_unit]
+        increment_converted = increment_value * multiplier[increment_unit]
+
+    else:
+        raise ValueError(f"Unhandled args and kwargs: {args}, {kwargs}")
+
+    def f(wildcards, attempt):
+        return  baseline_converted + (attempt - 1) * increment_converted
+
+    return f
+
+
+def gb(size_in_gb):
+    return 1024 * size_in_gb
+
+
+def hours(time_in_hours):
+    return time_in_hours * 60
