@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Changelog &#8212; lcdb-wf 1.9 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
@@ -54,6 +53,7 @@
 <li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#v1-10-1">v1.10.1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v1-10">v1.10</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#general">General</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#rna-seq">RNA-seq</a></li>
@@ -191,6 +191,46 @@
             
   <section id="changelog">
 <h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this heading">¶</a></h1>
+<section id="v1-10-1">
+<h2>v1.10.1<a class="headerlink" href="#v1-10-1" title="Permalink to this heading">¶</a></h2>
+<p>This is a bugfix and minor patch release.</p>
+<ul>
+<li><p>Bugfix: the references workflow was missing the <code class="docutils literal notranslate"><span class="pre">resources:</span></code> directives;
+they have now been added.</p></li>
+<li><p>Bugfix: kallisto strandedness was set incorrectly for libraries using
+ligation prep (fr-secondstrand)</p></li>
+<li><p>The new <code class="docutils literal notranslate"><span class="pre">utils.autobump</span></code> function can be used to easily specify default and
+incremented resources, and the <code class="docutils literal notranslate"><span class="pre">utils.gb</span></code> and <code class="docutils literal notranslate"><span class="pre">utils.hours</span></code> make it
+a little easier to specify when autobump is not required.</p>
+<p>In the following example, memory will be set to 8 * 1024 MB and will
+increment by that much each retry. The runtime will be set to 2 * 60 minutes,
+and will increment by 10 * 60 minutes each retry. The disk will be set to 100
+* 1024 MB, and will not increase each retry.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">resources</span><span class="p">:</span>
+    <span class="n">mem_mb</span><span class="o">=</span><span class="n">autobump</span><span class="p">(</span><span class="n">gb</span><span class="o">=</span><span class="mi">8</span><span class="p">),</span>
+    <span class="n">runtime</span><span class="o">=</span><span class="n">autobump</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">increment_hours</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>
+    <span class="n">disk_mb</span><span class="o">=</span><span class="n">gb</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>WRAPPER_SLURM no longer has the <code class="docutils literal notranslate"><span class="pre">--latency-wait=300</span></code>,
+<code class="docutils literal notranslate"><span class="pre">--max-jobs-per-second=1</span></code>, and <code class="docutils literal notranslate"><span class="pre">--max-status-checks-per-second=0.01</span></code>
+which would override any profile settings.</p></li>
+<li><p>In RNA-seq and ChIP-seq, the cutadpt rule now defaults to using
+<code class="docutils literal notranslate"><span class="pre">--nextseq-trim</span> <span class="pre">20</span></code> instead of <code class="docutils literal notranslate"><span class="pre">-q</span> <span class="pre">20</span></code>, to better handle the majority of
+sequencing data we have recently been working with (NovaSeq). See <a class="reference external" href="https://cutadapt.readthedocs.io/en/stable/guide.html#nextseq-trim">this
+section of the cutadapt docs</a> for
+details.</p></li>
+<li><p>Updated requirements to use a recent version of salmon to avoid segfaults</p></li>
+<li><p>rnaseq.Rmd, when saving the Rds file at the end, now disables compression.
+This can have a dramatic improvement on downstream performance for
+a reasonable disk space cost.</p></li>
+<li><p>functional-enrichment.Rmd, now supports KEGG pathways &amp; parallel operation.</p></li>
+<li><p>functional-enrichment.Rmd, gene-patterns.Rmd, now saves Rds file at the
+end (without compression) adding the respective object lists.</p></li>
+<li><p>added <code class="docutils literal notranslate"><span class="pre">--overlap</span> <span class="pre">6</span></code> to cutadapt to avoid greedy trimming</p></li>
+</ul>
+</section>
 <section id="v1-10">
 <h2>v1.10<a class="headerlink" href="#v1-10" title="Permalink to this heading">¶</a></h2>
 <p>The major change here is refactoring the Snakefiles to use the <code class="docutils literal notranslate"><span class="pre">resources:</span></code>
@@ -1079,7 +1119,7 @@ in SRA</p></li>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
