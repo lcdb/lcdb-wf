@@ -32,11 +32,20 @@ def preflight():
         aln_index = multiext(os.path.splitext(aln)[0], ".amb", ".ann", ".bwt", ".pac", ".sa")
         indexed = refdict[config['ref']['organism'][config['ref']['faidx']['tag']]['faidx']]
         if config['ref']['variation']['dbnsfp']:
-            dbnsfp = refdict[config['ref']['organism']]['variation'][str(config['ref']['variation']['dbnsfp'] + '_' + config['ref']['genome']['build'])]
+            # The config can supply a path to a local file in the variation slots
+            if config['ref']['variation']['dbnsfp'].startswith('/'):
+                dbnsfp = config['ref']['variation']['dbnsfp']
+            else:
+                dbnsfp = refdict[config['ref']['organism']]['variation'][str(
+                    config['ref']['variation']['dbnsfp'] + '_' + config['ref']['genome']['build']
+                )]
         else:
             dbnsfp = []
         if config['ref']['variation']['known']:
-            known_sites = refdict[config['ref']['organism']][config['ref']['genome']['tag']][config['ref']['variation']['known']]
+            if config['ref']['variation']['known'].startswith('/'):
+                known_sites = config['ref']['variation']['known']
+            else:
+                known_sites = refdict[config['ref']['organism']][config['ref']['genome']['tag']][config['ref']['variation']['known']]
         else:
             known_sites = []
     else:

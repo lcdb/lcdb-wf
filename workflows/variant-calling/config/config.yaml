@@ -16,6 +16,9 @@ ref:
     index: 'faidx'
     tag: 'ensembl-104'
   variation:
+    # Fill these keys in with the name of the variation database that matches the value in the reference config
+    # Or alternatively, you can provide an ABSOLUTE path to these files locally (paths MUST start with '/')
+    # If this is the case, you should go edit the lcdb-wf references config to make sure these jobs are not run for no reason.
     known: 'known'
     dbnsfp: 'dbNSFPv4.4'
   # If you are providing your own references, include their paths here.
