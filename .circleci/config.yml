@@ -139,6 +139,7 @@ variables:
         cp workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq
         cp workflows/colocalization/run_test.sh $DEPLOY/workflows/references
         cp workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization
+        cp workflows/variant-calling/run_test.sh $DEPLOY/workflows/variant-calling
         mkdir $DEPLOY/ci
         mkdir $DEPLOY/test
         cp test/lcdb-wf-test $DEPLOY/test
