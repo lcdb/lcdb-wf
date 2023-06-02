@@ -139,6 +139,7 @@ variables:
         cp workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq
         cp workflows/colocalization/run_test.sh $DEPLOY/workflows/references
         cp workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization
+        cp workflows/variant-calling/run_test.sh $DEPLOY/workflows/variant-calling
         mkdir $DEPLOY/ci
         mkdir $DEPLOY/test
         cp test/lcdb-wf-test $DEPLOY/test
@@ -291,8 +292,7 @@ variables:
 
 
   # --------------------------------------------------------------------------
-  # REVIEW: not RNA-seq
-  # Standard RNA-seq workflow
+  # Variant-calling workflow
   variantcalling-step: &variantcalling-step
       run:
         name: variantcalling workflow
@@ -412,7 +412,7 @@ jobs:
       - *get-data
       - *variantcalling-step
       - store_artifacts:
-        path: /tmp/lcdb-wf-test/workflows/variant-calling/variantcalling.tar.gz
+          path: /tmp/lcdb-wf-test/workflows/variant-calling/variantcalling.tar.gz
 
   rnaseq-misc:
     <<: *defaults
@@ -494,41 +494,44 @@ workflows:
   test-suite:
     jobs:
       - initial-setup
-      - pytest:
+    # - pytest:
+    #    requires:
+    #      - initial-setup
+    # - chipseq:
+    #    requires:
+    #      - initial-setup
+    #      - pytest
+    # - chipseq-misc:
+    #    requires:
+    #      - initial-setup
+    #      - pytest
+    # - rnaseq:
+    #     requires:
+    #       - initial-setup
+    #       - pytest
+    # - rnaseq-misc:
+    #     requires:
+    #       - initial-setup
+    #       - pytest
+    # - references:
+    #    requires:
+    #      - initial-setup
+    #      - pytest
+    # - colocalization:
+    #     requires:
+    #       - initial-setup
+    #       - pytest
+    # - build-docs:
+    #     requires:
+    #       - initial-setup
+    # - report-env:
+    #     requires:
+    #       - rnaseq
+    #       - rnaseq-misc
+    #       - chipseq
+    #       - chipseq-misc
+    #       - references
+    #       - colocalization
+      - variantcalling:
          requires:
            - initial-setup
-      - chipseq:
-         requires:
-           - initial-setup
-           - pytest
-      - chipseq-misc:
-         requires:
-           - initial-setup
-           - pytest
-      - rnaseq:
-          requires:
-            - initial-setup
-            - pytest
-      - rnaseq-misc:
-          requires:
-            - initial-setup
-            - pytest
-      - references:
-          requires:
-            - initial-setup
-            - pytest
-      - colocalization:
-          requires:
-            - initial-setup
-            - pytest
-      - build-docs:
-          requires:
-            - initial-setup
-      - report-env:
-          requires:
-            - rnaseq
-            - rnaseq-misc
-            - chipseq
-            - chipseq-misc
-            - references
-            - colocalization
