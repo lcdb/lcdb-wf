@@ -487,62 +487,62 @@ rule known_variation:
                     "tabix -p vcf {output} 2> {log} "
                 )
 
-if config['references']['human'].get('variation'):
-    rule dbnsfp:
-        """
-        Download and process dbNSFP database. This involves downloading and
-        extracting the zip file, then combining the chromosomes to create
-        a single file. For genome builds like hg19 and GRCh37, some processing
-        needs to be done to make them compatible with dbNSFP version > 3.X
-        dbNSFP is only for human genomes.
-        """
-        output:
-            protected(
-                '{{references_dir}}/{{organism}}/{{tag}}/{dbnsfp_version}_{build}/{{organism}}_{{tag}}.vcf.gz'.format(
-                    dbnsfp_version=config['references']['human']['variation']['dbnsfp']['version'],
-                    build=config['references']['human']['variation']['dbnsfp']['build']
-                )
-            )
-        log:
-            '{{references_dir}}/{{organism}}/{{tag}}/{dbnsfp_version}_{build}/{{organism}}_{{tag}}.log'.format(
-                dbnsfp_version=config['references']['human']['variation']['dbnsfp']['version'],
-                build=config['references']['human']['variation']['dbnsfp']['build']
-            )
-        resources:
-            disk_mb=gb(500),
-            mem_mb=gb(500),
-            runtime=hours(8)
-        threads: 16
-        run:
-            version = config['references']['human'][wildcards.tag]['dbnsfp']['version']
-            URL = config['references']['human'][wildcards.tag]['dbnsfp']['url']
-            build = config['references']['human'][wildcards.tag]['dbnsfp']['build']
-            workdir = wildcards.references_dir
-            if build == 'GRCh37':
-                # We need to process the dbNSFP file to make it compatible with older genomes
-                with tempfile.TemporaryDirectory() as tmpdir:
-                    shell(
-                        '''(cd {tmpdir}; wget -O- {URL} > dbnsfp.zip && '''
-                        '''unzip dbnsfp.zip && zcat dbNSFP*_variant.chr1* | awk "NR<=1" > h && '''
-                        '''zgrep -v "^#" dbNSFP*_variant.chr* > all_chrs && '''
-                        '''awk '$8 != "." ' all_chrs > all_chrs_filtered && '''
-                        '''sort -S 50% --parallel=12 all_chrs_filtered -k8,8 -k9,9n > all_chrs_filtered_sorted && '''
-                        '''cat h all_chrs_filtered_sorted > all_chrs_filtered_sorted_header && '''
-                        '''bgzip -c all_chrs_filtered_sorted_header > {output}) && '''
-                        '''tabix -s 1 -b 2 -e 2 {output} '''
-                    )
-            if build == 'GRCh38':
-                with tempfile.TemporaryDirectory() as tmpdir:
-                    # No need for processing and we can use the first 2 columns for coordinates
-                    shell(
-                        '''(cd {tmpdir}; wget -O- {URL} > dbnsfp.zip && '''
-                        '''unzip dbnsfp.zip && zcat dbNSFP*_variant.chr1* | awk "NR<=1" > h && '''
-                        '''zgrep -v "^#" dbNSFP*_variant.chr* > all_chrs && '''
-                        '''sort -S 50% --parallel=24 all_chrs -k1,1 -k2,2n > all_chrs_sorted && '''
-                        '''cat h all_chrs_sorted > all_chrs_sorted_header && '''
-                        '''bgzip -c all_chrs_sorted_header > {output}) && '''
-                        '''tabix -s 1 -b 2 -e 2 {output} '''
-                    )
-
+#if config['references']['human'].get('variation'):
+#    rule dbnsfp:
+#        """
+#        Download and process dbNSFP database. This involves downloading and
+#        extracting the zip file, then combining the chromosomes to create
+#        a single file. For genome builds like hg19 and GRCh37, some processing
+#        needs to be done to make them compatible with dbNSFP version > 3.X
+#        dbNSFP is only for human genomes.
+#        """
+#        output:
+#            protected(
+#                '{{references_dir}}/{{organism}}/{{tag}}/{dbnsfp_version}_{build}/{{organism}}_{{tag}}.vcf.gz'.format(
+#                    dbnsfp_version=config['references']['human']['variation']['dbnsfp']['version'],
+#                    build=config['references']['human']['variation']['dbnsfp']['build']
+#                )
+#            )
+#        log:
+#            '{{references_dir}}/{{organism}}/{{tag}}/{dbnsfp_version}_{build}/{{organism}}_{{tag}}.log'.format(
+#                dbnsfp_version=config['references']['human']['variation']['dbnsfp']['version'],
+#                build=config['references']['human']['variation']['dbnsfp']['build']
+#            )
+#        resources:
+#            disk_mb=gb(500),
+#            mem_mb=gb(500),
+#            runtime=hours(8)
+#        threads: 16
+#        run:
+#            version = config['references']['human'][wildcards.tag]['dbnsfp']['version']
+#            URL = config['references']['human'][wildcards.tag]['dbnsfp']['url']
+#            build = config['references']['human'][wildcards.tag]['dbnsfp']['build']
+#            workdir = wildcards.references_dir
+#            if build == 'GRCh37':
+#                # We need to process the dbNSFP file to make it compatible with older genomes
+#                with tempfile.TemporaryDirectory() as tmpdir:
+#                    shell(
+#                        '''(cd {tmpdir}; wget -O- {URL} > dbnsfp.zip && '''
+#                        '''unzip dbnsfp.zip && zcat dbNSFP*_variant.chr1* | awk "NR<=1" > h && '''
+#                        '''zgrep -v "^#" dbNSFP*_variant.chr* > all_chrs && '''
+#                        '''awk '$8 != "." ' all_chrs > all_chrs_filtered && '''
+#                        '''sort -S 50% --parallel=12 all_chrs_filtered -k8,8 -k9,9n > all_chrs_filtered_sorted && '''
+#                        '''cat h all_chrs_filtered_sorted > all_chrs_filtered_sorted_header && '''
+#                        '''bgzip -c all_chrs_filtered_sorted_header > {output}) && '''
+#                        '''tabix -s 1 -b 2 -e 2 {output} '''
+#                    )
+#            if build == 'GRCh38':
+#                with tempfile.TemporaryDirectory() as tmpdir:
+#                    # No need for processing and we can use the first 2 columns for coordinates
+#                    shell(
+#                        '''(cd {tmpdir}; wget -O- {URL} > dbnsfp.zip && '''
+#                        '''unzip dbnsfp.zip && zcat dbNSFP*_variant.chr1* | awk "NR<=1" > h && '''
+#                        '''zgrep -v "^#" dbNSFP*_variant.chr* > all_chrs && '''
+#                        '''sort -S 50% --parallel=24 all_chrs -k1,1 -k2,2n > all_chrs_sorted && '''
+#                        '''cat h all_chrs_sorted > all_chrs_sorted_header && '''
+#                        '''bgzip -c all_chrs_sorted_header > {output}) && '''
+#                        '''tabix -s 1 -b 2 -e 2 {output} '''
+#                    )
+#
 
 # vim: ft=python
