@@ -278,7 +278,7 @@ class Runner(object):
                     print(f"downloading {url}")
                 if dest is None:
                     dest = fn
-                dest = Path(dest)
+                dest = Path(dest).resolve()
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 sp.run(
                     f"wget -q -O- {url} > {dest}", shell=True, check=True, cwd=TOPLEVEL
