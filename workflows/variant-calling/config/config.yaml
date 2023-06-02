@@ -31,7 +31,8 @@ processing:
   # See https://gatk.broadinstitute.org/hc/en-us/articles/360036465912-HaplotypeCaller#--pcr-indel-model for pcr
   pcr: "NONE"
   # Point to a bed file, e.g. captured regions
-  restrict-regions: 'references/exons_subset.bed'
+  restrict-regions: 
+  #'references/exons_subset.bed'
   # If regions are restricted, optionally enlarge them by a given value
   region-padding:
 filtering:
