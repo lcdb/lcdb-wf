@@ -57,10 +57,10 @@ checkpoint genome_index:
 
 
 rule fasta_dict:
-    threads: 2
+    threads: 1
     resources:
         mem_mb=gb(4),
-        # mem_mb = gb(4), # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(4), # [ TEST SETTINGS -1 ]
         disk_mb=gb(4),
         runtime=autobump(60)
     input:
@@ -158,10 +158,11 @@ rule mark_duplicates:
     and we don't want to mark them as temporary
     """
     threads: 4
+    # threads: 1 # [ TEST SETTINGS -1 ]
     resources:
         disk_mb=gb(40),
         mem_mb=gb(32),
-        # mem_mb = gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
         runtime=autobump(720)
     input:
         bam = "results/mapped/{sample}-{unit}.sorted.bam", 
@@ -195,9 +196,10 @@ rule mark_duplicates:
 if config["filtering"]['bqsr']:
     rule base_recalibrator:
         threads: 4
+        # threads: 1 # [ TEST SETTINGS -1 ]
         resources:
             mem_mb=gb(8),
-            # mem_mb = gb(4),  # [ TEST SETTINGS -1 ]
+            # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
             disk_mb=gb(40),
             runtime=autobump(960)
         input:
@@ -224,9 +226,10 @@ if config["filtering"]['bqsr']:
 
     rule apply_bqsr:
         threads: 8
+        # threads: 1 # [ TEST SETTINGS -1 ]
         resources:
             mem_mb=gb(32),
-            # mem_mb = gb(4),  # [ TEST SETTINGS -1 ]
+            # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
             disk_mb=gb(40),
             runtime=autobump(960)
         input:
@@ -322,9 +325,10 @@ rule call_variants:
     resources:
         disk_mb=gb(16),
         mem_mb=gb(40),
-        # mem_mb = gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
         runtime=autobump(hours=8)
     threads: 8
+    # threads: 1 # [ TEST SETTINGS -1 ]
     params:
         extra=get_call_variants_params,
         pcr='--pcr-indel-model ' + config['processing']['pcr']
@@ -350,10 +354,11 @@ rule call_variants:
 
 rule combine_calls:
     threads: 4
+    # threads: 1 # [ TEST SETTINGS -1 ]
     resources:
         disk_mb=gb(10),
         mem_mb=gb(4),
-        # mem_mb = gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
         runtime=autobump(720)
     input:
         ref=reference,
@@ -374,10 +379,11 @@ rule combine_calls:
 
 rule genotype_variants:
     threads: 4
+    # threads: 1 # [ TEST SETTINGS -1 ]
     resources:
         disk_mb=gb(10),
         mem_mb=gb(8),
-        # mem_mb = gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
         runtime=autobump(480)
     input:
         ref=reference,
@@ -399,10 +405,11 @@ rule genotype_variants:
 
 rule merge_variants:
     threads: 4
+    # threads: 1 # [ TEST SETTINGS -1 ]
     resources:
         disk_mb=gb(10),
         mem_mb=gb(8),
-        # mem_mb = gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
         runtime=autobump(480)
     input:
         vcfs=lambda w: expand(
@@ -428,8 +435,8 @@ rule merge_variants:
 rule tabix_variants:
     threads: 2
     resources:
-        disk_mb = gb(2),
-        mem_mb = gb(2),
+        disk_mb=gb(2),
+        mem_mb=gb(2),
         runtime=autobump(30)
     input:
         vcf="{prefix}.vcf.gz",
@@ -443,10 +450,11 @@ rule tabix_variants:
 
 rule select_calls:
     threads: 4
+    # threads: 1 # [ TEST SETTINGS -1 ]
     resources:
         disk_mb=gb(10),
         mem_mb=gb(4),
-        # mem_mb = gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
         runtime=autobump(480)
     input:
         ref=reference,
@@ -471,10 +479,11 @@ rule select_calls:
 
 rule hard_filter_calls:
     threads: 4
+    # threads: 1 # [ TEST SETTINGS -1 ]
     resources:
         disk_mb=gb(10),
         mem_mb=gb(4),
-        # mem_mb = gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
         runtime=autobump(480)
     input:
         ref=reference,
@@ -504,7 +513,7 @@ rule merge_calls:
     resources:
         disk_mb=gb(10),
         mem_mb=gb(8),
-        # mem_mb = gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
         runtime=autobump(480)
     input:
         vcfs=expand(
@@ -514,7 +523,7 @@ rule merge_calls:
     output:
         vcf=temp("results/filtered/all.final.vcf.gz"),
     log:
-        "logs/merge-filtered.log",
+        "logs/merge-filtered.log", 
     run:
         inputs = " ".join("-INPUT {}".format(f) for f in input.vcfs)
         java_opts = set_java_opts(resources)
@@ -533,8 +542,8 @@ rule norm:
     Split multiallielic variants into multiple biallelic ones.
     """
     resources:
-        mem_mb = gb(16),
-        runtime = autobump(120)
+        mem_mb=gb(16),
+        runtime=autobump(120)
     input:
         ref=reference,
         vcf="results/filtered/all.final.vcf.gz"
@@ -592,8 +601,8 @@ rule samtools_stats:
     Run samtools stats
     """
     resources:
-        mem_mb = gb(16),
-        runtime = autobump(120)
+        mem_mb=gb(16),
+        runtime=autobump(120)
     input:
         get_sample_unit_bams
     output:
@@ -652,7 +661,7 @@ rule snpeff:
     resources:
         disk_mb=gb(20),
         mem_mb=gb(16),
-        # mem_mb = gb(5), # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(4), # [ TEST SETTINGS -1 ]
         runtime=autobump(120)
     input:
         vcf='results/filtered/all.normed.vcf.gz',
@@ -664,9 +673,11 @@ rule snpeff:
     params:
         annotations = config['snpeff']['annotations'],
         gen = config['snpeff']['genome']
+    # threads: 2 # [ TEST SETTINGS ]
     run:
         java_opts = '''"-Xmx{}g"'''.format(int(resources.mem_mb * 0.75 /1024))
         shell(
+            # 'mkdir -p $(dirname {output.ann}) && ' # [ TEST SETTINGS ]
             "snpEff {java_opts} "
             "-o vcf "
             "-csvStats {output.stats} "
@@ -698,10 +709,10 @@ rule mutect2:
     Use Mutect2 to call variants on individual samples, one per contig
     """
     resources:
-        disk_mb = gb(40),
-        mem_mb = gb(32),
-        # mem_mb = gb(4),  # [ TEST SETTINGS -1 ]
-        runtime = autobump(720)
+        disk_mb=gb(40),
+        mem_mb=gb(32),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(720)
     input:
         unpack(input_for_somatic)
     output:
@@ -718,6 +729,7 @@ rule mutect2:
         ),
         extra=get_call_variants_params,
         pcr='--pcr-indel-model ' + config['processing']['pcr']
+    # threads: 1 # [ TEST SETTINGS ]
     run:
         java_opts = set_java_opts(resources)
         normals = " ".join("-I {} ".format(n) for n in input.normals)
@@ -745,16 +757,17 @@ rule lrom:
     in the orientation bias mixture model filter
     """
     resources:
-        disk_mb = gb(20),
-        mem_mb = gb(32),
-        # mem_mb = gb(4),  # [ TEST SETTINGS -1 ]
-        runtime = autobump(120)
+        disk_mb=gb(20),
+        mem_mb=gb(32),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(120)
     input:
         orientation=lambda w: expand('results/lrom/{contig}_{{comp}}.tar.gz', contig=get_contigs())
     output:
         lrom='results/lrom/artifact-prior-{comp}.tar.gz'
     log:
         'logs/lrom_{comp}.log'
+    # threads: 1 # [ TEST SETTINGS ]
     run:
         java_opts = set_java_opts(resources)
         def get_format_lrom():
@@ -774,10 +787,10 @@ rule merge_mutect2_variants:
     After individual contigs are called via mutect2, we merge them together here.
     """
     resources:
-        disk_mb = gb(20),
-        mem_mb = gb(32),
-        # mem_mb = gb(4),  # [ TEST SETTINGS -1 ]
-        runtime = autobump(120)
+        disk_mb=gb(20),
+        mem_mb=gb(32),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(120)
     input:
         vcfs=lambda w: expand(
             "results/mutect2_called/raw.{{comp}}.{contig}.vcf.gz", contig=get_contigs()
@@ -786,6 +799,7 @@ rule merge_mutect2_variants:
         temp("results/somatic/merged.{comp}.vcf.gz")
     log:
         "logs/merge_mutect2.{comp}.log",
+    # threads: 1 # [ TEST SETTINGS ]
     run:
         inputs = " ".join("-INPUT {}".format(f) for f in input.vcfs)
         java_opts = set_java_opts(resources)
@@ -804,10 +818,10 @@ rule merge_mutect2_stats:
     Just like merging VCFs for Mutect2, we also need to merge stats for filtering.
     """
     resources:
-        disk_mb = gb(20),
-        mem_mb = gb(16),
-        # mem_mb = gb(4),  # [ TEST SETTINGS -1 ]
-        runtime = autobump(120)
+        disk_mb=gb(20),
+        mem_mb=gb(16),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(120)
     input:
         stats=lambda w: expand(
             "results/mutect2_called/raw.{{comp}}.{contig}.vcf.gz.stats", contig=get_contigs()
@@ -816,6 +830,7 @@ rule merge_mutect2_stats:
         temp("results/somatic/merged.{comp}.vcf.gz.stats")
     log:
         "logs/merge_mutect2_stats.{comp}.log"
+    # threads: 1 # [ TEST SETTINGS ]
     run:
         java_opts = set_java_opts(resources)
         inputs = " ".join(" -stats {} ".format(f) for f in input.stats)
@@ -833,10 +848,10 @@ rule filter_mutect2_calls:
     New versions of Mutect2 have optimized defaults for filtering; we can just use those.
     """
     resources:
-        disk_mb = gb(20),
-        mem_mb = gb(16),
-        # mem_mb = gb(4),  # [ TEST SETTINGS -1 ]
-        runtime = autobump(120)
+        disk_mb=gb(20),
+        mem_mb=gb(16),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(120)
     input:
         ref=reference,
         unfiltered="results/somatic/merged.{comp}.vcf.gz",
@@ -846,6 +861,7 @@ rule filter_mutect2_calls:
         "results/somatic_filtered/filtered.{comp}.vcf.gz"
     log:
         "logs/{comp}.vcf.gz.log"
+    # threads: 1 # [ TEST SETTINGS ]
     run:
         java_opts = set_java_opts(resources)
         shell(
@@ -864,8 +880,8 @@ rule mutect2_norm:
     Split multiallielic variants into multiple biallelic ones.
     """
     resources:
-        mem_mb = gb(16),
-        runtime = autobump(120)
+        mem_mb=gb(16),
+        runtime=autobump(120)
     input:
         ref=reference,
         vcf="results/somatic_filtered/filtered.{comp}.vcf.gz"
@@ -888,7 +904,7 @@ rule snpeff_cancer:
     resources:
         disk_mb=gb(20),
         mem_mb=gb(16),
-        # mem_mb = gb(5), # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(4), # [ TEST SETTINGS -1 ]
         runtime=autobump(120)
     input:
         vcf='results/somatic_filtered/normed.{comp}.vcf.gz',
@@ -900,11 +916,17 @@ rule snpeff_cancer:
         'logs/cancer_snpeff_{comp}.log'
     params:
         snpeff_genome = config['snpeff']['genome']
+    # threads: 2 # [ TEST SETTINGS ]
     run:
         java_opts = '''"-Xmx{}g"'''.format(int(resources.mem_mb * 0.75 /1024))
         shell(
-            'snpEff {java_opts} -v -o vcf -cancer -csvStats {output.stats} \
-            -stats {output.html} {params.snpeff_genome} {input.vcf}  | bcftools view -Oz > {output.vcf}'
+            # 'mkdir -p $(dirname {output.vcf}) && ' # [ TEST SETTINGS ]
+            'snpEff {java_opts} '
+            '-v -o vcf -cancer '
+            '-csvStats {output.stats} '
+            '-stats {output.html} '
+            '{params.snpeff_genome} {input.vcf} '
+            '| bcftools view -Oz > {output.vcf} 2> {log}'
         )
 
 
