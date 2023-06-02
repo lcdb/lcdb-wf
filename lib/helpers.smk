@@ -324,9 +324,11 @@ def get_bed_nomenclature(input):
     nom = False
     with open(input.bed, 'r') as f:
         for line in f:
-            if line.startswith('browser') or line.startswith('track'):
+            if line.startswith('browser'):
                 continue
-            if f.startswith('chr'):
+            if line.startswith('track'):
+                continue
+            if line.startswith('chr'):
                 nom = True
                 break
     return nom
