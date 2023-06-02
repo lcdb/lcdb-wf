@@ -497,38 +497,41 @@ workflows:
       - pytest:
          requires:
            - initial-setup
-      - chipseq:
-         requires:
-           - initial-setup
-           - pytest
-      - chipseq-misc:
-         requires:
-           - initial-setup
-           - pytest
-      - rnaseq:
-          requires:
-            - initial-setup
-            - pytest
-      - rnaseq-misc:
-          requires:
-            - initial-setup
-            - pytest
-    # - references:
+    # - chipseq:
+    #    requires:
+    #      - initial-setup
+    #      - pytest
+    # - chipseq-misc:
+    #    requires:
+    #      - initial-setup
+    #      - pytest
+    # - rnaseq:
     #     requires:
     #       - initial-setup
     #       - pytest
-      - colocalization:
-          requires:
-            - initial-setup
-            - pytest
-      - build-docs:
-          requires:
-            - initial-setup
-      - report-env:
-          requires:
-            - rnaseq
-            - rnaseq-misc
-            - chipseq
-            - chipseq-misc
-            - references
-            - colocalization
+    # - rnaseq-misc:
+    #     requires:
+    #       - initial-setup
+    #       - pytest
+    # - references:
+    #    requires:
+    #      - initial-setup
+    #      - pytest
+    # - colocalization:
+    #     requires:
+    #       - initial-setup
+    #       - pytest
+    # - build-docs:
+    #     requires:
+    #       - initial-setup
+    # - report-env:
+    #     requires:
+    #       - rnaseq
+    #       - rnaseq-misc
+    #       - chipseq
+    #       - chipseq-misc
+    #       - references
+    #       - colocalization
+      - variantcalling:
+        requires:
+          - initial-setup
