@@ -303,7 +303,7 @@ variables:
           $DEPLOY/test/lcdb-wf-test variantcalling --run-workflow -n
           $DEPLOY/test/lcdb-wf-test variantcalling --run-workflow --use-conda -j2
 
-          tar -zcf variantcalling.tar.gz workflows/variant-calling/results
+          tar -zcf /tmp/variantcalling.tar.gz workflows/variant-calling/results
 
 # --------------------------------------------------------------------------
 # Syntax note: All of the steps above, with their "&step-name" labels, can be
@@ -412,7 +412,8 @@ jobs:
       - *get-data
       - *variantcalling-step
       - store_artifacts:
-          path: /tmp/lcdb-wf-test/workflows/variant-calling/variantcalling.tar.gz
+          path: /tmp/variantcalling.tar.gz
+          destination: variantcalling.tar.gz
 
   rnaseq-misc:
     <<: *defaults
