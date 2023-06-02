@@ -2,7 +2,7 @@ bedtools
 biopython
 bowtie
 bowtie2
-cutadapt
+cutadapt>=3.0
 deeptools
 fastq-screen
 fastqc
@@ -27,6 +27,7 @@ pyfaidx
 pysam
 pytest
 pytest-xdist
+python>=3.10
 rseqc
 
 # earlier versions of salmon can segfault on Slurm
