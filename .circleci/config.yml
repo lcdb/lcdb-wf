@@ -533,5 +533,5 @@ workflows:
     #       - references
     #       - colocalization
       - variantcalling:
-        requires:
-          - initial-setup
+         requires:
+           - initial-setup
