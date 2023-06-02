@@ -677,7 +677,6 @@ rule snpeff:
     run:
         java_opts = '''"-Xmx{}g"'''.format(int(resources.mem_mb * 0.75 /1024))
         shell(
-            # 'mkdir -p $(dirname {output.ann}) && ' # [ TEST SETTINGS ]
             "snpEff {java_opts} "
             "-o vcf "
             "-csvStats {output.stats} "
@@ -920,7 +919,6 @@ rule snpeff_cancer:
     run:
         java_opts = '''"-Xmx{}g"'''.format(int(resources.mem_mb * 0.75 /1024))
         shell(
-            # 'mkdir -p $(dirname {output.vcf}) && ' # [ TEST SETTINGS ]
             'snpEff {java_opts} '
             '-v -o vcf -cancer '
             '-csvStats {output.stats} '

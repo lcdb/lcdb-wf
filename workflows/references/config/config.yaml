@@ -1,4 +1,4 @@
-references_dir: '/data/NICHD-core0/references'
+references_dir: 'references'
 
 
 # See the reference config files in the top level of the repo,

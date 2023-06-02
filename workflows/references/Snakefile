@@ -529,7 +529,7 @@ rule known_variation:
 #                        '''sort -S 50% --parallel=12 all_chrs_filtered -k8,8 -k9,9n > all_chrs_filtered_sorted && '''
 #                        '''cat h all_chrs_filtered_sorted > all_chrs_filtered_sorted_header && '''
 #                        '''bgzip -c all_chrs_filtered_sorted_header > {output}) && '''
-#                        '''tabix -s 1 -b 2 -e 2 {output} '''
+#                        '''tabix -s 8 -b 9 -e 9 {output} '''
 #                    )
 #            if build == 'GRCh38':
 #                with tempfile.TemporaryDirectory() as tmpdir:

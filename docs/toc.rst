@@ -13,6 +13,7 @@ Table of Contents
    rnaseq
    downstream-rnaseq
    chipseq
+   variant-calling
    integrative
    conda
    tests
