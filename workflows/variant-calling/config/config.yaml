@@ -32,7 +32,8 @@ processing:
   remove-duplicates: true
   remove-mitochondrial: true
   # See https://gatk.broadinstitute.org/hc/en-us/articles/360036465912-HaplotypeCaller#--pcr-indel-model for pcr
-  pcr: "NONE"
+  # If you know there was no PCR used to generate your sequencing data, set this to NONE
+  pcr:
   # Point to a bed file, e.g. captured regions
   restrict-regions: 
   #'references/exons_subset.bed'

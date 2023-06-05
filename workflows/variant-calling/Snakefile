@@ -331,8 +331,12 @@ rule call_variants:
     # threads: 1 # [ TEST SETTINGS -1 ]
     params:
         extra=get_call_variants_params,
-        pcr='--pcr-indel-model ' + config['processing']['pcr']
-    run:
+        pcr=(
+            '--pcr-indel-model ' + config['processing']['pcr']
+            if config['processing']['pcr']
+            else ''
+        )
+        run:
         java_opts = set_java_opts(resources)
         known = input.known
         if known:
@@ -727,7 +731,11 @@ rule mutect2:
             else []
         ),
         extra=get_call_variants_params,
-        pcr='--pcr-indel-model ' + config['processing']['pcr']
+        pcr=(
+            '--pcr-indel-model ' + config['processing']['pcr']
+            if config['processing']['pcr']
+            else ''
+        )
     # threads: 1 # [ TEST SETTINGS ]
     run:
         java_opts = set_java_opts(resources)
