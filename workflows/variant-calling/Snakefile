@@ -336,7 +336,7 @@ rule call_variants:
             if config['processing']['pcr']
             else ''
         )
-        run:
+    run:
         java_opts = set_java_opts(resources)
         known = input.known
         if known:
