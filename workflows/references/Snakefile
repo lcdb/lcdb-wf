@@ -422,7 +422,6 @@ rule known_variation:
         #fai='{references_dir}/{organism}/{tag}/genome/faidx/{organism}_{tag}.fai'
         # can't do it this way since the {tag} wildcard is not congruous between input and output
         fai = lambda w: checkpoints.genome_index.get(**w).output[0]
-
     output:
         protected('{references_dir}/{organism}/{tag}/known/{organism}_{tag}.vcf.gz')
     log:
@@ -476,15 +475,25 @@ rule known_variation:
             for ext in ["vcf.gz", "vcf.gz.csi"]
         ]
         names=[os.path.basename(url) for url in urls if url.endswith(".gz")]
+
+        # Compose a command that downloads all vcf.gz files for all contigs in use
         gather = "curl {urls}".format(urls=" ".join(map("-O {}".format, urls)))
+
+        # Absolute paths needed because we'll be downloading in a temp dir
+        fai = os.path.abspath(input.fai)
+        log = os.path.abspath(str(log))
         with tempfile.TemporaryDirectory() as tmpdir:
             if input.get("fai"):
                 shell(
-                    "(cd {tmpdir}; {gather} && "
-                    "bcftools concat -Oz --naive-force {names} > concat.vcf.gz && "
-                    "bcftools reheader --fai {input.fai} concat.vcf.gz "
-                    "> {output}) && "
-                    "tabix -p vcf {output} 2> {log} "
+                    "( cd {tmpdir}; "
+                    "{gather} && "
+                    "bcftools concat -Oz --naive-force {names} "
+                    "> concat.vcf.gz 2> {log} )"
+                )
+                shell(
+                    "bcftools reheader --fai {fai} {tmpdir}/concat.vcf.gz "
+                    "> {output} 2>> {log} && "
+                    "tabix -p vcf {output} 2>> {log} "
                 )
 
 #if config['references']['human'].get('variation'):
