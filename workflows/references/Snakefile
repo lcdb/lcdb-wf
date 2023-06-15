@@ -429,28 +429,38 @@ rule known_variation:
         mem_mb=gb(16),
         disk_mb=gb(32)
     run:
-        # Get the configuration options in the metadata chunk using wildcards
         release = int(config['references'][wildcards.organism][wildcards.tag]['metadata']['release'])
         species = config['references'][wildcards.organism][wildcards.tag]['metadata']['species']
         build = config['references'][wildcards.organism][wildcards.tag]['metadata']['build']
         typ = config['references'][wildcards.organism][wildcards.tag]['known']['type']
-        def get_contigs():
-            with open(input[0], 'r') as fai:
-                ser =  pd.read_table(fai, header=None, usecols=[0], dtype=str)
-                ser = ser.squeeze()
-                ser =  ser[ser.apply(lambda x: len(x)) <= 2]
-            return ser
-        contigs = get_contigs()
-        branch=""
+
+        # ----------------------------------------------------------------------
+        # NOTE: species-specific configuration may be required
+        # ----------------------------------------------------------------------
+        #
+        # Ensembl has many species available, but the code below is designed to
+        # work for human.
+        #
+        # For available species, see https://ftp.ensembl.org/pub/release-109/variation/vcf/
+        #
+
+        # Human-specific patching to deal with GRCh37 filenames and directory
+        # structure on Ensembl FTP
+        branch = ""
         if release >= 81 and build == "GRCh37":
             branch="grch37/"
         if typ == "all":
+            suffixes = [""]
+
+            # Starting in release 93, human germline VCFs are split by chrom
             if species == "homo_sapiens" and release >= 93:
-                suffixes = [
-            "-chr{}".format(chrom) for chrom in contigs
-        ]
-            else:
-                suffixes = [""]
+                ser =  (
+                    pd.read_table(input.fai, header=None, usecols=[0], dtype=str)
+                    .squeeze()
+                )
+                contigs = ser[ser.apply(lambda x: len(x)) <= 2]
+                suffixes = expand("-chr{chrom}", chrom=contigs)
+
         elif typ == "somatic":
             suffixes=["_somatic"]
         elif typ == "structural_variations":
@@ -459,39 +469,37 @@ rule known_variation:
         release = int(release)
         build = build
         typ = typ
-        species_filename=species if release >= 91 else species.capitalize()
-        urls=[
-            "ftp://ftp.ensembl.org/pub/{branch}release-{release}/variation/vcf/{species}/{species_filename}{suffix}.{ext}".format(
-                release=release,
-                species=species,
-                suffix=suffix,
-                species_filename=species_filename,
-                branch=branch,
-                ext=ext,
-            )
-            for suffix in suffixes
-            for ext in ["vcf.gz", "vcf.gz.csi"]
-        ]
-        names=[os.path.basename(url) for url in urls if url.endswith(".gz")]
 
-        # Compose a command that downloads all vcf.gz files for all contigs in use
+        # Prior to release 91, species names started with a capital letter
+        species_filename = species if release >= 91 else species.capitalize()
+
+        urls = expand(
+            "ftp://ftp.ensembl.org/pub/{branch}release-{release}/variation/vcf/{species}/{species_filename}{suffix}.{ext}",
+            release=release,
+            species=species,
+            suffix=suffixes,
+            species_filename=species_filename,
+            branch=branch,
+            ext=["vcf.gz", "vcf.gz.csi"]
+        )
+        vcfs = [os.path.basename(url) for url in urls if url.endswith(".gz")]
+
+        # Compose a command that downloads all vcf.gz files (possibly one for
+        # each contig in human Ensembl releases >=93)
         gather = "curl {urls}".format(urls=" ".join(map("-O {}".format, urls)))
 
-        # Absolute paths needed because we'll be downloading in a temp dir
+        # We'll be downloading in a temp dir, so get absolute paths to make things easier
         fai = os.path.abspath(input.fai)
         log = os.path.abspath(str(log))
         with tempfile.TemporaryDirectory() as tmpdir:
             if input.get("fai"):
                 shell(
-                    "( cd {tmpdir}; "
-                    "{gather} && "
-                    "bcftools concat -Oz --naive-force {names} "
-                    "> concat.vcf.gz 2> {log} )"
+                    "cd {tmpdir}; {gather} 2> {log} "
+                    "&& bcftools concat -Oz --naive-force {vcfs} > concat.vcf.gz 2>> {log}"
                 )
                 shell(
-                    "bcftools reheader --fai {fai} {tmpdir}/concat.vcf.gz "
-                    "> {output} 2>> {log} && "
-                    "tabix -p vcf {output} 2>> {log} "
+                    "bcftools reheader --fai {fai} {tmpdir}/concat.vcf.gz> {output} 2>> {log} "
+                    "&& tabix -p vcf {output} 2>> {log} "
                 )
 
 #if config['references']['human'].get('variation'):
