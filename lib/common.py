@@ -419,9 +419,7 @@ def references_dict(config):
         'bowtie2': aligners.bowtie2_index_from_prefix('')[0],
         'hisat2': aligners.hisat2_index_from_prefix('')[0],
         'star': '/Genome',
-        # Add BWA and samtools faidx indices
         'bwa': aligners.bwa_index_from_prefix('')[0],
-        'faidx': '.fai',
 
         # Notes on salmon indexing:
         #   - pre-1.0 versions had hash.bin
@@ -462,10 +460,9 @@ def references_dict(config):
         d[organism] = {}
         for tag in merged_references[organism].keys():
             e = {}
-            # add support for variation databases
             if tag == 'variation':
-                # get the variation databases
-                # they should be the the keys of a dictionary containing a URL and postprocess block
+                # variation databases should be the the keys of a dictionary
+                # containing a URL and postprocess block
                 for type_ in merged_references[organism][tag].keys():
                     ext = '.vcf.gz'
                     if type_ == 'dbnsfp':
@@ -567,7 +564,8 @@ def references_dict(config):
                             .format(**locals())
                         )
 
-                    # Only makes sense to have chromsizes for genome fasta, not transcriptome.
+                    # Only makes sense to have chromsizes and faidx for genome
+                    # fasta, not transcriptome.
                     if type_ == 'genome':
                         e['chromsizes'] = (
                             '{references_dir}/'
@@ -576,6 +574,15 @@ def references_dict(config):
                             '{type_}/'
                             '{organism}_{tag}.chromsizes'.format(**locals())
                         )
+                        e['faidx'] = (
+                            '{references_dir}/'
+                            '{organism}/'
+                            '{tag}/'
+                            '{type_}/'
+                            '{organism}_{tag}.fai'.format(**locals())
+                        )
+
+
 
                 d[organism][tag] = e
     return d, conversion_kwargs

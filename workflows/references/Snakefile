@@ -398,9 +398,9 @@ checkpoint genome_index:
     input:
         '{references_dir}/{organism}/{tag}/genome/{organism}_{tag}.fasta'
     output:
-        protected('{references_dir}/{organism}/{tag}/genome/faidx/{organism}_{tag}.fai')
+        protected('{references_dir}/{organism}/{tag}/genome/{organism}_{tag}.fai')
     log:
-        '{references_dir}/logs/{organism}/{tag}/genome/faidx/{organism}_{tag}.fai.log'
+        '{references_dir}/logs/{organism}/{tag}/genome/{organism}_{tag}.fai.log'
     resources:
         runtime=hours(1),
         mem_mb=gb(4)
@@ -419,9 +419,7 @@ rule known_variation:
     create a known variation vcf
     """
     input:
-        #fai='{references_dir}/{organism}/{tag}/genome/faidx/{organism}_{tag}.fai'
-        # can't do it this way since the {tag} wildcard is not congruous between input and output
-        fai = lambda w: checkpoints.genome_index.get(**w).output[0]
+        fai='{references_dir}/{organism}/{tag}/genome/{organism}_{tag}.fai'
     output:
         protected('{references_dir}/{organism}/{tag}/known/{organism}_{tag}.vcf.gz')
     log:
