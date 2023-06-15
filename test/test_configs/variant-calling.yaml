@@ -1,3 +1,4 @@
+references_dir: "references"
 references:
   human:
     ensembl-104:
@@ -6,13 +7,12 @@ references:
         release: 104
         species: 'homo_sapiens'
       genome:
-        url: 'ftp://ftp.ensembl.org/pub/release-104/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz'
+        url: 'https://github.com/lcdb/lcdb-wf-variant-calling-test-data/raw/master/data/GRCh38.6.20.fa.gz'
         # URL format is 'ftp://ftp.ensembl.org/pub/{branch}release-{release}/fasta/{species}/{datatype}/{species_capitalized}.{build}.{datatype}.{assembly}.{suffix}'
         # When using GRCh37, branch changes to "grch37/release-{release}"
         # always use primary_assembly for human, NEVER use top_level for assembly for human
         indexes:
           - 'bwa'
-          - 'faidx'
       known:
         # You can download structural_variations, somatic, or "all" which corresponds to germline known variation for all chromosomes
         type: 'all'

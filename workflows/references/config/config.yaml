@@ -1,8 +1,0 @@
-references_dir: 'references'
-
-
-# See the reference config files in the top level of the repo,
-# include/reference_configs, for inspiration for more species.
-include_references:
-  # - '../../include/reference_configs/test.yaml'
-  - '../../include/reference_configs/variant-calling.yaml'
