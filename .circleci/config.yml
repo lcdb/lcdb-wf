@@ -226,7 +226,13 @@ variables:
         command: |
           source /opt/mambaforge/etc/profile.d/conda.sh
           conda activate $LCDBWF_ENV
+          # RNA-seq/ChIP-seq references
           $DEPLOY/test/lcdb-wf-test references --run-workflow --configfile=config/config.yaml -j2 -p -r -k --orig $ORIG
+
+          # Variant-calling references
+          $DEPLOY/test/lcdb-wf-test references --run-workflow --configfile=$ORIG/test/test_configs/variant-calling.yaml -j2 -p -r -k --orig $ORIG
+
+
 
   # --------------------------------------------------------------------------
   # Standard RNA-seq workflow
