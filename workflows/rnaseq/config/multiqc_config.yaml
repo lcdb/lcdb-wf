@@ -49,6 +49,8 @@ fn_ignore_files:
 module_order:
     - fastqc:
         name: 'FastQC (raw)'
+        path_filters_exclude:
+            - '*.cutadapt.fastq.gz_fastqc.zip'
         path_filters:
             - '*.fastq.gz_fastqc.zip'
     - libsizes_table
