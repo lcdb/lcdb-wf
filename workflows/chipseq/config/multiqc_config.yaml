@@ -13,6 +13,7 @@ extra_fn_clean_exts:
   - '.fastq'
   - '.salmon'
   - '_R1'
+  - '_R2'
 
 
 # Modify the module search patterns to match what we're creating in the
