@@ -1,6 +1,15 @@
 Changelog
 =========
 
+v1.10.2
+-------
+
+Minor bugfix release.
+
+- Fix multiqc configs so that they coorectly ignore any cutadapt fastqc zips when building the raw fastq section
+- Fix multiqc config for chipseq so it correctly cleans the ``_R2`` extension to better support PE ChIP-seq-like workflows
+- Fix functional enrichment label truncation to ensure that truncated labels are unique
+
 v1.10.1
 -------
 This is a bugfix and minor patch release.

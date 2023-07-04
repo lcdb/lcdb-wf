@@ -53,6 +53,7 @@
 <li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#v1-10-2">v1.10.2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v1-10-1">v1.10.1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v1-10">v1.10</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#general">General</a></li>
@@ -191,6 +192,15 @@
             
   <section id="changelog">
 <h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this heading">¶</a></h1>
+<section id="v1-10-2">
+<h2>v1.10.2<a class="headerlink" href="#v1-10-2" title="Permalink to this heading">¶</a></h2>
+<p>Minor bugfix release.</p>
+<ul class="simple">
+<li><p>Fix multiqc configs so that they coorectly ignore any cutadapt fastqc zips when building the raw fastq section</p></li>
+<li><p>Fix multiqc config for chipseq so it correctly cleans the <code class="docutils literal notranslate"><span class="pre">_R2</span></code> extension to better support PE ChIP-seq-like workflows</p></li>
+<li><p>Fix functional enrichment label truncation to ensure that truncated labels are unique</p></li>
+</ul>
+</section>
 <section id="v1-10-1">
 <h2>v1.10.1<a class="headerlink" href="#v1-10-1" title="Permalink to this heading">¶</a></h2>
 <p>This is a bugfix and minor patch release.</p>
