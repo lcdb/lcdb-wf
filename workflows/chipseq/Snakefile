@@ -624,6 +624,42 @@ rule macs2:
     wrapper:
         wrapper_for('macs2/callpeak')
 
+# Epic2 peak caller
+# See https://github.com/biocore-ntnu/epic2
+rule epic2:
+    """
+    Run the epic2 peak caller
+    """
+    input:
+        ip=lambda wc:
+            expand(
+                c.patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.epic2_run, 'epic2', 'ip'),
+            ),
+        control=lambda wc:
+            expand(
+                c.patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.epic2_run, 'epic2', 'control'),
+            )
+    output:
+        bed=c.patterns['peaks']['epic2']
+    resources:
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
+    log:
+        c.patterns['peaks']['epic2'] + '.log'
+    params:
+        block=lambda wc: chipseq.block_for_run(config, wc.epic2_run, 'epic2'),
+        genome=genome
+    run:
+        shell(
+            'epic2 '
+            '-c {snakemake.input.control} '
+            '-t {input.ip} '
+            '--genome {params.genome} '
+            '--guess-bampe | '
+            'sort -k1,1 -k2,2n - > {output.bed}'
+        )
 
 rule spp:
     """
@@ -684,7 +720,8 @@ rule bed_to_bigbed:
 
 
         # bedToBigBed doesn't handle zero-size files
-        if os.stat(input.bed).st_size == 0:
+        # bigbed is not created from epic2-generated peaks
+        if os.stat(input.bed).st_size == 0 or "epic2" in input.bed:
             shell("touch {output}")
         else:
             if kind == 'narrowPeak':
