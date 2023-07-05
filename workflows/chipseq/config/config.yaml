@@ -108,6 +108,23 @@ chipseq:
         fdr: 0.5
         zthr: 4
 
+    - label: gaf-wingdisc-pooled
+      algorithm: epic2
+      ip:
+        - gaf-wingdisc-1
+      control:
+        - input-wingdisc-1
+      extra: ''
+
+    - label: gaf-wingdisc-pooled
+      algorithm: epic2
+      ip:
+        - gaf-wingdisc-2
+      control:
+        - input-wingdisc-2
+      extra: ''
+  blacklist_removal: True
+
 fastq_screen:
   - label: rRNA
     organism: dmel

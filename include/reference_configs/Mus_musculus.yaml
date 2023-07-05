@@ -30,6 +30,8 @@ references:
           - 'salmon'
           - 'kallisto'
 
+      blacklist: 'https://github.com/Boyle-Lab/Blacklist/blob/master/lists/mm10-blacklist.v2.bed.gz'
+
     gencode_m12:
 
       metadata:
@@ -53,6 +55,7 @@ references:
         indexes:
           - 'salmon'
           - 'kallisto'
+      blacklist: 'https://github.com/Boyle-Lab/Blacklist/blob/master/lists/mm10-blacklist.v2.bed.gz'
 
     rRNA:
       genome:

@@ -30,6 +30,7 @@ references:
         indexes:
           - 'salmon'
           - 'kallisto'
+      blacklist: 'https://github.com/Boyle-Lab/Blacklist/blob/master/lists/hg38-blacklist.v2.bed.gz'
 
 
     gencode-v25:
@@ -67,6 +68,7 @@ references:
           - 'salmon'
           - 'kallisto'
 
+      blacklist: 'https://github.com/Boyle-Lab/Blacklist/blob/master/lists/hg38-blacklist.v2.bed.gz'
 
     gencode-v19:
       metadata:
@@ -91,6 +93,7 @@ references:
         indexes:
           - 'salmon'
           - 'kallisto'
+      blacklist: 'https://github.com/Boyle-Lab/Blacklist/blob/master/lists/hg19-blacklist.v2.bed.gz'
 
     rRNA:
       genome:
