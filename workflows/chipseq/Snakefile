@@ -650,15 +650,21 @@ rule epic2:
         c.patterns['peaks']['epic2'] + '.log'
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.epic2_run, 'epic2'),
-        genome=genome
+        genome=config['genome']
     run:
+        # `-c` has to be skipped if no control is provided
+        if len(input.control) > 0:
+            cmd = '-c {input.control} '
+        else:
+            cmd = ''
+        # Add `--guess-bampe` if input dataset is paired-end
+        if c.is_paired:
+            cmd += '--guess-bampe '
         shell(
-            'epic2 '
-            '-c {snakemake.input.control} '
+            'epic2 ' + cmd +
             '-t {input.ip} '
-            '--genome {params.genome} '
-            '--guess-bampe | '
-            'sort -k1,1 -k2,2n - > {output.bed}'
+            '--genome {params.genome} | '
+            'sort -k1,1 -k2,2n > {output.bed}'
         )
 
 rule spp:
