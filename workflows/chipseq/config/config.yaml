@@ -7,7 +7,7 @@ sampletable: 'config/sampletable.tsv'
 # Which key in the `references` dict below to use
 organism: 'dmel'
 
-genome: 'danRer11'
+genome: 'dm6'
 
 # If not specified here, use the environment variable REFERENCES_DIR.
 references_dir: 'references_data'
