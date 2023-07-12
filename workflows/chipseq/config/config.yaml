@@ -7,6 +7,15 @@ sampletable: 'config/sampletable.tsv'
 # Which key in the `references` dict below to use
 organism: 'dmel'
 
+# What reference genome used
+# Check the assembly in https://www.ncbi.nlm.nih.gov/datasets/genome/
+# options:
+# - 'mm10' for mouse
+# - 'hg38' or 'hg19' for human
+# - 'dm6' for drosophila
+# - 'danRer11' for zebrafish
+# - 'sacCer3' for yeast
+# - 'rn6' for rat
 genome: 'dm6'
 
 # If not specified here, use the environment variable REFERENCES_DIR.
