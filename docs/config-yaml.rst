@@ -114,6 +114,7 @@ The major differences between ChIP-seq and RNA-seq configs are:
 
     sampletable: 'config/sampletable.tsv'
     organism: 'dmel'
+    genome: 'dm6'
 
     aligner:
       index: 'bowtie2'
@@ -153,6 +154,22 @@ The major differences between ChIP-seq and RNA-seq configs are:
           control:
             - input-wingdisc-1
             - input-wingdisc-2
+
+        - label: gaf-wingdisc-pooled-1
+          algorithm: epic2
+          ip:
+            - gaf-wingdisc-1
+          control:
+            - input-wingdisc-1
+          extra: ''
+
+        - label: gaf-wingdisc-pooled-2
+          algorithm: epic2
+          ip:
+            - gaf-wingdisc-2
+          control:
+            - input-wingdisc-2
+          extra: ''
 
     fastq_screen:
       - label: Human
@@ -349,6 +366,37 @@ Required for RNA-seq
 
 Optional fields
 ~~~~~~~~~~~~~~~
+
+.. _cfg-genome:
+
+``genome`` config section
+`````````````````````````
+
+    This section is required to configure the reference genome for the epic2 peakcaller in ChIP-seq. The most commonly
+    used genomes are listed below:
+
+    ========== ================
+    organism   genome
+    ========== ================
+    Human      'hg19' or 'hg38'
+    Mouse      'mm10'
+    Rat        'rn6'
+    Zebrafish  'danRer11'
+    Yeast      'sacCer3'
+    Drosophila 'dm6'
+    C.elegans  'ce11'
+    ========== ================
+
+    The epic2 has built-in metadata for ~80 UCSC genomes. Visit the 
+    `UCSC genome browser gateway <https://genome.ucsc.edu/cgi-bin/hgGateway>`_ for more organisms.
+
+
+    Example:
+
+    .. code-block:: yaml
+
+        genome: 'dm6'
+
 
 .. _cfg-fastq-screen:
 
