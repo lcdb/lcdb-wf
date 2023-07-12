@@ -119,7 +119,7 @@ chipseq:
         fdr: 0.5
         zthr: 4
 
-    - label: gaf-wingdisc-pooled
+    - label: gaf-wingdisc-pooled-1
       algorithm: epic2
       ip:
         - gaf-wingdisc-1
@@ -127,7 +127,7 @@ chipseq:
         - input-wingdisc-1
       extra: ''
 
-    - label: gaf-wingdisc-pooled
+    - label: gaf-wingdisc-pooled-2
       algorithm: epic2
       ip:
         - gaf-wingdisc-2
