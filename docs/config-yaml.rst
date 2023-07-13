@@ -372,7 +372,7 @@ Optional fields
 ``genome`` config section
 `````````````````````````
 
-    This section is required to configure the reference genome for the epic2 peakcaller in ChIP-seq. The most commonly
+    This section is required to configure the reference genome for the `epic2 <https://github.com/biocore-ntnu/epic2>`_ peakcaller in ChIP-seq. The most commonly
     used genomes are listed below:
 
     ========== ================
