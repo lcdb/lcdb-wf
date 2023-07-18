@@ -72,7 +72,7 @@ environments within "my_analysis_dir":
 """
 
 
-def write_include_file(flavor=None):
+def write_include_file(source, flavor=None):
 
     PATTERN_DICT = {
         'rnaseq': [
@@ -115,8 +115,7 @@ def write_include_file(flavor=None):
         patterns.extend(PATTERN_DICT['full'])
     patterns.extend(PATTERN_DICT['all'])
 
-    HERE = Path(__file__).resolve().parent
-    os.chdir(HERE)
+    os.chdir(source)
 
     def fastwalk(path):
         """
@@ -134,7 +133,7 @@ def write_include_file(flavor=None):
                 yield os.path.join(root, f).replace(path + '/', '')
 
     f = filelist.FileList()
-    f.allfiles = list(fastwalk(str(HERE)))
+    f.allfiles = list(fastwalk(source))
     for pattern in patterns:
         f.process_template_line(pattern)
     f.sort()
@@ -144,7 +143,7 @@ def write_include_file(flavor=None):
         sp.check_output(
             ["git", "ls-tree", "-r", "HEAD", "--name-only"],
             universal_newlines=True,
-            cwd=str(HERE),
+            cwd=source,
         ).splitlines(False),
     )
 
@@ -389,7 +388,7 @@ if __name__ == "__main__":
     else:
         source = Path(__file__).parent.resolve()
 
-    include = write_include_file(source)
+    include = write_include_file(source, flavor)
     rsync(include, source, dest, args.rsync_args)
     deployment_json(source, dest)
 
