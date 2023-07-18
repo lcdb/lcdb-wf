@@ -388,7 +388,7 @@ if __name__ == "__main__":
             print("ERROR: --staging was specified but --clone was not. Did you want to use --clone?", file=sys.stderr)
             sys.exit(1)
     if args.clone:
-        source = args.staging
+        source = os.path.abspath(args.staging)
         clone_repo(args.staging, args.branch, mismatch_ok=args.mismatch_ok)
     else:
         source = Path(__file__).parent.resolve()
