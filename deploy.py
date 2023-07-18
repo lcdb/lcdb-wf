@@ -115,6 +115,7 @@ def write_include_file(source, flavor=None):
         patterns.extend(PATTERN_DICT['full'])
     patterns.extend(PATTERN_DICT['all'])
 
+    HERE = Path(__file__).resolve().parent
     os.chdir(source)
 
     def fastwalk(path):
@@ -152,6 +153,10 @@ def write_include_file(source, flavor=None):
     with open(include, 'w') as fout:
         fout.write('\n\n')
         fout.write('\n'.join(to_transfer))
+
+    # Back to starting dir
+    os.chdir(HERE)
+
     return include
 
 
