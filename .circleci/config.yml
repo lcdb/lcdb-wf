@@ -141,19 +141,20 @@ variables:
         python deploy.py --flavor full --dest $DEPLOY --branch $CIRCLE_BRANCH --clone
 
         # Separately copy over some test-specific files
-        cp workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq
-        cp workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq
-        cp workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq
-        cp workflows/colocalization/run_test.sh $DEPLOY/workflows/references
-        cp workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization
+        cp $ORIG/workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq/run_test.sh
+        cp $ORIG/workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq/run_test.sh
+        cp $ORIG/workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq/run_downstream_test.sh
+        cp $ORIG/workflows/colocalization/run_test.sh $DEPLOY/workflows/references/run_test.sh
+        cp $ORIG/workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization/run_test.sh
+
         mkdir $DEPLOY/ci
         mkdir $DEPLOY/test
-        cp test/lcdb-wf-test $DEPLOY/test
-        cp test/workflow_test_params.yaml $DEPLOY/test
-        cp ci/get-data.py $DEPLOY/ci
+        cp $ORIG/test/lcdb-wf-test $DEPLOY/test/lcdb-wf-test
+        cp $ORIG/test/workflow_test_params.yaml $DEPLOY/test/workflow_test_params.yaml
+        cp $ORIG/ci/get-data.py $DEPLOY/ci/get-data.py
 
         # the ./run_test.sh scripts run this
-        cp ci/preprocessor.py $DEPLOY/ci
+        cp $ORIG/ci/preprocessor.py $DEPLOY/ci/preprocessor.py
 
         # download example data
         cd $DEPLOY
