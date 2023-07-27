@@ -61,6 +61,8 @@ variables:
           rm -rf /var/lib/apt/lists/*
           localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 
+          # Set env vars to be used throughout; this is specific to how
+          # circleci handles env vars.
           echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
           echo 'export LCDBWF_ENV=lcdb-wf-test' >> $BASH_ENV
           echo 'export LCDBWF_ENV_R=lcdb-wf-test-r' >> $BASH_ENV
@@ -128,6 +130,11 @@ variables:
         conda activate $LCDBWF_ENV
         conda info --envs
         conda config --show
+
+        # Copy the deploy script to a different location to simulate the
+        # suggested deployment method of downloading just the script.
+        cp deploy.py /tmp/deploy.py
+        cd /tmp/
 
         # Deploy to the new directory, so we are testing the real-world case of post-deployment.
         # Note that $DEPLOY is set in the "set-paths" step configured above.
