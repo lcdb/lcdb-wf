@@ -107,11 +107,11 @@ def write_include_file(source, flavor=None):
     }
 
     patterns = []
-    if flavor is None or 'rnaseq':
+    if flavor is None or flavor == 'rnaseq':
         patterns.extend(PATTERN_DICT['rnaseq'])
-    if flavor is None or 'chipseq':
+    if flavor is None or flavor == 'chipseq':
         patterns.extend(PATTERN_DICT['chipseq'])
-    if flavor is None or 'full':
+    if flavor is None or flavor == 'full':
         patterns.extend(PATTERN_DICT['full'])
     patterns.extend(PATTERN_DICT['all'])
 
