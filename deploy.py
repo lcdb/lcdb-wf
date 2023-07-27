@@ -346,7 +346,6 @@ if __name__ == "__main__":
 
     ap.add_argument(
         "--staging",
-        default=default_staging,
         help="""Only used when --clone is specified. Clone the main git repo to
         this directory and do a diff on the deploy.py script found there to
         ensure this one is up-to-date, and if so then proceed using the new clone as the source.
@@ -389,6 +388,8 @@ if __name__ == "__main__":
             print("ERROR: --staging was specified but --clone was not. Did you want to use --clone?", file=sys.stderr)
             sys.exit(1)
     if args.clone:
+        if args.staging is None:
+            args.staging = default_staging
         source = os.path.abspath(args.staging)
         clone_repo(args.staging, args.branch, mismatch_ok=args.mismatch_ok)
     else:
