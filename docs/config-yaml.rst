@@ -367,37 +367,6 @@ Required for RNA-seq
 Optional fields
 ~~~~~~~~~~~~~~~
 
-.. _cfg-genome:
-
-``genome`` config section
-`````````````````````````
-
-    This section is required to configure the reference genome for the `epic2 <https://github.com/biocore-ntnu/epic2>`_ peakcaller in ChIP-seq. The most commonly
-    used genomes are listed below:
-
-    ========== ================
-    organism   genome
-    ========== ================
-    Human      'hg19' or 'hg38'
-    Mouse      'mm10'
-    Rat        'rn6'
-    Zebrafish  'danRer11'
-    Yeast      'sacCer3'
-    Drosophila 'dm6'
-    C.elegans  'ce11'
-    ========== ================
-
-    The epic2 has built-in metadata for ~80 UCSC genomes. Visit the 
-    `UCSC genome browser gateway <https://genome.ucsc.edu/cgi-bin/hgGateway>`_ for more organisms.
-
-
-    Example:
-
-    .. code-block:: yaml
-
-        genome: 'dm6'
-
-
 .. _cfg-fastq-screen:
 
 ``fastq_screen`` config section
