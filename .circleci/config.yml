@@ -1,5 +1,32 @@
 version: 2
 
+orbs:
+  lcdb-wf:
+    commands:
+      deploy-clone:
+        parameters:
+          flavor:
+            default: "full"
+            type: string
+        steps:
+          - run:
+              name: Deploy to a new directory, cloning to a temp dir
+              command: |
+                source /opt/mambaforge/etc/profile.d/conda.sh
+                conda activate $LCDBWF_ENV
+                conda info --envs
+                conda config --show
+
+                # Copy the deploy script to a different location to simulate the
+                # suggested deployment method of downloading just the script.
+                cp deploy.py /tmp/deploy.py
+                cd /tmp/
+
+                # Deploy to the new directory, so we are testing the real-world case of post-deployment.
+                # Note that $DEPLOY is set in the "set-paths" step configured above.
+                python deploy.py --flavor <<parameters.flavor>> --dest $DEPLOY --branch $CIRCLE_BRANCH --clone
+
+
 variables:
 
   # default settings for all steps
@@ -127,20 +154,6 @@ variables:
     run:
       name: Download example data
       command: |
-        source /opt/mambaforge/etc/profile.d/conda.sh
-        conda activate $LCDBWF_ENV
-        conda info --envs
-        conda config --show
-
-        # Copy the deploy script to a different location to simulate the
-        # suggested deployment method of downloading just the script.
-        cp deploy.py /tmp/deploy.py
-        cd /tmp/
-
-        # Deploy to the new directory, so we are testing the real-world case of post-deployment.
-        # Note that $DEPLOY is set in the "set-paths" step configured above.
-        python deploy.py --flavor full --dest $DEPLOY --branch $CIRCLE_BRANCH --clone
-
         set -x
         tree $DEPLOY
         tree $ORIG
@@ -362,6 +375,8 @@ jobs:
       - checkout
       - *restore_cache
       - *set-path
+      - deploy-lcdb-wf/deploy-clone:
+        flavor: chipseq
       - *get-data
       - *chipseq-step
       - store_artifacts:
@@ -373,6 +388,8 @@ jobs:
       - checkout
       - *restore_cache
       - *set-path
+      - deploy-lcdb-wf/deploy-clone:
+        flavor: chipseq
       - *get-data
       - *chipseq-misc-step
 
@@ -382,6 +399,8 @@ jobs:
       - checkout
       - *restore_cache
       - *set-path
+      - deploy-lcdb-wf/deploy-clone:
+        flavor: rnaseq
       - *get-data
       - *rnaseq-step
       - store_artifacts:
@@ -407,6 +426,8 @@ jobs:
       - checkout
       - *restore_cache
       - *set-path
+      - deploy-lcdb-wf/deploy-clone:
+        flavor: rnaseq
       - *get-data
       - *rnaseq-misc-step
 
@@ -416,6 +437,7 @@ jobs:
       - checkout
       - *restore_cache
       - *set-path
+      - deploy-lcdb-wf/deploy-clone
       - *get-data
       - *colocalization-step
 
@@ -425,6 +447,7 @@ jobs:
       - checkout
       - *restore_cache
       - *set-path
+      - deploy-lcdb-wf/deploy-clone
       - *get-data
       - *references-step
 
