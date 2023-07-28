@@ -12,7 +12,7 @@ import fnmatch
 import logging
 import hashlib
 from pathlib import Path
-from distutils import filelist, log
+from distutils import filelist
 
 logging.basicConfig(
     format="%(asctime)s [%(module)s] %(message)s",
@@ -72,7 +72,11 @@ environments within "my_analysis_dir":
 """
 
 
-def write_include_file(source, flavor=None):
+def write_include_file(source, flavor='all'):
+
+    # Patterns follow that of MANIFEST.in
+    # (https://packaging.python.org/en/latest/guides/using-manifest-in/),
+    # and distutils.filelist is used below to parse them.
 
     PATTERN_DICT = {
         'rnaseq': [
@@ -107,16 +111,13 @@ def write_include_file(source, flavor=None):
     }
 
     patterns = []
-    if flavor is None or flavor == 'rnaseq':
+    if flavor in ('full', 'rnaseq'):
         patterns.extend(PATTERN_DICT['rnaseq'])
-    if flavor is None or flavor == 'chipseq':
+    if flavor in ('full', 'chipseq'):
         patterns.extend(PATTERN_DICT['chipseq'])
-    if flavor is None or flavor == 'full':
+    if flavor == 'full':
         patterns.extend(PATTERN_DICT['full'])
     patterns.extend(PATTERN_DICT['all'])
-
-    origdir = os.getcwd()
-    os.chdir(source)
 
     def fastwalk(path):
         """
@@ -153,10 +154,6 @@ def write_include_file(source, flavor=None):
     with open(include, 'w') as fout:
         fout.write('\n\n')
         fout.write('\n'.join(to_transfer))
-
-    # Back to starting dir
-    debug("Back to " + origdir)
-    os.chdir(origdir)
 
     return include
 
