@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 
 orbs:
   lcdb-wf:
@@ -375,8 +375,8 @@ jobs:
       - checkout
       - *restore_cache
       - *set-path
-      - deploy-lcdb-wf/deploy-clone:
-        flavor: chipseq
+      - lcdb-wf/deploy-clone:
+          flavor: chipseq
       - *get-data
       - *chipseq-step
       - store_artifacts:
@@ -388,8 +388,8 @@ jobs:
       - checkout
       - *restore_cache
       - *set-path
-      - deploy-lcdb-wf/deploy-clone:
-        flavor: chipseq
+      - lcdb-wf/deploy-clone:
+          flavor: chipseq
       - *get-data
       - *chipseq-misc-step
 
@@ -399,8 +399,8 @@ jobs:
       - checkout
       - *restore_cache
       - *set-path
-      - deploy-lcdb-wf/deploy-clone:
-        flavor: rnaseq
+      - lcdb-wf/deploy-clone:
+          flavor: rnaseq
       - *get-data
       - *rnaseq-step
       - store_artifacts:
@@ -426,8 +426,8 @@ jobs:
       - checkout
       - *restore_cache
       - *set-path
-      - deploy-lcdb-wf/deploy-clone:
-        flavor: rnaseq
+      - lcdb-wf/deploy-clone:
+          flavor: rnaseq
       - *get-data
       - *rnaseq-misc-step
 
@@ -437,7 +437,7 @@ jobs:
       - checkout
       - *restore_cache
       - *set-path
-      - deploy-lcdb-wf/deploy-clone
+      - lcdb-wf/deploy-clone
       - *get-data
       - *colocalization-step
 
@@ -447,7 +447,7 @@ jobs:
       - checkout
       - *restore_cache
       - *set-path
-      - deploy-lcdb-wf/deploy-clone
+      - lcdb-wf/deploy-clone
       - *get-data
       - *references-step
 
