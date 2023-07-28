@@ -1,5 +1,29 @@
 #!/usr/bin/env python
 
+usage = f"""
+This script assists in the deployment of relevant code from the lcdb-wf
+repository to a new deployment directory for running an analysis. It is
+intended to be run in a standalone fashion such that with just the script you
+can download and deploy a specified version of the workflows.
+
+For example, the following command will clone the GitHub repo to {default_staging},
+check out the v9.999 branch, copy the files needed for RNA-seq over to the
+"my_analysis_dir" directory, store a read-only file .lcdb-wf-deployment.yaml
+with the metadata of the repo used for cloning, and build the conda
+environments within "my_analysis_dir":
+
+    ./deploy.py \\
+        --clone \\
+        --dest my_analysis_dir \\
+        --flavor rnaseq \\
+        --build-envs \\
+        --branch v9.999
+
+Compared to directly cloning the repo, this results in a cleaner deployment
+directory that does not have various test infrastructure or workflows not
+relevant to the project.
+"""
+
 import os
 import sys
 
@@ -52,24 +76,6 @@ def error(s):
 
 
 
-usage = f"""
-This script assists in the deployment of relevant code from the lcdb-wf
-repository to a new deployment directory for running an analysis.
-
-For example, the following command will clone the GitHub repo to {default_staging},
-check out the v9.999 branch, copy the files needed for RNA-seq over to the
-"my_analysis_dir" directory, store a read-only file .lcdb-wf-deployment.yaml
-with the metadata of the repo used for cloning, and build the conda
-environments within "my_analysis_dir":
-
-    ./deploy.py \\
-        --clone \\
-        --dest my_analysis_dir \\
-        --flavor rnaseq \\
-        --build-envs \\
-        --branch v9.999
-
-"""
 
 
 def write_include_file(source, flavor='all'):
