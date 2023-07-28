@@ -29,6 +29,9 @@ orbs:
         parameters:
           kind:
             default: "all"
+            type: enum
+            enum: ["all", "rnaseq", "chipseq"]
+          workflow:
             type: string
         steps:
           - run:
@@ -40,11 +43,12 @@ orbs:
                 set +x
 
                 # Separately copy over some test-specific files
-                cp $ORIG/workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq/run_test.sh
-                cp $ORIG/workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq/run_test.sh
-                cp $ORIG/workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq/run_downstream_test.sh
-                cp $ORIG/workflows/colocalization/run_test.sh $DEPLOY/workflows/references/run_test.sh
-                cp $ORIG/workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization/run_test.sh
+                
+                cp $ORIG/workflows/<<parameters.workflow>>/run_test.sh $DEPLOY/workflows/<<parameters.workflow>>/run_test.sh
+
+                if ["<<parameters.workflow>>" -eq "rnaseq"]; then
+                  cp $ORIG/workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq/run_downstream_test.sh
+                fi
 
                 mkdir $DEPLOY/ci
                 mkdir $DEPLOY/test
@@ -381,6 +385,7 @@ jobs:
           flavor: chipseq
       - lcdb-wf/get-data:
           kind: chipseq
+          workflow: chipseq
       - *chipseq-step
       - store_artifacts:
           path: /tmp/lcdb-wf-test/workflows/chipseq/data/chipseq_aggregation/multiqc.html
@@ -395,6 +400,7 @@ jobs:
           flavor: chipseq
       - lcdb-wf/get-data:
           kind: chipseq
+          workflow: chipseq
       - *chipseq-misc-step
 
   rnaseq:
@@ -407,6 +413,7 @@ jobs:
           flavor: rnaseq
       - lcdb-wf/get-data:
           kind: rnaseq
+          workflow: rnaseq
       - *rnaseq-step
       - store_artifacts:
           path: /tmp/downstream.tar.gz
@@ -435,6 +442,7 @@ jobs:
           flavor: rnaseq
       - lcdb-wf/get-data:
           kind: rnaseq
+          workflow: rnaseq
       - *rnaseq-misc-step
 
   colocalization:
@@ -444,7 +452,8 @@ jobs:
       - *restore_cache
       - *set-path
       - lcdb-wf/deploy-clone
-      - lcdb-wf/get-data
+      - lcdb-wf/get-data:
+          workflow: colocalization
       - *colocalization-step
 
   references:
@@ -454,7 +463,8 @@ jobs:
       - *restore_cache
       - *set-path
       - lcdb-wf/deploy-clone
-      - lcdb-wf/get-data
+      - lcdb-wf/get-data:
+          workflow: references
       - *references-step
 
   build-docs:
