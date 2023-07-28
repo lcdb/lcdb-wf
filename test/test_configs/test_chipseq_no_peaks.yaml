@@ -2,7 +2,6 @@
 organism: 'dmel'
 references_dir: 'references_data'
 peaks_dir: 'data/chipseq_peaks'
-genome: 'dm6'
 
 chipseq:
   peak_calling:
