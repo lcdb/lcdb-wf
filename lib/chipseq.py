@@ -189,10 +189,8 @@ def detect_peak_format(fn):
     if len(toks) == 10:
         if 'epic2' in fn:
             return 'epic2Input'
-        elif 'macs2' in fn:
-            return 'narrowPeak'
         else:
-            raise ValueError("Bed with 6+4 format but undefined peak caller.")
+            return 'narrowPeak'
     elif len(toks) == 9:
         return 'broadPeak'
     elif len(toks) == 6:

@@ -16,7 +16,7 @@ organism: 'dmel'
 # - 'danRer11' for zebrafish
 # - 'sacCer3' for yeast
 # - 'rn6' for rat
-genome: 'dm6'
+# genome: 'dm6'
 
 # If not specified here, use the environment variable REFERENCES_DIR.
 references_dir: 'references_data'
