@@ -140,6 +140,11 @@ variables:
         # Note that $DEPLOY is set in the "set-paths" step configured above.
         python deploy.py --flavor full --dest $DEPLOY --branch $CIRCLE_BRANCH --clone
 
+        set -x
+        ls -lrth $DEPLOY
+        ls -lrth $ORIG
+        set +x
+
         # Separately copy over some test-specific files
         cp $ORIG/workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq/run_test.sh
         cp $ORIG/workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq/run_test.sh
