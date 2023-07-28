@@ -25,6 +25,39 @@ orbs:
                 # Deploy to the new directory, so we are testing the real-world case of post-deployment.
                 # Note that $DEPLOY is set in the "set-paths" step configured above.
                 python deploy.py --flavor <<parameters.flavor>> --dest $DEPLOY --branch $CIRCLE_BRANCH --clone
+      get-data:
+        parameters:
+          kind:
+            default: "all"
+            type: string
+        steps:
+          - run:
+              name: Download example data
+              command: |
+                set -x
+                tree $DEPLOY
+                tree $ORIG
+                set +x
+
+                # Separately copy over some test-specific files
+                cp $ORIG/workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq/run_test.sh
+                cp $ORIG/workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq/run_test.sh
+                cp $ORIG/workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq/run_downstream_test.sh
+                cp $ORIG/workflows/colocalization/run_test.sh $DEPLOY/workflows/references/run_test.sh
+                cp $ORIG/workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization/run_test.sh
+
+                mkdir $DEPLOY/ci
+                mkdir $DEPLOY/test
+                cp $ORIG/test/lcdb-wf-test $DEPLOY/test/lcdb-wf-test
+                cp $ORIG/test/workflow_test_params.yaml $DEPLOY/test/workflow_test_params.yaml
+                cp $ORIG/ci/get-data.py $DEPLOY/ci/get-data.py
+
+                # the ./run_test.sh scripts run this
+                cp $ORIG/ci/preprocessor.py $DEPLOY/ci/preprocessor.py
+
+                # download example data
+                cd $DEPLOY
+                test/lcdb-wf-test data --kind=<<parameters.kind>> --verbose
 
 
 variables:
@@ -147,37 +180,6 @@ variables:
             time mamba env create -n $LCDBWF_ENV --file env.yml
             time mamba env create -n $LCDBWF_ENV_R --file env-r.yml
         fi
-
-  # --------------------------------------------------------------------------
-  # Deploy into a new directory and get the test data.
-  get-data: &get-data
-    run:
-      name: Download example data
-      command: |
-        set -x
-        tree $DEPLOY
-        tree $ORIG
-        set +x
-
-        # Separately copy over some test-specific files
-        cp $ORIG/workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq/run_test.sh
-        cp $ORIG/workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq/run_test.sh
-        cp $ORIG/workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq/run_downstream_test.sh
-        cp $ORIG/workflows/colocalization/run_test.sh $DEPLOY/workflows/references/run_test.sh
-        cp $ORIG/workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization/run_test.sh
-
-        mkdir $DEPLOY/ci
-        mkdir $DEPLOY/test
-        cp $ORIG/test/lcdb-wf-test $DEPLOY/test/lcdb-wf-test
-        cp $ORIG/test/workflow_test_params.yaml $DEPLOY/test/workflow_test_params.yaml
-        cp $ORIG/ci/get-data.py $DEPLOY/ci/get-data.py
-
-        # the ./run_test.sh scripts run this
-        cp $ORIG/ci/preprocessor.py $DEPLOY/ci/preprocessor.py
-
-        # download example data
-        cd $DEPLOY
-        test/lcdb-wf-test data --kind=all --verbose
 
   # --------------------------------------------------------------------------
   # Run the doctests across the included modules
@@ -377,7 +379,8 @@ jobs:
       - *set-path
       - lcdb-wf/deploy-clone:
           flavor: chipseq
-      - *get-data
+      - lcdb-wf/get-data:
+          kind: chipseq
       - *chipseq-step
       - store_artifacts:
           path: /tmp/lcdb-wf-test/workflows/chipseq/data/chipseq_aggregation/multiqc.html
@@ -390,7 +393,8 @@ jobs:
       - *set-path
       - lcdb-wf/deploy-clone:
           flavor: chipseq
-      - *get-data
+      - lcdb-wf/get-data:
+          kind: chipseq
       - *chipseq-misc-step
 
   rnaseq:
@@ -401,7 +405,8 @@ jobs:
       - *set-path
       - lcdb-wf/deploy-clone:
           flavor: rnaseq
-      - *get-data
+      - lcdb-wf/get-data:
+          kind: rnaseq
       - *rnaseq-step
       - store_artifacts:
           path: /tmp/downstream.tar.gz
@@ -428,7 +433,8 @@ jobs:
       - *set-path
       - lcdb-wf/deploy-clone:
           flavor: rnaseq
-      - *get-data
+      - lcdb-wf/get-data:
+          kind: rnaseq
       - *rnaseq-misc-step
 
   colocalization:
@@ -438,7 +444,7 @@ jobs:
       - *restore_cache
       - *set-path
       - lcdb-wf/deploy-clone
-      - *get-data
+      - lcdb-wf/get-data
       - *colocalization-step
 
   references:
@@ -448,7 +454,7 @@ jobs:
       - *restore_cache
       - *set-path
       - lcdb-wf/deploy-clone
-      - *get-data
+      - lcdb-wf/get-data
       - *references-step
 
   build-docs:
