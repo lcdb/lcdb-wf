@@ -54,6 +54,7 @@ variables:
             locales \
             locales-all \
             rsync \
+            tree \
             wget \
             x11-utils
 
@@ -141,8 +142,8 @@ variables:
         python deploy.py --flavor full --dest $DEPLOY --branch $CIRCLE_BRANCH --clone
 
         set -x
-        ls -lrth $DEPLOY
-        ls -lrth $ORIG
+        tree $DEPLOY
+        tree $ORIG
         set +x
 
         # Separately copy over some test-specific files
