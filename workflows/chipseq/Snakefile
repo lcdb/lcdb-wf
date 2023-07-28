@@ -640,7 +640,13 @@ rule epic2:
             expand(
                 c.patterns['merged_techreps'],
                 label=chipseq.samples_for_run(config, wc.epic2_run, 'epic2', 'control'),
-            )
+            ),
+        bai=lambda wc:  # epic2 requires both .bam and .bam.bai (bam index) files (.bam.bai is not explicitly)
+            expand(
+                c.patterns['merged_techreps'] + '.bai',
+                label=chipseq.samples_for_run(config, wc.epic2_run, 'epic2', 'ip'),
+            ),
+        chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes']
     output:
         bed=c.patterns['peaks']['epic2']
     resources:
@@ -650,22 +656,10 @@ rule epic2:
         c.patterns['peaks']['epic2'] + '.log'
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.epic2_run, 'epic2'),
-        genome=config['genome']
-    run:
-        # `-c` has to be skipped if no control is provided
-        if len(input.control) > 0:
-            cmd = '-c {input.control} '
-        else:
-            cmd = ''
-        # Add `--guess-bampe` if input dataset is paired-end
-        if c.is_paired:
-            cmd += '--guess-bampe '
-        shell(
-            'epic2 ' + cmd +
-            '-t {input.ip} '
-            '--genome {params.genome} | '
-            'sort -k1,1 -k2,2n > {output.bed}'
-        )
+        is_paired=c.is_paired
+    wrapper:
+        wrapper_for('epic2')
+
 
 rule spp:
     """
@@ -724,36 +718,46 @@ rule bed_to_bigbed:
         algorithm = os.path.basename(os.path.dirname(input.bed))
         kind = chipseq.detect_peak_format(input.bed)
 
-
         # bedToBigBed doesn't handle zero-size files
         # bigbed is not created from epic2-generated peaks
-        if os.stat(input.bed).st_size == 0 or "epic2" in input.bed:
+        if os.stat(input.bed).st_size == 0:
             shell("touch {output}")
+        elif kind == 'narrowPeak':
+            _as = '../../include/autosql/bigNarrowPeak.as'
+            _type = 'bed6+4'
+            names=[
+                'chrom', 'chromStart', 'chromEnd', 'name', 'score',
+                'strand', 'signalValue', 'pValue', 'qValue', 'peak']
+        elif kind == 'broadPeak':
+            _as = '../../include/autosql/bigBroadPeak.as'
+            _type = 'bed6+3'
+            names=[
+                'chrom', 'chromStart', 'chromEnd', 'name', 'score',
+                'strand', 'signalValue', 'pValue', 'qValue']
+        elif kind == 'epic2Input':
+            _as = f'../../include/autosql/{kind}Peak.as'
+            _type = 'bed6+4'
+            names=[
+                'chrom', 'chromStart', 'chromEnd', 'pValue', 'score',
+                'strand', 'ChIPCount', 'InputCount', 'FDR', 'log2FoldChange']
+        elif kind == 'epic2NoInput':
+            _as = f'../../include/autosql/{kind}Peak.as'
+            _type = 'bed6'
+            names=[
+                'chrom', 'chromStart', 'chromEnd', 'ChIPCount', 'score',
+                'strand']
         else:
-            if kind == 'narrowPeak':
-                _as = '../../include/autosql/bigNarrowPeak.as'
-                _type = 'bed6+4'
-                names=[
-                    'chrom', 'chromStart', 'chromEnd', 'name', 'score',
-                    'strand', 'signalValue', 'pValue', 'qValue', 'peak']
-            elif kind == 'broadPeak':
-                _as = '../../include/autosql/bigBroadPeak.as'
-                _type = 'bed6+3'
-                names=[
-                    'chrom', 'chromStart', 'chromEnd', 'name', 'score',
-                    'strand', 'signalValue', 'pValue', 'qValue']
-            else:
-                raise ValueError("Unhandled format for {0}".format(input.bed))
+            raise ValueError("Unhandled format for {0}".format(input.bed))
 
-            df = pd.read_table(input.bed, index_col=False, names=names)
-            df['score'] = df['score'] - df['score'].min()
-            df['score'] = (df['score'] / df['score'].max()) * 1000
-            df['score'] = df['score'].replace([np.inf, -np.inf], np.nan).fillna(0)
-            df['score'] = df['score'].astype(int)
-            df.to_csv(output[0] + '.tmp', sep='\t', index=False, header=False)
+        df = pd.read_table(input.bed, index_col=False, names=names)
+        df['score'] = df['score'] - df['score'].min()
+        df['score'] = (df['score'] / df['score'].max()) * 1000
+        df['score'] = df['score'].replace([np.inf, -np.inf], np.nan).fillna(0)
+        df['score'] = df['score'].astype(int)
+        df.to_csv(output[0] + '.tmp', sep='\t', index=False, header=False)
 
-            shell('bedToBigBed -as={_as} -type={_type} {output}.tmp {input.chromsizes} {output} &> {log}')
-            shell('rm {output}.tmp')
+        shell('bedToBigBed -as={_as} -type={_type} {output}.tmp {input.chromsizes} {output} &> {log}')
+        shell('rm {output}.tmp')
 
 
 rule multibigwigsummary:

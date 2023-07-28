@@ -1,0 +1,8 @@
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - epic2
+  - numpy
+  - bedtools
+  - ucsc-bedsort=377
