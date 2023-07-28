@@ -1,5 +1,22 @@
 #!/usr/bin/env python
 
+import os
+import sys
+
+import tempfile
+import argparse
+import subprocess as sp
+import datetime
+import json
+import fnmatch
+import logging
+import hashlib
+from pathlib import Path
+from distutils import filelist
+
+# Determine default staging area, used in help
+default_staging = "/tmp/{0}-lcdb-wf-staging".format(os.getenv('USER'))
+
 usage = f"""
 This script assists in the deployment of relevant code from the lcdb-wf
 repository to a new deployment directory for running an analysis. It is
@@ -24,20 +41,6 @@ directory that does not have various test infrastructure or workflows not
 relevant to the project.
 """
 
-import os
-import sys
-
-import tempfile
-import argparse
-import subprocess as sp
-import datetime
-import json
-import fnmatch
-import logging
-import hashlib
-from pathlib import Path
-from distutils import filelist
-
 logging.basicConfig(
     format="%(asctime)s [%(module)s] %(message)s",
     level=logging.DEBUG,
@@ -55,10 +58,6 @@ BLUE = "\x1b[34m"
 RESET = "\x1b[0m"
 
 
-# Determine default staging area
-default_staging = "/tmp/{0}-lcdb-wf-staging".format(os.getenv('USER'))
-
-
 def debug(s):
     logging.debug(GRAY + s + RESET)
 
@@ -73,9 +72,6 @@ def warning(s):
 
 def error(s):
     logging.error(RED + s + RESET)
-
-
-
 
 
 def write_include_file(source, flavor='all'):
