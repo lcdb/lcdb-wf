@@ -20,12 +20,6 @@ else:
 if snakemake.params.is_paired:
     arguments += '--guess-bampe '
 
-# cmds = (
-#     'epic2 ' + arguments +
-#     '-t {snakemake.input.ip} '
-#     '--chromsizes {snakemake.input.chromsizes} | '
-#     'sort -k1,1 -k2,2n > {label}.tmp.bed ' + extra
-# )
 
 shell(
     'epic2 ' + arguments + extra +
