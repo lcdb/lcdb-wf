@@ -13,7 +13,7 @@ from . import helpers
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 # Note: when adding support for new peak callers, add them here.
-PEAK_CALLERS = ['macs2', 'spp', 'sicer']
+PEAK_CALLERS = ['macs2', 'spp', 'sicer', 'epic2']
 
 
 def update_recursive(d, u):
