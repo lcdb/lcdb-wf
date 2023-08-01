@@ -46,7 +46,7 @@ orbs:
                 
                 cp $ORIG/workflows/<<parameters.workflow>>/run_test.sh $DEPLOY/workflows/<<parameters.workflow>>/run_test.sh
 
-                if [["<<parameters.workflow>>" = "rnaseq"]]; then
+                if [[ "<<parameters.workflow>>" = "rnaseq" ]]; then
                   cp $ORIG/workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq/run_downstream_test.sh
                 fi
 
