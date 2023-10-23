@@ -6,7 +6,7 @@ v1.10.3
 
 - improve the deploy script (thanks @aliciaaevans)
 - support the epic2 peak-caller for the ChIP-seq workflow (thanks @Mira0507)
-- for later versions of featureCounts, add ``--countReadPairs`` argument to RNA-seq workflow
+- for later versions of featureCounts, add ``--countReadPairs`` argument to RNA-seq workflow (@therealgenna)
 
 v1.10.2
 -------
