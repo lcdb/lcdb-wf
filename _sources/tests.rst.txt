@@ -5,8 +5,8 @@ Testing the installation
 This section describes how to set up and run the example data.
 It is useful for verifying everything is working correctly. This
 reproduces the steps that are performed during the automated tests
-on `Circle CI<https://circleci.com>`_. You can see the latest test
-results `here<https://circleci.com/gh/lcdb/lcdb-wf/tree/master>`_.
+on `Circle CI <https://circleci.com>`_. You can see the latest test
+results `here <https://circleci.com/gh/lcdb/lcdb-wf/tree/master>`_.
 
 The example run takes up about 360 MB of space and runs in about 15 mins on
 2 cores.

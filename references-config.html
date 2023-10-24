@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>References config &#8212; lcdb-wf 1.9 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=c8a1a12d" />
+    <script src="_static/documentation_options.js?v=754f84b7"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Sample tables" href="sampletable.html" />
@@ -96,7 +96,7 @@
           <div class="body" role="main">
             
   <section id="references-config">
-<span id="id1"></span><h1>References config<a class="headerlink" href="#references-config" title="Permalink to this heading">¶</a></h1>
+<span id="id1"></span><h1>References config<a class="headerlink" href="#references-config" title="Link to this heading">¶</a></h1>
 <p>The references section defines which genomes, transcriptomes, and annotations
 to use. It supports arbitrarily many species and assemblies, and supports
 customizing references for a particular project. For example, there are tools
@@ -106,12 +106,12 @@ on.</p>
 <p>Another advantage is that this makes it easy to add multiple genomes to the
 screening step (which uses fastq_screen).</p>
 <section id="specifying-a-references-directory">
-<h2>Specifying a references directory<a class="headerlink" href="#specifying-a-references-directory" title="Permalink to this heading">¶</a></h2>
+<h2>Specifying a references directory<a class="headerlink" href="#specifying-a-references-directory" title="Link to this heading">¶</a></h2>
 <p>See <a class="reference internal" href="config-yaml.html#cfg-references-dir"><span class="std std-ref">references_dir</span></a> for more information on where the references are
 built (as well as how and why to adjust this).</p>
 </section>
 <section id="including-existing-reference-configs">
-<h2>Including existing reference configs<a class="headerlink" href="#including-existing-reference-configs" title="Permalink to this heading">¶</a></h2>
+<h2>Including existing reference configs<a class="headerlink" href="#including-existing-reference-configs" title="Link to this heading">¶</a></h2>
 <p>We provide a number of pre-configured reference configs for common model
 organisms. If you just want to use some references configs that work, then put
 this in your config file:</p>
@@ -153,7 +153,7 @@ last one has priority</p></li>
 the references, to add your own or modify the existing examples.</p>
 </section>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
 <p>The references workflow is based on the idea that while each genome’s source
 files may differ, they can usually be modified to a uniform format. For
 example, reference files (FASTA, GTF) may come from different providers
@@ -185,7 +185,7 @@ below.</p></li>
 happening.</p>
 </section>
 <section id="example-references-config">
-<h2>Example references config<a class="headerlink" href="#example-references-config" title="Permalink to this heading">¶</a></h2>
+<h2>Example references config<a class="headerlink" href="#example-references-config" title="Link to this heading">¶</a></h2>
 <p>The following example configures the workflow to:</p>
 <ul class="simple">
 <li><p>download a fasta file from the GENCODE project for the human genome and build
@@ -363,7 +363,7 @@ will perform the specified conversion. Available indexes and conversions are
 described below.</p>
 </section>
 <section id="post-processing">
-<h2>Post processing<a class="headerlink" href="#post-processing" title="Permalink to this heading">¶</a></h2>
+<h2>Post processing<a class="headerlink" href="#post-processing" title="Link to this heading">¶</a></h2>
 <p><strong>All files created by a block are required to be gzipped.</strong></p>
 <p>This means that if a URL points to an uncompressed GTF file, a post-processing
 function must gzip it. It also means that any post-processing functions must
@@ -432,7 +432,7 @@ chromosome names.  In this way, we can apply arbitrary code to modify
 references to get them into a uniform format.</p>
 </section>
 <section id="more-advanced-postprocessing">
-<span id="advanced-postprocessing"></span><h2>More advanced postprocessing<a class="headerlink" href="#more-advanced-postprocessing" title="Permalink to this heading">¶</a></h2>
+<span id="advanced-postprocessing"></span><h2>More advanced postprocessing<a class="headerlink" href="#more-advanced-postprocessing" title="Link to this heading">¶</a></h2>
 <p>If a post-processing function has a keyword argument with starts and ends with
 a double underscore (<code class="docutils literal notranslate"><span class="pre">__</span></code>), the config system will assume this is a string
 that should be interpreted as a dotted function name and the actual function
@@ -478,7 +478,7 @@ dotted-path functions to import.</p>
 </div>
 </section>
 <section id="locations-of-downloaded-and-post-processed-fasta-and-gtf-files">
-<h2>Locations of downloaded-and-post-processed FASTA and GTF files<a class="headerlink" href="#locations-of-downloaded-and-post-processed-fasta-and-gtf-files" title="Permalink to this heading">¶</a></h2>
+<h2>Locations of downloaded-and-post-processed FASTA and GTF files<a class="headerlink" href="#locations-of-downloaded-and-post-processed-fasta-and-gtf-files" title="Link to this heading">¶</a></h2>
 <p>Generally speaking, the fasta and gtf files will be in:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">fasta</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.</span><span class="n">fasta</span>
 <span class="p">{</span><span class="n">references_dir</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">/</span><span class="n">gtf</span><span class="o">/</span><span class="p">{</span><span class="n">organism</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">tag</span><span class="p">}</span><span class="o">.</span><span class="n">gtf</span>
@@ -516,10 +516,10 @@ be worth the additional space and time cost.</p>
 </div>
 </section>
 <section id="available-indexes-and-conversions">
-<h2>Available indexes and conversions<a class="headerlink" href="#available-indexes-and-conversions" title="Permalink to this heading">¶</a></h2>
+<h2>Available indexes and conversions<a class="headerlink" href="#available-indexes-and-conversions" title="Link to this heading">¶</a></h2>
 <p>The following indexes can be currently be specified for fasta files:</p>
 <section id="hisat2">
-<h3>hisat2<a class="headerlink" href="#hisat2" title="Permalink to this heading">¶</a></h3>
+<h3>hisat2<a class="headerlink" href="#hisat2" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">indexes</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hisat2</span>
@@ -532,7 +532,7 @@ be worth the additional space and time cost.</p>
 </div></blockquote>
 </section>
 <section id="bowtie2">
-<h3>bowtie2<a class="headerlink" href="#bowtie2" title="Permalink to this heading">¶</a></h3>
+<h3>bowtie2<a class="headerlink" href="#bowtie2" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">indexes</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bowtie2</span>
@@ -545,7 +545,7 @@ be worth the additional space and time cost.</p>
 </div></blockquote>
 </section>
 <section id="salmon">
-<h3>salmon<a class="headerlink" href="#salmon" title="Permalink to this heading">¶</a></h3>
+<h3>salmon<a class="headerlink" href="#salmon" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">indexes</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">salmon</span>
@@ -559,7 +559,7 @@ be worth the additional space and time cost.</p>
 <p>The following conversions can be specified for GTF files:</p>
 </section>
 <section id="refflat">
-<h3>refflat<a class="headerlink" href="#refflat" title="Permalink to this heading">¶</a></h3>
+<h3>refflat<a class="headerlink" href="#refflat" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">conversions</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">refflat</span>
@@ -574,7 +574,7 @@ be worth the additional space and time cost.</p>
 </div></blockquote>
 </section>
 <section id="bed12">
-<h3>bed12<a class="headerlink" href="#bed12" title="Permalink to this heading">¶</a></h3>
+<h3>bed12<a class="headerlink" href="#bed12" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">conversions</span><span class="p">:</span>
@@ -591,7 +591,7 @@ be worth the additional space and time cost.</p>
 </div></blockquote>
 </section>
 <section id="gffutils">
-<h3>gffutils<a class="headerlink" href="#gffutils" title="Permalink to this heading">¶</a></h3>
+<h3>gffutils<a class="headerlink" href="#gffutils" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>Converts GTF to gffutils database (typically used for downstream work). You
 can specify arbitrary kwargs to <code class="docutils literal notranslate"><span class="pre">gffutils.create_db</span></code> by including them as
@@ -610,7 +610,7 @@ transcripts:</p>
 </div></blockquote>
 </section>
 <section id="genelist">
-<h3>genelist<a class="headerlink" href="#genelist" title="Permalink to this heading">¶</a></h3>
+<h3>genelist<a class="headerlink" href="#genelist" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>Reads the postprocessed GTF file, and extracts the set of gene IDs found,
 one ID per line. The GTF attribute to use is configured by the
@@ -628,7 +628,7 @@ one ID per line. The GTF attribute to use is configured by the
 </div></blockquote>
 </section>
 <section id="mappings">
-<h3>mappings<a class="headerlink" href="#mappings" title="Permalink to this heading">¶</a></h3>
+<h3>mappings<a class="headerlink" href="#mappings" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>Reads the postprocesses GTF file, and outputs mappings between attributes
 as a gzipped TSV.</p>
@@ -670,7 +670,7 @@ attribute that may happen to be called <code class="docutils literal notranslate
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

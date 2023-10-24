@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>lib.chipseq &#8212; lcdb-wf 1.9 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=c8a1a12d" />
+    <script src="../../_static/documentation_options.js?v=754f84b7"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -117,7 +117,9 @@
 <span class="c1"># }</span>
 
 
-<div class="viewcode-block" id="peak_calling_dict"><a class="viewcode-back" href="../../lib.chipseq.html#lib.chipseq.peak_calling_dict">[docs]</a><span class="k">def</span> <span class="nf">peak_calling_dict</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="peak_calling_dict">
+<a class="viewcode-back" href="../../lib.chipseq.html#lib.chipseq.peak_calling_dict">[docs]</a>
+<span class="k">def</span> <span class="nf">peak_calling_dict</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a dictionary of peak-calling runs from the config.</span>
 
@@ -160,7 +162,10 @@
     <span class="k">return</span> <span class="n">d</span></div>
 
 
-<div class="viewcode-block" id="block_for_run"><a class="viewcode-back" href="../../lib.chipseq.html#lib.chipseq.block_for_run">[docs]</a><span class="k">def</span> <span class="nf">block_for_run</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">):</span>
+
+<div class="viewcode-block" id="block_for_run">
+<a class="viewcode-back" href="../../lib.chipseq.html#lib.chipseq.block_for_run">[docs]</a>
+<span class="k">def</span> <span class="nf">block_for_run</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the block for the (label, algorithm) run.</span>
 
@@ -173,7 +178,10 @@
     <span class="k">return</span> <span class="n">peak_calling_dict</span><span class="p">(</span><span class="n">config</span><span class="p">)[(</span><span class="n">label</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">)]</span></div>
 
 
-<div class="viewcode-block" id="samples_for_run"><a class="viewcode-back" href="../../lib.chipseq.html#lib.chipseq.samples_for_run">[docs]</a><span class="k">def</span> <span class="nf">samples_for_run</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">,</span> <span class="n">treatment</span><span class="p">):</span>
+
+<div class="viewcode-block" id="samples_for_run">
+<a class="viewcode-back" href="../../lib.chipseq.html#lib.chipseq.samples_for_run">[docs]</a>
+<span class="k">def</span> <span class="nf">samples_for_run</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">,</span> <span class="n">treatment</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the sample names configured for a particular peak-calling run</span>
 
@@ -189,7 +197,10 @@
     <span class="k">return</span> <span class="n">block_for_run</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">)[</span><span class="n">treatment</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="merged_input_for_ip"><a class="viewcode-back" href="../../lib.chipseq.html#lib.chipseq.merged_input_for_ip">[docs]</a><span class="k">def</span> <span class="nf">merged_input_for_ip</span><span class="p">(</span><span class="n">sampletable</span><span class="p">,</span> <span class="n">merged_ip</span><span class="p">):</span>
+
+<div class="viewcode-block" id="merged_input_for_ip">
+<a class="viewcode-back" href="../../lib.chipseq.html#lib.chipseq.merged_input_for_ip">[docs]</a>
+<span class="k">def</span> <span class="nf">merged_input_for_ip</span><span class="p">(</span><span class="n">sampletable</span><span class="p">,</span> <span class="n">merged_ip</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the merged input label for a merged IP label.</span>
 
@@ -266,21 +277,32 @@
     <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">input_label</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span></div>
 
 
-<div class="viewcode-block" id="detect_peak_format"><a class="viewcode-back" href="../../lib.chipseq.html#lib.chipseq.detect_peak_format">[docs]</a><span class="k">def</span> <span class="nf">detect_peak_format</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+
+<div class="viewcode-block" id="detect_peak_format">
+<a class="viewcode-back" href="../../lib.chipseq.html#lib.chipseq.detect_peak_format">[docs]</a>
+<span class="k">def</span> <span class="nf">detect_peak_format</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Figure out if a BED file is narrowPeak or broadPeak.</span>
 
 <span class="sd">    Returns None if undetermined.</span>
 
 <span class="sd">    This is useful for figuring out which autoSql file we should use or which</span>
-<span class="sd">    bigBed 6+4 or bigBed 6+3 format to use.</span>
+<span class="sd">    bigBed 6, 6+4, or 6+3 format to use.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">line</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="n">toks</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">&#39;narrowPeak&#39;</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">9</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">&#39;broadPeak&#39;</span></div>
+        <span class="k">if</span> <span class="s1">&#39;epic2&#39;</span> <span class="ow">in</span> <span class="n">fn</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;epic2Input&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;narrowPeak&#39;</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">9</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;broadPeak&#39;</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;epic2NoInput&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid peak format in the number of fields.&quot;</span><span class="p">)</span></div>
+
 </pre></div>
 
           </div>
@@ -293,7 +315,7 @@
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

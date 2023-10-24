@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Introduction &#8212; lcdb-wf 1.9 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=c8a1a12d" />
+    <script src="_static/documentation_options.js?v=754f84b7"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Getting started" href="getting-started.html" />
@@ -100,13 +100,13 @@
           <div class="body" role="main">
             
   <section id="introduction">
-<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h1>
+<h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h1>
 <p><cite>lcdb-wf</cite> is a collection of Snakemake workflows for common high-throughput
 sequencing analysis.</p>
 <p>There are a multitude of workflows out there for high-throughput sequencing analysis.
 What makes <cite>lcdb-wf</cite> different?</p>
 <section id="designed-with-customization-in-mind">
-<h2>Designed with customization in mind<a class="headerlink" href="#designed-with-customization-in-mind" title="Permalink to this heading">¶</a></h2>
+<h2>Designed with customization in mind<a class="headerlink" href="#designed-with-customization-in-mind" title="Link to this heading">¶</a></h2>
 <p>We recognize that every experiment has its own idiosyncracies. Rather
 than provide a one-size-fits-all solution, we aim to provide a reasonable
 starting point that users can modify for their own use.</p>
@@ -115,20 +115,20 @@ Unconventional command-line arguments to tools? New tools to add to the
 workflow? No problem.</p>
 </section>
 <section id="extensive-downstream-rna-seq">
-<h2>Extensive downstream RNA-seq<a class="headerlink" href="#extensive-downstream-rna-seq" title="Permalink to this heading">¶</a></h2>
+<h2>Extensive downstream RNA-seq<a class="headerlink" href="#extensive-downstream-rna-seq" title="Link to this heading">¶</a></h2>
 <p>A comprehensive RMarkdown template, along with a custom R package, enables
 sophisticated RNA-seq analysis that supports complex experimental designs and
 many contrasts.</p>
 </section>
 <section id="extenstive-exploration-of-chip-seq-peaks">
-<h2>Extenstive exploration of ChIP-seq peaks<a class="headerlink" href="#extenstive-exploration-of-chip-seq-peaks" title="Permalink to this heading">¶</a></h2>
+<h2>Extenstive exploration of ChIP-seq peaks<a class="headerlink" href="#extenstive-exploration-of-chip-seq-peaks" title="Link to this heading">¶</a></h2>
 <p>The ChIP-seq configuration supports multiple peak-callers as well as calling
 peaks with many different parameter sets for each caller. Combined with
 visualizaiton in track hubs (see below), this can identify the optimal
 parameters for a given experiment.</p>
 </section>
 <section id="track-hubs">
-<h2>Track hubs<a class="headerlink" href="#track-hubs" title="Permalink to this heading">¶</a></h2>
+<h2>Track hubs<a class="headerlink" href="#track-hubs" title="Link to this heading">¶</a></h2>
 <p>The ChIP-seq and RNA-seq workflows generate track hubs that can be viewed in
 the UCSC Genome Browser. ChIP-seq shows signal and called peaks (many
 peak-calling runs, with different peak-callers and different parameters for
@@ -138,7 +138,7 @@ arbitrary additional tracks (primers, loci of interest, external data, etc) to
 view alongside your data.</p>
 </section>
 <section id="unified-approach-to-reference-genomes">
-<h2>Unified approach to reference genomes<a class="headerlink" href="#unified-approach-to-reference-genomes" title="Permalink to this heading">¶</a></h2>
+<h2>Unified approach to reference genomes<a class="headerlink" href="#unified-approach-to-reference-genomes" title="Link to this heading">¶</a></h2>
 <p>The references workflow defines the genome files for the organisms used in
 the experiment. It it is shared by RNA-seq and ChIP-seq and is driven by
 a config file that specifies URLs for FASTA and GTF files. Set it up once for
@@ -151,7 +151,7 @@ once for all these genomes to be created, with the <cite>references_dir</cite> b
 as a centralized repository that can be then used with all other workflows.</p>
 </section>
 <section id="integration-with-external-data-and-figure-making">
-<h2>Integration with external data and figure-making<a class="headerlink" href="#integration-with-external-data-and-figure-making" title="Permalink to this heading">¶</a></h2>
+<h2>Integration with external data and figure-making<a class="headerlink" href="#integration-with-external-data-and-figure-making" title="Link to this heading">¶</a></h2>
 <p>It is designed to tie together your entire analysis, from downloading references
 through producing final figures. The included examples tie together workflows that download external data, perform downstream analysis, and make figures.</p>
 <p>If an upstream file changes (e.g., gene annotation), all dependent downstream
@@ -159,7 +159,7 @@ jobs – including figures – will be updated so you can ensure that even
 complex analyses stay correct and up-to-date.</p>
 </section>
 <section id="tested-automatically">
-<h2>Tested automatically<a class="headerlink" href="#tested-automatically" title="Permalink to this heading">¶</a></h2>
+<h2>Tested automatically<a class="headerlink" href="#tested-automatically" title="Link to this heading">¶</a></h2>
 <p>Every change to the code on GitHub triggers an automated test, the results of
 which you can find at <a class="reference external" href="https://circleci.com/gh/lcdb/lcdb-wf">https://circleci.com/gh/lcdb/lcdb-wf</a>. Each test sets the
 system up from scratch, including installing all software, downloading example
@@ -167,18 +167,18 @@ data, and running everything up through the final results. This guarantees that
 you can set up and test the code yourself.</p>
 </section>
 <section id="all-the-advantages-of-snakemake">
-<h2>All the advantages of Snakemake<a class="headerlink" href="#all-the-advantages-of-snakemake" title="Permalink to this heading">¶</a></h2>
+<h2>All the advantages of Snakemake<a class="headerlink" href="#all-the-advantages-of-snakemake" title="Link to this heading">¶</a></h2>
 <p>The workflows are built using <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/">Snakemake</a>, so we also get the following
 for free:</p>
 <section id="run-locally-or-on-a-cluster-with-the-same-code">
-<h3>Run locally or on a cluster with the same code<a class="headerlink" href="#run-locally-or-on-a-cluster-with-the-same-code" title="Permalink to this heading">¶</a></h3>
+<h3>Run locally or on a cluster with the same code<a class="headerlink" href="#run-locally-or-on-a-cluster-with-the-same-code" title="Link to this heading">¶</a></h3>
 <p>Run the same workflow locally or on a cluster with a single command-line flag.
 Use <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles">Snakemake profiles</a> to
 translate from general resources to cluster-specific
 arguments.</p>
 </section>
 <section id="only-run-the-required-jobs">
-<h3>Only run the required jobs<a class="headerlink" href="#only-run-the-required-jobs" title="Permalink to this heading">¶</a></h3>
+<h3>Only run the required jobs<a class="headerlink" href="#only-run-the-required-jobs" title="Link to this heading">¶</a></h3>
 <p>New gene annotation? Snakemake tracks dependencies, so it will detect that the
 annotations changed. Only jobs that depend on that file at some point in their
 dependency chain will be re-run and the independent files are untouched. Adding
@@ -186,12 +186,12 @@ a new sample will leave untouched any output from samples that have already
 run.</p>
 </section>
 <section id="parallelization">
-<h3>Parallelization<a class="headerlink" href="#parallelization" title="Permalink to this heading">¶</a></h3>
+<h3>Parallelization<a class="headerlink" href="#parallelization" title="Link to this heading">¶</a></h3>
 <p>It’s trivial to run jobs in parallel, for as many CPUs or cluster nodes as you
 have available by using the <code class="docutils literal notranslate"><span class="pre">-j</span></code> argument to Snakemake.</p>
 </section>
 <section id="software-installation">
-<h3>Software installation<a class="headerlink" href="#software-installation" title="Permalink to this heading">¶</a></h3>
+<h3>Software installation<a class="headerlink" href="#software-installation" title="Link to this heading">¶</a></h3>
 <p>Installation of all dependencies is handled by conda, ensuring reproducibility,
 streamlined setup, and no need for root administrator privileges.</p>
 <p>See <a class="reference internal" href="getting-started.html#getting-started"><span class="std std-ref">Getting started</span></a> to get started.</p>
@@ -210,7 +210,7 @@ streamlined setup, and no need for root administrator privileges.</p>
       &copy;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
