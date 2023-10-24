@@ -12,7 +12,34 @@ import fnmatch
 import logging
 import hashlib
 from pathlib import Path
-from distutils import filelist, log
+from distutils import filelist
+
+# Determine default staging area, used in help
+default_staging = "/tmp/{0}-lcdb-wf-staging".format(os.getenv('USER'))
+
+usage = f"""
+This script assists in the deployment of relevant code from the lcdb-wf
+repository to a new deployment directory for running an analysis. It is
+intended to be run in a standalone fashion such that with just the script you
+can download and deploy a specified version of the workflows.
+
+For example, the following command will clone the GitHub repo to {default_staging},
+check out the v9.999 branch, copy the files needed for RNA-seq over to the
+"my_analysis_dir" directory, store a read-only file .lcdb-wf-deployment.yaml
+with the metadata of the repo used for cloning, and build the conda
+environments within "my_analysis_dir":
+
+    ./deploy.py \\
+        --clone \\
+        --dest my_analysis_dir \\
+        --flavor rnaseq \\
+        --build-envs \\
+        --branch v9.999
+
+Compared to directly cloning the repo, this results in a cleaner deployment
+directory that does not have various test infrastructure or workflows not
+relevant to the project.
+"""
 
 logging.basicConfig(
     format="%(asctime)s [%(module)s] %(message)s",
@@ -31,10 +58,6 @@ BLUE = "\x1b[34m"
 RESET = "\x1b[0m"
 
 
-# Determine default staging area
-default_staging = "/tmp/{0}-lcdb-wf-staging".format(os.getenv('USER'))
-
-
 def debug(s):
     logging.debug(GRAY + s + RESET)
 
@@ -51,28 +74,11 @@ def error(s):
     logging.error(RED + s + RESET)
 
 
+def write_include_file(source, flavor='all'):
 
-usage = f"""
-This script assists in the deployment of relevant code from the lcdb-wf
-repository to a new deployment directory for running an analysis.
-
-For example, the following command will clone the GitHub repo to {default_staging},
-check out the v9.999 branch, copy the files needed for RNA-seq over to the
-"my_analysis_dir" directory, store a read-only file .lcdb-wf-deployment.yaml
-with the metadata of the repo used for cloning, and build the conda
-environments within "my_analysis_dir":
-
-    ./deploy.py \\
-        --clone \\
-        --dest my_analysis_dir \\
-        --flavor rnaseq \\
-        --build-envs \\
-        --branch v9.999
-
-"""
-
-
-def write_include_file(flavor=None):
+    # Patterns follow that of MANIFEST.in
+    # (https://packaging.python.org/en/latest/guides/using-manifest-in/),
+    # and distutils.filelist is used below to parse them.
 
     PATTERN_DICT = {
         'rnaseq': [
@@ -107,16 +113,13 @@ def write_include_file(flavor=None):
     }
 
     patterns = []
-    if flavor is None or 'rnaseq':
+    if flavor in ('full', 'rnaseq'):
         patterns.extend(PATTERN_DICT['rnaseq'])
-    if flavor is None or 'chipseq':
+    if flavor in ('full', 'chipseq'):
         patterns.extend(PATTERN_DICT['chipseq'])
-    if flavor is None or 'full':
+    if flavor == 'full':
         patterns.extend(PATTERN_DICT['full'])
     patterns.extend(PATTERN_DICT['all'])
-
-    HERE = Path(__file__).resolve().parent
-    os.chdir(HERE)
 
     def fastwalk(path):
         """
@@ -134,7 +137,7 @@ def write_include_file(flavor=None):
                 yield os.path.join(root, f).replace(path + '/', '')
 
     f = filelist.FileList()
-    f.allfiles = list(fastwalk(str(HERE)))
+    f.allfiles = list(fastwalk(source))
     for pattern in patterns:
         f.process_template_line(pattern)
     f.sort()
@@ -144,7 +147,7 @@ def write_include_file(flavor=None):
         sp.check_output(
             ["git", "ls-tree", "-r", "HEAD", "--name-only"],
             universal_newlines=True,
-            cwd=str(HERE),
+            cwd=source,
         ).splitlines(False),
     )
 
@@ -153,6 +156,7 @@ def write_include_file(flavor=None):
     with open(include, 'w') as fout:
         fout.write('\n\n')
         fout.write('\n'.join(to_transfer))
+
     return include
 
 
@@ -341,7 +345,6 @@ if __name__ == "__main__":
 
     ap.add_argument(
         "--staging",
-        default=default_staging,
         help="""Only used when --clone is specified. Clone the main git repo to
         this directory and do a diff on the deploy.py script found there to
         ensure this one is up-to-date, and if so then proceed using the new clone as the source.
@@ -384,12 +387,14 @@ if __name__ == "__main__":
             print("ERROR: --staging was specified but --clone was not. Did you want to use --clone?", file=sys.stderr)
             sys.exit(1)
     if args.clone:
-        source = args.staging
+        if args.staging is None:
+            args.staging = default_staging
+        source = os.path.abspath(args.staging)
         clone_repo(args.staging, args.branch, mismatch_ok=args.mismatch_ok)
     else:
         source = Path(__file__).parent.resolve()
 
-    include = write_include_file(source)
+    include = write_include_file(source, flavor)
     rsync(include, source, dest, args.rsync_args)
     deployment_json(source, dest)
 

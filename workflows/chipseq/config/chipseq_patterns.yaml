@@ -56,10 +56,12 @@ patterns_by_peaks:
     macs2: 'data/chipseq_peaks/macs2/{macs2_run}/peaks.bed'
     spp: 'data/chipseq_peaks/spp/{spp_run}/peaks.bed'
     sicer: 'data/chipseq_peaks/sicer/{sicer_run}/peaks.bed'
+    epic2: 'data/chipseq_peaks/epic2/{epic2_run}/peaks.bed'
   bigbed:
     macs2: 'data/chipseq_peaks/macs2/{macs2_run}/peaks.bigbed'
     spp: 'data/chipseq_peaks/spp/{spp_run}/peaks.bigbed'
     sicer: 'data/chipseq_peaks/sicer/{sicer_run}/peaks.bigbed'
+    epic2: 'data/chipseq_peaks/epic2/{epic2_run}/peaks.bigbed'
 
 patterns_by_aggregate:
   merged_bigwig: 'data/chipseq_aggregation/merged_bigwigs/{merged_bigwig_label}.bigwig'
