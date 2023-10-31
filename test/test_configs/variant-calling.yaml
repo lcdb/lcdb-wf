@@ -1,0 +1,30 @@
+references_dir: "references"
+references:
+  human:
+    ensembl-104:
+      metadata:
+        build: 'GRCh38'
+        release: 104
+        species: 'homo_sapiens'
+      genome:
+        url: 'https://github.com/lcdb/lcdb-wf-variant-calling-test-data/raw/master/data/GRCh38.6.20.fa.gz'
+        # URL format is 'ftp://ftp.ensembl.org/pub/{branch}release-{release}/fasta/{species}/{datatype}/{species_capitalized}.{build}.{datatype}.{assembly}.{suffix}'
+        # When using GRCh37, branch changes to "grch37/release-{release}"
+        # always use primary_assembly for human, NEVER use top_level for assembly for human
+        indexes:
+          - 'bwa'
+      known:
+        # You can download structural_variations, somatic, or "all" which corresponds to germline known variation for all chromosomes
+        type: 'all'
+    # Comment the variation key out if not requiring dbnsfp
+    #variation:
+    # Download of variation databases will be handled by a unique rule in the Snakefile
+    # ONLY include keys like 'dbnsfp' IF you intend to download them, comment out these keys if not.
+    #dbnsfp:
+        # The version of the database should be correctly formatted like this
+        #version: 'dbNSFPv4.4'
+        # The url is found by copying the link address of the latest version found here: https://sites.google.com/site/jpopgen/dbNSFP
+        #url: 'https://usf.box.com/shared/static/bvfzmkpgtphvbmmrvb2iyl2jl21o49kc'
+        # Match the build to the metadata block above
+        #build: 'GRCh38'
+
