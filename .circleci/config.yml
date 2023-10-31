@@ -54,6 +54,7 @@ variables:
             locales \
             locales-all \
             rsync \
+            tree \
             wget \
             x11-utils
 
@@ -61,6 +62,8 @@ variables:
           rm -rf /var/lib/apt/lists/*
           localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 
+          # Set env vars to be used throughout; this is specific to how
+          # circleci handles env vars.
           echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
           echo 'export LCDBWF_ENV=lcdb-wf-test' >> $BASH_ENV
           echo 'export LCDBWF_ENV_R=lcdb-wf-test-r' >> $BASH_ENV
@@ -129,25 +132,36 @@ variables:
         conda info --envs
         conda config --show
 
+        # Copy the deploy script to a different location to simulate the
+        # suggested deployment method of downloading just the script.
+        cp deploy.py /tmp/deploy.py
+        cd /tmp/
+
         # Deploy to the new directory, so we are testing the real-world case of post-deployment.
         # Note that $DEPLOY is set in the "set-paths" step configured above.
         python deploy.py --flavor full --dest $DEPLOY --branch $CIRCLE_BRANCH --clone
 
+        set -x
+        tree $DEPLOY
+        tree $ORIG
+        set +x
+
         # Separately copy over some test-specific files
-        cp workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq
-        cp workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq
-        cp workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq
-        cp workflows/colocalization/run_test.sh $DEPLOY/workflows/references
-        cp workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization
-        cp workflows/variant-calling/run_test.sh $DEPLOY/workflows/variant-calling
+        cp $ORIG/workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq/run_test.sh
+        cp $ORIG/workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq/run_test.sh
+        cp $ORIG/workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq/run_downstream_test.sh
+        cp $ORIG/workflows/references/run_test.sh $DEPLOY/workflows/references/run_test.sh
+        cp $ORIG/workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization/run_test.sh
+        cp $ORIG/workflows/variant-calling/run_test.sh $DEPLOY/workflows/variant-calling/run_test.sh
+
         mkdir $DEPLOY/ci
         mkdir $DEPLOY/test
-        cp test/lcdb-wf-test $DEPLOY/test
-        cp test/workflow_test_params.yaml $DEPLOY/test
-        cp ci/get-data.py $DEPLOY/ci
+        cp $ORIG/test/lcdb-wf-test $DEPLOY/test/lcdb-wf-test
+        cp $ORIG/test/workflow_test_params.yaml $DEPLOY/test/workflow_test_params.yaml
+        cp $ORIG/ci/get-data.py $DEPLOY/ci/get-data.py
 
         # the ./run_test.sh scripts run this
-        cp ci/preprocessor.py $DEPLOY/ci
+        cp $ORIG/ci/preprocessor.py $DEPLOY/ci/preprocessor.py
 
         # download example data
         cd $DEPLOY

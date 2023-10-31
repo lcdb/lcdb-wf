@@ -182,11 +182,18 @@ def detect_peak_format(fn):
     Returns None if undetermined.
 
     This is useful for figuring out which autoSql file we should use or which
-    bigBed 6+4 or bigBed 6+3 format to use.
+    bigBed 6, 6+4, or 6+3 format to use.
     """
     line = open(fn).readline().strip()
     toks = line.split('\t')
     if len(toks) == 10:
-        return 'narrowPeak'
-    if len(toks) == 9:
+        if 'epic2' in fn:
+            return 'epic2Input'
+        else:
+            return 'narrowPeak'
+    elif len(toks) == 9:
         return 'broadPeak'
+    elif len(toks) == 6:
+        return 'epic2NoInput'
+    else:
+        raise ValueError("Invalid peak format in the number of fields.")

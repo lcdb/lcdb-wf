@@ -610,6 +610,7 @@ truncate <- function(obj, truncate_to){
     return(x)
   }
   obj@result$Description <- sapply(obj@result$Description, f)
+  obj@result$Description <- make.unique(obj@result$Description)
   return(obj)
 }
 

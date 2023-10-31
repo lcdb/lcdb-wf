@@ -601,7 +601,7 @@ rule featurecounts:
         # NOTE: By default, we use -p for paired-end
         p_arg = ''
         if c.is_paired:
-            p_arg = '-p '
+            p_arg = '-p --countReadPairs '
 
         strand_arg = helpers.strand_arg_lookup(
             c, {
