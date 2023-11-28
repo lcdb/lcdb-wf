@@ -81,7 +81,7 @@ collect_objects <- function(pattern, fixed=FALSE){
   # If there was a wildcard in the pattern there is a risk that the modified
   # names are no longer unique
   if (length(unique(modified_names)) != length(var_names)){
-    stop(paste("Found duplicate names after removing pattern", pattern))
+    stop(paste("Found duplicate names after removing pattern", pattern, "see https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#Errors for details"))
   }
   names(obj_list) <- modified_names
   return(obj_list)
