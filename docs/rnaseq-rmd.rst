@@ -544,6 +544,41 @@ enrichment RMarkdown document.
 
 The output of sessionInfo records the versions of packages used in the analysis.
 
+Errors
+------
+
+In this section, we address some common errors encountered during the RNA-Seq downstream analysis
+and provide guidance on how to resolve them.
+
+Error: "Found duplicate names after removing pattern ^contr_[^_]+_"
+NOTE: Error in:: purrr::map() can also be caused by this:
+   Cause:
+      - If there are no duplicate contrast names in the:: results_## chunks:
+        a more subtle cause for this error occurs when the pattern is altered
+        on a previously cached chunk. Even if the change is undone, the
+        environment is cleared, and the file is rerun, the error will persist.
+        An example of this would be if you completed the:: results_01 chunk
+        followed by the:: results_02 chunk (with both chunks cached), rendered
+        the file and then went back and altered the:: contr_01 portion of::
+        results_01 to e.g., contr_05, then cleared the environment and rendered
+        the file. At this point, the R environment contains both the
+        original:: contr_01 pattern followed by the contrast name  as well as
+        the new contr_05 pattern followed by the contrast name. Since the
+        remaining "contrast name" portion of the string is shared between
+        contr_01 and contr_05, this would cause the error as the code is
+        unable to differentiate between the old and new contr_xx patterns. You
+        may be wondering, "how is the old pattern persisting in the
+        R environment after it has been changed and the file has been rerun
+        (even after quitting R/clearing the environment and workspace)." That
+        is because the:: results_02 chunk cache contains the former::
+        results_01 chunk's objects even after they have been changed. 
+
+   Solution:
+      - All cache and R environment objects must be cleared upstream of the::
+        assemble_variables chunk. To do so: Quit R (without saving the
+        workspace), delete .RData file (present if the workspace was ever
+        saved), remove all cache files, open rnaseq.Rmd and run again.
+
 Glossary
 --------
 .. glossary::
