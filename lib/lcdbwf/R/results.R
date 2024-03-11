@@ -33,6 +33,8 @@ build_results_tabs <- function(res_list, dds_list, config, text){
     dds_i <- dds_list[[res_list[[name]][['dds']] ]]
     res_i <- res_list[[name]][['res']]
     label <- res_list[[name]][['label']]
+    # Do any contrasts contain LRT?
+    contains_LRT <- check_LRT(res_i)
     genes_to_label <- lcdbwf:::genes_to_label(res_i, n=5, config)
     lcdbwf:::mdcat('## ', label, ' {.tabset}')
 
@@ -42,6 +44,12 @@ build_results_tabs <- function(res_list, dds_list, config, text){
 
     lcdbwf:::mdcat('### M-A plot')
     lcdbwf:::folded_markdown(text$results_plots$ma, "Help")
+    # If any contrasts contain LRT, print the source of LFC
+    # and p values above MA & Volcano plots
+    if (contains_LRT) {
+      mdcat(mcols(res_i)$description[9])
+      mdcat(mcols(res_i)$description[7])
+    }
     print(lcdbwf:::plotMA_label(
       res_i,
       genes_to_label=genes_to_label,
@@ -49,6 +57,11 @@ build_results_tabs <- function(res_list, dds_list, config, text){
 
     lcdbwf:::mdcat('### Volcano plot')
     lcdbwf:::folded_markdown(text$results_plots$volcano, "Help")
+    if (contains_LRT) {
+      mdcat(mcols(res_i)$description[9])
+      mdcat(mcols(res_i)$description[7])
+    }
+
     print(lcdbwf:::plot_volcano_label(
       res_i,
       genes_to_label=genes_to_label,
@@ -62,4 +75,15 @@ build_results_tabs <- function(res_list, dds_list, config, text){
       lcdbwf:::results_diagnostics(res=res_i, dds=res_list[[name]]$dds, name=name, config=config, text=text)
     }
   }
+}
+
+#' Check for LRT in a results object's metadata
+#' @param res_i DESeq2 results object
+#' @return Boolean TRUE if results object's pvalues were determined
+#' via the likelihood-ratio test (LRT) and FALSE if the Wald test
+#' was used.
+check_LRT <- function(res_i) {
+  mcols_pval <- mcols(res_i)$description[9]
+  mcols_pval <- grepl('LRT', mcols_pval)
+  return(mcols_pval)
 }
