@@ -100,7 +100,7 @@ dds_coefs <- function(dds, ..., expand=FALSE){
 }
 
 
-#' Convenience function for building contrasts 
+#' Convenience function for building contrasts
 #'
 #' @description
 #'
@@ -125,6 +125,9 @@ dds_coefs <- function(dds, ..., expand=FALSE){
 #' @param label Label to describe this contrast which will be used in headings.
 #' @param dds_list List of dds objects. If NULL, then look in the global
 #'   environment for an object called "dds_list" and use that.
+#' @param type Type of shrinkage for use by lfcShrink(). If no type is given,
+#'   we use the current DESeq2 default argument for lfcShrink(type=). If
+#'   NULL is given, we skip lfcShrink().
 #' @param ... Additional arguments are passed to results() and lfcShrink(). If
 #'   "parallel" is not explicitly specified here, then look in the global env for
 #'   a variable called "config" and find the parallel config setting from there.
@@ -165,25 +168,12 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
   results_dots <- lcdbwf:::match_from_dots(dots, results)
   res <- do.call("results", results_dots)
 
-  # We're about to call lfcShrink, but it needs the res object...so inject the
-  # one we just made into dots.
-  dots[['res']] <- res
-
-  # lfcShrink also needs the dds object, so inject that too
-  dots[['dds']] <- dds
-
-  lfcShrink_dots <- lcdbwf:::match_from_dots(dots, lfcShrink)
-    res <- do.call("lfcShrink", lfcShrink_dots)
-
-  # Add the shrinkage type to the metadata of the results object.
-  #
   # If "type" was specified when calling this function, it's easy and we use
-  # that. Otherwise, if it was not specified then DESeq2 used the default.
+  # that. Otherwise, if it was not specified then well use the current DESeq2 default.
   # Since that default can change as we have seen in the past, we need to
   # inspect the lfcShrink function itself to see what the current default is,
   # and use that.
-  shrinkage_type <- dots[['type']]
-  if (is.null(shrinkage_type)){
+  if (!'type' %in% names(dots)) {
     # The definition of lfcShrink has a character vector as the type argument,
     # and we want to extract the first thing in that vector. But formals()
     # return strings, so we need to eval that string to convert it to
@@ -191,11 +181,28 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
     #
     # In recent versions this should evaluate to "apeglm". But this way we
     # are inspecting the function itself if it ever changes.
-    shrinkage_type <- eval(formals(DESeq2::lfcShrink)$type)[1]
+    type <- eval(formals(DESeq2::lfcShrink)$type)[1]
   }
 
-  # Add to results object so we can report it out later.
-  metadata(res)$type <- shrinkage_type
+  # While lfcShrink doesn't accept NULL as a type, we're using it here as
+  # a mechanism to disable lfcShrink altogether.
+  if (!is.null(type)) {
+    # We're about to call lfcShrink, but it needs the res object...so inject the
+    # one we just made into dots.
+    dots[['res']] <- res
+
+    # lfcShrink also needs the dds object, so inject that too
+    dots[['dds']] <- dds
+
+    lfcShrink_dots <- lcdbwf:::match_from_dots(dots, lfcShrink)
+    res <- do.call("lfcShrink", lfcShrink_dots)
+
+    # Add the shrinkage type to the metadata of the results object
+    metadata(res)$type <- type
+  } else {
+    # Be explicit, and ensure there's always a type attribute
+    metadata(res)$type <- NULL
+  }
 
   return(
     list(

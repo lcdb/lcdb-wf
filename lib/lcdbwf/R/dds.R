@@ -46,16 +46,21 @@ kallisto.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, 
 #' @param featureCounts Location of featureCounts output to be loaded
 make_dds <- function(design_data, config=NULL, collapse_by=NULL,
                      strip_dotted_version=NULL,
+                     default_test='Wald',
                      featureCounts='../data/rnaseq_aggregation/featurecounts.txt',
                      salmon_pattern="../data/rnaseq_samples/__SAMPLENAME__/__SAMPLENAME__.salmon/quant.sf",
                      kallisto_pattern="../data/rnaseq_samples/__SAMPLENAME__/__SAMPLENAME__.kallisto/abundance.h5",
                      ...){
 
   # Note we're using pluck() here for the convenience of setting defaults
-  
 
   coldata <- purrr::pluck(design_data, 'sampletable')
   design <- purrr::pluck(design_data, 'design')
+  test <- purrr::pluck(design_data, 'test', .default=default_test)
+  if (!(test %in% c('Wald', 'LRT'))){
+    stop("Valid options for test are 'Wald' (default) or 'LRT'")
+  }
+  reduced_design <- purrr::pluck(design_data, 'reduced_design')
   location <- purrr::pluck(design_data, 'filename', .default=featureCounts)
   salmon <- purrr::pluck(design_data, 'salmon')
   kallisto <- purrr::pluck(design_data, 'kallisto')
@@ -121,8 +126,17 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
       dds <- lcdbwf:::collapseReplicates2(dds, dds[[collapse_by]])
   }
 
-  dds <- DESeq(dds, ...)
-  return(dds)
+  # Check if we need to perform the LRT on the dds object
+  if (test == 'Wald') {
+    dds <- DESeq(dds, test=test, ...)
+    return(dds)
+  } else if (test == 'LRT') {
+    if (is.null(reduced_design)){
+      stop("When using LRT, reduced_design must be provided")
+    }
+    dds <- DESeq(dds, test=test, reduced=reduced_design, ...)
+    return(dds)
+  }
 }
 
 #' Strip dotted version off of the rownames of a dds object
