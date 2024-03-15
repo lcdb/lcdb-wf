@@ -574,8 +574,8 @@ NOTE: Error in:: purrr::map() can also be caused by this:
         results_01 chunk's objects even after they have been changed. 
 
    Solution:
-      - All cache and R environment objects must be cleared upstream of the::
-        assemble_variables chunk. To do so: Quit R (without saving the
+      - All cache and R environment objects must be cleared upstream of the
+        ``assemble_variables`` chunk. To do so: Quit R (without saving the
         workspace), delete .RData file (present if the workspace was ever
         saved), remove all cache files, open rnaseq.Rmd and run again.
 
