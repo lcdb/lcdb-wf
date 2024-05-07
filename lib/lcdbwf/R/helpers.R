@@ -448,6 +448,12 @@ nested.lapply <- function(x, subfunc, ...){
 #' @param rld_list List of normalized dds objects
 #' @param enrich_list List of enrichment results objects. See details for format.
 #' @param degpatterns_list List of degpatterns objects
+#' @param all_dds Single dds object containing all samples
+#' @param all_rld Single normalized dds object containing all samples
+#' @param rds_file RDS file containing lcdb-wf object. Can be used to incrementally
+#'        add elements to a pre-existing run or 'sanitize' an object from a previous run.
+#'        Ignored if res_list & dds_list are specified.
+#' @param workers Number of cores to run GeneTonic conversion on
 #'
 #' @details
 #'
@@ -473,9 +479,14 @@ nested.lapply <- function(x, subfunc, ...){
 #'     ...
 #'   )
 #'
-#' `enrich_list` is optional. Note that `enrich_list`, if provided, must use
-#' results names available in `res_list`. In this example, the names are
-#' "ko.vs.wt" and "het.vs.wt". It has the following format:
+#' `enrich_list` is optional. Note that `enrich_list`, if provided, these are usually
+#' results names available in `res_list`. Alternatively, can have a 'res' key at the
+#' second-level containing a result name available in `res_list`.
+#'
+#' In this example, the names are "ko.vs.wt", "het.vs.wt" & "het.vs.wt_v2". The latter two
+#' both map to the `res_list` element "het.vs.wt".
+#'
+#' It has the following format:
 #'
 #'   list(
 #'     ko.vs.wt=list(
@@ -493,16 +504,52 @@ nested.lapply <- function(x, subfunc, ...){
 #'       up=list(...),
 #'       down=list(...)
 #'     ),
+#'     het.vs.wt_v2=list(
+#'       res='het.vs.wt',
+#'       up=list(...),
+#'       down=list(...)
+#'     ),
 #'     ...
 #'  )
 #'
 #'
-compose_results <- function(res_list,
-                            dds_list,
+compose_results <- function(res_list=NULL,
+                            dds_list=NULL,
                             rld_list=NULL,
                             enrich_list=NULL,
-                            degpatterns_list=NULL){
+                            degpatterns_list=NULL,
+                            all.dds=NULL,
+                            all.rld=NULL,
+                            rds_file=NULL,
+                            workers=1){
 
+  if(is.null(res_list) & is.null(dds_list) & is.null(rds_file)){
+    stop('Either "res_list" & "dds_list" or "rds_file" must be specified')
+  } else if(is.null(res_list) | is.null(dds_list)){
+    message(paste('Loading objects from RDS file:', rds_file))
+
+    if(!file.exists(rds_file)){
+      stop(paste('RDS file does not exist:', rds_file))
+    }
+
+    # get res_list & dds_list (and any others) from RDS file
+    tmp <- readRDS(rds_file)
+
+    if(!any(c('res_list', 'dds_list') %in% names(tmp))){
+      stop('Object must contain "res_list" & "dds_list" elements!')
+    }
+
+    res_list <- tmp$res_list
+    dds_list <- tmp$dds_list
+
+    if('rld_list' %in% names(tmp)) rld_list <- tmp$rld_list
+    if('enrich_list' %in% names(tmp)) enrich_list <- tmp$enrich_list
+    if('degpatterns_list' %in% names(tmp)) degpatterns_list <- tmp$degpatterns_list
+    if('all.dds' %in% names(tmp)) all.dds <- tmp$all.dds
+    if('all.rld' %in% names(tmp)) all.rld <- tmp$all.rld
+  }
+
+  message('\n1. Processing res_list & dds_list')
   # Much of this function is just checking that the names all line up.
   res_dds_names <- unlist(lapply(res_list, function (x) x$dds))
   names(res_dds_names) <- NULL
@@ -510,38 +557,194 @@ compose_results <- function(res_list,
   res_not_dds <- setdiff(res_dds_names, dds_dds_names)
   dds_not_res <- setdiff(dds_dds_names, res_dds_names)
   if (length(res_not_dds) > 0){
-    stop(paste("The following dds names are in res_list but are not found in dds_list:", res_not_dds, '\n'))
+    stop(paste("\t- The following dds names are in res_list but are not found in dds_list:",
+               paste(res_not_dds, collapse=', '), '\n'))
   }
+
+  # NOTE: drop unused dds_list & rld_list objects
   if (length(dds_not_res) > 0){
-    warning(paste("The following dds names are in dds_list but not in res_list. This OK, but may be unexpected:", dds_not_res, '\n'))
+    message("\t- The following dds names are in dds_list but not in res_list. These will be skipped:")
+    message(paste0('\t\t', paste(dds_not_res, collapse='\n\t\t')))
+    dds_list <- dds_list[ setdiff(dds_dds_names, dds_not_res) ]
+    if(!is.null(rld_list)){
+      rld_list <- rld_list[ setdiff(names(rld_list), dds_not_res) ]
+    }
   }
 
   # check if rld_list was specified, if not make it
   if(is.null(rld_list)){
+    message("\t- rld_list was not specified. Generating it")
     rld_list <- lapply(dds_list,
                   function(x) varianceStabilizingTransformation(x, blind=TRUE)
                 )
   }
 
-  obj <- list(
-    res_list=res_list,
-    dds_list=dds_list,
-    rld_list=rld_list
-  )
+  # sanitize res_list, dds_list & rld_list
+  obj <- sanitize_res_dds(res_list=res_list,
+                          dds_list=dds_list,
+                          rld_list=rld_list)
+
+  # if all.dds not specified, but dds_list has length 1,
+  # then use dds_list[[ 1 ]] as all.dds
+  if(is.null(all.dds) & length(obj$dds) == 1){
+    message('\t- all.dds was not specified, but dds_list has only 1 object. Using that instead')
+    all.dds <- obj$dds[[ 1 ]]
+
+    # if specifying all.dds, compute all.rld even if specified
+    all.rld <- varianceStabilizingTransformation(all.dds, blind=TRUE)
+  }
+
+  # if all.dds is specified, but all.rld is not, compute it
+  if(is.null(all.rld) & !is.null(all.dds)){
+    message('\t- all.dds was specified, but not all.rld. Generating it')
+    all.rld <- varianceStabilizingTransformation(all.dds, blind=TRUE)
+  }
+
+  message('\t- Generating symbol -> gene mapping from all res_list objects')
+  # build symbol -> gene mapping from all res_list objects
+  gene2symbol <- NULL
+  gene2symbol_names <- NULL
+  for(name in names(obj$res)){
+    res <- obj$res[[name]]
+
+    sidx <- which(tolower(colnames(res)) %in% 'symbol')
+    gidx <- which(tolower(colnames(res)) %in% 'gene')
+
+    gene2symbol <- c(gene2symbol, unname(res[, sidx]))
+    gene2symbol_names <- c(gene2symbol_names, res[, gidx])
+  }
+
+  # remove duplicates
+  idx <- !duplicated(gene2symbol)
+  gene2symbol <- gene2symbol[!idx]
+  names(gene2symbol) <- gene2symbol_names[!idx]
+
+  # remove NAs
+  gene2symbol[is.na(gene2symbol)] <- names(gene2symbol)[is.na(gene2symbol)]
+
+  # replace rownames of dds_list, rld_list, all.dds, all.rld with symbol
+  for(name in names(obj$dds)){
+    rownames(obj$dds[[ name ]]) <- gene2symbol[ rownames(obj$dds[[ name ]]) ]
+    rownames(obj$rld[[ name ]]) <- gene2symbol[ rownames(obj$rld[[ name ]]) ]
+  }
+  if(!is.null(all.dds)) rownames(all.dds) <- gene2symbol[ rownames(all.dds) ]
+  if(!is.null(all.rld)) rownames(all.rld) <- gene2symbol[ rownames(all.rld) ]
+
+  # plug into object
+  obj[[ 'all.dds' ]] <- all.dds
+  obj[[ 'all.rld' ]] <- all.rld
 
   if (!is.null(enrich_list)){
-    res_names <- names(res_list)
+    message('\n2. Processing enrich_list')
+
+    message('\t- Checking enrich_list names against res_list names')
+    res_names <- names(obj$res)
     enrich_names <- names(enrich_list)
     enrich_not_res <- setdiff(enrich_names, res_names)
     if (length(enrich_not_res) > 0){
-      stop(paste("The following results names are in enrich_list but not in res_list:", enrich_not_res))
+      # - if FE object name is missing in res_list, check for 'res' keys
+      #   and make sure all 'res' keys are there in res_list
+      # - if no 'res' keys, give error and stop
+      no_res_key <- NULL
+      no_res_list <- NULL
+      for(name in enrich_not_res){
+        if(!'res' %in% names(enrich_list[[ name ]])){
+          no_res_key <- c(no_res_key, name)
+        } else if(!enrich_list[['res']] %in% res_names){
+          no_res_key <- c(no_res_key, name)
+        }
+      }
+
+      if(length(no_res_key) > 0){
+        stop(paste0("The following names are in enrich_list but do not map to res_list:\n\t", paste(no_res_key, collapse='\n\t')))
+      }
     }
-    obj[['enrich_list']] <- enrich_list
+
+    # - save enrichResult objects as data.frame
+    # - generate GeneTonic object
+    message('\t- Converting enrich_list to genetonic objects')
+
+    message('\t\t- Flattening enrich_list')
+    # flatten enrich_list
+    elem_names <- NULL
+    sep <- '*'
+    res_keys <- list()
+    for(x in names(enrich_list)){
+      for(y in names(enrich_list[[x]])){
+        # NOTE: if key is 'res' save & skip
+        if(y == 'res'){
+          res_keys[[ x ]] <- enrich_list[[ x ]][[ 'res' ]]
+          next
+        }
+        for(z in names(enrich_list[[x]][[y]])){
+          elem_names <- c(elem_names, paste(x, y, z, sep=sep))
+        }
+      }
+    }
+    names(elem_names) <- elem_names
+
+    message(paste('\t\t- Running conversion using', workers, 'worker(s)'))
+    # run conversion
+    # TODO: add check for cores if on biowulf
+    flat_obj <- BiocParallel::bplapply(elem_names, function(x){
+                  toks <- strsplit(x, split=sep, fixed=TRUE)[[1]]
+                  if(!toks[1] %in% res_names)
+                    return(NULL)
+
+                  res <- obj$res[[ toks[1] ]]
+                  eres <- enrich_list[[ toks[1] ]][[ toks[2] ]][[ toks[3] ]]
+
+                  df <- enrich_to_genetonic(eres, res)
+
+                  df
+                }, BPPARAM=BiocParallel::MulticoreParam(workers))
+
+    message('\t- Reconstituting nested list & saving enrich_list as data frames')
+    # reconstitute & clean up
+    enrich_list_slim <- list()
+    genetonic <- list()
+    for(x in names(enrich_list)){
+      enrich_list_slim[[ x ]] <- list()
+      genetonic[[ x ]] <- list()
+
+      for(y in names(enrich_list[[x]])){
+        # NOTE: if key is 'res' plug in res_key & skip
+        if(y == 'res'){
+          enrich_list_slim[[ x ]][[ 'res' ]] <- res_keys[[ x ]]
+          next
+        } else {
+          enrich_list_slim[[ x ]][[ y ]] <- list()
+          genetonic[[ x ]][[ y ]] <- list()
+        }
+
+        for(z in names(enrich_list[[ x ]][[ y ]])){
+          key <- paste(x, y, z, sep=sep)
+          enrich_list_slim[[ x ]][[ y ]][[ z ]] <- enrich_list[[ x ]][[ y ]][[ z ]]@result
+          genetonic[[ x ]][[ y ]][[ z ]] <- flat_obj[[key]]
+        }
+      }
+    }
+
+    obj[['enrich']] <- enrich_list_slim
+    obj[['genetonic']] <- genetonic
   }
 
   if(!is.null(degpatterns_list)){
-    obj[['degpatterns']] <- degpatterns_list
+    message('\n3. Processing degpatterns_list')
+
+    message('\t- Only keeping "normalized" slot & adding "symbol" column')
+    # only keep 'normalized' slot from degpatterns object
+    # & add 'symbol' column
+    obj[['degpatterns']] <- lapply(degpatterns_list, function(x){
+                              df <- x$normalized
+                              if(!'symbol' %in% colnames(df)){
+                                df$symbol <- gene2symbol[ df$genes ]
+                              }
+                              df
+                            })
   }
+
+  message('\nDone!')
 
   return(obj)
 }
