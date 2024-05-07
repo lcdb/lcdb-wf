@@ -582,6 +582,128 @@ enrich_to_genetonic <- function(enrich, res){
     return(list(l_gs=l_gs, anno_df=anno_df))
 }
 
+#' Sanitize res_list, dds_list & rld_list for use with downstream tools
+#'
+#' This function makes various validation checks and sanitizes the object:
+#'
+#' - res_list must be a named list
+#' - rownames of res_list objects cannot be NULL
+#' - colData of objects cannot contain reserved column names
+#' - res_list objects should have exactly one 'gene' & 'symbol' (case-insensitive).
+#'   If missing, these are replaced by rownames. NA 'symbol' values
+#'   are replaced by corresponding values from 'gene' column or rownames.
+#' - dds_list and rld_list names must match exactly
+#' - colData of dds_list & rld_list objects cannot contain reserved columns
+#' - Adds a 'sample' column to colData of dds_list & rld_list objects
+#' - Builds a dds.mapping object that maps res_list objects to dds_list objects
+#' - Flattens res_list object which is replaced by two slots corresponding to
+#'   'res' & 'label' elements.
+#'
+#' @param res_list List of DESeqResults objects
+#' @param dds_list List of dds objects
+#' @param rld_list List of normalized dds objects
+#' @param reserved_cols Column names reserved for internal use. colData
+#'        of dds_list or rld_list objects cannot contain these columns
+#'
+sanitize_res_dds <- function(res_list, dds_list, rld_list,
+                             reserved_cols=c('gene', 'symbol')){
+  if(is.null(names(res_list))){
+    stop('"res_list" must be a named list')
+  }
+
+  if(is.null(names(dds_list))){
+    stop('"dds_list" must be a named list')
+  }
+
+  for(name in names(res_list)){
+    res <- res_list[[ name ]]$res
+
+    # NOTE: rownames of res_list object cannot be NULL
+    if(is.null(rownames(res))){
+      stop(paste('Rownames of res_list elements cannot be NULL:', name))
+    }
+
+    # NOTE: check that a single 'gene' column exists.
+    gene_idx <- grep('gene', tolower(colnames(res)))
+    if(length(gene_idx) > 1){
+      stop(paste('res_list elements can only have 1 "gene" column:', name))
+    } else if(length(gene_idx) == 0){
+      # If 'gene' column not present, replace with rownames
+      message(paste('res_list element is missing a "gene" column. "rownames" will be used instead:', name))
+      res$gene <- rownames(res)
+      gene_idx <- grep('gene', tolower(colnames(res)))
+    }
+
+    # NOTE: check that a single 'symbol' column exists.
+    symbol_idx <- grep('symbol', tolower(colnames(res)))
+    if(length(symbol_idx) > 1){
+      stop(paste('res_list elements can only have 1 "symbol" column:', name))
+    } else if(length(symbol_idx) == 0){
+      # If 'symbol' column not present, replace with rownames
+      message(paste('res_list element is missing a "symbol" column. "rownames" will be used instead:', name))
+      res$symbol <- rownames(res)
+    } else {
+      # if present, check for NA's & replace with values from 'gene' column
+      na_idx <- is.na(res[, symbol_idx])
+      if(sum(na_idx) > 0){
+        res[na_idx, symbol_idx] <- res[na_idx, gene_idx]
+      }
+    }
+
+    # plug back in to res_list
+    res_list[[ name ]]$res <- res
+  }
+
+  dds_names <- names(dds_list)
+  rld_names <- names(rld_list)
+  if(!all(dds_names %in% rld_names)){
+    stop(paste('Not all dds_list elements have matching rld_list objects:',
+               setdiff(dds_names, rld_names)))
+  } else if(!all(rld_names %in% dds_names)){
+    stop(paste('Not all rld_list elements have matching dds_list objects:',
+               setdiff(rld_names, dds_names)))
+  }
+
+  for(name in dds_names){
+    dds <- dds_list[[ name ]]
+    rld <- rld_list[[ name ]]
+
+    # NOTE: colData cannot contain reserved column names
+    if(any(reserved_cols %in% names(colData(dds)))){
+      dds_reserved <- intersect(reserved_cols, names(colData(dds)))
+      stop(paste('colData of dds_list object contains reserved column names -',
+                 paste0(dds_reserved, collapse=', '), ':', name))
+    }
+
+    if(any(reserved_cols %in% names(colData(rld)))){
+      rld_reserved <- intersect(reserved_cols, names(colData(rld)))
+      stop(paste('colData of res_list element contains reserved column names -',
+                 paste0(rld_reserved, collapse=', '), ':', name))
+    }
+
+    colData(dds)$sample <- rownames(colData(dds))
+    colData(rld)$sample <- rownames(colData(rld))
+
+    dds_list[[ name ]] <- dds
+    rld_list[[ name ]] <- rld
+  }
+
+  # build res_list -> dds_list mapping to plug into degpatterns
+  dds.mapping <- lapply(res_list, function(x) x$dds)
+  names(dds.mapping) <- names(res_list)
+
+  # build final object
+  obj <- list(
+           res=lapply(res_list, function(x) x$res),
+           dds=dds_list,
+           rld=rld_list,
+           labels=lapply(res_list, function(x) x$label),
+           dds.mapping=dds.mapping)
+
+  return(obj)
+}
+
+
 #' Add cluster ID columns to res_list objects
 #'
 #' @param clusters DegPatterns data frame with gene -> cluster mapping
