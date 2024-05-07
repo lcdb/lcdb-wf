@@ -546,6 +546,42 @@ compose_results <- function(res_list,
   return(obj)
 }
 
+#' Convert enrichResult/gseaResult to GeneTonic object
+#'
+#' This function takes an enrichResult object and
+#' DE analysis results and creates a GeneTonic object.
+#'
+#' @param enrich enrichResult object
+#' @param res data frame with DE analysis results
+#'
+#' @export
+enrich_to_genetonic <- function(enrich, res){
+    suppressMessages({
+      if(class(enrich) == 'enrichResult')
+        l_gs <- shake_enrichResult(enrich)
+      else if(class(enrich) == 'gseaResult')
+        l_gs <- shake_gsenrichResult(enrich)
+    })
+
+    if(!'gene' %in% colnames(res)){
+      if(!is.null(rownames(res))){
+        res$gene <- rownames(res)
+        res <- as.data.frame(res) %>% relocate(gene)
+      } else {
+        stop('Cannot find gene column in result data frame!')
+      }
+    }
+    idx <- match(c('gene','symbol'), tolower(colnames(res)))
+    if(length(idx) != 2){
+      stop('Columns of DE results must contain "gene" & "symbol"')
+    }
+    anno_df <- res[,idx]
+    colnames(anno_df) <- c('gene_id', 'gene_name')
+
+    l_gs <- get_aggrscores(l_gs, res, anno_df)
+    return(list(l_gs=l_gs, anno_df=anno_df))
+}
+
 #' Add cluster ID columns to res_list objects
 #'
 #' @param clusters DegPatterns data frame with gene -> cluster mapping
