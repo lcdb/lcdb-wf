@@ -66,7 +66,7 @@ def fill_patterns(patterns, fill, combination=product):
 
     def update(d, u, c):
         for k, v in u.items():
-            if isinstance(v, collections.Mapping):
+            if isinstance(v, collections.abc.Mapping):
                 r = update(d.get(k, {}), v, c)
                 d[k] = r
             else:
@@ -139,7 +139,7 @@ def check_unique_fn(df):
     """
     fns = df["orig_filename"]
     if "orig_filename_R2" in df.columns:
-        fns = fns.append(df["orig_filename_R2"])
+        fns = pd.concat([fns, df["orig_filename_R2"]])
     if len(fns.unique()) < len(fns):
         raise ValueError("Fastq filenames non unique, check the sampletable\n")
 

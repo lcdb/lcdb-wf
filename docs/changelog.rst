@@ -1,42 +1,179 @@
 Changelog
 =========
 
+v1.10.3
+-------
+
+- improve the deploy script (thanks @aliciaaevans)
+- support the epic2 peak-caller for the ChIP-seq workflow (thanks @Mira0507)
+- for later versions of featureCounts, add ``--countReadPairs`` argument to RNA-seq workflow (@therealgenna)
+
+v1.10.2
+-------
+
+Minor bugfix release.
+
+- Fix multiqc configs so that they coorectly ignore any cutadapt fastqc zips when building the raw fastq section
+- Fix multiqc config for chipseq so it correctly cleans the ``_R2`` extension to better support PE ChIP-seq-like workflows
+- Fix functional enrichment label truncation to ensure that truncated labels are unique
+
+v1.10.1
+-------
+This is a bugfix and minor patch release.
+
+- Bugfix: the references workflow was missing the ``resources:`` directives;
+  they have now been added.
+
+- Bugfix: kallisto strandedness was set incorrectly for libraries using
+  ligation prep (fr-secondstrand)
+
+- The new ``utils.autobump`` function can be used to easily specify default and
+  incremented resources, and the ``utils.gb`` and ``utils.hours`` make it
+  a little easier to specify when autobump is not required.
+
+  In the following example, memory will be set to 8 * 1024 MB and will
+  increment by that much each retry. The runtime will be set to 2 * 60 minutes,
+  and will increment by 10 * 60 minutes each retry. The disk will be set to 100
+  * 1024 MB, and will not increase each retry.
+
+  .. code-block:: python
+
+      resources:
+          mem_mb=autobump(gb=8),
+          runtime=autobump(hours=2, increment_hours=10),
+          disk_mb=gb(100)
+
+- WRAPPER_SLURM no longer has the ``--latency-wait=300``,
+  ``--max-jobs-per-second=1``, and ``--max-status-checks-per-second=0.01``
+  which would override any profile settings.
+
+- In RNA-seq and ChIP-seq, the cutadpt rule now defaults to using
+  ``--nextseq-trim 20`` instead of ``-q 20``, to better handle the majority of
+  sequencing data we have recently been working with (NovaSeq). See `this
+  section of the cutadapt docs
+  <https://cutadapt.readthedocs.io/en/stable/guide.html#nextseq-trim>`_ for
+  details.
+
+- Updated requirements to use a recent version of salmon to avoid segfaults
+
+- rnaseq.Rmd, when saving the Rds file at the end, now disables compression.
+  This can have a dramatic improvement on downstream performance for
+  a reasonable disk space cost.
+
+- functional-enrichment.Rmd, now supports KEGG pathways & parallel operation.
+
+- functional-enrichment.Rmd, gene-patterns.Rmd, now saves Rds file at the
+  end (without compression) adding the respective object lists.
+
+- added ``--overlap 6`` to cutadapt to avoid greedy trimming
+
+
+v1.10
+-----
+The major change here is refactoring the Snakefiles to use the ``resources:``
+directive in each rule, and removing the ``--clusterconfig`` mechanism which
+has long been deprecated.
+
+For running on a cluster, this requires a `profile
+<https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles>`_.
+E.g., on `NIH's Biowulf <https://hpc.ni.gov>`_, use the `NIH-HPC
+snakemake_profile <https://github.com/NIH-HPC/snakemake_profile>`_.
+
+General
+~~~~~~~
+- No longer using clusterconfig, instead using resources to configure cluster resources
+- Migrated to a unified testing script that simplifies local and CI testing
+- If sampletable is from SRA, raise an error if a Layout column can't be found
+  (to prevent incorrect interpretation of samples as single-end)
+- Ensure bam indexes are made for the markdups bams, even if bigwigs are not created
+- Remove libsizes table, which was largely redundant with fastqc results
+
+RNA-seq
+~~~~~~~
+- Fix R tests
+- All ``lcdbwf`` R functions use the ``:::`` namespace lookup syntax
+- Fix library loads in rnaseq.Rmd to ensure they come before parallelization configuration
+- New function ``lcdbwf:::lfc_scatter`` for comparing multiple DESeq2 contrasts
+- Updates and fixes to ``gene-patterns.Rmd``
+
+
 v1.9
 ----
+
+This version has substantial changes in the ``rnaseq.Rmd`` file to streamline
+its use in a production environment. This involves moving most of the code
+complexity into the ``lcdbwf`` R package and using a new config file as much as
+possible. See details below.
+
+General
+~~~~~~~
+- environments have been updated with recent versions of all tools
+- WRAPPER_SLURM arguments updated with arguments better suited for cluster submission
+- PhiX reference configs have been removed
+- compatibility with Python 3.10
+- fastq-dump rules have been converted to scripts. This is because sra-tools in
+  versions earlier than 3.0 have issue with SSL certs, however sra-tools=3
+  cannot be installed alongside recent versions of salmon (due to conflicting
+  pinnings with the ``icu`` package). Therefore, fastq-dump is now run as
+  a script in its own conda environment.
+- new idxstats rule for chipseq and rnaseq
 
 RNA-seq
 ~~~~~~~
 
-**This version has major changes to** ``rnaseq.Rmd``. This file has been
-overhauled to be driven by a config file. This means you no longer need to dig
-through the various parts of the R code to identify all of the parts to change.
-Note that there is irreducible complexity in setting up the dds objects and
-contrasts, so that part remains. But the remaining configuration should be
-within the config file alone.
+**This version has major changes to** ``rnaseq.Rmd``. Briefly:
 
-The file,
-`workflows/rnaseq/downstream/config.yaml` is heavily commented to describe the
-various settings. The sections of the config are designed such that they can be
-used as additional chunk options to chunks in which they are used. This
-additional chunk option is used by RMarkdown to compute the hash of the chunk.
-The result is that making a change in the config file is sufficient to
-invalidate the cache of any chunks that specify that section as a chunk option.
+1. This file has been overhauled to be driven by a config file. This
+   dramatically reduces the need to scroll through the RMarkdown file and make
+   all the customizations for a particular experiment. Now, editing the config
+   file sets up most of the project-specific components. Note that contrasts
+   still need to be customized in the Rmd file.
+2. The narrative and explanatory text has been moved to ``text.yaml`` and is
+   included at render time. This reduces the need to scroll through lots of
+   boilerplate text in the RMarkdown while still retaining the ability to
+   easily edit it.
+3. Most of the complexity has been offloaded to the ``lcdbwf`` R package.
+4. Caches are much improved. See the :ref:`downstream-detailed` section for
+   more information.
+5. Functional enrichment is moved into a separate RMarkdown file.
+
+Downstream RNA-seq config
+,,,,,,,,,,,,,,,,,,,,,,,,,
+
+The file, `workflows/rnaseq/downstream/config.yaml` is heavily commented to
+describe the various settings. The sections of the config are designed such
+that they can be used as additional chunk options to chunks in which they are
+used. This additional chunk option is used by RMarkdown to compute the hash of
+the chunk. The result is that making a change in the config file is sufficient
+to invalidate the cache of any chunks that specify that section as a chunk
+option.
+
+Complexity moved to ``lib/lcdbwf/R``
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 Another major change is that most of the complexity in the ``rnaseq.Rmd`` file
-has been factored out into the ``lcdbwf`` R package in ``lib/lcdbwf``. While
-this means that all code is no longer included in the final rendered HTML file,
-it does make the Rmd much more streamlined to work with. It also has the side
-effect of making it easier to write unit tests on separate functions.
-
-A somewhat major change is a new strategy for allowing ``results()`` calls to be
-split across multiple, independently-cached chunks that are then properly merged
-together into a single ``res.list`` object while handling dependencies (thanks
-to `@njohnso6 <https://github.com/njohnso6>`_). This dramatically speeds up the
-process of incrementally adding contrasts to complex experimental designs.
+has been factored out into the ``lcdbwf`` R package that is stored inn
+``lib/lcdbwf``. While this means that all code is no longer included in the
+final rendered HTML file, it does make the Rmd much more streamlined to work
+with. It also has the side effect of making it easier to write unit tests on
+separate functions.
 
 Many helper functions have been added to the ``lcdbwf`` R package, including
 ones to streamline the creation of dds and results objects, composing and saving
-them
+them, and generating many of the outputs.
+
+Improved caching of results chunks
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+A somewhat major change is a new strategy for allowing ``results()`` calls to be
+split across multiple, independently-cached chunks that are then properly merged
+together into a single ``res.list`` object while handling dependencies and
+parallelization (thanks to `@njohnso6 <https://github.com/njohnso6>`_). This
+dramatically speeds up the process of incrementally adding contrasts to complex
+experimental designs.
+
+Other changes
+,,,,,,,,,,,,,
 
 In addition to these major changes, there are also many other improvements
 to ``rnaseq.Rmd``:
@@ -44,29 +181,27 @@ to ``rnaseq.Rmd``:
     - AnnotationHub databases are only retrieved from cache when they are
       needed. This dramatically speeds up rendering of the HTML, since before
       the OrgDb would always load no matter what.
-    - Support for automatic retrieval and caching of TxDb
-    - Support for Kallisto or Salmon quantification with a simple true/false
-      toggle. Automatically sums to gene leve using automatically retrieved TxDb
-    - Expose configuration for incoming Kallisto and Salmon counts file patterns
-    - Support for creating dds objects from featureCounts, Salmon, or Kallisto
-      in such a way that they can be easily compared with each other.
+    - Toggle Kallisto or Salmon quantification with a simple true/false; this
+      automatically sums to gene level using automatically retrieved TxDb. This
+      also now supports creating dds objects from featureCounts, Salmon, or
+      Kallisto in such a way that they can be easily compared with each other.
     - ``lcdbwf::compose_results()`` to combine res_list and dds_list objects
-      together
+      together by inspecting the global namespace for specially-named objects
     - Helper functions for retrieving global config and data structures (e.g.,
       ``lcdbwf::get_config()``, ``lcdbwf::get_dds()``)
     - Helper function ``lcdbwf::match_from_dots`` for working with `...`
       arguments and splitting them up to only go to the functions they are
       intended for
-    - Attaching info (e.g., adding SYMBOL to all results) is now much faster
-    - Generalized functional enrichment, currently using Gene Ontology and
-      MSigDB. MSigDb, via the ``msigdbr`` package, is available for multiple
-      species and so this incorporates Reactome and KEGG. But the generalized
-      method can be applied to any arbitrary gene sets, allowing for much more
-      customization.
-    - fixes to clusterProfiler::emapplot calls
-    - PCA plots and clustered heatmap rowsidecolors are now configured in the
-      config file.
-    - functional enrichment is now a completely separate file, using the
+    - Much faster to attach info (e.g., adding SYMBOL to all results) since the
+      AnnotationDbi calls are only done once instead of for each results
+      object.
+    - Refactored functional enrichment to be much more generalized, currently
+      using Gene Ontology and MSigDB. MSigDb, via the ``msigdbr`` package, is
+      available for multiple species and so this incorporates Reactome and
+      KEGG. But the generalized method can be applied to any arbitrary gene
+      sets, allowing for much more customization.
+    - Fixes to clusterProfiler::emapplot calls in particular corner cases
+    - Functional enrichment is now a completely separate file, using the
       ``combined.Rds`` file as an intermediate between ``rnaseq.Rmd`` and
       ``functional_enrichment.Rmd``.
     - All-in-one enrichment function that runs either overrepresentation or
@@ -78,20 +213,38 @@ to ``rnaseq.Rmd``:
     - ``lcdbwf::get_sig()`` has more options for what to return
     - Plotting wrappers for clusterProfiler plot functions, allowing plots to be
       configured via the config file.
-    - ensure 10 genes are always plotted in MA plots
-    - added volcano plots with labeled genes
-    - removed top 3 and bottom 3 gene plots
-    - PCA plots using plotly no longer need "unrolled" for-loops
-    - size factor plots, removing gene versions moved to lcdbwf package
-    - use datatable to show initial sampletable
-    - make original dds_initial object the same way as later dds objects
+    - New dds diagnostics and results diagnostics functions and sections of the
+      Rmd, useful for troubleshooting
+    - Refactored the results tabs: MA plots come first; ensure 10 genes are always plotted in MA
+      plots, added volcano plots with labeled genes, removed top 3 and bottom
+      3 gene plots
+    - PCA plots using plotly no longer need "unrolled" for-loops; multiple PCA
+      coloring and clustered heatmap row side colors are now configured in the
+      YAML config file
+    - Moved size factor plots and gene version removal to lcdbwf package
+    - Use datatable to show initial sampletable for cleaner output
+    - Make original dds_initial object the same way as later dds objects and
+      always using a design of ``~1`` to be used in PCA and heatmaps
     - "Differential expression" header moved so that code is no longer hidden
       under the size factors plot
-    - MA plots come first on the individual contrast results
-    - option for filling in NA in symbol with Ensembl IDs
+    - Option for filling in NA in symbol with Ensembl IDs
     - collapseReplicates2 uses ``collapse_by`` rather than ``combine.by``
-    - updated the code style throughout to use the tidyverse/google style guide
+    - Updated the code style throughout to use the tidyverse/google style guide
+    - RNA-seq differential expression output is additionally included in an
+      Excel file with one sheet per contrast.
 
+Tests
+~~~~~
+
+- ``lcdbwf`` R package now has its own tests via ``devtools`` and ``testthat``
+- recent versions of Snakemake are broken when ``--until`` is used in certain
+  circumstances; a ChIP-seq test has been disabled temporarily.
+- after a successful test, the environment is written as an artifact on circleci
+
+References
+~~~~~~~~~~
+
+- Fixed a longstanding issue with *S. cerevisiae*, now the GFF file is properly converted to GTF.
 
 v1.8
 ----

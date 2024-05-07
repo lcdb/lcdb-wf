@@ -102,7 +102,7 @@ mdcat <- function(...){
 #' @param x Character vector of BAM filenames (e.g., from the header of
 #'        featureCounts)
 #'
-lcdbwf.samplename <- function(x) {
+lcdbwf_samplename <- function(x) {
     x <- x %>%
         stringr::str_remove_all('data/rnaseq_samples/') %>%
         stringr::str_remove_all('.cutadapt.bam') %>%
@@ -323,7 +323,7 @@ my_summary <- function(res, dds, name, ...){
   if (class(dds) != 'character'){
     stop("expecting dds to be a string")
   }
-  dds <- lcdbwf::get_dds(dds_label)
+  dds <- lcdbwf:::get_dds(dds_label)
   alpha <- metadata(res)$alpha
   lfc.thresh <- metadata(res)$lfcThreshold
   lfc.thresh <- ifelse(is.null(lfc.thresh), 0, lfc.thresh)
@@ -445,7 +445,9 @@ nested.lapply <- function(x, subfunc, ...){
 #' @param res_list List of results objects and associated metadata. See details
 #'   for format.
 #' @param dds_list List of dds objects used in results
+#' @param rld_list List of normalized dds objects
 #' @param enrich_list List of enrichment results objects. See details for format.
+#' @param degpatterns_list List of degpatterns objects
 #'
 #' @details
 #'
@@ -495,7 +497,11 @@ nested.lapply <- function(x, subfunc, ...){
 #'  )
 #'
 #'
-compose_results <- function(res_list, dds_list, enrich_list){
+compose_results <- function(res_list,
+                            dds_list,
+                            rld_list=NULL,
+                            enrich_list=NULL,
+                            degpatterns_list=NULL){
 
   # Much of this function is just checking that the names all line up.
   res_dds_names <- unlist(lapply(res_list, function (x) x$dds))
@@ -510,12 +516,20 @@ compose_results <- function(res_list, dds_list, enrich_list){
     warning(paste("The following dds names are in dds_list but not in res_list. This OK, but may be unexpected:", dds_not_res, '\n'))
   }
 
+  # check if rld_list was specified, if not make it
+  if(is.null(rld_list)){
+    rld_list <- lapply(dds_list,
+                  function(x) varianceStabilizingTransformation(x, blind=TRUE)
+                )
+  }
+
   obj <- list(
     res_list=res_list,
-    dds_list=dds_list
+    dds_list=dds_list,
+    rld_list=rld_list
   )
 
-  if (!missing(enrich_list)){
+  if (!is.null(enrich_list)){
     res_names <- names(res_list)
     enrich_names <- names(enrich_list)
     enrich_not_res <- setdiff(enrich_names, res_names)
@@ -525,7 +539,37 @@ compose_results <- function(res_list, dds_list, enrich_list){
     obj[['enrich_list']] <- enrich_list
   }
 
+  if(!is.null(degpatterns_list)){
+    obj[['degpatterns']] <- degpatterns_list
+  }
+
   return(obj)
+}
+
+#' Add cluster ID columns to res_list objects
+#'
+#' @param clusters DegPatterns data frame with gene -> cluster mapping
+#' @param res DESeq2 results object
+#' @param label Cluster column prefix
+#'
+#' @return DESeq2 results object with added cluster column
+add.cluster.id <- function(clusters, res, label){
+    if(is.null(res)) return(NULL)
+    else if(is.null(clusters)){
+      # add NA cluster column
+      res[[paste0(label, '_cluster')]] <- NA
+      return(res)
+    }
+    # Merges the degPattern cluster IDs `cluster` with DESeqresults `res`
+    # `label` will be used to create a cluster column with a unique column name 
+    # returns a DESeqresults with cluster IDs
+    unq <- unique(clusters[, c('genes', 'cluster')])
+    names(unq)[names(unq) == 'genes'] <- 'gene'
+    merged <- merge(as.data.frame(res) %>% tibble::rowid_to_column("ID"),
+                    unq, by='gene', all.x=TRUE) %>%
+        arrange(ID)
+    res[[paste0(label, '_cluster')]] <- merged[['cluster']]
+    return(res)
 }
 
 
@@ -557,7 +601,7 @@ get_config <- function(){
 #'
 #' Example usage is:
 #'
-#'  do.call("functioname", lcdbwf::match_from_dots(list(...), functionname)))
+#'  do.call("functioname", lcdbwf:::match_from_dots(list(...), functionname)))
 #'
 match_from_dots <- function(dots, func){
   arg <- match(names(formals(func)), names(dots))

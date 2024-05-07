@@ -2,9 +2,7 @@ channels:
   - bioconda
   - conda-forge
 dependencies:
-  - python=2
+  - epic2
   - numpy
-  - sicer
   - bedtools
   - ucsc-bedsort=377
-  - ucsc-wigtobigwig=377

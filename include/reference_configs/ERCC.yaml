@@ -2,14 +2,14 @@ references:
   ercc:
     srm2374:
       genome:
-        url: 'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        url: 'https://tsapps.nist.gov/srmext/certificates/documents/SRM2374_Sequence_v1.FASTA'
         postprocess: "lib.postprocess.ercc.fasta_postprocess"
         indexes:
           - 'bowtie2'
           - 'hisat2'
           - 'star'
       annotation:
-        url: 'https://www-s.nist.gov/srmors/certificates/documents/SRM2374_Sequence_v1.FASTA'
+        url: 'https://tsapps.nist.gov/srmext/certificates/documents/SRM2374_Sequence_v1.FASTA'
         postprocess: "lib.postprocess.ercc.gtf_postprocess"
 
     fisher92:

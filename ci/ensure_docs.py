@@ -16,14 +16,11 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 # documentation.
 d = {
     "../workflows/rnaseq/downstream/rnaseq.Rmd": "../docs/rnaseq-rmd.rst",
-    "../workflows/rnaseq/downstream/functional-enrichment.Rmd": "../docs/functional-enrichment-rmd.rst",
-    "../workflows/rnaseq/downstream/gene-patterns.Rmd": "../docs/gene-patterns-rmd.rst",
 }
 
 # For now, just assume "------" as H2 headings. A better approach would be to
 # access the docutils parse tree
 regex = re.compile(r"```\{r (?P<chunk>.*?)[\}, ]")
-
 
 link_regex = re.compile(r"https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#(?P<name>)")
 
@@ -51,6 +48,17 @@ errors = []
 for rmd, rst in d.items():
     chunks, links = zip(*get_chunk_names(rmd))
     headings = set(get_headings(rst)).difference(ok_headings)
+
+    # convert the results_01, results_02, etc into results_* which is the
+    # heading in the docs.
+    cleaned_chunks = []
+    for chunk in chunks:
+        if chunk.startswith('results_'):
+            cleaned_chunks.append('results_*')
+        else:
+            cleaned_chunks.append(chunk)
+    chunks = list(set(cleaned_chunks))
+
     chunks_without_headings = set(chunks).difference(headings)
     headings_without_chunks = headings.difference(chunks)
     if chunks_without_headings:
@@ -68,13 +76,16 @@ for rmd, rst in d.items():
             + "\n"
         )
 
-    for chunk, link in zip(chunks, links):
-        if link_regex.search(link) is None:
-            errors.append(
-                f"In {rmd}, for chunk {chunk} the first line is:\n" +
-                f"{link}\n" +
-                f"Please change it to:\n" +
-                f"# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#{chunk}\n")
+    # Previously, we wanted to have links within the Rmd back to the built
+    # documentation. However this tended to clutter the Rmd, so removing this
+    # check.
+    # for chunk, link in zip(chunks, links):
+    #     if link_regex.search(link) is None:
+    #         errors.append(
+    #             f"In {rmd}, for chunk {chunk} the first line is:\n" +
+    #             f"{link}\n" +
+    #             f"Please change it to:\n" +
+    #             f"# Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#{chunk}\n")
 
 
 if errors:
@@ -85,3 +96,7 @@ if errors:
     print("\n")
     print("\n".join(errors))
     sys.exit(1)
+
+else:
+    print("OK: found documentation for these identified chunks:")
+    print("- " + "\n- ".join(sorted(headings)))

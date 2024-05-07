@@ -77,8 +77,7 @@ Configuration
 - add the name to the list of supported aligners in `docs/config-yaml.rst`, in
   the "Aligner config" section.
 
-- add appropriate memory/time requirements to `clusterconfig.yaml` for that
-  aligner.
+- add appropriate memory/time requirements to the rule for that aligner.
 
 Testing
 ^^^^^^^

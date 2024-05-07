@@ -7,8 +7,9 @@ import tempfile
 import pandas as pd
 import numpy as np
 import pybedtools
-from lib import common, cluster_specific, utils, helpers, aligners, chipseq
+from lib import common, utils, helpers, aligners, chipseq
 from lib.patterns_targets import ChIPSeqConfig
+from lib.utils import autobump, gb, hours
 
 # ----------------------------------------------------------------------------
 #
@@ -23,12 +24,6 @@ if not workflow.overwrite_configfiles:
 config = common.load_config(config)
 
 include: '../references/Snakefile'
-
-shell.prefix(
-    'set -euo pipefail; export R_PROFILE_USER=; export TMPDIR={};'
-    .format(cluster_specific.tempdir_for_biowulf())
-)
-shell.executable('/bin/bash')
 
 # Verify configuration of config and sampletable files
 helpers.preflight(config)
@@ -59,9 +54,7 @@ def wrapper_for(path):
 final_targets = utils.flatten((
     c.targets['bam'],
     utils.flatten(c.targets['fastqc']),
-    utils.flatten(c.targets['libsizes']),
     [c.targets['fastq_screen']],
-    [c.targets['libsizes_table']],
     [c.targets['multiqc']],
     utils.flatten(c.targets['markduplicates']),
     utils.flatten(c.targets['bigwig']),
@@ -116,6 +109,10 @@ if 'orig_filename' in c.sampletable.columns:
             orig_for_sample
         output:
             render_r1_r2(c.patterns['fastq'])
+        threads: 1
+        resources:
+            mem_mb=gb(1),
+            runtime=10,
         run:
             assert len(output) == len(input), (input, output)
             for src, linkname in zip(input, output):
@@ -135,43 +132,19 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
     rule fastq_dump:
         output:
             fastq=render_r1_r2(c.patterns['fastq'])
-
         log:
             r1_only(c.patterns['fastq'])[0] + '.log'
-        run:
-            srr = _st.loc[wildcards.sample, 'Run']
-
-            # Two different paths depending on the layout. In both cases, we
-            # want to avoid creating the final output until the very end, to
-            # avoid incomplete downloads.
-            if c.is_paired:
-                # For PE we need to use --split-files, which also means using
-                # the slower --gzip
-                shell(
-                    'fastq-dump '
-                    '{srr} '
-                    '--gzip '
-                    '--split-files '
-                    # '-X 100000 ' # [TEST SETTINGS]
-                    '&> {log}'
-                )
-
-                # The filenames are predictable, so we can move them as needed.
-                shell('mv {srr}_1.fastq.gz {output[0]}')
-                shell('mv {srr}_2.fastq.gz {output[1]}')
-
-            else:
-                # For SE, we can use the faster stdout | gzip, and move it
-                # directly when done.
-                shell(
-                    'fastq-dump '
-                    '{srr} '
-                    '-Z '
-                    # '-X 100000 ' # [TEST SETTINGS]
-                    '2> {log} | gzip -c > {output[0]}.tmp '
-                    '&& mv {output[0]}.tmp {output[0]} '
-                )
-
+        params:
+            is_paired=c.is_paired,
+            sampletable=_st,
+            # limit = 100000, # [TEST SETTINGS]
+        resources:
+            mem_mb=autobump(gb=8),
+            runtime=autobump(hours=2)
+        conda:
+            '../../wrappers/wrappers/fastq-dump/environment.yaml'
+        script:
+            wrapper_for('fastq-dump/wrapper.py')
 
 rule cutadapt:
     """
@@ -181,6 +154,9 @@ rule cutadapt:
         fastq=render_r1_r2(c.patterns['fastq'])
     output:
         fastq=render_r1_r2(c.patterns['cutadapt'])
+    resources:
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     log:
         render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
     threads: 6
@@ -194,7 +170,8 @@ rule cutadapt:
                 "-p {output[1]} "
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
-                '-q 20 '
+                '--nextseq-trim 20 '
+                "--overlap 6 "
                 '-j {threads} '
                 '--minimum-length 25 '
                 "{input.fastq[0]} "
@@ -206,7 +183,8 @@ rule cutadapt:
                 "cutadapt "
                 "-o {output[0]} "
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
-                '-q 20 '
+                '--nextseq-trim 20 '
+                "--overlap 6 "
                 '-j {threads} '
                 '--minimum-length 25 '
                 "{input.fastq[0]} "
@@ -225,6 +203,9 @@ rule fastqc:
     output:
         html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
         zip='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
+    resources:
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     script:
         wrapper_for('fastqc/wrapper.py')
 
@@ -241,6 +222,9 @@ rule bowtie2:
     log:
         c.patterns['bam'] + '.log'
     threads: 16
+    resources:
+        mem_mb=gb(32),
+        runtime=autobump(hours=2)
     run:
         prefix = aligners.prefix_from_bowtie2_index(input.index)
         sam = output.bam.replace('.bam', '.sam')
@@ -277,6 +261,10 @@ rule unique:
         c.patterns['bam']
     output:
         c.patterns['unique']
+    threads: 1
+    resources:
+        mem_mb=gb(1),
+        runtime=autobump(hours=2)
     shell:
         # NOTE: the quality score chosen here should reflect the scores output
         # by the aligner used. For example, STAR uses 255 as max mapping
@@ -292,6 +280,10 @@ rule fastq_count:
         fastq='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz'
     output:
         '{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize'
+    threads: 1
+    resources:
+        mem_mb=gb(1),
+        runtime=autobump(hours=2)
     shell:
         'zcat {input} | echo $((`wc -l`/4)) > {output}'
 
@@ -304,6 +296,10 @@ rule bam_count:
         bam='{sample_dir}/{sample}/{suffix}.bam'
     output:
         '{sample_dir}/{sample}/{suffix}.bam.libsize'
+    threads: 1
+    resources:
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     shell:
         'samtools view -c {input} > {output}'
 
@@ -316,6 +312,10 @@ rule bam_index:
         bam='{prefix}.bam'
     output:
         bai='{prefix}.bam.bai'
+    threads: 1
+    resources:
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     shell:
         'samtools index {input} {output}'
 
@@ -342,67 +342,17 @@ rule fastq_screen:
         txt=c.patterns['fastq_screen']
     log:
         c.patterns['fastq_screen'] + '.log'
+    threads: 6
+    resources:
+        mem_mb=autobump(gb=4),
+        runtime=autobump(hours=2)
     params: subset=100000
     script:
         wrapper_for('fastq_screen/wrapper.py')
 
 
-rule libsizes_table:
-    """
-    Aggregate fastq and bam counts in to a single table
-    """
-    input:
-        utils.flatten(c.targets['libsizes'])
-    output:
-        json=c.patterns['libsizes_yaml'],
-        tsv=c.patterns['libsizes_table']
-    run:
-        def sample(f):
-            return os.path.basename(os.path.dirname(f))
-
-        def million(f):
-            return float(open(f).read()) / 1e6
-
-        def stage(f):
-            return os.path.basename(f).split('.', 1)[1].replace('.gz', '').replace('.count', '')
-
-        df = pd.DataFrame(dict(filename=list(map(str, input))))
-        df['sample'] = df.filename.apply(sample)
-        df['million'] = df.filename.apply(million)
-        df['stage'] = df.filename.apply(stage)
-        df = df.set_index('filename')
-        df = df.pivot('sample', columns='stage', values='million')
-
-        # make nicer column names
-        convert = {
-            'fastq.libsize': 'stage1_raw',
-            'cutadapt.fastq.libsize' : 'stage2_trimmed',
-            'cutadapt.bam.libsize': 'stage3_aligned',
-            'cutadapt.unique.bam.libsize': 'stage4_unique',
-            'cutadapt.unique.nodups.bam.libsize': 'stage5_nodups',
-        }
-
-        df.columns = [convert[i] for i in df.columns]
-
-        df.to_csv(output.tsv, sep='\t')
-        y = {
-            'id': 'libsizes_table',
-            'section_name': 'Library sizes',
-            'description': 'Library sizes at various stages of the pipeline',
-            'plot_type': 'table',
-            'pconfig': {
-                'id': 'libsizes_table_table',
-                'title': 'Library size table',
-                'min': 0
-            },
-            'data': yaml.load(df.transpose().to_json(), Loader=yaml.FullLoader),
-        }
-        with open(output.json, 'w') as fout:
-            yaml.dump(y, fout, default_flow_style=False)
-
 multiqc_inputs = [
     utils.flatten(c.targets['fastqc']) +
-    utils.flatten(c.targets['libsizes_yaml']) +
     utils.flatten(c.targets['cutadapt']) +
     utils.flatten(c.targets['bam']) +
     utils.flatten(c.targets['markduplicates']) +
@@ -428,6 +378,10 @@ rule multiqc:
         c.targets['multiqc']
     log:
         c.targets['multiqc'][0] + '.log'
+    threads: 1
+    resources:
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     run:
         analysis_directory = set([os.path.dirname(i) for i in input])
         outdir = os.path.dirname(c.targets['multiqc'][0])
@@ -456,6 +410,11 @@ rule markduplicates:
         metrics=c.patterns['markduplicates']['metrics']
     log:
         c.patterns['markduplicates']['bam'] + '.log'
+    threads: 1
+    resources:
+        mem_mb=gb(32),
+        runtime=autobump(hours=2),
+        disk_mb=gb(100)
     params:
         # NOTE: Be careful with the memory here; make sure you have enough
         # and/or it matches the resources you're requesting in the cluster
@@ -491,6 +450,11 @@ rule merge_techreps:
         metrics=c.patterns['merged_techreps'] + '.metrics'
     log:
         c.patterns['merged_techreps'] + '.log'
+    threads: 1
+    resources:
+        mem_mb=gb(32),
+        runtime=autobump(hours=2),
+        disk_mb=gb(100),
     params:
         # NOTE: Be careful with the memory here; make sure you have enough
         # and/or it matches the resources you're requesting in the cluster
@@ -509,6 +473,10 @@ if c.is_paired:
             metrics=c.patterns['collectinsertsizemetrics']['metrics']
         log:
             c.patterns['collectinsertsizemetrics']['metrics'] + '.log'
+        threads: 1
+        resources:
+            mem_mb=gb(32),
+            runtime=autobump(hours=2)
         params:
             java_args='-Xmx20g'
             # java_args='-Xmx2g'  # [TEST SETTINGS -1]
@@ -534,6 +502,10 @@ rule bigwig:
         c.patterns['bigwig']
     log:
         c.patterns['bigwig'] + '.log'
+    threads: 1
+    resources:
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
     shell:
         'bamCoverage '
         '--bam {input.bam} '
@@ -567,11 +539,15 @@ rule fingerprint:
         metrics=c.patterns['fingerprint']['metrics']
     threads: 8
     log: c.patterns['fingerprint']['metrics'] + '.log'
+    threads: 1
+    resources:
+        mem_mb=gb(32),
+        runtime=autobump(hours=2)
     run:
         if len(input.control) == 0:
             jsdsample_arg = ""
         else:
-            jsdsample_arg = '--JSDsample {input.control}'
+            jsdsample_arg = '--JSDsample ' + str(input.control)
         shell(
             'plotFingerprint ' '--bamfiles {input.bams} '
             '-p {threads} '
@@ -612,6 +588,9 @@ rule sicer:
         bed=c.patterns['peaks']['sicer']
     log:
         c.patterns['peaks']['sicer'] + '.log'
+    resources:
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.sicer_run, 'sicer')
     wrapper:
@@ -635,12 +614,51 @@ rule macs2:
         chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
     output:
         bed=c.patterns['peaks']['macs2']
+    resources:
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
     log:
         c.patterns['peaks']['macs2'] + '.log'
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.macs2_run, 'macs2')
     wrapper:
         wrapper_for('macs2/callpeak')
+
+# Epic2 peak caller
+# See https://github.com/biocore-ntnu/epic2
+rule epic2:
+    """
+    Run the epic2 peak caller
+    """
+    input:
+        ip=lambda wc:
+            expand(
+                c.patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.epic2_run, 'epic2', 'ip'),
+            ),
+        control=lambda wc:
+            expand(
+                c.patterns['merged_techreps'],
+                label=chipseq.samples_for_run(config, wc.epic2_run, 'epic2', 'control'),
+            ),
+        bai=lambda wc:  # epic2 requires both .bam and .bam.bai (bam index) files (.bam.bai is not explicitly)
+            expand(
+                c.patterns['merged_techreps'] + '.bai',
+                label=chipseq.samples_for_run(config, wc.epic2_run, 'epic2', 'ip'),
+            ),
+        chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes']
+    output:
+        bed=c.patterns['peaks']['epic2']
+    resources:
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
+    log:
+        c.patterns['peaks']['epic2'] + '.log'
+    params:
+        block=lambda wc: chipseq.block_for_run(config, wc.epic2_run, 'epic2'),
+        is_paired=c.is_paired
+    wrapper:
+        wrapper_for('epic2')
 
 
 rule spp:
@@ -666,6 +684,9 @@ rule spp:
         rdata=c.patterns['peaks']['spp'] + '.RData'
     log:
         c.patterns['peaks']['spp'] + '.log'
+    resources:
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.spp_run, 'spp'),
         keep_tempfiles=False,
@@ -687,6 +708,9 @@ rule bed_to_bigbed:
         bed='{prefix}.bed',
         chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes']
     output: '{prefix}.bigbed'
+    resources:
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     log: '{prefix}.bigbed.log'
     run:
         # Based on the filename, identify the algorithm. Based on the contents,
@@ -694,35 +718,46 @@ rule bed_to_bigbed:
         algorithm = os.path.basename(os.path.dirname(input.bed))
         kind = chipseq.detect_peak_format(input.bed)
 
-
         # bedToBigBed doesn't handle zero-size files
+        # bigbed is not created from epic2-generated peaks
         if os.stat(input.bed).st_size == 0:
             shell("touch {output}")
+        elif kind == 'narrowPeak':
+            _as = '../../include/autosql/bigNarrowPeak.as'
+            _type = 'bed6+4'
+            names=[
+                'chrom', 'chromStart', 'chromEnd', 'name', 'score',
+                'strand', 'signalValue', 'pValue', 'qValue', 'peak']
+        elif kind == 'broadPeak':
+            _as = '../../include/autosql/bigBroadPeak.as'
+            _type = 'bed6+3'
+            names=[
+                'chrom', 'chromStart', 'chromEnd', 'name', 'score',
+                'strand', 'signalValue', 'pValue', 'qValue']
+        elif kind == 'epic2Input':
+            _as = f'../../include/autosql/{kind}Peak.as'
+            _type = 'bed6+4'
+            names=[
+                'chrom', 'chromStart', 'chromEnd', 'pValue', 'score',
+                'strand', 'ChIPCount', 'InputCount', 'FDR', 'log2FoldChange']
+        elif kind == 'epic2NoInput':
+            _as = f'../../include/autosql/{kind}Peak.as'
+            _type = 'bed6'
+            names=[
+                'chrom', 'chromStart', 'chromEnd', 'ChIPCount', 'score',
+                'strand']
         else:
-            if kind == 'narrowPeak':
-                _as = '../../include/autosql/bigNarrowPeak.as'
-                _type = 'bed6+4'
-                names=[
-                    'chrom', 'chromStart', 'chromEnd', 'name', 'score',
-                    'strand', 'signalValue', 'pValue', 'qValue', 'peak']
-            elif kind == 'broadPeak':
-                _as = '../../include/autosql/bigBroadPeak.as'
-                _type = 'bed6+3'
-                names=[
-                    'chrom', 'chromStart', 'chromEnd', 'name', 'score',
-                    'strand', 'signalValue', 'pValue', 'qValue']
-            else:
-                raise ValueError("Unhandled format for {0}".format(input.bed))
+            raise ValueError("Unhandled format for {0}".format(input.bed))
 
-            df = pd.read_table(input.bed, index_col=False, names=names)
-            df['score'] = df['score'] - df['score'].min()
-            df['score'] = (df['score'] / df['score'].max()) * 1000
-            df['score'] = df['score'].replace([np.inf, -np.inf], np.nan).fillna(0)
-            df['score'] = df['score'].astype(int)
-            df.to_csv(output[0] + '.tmp', sep='\t', index=False, header=False)
+        df = pd.read_table(input.bed, index_col=False, names=names)
+        df['score'] = df['score'] - df['score'].min()
+        df['score'] = (df['score'] / df['score'].max()) * 1000
+        df['score'] = df['score'].replace([np.inf, -np.inf], np.nan).fillna(0)
+        df['score'] = df['score'].astype(int)
+        df.to_csv(output[0] + '.tmp', sep='\t', index=False, header=False)
 
-            shell('bedToBigBed -as={_as} -type={_type} {output}.tmp {input.chromsizes} {output} &> {log}')
-            shell('rm {output}.tmp')
+        shell('bedToBigBed -as={_as} -type={_type} {output}.tmp {input.chromsizes} {output} &> {log}')
+        shell('rm {output}.tmp')
 
 
 rule multibigwigsummary:
@@ -735,6 +770,9 @@ rule multibigwigsummary:
         npz=c.targets['multibigwigsummary']['npz'],
         tab=c.targets['multibigwigsummary']['tab']
     threads: 16
+    resources:
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
     run:
         # from the input files, figure out the sample name.
         labels = ' '.join([i.split('/')[-2] for i in input])
@@ -758,6 +796,9 @@ rule plotcorrelation:
     output:
         heatmap=c.targets['plotcorrelation']['heatmap'],
         tab=c.targets['plotcorrelation']['tab']
+    resources:
+        mem_mb=gb(2),
+        runtime=autobump(hours=2)
     shell:
         'plotCorrelation '
         '--corData {input} '
@@ -788,9 +829,31 @@ if 'merged_bigwigs' in config:
             chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
         output:
             c.patterns['merged_bigwig']
+        resources:
+            mem_mb=gb(16),
+            runtime=autobump(hours=2)
         log:
             c.patterns['merged_bigwig'] + '.log'
         script:
             wrapper_for('average-bigwigs/wrapper.py')
+
+rule idxstats:
+    """
+    Run samtools idxstats on sample bams
+    """
+    input:
+        bam=c.patterns['markduplicates']['bam'],
+        bai=c.patterns['markduplicates']['bam'] + '.bai'
+    output:
+        txt=c.patterns['samtools']['idxstats']
+    resources:
+        mem_mb=gb(16),
+        runtime=autobump(hours=2)
+    log: 
+        c.patterns['samtools']['idxstats'] + '.log'
+    run:
+        shell(
+            'samtools idxstats {input.bam} 2> {log} 1> {output.txt}'
+        )
 
 # vim: ft=python

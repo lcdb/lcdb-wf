@@ -114,6 +114,7 @@ The major differences between ChIP-seq and RNA-seq configs are:
 
     sampletable: 'config/sampletable.tsv'
     organism: 'dmel'
+    genome: 'dm6'
 
     aligner:
       index: 'bowtie2'
@@ -153,6 +154,22 @@ The major differences between ChIP-seq and RNA-seq configs are:
           control:
             - input-wingdisc-1
             - input-wingdisc-2
+
+        - label: gaf-wingdisc-pooled-1
+          algorithm: epic2
+          ip:
+            - gaf-wingdisc-1
+          control:
+            - input-wingdisc-1
+          extra: ''
+
+        - label: gaf-wingdisc-pooled-2
+          algorithm: epic2
+          ip:
+            - gaf-wingdisc-2
+          control:
+            - input-wingdisc-2
+          extra: ''
 
     fastq_screen:
       - label: Human

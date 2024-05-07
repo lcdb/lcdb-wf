@@ -25,6 +25,7 @@ rrna:
 multiqc: 'data/rnaseq_aggregation/multiqc.html'
 markduplicates:
    bam: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam'
+   bai: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.bai'
    metrics: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.metrics'
 collectrnaseqmetrics:
    metrics: 'data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.metrics'
@@ -41,3 +42,7 @@ downstream:
    rnaseq: 'downstream/rnaseq.html'
 patterns_by_aggregate:
   merged_bigwig: 'data/rnaseq_aggregation/merged_bigwigs/{merged_bigwig_label}.bigwig'
+samtools:
+  idxstats: 'data/rnaseq_samples/{sample}/idxstat_{sample}.txt'
+  flagstat: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.flagstat'
+  stats: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.stats'

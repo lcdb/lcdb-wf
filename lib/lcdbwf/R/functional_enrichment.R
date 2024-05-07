@@ -1,3 +1,91 @@
+#' Function to run enrichment on a res_list
+#'
+#' @param res_list list of DESeq2 results objects
+#' @param config Config object
+#' @param cores Number of cores to run it on
+#' @param sep Character to separate res_list names
+#'
+#' @return nested list of enrichResult objects
+run_enricher <- function(res_list, ontology_list, config,
+                         cores=1, sep='*'){
+    # This function supports running in parallel which works best with a flat
+    # list; however for organizational purposese we want a nested structure. So
+    # we convert between the two by collapsing nested keys for flat list, and
+    # splitting the collapsed keys to reconstruct the nested.
+
+    # make sure the sep character is not in res_list names
+    if(sum(grepl(sep, names(res_list), fixed=TRUE)) > 0){
+        stop(
+             paste0("'res_list' names must not contain '",
+                    sep, "'. Try running lcdbwf::run_enricher ",
+                    "with a different 'sep' parameter."))
+    }
+
+    # Collapse names of nested res_list & ontologies
+    # These will be used as keys to create a flat list structure
+    n <- collapse_names(res_list=res_list,
+                        config=config,
+                        sep=sep)
+
+    # run enrichment on flattened res_list
+    enrich_list_flat <- BiocParallel::bplapply(n,
+        function(x){
+            # split name into 3 fields:
+            #   comparison, direction, ontology
+            toks <- unlist(strsplit(x, split=sep, fixed=TRUE))
+            name <- toks[1]
+            direction <- toks[2]
+            ont <- toks[3]
+
+            enrich_res <- enrich_test(
+              res_list[[name]],
+              direction=direction,
+              TERM2GENE=ontology_list[['term2gene']][[ont]],
+              TERM2NAME=ontology_list[['term2name']][[ont]],
+              config=config
+            )
+            enrich_res
+        }, BPPARAM=BiocParallel::MulticoreParam(cores))
+
+    # create nested list structure keyed by
+    # comparison, direction, ontology
+    enrich_list <- list()
+    for(name in names(res_list)){
+        enrich_list[[name]] <- list()
+        for(direction in config$functional_enrichment$directions){
+            enrich_list[[name]][[direction]] <- list()
+            for(ont in names(config$functional_enrichment$ontologies)){
+                key <- paste(name, direction, ont, sep=sep)
+                enrich_list[[name]][[direction]][[ont]] <- enrich_list_flat[[key]]
+            }
+        }
+    }
+    return(enrich_list)
+}
+
+#' Function to collapse res_list names with ontologies
+#'
+#' Used for converting from nested form to flattened form.
+#'
+#' @param res_list list of DESeq2 results objects
+#' @param config Config object
+#' @param collapse character string to separate the res_list names
+#'
+#' @return vector of strings with collapsed res_list names
+collapse_names <- function(res_list, config, sep='*'){
+    names <- NULL
+    for(comp in names(res_list)){
+        for(ch in config$functional_enrichment$directions){
+            for(ont in names(config$functional_enrichment$ontologies)){
+                names <- c(names,
+                           paste(comp, ch, ont, sep=sep))
+            }
+        }
+    }
+    names(names) <- names
+    return(names)
+}
+
 #' All-in-one enrichment function.
 #'
 #' Designed to not require an orgdb, and instead requires dataframes of
@@ -17,13 +105,19 @@
 #'   GSEA() for kind="GSEA".
 #'
 #' @return An enrichResults object from
-run_enrichment <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR', ...){
+enrich_test <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR', ...){
+
+  if (is.null(config$main$lfc_thresh)){
+    lfc_thresh <- 0
+  } else {
+    lfc_thresh <- config$main$lfc_thresh
+  }
 
   if (kind == "OR"){
     genes <- get_sig(
       res$res,
       alpha=config$main$alpha,
-      lfc_thresh=config$main$lfc_thresh,
+      lfc_thresh=lfc_thresh,
       direction=direction,
       return_type="rownames"
     )
@@ -68,16 +162,13 @@ run_enrichment <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='O
   gn <- res$res[[config$annotation$label_column]]
   names(gn) <- rownames(res$res)
 
+  # rebuild geneID column after ID conversion
+  geneID <- lapply(gc, function(x){
+                       paste0(gn[x], collapse='/')
+            })
 
-  # Note that `i` may be multiple genes
-  gc <- lapply(gc, function(i) gn[i])
-
+  # plug back into enrichResult
   eres <- e@result
-
-  # Not quite sure why we need to re-select, but this is what setReadable()
-  # does.
-  gc <- gc[as.character(eres$ID)]
-  geneID <- sapply(gc, paste0, collapse = "/")
 
   if (is(e, "gseaResult")){
     eres$core_enrichment <- unlist(geneID)
@@ -89,43 +180,6 @@ run_enrichment <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='O
   e@readable <- TRUE
   e@result <- eres
   return(e)
-}
-
-
-
-#' Return a list of GO annotation dataframes, one per ontology.
-#'
-#' @param orgdb OrgDb
-#' @param keytype Key type intended to be use with clusterProfiler::enricher
-#'   function.
-#'
-#' @return List of dataframes; list names are "BP", "CC", "MF".
-get_go_term2gene <- function(config){
-
-  orgdb <- lcdbwf::get_orgdb(config)
-  keytype <- config$annotation$keytype
-
-  # This is the method used by clusterProfiler internally. See
-  # get_go_term2gene_alt for a different implementation.
-  goterms <- AnnotationDbi::Ontology(GO.db::GOTERM)
-  go2gene <- suppressMessages(
-    AnnotationDbi::mapIds(
-      orgdb, keys=names(goterms), column=keytype, keytype="GOALL",
-      multiVals='list')
-  )
-  goAnno <- stack(go2gene)
-  colnames(goAnno) <- c(keytype, "GOALL")
-  goAnno <- unique(goAnno[!is.na(goAnno[,1]), ])
-  goAnno$ONTOLOGYALL <- goterms[goAnno$GOALL]
-
-  # Split up the dataframe and return as a list, one per annotation.
-  lst <- list(
-      MF=goAnno %>% dplyr::filter(ONTOLOGYALL=="MF") %>% dplyr::select(GOALL, !!keytype),
-      CC=goAnno %>% dplyr::filter(ONTOLOGYALL=="CC") %>% dplyr::select(GOALL, !!keytype),
-      BP=goAnno %>% dplyr::filter(ONTOLOGYALL=="BP") %>% dplyr::select(GOALL, !!keytype)
-  )
-
-  return(lst)
 }
 
 
@@ -190,17 +244,201 @@ get_go_term2gene_alt <- function(orgdb, keytype){
 
 }
 
-#' Extract all GO IDs and their respective descriptions.
+#' Get the species name that works with the KEGG database
 #'
-#' This is used, e.g., as a TERM2NAME dataframe to provide to
-#' clusterProfiler::enricher or clusterProfiler::GSEA.
+#' The KEGG pathway needs the species name in a
+#' specific format, e.g. for 'Homo sapiens' the
+#' KEGG version would be 'hsa'.
 #'
-#' @return Two-column data.frame, GO accession in first column and description
-#'   in the second.
-get_go_descriptions <- function(){
-  term2name <- AnnotationDbi::select(GO.db::GO.db, keys=keys(GO.db::GO.db, "GOID"), c("GOID", "TERM"))
-  return(term2name)
+#' @param config Config object
+#'
+#' @return KEGG-compatible species name
+get_kegg_species <- function(config){
+    species <- config$annotation$genus_species
+    species_split <- unlist(strsplit(species, "\\s+"))
+    kegg_species <- paste0(tolower(substr(species_split[1],1,1)),
+                           substr(species_split[2],1,2))
+    return(kegg_species)
 }
+
+#' All-in-one function to get ontology information
+#'
+#' @param config Config object.
+#'
+#' @return List of lists where top-level elements are ontology
+#'      names. Each element is a list with TERM2GENE & TERM2NAME
+#'      data frames
+get_ontology_list <- function(config){
+
+    orgdb <- lcdbwf:::get_orgdb(config)
+    keytype <- config$annotation$keytype
+
+    # This is the method used by clusterProfiler internally. See
+    # get_go_term2gene_alt for a different implementation.
+    goterms <- AnnotationDbi::Ontology(GO.db::GOTERM)
+    go2gene <- suppressMessages(
+      AnnotationDbi::mapIds(
+        orgdb, keys=names(goterms), column=keytype, keytype="GOALL",
+        multiVals='list')
+    )
+    goAnno <- stack(go2gene)
+    colnames(goAnno) <- c(keytype, "GOALL")
+    goAnno <- unique(goAnno[!is.na(goAnno[,1]), ])
+    goAnno$ONTOLOGYALL <- goterms[goAnno$GOALL]
+
+    # get GO descriptions
+    go2name <- AnnotationDbi::select(GO.db::GO.db,
+                    keys=keys(GO.db::GO.db, "GOID"),
+                    c("GOID", "TERM"))
+
+    # Split up the dataframe into a list, one per annotation.
+    go2gene <- list(
+        MF=goAnno %>% dplyr::filter(ONTOLOGYALL=="MF") %>% dplyr::select(GOALL, !!keytype),
+        CC=goAnno %>% dplyr::filter(ONTOLOGYALL=="CC") %>% dplyr::select(GOALL, !!keytype),
+        BP=goAnno %>% dplyr::filter(ONTOLOGYALL=="BP") %>% dplyr::select(GOALL, !!keytype)
+    )
+
+    # We need to assign each key to its respective term2name dataframe (or NULL if
+    # none)
+    ontology_list <- list(term2gene=go2gene,
+                          term2name=lapply(go2gene,
+                            function(x) go2name %>% dplyr::filter(GOID %in% x$GOALL)))
+
+
+    # download KEGG information
+    kegg_species <- lcdbwf:::get_kegg_species(config)
+
+    # NOTE: KEGG API changes breaks clusterProfiler enrichKEGG
+    #       and download_KEGG functions pre v4.7.2. Using
+    #       internal patched versions in its place here.
+    #       Can switch back to clusterProfiler version later
+    #       if needed, so leaving the alternate command here.
+    #
+    #kegg_list <- clusterProfiler::download_KEGG(kegg_species,
+    #                            keyType='kegg')
+    kegg_list <- get_KEGG_info(kegg_species)
+
+    term2gene <- kegg_list[['term2gene']]
+    term2name <- kegg_list[['term2name']]
+
+    # get pathway to gene ID mapping
+    term2id <- NULL
+    while(is.null(term2id)){
+      term2id <- tryCatch(
+        suppressMessages(
+          AnnotationDbi::mapIds(
+              orgdb, keys=term2gene[,2],
+              column=keytype, keytype="ENTREZID",
+              multiVals='first')
+        ),
+        error = function(e){ NULL }
+      )
+
+      # if null, convert IDs to 'ncbi-geneid' ('ENTREZID') first
+      if(is.null(term2id)){
+        idconv <- download_KEGG_db('ncbi-geneid', kegg_species,
+                                   'conv')
+        idconv[, 1] <- gsub('.+\\:', '', idconv[,1])
+        idconv[, 2] <- gsub('.+\\:', '', idconv[,2])
+        rownames(idconv) <- idconv[,1]
+
+        term2gene[, 2] <- idconv[term2gene[,2], 2]
+      }
+    }
+
+    term2gene[,2] <- term2id[term2gene[,2]]
+    colnames(term2gene) <- c('KEGG', keytype)
+    colnames(term2name) <- c('KEGG', 'Description')
+
+    # add kegg info to ontology_list
+    ontology_list$term2gene[['KEGG']] <- term2gene
+    ontology_list$term2name[['KEGG']] <- term2name
+
+    # Get all of MSigDB, although we may only use subsets of it.
+    # This can take up a lot of memory on CI/CD, so we only do this if not doing
+    # a test.
+    if (!config$toggle$test){
+      msigdb_df <- get_msigdb_df(config)
+      msigdb_term2gene_list <- get_msigdb_term2gene_list(msigdb_df)
+      ontology_list$term2gene <- c(ontology_list$term2gene,
+                                   msigdb_term2gene_list)
+
+      # MSigDB term names are very long and don't convey
+      # that much more information than the names. So,
+      # setting that to NULL here
+      ontology_list$term2name <- c(ontology_list$term2name,
+                                   lapply(msigdb_term2gene_list,
+                                          function(x) NULL))
+    }
+
+    return(ontology_list)
+}
+
+#' Download KEGG info from API
+#'
+#' This function is a simplified version combining clusterProfiler
+#' functions 'kegg_rest' & 'kegg_link' to reflect KEGG API
+#' changes.
+#'
+#' @param target_db KEGG species db name, e.g. 'hsa' for human
+#' @param source_db KEGG source db name, e.g. 'pathway'.
+#' @param type type of information to download. Can be 'term2gene', 'term2name' or 'conv'
+#'
+download_KEGG_db <- function(target_db, source_db, type){
+  if(type == 'term2gene') type <- 'link'
+  else if(type == 'term2name') type <- 'list'
+  else if(type == 'conv') type <- 'conv'
+  else {
+    stop('Unrecognized "type": must be "term2gene", "term2name" or "conv"')
+  }
+
+  # first get: pathway -> gene id mapping
+  url <- paste("https://rest.kegg.jp", type,
+                target_db, source_db, sep = "/")
+
+  # download data to tempfile and save to data frame
+  f <- tempfile()
+  dl <- tryCatch(
+          utils::download.file(url, quiet=TRUE,
+                               method='libcurl',
+                               destfile=f),
+                 error = function(e) NULL
+        )
+
+  if (is.null(dl)) {
+      message("Failed to download KEGG data.")
+      return(NULL)
+  }
+  content <- readLines(f)
+  content %<>% strsplit(., "\t") %>% do.call("rbind", .)
+  res <- data.frame(from = content[, 1], to = content[, 2])
+
+  # next get pathway -> pathway name mapping
+
+  return(res)
+}
+
+#' Build annotation list from KEGG info
+#'
+#' This wrapper function downloads term -> gene & term -> name
+#' mappings from KEGG and returns as a list of data frames.
+#'
+#' @param species KEGG species name, e.g. 'hsa'
+#'
+get_KEGG_info <- function(species){
+  term2gene <- download_KEGG_db(species, 'pathway', 'term2gene')
+  term2name <- download_KEGG_db('pathway', species, 'term2name')
+
+  # clean up term2gene prefixes
+  term2gene[, 'from'] <- gsub('.+\\:', '', term2gene[, 'from'])
+  term2gene[, 'to'] <- gsub('.+\\:', '', term2gene[, 'to'])
+
+  return(
+    list(term2gene=term2gene,
+         term2name=term2name)
+  )
+}
+
 
 #' Convert "1/100" to 0.01.
 #'
@@ -372,6 +610,7 @@ truncate <- function(obj, truncate_to){
     return(x)
   }
   obj@result$Description <- sapply(obj@result$Description, f)
+  obj@result$Description <- make.unique(obj@result$Description)
   return(obj)
 }
 
@@ -391,8 +630,8 @@ dotplots <- function(enrich_res, config, name=NULL, direction=NULL, ont=NULL, tr
   }
   enrich_res <- truncate(enrich_res, truncate_to)
   p <- do.call(enrichplot::dotplot, c(enrich_res, config$plotting$dotplot_args)) +
-    ggtitle(title) +
-    theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+    ggplot2::ggtitle(title) +
+    ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, size=15, face='bold'))
   return(p)
 }
 
@@ -412,8 +651,8 @@ emapplots <- function(enrich_res, config, name=NULL, direction=NULL, ont=NULL, t
   enrich_res <- truncate(enrich_res, truncate_to)
   enrich_res <- enrichplot::pairwise_termsim(enrich_res)
   p <- do.call(enrichplot::emapplot, c(enrich_res, config$plotting$emapplot_args)) +
-    ggtitle(title) +
-    theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+    ggplot2::ggtitle(title) +
+    ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, size=15, face='bold'))
   return(p)
 }
 
@@ -432,8 +671,8 @@ cnetplots <- function(enrich_res, config, name=NULL, direction=NULL, ont=NULL, t
   }
   enrich_res <- truncate(enrich_res, truncate_to)
   p <- do.call(enrichplot::cnetplot, c(enrich_res, config$plotting$cnetplot_args)) +
-    ggtitle(title) +
-    theme(plot.title=element_text(hjust=0.5, size=15, face='bold'))
+    ggplot2::ggtitle(title) +
+    ggplot2::theme(plot.title=ggplot2::element_text(hjust=0.5, size=15, face='bold'))
   return(p)
 }
 
@@ -448,4 +687,3 @@ available_msigdb_keys <- function(){
     mutate(x=paste(gs_cat, gs_subcat, sep='_') %>% str_replace('_$', ''))
   return(df$x)
 }
-

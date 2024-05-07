@@ -33,33 +33,33 @@ build_results_tabs <- function(res_list, dds_list, config, text){
     dds_i <- dds_list[[res_list[[name]][['dds']] ]]
     res_i <- res_list[[name]][['res']]
     label <- res_list[[name]][['label']]
-    genes_to_label <- lcdbwf::genes_to_label(res_i, n=5, config)
-    lcdbwf::mdcat('## ', label, ' {.tabset}')
+    genes_to_label <- lcdbwf:::genes_to_label(res_i, n=5, config)
+    lcdbwf:::mdcat('## ', label, ' {.tabset}')
 
     # TODO:
     # https://hdgitappip01.nichd.nih.gov/bspc/core/labeled-ma-plot/-/blob/master/plotMA.label.R
     # is the latest version
 
-    lcdbwf::mdcat('### M-A plot')
-    lcdbwf::folded_markdown(text$results_plots$ma, "Help")
-    print(lcdbwf::plotMA_label(
+    lcdbwf:::mdcat('### M-A plot')
+    lcdbwf:::folded_markdown(text$results_plots$ma, "Help")
+    print(lcdbwf:::plotMA_label(
       res_i,
       genes_to_label=genes_to_label,
       label_column=config$annotation$label_column))
 
-    lcdbwf::mdcat('### Volcano plot')
-    lcdbwf::folded_markdown(text$results_plots$volcano, "Help")
-    print(lcdbwf::plot_volcano_label(
+    lcdbwf:::mdcat('### Volcano plot')
+    lcdbwf:::folded_markdown(text$results_plots$volcano, "Help")
+    print(lcdbwf:::plot_volcano_label(
       res_i,
       genes_to_label=genes_to_label,
       label_column=config$annotation$label_column))
 
-    lcdbwf::mdcat('### P-value distribution')
-    lcdbwf::folded_markdown(text$results_plots$pval_hist, "Help")
-    lcdbwf::pval_hist(res_i)
+    lcdbwf:::mdcat('### P-value distribution')
+    lcdbwf:::folded_markdown(text$results_plots$pval_hist, "Help")
+    print(lcdbwf:::pval_hist(res_i))
 
     if (config$toggle$results_diagnostics){
-      lcdbwf::results_diagnostics(res=res_i, dds=res_list[[name]]$dds, name=name, config=config, text=text)
+      lcdbwf:::results_diagnostics(res=res_i, dds=res_list[[name]]$dds, name=name, config=config, text=text)
     }
   }
 }

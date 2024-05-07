@@ -3,21 +3,6 @@
 import os
 import sys
 
-try:
-    from pathlib import Path
-except ImportError:
-    print("Need Python 3.6 or higher, aborting")
-    sys.exit(1)
-
-if sys.version_info.major < 3:
-    error("Need Python 3.6+, aborting")
-    sys.exit(1)
-
-elif sys.version_info.minor < 6:
-    error("Needs Python 3.6+, aborting")
-    sys.exit(1)
-
-
 import tempfile
 import argparse
 import subprocess as sp
@@ -26,6 +11,35 @@ import json
 import fnmatch
 import logging
 import hashlib
+from pathlib import Path
+from distutils import filelist
+
+# Determine default staging area, used in help
+default_staging = "/tmp/{0}-lcdb-wf-staging".format(os.getenv('USER'))
+
+usage = f"""
+This script assists in the deployment of relevant code from the lcdb-wf
+repository to a new deployment directory for running an analysis. It is
+intended to be run in a standalone fashion such that with just the script you
+can download and deploy a specified version of the workflows.
+
+For example, the following command will clone the GitHub repo to {default_staging},
+check out the v9.999 branch, copy the files needed for RNA-seq over to the
+"my_analysis_dir" directory, store a read-only file .lcdb-wf-deployment.yaml
+with the metadata of the repo used for cloning, and build the conda
+environments within "my_analysis_dir":
+
+    ./deploy.py \\
+        --clone \\
+        --dest my_analysis_dir \\
+        --flavor rnaseq \\
+        --build-envs \\
+        --branch v9.999
+
+Compared to directly cloning the repo, this results in a cleaner deployment
+directory that does not have various test infrastructure or workflows not
+relevant to the project.
+"""
 
 logging.basicConfig(
     format="%(asctime)s [%(module)s] %(message)s",
@@ -44,10 +58,6 @@ BLUE = "\x1b[34m"
 RESET = "\x1b[0m"
 
 
-# Determine default staging area
-default_staging = "/tmp/{0}-lcdb-wf-staging".format(os.getenv('USER'))
-
-
 def debug(s):
     logging.debug(GRAY + s + RESET)
 
@@ -64,130 +74,75 @@ def error(s):
     logging.error(RED + s + RESET)
 
 
+def write_include_file(source, flavor='all'):
 
-usage = f"""
-This script assists in the deployment of relevant code from the lcdb-wf
-repository to a new deployment directory for running an analysis.
+    # Patterns follow that of MANIFEST.in
+    # (https://packaging.python.org/en/latest/guides/using-manifest-in/),
+    # and distutils.filelist is used below to parse them.
 
-For example, the following command will clone the GitHub repo to {default_staging},
-check out the v9.999 branch, copy the files needed for RNA-seq over to the
-"my_analysis_dir" directory, store a read-only file .lcdb-wf-deployment.yaml
-with the metadata of the repo used for cloning, and build the conda
-environments within "my_analysis_dir":
+    PATTERN_DICT = {
+        'rnaseq': [
+            'include workflows/rnaseq/Snakefile',
+            'recursive-include workflows/rnaseq/config *',
+            'include workflows/rnaseq/rnaseq_trackhub.py',
+            'recursive-include workflows/rnaseq/downstream *.Rmd',
+            'recursive-include workflows/rnaseq/downstream *.yaml',
+        ],
+        'chipseq': [
+            'include workflows/chipseq/Snakefile',
+            'recursive-include workflows/chipseq/config *',
+            'include workflows/chipseq/chipseq_trackhub.py',
+        ],
+        'all': [
+            'recursive-include wrappers *',
+            'recursive-include include *',
+            'recursive-include lib *', 
+            'include env.yml env-r.yml .gitignore',
+            'include workflows/references/Snakefile',
+            'recursive-include workflows/references/config *',
+            'global-exclude __pycache__',
+        ],
+        'full': [
+            'include workflows/colocalization/Snakefile',
+            'recursive-include workflows/colocalization/config *',
+            'recursive-include workflows/colocalization/scripts *',
+            'recursive-include workflows/figures *',
+            'recursive-include workflows/external *',
+        ]
 
-    ./deploy.py \\
-        --clone \\
-        --dest my_analysis_dir \\
-        --flavor rnaseq \\
-        --build-envs \\
-        --branch v9.999
+    }
 
-"""
+    patterns = []
+    if flavor in ('full', 'rnaseq'):
+        patterns.extend(PATTERN_DICT['rnaseq'])
+    if flavor in ('full', 'chipseq'):
+        patterns.extend(PATTERN_DICT['chipseq'])
+    if flavor == 'full':
+        patterns.extend(PATTERN_DICT['full'])
+    patterns.extend(PATTERN_DICT['all'])
 
+    def fastwalk(path):
+        """
+        Find all files recursively, but short-circuit if we get to a conda env to
+        avoid traversing those many files.
+        """
+        path = str(path)
+        for root, dirs, files in os.walk(path, topdown=True):
+            if 'conda-meta' in dirs:
+                dirs[:] = []
+                files[:] = []
+            for d in dirs:
+                yield os.path.join(root, d).replace(path + '/', '')
+            for f in files:
+                yield os.path.join(root, f).replace(path + '/', '')
 
-# Notes on include/exclude patterns for rsync:
-#
-# - Excluding a directory excludes everything below it
-# - Including a directory does not automatically include everything below it.
-# - Use "dir/***" to include everything
-# - Patterns with no / applies to basename
-# - Patterns ending with / implies directories only
-# - Patterns starting with / implies that the root is the source dir provided to rsync
-# - * is anything but /
-# - ** is any part of path, including /
-always = {
-    "include": [
-        "wrappers/wrappers",
-        "include",
-        "lib",
-        "env.yaml",
-        "env-r.yaml",
-        ".gitignore",
-    ],
-    "exclude": [
-        "sra_sampletable.tsv",
-        "/.buildkite/*",
-        "/ci/*",
-        "/.circleci/*",
-        "/config/*",
-        "/deploy.py",
-        "/docs/***",
-        "/include/AnnotationHubCache",
-        "/lib/postprocess/__pycache__",
-        "/lib/__pycache__",
-        "*/.pytest_cache/*",
-        "/README.md",
-        "/test/***",
-        "/.travis.yml",
-        "/workflows/*/results",
-        "/workflows/*/data",
-        "/workflows/figures/*",
-        "/workflows/*/references_data",
-        "/workflows/*/references_dir",
-        "/workflows/*/reports",
-        "/workflows/*/references/config",
-        "/workflows/rnaseq/downstream/final_clusters",
-        "/workflows/rnaseq/downstream/*html",
-        "/workflows/rnaseq/downstream/*log",
-        "/workflows/rnaseq/downstream/rnaseq_cache",
-        "/workflows/rnaseq/downstream/rnaseq_files",
-        "/workflows/rnaseq/downstream/*.tsv*",
-        "/workflows/*/run*_test.sh",
-        "/workflows/*/run_downstream_test.sh",
-        "/workflows/*/Snakefile.test",
-        "/workflows/*/.snakemake",
-        "/wrappers/demo/*",
-        "/wrappers/test/*",
-        "/wrappers/test_toy.py",
-    ],
-}
+    f = filelist.FileList()
+    f.allfiles = list(fastwalk(source))
+    for pattern in patterns:
+        f.process_template_line(pattern)
+    f.sort()
+    f.remove_duplicates()
 
-flavors = {
-    "chipseq": ["workflows/chipseq/*", "workflows/references/*"],
-    "rnaseq": ["workflows/rnaseq/*", "workflows/references/*"],
-    "colocalization": ["workflows/colocalization/*"],
-    "full": ["workflows/*"],
-}
-
-
-def filter_out_excluded(filenames, patterns_to_exclude):
-    """
-    Only return the subset of `filenames` that do not match any
-    `patterns_to_exclude`.
-    """
-    keep = []
-    for filename in filenames:
-        if not any(
-            fnmatch.fnmatch(filename, pattern) for pattern in patterns_to_exclude
-        ):
-            keep.append(filename)
-    return keep
-
-
-def filter_out_other_workflows(filenames, patterns_to_include, prefilter="workflows/*"):
-    """
-    Return subset of `filenames` that:
-
-        - don't match `prefilter`
-        - match prefilter AND match any of `patterns_to_include`
-    """
-    keep = []
-    for filename in filenames:
-        # If it doesn't match prefilter, we don't want to do anything about it,
-        # so keep it and move on.
-        if not fnmatch.fnmatch(filename, prefilter):
-            keep.append(filename)
-            continue
-        # Otherwise, only keep it if it's in patterns_to_include.
-        if any(fnmatch.fnmatch(filename, pattern) for pattern in patterns_to_include):
-            keep.append(filename)
-    return keep
-
-
-def write_file_list(source):
-
-    # We start with anything under version control, and then progressively filter
-    # out other stuff.
     under_version_control = sorted(
         sp.check_output(
             ["git", "ls-tree", "-r", "HEAD", "--name-only"],
@@ -195,25 +150,17 @@ def write_file_list(source):
             cwd=source,
         ).splitlines(False),
     )
-    keep = filter_out_excluded(under_version_control, always["exclude"])
-    keep = filter_out_other_workflows(keep, flavors[flavor])
 
-    exclude = tempfile.NamedTemporaryFile(delete=False).name
-    with open(exclude, "w") as fout:
-        fout.write("\n".join(always["exclude"]))
-
+    to_transfer = list(set(under_version_control).intersection(f.files))
     include = tempfile.NamedTemporaryFile(delete=False).name
-    with open(include, "w") as fout:
-        fout.write("\n\n")
-        fout.write("\n".join(keep) + "\n")
+    with open(include, 'w') as fout:
+        fout.write('\n\n')
+        fout.write('\n'.join(to_transfer))
 
-    debug("List of files excluded: {exclude}".format(**locals()))
-    debug("List of files included: {include}".format(**locals()))
-
-    return include, exclude
+    return include
 
 
-def clone_repo(dest, branch="master"):
+def clone_repo(dest, branch="master", mismatch_ok=False):
 
     if Path(dest).exists():
         error("Path {dest} already exists, aborting!".format(**locals()))
@@ -237,7 +184,7 @@ def clone_repo(dest, branch="master"):
     this_md5 = check_md5(__file__)
     that_md5 = check_md5(os.path.join(dest, "deploy.py"))
 
-    if this_md5 != that_md5:
+    if (this_md5 != that_md5) and not mismatch_ok:
         full_here = Path(__file__).resolve()
         full_there = Path(dest) / "deploy.py"
         error(
@@ -249,13 +196,12 @@ def clone_repo(dest, branch="master"):
         sys.exit(1)
 
 
-def rsync(include, exclude, source, dest, rsync_args):
+def rsync(include, source, dest, rsync_args):
     rsync = [
         "rsync",
         "--relative",
         rsync_args,
         "--files-from={}".format(include),
-        "--exclude-from={}".format(exclude),
         source,
         dest,
     ]
@@ -382,7 +328,7 @@ if __name__ == "__main__":
     ap.add_argument(
         "--flavor",
         default="full",
-        help="""Options are {0}. Default is full.""".format(list(flavors.keys())),
+        help="""Options are {0}. Default is full.""".format(['full', 'rnaseq', 'chipseq']),
     )
     ap.add_argument(
         "--dest", help="""Destination directory in which to copy files""", required=True
@@ -399,7 +345,6 @@ if __name__ == "__main__":
 
     ap.add_argument(
         "--staging",
-        default=default_staging,
         help="""Only used when --clone is specified. Clone the main git repo to
         this directory and do a diff on the deploy.py script found there to
         ensure this one is up-to-date, and if so then proceed using the new clone as the source.
@@ -430,6 +375,10 @@ if __name__ == "__main__":
         default="-rlt"
     )
 
+    ap.add_argument(
+        "--mismatch-ok",
+        action="store_true",
+        help="Used for testing")
     args = ap.parse_args()
     dest = args.dest
     flavor = args.flavor
@@ -438,13 +387,15 @@ if __name__ == "__main__":
             print("ERROR: --staging was specified but --clone was not. Did you want to use --clone?", file=sys.stderr)
             sys.exit(1)
     if args.clone:
-        source = args.staging
-        clone_repo(args.staging, args.branch)
+        if args.staging is None:
+            args.staging = default_staging
+        source = os.path.abspath(args.staging)
+        clone_repo(args.staging, args.branch, mismatch_ok=args.mismatch_ok)
     else:
         source = Path(__file__).parent.resolve()
 
-    include, exclude = write_file_list(source)
-    rsync(include, exclude, source, dest, args.rsync_args)
+    include = write_include_file(source, flavor)
+    rsync(include, source, dest, args.rsync_args)
     deployment_json(source, dest)
 
     if args.build_envs:

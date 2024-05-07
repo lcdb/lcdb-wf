@@ -31,6 +31,19 @@ get_annotation_hub <- function(config, localHub=NULL, force=NULL, cache=NULL){
     localHub=localHub,
     cache=cache
   )
+
+  # AnnotationHub uses a safe permissions approach, setting the AnnotationHub
+  # lock file to be only visible by the creating user and the cache database to
+  # be read-only for the group. However, this can cause permission errors when
+  # working in a group setting. If this setting is TRUE, then the permissions
+  # will be set on BiocFileCache.sqlite and BiocFileCache.sqlite.LOCK to be
+  # read/write for both user and group.
+  if (config$main$group_permissions){
+    files <- dir(cache, full.names=TRUE)
+    files <- files[grep('BiocFileCache.sqlite', files)]
+    Sys.chmod(files, mode="0660", use_umask=TRUE)
+  }
+
   return(ah)
 }
 
@@ -63,7 +76,7 @@ get_annotation_db <- function(config, dbtype, genus_species=NULL, orgdb_key_over
     if (missing(orgdb_key_override)) orgdb_key_override <- config$annotation$orgdb_key_override
     if (missing(txdb_key_override)) txdb_key_override <- config$annotation$txdb_key_override
 
-    ah <- lcdbwf::get_annotation_hub(config, cache=cache)
+    ah <- lcdbwf:::get_annotation_hub(config, cache=cache)
 
     # If an override was provided, immediately return the corresponding db.
     if (!is.null(orgdb_key_override) & dbtype == "OrgDb") return(ah[[orgdb_key_override]])
@@ -106,10 +119,11 @@ get_annotation_db <- function(config, dbtype, genus_species=NULL, orgdb_key_over
 #'
 #' @param res_list List of DESeqResults objects
 #' @param config Full config object, at least containing config$orgdb
+#' @param use_orgdb Boolean to use or bypass orgDb extra columns
 #'
 #' @return List of same results objects, but each one with additional columns
 #'   attached as specified in the config
-attach_extra <- function(res_list, config, force_intersect){
+attach_extra <- function(res_list, config, force_intersect, use_orgdb=TRUE){
 
   if (missing(force_intersect)) force_intersect <- config$main$force_intersect
   if (is.null(force_intersect)) force_intersect <- FALSE
@@ -125,7 +139,7 @@ attach_extra <- function(res_list, config, force_intersect){
       # Take advantage of utilities originally used for UpSet plots to get the
       # set of genes found in all lists
       warning("Keeping only the intersecting set of genes across all results lists because force_intersect=TRUE.")
-      keep <- lcdbwf::fromList.with.names(nms)
+      keep <- lcdbwf:::fromList.with.names(nms)
       keep <- rownames(keep[rowSums(keep) == ncol(keep),])
       res_list <- lapply(res_list, function (x) {
           x$res <- x$res[keep,]
@@ -136,28 +150,39 @@ attach_extra <- function(res_list, config, force_intersect){
 
   keys <- rownames(res_list[[1]]$res)
 
-  orgdb <- lcdbwf::get_annotation_db(config, dbtype="OrgDb")
+  if (use_orgdb == TRUE) {
+    orgdb <- lcdbwf:::get_annotation_db(config, dbtype="OrgDb")
 
-  # Create a dataframe mapping gene IDs to the various configured columns
-  lookups <- list()
-  for (col in config$annotation$orgdb_columns){
-    lookups[[col]] <- mapIds(orgdb, keys=keys, column=col, keytype=config$annotation$keytype, multiVal='first')
-    if (col %in% config$annotation$fill){
-      lookups[[col]] <- ifelse(is.na(lookups[[col]]), keys, lookups[[col]])
-    }
-  }
-  lookups <- data.frame(lookups)
-
-  # Use that dataframe to attach additional columns to each results object
-  for (name in names(res_list)){
-    res <- res_list[[name]]$res
-    orig_colnames <- colnames(res)
+    # Create a dataframe mapping gene IDs to the various configured columns
+    lookups <- list()
     for (col in config$annotation$orgdb_columns){
-      res[[col]] <- lookups[[col]]
+      lookups[[col]] <- mapIds(orgdb, keys=keys, column=col, keytype=config$annotation$keytype, multiVal='first')
+      if (col %in% config$annotation$fill){
+        lookups[[col]] <- ifelse(is.na(lookups[[col]]), keys, lookups[[col]])
     }
-    res$gene <- rownames(res)
-    res <- res[, c('gene', config$annotation$orgdb_columns, orig_colnames)]
-    res_list[[name]]$res <- res
+    }
+    lookups <- data.frame(lookups)
+
+    # Use that dataframe to attach additional columns to each results object
+    for (name in names(res_list)){
+      res <- res_list[[name]]$res
+      orig_colnames <- colnames(res)
+      for (col in config$annotation$orgdb_columns){
+        res[[col]] <- lookups[[col]]
+      }
+      res$gene <- rownames(res)
+      res <- res[, c('gene', config$annotation$orgdb_columns, orig_colnames)]
+      res_list[[name]]$res <- res
+    }
+  } else {
+    # attach the genes as SYMBOLs in absence of OrgDb data
+    for (name in names(res_list)){
+      res <- res_list[[name]]$res
+      res$gene <- rownames(res)
+      res$SYMBOL <- rownames(res)
+      res_list[[name]]$res <- res
+    }
   }
+
   return(res_list)
 }

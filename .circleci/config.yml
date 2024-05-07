@@ -5,7 +5,7 @@ variables:
   # default settings for all steps
   defaults: &defaults
     docker:
-      - image: continuumio/miniconda3
+      - image: ubuntu:20.04
 
   # --------------------------------------------------------------------------
   # The caching dramatically speeds up testing time, because we can do the
@@ -26,9 +26,9 @@ variables:
 
   save_cache: &save_cache
     save_cache:
-      key: v0-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
+      key: v5-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
       paths:
-        - /opt/conda
+        - /opt/mambaforge
 
         # this file is created by sra-tools upon installation by conda, and so
         # needs to be included in the cache otherwise fastq-dump thinks it's
@@ -38,7 +38,7 @@ variables:
   restore_cache: &restore_cache
     restore_cache:
       keys:
-        - v0-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
+        - v5-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
 
   # --------------------------------------------------------------------------
   # The path needs to be set each time; in jobs below this will be called as
@@ -48,32 +48,77 @@ variables:
         name: Set path
         command: |
           # x11-utils required to avoid R::png() segfaulting
-          apt update && apt install -y locales-all locales x11-utils
+          apt update && apt install -y \
+            curl \
+            git \
+            locales \
+            locales-all \
+            rsync \
+            tree \
+            wget \
+            x11-utils
+
+          # support en_US.utf8
+          rm -rf /var/lib/apt/lists/*
+          localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+
+          # Set env vars to be used throughout; this is specific to how
+          # circleci handles env vars.
           echo 'export DEPLOY=/tmp/lcdb-wf-test' >> $BASH_ENV
+          echo 'export LCDBWF_ENV=lcdb-wf-test' >> $BASH_ENV
+          echo 'export LCDBWF_ENV_R=lcdb-wf-test-r' >> $BASH_ENV
           echo 'export LC_ALL=en_US.utf8' >> $BASH_ENV
           echo 'export LANG=en_US.utf8' >> $BASH_ENV
+          echo 'export ORIG=$(pwd)' >> $BASH_ENV
+
+          # Note that if we don't escape \$PATH, we'll be stuck with the exact
+          # PATH defined here, which will break anything needing conda envs.
+          echo "export PATH=\$PATH:/opt/mambaforge/bin" >> $BASH_ENV
           source $BASH_ENV
+
+
   # --------------------------------------------------------------------------
   # Set up conda if the environments do not already exist
   setup: &setup
     run:
       name: Setup conda
       command: |
-        set -e
-        apt update
-        apt install -y locales-all locales
-        export LC_ALL=en_US.utf8
-        export LANG=en_US.utf8
-        # We only do the installation if the conda environment does not already
-        # exist.
-        if ! conda env list | grep -q "lcdb-wf-test"; then
-            echo "Setting up conda..."
+        source $BASH_ENV
+        echo $PATH
+        # /opt/mambaforge will only exist if there was a cache restore; otherwise we'll make it here.
+        #
+        # Use mambaforge which comes with mamba.
+        if [ ! -e /opt/mambaforge ]; then
+            curl -L https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh > mambaforge.sh
+            bash mambaforge.sh -b -p /opt/mambaforge
+            source "/opt/mambaforge/etc/profile.d/conda.sh"
+            source "/opt/mambaforge/etc/profile.d/mamba.sh"
+            conda activate
+
+            which conda
+            which mamba
+            mamba --version
+
+            # Note that mambaforge doesn't come with the defaults channel, but
+            # we're adding it here at the beginning to simulate what most users
+            # probably have locally (and following the bioconda docs). Using
+            # strict channel priority means we should [theoretically] never
+            # pull packages from defaults because they all exist on
+            # conda-forge.
             conda config --system --add channels defaults
+
             conda config --system --add channels bioconda
             conda config --system --add channels conda-forge
-            conda install mamba -y
-            mamba env create -n lcdb-wf-test --file env.yml
-            mamba env create -n lcdb-wf-test-r --file env-r.yml
+            conda config --system --set channel_priority strict
+            conda config --show
+
+            # https://docs.conda.io/projects/conda-build/en/latest/resources/link-scripts.html,
+            # post-link scripts should not depend on any installed or
+            # to-be-installed conda packages...but they do.
+            mamba install -n base r-base yq
+
+            time mamba env create -n $LCDBWF_ENV --file env.yml
+            time mamba env create -n $LCDBWF_ENV_R --file env-r.yml
         fi
 
   # --------------------------------------------------------------------------
@@ -82,30 +127,44 @@ variables:
     run:
       name: Download example data
       command: |
-        source activate lcdb-wf-test
+        source /opt/mambaforge/etc/profile.d/conda.sh
+        conda activate $LCDBWF_ENV
+        conda info --envs
+        conda config --show
 
-        # rsync is required for the deployment process
-        apt install -y rsync
+        # Copy the deploy script to a different location to simulate the
+        # suggested deployment method of downloading just the script.
+        cp deploy.py /tmp/deploy.py
+        cd /tmp/
 
         # Deploy to the new directory, so we are testing the real-world case of post-deployment.
         # Note that $DEPLOY is set in the "set-paths" step configured above.
         python deploy.py --flavor full --dest $DEPLOY --branch $CIRCLE_BRANCH --clone
 
+        set -x
+        tree $DEPLOY
+        tree $ORIG
+        set +x
+
         # Separately copy over some test-specific files
-        cp workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq
-        cp workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq
-        cp workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq
-        cp workflows/colocalization/run_test.sh $DEPLOY/workflows/references
-        cp workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization
+        cp $ORIG/workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq/run_test.sh
+        cp $ORIG/workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq/run_test.sh
+        cp $ORIG/workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq/run_downstream_test.sh
+        cp $ORIG/workflows/references/run_test.sh $DEPLOY/workflows/references/run_test.sh
+        cp $ORIG/workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization/run_test.sh
+
         mkdir $DEPLOY/ci
-        cp ci/get-data.py $DEPLOY/ci
+        mkdir $DEPLOY/test
+        cp $ORIG/test/lcdb-wf-test $DEPLOY/test/lcdb-wf-test
+        cp $ORIG/test/workflow_test_params.yaml $DEPLOY/test/workflow_test_params.yaml
+        cp $ORIG/ci/get-data.py $DEPLOY/ci/get-data.py
 
         # the ./run_test.sh scripts run this
-        cp ci/preprocessor.py $DEPLOY/ci
+        cp $ORIG/ci/preprocessor.py $DEPLOY/ci/preprocessor.py
 
         # download example data
         cd $DEPLOY
-        python ci/get-data.py
+        test/lcdb-wf-test data --kind=all --verbose
 
   # --------------------------------------------------------------------------
   # Run the doctests across the included modules
@@ -113,27 +172,21 @@ variables:
     run:
       name: Run pytest suite and testthat suite
       command: |
-        source activate lcdb-wf-test
-        pytest --doctest-modules lib
+        source /opt/mambaforge/etc/profile.d/conda.sh
+        conda activate $LCDBWF_ENV
+        # run unit tests and doctests for the modules in lib
+        test/lcdb-wf-test unit_tests --pytest
+
+        # Ensure that the chunks in rnaseq.Rmd have matching documentation
+        test/lcdb-wf-test unit_tests --ensure-docs
 
         # find all URLs in reference configs and make sure they exist
-        python -c 'from lib.common import check_all_urls_found; check_all_urls_found()'
+        test/lcdb-wf-test unit_tests --url-check
 
-        source deactivate
-        source activate lcdb-wf-test-r
-        Rscript -e "devtools::test('lib/lcdbwf')"
+        # run R package unit tests using the R env
+        test/lcdb-wf-test unit_tests --r-test
 
 
-  # --------------------------------------------------------------------------
-  # Other downstream jobs depend on this so that we can catch trivial errors
-  # quickly
-  rnaseq-dryrun: &rnaseq-dryrun
-      run:
-        name: dry run
-        command: |
-          cd $DEPLOY/workflows/rnaseq
-          source activate lcdb-wf-test
-          ./run_test.sh --use-conda -n
   # --------------------------------------------------------------------------
   # Standard chipseq workflow
   chipseq-step: &chipseq-step
@@ -141,9 +194,11 @@ variables:
         name: chipseq workflow
         command: |
           cd $DEPLOY/workflows/chipseq
-          source activate lcdb-wf-test
-          ./run_test.sh --use-conda -j2 -k -p -r
-          python chipseq_trackhub.py config/config.yaml config/hub_config.yaml
+          source /opt/mambaforge/etc/profile.d/conda.sh
+          conda activate $LCDBWF_ENV
+          $DEPLOY/test/lcdb-wf-test chipseq --run-workflow --use-conda -j2 -k -p -r
+          $DEPLOY/test/lcdb-wf-test chipseq --trackhub
+
   # --------------------------------------------------------------------------
   # Previous versions had an error where chipseq peaks needed to be defined for
   # every caller. This does a (relatively) quick test to only run a single
@@ -152,9 +207,10 @@ variables:
       run:
         name: chipseq misc
         command: |
-          ORIG=$(pwd)
           cd $DEPLOY/workflows/chipseq
-          source activate lcdb-wf-test
+          source /opt/mambaforge/etc/profile.d/conda.sh
+          conda activate $LCDBWF_ENV
+
           ./run_test.sh --use-conda -j2 -k -p -r \
             --configfile $ORIG/test/test_configs/test_chipseq_regression.yaml \
             --config sampletable=$ORIG/test/test_configs/chipseq_one_run.tsv \
@@ -163,11 +219,17 @@ variables:
 
           # Piggy-backing on that test, here we check to make sure it's OK to
           # omit peak-calling config. We just do a dry-run.
-          ./run_test.sh -n \
-            --configfile $ORIG/test/test_configs/test_chipseq_no_peaks.yaml \
-            --config sampletable=$ORIG/test/test_configs/chipseq_one_run.tsv \
-            merged_bigwigs="{}" \
-            --until bed_to_bigbed
+          #
+          # NOTE: this fails in recent versions of Snakemake, see
+          # https://github.com/snakemake/snakemake/issues/1815. Disabling the
+          # test for now...
+          if false; then
+            ./run_test.sh -n \
+              --configfile $ORIG/test/test_configs/test_chipseq_no_peaks.yaml \
+              --config sampletable=$ORIG/test/test_configs/chipseq_one_run.tsv \
+              merged_bigwigs="{}" \
+              --until bed_to_bigbed
+          fi
 
   # --------------------------------------------------------------------------
   # Standard references workflow.
@@ -175,32 +237,35 @@ variables:
       run:
         name: references workflow
         command: |
-          cd $DEPLOY/workflows/references
-          source activate lcdb-wf-test
-          ./run_test.sh  --use-conda -j2 -k -p -r --configfile config/config.yaml
+          source /opt/mambaforge/etc/profile.d/conda.sh
+          conda activate $LCDBWF_ENV
+          $DEPLOY/test/lcdb-wf-test references --run-workflow --configfile=config/config.yaml -j2 -p -r -k --orig $ORIG
+
   # --------------------------------------------------------------------------
   # Standard RNA-seq workflow
   rnaseq-step: &rnaseq-step
       run:
         name: rnaseq workflow
         command: |
-          cd $DEPLOY/workflows/rnaseq
-          source activate lcdb-wf-test
-          ./run_test.sh --use-conda -j2 -k -p -r
-          python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
+          cd $DEPLOY
+          source /opt/mambaforge/etc/profile.d/conda.sh
+          conda activate $LCDBWF_ENV
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow -n
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --use-conda -j2 -k -p -r --orig $ORIG
 
-          # Starting in v1.6, we separate out the non-R from the
-          # R environments. So we need to test the rnaseq.Rmd separately
-          # outside the context of the Snakefile.
-          source activate lcdb-wf-test-r
+          $DEPLOY/test/lcdb-wf-test rnaseq --trackhub --orig $ORIG
 
-          # This script runs the preprocessor on the Rmd files and stores them
+          # This run the preprocessor on the Rmd files and stores them
           # in a new download-test directory (see the comments in the script
           # for details)
-          bash run_downstream_test.sh
+          $DEPLOY/test/lcdb-wf-test rnaseq --downstream
 
           # bundle up the entire directory to be used as an artifact
-          tar -zcf downstream.tar.gz downstream-test/
+          tar -zcf /tmp/downstream.tar.gz workflows/rnaseq/downstream-test/
+          cp workflows/rnaseq/downstream-test/rnaseq.html /tmp/rnaseq.html
+          cp workflows/rnaseq/downstream-test/functional-enrichment.html /tmp/functional-enrichment.html
+          cp workflows/rnaseq/downstream-test/gene-patterns.html /tmp/gene-patterns.html
+          cp workflows/rnaseq/data/rnaseq_aggregation/multiqc.html /tmp/rnaseq.html
 
   # --------------------------------------------------------------------------
   # Various tests on RNA-seq workflow that don't warrant the overhead of a new
@@ -211,63 +276,21 @@ variables:
         command: |
           ORIG=$(pwd)
           cd $DEPLOY
-          cp -r workflows/rnaseq workflows/rnaseq-misc-test
+          source /opt/mambaforge/etc/profile.d/conda.sh
+          conda activate $LCDBWF_ENV
 
-          # make a copy of the data so we can get a fresh copy each time below
-          cp -r workflows/rnaseq/data /tmp/data
-          cd workflows/rnaseq-misc-test
-          source activate lcdb-wf-test
+          # Check the help for test/lcdb-wf-test to see what args these
+          # provide; some of them use the --until argument to restrict the
+          # rules that are run. Note the use of --orig $ORIG to use the test
+          # configs from the original clone rather than the deployed directory.
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --sra-pe          -k -r -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --sra-se          -k -r -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --strandedness-pe -k -r -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --star-2pass      -k -r -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --star-1pass      -k -r -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --pe              -k -r -p -j2 --use-conda --orig $ORIG
 
-          echo "test SRA, PE"
-          rm -r data
-          ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
-            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
-            --config sampletable=$ORIG/test/test_configs/test_sra_sampletable.tsv
 
-          echo "test SRA, SE"
-          rm -r data
-          ./run_test.sh -j 1 --use-conda -k -p -r --until cutadapt \
-            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
-            --config sampletable=$ORIG/test/test_configs/test_sra_sampletable_SE_only.tsv
-
-          echo "test strandedness, PE"
-          rm -r data && cp -r /tmp/data data
-          ./run_test.sh -j 2 --use-conda -k -p -r --until strand_check \
-            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
-            --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
-
-          echo "test strandedness, SE"
-          rm -r data && cp -r /tmp/data data
-          ./run_test.sh -j 2 --use-conda -k -p -r --until strand_check \
-            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
-            --config sampletable=$ORIG/test/test_configs/two_samples.tsv
-
-          echo "test STAR 2-pass alignment"
-          rm -r data && cp -r /tmp/data data
-          ./run_test.sh -j 2 --use-conda -k -p -r \
-            --forcerun star_pass1 \
-            --configfile \
-              $ORIG/test/test_configs/test_rnaseq_config.yaml \
-              $ORIG/test/test_configs/star_override_2pass.yaml \
-            --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
-            --until star_pass2
-
-          echo "test STAR 1-pass alignment"
-          rm -r data && cp -r /tmp/data data
-          ./run_test.sh -j 2 --use-conda -k -p -r \
-            --forcerun star \
-            --configfile \
-              $ORIG/test/test_configs/test_rnaseq_config.yaml \
-              $ORIG/test/test_configs/star_override_1pass.yaml \
-            --config sampletable=$ORIG/test/test_configs/two_samples.tsv \
-            --until star
-
-          echo "test PE reads"
-          rm -r data && cp -r /tmp/data data
-          ./run_test.sh -j 2 --use-conda -k -p -r --until multiqc \
-            --configfile \
-              $ORIG/test/test_configs/test_rnaseq_config.yaml \
-            --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
 
   # --------------------------------------------------------------------------
   # Standard colocalization workflow
@@ -276,8 +299,9 @@ variables:
         name: colocalization workflow
         command: |
           cd $DEPLOY/workflows/colocalization
-          source activate lcdb-wf-test
-          ./run_test.sh -j 1 --use-conda -j2 -k -p -r
+          source /opt/mambaforge/etc/profile.d/conda.sh
+          conda activate $LCDBWF_ENV
+          $DEPLOY/test/lcdb-wf-test colocalization --run-workflow -k -r -p -j2 --use-conda --orig $ORIG
 
 # --------------------------------------------------------------------------
 # Syntax note: All of the steps above, with their "&step-name" labels, can be
@@ -297,6 +321,7 @@ jobs:
     <<: *defaults
     steps:
       - checkout
+      - *set-path
 
       # Check the hashes of requirements files. If they match a cache, load it.
       # The cache is set up to be the entire miniconda installation, so that
@@ -327,6 +352,7 @@ jobs:
     steps:
       - checkout
       - *restore_cache
+      - *set-path
       - *setup
       - *pytest-step
 
@@ -359,11 +385,21 @@ jobs:
       - *get-data
       - *rnaseq-step
       - store_artifacts:
-          path: /tmp/lcdb-wf-test/workflows/rnaseq/downstream.tar.gz
+          path: /tmp/downstream.tar.gz
+          destination: downstream.tar.gz
       - store_artifacts:
-          path: /tmp/lcdb-wf-test/workflows/rnaseq/downstream/rnaseq.html
+          path: /tmp/rnaseq.html
+          destination: rnaseq.html
       - store_artifacts:
-          path: /tmp/lcdb-wf-test/workflows/rnaseq/data/rnaseq_aggregation/multiqc.html
+          path: /tmp/multiqc.html
+          destination: multiqc.html
+      - store_artifacts:
+          path: /tmp/functional-enrichment.html
+          destination: functional-enrichment.html
+      - store_artifacts:
+          path: /tmp/gene-patterns.html
+          destination: gene-patterns.html
+
 
   rnaseq-misc:
     <<: *defaults
@@ -401,7 +437,10 @@ jobs:
       - *set-path
       - run:
           name: Install sphinx
-          command: source activate lcdb-wf-test && conda install -y sphinx make yaml
+          command: |
+            source /opt/mambaforge/etc/profile.d/conda.sh
+            conda activate lcdb-wf-test
+            mamba install -y sphinx make yaml
       - run:
           name: OK for unknown github host
           command: mkdir -p ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
@@ -410,7 +449,10 @@ jobs:
             - 2d:0c:b4:27:44:cf:f4:50:cc:14:a4:2b:c2:3c:09:06
       - run:
           name: Build and upload docs
-          command: source activate lcdb-wf-test && ci/build-docs.sh
+          command: |
+            source /opt/mambaforge/etc/profile.d/conda.sh
+            conda activate lcdb-wf-test
+            ci/build-docs.sh
       - store_artifacts:
           path: /tmp/docs.tar.gz
 
@@ -424,8 +466,8 @@ jobs:
       - run:
           name: Report environment
           command: |
+            source /opt/mambaforge/etc/profile.d/conda.sh
             conda env export -n lcdb-wf-test > /tmp/env.yaml
-            cat /tmp/env.yaml
             conda env export -n lcdb-wf-test-r > /tmp/env-r.yaml
       - store_artifacts:
           path: /tmp/env.yaml

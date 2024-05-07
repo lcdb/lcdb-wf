@@ -24,6 +24,7 @@ patterns_by_sample:
 
   markduplicates:
     bam: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam'
+    bai: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.bai'
     metrics: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.metrics'
 
   merged_techreps: 'data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam'
@@ -47,15 +48,20 @@ patterns_by_sample:
     pdf: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.collectinsertsizemetrics.pdf'
     metrics: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.collectinsertsizemetrics.metrics'
 
+  samtools:
+    idxstats: 'data/rnaseq_samples/{sample}/idxstat_{sample}.txt'
+
 patterns_by_peaks:
   peaks:
     macs2: 'data/chipseq_peaks/macs2/{macs2_run}/peaks.bed'
     spp: 'data/chipseq_peaks/spp/{spp_run}/peaks.bed'
     sicer: 'data/chipseq_peaks/sicer/{sicer_run}/peaks.bed'
+    epic2: 'data/chipseq_peaks/epic2/{epic2_run}/peaks.bed'
   bigbed:
     macs2: 'data/chipseq_peaks/macs2/{macs2_run}/peaks.bigbed'
     spp: 'data/chipseq_peaks/spp/{spp_run}/peaks.bigbed'
     sicer: 'data/chipseq_peaks/sicer/{sicer_run}/peaks.bigbed'
+    epic2: 'data/chipseq_peaks/epic2/{epic2_run}/peaks.bigbed'
 
 patterns_by_aggregate:
   merged_bigwig: 'data/chipseq_aggregation/merged_bigwigs/{merged_bigwig_label}.bigwig'

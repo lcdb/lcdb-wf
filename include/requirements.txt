@@ -2,7 +2,7 @@ bedtools
 biopython
 bowtie
 bowtie2
-cutadapt
+cutadapt>=3.0
 deeptools
 fastq-screen
 fastqc
@@ -17,15 +17,22 @@ kallisto
 multiqc
 pandas
 pandoc
-picard
+
+# Pin to earlier version to avoid issue with older openjdk
+picard <3.0
+
 preseq
 pybedtools
 pyfaidx
 pysam
 pytest
 pytest-xdist
+python>=3.10
 rseqc
-salmon
+
+# earlier versions of salmon can segfault on Slurm
+salmon>=1.10.1
+
 samtools
 seaborn
 snakemake-minimal
