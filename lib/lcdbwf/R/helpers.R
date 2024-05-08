@@ -688,10 +688,14 @@ compose_results <- function(res_list=NULL,
     # TODO: add check for cores if on biowulf
     flat_obj <- BiocParallel::bplapply(elem_names, function(x){
                   toks <- strsplit(x, split=sep, fixed=TRUE)[[1]]
-                  if(!toks[1] %in% res_names)
+                  if(toks[1] %in% res_names){
+                    res <- obj$res[[ toks[1] ]]
+                  } else if(toks[1] %in% names(res_keys)){
+                    res <- obj$res[[ res_keys[[ toks[1] ]] ]]
+                  } else {
                     return(NULL)
+                  }
 
-                  res <- obj$res[[ toks[1] ]]
                   eres <- enrich_list[[ toks[1] ]][[ toks[2] ]][[ toks[3] ]]
 
                   df <- enrich_to_genetonic(eres, res)
