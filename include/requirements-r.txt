@@ -5,13 +5,14 @@ bioconductor-clusterprofiler
 bioconductor-degreport
 bioconductor-deseq2
 bioconductor-genomicfeatures
+bioconductor-genetonic
 bioconductor-go.db
 bioconductor-ihw
 bioconductor-rhdf5
 bioconductor-sva
 bioconductor-tximport
 r-ashr
-r-base >4.1
+r-base==4.2.2
 r-devtools
 r-dt
 r-ggally
