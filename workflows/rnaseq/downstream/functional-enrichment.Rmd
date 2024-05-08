@@ -74,9 +74,7 @@ enrich_list <- lcdbwf:::run_enricher(res_list=res_list,
 
 ```{r combined_rds, cache=TRUE, dependson='enrich'}
 
-obj <- lcdbwf:::compose_results(res_list=res_list,
-                                dds_list=dds_list,
-                                rld_list=rld_list,
+obj <- lcdbwf:::compose_results(rds_file='combined.Rds',
                                 enrich_list=enrich_list)
 
 saveRDS(obj, file='combined.Rds', compress=FALSE)
