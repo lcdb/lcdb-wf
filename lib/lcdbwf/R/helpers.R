@@ -518,8 +518,8 @@ compose_results <- function(res_list=NULL,
                             rld_list=NULL,
                             enrich_list=NULL,
                             degpatterns_list=NULL,
-                            all.dds=NULL,
-                            all.rld=NULL,
+                            all_dds=NULL,
+                            all_rld=NULL,
                             rds_file=NULL,
                             workers=1){
 
@@ -545,8 +545,8 @@ compose_results <- function(res_list=NULL,
     if('rld_list' %in% names(tmp)) rld_list <- tmp$rld_list
     if('enrich_list' %in% names(tmp)) enrich_list <- tmp$enrich_list
     if('degpatterns_list' %in% names(tmp)) degpatterns_list <- tmp$degpatterns_list
-    if('all.dds' %in% names(tmp)) all.dds <- tmp$all.dds
-    if('all.rld' %in% names(tmp)) all.rld <- tmp$all.rld
+    if('all_dds' %in% names(tmp)) all_dds <- tmp$all_dds
+    if('all_rld' %in% names(tmp)) all_rld <- tmp$all_rld
   }
 
   message('\n1. Processing res_list & dds_list')
@@ -584,20 +584,20 @@ compose_results <- function(res_list=NULL,
                           dds_list=dds_list,
                           rld_list=rld_list)
 
-  # if all.dds not specified, but dds_list has length 1,
-  # then use dds_list[[ 1 ]] as all.dds
-  if(is.null(all.dds) & length(obj$dds) == 1){
-    message('\t- all.dds was not specified, but dds_list has only 1 object. Using that instead')
-    all.dds <- obj$dds[[ 1 ]]
+  # if all_dds not specified, but dds_list has length 1,
+  # then use dds_list[[ 1 ]] as all_dds
+  if(is.null(all_dds) & length(obj$dds) == 1){
+    message('\t- all_dds was not specified, but dds_list has only 1 object. Using that instead')
+    all_dds <- obj$dds[[ 1 ]]
 
-    # if specifying all.dds, compute all.rld even if specified
-    all.rld <- varianceStabilizingTransformation(all.dds, blind=TRUE)
+    # if specifying all_dds, compute all_rld even if specified
+    all_rld <- varianceStabilizingTransformation(all_dds, blind=TRUE)
   }
 
-  # if all.dds is specified, but all.rld is not, compute it
-  if(is.null(all.rld) & !is.null(all.dds)){
-    message('\t- all.dds was specified, but not all.rld. Generating it')
-    all.rld <- varianceStabilizingTransformation(all.dds, blind=TRUE)
+  # if all_dds is specified, but all_rld is not, compute it
+  if(is.null(all_rld) & !is.null(all_dds)){
+    message('\t- all_dds was specified, but not all_rld. Generating it')
+    all_rld <- varianceStabilizingTransformation(all_dds, blind=TRUE)
   }
 
   message('\t- Generating symbol -> gene mapping from all res_list objects')
@@ -622,17 +622,17 @@ compose_results <- function(res_list=NULL,
   # remove NAs
   gene2symbol[is.na(gene2symbol)] <- names(gene2symbol)[is.na(gene2symbol)]
 
-  # replace rownames of dds_list, rld_list, all.dds, all.rld with symbol
+  # replace rownames of dds_list, rld_list, all_dds, all_rld with symbol
   for(name in names(obj$dds)){
     rownames(obj$dds[[ name ]]) <- gene2symbol[ rownames(obj$dds[[ name ]]) ]
     rownames(obj$rld[[ name ]]) <- gene2symbol[ rownames(obj$rld[[ name ]]) ]
   }
-  if(!is.null(all.dds)) rownames(all.dds) <- gene2symbol[ rownames(all.dds) ]
-  if(!is.null(all.rld)) rownames(all.rld) <- gene2symbol[ rownames(all.rld) ]
+  if(!is.null(all_dds)) rownames(all_dds) <- gene2symbol[ rownames(all_dds) ]
+  if(!is.null(all_rld)) rownames(all_rld) <- gene2symbol[ rownames(all_rld) ]
 
   # plug into object
-  obj[[ 'all.dds' ]] <- all.dds
-  obj[[ 'all.rld' ]] <- all.rld
+  obj[[ 'all_dds' ]] <- all_dds
+  obj[[ 'all_rld' ]] <- all_rld
 
   if (!is.null(enrich_list)){
     message('\n2. Processing enrich_list')
@@ -802,7 +802,7 @@ enrich_to_genetonic <- function(enrich, res){
 #' - dds_list and rld_list names must match exactly
 #' - colData of dds_list & rld_list objects cannot contain reserved columns
 #' - Adds a 'sample' column to colData of dds_list & rld_list objects
-#' - Builds a dds.mapping object that maps res_list objects to dds_list objects
+#' - Builds a dds_mapping object that maps res_list objects to dds_list objects
 #' - Flattens res_list object which is replaced by two slots corresponding to
 #'   'res' & 'label' elements.
 #'
@@ -896,8 +896,8 @@ sanitize_res_dds <- function(res_list, dds_list, rld_list,
   }
 
   # build res_list -> dds_list mapping to plug into degpatterns
-  dds.mapping <- lapply(res_list, function(x) x$dds)
-  names(dds.mapping) <- names(res_list)
+  dds_mapping <- lapply(res_list, function(x) x$dds)
+  names(dds_mapping) <- names(res_list)
 
   # build final object
   obj <- list(
@@ -905,7 +905,7 @@ sanitize_res_dds <- function(res_list, dds_list, rld_list,
            dds=dds_list,
            rld=rld_list,
            labels=lapply(res_list, function(x) x$label),
-           dds.mapping=dds.mapping)
+           dds_mapping=dds_mapping)
 
   return(obj)
 }
