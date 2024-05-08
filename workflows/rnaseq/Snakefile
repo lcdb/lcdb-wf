@@ -57,6 +57,7 @@ final_targets = utils.flatten((
     utils.flatten(c.targets['rseqc']),
     utils.flatten(c.targets['collectrnaseqmetrics']),
     utils.flatten(c.targets['bigwig']),
+    utils.flatten(c.targets['samtools']),
 ))
 
 if config.get('merged_bigwigs', None):
@@ -1092,5 +1093,30 @@ rule rnaseq_rmarkdown:
         '''"rmarkdown::render('{input.rmd}')" '''
         '> {log} 2>&1'
         # [TEST_SETTINGS -1]
+
+rule flagstat:
+    input:
+        bam=c.patterns['markduplicates']['bam'],
+        bai=c.patterns['markduplicates']['bam'] + '.bai'
+    output:
+        c.patterns['samtools']['flagstat']
+    log:
+        c.patterns['samtools']['flagstat'] + '.log'
+    shell:
+        'samtools flagstat {input.bam} > {output}'
+
+
+rule samtools_stats:
+    input:
+        bam=c.patterns['markduplicates']['bam'],
+        bai=c.patterns['markduplicates']['bam'] + '.bai'
+    output:
+        c.patterns['samtools']['stats']
+    log:
+        c.patterns['samtools']['stats'] + '.log'
+    shell:
+        'samtools stats {input.bam} > {output}'
+
+
 
 # vim: ft=python
