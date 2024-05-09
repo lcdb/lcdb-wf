@@ -815,6 +815,8 @@ enrich_to_genetonic <- function(enrich, res){
 #' @param reserved_cols Column names reserved for internal use. colData
 #'        of dds_list or rld_list objects cannot contain these columns
 #'
+#' @return A list with the names 'res', 'dds', 'rld', 'labels', 'dds_mapping'
+#'
 sanitize_res_dds <- function(res_list, dds_list, rld_list,
                              reserved_cols=c('gene', 'symbol')){
   if(is.null(names(res_list))){
