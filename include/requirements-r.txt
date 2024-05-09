@@ -12,13 +12,14 @@ bioconductor-rhdf5
 bioconductor-sva
 bioconductor-tximport
 r-ashr
-r-base==4.2.2
+r-base
 r-devtools
 r-dt
 r-ggally
 r-ggnewscale
 r-ggrepel
 r-heatmaply
+r-igraph
 r-knitr
 r-msigdbr
 r-openxlsx
