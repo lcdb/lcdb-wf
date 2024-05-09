@@ -457,7 +457,7 @@ nested.lapply <- function(x, subfunc, ...){
 #'
 #' @details
 #'
-#' res_list and dds_list are required. `res_list` has the following format.
+#' res_list and dds_list *or* rds_file are required. `res_list` has the following format.
 #'
 #'    list(
 #'      ko.vs.wt=list(             # names of the list are short keys
