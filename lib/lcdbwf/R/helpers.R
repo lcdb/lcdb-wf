@@ -452,7 +452,9 @@ nested.lapply <- function(x, subfunc, ...){
 #' @param all_rld Single normalized dds object containing all samples
 #' @param rds_file RDS file containing lcdb-wf object. Can be used to incrementally
 #'        add elements to a pre-existing run or 'sanitize' an object from a previous run.
-#'        Ignored if res_list & dds_list are specified.
+#'        - Ignored if res_list & dds_list are specified.
+#'        - If rld_list, enrich_list or degpatterns_list are also provided, these will
+#'          be used to replace corresponding elements in the RDS file.
 #' @param workers Number of cores to run GeneTonic conversion on
 #'
 #' @details
@@ -542,11 +544,12 @@ compose_results <- function(res_list=NULL,
     res_list <- tmp$res_list
     dds_list <- tmp$dds_list
 
-    if('rld_list' %in% names(tmp)) rld_list <- tmp$rld_list
-    if('enrich_list' %in% names(tmp)) enrich_list <- tmp$enrich_list
-    if('degpatterns_list' %in% names(tmp)) degpatterns_list <- tmp$degpatterns_list
-    if('all_dds' %in% names(tmp)) all_dds <- tmp$all_dds
-    if('all_rld' %in% names(tmp)) all_rld <- tmp$all_rld
+    # plug in optional slots unless specified already
+    if('rld_list' %in% names(tmp) & !is.null(rld_list)) rld_list <- tmp$rld_list
+    if('enrich_list' %in% names(tmp) & !is.null(enrich_list)) enrich_list <- tmp$enrich_list
+    if('degpatterns_list' %in% names(tmp) & !is.null(degpatterns_list)) degpatterns_list <- tmp$degpatterns_list
+    if('all_dds' %in% names(tmp) & !is.null(all_dds)) all_dds <- tmp$all_dds
+    if('all_rld' %in% names(tmp) & !is.null(all_rld)) all_rld <- tmp$all_rld
   }
 
   message('\n1. Processing res_list & dds_list')
