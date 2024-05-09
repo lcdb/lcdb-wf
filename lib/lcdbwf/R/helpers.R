@@ -594,6 +594,9 @@ compose_results <- function(res_list=NULL,
     all_dds <- obj$dds[[ 1 ]]
 
     # if specifying all_dds, compute all_rld even if specified
+    if(!is.null(all_rld)){
+      message('\t- Generating all_rld from new all_dds')
+    }
     all_rld <- varianceStabilizingTransformation(all_dds, blind=TRUE)
   }
 
