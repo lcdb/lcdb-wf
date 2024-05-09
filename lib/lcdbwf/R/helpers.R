@@ -440,7 +440,7 @@ nested.lapply <- function(x, subfunc, ...){
 }
 
 
-#' Compose an RDS file to be used in downstream tools.
+#' Compose an object to be used in downstream tools.
 #'
 #' @param res_list List of results objects and associated metadata. See details
 #'   for format.
