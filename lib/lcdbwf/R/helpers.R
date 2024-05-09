@@ -479,7 +479,7 @@ nested.lapply <- function(x, subfunc, ...){
 #'     ...
 #'   )
 #'
-#' `enrich_list` is optional. Note that `enrich_list`, if provided, these are usually
+#' `enrich_list` is optional. If provided, has names corresponding to
 #' results names available in `res_list`. Alternatively, can have a 'res' key at the
 #' second-level containing a result name available in `res_list`.
 #'
