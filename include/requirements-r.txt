@@ -1,3 +1,4 @@
+bioconductor-all <1.42.0
 bioconductor-annotationhub
 bioconductor-apeglm
 bioconductor-biocparallel
@@ -12,14 +13,14 @@ bioconductor-rhdf5
 bioconductor-sva
 bioconductor-tximport
 r-ashr
-r-base
+r-base >4.1
+r-dbplyr <2.4
 r-devtools
 r-dt
 r-ggally
 r-ggnewscale
 r-ggrepel
 r-heatmaply
-r-igraph
 r-knitr
 r-msigdbr
 r-openxlsx
