@@ -564,7 +564,7 @@ compose_results <- function(res_list=NULL,
                paste(res_not_dds, collapse=', '), '\n'))
   }
 
-  # NOTE: drop unused dds_list & rld_list objects
+  # Drop unused dds_list & rld_list objects
   if (length(dds_not_res) > 0){
     message("\t- The following dds names are in dds_list but not in res_list. These will be skipped:")
     message(paste0('\t\t', paste(dds_not_res, collapse='\n\t\t')))
