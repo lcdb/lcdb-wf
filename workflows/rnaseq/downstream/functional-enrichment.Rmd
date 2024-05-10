@@ -82,11 +82,17 @@ enrich_list <- lcdbwf:::run_enricher(res_list=res_list,
 ```
 
 ```{r combined_rds, cache=TRUE, dependson='enrich'}
+obj <- list(res_list=res_list,
+            dds_list=dds_list,
+            enrich_list=enrich_list,
+            degpatterns_list=degpatterns_list)
+saveRDS(obj, file='combined-raw.Rds', compress=FALSE)
 
-obj <- lcdbwf:::compose_results(rds_file='combined.Rds',
-                                enrich_list=enrich_list)
+app_obj <- lcdbwf:::compose_results(rds_file='combined-raw.Rds',
+                                    enrich_list=enrich_list,
+                                    degpatterns_list=degpatterns_list)
+saveRDS(app_obj, file='combined.Rds', compress=FALSE)
 
-saveRDS(obj, file='combined.Rds', compress=FALSE)
 ```
 
 ```{r functional_enrichment_plots}
