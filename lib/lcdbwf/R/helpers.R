@@ -839,18 +839,18 @@ sanitize_res_dds <- function(res_list, dds_list, rld_list,
     }
 
     # NOTE: check that a single 'gene' column exists.
-    gene_idx <- grep('gene', tolower(colnames(res)))
+    gene_idx <- which(tolower(colnames(res)) == 'gene')
     if(length(gene_idx) > 1){
       stop(paste('res_list elements can only have 1 "gene" column:', name))
     } else if(length(gene_idx) == 0){
       # If 'gene' column not present, replace with rownames
       message(paste('res_list element is missing a "gene" column. "rownames" will be used instead:', name))
       res$gene <- rownames(res)
-      gene_idx <- grep('gene', tolower(colnames(res)))
+      gene_idx <- which(tolower(colnames(res)) == 'gene')
     }
 
     # NOTE: check that a single 'symbol' column exists.
-    symbol_idx <- grep('symbol', tolower(colnames(res)))
+    symbol_idx <- which(tolower(colnames(res)) == 'symbol')
     if(length(symbol_idx) > 1){
       stop(paste('res_list elements can only have 1 "symbol" column:', name))
     } else if(length(symbol_idx) == 0){
