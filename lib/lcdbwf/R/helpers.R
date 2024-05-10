@@ -892,7 +892,7 @@ sanitize_res_dds <- function(res_list, dds_list, rld_list,
 
     if(any(reserved_cols %in% tolower(names(colData(rld))))){
       rld_reserved <- intersect(reserved_cols, names(colData(rld)))
-      stop(paste('colData of res_list element contains reserved column names -',
+      stop(paste('colData of rld_list element contains reserved column names -',
                  paste0(rld_reserved, collapse=', '), ':', name))
     }
 
