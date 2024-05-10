@@ -57,6 +57,13 @@ if(!'rld_list' %in% names(obj)){
 } else {
   rld_list <- obj$rld_list
 }
+
+# check if 'degpatterns_list' exists in the object, if not sets to NULL
+if(!'degpatterns_list' %in% names(obj)){
+  degpatterns_list <- NULL
+} else {
+  degpatterns_list <- obj$degpatterns_list
+}
 ```
 
 ```{r functional_enrichment_prep, cache=TRUE, config=config$annotation$keytype, eval=config$toggle$functional_enrichment, dependson='load'}
