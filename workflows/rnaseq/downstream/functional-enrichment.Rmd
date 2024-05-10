@@ -45,7 +45,7 @@ if (config$parallel$parallel){
 ```
 
 ```{r load, cache=TRUE, cache.extra=file.info('combined.Rds')$mtime}
-obj <- readRDS('combined.Rds')
+obj <- readRDS('combined-raw.Rds')
 res_list <- obj$res_list
 dds_list <- obj$dds_list
 
