@@ -20,6 +20,8 @@ knitr::opts_chunk$set(
 library(AnnotationHub)
 library(dplyr)
 library(BiocParallel)
+library(GeneTonic)
+library(DESeq2)
 ```
 
 # Functional enrichment analysis
