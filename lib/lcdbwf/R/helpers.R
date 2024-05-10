@@ -545,11 +545,11 @@ compose_results <- function(res_list=NULL,
     dds_list <- tmp$dds_list
 
     # plug in optional slots unless specified already
-    if('rld_list' %in% names(tmp) & !is.null(rld_list)) rld_list <- tmp$rld_list
-    if('enrich_list' %in% names(tmp) & !is.null(enrich_list)) enrich_list <- tmp$enrich_list
-    if('degpatterns_list' %in% names(tmp) & !is.null(degpatterns_list)) degpatterns_list <- tmp$degpatterns_list
-    if('all_dds' %in% names(tmp) & !is.null(all_dds)) all_dds <- tmp$all_dds
-    if('all_rld' %in% names(tmp) & !is.null(all_rld)) all_rld <- tmp$all_rld
+    if('rld_list' %in% names(tmp) & missing(rld_list)) rld_list <- tmp$rld_list
+    if('enrich_list' %in% names(tmp) & missing(enrich_list)) enrich_list <- tmp$enrich_list
+    if('degpatterns_list' %in% names(tmp) & missing(degpatterns_list)) degpatterns_list <- tmp$degpatterns_list
+    if('all_dds' %in% names(tmp) & missing(all_dds)) all_dds <- tmp$all_dds
+    if('all_rld' %in% names(tmp) & missing(all_rld)) all_rld <- tmp$all_rld
   }
 
   message('\n1. Processing res_list & dds_list')
