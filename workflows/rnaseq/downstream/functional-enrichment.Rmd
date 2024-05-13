@@ -73,7 +73,7 @@ ontology_list <- lcdbwf:::get_ontology_list(config)
 
 ```
 
-```{r enrich, cache=TRUE, eval=config$toggle$functional_enrichment, config=c(config$main, config$functional_enrichment), dependson=c('functional_enrichment_prep', 'assemble_variables')}
+```{r enrich, cache=TRUE, eval=config$toggle$functional_enrichment, config=c(config$main, config$functional_enrichment), dependson='functional_enrichment_prep'}
 enrich_list <- lcdbwf:::run_enricher(res_list=res_list,
                                      ontology_list=ontology_list,
                                      config=config,
