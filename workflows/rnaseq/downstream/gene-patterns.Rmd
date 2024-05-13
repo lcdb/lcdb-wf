@@ -252,11 +252,13 @@ for (name in names(res_list)) {
 }
 ```
 
-```{r combined_rds, cache=TRUE, dependson='finalclusters'}
+```{r combined_rds}
 obj <- list(res_list=res_list,
             dds_list=dds_list,
-            enrich_list=enrich_list,
+            rld_list=rld_list,
             degpatterns_list=degpatterns_list)
+if(!is.null(enrich_list)) obj$enrich_list <- enrich_list
+
 saveRDS(obj, file='combined-raw.Rds', compress=FALSE)
 
 app_obj <- lcdbwf:::compose_results(rds_file='combined-raw.Rds',
