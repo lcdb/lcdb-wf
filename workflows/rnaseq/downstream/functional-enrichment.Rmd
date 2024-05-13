@@ -46,7 +46,7 @@ if (config$parallel$parallel){
 }
 ```
 
-```{r load, cache=TRUE, cache.extra=file.info('combined.Rds')$mtime}
+```{r load}
 obj <- readRDS('combined-raw.Rds')
 res_list <- obj$res_list
 dds_list <- obj$dds_list
@@ -66,7 +66,7 @@ if(!'degpatterns_list' %in% names(obj)){
 }
 ```
 
-```{r functional_enrichment_prep, cache=TRUE, config=config$annotation$keytype, eval=config$toggle$functional_enrichment, dependson='load'}
+```{r functional_enrichment_prep, cache=TRUE, config=config$annotation$keytype, eval=config$toggle$functional_enrichment, cache.extra=res_list}
 
 # obtain ontology information for all ontologies
 ontology_list <- lcdbwf:::get_ontology_list(config)
