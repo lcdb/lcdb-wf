@@ -40,7 +40,7 @@ res_list <- obj$res_list
 dds_list <- obj$dds_list
 
 # make rld_list if not present in obj
-if(!'rld_list' %in% names(obj)){
+if(!'rld_list' %in% names(obj) | is.null(obj$rld_list)){
   rld_list <- lapply(dds_list,
                 function(x) varianceStabilizingTransformation(x, blind=TRUE)
               )
