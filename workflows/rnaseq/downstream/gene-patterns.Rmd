@@ -270,7 +270,7 @@ saveRDS(app_obj, file='combined.Rds', compress=FALSE)
 
 # Exported results
 
-```{r excel, results='asis'}
+```{r excel, results='asis', cache=TRUE, dependson='finalclusters'}
 lcdbwf:::exported_excel(res_list, dds_list , file='final_clusters/consolidated_results.xlsx')
 ```
 
