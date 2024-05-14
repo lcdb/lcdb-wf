@@ -656,7 +656,7 @@ compose_results <- function(res_list=NULL,
       for(name in enrich_not_res){
         if(!'res' %in% names(enrich_list[[ name ]])){
           no_res_key <- c(no_res_key, name)
-        } else if(!enrich_list[['res']] %in% res_names){
+        } else if(!enrich_list[[ name ]][['res']] %in% res_names){
           no_res_key <- c(no_res_key, name)
         }
       }
