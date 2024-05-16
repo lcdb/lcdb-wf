@@ -236,3 +236,7 @@ functional_enrichment:
   # fine getting plots even with no statistically significant terms.
   pvalueCutoff: 1
   qvalueCutoff: 1
+
+  # This sets the `universe` argument of the `enricher` function to only detected genes
+  # See https://github.com/YuLab-SMU/clusterProfiler/blob/devel/R/enricher.R#L8C21-L8C136
+  limit_background_genes: TRUE
