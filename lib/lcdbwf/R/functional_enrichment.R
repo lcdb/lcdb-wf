@@ -4,10 +4,11 @@
 #' @param config Config object
 #' @param cores Number of cores to run it on
 #' @param sep Character to separate res_list names
+#' @param universe logical, TRUE limits background genes and FALSE doesn't
 #'
 #' @return nested list of enrichResult objects
 run_enricher <- function(res_list, ontology_list, config,
-                         cores=1, sep='*'){
+                         cores=1, sep='*', universe=TRUE){
     # This function supports running in parallel which works best with a flat
     # list; however for organizational purposese we want a nested structure. So
     # we convert between the two by collapsing nested keys for flat list, and
@@ -42,7 +43,8 @@ run_enricher <- function(res_list, ontology_list, config,
               direction=direction,
               TERM2GENE=ontology_list[['term2gene']][[ont]],
               TERM2NAME=ontology_list[['term2name']][[ont]],
-              config=config
+              config=config,
+              universe=universe,
             )
             enrich_res
         }, BPPARAM=BiocParallel::MulticoreParam(cores))
@@ -101,11 +103,14 @@ collapse_names <- function(res_list, config, sep='*'){
 #'   lfc_thresh from the config.
 #' @param kind One of "OR" for overrepresentation or "GSEA" for gene set
 #'   enrichment analysis.
+#' @param universe background genes. If missing, all genes listed in the database 
+#'   (e.g. TERM2GENE table) will be used as background. See more info in
+#'   https://github.com/YuLab-SMU/clusterProfiler/blob/devel/R/enricher.R#L8
 #' @param ... Additional arguments are passed on to enricher() for kind="OR" or
 #'   GSEA() for kind="GSEA".
 #'
 #' @return An enrichResults object from
-enrich_test <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR', ...){
+enrich_test <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR', universe, ...){
 
   if (is.null(config$main$lfc_thresh)){
     lfc_thresh <- 0
@@ -121,13 +126,19 @@ enrich_test <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR',
       direction=direction,
       return_type="rownames"
     )
-
+    # Update the `universe` variable to a vector of background or all genes
+    if (universe) {
+      universe <- rownames(res$res) # uses only detected genes in the current dataset
+    } else {
+      universe <- NULL              # uses all genes in the given DB
+    }
     e <- clusterProfiler::enricher(
       genes,
       TERM2GENE=TERM2GENE,
       TERM2NAME=TERM2NAME,
       pvalueCutoff=config$functional_enrichment$pvalueCutoff,
       qvalueCutoff=config$functional_enrichment$qvalueCutoff,
+      universe=universe,
       ...
     )
   } else if (kind == "GSEA"){
