@@ -44,7 +44,7 @@ run_enricher <- function(res_list, ontology_list, config,
               TERM2GENE=ontology_list[['term2gene']][[ont]],
               TERM2NAME=ontology_list[['term2name']][[ont]],
               config=config,
-              universe=universe,
+              universe=universe
             )
             enrich_res
         }, BPPARAM=BiocParallel::MulticoreParam(cores))
@@ -152,6 +152,7 @@ enrich_test <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR',
       TERM2GENE=TERM2GENE,
       TERM2NAME=TERM2NAME,
       pvalueCutoff=config$functional_enrichment$pvalueCutoff,
+      universe=universe,
       ...
     )
 
