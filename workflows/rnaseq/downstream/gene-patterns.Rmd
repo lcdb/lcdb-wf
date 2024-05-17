@@ -22,6 +22,7 @@ library(tidyr)
 library(clusterProfiler)
 library(DESeq2)
 library(DEGreport)
+library(GeneTonic)
 ```
 
 ```{r load_helpers}
@@ -33,13 +34,13 @@ devtools::load_all('../../../lib/lcdbwf')
 config <- lcdbwf:::load_config('config.yaml')
 ```
 
-```{r load, cache=TRUE, cache.extra=file.info('combined.Rds')$mtime}
-obj <- readRDS('combined.Rds')
+```{r load}
+obj <- readRDS('combined-raw.Rds')
 res_list <- obj$res_list
 dds_list <- obj$dds_list
 
 # make rld_list if not present in obj
-if(!'rld_list' %in% names(obj)){
+if(!'rld_list' %in% names(obj) | is.null(obj$rld_list)){
   rld_list <- lapply(dds_list,
                 function(x) varianceStabilizingTransformation(x, blind=TRUE)
               )
@@ -115,7 +116,7 @@ low.minc <- 1
 
 Gene pattern for changed genes in individual contrasts are also indicated below.
 
-```{r finalclusters, fig.width=12, results='asis', cache=TRUE, dependson='load'}
+```{r finalclusters, fig.width=12, results='asis', cache=TRUE, cache.extra=c(res_list, rld_list)}
 # Run the clustering, identify patterns, and generate plots.
 # Docs: https://lcdb.github.io/lcdb-wf/rnaseq-rmd.html#finalclusters
 # NOTE: which genes to cluster?------------------------------------------------
@@ -251,20 +252,25 @@ for (name in names(res_list)) {
 }
 ```
 
-```{r combined_rds, cache=TRUE, dependson='finalclusters'}
+```{r combined_rds}
+obj <- list(res_list=res_list,
+            dds_list=dds_list,
+            rld_list=rld_list,
+            degpatterns_list=degpatterns_list)
+if(!is.null(enrich_list)) obj$enrich_list <- enrich_list
 
-obj <- lcdbwf:::compose_results(res_list=res_list,
-                                dds_list=dds_list,
-                                rld_list=rld_list,
-                                enrich_list=enrich_list,
-                                degpatterns_list=degpatterns_list)
+saveRDS(obj, file='combined-raw.Rds', compress=FALSE)
 
-saveRDS(obj, file='combined.Rds', compress=FALSE)
+app_obj <- lcdbwf:::compose_results(rds_file='combined-raw.Rds',
+                                    enrich_list=enrich_list,
+                                    degpatterns_list=degpatterns_list)
+saveRDS(app_obj, file='combined.Rds', compress=FALSE)
+
 ```
 
 # Exported results
 
-```{r excel, results='asis'}
+```{r excel, results='asis', cache=TRUE, dependson='finalclusters'}
 lcdbwf:::exported_excel(res_list, dds_list , file='final_clusters/consolidated_results.xlsx')
 ```
 
