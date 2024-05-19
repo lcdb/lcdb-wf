@@ -312,8 +312,13 @@ knitr::kable(tbl, row.names=FALSE)
 ```
 
 ```{r combined_rds, cache=TRUE, dependson='assemble_variables'}
-obj <- lcdbwf:::compose_results(res_list, dds_list)
-saveRDS(obj, file='combined.Rds', compress=FALSE)
+obj <- list(res_list=res_list, dds_list=dds_list)
+saveRDS(obj, file='combined-raw.Rds', compress=FALSE)
+
+app_obj <- lcdbwf:::compose_results(res_list=res_list,
+                                    dds_list=dds_list)
+
+saveRDS(app_obj, file='combined.Rds', compress=FALSE)
 ```
 
 
