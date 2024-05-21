@@ -72,21 +72,26 @@ if(!'degpatterns_list' %in% names(obj)){
 ontology_list <- lcdbwf:::get_ontology_list(config)
 
 # Define background gene pool for overrepresentation analysis
-# This option will limit genes to the following criteria:
-# - option 1 ("exclude_zero_in_all"): genes with non-zero raw counts in one or more samples
-# - option 2 ("no_filter"): all available genes in each annotation database (e.g. GO, KEGG)
 univ_option <- config$functional_enrichment$limit_background_genes
 
-# Print the current universe option
+# Set `universe_list` based on configuration or custom background
 if (univ_option == "exclude_zero_in_all") {
-    # Retrieve all genes detected in one or more samples per contrast
-    universe_list <- lapply(names(dds_list), function(name) nonzero_genes(dds_list[[name]]))
-    names(universe_list) <- names(dds_list)
+  # Retrieve all genes detected in one or more samples per contrast
+  universe_list <- lapply(names(dds_list), function(name) nonzero_genes(dds_list[[name]]))
+  names(universe_list) <- names(dds_list)
 } else if (univ_option == "no_filter") {
-    # Set universe to NULL
-    universe_list <- NULL
+  ########################################################################################
+  # Here, a user can manually set the `universe_list` to a named list of vectors for     #
+  # custom background genes. Ensure to have names matched between `universe_list` and    #
+  # `res_list`.                                                                          #
+  ########################################################################################
+  universe_list <- NULL
+  # Raise an error if names are unmatched
+  if (!identical(names(universe_list), names(res_list)) & !is.null(universe_list)) {
+    stop("universe_list has different names from res_list.")
+  }
 } else {
-    stop("Correct your background option in the config.yaml file.")
+  stop("Correct your background option in the config.yaml file.")
 }
 ```
 
