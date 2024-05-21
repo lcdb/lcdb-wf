@@ -71,16 +71,33 @@ if(!'degpatterns_list' %in% names(obj)){
 # obtain ontology information for all ontologies
 ontology_list <- lcdbwf:::get_ontology_list(config)
 
+# Define background gene pool for overrepresentation analysis
+# This option will limit genes to the following criteria:
+# - option 1 ("exclude_zero_in_all"): genes with non-zero raw counts in one or more samples
+# - option 2 ("no_filter"): all available genes in each annotation database (e.g. GO, KEGG)
+univ_option <- config$functional_enrichment$limit_background_genes
+
+# Print the current universe option
+if (univ_option == "exclude_zero_in_all") {
+    # Retrieve all genes detected in one or more samples per contrast
+    universe_list <- lapply(names(dds_list), function(name) nonzero_genes(dds_list[[name]]))
+    names(universe_list) <- names(dds_list)
+} else if (univ_option == "no_filter") {
+    # Set universe to NULL
+    universe_list <- NULL
+} else {
+    stop("Correct your background option in the config.yaml file.")
+}
 ```
 
+
 ```{r enrich, cache=TRUE, eval=config$toggle$functional_enrichment, config=c(config$main, config$functional_enrichment), dependson='functional_enrichment_prep'}
-enrich_list <- lcdbwf:::run_enricher(
-    res_list=res_list,
-    ontology_list=ontology_list,
-    config=config,
-    universe=config$functional_enrichment$limit_background_genes,
-    cores=cores,
-    sep='*')
+enrich_list <- lcdbwf:::run_enricher(res_list=res_list,
+                                     ontology_list=ontology_list,
+                                     config=config,
+                                     universe_list=universe_list,
+                                     cores=cores, sep='*')
+
 ```
 
 ```{r combined_rds}
