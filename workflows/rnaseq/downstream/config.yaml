@@ -241,7 +241,7 @@ functional_enrichment:
   # background genes. Choose one from the following options:
   # - exclude_zero_in_all: excludes genes with zero raw count in all samples
   # - no_filter: disable any filtering. This option will use all available genes in 
-  #     each annotation database. You can always use this option and then manually 
-  #     adjust the results objects going into the `enricher` function if you need 
-  #     more customization.
+  #     each annotation database. If a user wishes to use custom background genes, 
+  #     use this option with `universe_list` set to a named list of background genes,
+  #     where the list names are identical to those of the result list.
   limit_background_genes: "exclude_zero_in_all"
