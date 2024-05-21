@@ -237,6 +237,11 @@ functional_enrichment:
   pvalueCutoff: 1
   qvalueCutoff: 1
 
-  # This sets the `universe` argument of the `enricher` function to only detected genes
-  # See https://github.com/YuLab-SMU/clusterProfiler/blob/devel/R/enricher.R#L8C21-L8C136
-  limit_background_genes: TRUE
+  # This sets the `universe` argument of the `enricher` function to choose an option how to limit
+  # background genes. Choose one from the following options:
+  # - exclude_zero_in_all: excludes genes with zero raw count in all samples
+  # - no_filter: disable any filtering. This option will use all available genes in 
+  #     each annotation database. You can always use this option and then manually 
+  #     adjust the results objects going into the `enricher` function if you need 
+  #     more customization.
+  limit_background_genes: "exclude_zero_in_all"
