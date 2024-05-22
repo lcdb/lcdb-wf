@@ -1,0 +1,247 @@
+# ============================================================================
+# RNA-seq configuration file
+# ============================================================================
+#
+# The rnsaeq.Rmd RMarkdown file reads in the values from this YAML file.
+#
+# This file is split into sections, indicated by the top-level keys.
+#
+# In rnaseq.Rmd, this config file is loaded early on, is not cached, and
+# thereafter is available as the `config` object. This is a nested list data
+# structure. For example, in rnaseq.Rmd the currently-configured sample table
+# can be accessed by ``config$main$sampletable``.
+#
+# Note that RMarkdown chunks may depend on one or more of these sections.
+# Changing a value in a section will therefore appropriately cause all chunks
+# depending on that section to be re-run.
+
+
+# MAIN -------------------------------------------------------------------------
+# This section configures global options
+main:
+
+  # Path to sample table. It can be modified in the colData chunk if needed.
+  sampletable: "../config/sampletable.tsv"
+
+
+  # If you are using Ensembl annotations with gene IDs like ENSG000001.1 (with
+  # the trailing dotted version number), then these genes will not be found in
+  # the OrgDb. Set this to TRUE to strip off the dotted version to fix this.
+  strip_dotted_version: TRUE
+
+  # If you have technical replicates, you can automatically collapse them.
+  # Provide a column in colData here, and for each unique value in the provided
+  # column, the counts across samples sharing that value will be summed.
+  # Typically this would be set to the column representing biological
+  # replicate, assuming technical replicates share the same biological
+  # replicate ID.
+  collapse_by: NULL
+
+  # By default DESeq2 assumes alpha of 0.1 when filtering low-count genes. This
+  # is also used to select significant genes in the various helper functions.
+  alpha: 0.1
+
+  # If you plan on creating dds objects with featureCounts that will be
+  # compared with Salmon or Kallisto, there may be different numbers of genes
+  # in the respective dds objects. This can happen if the GTF used by
+  # featureCounts and the FASTA used by Salmon or Kallisto do not exactly
+  # match. By default, this mismatch will stop with an error. If instead you
+  # want to use only the intersection of genes found in all contrasts, set this
+  # to TRUE.
+  force_intersect: FALSE
+
+  # AnnotationHub uses a safe permissions approach, setting the AnnotationHub
+  # lock file to be only visible by the creating user and the cache database to
+  # be read-only for the group. If this setting is TRUE, then the permissions
+  # will be set on BiocFileCache.sqlite and BiocFileCache.sqlite.LOCK to be
+  # read/write for both user and group.
+  group_permissions: TRUE
+
+
+# PLOTTING ---------------------------------------------------------------------
+# This section configures plotting options for PCA, clustered heatmap, and
+# functional enrichment plots.
+plotting:
+
+  # For each item in this list, you will get a column of colors along the right
+  # side in the clustered heatmap and a PCA plot tab.
+  covariates_for_plots:
+    - Age
+    - Genotype
+    - Exercise
+    - Group
+    - Mass
+    - Litter
+    - AgeDays
+    - Genotype_Exercise
+    - Age_Genotype
+    - Exercise_Genotype
+
+  # Arguments for dotplot_args, emapplot_args, and cnetplot_args are passed to
+  # the respective clusterProfiler plotting functions dotplot, emapplot, and
+  # cnetplot. Any arguments accepted by those functions can be added here.
+  dotplot_args:
+    showCategory: 20
+    color: p.adjust
+    size: NULL
+    split: NULL
+    font.size: 12
+    x: GeneRatio
+
+  emapplot_args:
+    showCategory: 35
+    color: p.adjust
+    cex_label_category: .7
+
+  cnetplot_args:
+    showCategory: 5
+    foldChange: NULL
+    colorEdge: FALSE
+    circular: FALSE
+    node_label: all
+
+  # If diagnostics_results_names is empty or missing, and
+  # toggle$results_diagnostics is TRUE (see the "toggle" section), then
+  # diagnostics will be run for all results objects. This can be time consuming
+  # if you have many contrasts.
+  #
+  # If toggle$results_diagnostics is FALSE, no diagnostics will be run for
+  # results and the diagnostics_results_names entry is ignored.
+  #
+  # Otherwise if toggle$results_diagnostics is TRUE and this list contains
+  # items, then only run diagnostics for the following names in res_list. This
+  # can be useful in cases where you ran many contrasts but only want to run
+  # diagnostics on a subset of them.
+  diagnostics_results_names: []
+
+
+# PARALLEL ---------------------------------------------------------------------
+# Configure parallelization here.
+parallel:
+
+  parallel: TRUE
+
+  # If "cores" is an integer, use that many cores.
+  #
+  # If "cores" is a string, assume it's the name of an environment variable
+  # that stores the number of cores (e.g., "SLURM_CPUS_PER_TASK"). If that env
+  # var is missing or empty then default to 1 core.
+  #
+  # NOTE: on some clusters, you may want to also set the environment variable
+  # `OMP_NUM_THREADS=1` to prevent some R parallelization code from trying to
+  # grab all cores on the node, even though you were only allocated a subset by
+  # the batch scheduler.
+  cores: 8
+
+# TOGGLE -----------------------------------------------------------------------
+# This section provides an easy way to turn on or off entire parts of the
+# analysis.
+toggle:
+
+  # Import Salmon results instead of featureCounts? This is global; if you want
+  # to compare featureCounts and Salmon then leave this to FALSE and use the
+  # `salmon=TRUE` argument to lcdbwf::make_dds.
+  salmon: FALSE
+
+  # Import Kallisto results instead of featureCounts? See similar notes above
+  # for Salmon.
+  kallisto: FALSE
+
+  # Create diagnostic plots for all dds objects?
+  dds_diagnostics: TRUE
+
+  # Create diagnostic plots for results objects? If TRUE, will check the
+  # config$plotting$diagnostics_for_results list.
+  results_diagnostics: TRUE
+
+# ANNOTATION -------------------------------------------------------------------
+# Configuration specific to annotations and databases
+annotation:
+
+  # Specify the genus and species. This will be used to search AnnotationHub.
+  genus_species: "Mus musculus"
+
+  # You can optionally manually search AnnotationHub to find a different
+  # annotation keys for OrgDb and/or TxDb and use them here to override the
+  # default latest versions.
+  orgdb_key_override: NULL
+  txdb_key_override: NULL
+
+  # The OrgDb will be downloaded here and subsequently read directly from this
+  # directory
+  hub_cache: "../../../include/AnnotationHubCache"
+  localHub: FALSE
+  force: FALSE
+
+  # What is the format of the gene IDs in rownames(dds)?
+  keytype: 'ENSEMBL'
+
+  # What is the format of the gene IDs in msigdbr?
+  msigdbr_keytype: "ensembl_gene"
+
+  # For each column here, the OrgDb will be queried using the gene IDs in the
+  # rownames of the results object (type is specified by "keytype" above) and
+  # the resulting values will be attached to the results object.
+  #
+  # Use columns(orgdb) to figure out what the options are for your particular
+  # OrgDb.
+  orgdb_columns:
+    - SYMBOL
+    - ALIAS
+    - UNIPROT
+    - ENTREZID
+
+  # For each column listed here, if a value is NA when searching the
+  # AnnotationHub (as described above) then it will be filled in with the
+  # corresponding value from rownames(results_object). Useful for when you want
+  # use symbol where possible but fill in with the Ensembl ID when symbol is
+  # not available.
+  fill:
+    - SYMBOL
+
+  # Which column to use when labeling plots? E.g., MA and volcano plots. Must
+  # be one of "orgdb_columns".
+  label_column: SYMBOL
+
+
+# FUNCTIONAL ENRICHMENT --------------------------------------------------------
+# Configuration specific to functional enrichment as performed in
+# functional_enrichment.Rmd
+functional_enrichment:
+
+  ontologies:
+    # Standard Gene Ontology
+    "BP": "GO Biological Process"
+    "CC": "GO Cellular Component"
+    "MF": "GO Molecular Function"
+
+    # KEGG pathway analysis
+    # "KEGG": "KEGG Pathways"
+
+    ## MSigDB (compiled for human, but orthologs are available which may be of
+    ## questionable utility for other organisms).  To see what's available, use
+    ## lcdbwf::available_msigdb_keys() and cross-reference with
+    ## https://www.gsea-msigdb.org/gsea/msigdb/collections.jsp
+    #"C2_CGP": "MSigDB chemical and genetic perturbations"
+    #"C2_CP": "MSigDb Canonical pathways"
+    #"C5_GO:BP": "MSigDB's version of BP"
+    #"C5_GO:CC": "MSigDB's version of CC"
+    #"C5_GO:MF": "MSigDB's version of MF"
+    #"C8": "MSigDB cell-type-specific gene sets"
+    #"H": "MSigDB hallmark gene sets"
+
+  # Type can be "OR" for overrepresentation analysis, or "GSEA" for gene set
+  # enrichment analysis.
+  kind:
+    - "OR"
+
+  # Options here are "up", "down" or "changed".
+  directions:
+    - "up"
+    - "down"
+    - "changed"
+
+  # Any GO terms above these cutoffs will not be reported. Set to 1 if you're
+  # fine getting plots even with no statistically significant terms.
+  pvalueCutoff: 1
+  qvalueCutoff: 1
