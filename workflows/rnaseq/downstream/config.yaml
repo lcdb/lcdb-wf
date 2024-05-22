@@ -236,3 +236,12 @@ functional_enrichment:
   # fine getting plots even with no statistically significant terms.
   pvalueCutoff: 1
   qvalueCutoff: 1
+
+  # This sets the `universe` argument of the `enricher` function to choose an option how to limit
+  # background genes. Choose one from the following options:
+  # - exclude_zero_in_all: excludes genes with zero raw count in all samples
+  # - no_filter: disable any filtering. This option will use all available genes in 
+  #     each annotation database. If a user wishes to use custom background genes, 
+  #     use this option with `universe_list` set to a named list of background genes,
+  #     where the list names are identical to those of the result list.
+  limit_background_genes: "exclude_zero_in_all"

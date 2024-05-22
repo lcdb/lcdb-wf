@@ -71,12 +71,36 @@ if(!'degpatterns_list' %in% names(obj)){
 # obtain ontology information for all ontologies
 ontology_list <- lcdbwf:::get_ontology_list(config)
 
+# Define background gene pool for overrepresentation analysis
+univ_option <- config$functional_enrichment$limit_background_genes
+
+# Set `universe_list` based on configuration or custom background
+if (univ_option == "exclude_zero_in_all") {
+  # Retrieve all genes detected in one or more samples per contrast
+  universe_list <- lapply(names(dds_list), function(name) nonzero_genes(dds_list[[name]]))
+  names(universe_list) <- names(dds_list)
+} else if (univ_option == "no_filter") {
+  ########################################################################################
+  # Here, a user can manually set the `universe_list` to a named list of vectors for     #
+  # custom background genes. Ensure to have names matched between `universe_list` and    #
+  # `res_list`.                                                                          #
+  ########################################################################################
+  universe_list <- NULL
+  # Raise an error if names are unmatched
+  if (!identical(names(universe_list), names(res_list)) & !is.null(universe_list)) {
+    stop("universe_list has different names from res_list.")
+  }
+} else {
+  stop("Correct your background option in the config.yaml file.")
+}
 ```
+
 
 ```{r enrich, cache=TRUE, eval=config$toggle$functional_enrichment, config=c(config$main, config$functional_enrichment), dependson='functional_enrichment_prep'}
 enrich_list <- lcdbwf:::run_enricher(res_list=res_list,
                                      ontology_list=ontology_list,
                                      config=config,
+                                     universe_list=universe_list,
                                      cores=cores, sep='*')
 
 ```
