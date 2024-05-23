@@ -58,9 +58,12 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
   design <- purrr::pluck(design_data, 'design')
   test <- purrr::pluck(design_data, 'test', .default=default_test)
   if (!(test %in% c('Wald', 'LRT'))){
-    stop("Valid options for test are 'Wald' (default) or 'LRT'")
+    stop(paste("Valid options for test are 'Wald' (default) or 'LRT'. You chose,", test))
   }
   reduced_design <- purrr::pluck(design_data, 'reduced_design')
+  if (!is.null(reduced_design) && test != 'LRT') {
+    stop("You included a reduced design formula but did not specify test = 'LRT'")
+  }
   location <- purrr::pluck(design_data, 'filename', .default=featureCounts)
   salmon <- purrr::pluck(design_data, 'salmon')
   kallisto <- purrr::pluck(design_data, 'kallisto')
