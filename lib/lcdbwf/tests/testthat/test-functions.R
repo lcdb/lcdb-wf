@@ -47,8 +47,9 @@ make_featurecounts_file <- function(fc_nrow = 3000, filename = "featurecounts.tx
 } # make_featureCounts_file
 
 # Helper function to make minimal default design data. design_data is an argument and
-# object of type list that is passed to make_dds() 
+# object of type list that is passed to make_dds()
 make_design_data <- function() {
+  make_featurecounts_file() # featurecounts.txt will be written to this directory if it doesn't exist
   lst <- list(
   # Create the sample table
   sampletable = data.frame(
@@ -143,7 +144,13 @@ check_results <- function(res, lrt_design_data, label, contrast = NULL, coef = N
 # This function calls make_results on all combinations tests and shrinkage types passed in as character vectors
 # It then tests the output for the expected results
 test_make_results <- function(tests, shrinkage_types, contrast, coef, dds_list, lrt_design_data) {
-
+### TESTING ###
+#test <- 'Wald'
+#type <- 'ashr'
+#dds_name <- 'dds_wald'
+#contrast <- c("condition", "treatment", "control")
+#label <- paste0("test=", test %||% "NULL/default (Wald)", ", type=", type %||% "NULL (Skip)")
+###
   for (test in tests) {
     for (type in shrinkage_types) {
       if (test == 'Wald' || is.null(test)) {
@@ -154,32 +161,42 @@ test_make_results <- function(tests, shrinkage_types, contrast, coef, dds_list, 
       label <- paste0("test=", test %||% "NULL/default (Wald)", ", type=", type %||% "NULL (Skip)")
       test_that(paste("make_results works correctly with", label), {
         if ((!is.null(test) && test == 'LRT') && is.null(type)) {
-          res <- make_results(dds_name=dds_name, label=label, test=test, type=NULL) # No contrast when running test == 'LRT'
+          res <- lcdbwf:::make_results(dds_name=dds_name, label=label, test=test, type=NULL) # No contrast when running test == 'LRT'
           check_results(res, lrt_design_data, label, test=test, type=NULL)
         } else if ((!is.null(test) && test == 'LRT') && (!is.null(type) && !type %in% c('apeglm','normal'))) {
-          res <- make_results(dds_name=dds_name, label=label, test=test, type=type) # No contrast when running test == 'LRT'
+          res <- lcdbwf:::make_results(dds_name=dds_name, label=label, test=test, type=type) # No contrast when running test == 'LRT'
           check_results(res, lrt_design_data, label, test=test, type=type)
         } else if ((!is.null(test) && test == 'LRT') && (!is.null(type) && type %in% c('apeglm','normal'))) {
           # No contrast when running test == 'LRT'. But coef is required for shrinkage type == 'apeglm' and 'apeglm'
-          res <- make_results(dds_name=dds_name, label=label, test=test, type=type, coef=coef)
+          res <- lcdbwf:::make_results(dds_name=dds_name, label=label, test=test, type=type, coef=coef)
           check_results(res, lrt_design_data, label, test=test, type=type)
         } else if (!is.null(test) && type != 'apeglm' && !is.null(type)) {
-          res <- make_results(dds_name=dds_name, label=label, test=test, type=type, contrast=contrast)
+          res <- lcdbwf:::make_results(dds_name=dds_name, label=label, test=test, type=type, contrast=contrast) # Wald, ashr
+print("str(res) ---------------- ")
+print(str(res))
+print("str(res$res) ---------------- ")
+print(str(res$res))
+print("names of metadata of res: -----------")
+print(names(metadata(res$res)))
+print("$type of metadata of res: ----------")
+print(metadata(res$res)$type)
+print("Expected type: ------------")
+print(type)
           check_results(res, lrt_design_data, label, contrast=contrast, test=test, type=type)
         } else if (is.null(test) && type != 'apeglm' && !is.null(type)) {
-          res <- make_results(dds_name=dds_name, label=label, test=NULL, type=type, contrast=contrast)
+          res <- lcdbwf:::make_results(dds_name=dds_name, label=label, test=NULL, type=type, contrast=contrast)
           check_results(res, lrt_design_data, label, contrast=contrast, test=NULL, type=type)
         } else if (!is.null(test) && is.null(type)) {
-          res <- make_results(dds_name=dds_name, label=label, test=test, type=NULL, contrast=contrast)
+          res <- lcdbwf:::make_results(dds_name=dds_name, label=label, test=test, type=NULL, contrast=contrast)
           check_results(res, lrt_design_data, label, contrast=contrast, test=test, type=NULL)
         } else if (is.null(test) && is.null(type)) {
-          res <- make_results(dds_name=dds_name, label=label, test=NULL, type=NULL, contrast=contrast)
+          res <- lcdbwf:::make_results(dds_name=dds_name, label=label, test=NULL, type=NULL, contrast=contrast)
           check_results(res, lrt_design_data, label, contrast=contrast, test=NULL, type=NULL)
         } else if (!is.null(test) && type == 'apeglm') {
-          res <- make_results(dds_name=dds_name, label=label, test=test, type=type, coef=coef)
+          res <- lcdbwf:::make_results(dds_name=dds_name, label=label, test=test, type=type, coef=coef)
           check_results(res, lrt_design_data, label, coef=coef, test=test, type=type)
         } else if (is.null(test) && type == 'apeglm') {
-          res <- make_results(dds_name=dds_name, label=label, test=NULL, type=type, coef=coef)
+          res <- lcdbwf:::make_results(dds_name=dds_name, label=label, test=NULL, type=type, coef=coef)
           check_results(res, lrt_design_data, label, coef=coef, test=NULL, type=type)
         } else {
           stop(paste(label, "was not tested"))
