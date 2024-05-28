@@ -70,6 +70,7 @@ make_dds_list <- function() {
                        featureCounts='featurecounts.txt',
                        parallel=config$parallel$parallel)
 
+  lrt_design_data <- make_lrt_design_data()
   dds_lrt <- make_dds(lrt_design_data,
                       config=config,
                       featureCounts='featurecounts.txt',
