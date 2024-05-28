@@ -131,7 +131,7 @@ parallel:
   # `OMP_NUM_THREADS=1` to prevent some R parallelization code from trying to
   # grab all cores on the node, even though you were only allocated a subset by
   # the batch scheduler.
-  cores: 8
+  cores: "SLURM_CPUS_PER_TASK"
 
 # TOGGLE -----------------------------------------------------------------------
 # This section provides an easy way to turn on or off entire parts of the
