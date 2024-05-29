@@ -7,7 +7,7 @@ library(BiocParallel)
 library(ggplot2)
 devtools::load_all('../../../../lib/lcdbwf')
 source('test-functions.R')
-config <- lcdbwf:::load_config('config.yaml')
+config <- lcdbwf:::load_config('../../../../workflows/rnaseq/downstream/config.yaml')
 text <- yaml::yaml.load_file('text.yaml')
 register(MulticoreParam(config$parallel$cores))
 

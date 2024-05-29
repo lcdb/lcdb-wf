@@ -46,7 +46,6 @@ kallisto.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, 
 #' @param featureCounts Location of featureCounts output to be loaded
 make_dds <- function(design_data, config=NULL, collapse_by=NULL,
                      strip_dotted_version=NULL,
-                     default_test='Wald',
                      featureCounts='../data/rnaseq_aggregation/featurecounts.txt',
                      salmon_pattern="../data/rnaseq_samples/__SAMPLENAME__/__SAMPLENAME__.salmon/quant.sf",
                      kallisto_pattern="../data/rnaseq_samples/__SAMPLENAME__/__SAMPLENAME__.kallisto/abundance.h5",
@@ -56,7 +55,7 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
 
   coldata <- purrr::pluck(design_data, 'sampletable')
   design <- purrr::pluck(design_data, 'design')
-  test <- purrr::pluck(design_data, 'test', .default=default_test)
+  test <- purrr::pluck(design_data, 'test', .default='Wald')
   if (!(test %in% c('Wald', 'LRT'))){
     stop(paste("Valid options for test are 'Wald' (default) or 'LRT'. You chose,", test))
   }

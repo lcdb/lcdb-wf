@@ -1,8 +1,9 @@
 library(DESeq2)
-devtools::load_all('../../../../lib/lcdbwf')
-config <- lcdbwf:::load_config('config.yaml')
 library(testthat)
+devtools::load_all('../../../../lib/lcdbwf')
+config <- lcdbwf:::load_config('../../../../workflows/rnaseq/downstream/config.yaml')
 source('test-functions.R')
+
 
 # --------- Test strip_dotted_version_from_dds() ---------- #
 test_that("strip_dotted_version_from_dds works", {
@@ -97,7 +98,7 @@ test_that("make_dds errors on missing test argument when reduced design is provi
 # --------------------------------------------------- #
 
 # -------------- collapseReplicates2 ---------------- #
-test_that("collapseReplicates2 collapses the three control replicates and three treatment replicates to
+test_that("collapseReplicates2 collapses the two control replicates and two treatment replicates to
            a single control row and a single treatment row in colData. Row names should still match
            column 1.", {
   # Setup a DESeqDataSet with replicates
@@ -109,10 +110,10 @@ test_that("collapseReplicates2 collapses the three control replicates and three 
                   parallel=config$parallel$parallel)
 
   # Perform replicate collapsing
-  dds_collapsed <- collapseReplicates2(dds, dds$condition)
+  dds_collapsed <- collapseReplicates2(dds, dds$group)
   colData_collapsed <- as.data.frame(colData(dds_collapsed))
-  expect_equal(length(as.character(colData_collapsed$condition[colData_collapsed$condition == 'control'])), 1)
-  expect_equal(length(as.character(colData_collapsed$condition[colData_collapsed$condition == 'treatment'])), 1)
+  expect_equal(length(as.character(colData_collapsed$group[colData_collapsed$group == 'control'])), 1)
+  expect_equal(length(as.character(colData_collapsed$group[colData_collapsed$group == 'treatment'])), 1)
   # Check if the first column of colData matches rownames
   expect_equal(rownames(colData_collapsed), colData_collapsed[,1])
 }) # test_that
