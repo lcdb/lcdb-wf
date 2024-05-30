@@ -1,9 +1,8 @@
-library(DESeq2)
-library(testthat)
-devtools::load_all('../../../../lib/lcdbwf')
+#library(DESeq2)
+#library(testthat)
+#devtools::load_all('../../../../lib/lcdbwf')
 config <- lcdbwf:::load_config('../../../../workflows/rnaseq/downstream/config.yaml')
 source('test-functions.R')
-
 
 # --------- Test strip_dotted_version_from_dds() ---------- #
 test_that("strip_dotted_version_from_dds works", {
