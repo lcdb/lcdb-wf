@@ -157,7 +157,7 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
     if (is.null(parallel)) parallel <- FALSE
   }
 
-  # Modify the args based on what we detected. Note that results() expects the
+  # Modify the args based on what we detected.
   dots[['parallel']] <- parallel
 
   # Note that results() expects the argument to be called 'object' rather than,
@@ -168,93 +168,79 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
   # Make sure the 'test' passed to make_results is the test detected in the dds object
   if ('test' %in% names(dots)) {
     if (dots$test == 'Wald' && (any(grepl('LRTStatistic', names(mcols(dds)))) ||
-        any(grepl('LRTPvalue', names(mcols(dds)))))) {
+                                any(grepl('LRTPvalue', names(mcols(dds)))))) {
       stop("The 'test' passed to make_results was set to 'Wald' but 'LRT' has been detected in dds")
     } else if (dots$test == 'LRT' && (any(grepl('WaldStatistic', names(mcols(dds)))) ||
-               any(grepl('WaldPvalue', names(mcols(dds)))))) {
+                                      any(grepl('WaldPvalue', names(mcols(dds)))))) {
       stop("The 'test' passed to make_results was set to 'LRT' but 'Wald' has been detected in dds")
     }
   }
 
-  # Define 'test' and 'type' in dots for some checks.
-  # We can't simply reference test and type with dots$test and
-  # dots$type without requiring their presence because these parameters
-  # can both be missing and defaults will be used in their place, internally, leaving
-  # us unable to verify their compatibility.
-
-  # Detect 'test' type when 'test' is missing from dots (make_results call)
+  # Detect 'test' type when the 'test' argument is missing from dots
+  test_detected <- FALSE
   if (!'test' %in% names(dots)) {
-    if (any(grepl('LRTStatistic', names(mcols(dds)))) ||
-        any(grepl('LRTPvalue', names(mcols(dds))))) {
-        dots$test <- 'LRT'
-        test_detected <- TRUE
-    } else if (any(grepl('WaldStatistic', names(mcols(dds)))) ||
-               any(grepl('WaldPvalue', names(mcols(dds))))) {
-        dots$test <- 'Wald'
-        test_detected <- TRUE
+    if (any(grepl('LRTStatistic', names(mcols(dds)))) || any(grepl('LRTPvalue', names(mcols(dds))))) {
+      dots$test <- 'LRT'
+      test_detected <- TRUE
+    } else if (any(grepl('WaldStatistic', names(mcols(dds)))) || any(grepl('WaldPvalue', names(mcols(dds))))) {
+      dots$test <- 'Wald'
+      test_detected <- TRUE
     } else {
       stop("test type was missing from make_results call and could not be detected from dds")
     }
   }
 
-  # In recent versions, lfcShrink 'type' should default to "apeglm". Here we
-  # are inspecting the function itself if the default ever changes.
-  if (!'type' %in% names(dots)) { dots$type <- eval(formals(DESeq2::lfcShrink)$type)[1] }
+  # Set the current default for 'type' from DESeq2 for lfcShrink if 'type' was not provided
+  if (!'type' %in% names(dots)) {
+    dots$type <- eval(formals(DESeq2::lfcShrink)$type)[1]
+  }
 
   # Call results() with the subset of dots that it accepts.
   results_dots <- lcdbwf:::match_from_dots(dots, results)
   res <- do.call("results", results_dots)
 
-  # When make_results is called with test set to 'LRT', we impute all rows in the log2FoldChange
+  # When make_results is called with 'test' set to 'LRT',
+  # or when make_results is called with 'test' missing but
+  # DDS object contains the LRT, we impute all rows in the log2FoldChange
   # column of the DESeqResults object to 0. LFC values only make sense to report for a single
   # comparison of two sample groups. This applies to the Wald test only.
   # LRT is instead performing a test of the removal of one or more factor(s) from the design formula.
   # DESeq2 reports log2FoldChange values for a single pair-wise comparison when test == 'LRT'. This
   # can be misleading and so this is our solution.
+
+  # Adjust log2FoldChange for LRT test
   if (!is.null(dots$test) && dots$test == 'LRT') {
     res$log2FoldChange <- 0
   }
 
-  # While lfcShrink doesn't accept NULL as a type, we're using it here as
-  # a mechanism to disable lfcShrink altogether. Also, it doesn't make
-  # sense to shrink LRT LFC values as those should remain 0 for
-  # the reason described above.
-  if (!is.null(dots$type) && !is.null(dots$test) && dots$test != 'LRT') {
-    # We're about to call lfcShrink, but it needs the res object...so inject the
-    # one we just made into dots.
-    dots[['res']] <- res
+  # Checks for LRT test and non-NULL type
+  if (!is.null(dots$type) && !is.null(dots$test) && dots$test == 'LRT' && !test_detected) {
+    stop("You cannot pass a non-NULL or missing type to make_results with test == 'LRT'. For LRT, LFC values are set to 0 and should not be passed to lfcShrink. Use type == NULL in make_results for LRT DDS objects.")
+  } else if (!is.null(dots$type) && !is.null(dots$test) && dots$test == 'LRT' && test_detected) {
+    stop("You cannot pass a non-NULL or missing type to make_results with an LRT dds object. For LRT, LFC values are set to 0 and should not be passed to lfcShrink. Use type == NULL in make_results for LRT DDS objects.")
+  }
 
-    # lfcShrink also needs the dds object, so inject that too
+  # Call lfcShrink if applicable
+  if (!is.null(dots$type) && dots$test != 'LRT') {
+    dots[['res']] <- res
     dots[['dds']] <- dds
 
     lfcShrink_dots <- lcdbwf:::match_from_dots(dots, lfcShrink)
     res <- do.call("lfcShrink", lfcShrink_dots)
 
-    # Add the shrinkage type to the metadata of the results object
-    metadata(res)$type <- type
-
-  } else if (!is.null(dots$type) && !is.null(dots$test) && dots$test == 'LRT' && !test_detected) {
-    stop("You cannot pass a non-NULL type to make_results with test == 'LRT'.
-         For LRT, LFC values are set to 0 and should not be passed to lfcShrink.
-         Use type == NULL in make_results for LRT DDS objects.")
-  } else if (!is.null(dots$type) && !is.null(dots$test) && dots$test == 'LRT' && test_detected) {
-    stop("You cannot pass a non-NULL type to make_results with an LRT dds object.
-         For LRT, LFC values are set to 0 and should not be passed to lfcShrink.
-         Use type == NULL in make_results for LRT DDS objects.")
+    metadata(res)$type <- dots$type
   } else {
-    # Be explicit, and ensure there's always a type attribute
     metadata(res)$type <- NULL
   }
 
   return(
     list(
-      res=res,
-      dds=dds_name,
-      label=label
+      res = res,
+      dds = dds_name,
+      label = label
     )
   )
 }
-
 
 results_diagnostics <- function(res, dds, name, config, text){
     lcdbwf:::mdcat('### Other diagnostics')

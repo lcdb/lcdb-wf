@@ -47,8 +47,7 @@ build_results_tabs <- function(res_list, dds_list, config, text){
     # If any contrasts contain LRT, print the source of LFC
     # and p values above MA & Volcano plots
     if (contains_LRT) {
-      mdcat(mcols(res_i)$description[9])
-      mdcat(mcols(res_i)$description[7])
+      mdcat("LRT log2FoldChange values have been set to 0")
     }
     print(lcdbwf:::plotMA_label(
       res_i,
@@ -58,8 +57,7 @@ build_results_tabs <- function(res_list, dds_list, config, text){
     lcdbwf:::mdcat('### Volcano plot')
     lcdbwf:::folded_markdown(text$results_plots$volcano, "Help")
     if (contains_LRT) {
-      mdcat(mcols(res_i)$description[9])
-      mdcat(mcols(res_i)$description[7])
+      mdcat("LRT log2FoldChange values have been set to 0")
     }
 
     print(lcdbwf:::plot_volcano_label(
@@ -78,10 +76,9 @@ build_results_tabs <- function(res_list, dds_list, config, text){
 }
 
 #' Check for LRT in a results object's metadata
-#' @param res_i DESeq2 results object
-#' @return Boolean TRUE if results object's pvalues were determined
-#' via the likelihood-ratio test (LRT) and FALSE if the Wald test
-#' was used.
+#' @param res_i DESeqResults object
+#' @return Boolean TRUE if results object's pvalues were provided by
+#' nBinomLRT and FALSE if the Wald test was used.
 check_LRT <- function(res_i) {
   mcols_pval <- mcols(res_i)$description[9]
   mcols_pval <- grepl('LRT', mcols_pval)

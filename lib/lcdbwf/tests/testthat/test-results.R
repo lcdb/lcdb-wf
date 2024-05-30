@@ -5,10 +5,13 @@ library(rlang)
 library(stringr)
 library(BiocParallel)
 library(ggplot2)
+library(AnnotationHub)
+library(dplyr)
+
 devtools::load_all('../../../../lib/lcdbwf')
 source('test-functions.R')
 config <- lcdbwf:::load_config('../../../../workflows/rnaseq/downstream/config.yaml')
-text <- yaml::yaml.load_file('text.yaml')
+text <- yaml::yaml.load_file('../../../../workflows/rnaseq/downstream/text.yaml')
 register(MulticoreParam(config$parallel$cores))
 
 # Mock function to capture mdcat output
@@ -43,6 +46,7 @@ res <- dds_and_res$res$res
 
 dds_list <- list(dds1=dds)
 res_list <- list(res1=list(res=res, dds='dds1', label='Defaults'))
+res_list <- lcdbwf:::attach_extra(res_list, config)
 
 test_that("build_results_tabs works with default config", {
   expect_silent(build_results_tabs(res_list, dds_list, config, text))
@@ -55,6 +59,7 @@ res <- dds_and_res$res$res
 
 dds_list <- list(dds1=dds)
 res_list <- list(res1=list(res=res, dds='dds1', label='LRT'))
+res_list <- lcdbwf:::attach_extra(res_list, config)
 
 # Test build_results_tabs function
 test_that("build_results_tabs works with LRT config", {
