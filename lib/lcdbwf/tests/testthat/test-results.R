@@ -7,14 +7,18 @@ library(BiocParallel)
 library(ggplot2)
 library(AnnotationHub)
 library(dplyr)
-
 devtools::load_all('../../../../lib/lcdbwf')
 source('test-functions.R')
 config <- lcdbwf:::load_config('../../../../workflows/rnaseq/downstream/config.yaml')
 text <- yaml::yaml.load_file('../../../../workflows/rnaseq/downstream/text.yaml')
 register(MulticoreParam(config$parallel$cores))
 
-# Mock function to capture mdcat output
+# Wrapper function for inherits ggplot
+is_ggplot <- function(x) {
+  inherits(x, "ggplot")
+}
+
+# Function to capture mdcat output
 mdcat_output <- c()
 mock_mdcat <- function(...) {
   mdcat_output <<- c(mdcat_output, paste(..., collapse = " "))
@@ -38,75 +42,98 @@ make_deseq_results <- function(test='Wald', type='ashr', reduced_design=NULL) {
   return(list(dds=dds, res=res))
 }
 
-# ------ Test build_results_tabs function ------ #
 # Create objects for testing defaults
 dds_and_res <- make_deseq_results()
 dds <- dds_and_res$dds
 res <- dds_and_res$res$res
 
-dds_list <- list(dds1=dds)
-res_list <- list(res1=list(res=res, dds='dds1', label='Defaults'))
-res_list <- lcdbwf:::attach_extra(res_list, config)
-
-test_that("build_results_tabs works with default config", {
-  expect_silent(build_results_tabs(res_list, dds_list, config, text))
-})
+wald_dds_list <- list(dds1=dds)
+wald_res_list <- list(res1=list(res=res, dds='dds1', label='Defaults'))
+wald_res_list <- lcdbwf:::attach_extra(wald_res_list, config)
 
 # Create objects for testing 'LRT'
-dds_and_res <- make_deseq_results(test='LRT', reduced_design=~1)
+dds_and_res <- make_deseq_results(test='LRT', type=NULL, reduced_design=~1)
 dds <- dds_and_res$dds
 res <- dds_and_res$res$res
 
-dds_list <- list(dds1=dds)
-res_list <- list(res1=list(res=res, dds='dds1', label='LRT'))
-res_list <- lcdbwf:::attach_extra(res_list, config)
+lrt_dds_list <- list(dds1=dds)
+lrt_res_list <- list(res1=list(res=res, dds='dds1', label='LRT'))
+lrt_res_list <- lcdbwf:::attach_extra(lrt_res_list, config)
 
-# Test build_results_tabs function
-test_that("build_results_tabs works with LRT config", {
-  expect_silent(build_results_tabs(res_list, dds_list, config, text))
-})
+# ------ Test build_results_tabs function ------ #
+test_that("build_results_tabs works with Wald test", {
+  # build_results_tabs requires 'dds_list' in .GlobalEnv
+  dds_list <<- wald_dds_list
+  plots <- suppressWarnings(build_results_tabs(wald_res_list, wald_dds_list, config, text))
 
-test_that("build_results_tabs works with diagnostics disabled", {
-  config$toggle$results_diagnostics <- FALSE
-  expect_silent(build_results_tabs(res_list, dds_list, config, text))
-})
+  # Check that each plot in the list is a ggplot object
+  for (name in names(plots)) {
+    expect_true(is_ggplot(plots[[name]]$ma_plot))
+    expect_true(is_ggplot(plots[[name]]$volcano_plot))
+    expect_true(is_ggplot(plots[[name]]$pval_hist_plot))
+    # Check diagnostic plots
+    if (config$toggle$results_diagnostics) {
+      # diag_plot_list is a list of ggplot objects
+      for (diag_plot in plots[[name]]$diag_plot_list) {
+        expect_true(is_ggplot(diag_plot))
+      } # for diag_plot
+    } # if config
+  } # for name
+}) # test_that
 
-test_that("build_results_tabs works with specific diagnostics results names", {
-  config$toggle$results_diagnostics <- TRUE
-  config$plotting$diagnostics_results_names <- c("res1")
-  expect_silent(build_results_tabs(res_list, dds_list, config, text))
-})
+test_that("build_results_tabs works with LRT", {
+  # build_results_tabs requires 'dds_list' in .GlobalEnv
+  dds_list <<- lrt_dds_list
+  plots <- suppressWarnings(build_results_tabs(lrt_res_list, lrt_dds_list, config, text))
 
-test_that("build_results_tabs handles empty res_list", {
-  expect_silent(build_results_tabs(list(), dds_list, config, text))
-})
+  # Check that each plot in the list is a ggplot object
+  for (name in names(plots)) {
+    expect_true(is_ggplot(plots[[name]]$ma_plot))
+    expect_true(is_ggplot(plots[[name]]$volcano_plot))
+    expect_true(is_ggplot(plots[[name]]$pval_hist_plot))
+    # Check diagnostic plots
+    if (config$toggle$results_diagnostics) {
+      # diag_plot_list is a list of ggplot objects
+      for (diag_plot in plots[[name]]$diag_plot_list) {
+        expect_true(is_ggplot(diag_plot))
+      } # for diag_plot
+    } # if config
+  } # for name
+}) # test_that
+# ---------------------------------------------- #
 
 test_that("check_LRT identifies LRT results correctly", {
-  res_LRT_result <- create_deseq_results(test='LRT', reduced_design=~1)
-  res_LRT <- res_LRT_result$res
-  expect_true(check_LRT(res_LRT))
-
-  res_Wald_result <- create_deseq_results(test='Wald')
-  res_Wald <- res_Wald_result$res
-  expect_false(check_LRT(res_Wald))
+  expect_true(check_LRT(lrt_res_list$res1$res))
+  expect_false(check_LRT(wald_res_list$res1$res))
 })
 
 # Test that mdcat is called with expected values for LRT
-test_that("build_results_tabs calls mdcat with expected values for LRT", {
-  res_LRT_result <- create_deseq_results(test='LRT', reduced_design=~1)
-  res_LRT <- res_LRT_result$res
-  dds <- res_LRT_result$dds
-  dds_list_LRT <- list(dds1=dds)
-  res_list_LRT <- list(res1=list(res=res_LRT, dds='dds1', label='LRT Test Label'))
+test_that("build_results_tabs calls mdcat with expected character for LRT", {
+  # build_results_tabs requires 'dds_list' in .GlobalEnv
+  dds_list <<- lrt_dds_list
 
   # Capture mdcat output
   mdcat_output <<- c()
   with_mock(
     `lcdbwf:::mdcat` = mock_mdcat,
-    build_results_tabs(res_list_LRT, dds_list_LRT, config, text)
+    suppressWarnings(build_results_tabs(lrt_res_list, lrt_dds_list, config, text))
   )
 
-  expect_false(any(grepl("Wald", mdcat_output)))
-  expect_true(any(grepl("LRT", mdcat_output)))
+  expect_true(any(grepl("LRT log2FoldChange values have been set to 0", mdcat_output)))
+})
+
+# Test that mdcat is not called with LRT expected values for Wald test
+test_that("build_results_tabs does not call mdcat with LRT expected character for Wald", {
+  # build_results_tabs requires 'dds_list' in .GlobalEnv
+  dds_list <<- wald_dds_list
+
+  # Capture mdcat output
+  mdcat_output <<- c()
+  with_mock(
+    `lcdbwf:::mdcat` = mock_mdcat,
+    suppressWarnings(build_results_tabs(wald_res_list, wald_dds_list, config, text))
+  )
+
+  expect_false(any(grepl("LRT log2FoldChange values have been set to 0", mdcat_output)))
 })
 

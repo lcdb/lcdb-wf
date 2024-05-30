@@ -29,12 +29,16 @@ build_results_tabs <- function(res_list, dds_list, config, text){
     }
   }
 
+  # Make a list to store the plot objects for testing
+  plots <- list()
+
   for (name in names(res_list)){
     dds_i <- dds_list[[res_list[[name]][['dds']] ]]
     res_i <- res_list[[name]][['res']]
     label <- res_list[[name]][['label']]
-    # Do any contrasts contain LRT?
+    # Does this contrast contain LRT?
     contains_LRT <- check_LRT(res_i)
+    plots[[name]] <- list()
     genes_to_label <- lcdbwf:::genes_to_label(res_i, n=5, config)
     lcdbwf:::mdcat('## ', label, ' {.tabset}')
 
@@ -49,10 +53,12 @@ build_results_tabs <- function(res_list, dds_list, config, text){
     if (contains_LRT) {
       mdcat("LRT log2FoldChange values have been set to 0")
     }
-    print(lcdbwf:::plotMA_label(
+    p <- lcdbwf:::plotMA_label(
       res_i,
       genes_to_label=genes_to_label,
-      label_column=config$annotation$label_column))
+      label_column=config$annotation$label_column)
+    print(p)
+    plots[[name]]$ma_plot <- p
 
     lcdbwf:::mdcat('### Volcano plot')
     lcdbwf:::folded_markdown(text$results_plots$volcano, "Help")
@@ -60,19 +66,25 @@ build_results_tabs <- function(res_list, dds_list, config, text){
       mdcat("LRT log2FoldChange values have been set to 0")
     }
 
-    print(lcdbwf:::plot_volcano_label(
+    p <- lcdbwf:::plot_volcano_label(
       res_i,
       genes_to_label=genes_to_label,
-      label_column=config$annotation$label_column))
+      label_column=config$annotation$label_column)
+    print(p)
+    plots[[name]]$volcano_plot <- p
 
     lcdbwf:::mdcat('### P-value distribution')
     lcdbwf:::folded_markdown(text$results_plots$pval_hist, "Help")
-    print(lcdbwf:::pval_hist(res_i))
+    p <- lcdbwf:::pval_hist(res_i)
+    print(p)
+    plots[[name]]$pval_hist_plot <- p
 
     if (config$toggle$results_diagnostics){
-      lcdbwf:::results_diagnostics(res=res_i, dds=res_list[[name]]$dds, name=name, config=config, text=text)
+    p <-  lcdbwf:::results_diagnostics(res=res_i, dds=res_list[[name]]$dds, name=name, config=config, text=text)
+    plots[[name]]$diag_plots_list <- p
     }
   }
+  return(plots)
 }
 
 #' Check for LRT in a results object's metadata

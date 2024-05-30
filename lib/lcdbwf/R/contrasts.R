@@ -248,26 +248,30 @@ results_diagnostics <- function(res, dds, name, config, text){
 
     lcdbwf:::folded_markdown(text$results_diagnostics$filter_ma, "Help")
     filterThreshold <- metadata(res)$filterThreshold
-    p <- ggplot(res %>% as.data.frame() %>% mutate(filtered=res$baseMean < filterThreshold)) +
+    p1 <- ggplot(res %>% as.data.frame() %>% mutate(filtered=res$baseMean < filterThreshold)) +
       aes(x=log10(baseMean), y=log2FoldChange, color=filtered) +
       geom_point()
-    print(p)
+    print(p1)
 
     lcdbwf:::folded_markdown(text$results_diagnostics$outlier_ma, "Help")
-    p <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
+    p2 <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
       aes(x=log10(baseMean), y=log2FoldChange, color=outlier) +
       geom_point()
-    print(p)
+    print(p2)
 
     lcdbwf:::folded_markdown(text$results_diagnostics$lfcse_basemean, "Help")
-    p <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
+    p3 <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
       aes(x=log10(baseMean), y=lfcSE, color=outlier) +
       geom_point()
-    print(p)
+    print(p3)
 
     lcdbwf:::folded_markdown(text$results_diagnostics$lfcse_lfc, "Help")
-    p <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
+    p4 <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
       aes(x=log2FoldChange, y=lfcSE, color=outlier) +
       geom_point()
-    print(p)
+    print(p4)
+
+    # Save plots to a list and return for testing 
+    plots <- list(p1=p1, p2=p2, p3=p3, p4=p4)
+    return(plots)
 }

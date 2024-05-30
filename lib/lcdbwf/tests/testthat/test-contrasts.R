@@ -8,33 +8,9 @@ config <- lcdbwf:::load_config('../../../../workflows/rnaseq/downstream/config.y
 source('test-functions.R')
 register(MulticoreParam(config$parallel$cores))
 
-# Function to create design data for LRT test
-make_lrt_design_data <- function() {
-  lrt_design_data <- make_design_data()
-  lrt_design_data$test <- 'LRT'
-  lrt_design_data$reduced_design <- ~1
-  return(lrt_design_data)
-} # make_lrt_design_data
-
-make_dds_list <- function() {
-  # Create design data and dds object for Wald test type
-  wald_design_data <- make_design_data()
-  dds_wald <- make_dds(wald_design_data,
-                       config=config,
-                       featureCounts='featurecounts.txt',
-                       parallel=config$parallel$parallel)
-
-  lrt_design_data <- make_lrt_design_data()
-  dds_lrt <- make_dds(lrt_design_data,
-                      config=config,
-                      featureCounts='featurecounts.txt',
-                      parallel=config$parallel$parallel)
-
-  # Create dds_list
-  dds_list <- list(dds_wald=dds_wald, dds_lrt=dds_lrt)
-  return(dds_list)
-} # make_dds_list
-
+is_deseq_res <- function(x) {
+  inherits(x, "DESeqResults")
+}
 # Test all combinations of test and type
 # NULL shrinkage type skips lfcShrink
 # NULL test type runs Wald (default test)
@@ -117,7 +93,7 @@ for (test in tests) {
       }
 
       # Check make_results output for each possible combination of test and type
-      expect_true(inherits(res$res, "DESeqResults"))
+      expect_true(is_deseq_res(res$res))
       expect_true(identical(names(res), c('res', 'dds', 'label')))
       lrt_mcols_description <- paste0(as.character(lrt_design_data$design)[1], " ",
                                       as.character(lrt_design_data$design)[2], "' vs '",
@@ -168,7 +144,7 @@ test_that("make_results can handle dds object directly", {
                       label='Direct DDS',
                       type='ashr',
                       contrast=contrast)
-  expect_true(inherits(res$res, "DESeqResults"))
+  expect_true(is_deseq_res(res$res))
   expect_true(identical(names(res), c('res', 'dds', 'label')))
   expect_true(any(grepl('Wald', mcols(res$res)$description[4])))
 }) # test_that
@@ -246,7 +222,7 @@ for (type in c('ashr', 'apeglm', 'normal')) {
                           contrast=contrast,
                           type=type,
                           test='Wald')
-      expect_true(inherits(res$res, "DESeqResults"))
+      expect_true(is_deseq_res(res$res))
       expect_true(identical(names(res), c('res', 'dds', 'label')))
       expect_true(!all(res$res$log2FoldChange == 0))
       expect_true(any(grepl('Wald', mcols(res$res)$description[4])))
@@ -256,7 +232,7 @@ for (type in c('ashr', 'apeglm', 'normal')) {
                                         coef=coef,
                                         type=type,
                                         test='Wald')
-      expect_true(inherits(res$res, "DESeqResults"))
+      expect_true(is_deseq_res(res$res))
       expect_true(identical(names(res), c('res', 'dds', 'label')))
       expect_true(!all(res$res$log2FoldChange == 0))
       expect_true(any(grepl('Wald', mcols(res$res)$description[4])))
