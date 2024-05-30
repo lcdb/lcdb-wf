@@ -65,3 +65,5 @@ workflows/rnaseq/downstream/rnaseq.html
 *.xlsx
 *._*
 lib/lcdbwf/tests/testthat/featurecounts.txt
+*Rplots.pdf
+/lib/include/*
