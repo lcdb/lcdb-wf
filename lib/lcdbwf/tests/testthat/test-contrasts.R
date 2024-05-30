@@ -21,14 +21,6 @@ coef <- "group_treatment_vs_control"
 dds_list <- make_dds_list()
 lrt_design_data <- make_lrt_design_data()
 
-### TESTING ###
-#test <- 'Wald'
-#type <- 'ashr'
-#dds_name <- 'dds_wald'
-#contrast <- c("condition", "treatment", "control")
-#label <- paste0("test=", test %||% "NULL/default (Wald)", ", type=", type %||% "NULL (Skip)")
-##############
-
 # Each row in the ASCII table indicates which combination of test, type, coef, and contrast
 # is tested by the respective indexed conditional statement in the following test_that code.
 
