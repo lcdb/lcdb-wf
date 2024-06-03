@@ -557,15 +557,14 @@ Error: "Found duplicate names after removing pattern ^contr_[^_]+_"
          Even if the change is undone and the environment is cleared,
          the error may persist. For example, changing ``contr_01``
          in ``results_01`` to ``contr_05`` and then reknitting the file
-         will cause the R environment to contain both ``contr_01`` and 
+         will cause the R environment to contain both ``contr_01`` and
          ``contr_05`` patterns after that chunk is loaded, leading to
          this error.
 
    Solution:
-      - Clear all cache and R environment objects before the
-        ``assemble_variables`` chunk. Quit R without saving the
-        workspace, delete the .RData file, remove all ``rnaseq_cache`` files,
-        open rnaseq.Rmd and knit again.
+      - Clear all cache and R environment objects.
+        Quit R without saving the workspace, delete the .RData file,
+        remove the ``rnaseq_cache`` directory, open rnaseq.Rmd and re-knit.
 
 Glossary
 --------
