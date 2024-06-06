@@ -1,9 +1,8 @@
-#library(DESeq2)
-#library(testthat)
-#library(rlang)
-#library(stringr)
-#library(BiocParallel)
-#devtools::load_all('../../../../lib/lcdbwf')
+devtools::load_all('../../../../lib/lcdbwf')
+
+# Used for the %||% operator
+library(rlang)
+
 #register(MulticoreParam(config$parallel$cores))
 config <- lcdbwf:::load_config('../../../../workflows/rnaseq/downstream/config.yaml')
 source('test-functions.R')
@@ -95,33 +94,33 @@ for (test in tests) {
       # A
       if ((is.null(test) || test == 'Wald') && (!is.null(type) && type == 'ashr')) {
         expected_char <- paste(test %||% 'Wald', "test p-value:", contrast[1], contrast[2], "vs", contrast[3])
-        expect_true(mcols(res$res)$description[4] == expected_char)
+        expect_true(S4Vectors::mcols(res$res)$description[4] == expected_char)
       # B
       } else if ((is.null(test) || test == 'Wald') && (!is.null(type) && type == 'apeglm')) {
-        coef <- str_split(coef, "_")[[1]]
+        coef <- stringr::str_split(coef, "_")[[1]]
         expected_char <- paste(test %||% 'Wald', "test p-value:", coef[1], coef[2], coef[3], coef[4])
-        expect_true(mcols(res$res)$description[4] == expected_char)
+        expect_true(S4Vectors::mcols(res$res)$description[4] == expected_char)
       # C
       } else if ((is.null(test) || test == 'Wald') && (is.null(type) || type == 'normal')) {
         expected_char <- paste(test %||% 'Wald', "statistic:", contrast[1], contrast[2], "vs", contrast[3])
-        expect_true(mcols(res$res)$description[4] == expected_char)
+        expect_true(S4Vectors::mcols(res$res)$description[4] == expected_char)
       # D
       } else if ((!is.null(test) && test == 'LRT') && (!is.null(type) && type != 'normal')) {
         expected_char <- paste0(test, " p-value: '", lrt_mcols_description)
-        expect_true(mcols(res$res)$description[4] == expected_char)
+        expect_true(S4Vectors::mcols(res$res)$description[4] == expected_char)
       # E
       } else if ((!is.null(test) && test == 'LRT') && (is.null(type) || type == 'normal')) {
         expect_true(all(res$res$log2FoldChange == 0))
         expected_char <- paste0(test, " statistic: '", lrt_mcols_description)
-        expect_true(mcols(res$res)$description[4] == expected_char)
+        expect_true(S4Vectors::mcols(res$res)$description[4] == expected_char)
       } else {
         stop(paste(label, 'was not checked'))
       }
       # Check for expected type stored in the result's metadata
       if (!is.null(type)) {
-        expect_true(identical(metadata(res$res)$type, type))
+        expect_true(identical(S4Vectors::metadata(res$res)$type, type))
       } else if (is.null(type)) {
-        expect_true(is.null(metadata(res$res)$type))
+        expect_true(is.null(S4Vectors::metadata(res$res)$type))
       }
     }) # test_that
   } # for type in shrinkage_types
@@ -138,7 +137,7 @@ test_that("make_results can handle dds object directly", {
                       contrast=contrast)
   expect_true(is_deseq_res(res$res))
   expect_true(identical(names(res), c('res', 'dds', 'label')))
-  expect_true(any(grepl('Wald', mcols(res$res)$description[4])))
+  expect_true(any(grepl('Wald', S4Vectors::mcols(res$res)$description[4])))
 }) # test_that
 # ---------------------------------------------------------------- #
 
@@ -217,7 +216,7 @@ for (type in c('ashr', 'apeglm', 'normal')) {
       expect_true(is_deseq_res(res$res))
       expect_true(identical(names(res), c('res', 'dds', 'label')))
       expect_true(!all(res$res$log2FoldChange == 0))
-      expect_true(any(grepl('Wald', mcols(res$res)$description[4])))
+      expect_true(any(grepl('Wald', S4Vectors::mcols(res$res)$description[4])))
     } else if (type == 'apeglm') {
       res <- make_results(dds_name='dds_wald',
                                         label='Shrink Wald results',
@@ -227,7 +226,7 @@ for (type in c('ashr', 'apeglm', 'normal')) {
       expect_true(is_deseq_res(res$res))
       expect_true(identical(names(res), c('res', 'dds', 'label')))
       expect_true(!all(res$res$log2FoldChange == 0))
-      expect_true(any(grepl('Wald', mcols(res$res)$description[4])))
+      expect_true(any(grepl('Wald', S4Vectors::mcols(res$res)$description[4])))
     } # if type
   }) # test_that
 } # for type

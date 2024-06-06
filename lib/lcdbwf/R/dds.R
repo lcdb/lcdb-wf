@@ -130,13 +130,13 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
 
   # Check if we need to perform the LRT on the dds object
   if (test == 'Wald') {
-    dds <- DESeq(dds, test=test, ...)
+    dds <- DESeq2::DESeq(dds, test=test, ...)
     return(dds)
   } else if (test == 'LRT') {
     if (is.null(reduced_design)){
       stop("When using LRT, reduced_design must be provided")
     }
-    dds <- DESeq(dds, test=test, reduced=reduced_design, ...)
+    dds <- DESeq2::DESeq(dds, test=test, reduced=reduced_design, ...)
     return(dds)
   }
 }
@@ -176,7 +176,7 @@ strip_dotted_version_from_dds <- function(dds, force=FALSE){
 #'   biological replicate (e.g., dds$biorep)
 collapseReplicates2 <- function(object, groupby){
     collapsed <- DESeq2::collapseReplicates(object, groupby)
-    colData(collapsed)[,1] <- rownames(colData(collapsed))
+    SummarizedExperiment::colData(collapsed)[,1] <- rownames(SummarizedExperiment::colData(collapsed))
     return(collapsed)
 }
 
@@ -206,21 +206,21 @@ dds_diagnostics <- function(dds_list, text){
     p <- assays(dds_list[[name]])[['cooks']] %>%
       as.data.frame() %>%
       tidyr::pivot_longer(everything()) %>%
-      ggplot() +
-        aes(x=name, y=log10(value)) +
-        geom_boxplot() +
-        ylab("log10(Cook's distance)")
+      ggplot2::ggplot() +
+        ggplot2::aes(x=name, y=log10(value)) +
+        ggplot2::geom_boxplot() +
+        ggplot2::ylab("log10(Cook's distance)")
     print(p)
 
     mdcat("#### colData")
     mdcat(text$dds_diagnostics$colData)
-    cdata <- colData(dds_list[[name]]) %>% as.data.frame
+    cdata <- SummarizedExperiment::colData(dds_list[[name]]) %>% as.data.frame
     cdata <- cdata[, !grepl("filename", colnames(cdata))]
     print(htmltools::tagList(datatable(cdata)))
 
     mdcat("#### Design matrix")
     mdcat(text$dds_diagnostics$design_matrix, " The design is: `", deparse(design(dds_list[[name]])), "`")
-    mmat <- model.matrix(design(dds_list[[name]]), data=colData(dds_list[[name]])) %>% as.data.frame()
+    mmat <- model.matrix(design(dds_list[[name]]), data=SummarizedExperiment::colData(dds_list[[name]])) %>% as.data.frame()
     print(htmltools::tagList(datatable(mmat)))
   }
 }

@@ -26,7 +26,7 @@ get_annotation_hub <- function(config, localHub=NULL, force=NULL, cache=NULL){
   }
 
   ah <- AnnotationHub::AnnotationHub(
-    hub=getAnnotationHubOption('URL'),
+    hub=AnnotationHub::getAnnotationHubOption('URL'),
     proxy=proxy,
     localHub=localHub,
     cache=cache
@@ -95,7 +95,7 @@ get_annotation_db <- function(config, dbtype, genus_species=NULL, orgdb_key_over
       )
     }
 
-    hits <- mcols(ah.query) %>%
+    hits <- SummarizedExperiment::mcols(ah.query) %>%
       as.data.frame() %>%
       dplyr::arrange(desc(rdatadateadded)) %>%
       dplyr::filter(rdataclass==dbtype)
