@@ -17,7 +17,8 @@ tests <- list('Wald', 'LRT', NULL)
 shrinkage_types <- list('ashr', 'apeglm', 'normal', NULL)
 contrast <- c("group", "treatment", "control")
 coef <- "group_treatment_vs_control"
-dds_list <- make_dds_list()
+dds_list <- make_dds_list(config)
+
 # Ensure dds_list makes it into the global environment, no matter what fancy
 # stuff {testthat} is doing.
 assign("dds_list", dds_list, envir=.GlobalEnv)

@@ -19,7 +19,7 @@ make_lrt_design_data <- function() {
   return(lrt_design_data)
 } # make_lrt_design_data
 
-make_dds_list <- function() {
+make_dds_list <- function(config) {
   # Create design data and dds object for Wald test type
   wald_design_data <- make_design_data()
   dds_wald <- make_dds(wald_design_data,
