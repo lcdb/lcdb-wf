@@ -18,6 +18,10 @@ shrinkage_types <- list('ashr', 'apeglm', 'normal', NULL)
 contrast <- c("group", "treatment", "control")
 coef <- "group_treatment_vs_control"
 dds_list <- make_dds_list()
+# Ensure dds_list makes it into the global environment, no matter what fancy
+# stuff {testthat} is doing.
+assign("dds_list", dds_list, envir=.GlobalEnv)
+
 lrt_design_data <- make_lrt_design_data()
 
 # Each row in the ASCII table indicates which combination of test, type, coef, and contrast
@@ -234,7 +238,8 @@ for (type in c('ashr', 'apeglm', 'normal')) {
 
 
 # ---------------------- missing dds_list ------------------------ #
-remove(dds_list)
+orig_dds_list <- dds_list
+remove(dds_list, envir=.GlobalEnv)
 test_that("make_results errors when a dds_name is passed and dds_list is missing from .GlobalEnv", {
   expect_error(make_results(dds_name='dds_wald',
                             label='missing dds_list',
@@ -242,4 +247,6 @@ test_that("make_results errors when a dds_name is passed and dds_list is missing
                             contrast=contrast),
                             "Can't find dds_list in global environment.")
 }) # test_that
+# Put it back into the global env
+assign("dds_list", orig_dds_list, envir=.GlobalEnv)
 # ---------------------------------------------------------------- #
