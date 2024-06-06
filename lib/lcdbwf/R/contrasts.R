@@ -167,11 +167,11 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
   # Initial check on test argument:
   # Make sure the 'test' passed to make_results is the test detected in the dds object
   if ('test' %in% names(dots)) {
-    if (dots$test == 'Wald' && (any(grepl('LRTStatistic', names(mcols(dds)))) ||
-                                any(grepl('LRTPvalue', names(mcols(dds)))))) {
+    if (dots$test == 'Wald' && (any(grepl('LRTStatistic', names(S4Vectors::mcols(dds)))) ||
+                                any(grepl('LRTPvalue', names(S4Vectors::mcols(dds)))))) {
       stop("The 'test' passed to make_results was set to 'Wald' but 'LRT' has been detected in dds")
-    } else if (dots$test == 'LRT' && (any(grepl('WaldStatistic', names(mcols(dds)))) ||
-                                      any(grepl('WaldPvalue', names(mcols(dds)))))) {
+    } else if (dots$test == 'LRT' && (any(grepl('WaldStatistic', names(S4Vectors::mcols(dds)))) ||
+                                      any(grepl('WaldPvalue', names(S4Vectors::mcols(dds)))))) {
       stop("The 'test' passed to make_results was set to 'LRT' but 'Wald' has been detected in dds")
     }
   }
@@ -179,10 +179,10 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
   # Detect 'test' type when the 'test' argument is missing from dots
   test_detected <- FALSE
   if (!'test' %in% names(dots)) {
-    if (any(grepl('LRTStatistic', names(mcols(dds)))) || any(grepl('LRTPvalue', names(mcols(dds))))) {
+    if (any(grepl('LRTStatistic', names(S4Vectors::mcols(dds)))) || any(grepl('LRTPvalue', names(S4Vectors::mcols(dds))))) {
       dots$test <- 'LRT'
       test_detected <- TRUE
-    } else if (any(grepl('WaldStatistic', names(mcols(dds)))) || any(grepl('WaldPvalue', names(mcols(dds))))) {
+    } else if (any(grepl('WaldStatistic', names(S4Vectors::mcols(dds)))) || any(grepl('WaldPvalue', names(S4Vectors::mcols(dds))))) {
       dots$test <- 'Wald'
       test_detected <- TRUE
     } else {
@@ -196,8 +196,8 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
   }
 
   # Call results() with the subset of dots that it accepts.
-  results_dots <- lcdbwf:::match_from_dots(dots, results)
-  res <- do.call("results", results_dots)
+  results_dots <- lcdbwf:::match_from_dots(dots, DESeq2::results)
+  res <- do.call(DESeq2::results, results_dots)
 
   # When make_results is called with 'test' set to 'LRT',
   # or when make_results is called with 'test' missing but
@@ -225,12 +225,12 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
     dots[['res']] <- res
     dots[['dds']] <- dds
 
-    lfcShrink_dots <- lcdbwf:::match_from_dots(dots, lfcShrink)
-    res <- do.call("lfcShrink", lfcShrink_dots)
+    lfcShrink_dots <- lcdbwf:::match_from_dots(dots, DESeq2::lfcShrink)
+    res <- do.call(DESeq2::lfcShrink, lfcShrink_dots)
 
-    metadata(res)$type <- dots$type
+    S4Vectors::metadata(res)$type <- dots$type
   } else {
-    metadata(res)$type <- NULL
+    S4Vectors::metadata(res)$type <- NULL
   }
 
   return(
@@ -247,28 +247,28 @@ results_diagnostics <- function(res, dds, name, config, text){
     print(knitr::kable(lcdbwf:::my_summary(res, dds, name)))
 
     lcdbwf:::folded_markdown(text$results_diagnostics$filter_ma, "Help")
-    filterThreshold <- metadata(res)$filterThreshold
-    p1 <- ggplot(res %>% as.data.frame() %>% mutate(filtered=res$baseMean < filterThreshold)) +
-      aes(x=log10(baseMean), y=log2FoldChange, color=filtered) +
-      geom_point()
+    filterThreshold <- S4Vectors::metadata(res)$filterThreshold
+    p1 <- ggplot2::ggplot(res %>% as.data.frame() %>% dplyr::mutate(filtered=res$baseMean < filterThreshold)) +
+      ggplot2::aes(x=log10(baseMean), y=log2FoldChange, color=filtered) +
+      ggplot2::geom_point()
     print(p1)
 
     lcdbwf:::folded_markdown(text$results_diagnostics$outlier_ma, "Help")
-    p2 <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
-      aes(x=log10(baseMean), y=log2FoldChange, color=outlier) +
-      geom_point()
+    p2 <- ggplot2::ggplot(res %>% as.data.frame() %>% dplyr::mutate(outlier=is.na(res$pvalue))) +
+      ggplot2::aes(x=log10(baseMean), y=log2FoldChange, color=outlier) +
+      ggplot2::geom_point()
     print(p2)
 
     lcdbwf:::folded_markdown(text$results_diagnostics$lfcse_basemean, "Help")
-    p3 <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
-      aes(x=log10(baseMean), y=lfcSE, color=outlier) +
-      geom_point()
+    p3 <- ggplot2::ggplot(res %>% as.data.frame() %>% dplyr::mutate(outlier=is.na(res$pvalue))) +
+      ggplot2::aes(x=log10(baseMean), y=lfcSE, color=outlier) +
+      ggplot2::geom_point()
     print(p3)
 
     lcdbwf:::folded_markdown(text$results_diagnostics$lfcse_lfc, "Help")
-    p4 <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
-      aes(x=log2FoldChange, y=lfcSE, color=outlier) +
-      geom_point()
+    p4 <- ggplot2::ggplot(res %>% as.data.frame() %>% dplyr::mutate(outlier=is.na(res$pvalue))) +
+      ggplot2::aes(x=log2FoldChange, y=lfcSE, color=outlier) +
+      ggplot2::geom_point()
     print(p4)
 
     # Save plots to a list and return for testing 

@@ -31,8 +31,8 @@ test_that("make_dds handles minimum required design data of sampletale,
   expect_true(inherits(dds, "DESeqDataSet"))
   # Check that the WaldStatistic has been generated as Wald is the default test that
   # is run with minimal input to make_dds()
-  expect_true(any(grepl('Wald',  colnames(mcols(dds)))))
-  expect_false(any(grepl('LRT',  colnames(mcols(dds)))))
+  expect_true(any(grepl('Wald',  colnames(S4Vectors::mcols(dds)))))
+  expect_false(any(grepl('LRT',  colnames(S4Vectors::mcols(dds)))))
 }) # test_that
 
 test_that("make_dds handles design data where Wald test is specified explicitly", {
@@ -45,8 +45,8 @@ test_that("make_dds handles design data where Wald test is specified explicitly"
   # Check that the dds object is a DESeqDataSet (not NULL)
   expect_true(inherits(dds, "DESeqDataSet"))
   # Check that the WaldStatistic has been generated when Wald is passed to make_dds()
-  expect_true(any(grepl('Wald',  colnames(mcols(dds)))))
-  expect_false(any(grepl('LRT',  colnames(mcols(dds)))))
+  expect_true(any(grepl('Wald',  colnames(S4Vectors::mcols(dds)))))
+  expect_false(any(grepl('LRT',  colnames(S4Vectors::mcols(dds)))))
 }) # test_that
 
 test_that("make_dds handles required design data for LRT", {
@@ -60,8 +60,8 @@ test_that("make_dds handles required design data for LRT", {
   # Check that the dds object is a DESeqDataSet (not NULL)
   expect_true(inherits(dds, "DESeqDataSet"))
   # Check that the WaldStatistic has been generated
-  expect_true(any(grepl('LRT',  colnames(mcols(dds)))))
-  expect_false(any(grepl('Wald',  colnames(mcols(dds)))))
+  expect_true(any(grepl('LRT',  colnames(S4Vectors::mcols(dds)))))
+  expect_false(any(grepl('Wald',  colnames(S4Vectors::mcols(dds)))))
 }) # test_that
 
 # Now we intentionally call make_results with incompatible parameters
@@ -110,7 +110,7 @@ test_that("collapseReplicates2 collapses the two control replicates and two trea
 
   # Perform replicate collapsing
   dds_collapsed <- collapseReplicates2(dds, dds$group)
-  colData_collapsed <- as.data.frame(colData(dds_collapsed))
+  colData_collapsed <- as.data.frame(SummarizedExperiment::colData(dds_collapsed))
   expect_equal(length(as.character(colData_collapsed$group[colData_collapsed$group == 'control'])), 1)
   expect_equal(length(as.character(colData_collapsed$group[colData_collapsed$group == 'treatment'])), 1)
   # Check if the first column of colData matches rownames

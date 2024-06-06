@@ -1,14 +1,3 @@
-#library(testthat)
-#library(DESeq2)
-#library(lcdbwf)
-#library(rlang)
-#library(stringr)
-#library(BiocParallel)
-#library(ggplot2)
-#library(AnnotationHub)
-#library(dplyr)
-#register(MulticoreParam(config$parallel$cores))
-#devtools::load_all('../../../../lib/lcdbwf')
 source('test-functions.R')
 config <- lcdbwf:::load_config('../../../../workflows/rnaseq/downstream/config.yaml')
 text <- yaml::yaml.load_file('../../../../workflows/rnaseq/downstream/text.yaml')
@@ -64,7 +53,7 @@ lrt_res_list <- lcdbwf:::attach_extra(lrt_res_list, config)
 test_that("build_results_tabs works with Wald test", {
   # build_results_tabs requires 'dds_list' in .GlobalEnv
   dds_list <<- wald_dds_list
-  plots <- suppressWarnings(build_results_tabs(wald_res_list, wald_dds_list, config, text))
+  plots <- capture_output(build_results_tabs(wald_res_list, wald_dds_list, config, text))
 
   # Check that each plot in the list is a ggplot object
   for (name in names(plots)) {
@@ -84,7 +73,7 @@ test_that("build_results_tabs works with Wald test", {
 test_that("build_results_tabs works with LRT", {
   # build_results_tabs requires 'dds_list' in .GlobalEnv
   dds_list <<- lrt_dds_list
-  plots <- suppressWarnings(build_results_tabs(lrt_res_list, lrt_dds_list, config, text))
+  plots <- capture_output(build_results_tabs(lrt_res_list, lrt_dds_list, config, text))
 
   # Check that each plot in the list is a ggplot object
   for (name in names(plots)) {
@@ -111,29 +100,18 @@ test_that("check_LRT identifies LRT results correctly", {
 test_that("build_results_tabs calls mdcat with expected character for LRT", {
   # build_results_tabs requires 'dds_list' in .GlobalEnv
   dds_list <<- lrt_dds_list
-
-  # Capture mdcat output
-  mdcat_output <<- c()
-  with_mock(
-    `lcdbwf:::mdcat` = mock_mdcat,
+  output <- capture_output({
     suppressWarnings(build_results_tabs(lrt_res_list, lrt_dds_list, config, text))
-  )
-
-  expect_true(any(grepl("LRT log2FoldChange values have been set to 0", mdcat_output)))
+  })
+  expect_true(any(grepl("LRT log2FoldChange values have been set to 0", output)))
 })
 
 # Test that mdcat is not called with LRT expected values for Wald test
 test_that("build_results_tabs does not call mdcat with LRT expected character for Wald", {
   # build_results_tabs requires 'dds_list' in .GlobalEnv
   dds_list <<- wald_dds_list
-
-  # Capture mdcat output
-  mdcat_output <<- c()
-  with_mock(
-    `lcdbwf:::mdcat` = mock_mdcat,
-    suppressWarnings(build_results_tabs(wald_res_list, wald_dds_list, config, text))
-  )
-
-  expect_false(any(grepl("LRT log2FoldChange values have been set to 0", mdcat_output)))
+  output <- capture_output({
+    build_results_tabs(wald_res_list, wald_dds_list, config, text)
+  })
+  expect_false(any(grepl("LRT log2FoldChange values have been set to 0", output)))
 })
-

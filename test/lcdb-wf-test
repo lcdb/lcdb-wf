@@ -337,7 +337,7 @@ class Runner(object):
             p = sp.run(
                 'eval "$(conda shell.bash hook)" '
                 f"&& conda activate {args.env_r} "
-                '''&& Rscript -e "devtools::test('lib/lcdbwf', export_all=TRUE)"''',
+                '''&& Rscript -e "devtools::test('lib/lcdbwf', reporter=c('summary', 'fail'), export_all=TRUE)"''',
                 shell=True,
                 check=True,
                 executable="/bin/bash"
