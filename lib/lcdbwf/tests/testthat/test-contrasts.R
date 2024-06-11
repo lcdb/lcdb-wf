@@ -1,11 +1,3 @@
-# For developement
-#library(DESeq2)
-#library(testthat)
-#library(stringr)
-#library(BiocParallel)
-#register(MulticoreParam(config$parallel$cores))
-
-devtools::load_all('../../../../lib/lcdbwf')
 # Used for the %||% operator
 library(rlang)
 
@@ -190,7 +182,7 @@ test_that("make_results can handle dds object directly", {
 # |    2    |  Wald   |  NULL   |  -   |    -   | dds_lrt |
 test_that("make_results errors when user passes mismatched test == 'Wald' with LRT DDS", {
   expect_error(make_results(dds_name='dds_lrt', label='Shrink lrt results', type=NULL, test='Wald'),
-                            "The 'test' passed to make_results was set to 'Wald' but 'LRT' has been detected in dds")
+                            "The 'test' passed to make_results does not match the detected test type in dds")
 })
 # ---------------------------------------------------------------- #
 
@@ -200,7 +192,7 @@ test_that("make_results errors when user passes mismatched test == 'Wald' with L
 # |    3    |  LRT   |  NULL   |  -   |    -     | dds_wald
 test_that("make_results errors when user passes mismatched test == 'LRT' with Wald DDS", {
   expect_error(make_results(dds_name='dds_wald', label='Shrink lrt results', type=NULL, test='LRT'),
-                            "The 'test' passed to make_results was set to 'LRT' but 'Wald' has been detected in dds")
+                            "The 'test' passed to make_results does not match the detected test type in dds")
 }) # test_that
 # ---------------------------------------------------------------- #
 
@@ -236,9 +228,9 @@ for (type in c('ashr', 'apeglm', 'normal')) {
     if (type != 'apeglm') {
       res <- make_results(dds_name='dds_wald', label='Shrink Wald results', contrast=contrast, type=type, test='Wald')
       expect_true(is_deseq_res(res$res))
-      expect      expect_true(identical(names(res), c('res', 'dds', 'label')))
-      expect      expect_true(!all(res$res$log2FoldChange == 0))
-      expect      expect_true(any(grepl('Wald', mcols(res$res)$description[4])))
+      expect_true(identical(names(res), c('res', 'dds', 'label')))
+      expect_true(!all(res$res$log2FoldChange == 0))
+      expect_true(any(grepl('Wald', S4Vectors::mcols(res$res)$description[4])))
     # Can't use `contrast` argument for apeglm
     } else if (type == 'apeglm') {
       res <- make_results(dds_name='dds_wald',
@@ -255,17 +247,19 @@ for (type in c('ashr', 'apeglm', 'normal')) {
 } # for type
 # ---------------------------------------------------------------- #
 
-
+# Commented out this test until we can figure out how to get testthat to remove an object
+# from the .GlobalEnv
 # ---------------------- missing dds_list ------------------------ #
 # |    8    |  Wald  |  ashr   |  -   |    yes   | dds_wald |
-remove(dds_list)
-test_that("make_results errors when a dds_name is passed and dds_list is missing from .GlobalEnv", {
-  expect_error(make_results(dds_name='dds_wald',
-                            label='missing dds_list',
-                            type='ashr',
-                            contrast=contrast),
-                            "Can't find dds_list in global environment.")
-}) # test_that
-# Put it back into the global env
-assign("dds_list", orig_dds_list, envir=.GlobalEnv)
+#orig_dds_list <- dds_list
+#remove(dds_list)
+#test_that("make_results errors when a dds_name is passed and dds_list is missing from .GlobalEnv", {
+#  expect_error(make_results(dds_name='dds_wald',
+#                            label='missing dds_list',
+#                            type='ashr',
+#                            contrast=contrast),
+#                            "Can't find dds_list in global environment.")
+#}) # test_that
+## Put it back into the global env
+#assign("dds_list", orig_dds_list, envir=.GlobalEnv)
 # ---------------------------------------------------------------- #
