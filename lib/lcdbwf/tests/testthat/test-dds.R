@@ -1,8 +1,3 @@
-# For development
-#library(DESeq2)
-#library(testthat)
-#devtools::load_all('../../../../lib/lcdbwf')
-
 config <- lcdbwf:::load_config('../../../../workflows/rnaseq/downstream/config.yaml')
 source('test-functions.R')
 
