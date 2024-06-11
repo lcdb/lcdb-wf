@@ -53,7 +53,7 @@ lrt_res_list <- lcdbwf:::attach_extra(lrt_res_list, config)
 test_that("build_results_tabs works with Wald test", {
   # build_results_tabs requires 'dds_list' in .GlobalEnv
   dds_list <<- wald_dds_list
-  plots <- capture_output(build_results_tabs(wald_res_list, wald_dds_list, config, text))
+  plots <- build_results_tabs(wald_res_list, wald_dds_list, config, text)
 
   # Check that each plot in the list is a ggplot object
   for (name in names(plots)) {
@@ -73,7 +73,7 @@ test_that("build_results_tabs works with Wald test", {
 test_that("build_results_tabs works with LRT", {
   # build_results_tabs requires 'dds_list' in .GlobalEnv
   dds_list <<- lrt_dds_list
-  plots <- capture_output(build_results_tabs(lrt_res_list, lrt_dds_list, config, text))
+  plots <- build_results_tabs(lrt_res_list, lrt_dds_list, config, text)
 
   # Check that each plot in the list is a ggplot object
   for (name in names(plots)) {
