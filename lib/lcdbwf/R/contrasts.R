@@ -126,8 +126,8 @@ dds_coefs <- function(dds, ..., expand=FALSE){
 #' @param dds_list List of dds objects. If NULL, then look in the global
 #'   environment for an object called "dds_list" and use that.
 #' @param type Type of shrinkage for use by lfcShrink(). If no type is given,
-#'   we use the current DESeq2 default argument for lfcShrink(type=). If
-#'   NULL is given, we skip lfcShrink().
+#'   we use the current DESeq2 default argument for Type. If
+#'   NULL is given, we skip lfcShrink() altogether and directly return the object from results().
 #' @param ... Additional arguments are passed to results() and lfcShrink(). If
 #'   "parallel" is not explicitly specified here, then look in the global env for
 #'   a variable called "config" and find the parallel config setting from there.
@@ -164,25 +164,19 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
   # say, 'dds'.
   dots[['object']] <- dds
 
-  # Initial check on test argument:
-  # Make sure the 'test' passed to make_results is the test detected in the dds object
+  # Ensure any provided `test` argument is consistent with the dds object provided.
+  # This uses names from S4Vectors::mcols(dds) to detect how the dds object was created.
   if ('test' %in% names(dots)) {
-    if (dots$test == 'Wald' && (any(grepl('LRTStatistic', names(S4Vectors::mcols(dds)))) ||
-                                any(grepl('LRTPvalue', names(S4Vectors::mcols(dds)))))) {
-      stop("The 'test' passed to make_results was set to 'Wald' but 'LRT' has been detected in dds")
-    } else if (dots$test == 'LRT' && (any(grepl('WaldStatistic', names(S4Vectors::mcols(dds)))) ||
-                                      any(grepl('WaldPvalue', names(S4Vectors::mcols(dds)))))) {
-      stop("The 'test' passed to make_results was set to 'LRT' but 'Wald' has been detected in dds")
+    if ((dots$test == 'Wald' && any(grepl('LRT', names(S4Vectors::mcols(dds))))) ||
+        (dots$test == 'LRT' && any(grepl('Wald', names(S4Vectors::mcols(dds)))))) {
+      stop("The 'test' passed to make_results does not match the detected test type in dds")
     }
-  }
-
-  # Detect 'test' type when the 'test' argument is missing from dots
-  test_detected <- FALSE
-  if (!'test' %in% names(dots)) {
-    if (any(grepl('LRTStatistic', names(S4Vectors::mcols(dds)))) || any(grepl('LRTPvalue', names(S4Vectors::mcols(dds))))) {
+  } else {
+    test_detected <- FALSE
+    if (any(grepl('LRT', names(S4Vectors::mcols(dds))))) {
       dots$test <- 'LRT'
       test_detected <- TRUE
-    } else if (any(grepl('WaldStatistic', names(S4Vectors::mcols(dds)))) || any(grepl('WaldPvalue', names(S4Vectors::mcols(dds))))) {
+    } else if (any(grepl('Wald', names(S4Vectors::mcols(dds))))) {
       dots$test <- 'Wald'
       test_detected <- TRUE
     } else {
@@ -271,7 +265,7 @@ results_diagnostics <- function(res, dds, name, config, text){
       ggplot2::geom_point()
     print(p4)
 
-    # Save plots to a list and return for testing 
+    # Save plots to a list and return for testing
     plots <- list(p1=p1, p2=p2, p3=p3, p4=p4)
     return(plots)
 }
