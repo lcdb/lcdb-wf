@@ -92,5 +92,5 @@ build_results_tabs <- function(res_list, dds_list, config, text){
 #' @return Boolean TRUE if results object's pvalues were provided by
 #' nBinomLRT and FALSE if the Wald test was used.
 check_LRT <- function(res_i) {
-  mcols <- grepl('LRT', mcols(res_i)$description[9])
+  mcols_desc <- grepl('LRT', S4Vectors::mcols(res_i)$description[9])
 }

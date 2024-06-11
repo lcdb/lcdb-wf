@@ -19,15 +19,17 @@ coef <- "group_treatment_vs_control"
 
 # Creates a `dds_list` in the global namespace with names `dds_wald` and `dds_lrt` to be used below.
 dds_list <- make_dds_list(config)
-
 # Ensure dds_list makes it into the global environment, no matter what fancy
 # stuff {testthat} is doing.
 assign("dds_list", dds_list, envir=.GlobalEnv)
+
 lrt_design_data <- make_lrt_design_data()
 
 # Each row in the ASCII table indicates which combination of test, type, coef, and contrast
 # is tested by the respective indexed conditional statement in the following test_that code.
-
+# "Results" keeps track of where the results objects are made; "Check" keeps track of
+# where those results are checked. Use this table as a guide to the tests below.
+#
 #+---------+-------+--------+------+----------+-------+----------+
 #| Results | Test  |  Type  | Coef | Contrast | Check |   DDS    |
 #+---------+-------+--------+------+----------+-------+----------+
@@ -193,7 +195,7 @@ test_that("make_results errors when user passes mismatched test == 'Wald' with L
 test_that("make_results errors when user passes mismatched test == 'LRT' with Wald DDS", {
   expect_error(make_results(dds_name='dds_wald', label='Shrink lrt results', type=NULL, test='LRT'),
                             "The 'test' passed to make_results does not match the detected test type in dds")
-}) # test_that
+})
 # ---------------------------------------------------------------- #
 
 
@@ -259,7 +261,7 @@ for (type in c('ashr', 'apeglm', 'normal')) {
 #                            type='ashr',
 #                            contrast=contrast),
 #                            "Can't find dds_list in global environment.")
-#}) # test_that
+#})
 ## Put it back into the global env
 #assign("dds_list", orig_dds_list, envir=.GlobalEnv)
 # ---------------------------------------------------------------- #

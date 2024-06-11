@@ -165,7 +165,7 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
   dots[['object']] <- dds
 
   # Ensure any provided `test` argument is consistent with the dds object provided.
-  # This uses names from S4Vectors::mcols(dds) to detect how the dds object was created.
+  # This uses names from mcols(dds) to detect how the dds object was created.
   test_detected <- FALSE
   if ('test' %in% names(dots)) {
     if ((dots$test == 'Wald' && any(grepl('LRT', names(S4Vectors::mcols(dds))))) ||
@@ -184,7 +184,9 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
     }
   }
 
-  # Set the current default for 'type' from DESeq2 for lfcShrink if 'type' was not provided
+  # Set the current default for 'type' from DESeq2 for lfcShrink if 'type' was not provided.
+  # This inspects the function definition of lfcShrink to see what the current default is
+  # (we have have seen it change before, hence the check).
   if (!'type' %in% names(dots)) {
     dots$type <- eval(formals(DESeq2::lfcShrink)$type)[1]
   }
@@ -195,7 +197,7 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
 
   # When make_results is called with 'test' set to 'LRT',
   # or when make_results is called with 'test' missing but
-  # DDS object contains the LRT, we impute all rows in the log2FoldChange
+  # DDS object contains the LRT, we convert all values in the log2FoldChange
   # column of the DESeqResults object to 0. LFC values only make sense to report for a single
   # comparison of two sample groups. This applies to the Wald test only.
   # LRT is instead performing a test of the removal of one or more factor(s) from the design formula.

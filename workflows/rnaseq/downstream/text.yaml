@@ -118,7 +118,7 @@ results_plots:
     normalized to library size, not transcript length. We can say that a gene
     with higher baseMean than another gene has more observed reads, but we
     cannot say whether that is because it has a longer transcript or because
-    there are more transcripts. For likelihood ratio test results, we impute
+    there are more transcripts. For likelihood ratio test results, we set
     the log2FoldChange values to 0. See "log2FoldChange" below and [DESeq2 likelihood ratio test]
     (https://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#i-ran-a-likelihood-ratio-test-but-results-only-gives-me-one-comparison.)
     for details as to why.
@@ -126,7 +126,7 @@ results_plots:
   volcano: |
     A **volcano plot** shows fewer dimensions than an M-A plot (it does not show
     normalized counts) but it can be useful for looking at the relationship of
-    adjusted p-value and log2FoldChange. For likelihood ratio test results, we impute
+    adjusted p-value and log2FoldChange. For likelihood ratio test results, we set
     the log2FoldChange values to 0. See "log2FoldChange" below and [DESeq2 likelihood ratio test]
     (https://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#i-ran-a-likelihood-ratio-test-but-results-only-gives-me-one-comparison.)
     for details as to why.
@@ -235,7 +235,7 @@ results_files:
     LRT is a method for comparing the goodness of fit between a full model and
     a reduced model, evaluating whether the reduced model adequately explains the
     data without relying on a single pairwise comparison. The log2FoldChange is
-    only applicable for pairwise comparisons; therefore, we impute the
+    only applicable for pairwise comparisons; therefore, we set the
     log2FoldChange values to 0.
     See [DESeq2 likelihood ratio test](https://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#i-ran-a-likelihood-ratio-test-but-results-only-gives-me-one-comparison.)
     for more details.
