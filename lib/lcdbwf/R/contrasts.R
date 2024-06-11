@@ -166,13 +166,13 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
 
   # Ensure any provided `test` argument is consistent with the dds object provided.
   # This uses names from S4Vectors::mcols(dds) to detect how the dds object was created.
+  test_detected <- FALSE
   if ('test' %in% names(dots)) {
     if ((dots$test == 'Wald' && any(grepl('LRT', names(S4Vectors::mcols(dds))))) ||
         (dots$test == 'LRT' && any(grepl('Wald', names(S4Vectors::mcols(dds)))))) {
       stop("The 'test' passed to make_results does not match the detected test type in dds")
     }
   } else {
-    test_detected <- FALSE
     if (any(grepl('LRT', names(S4Vectors::mcols(dds))))) {
       dots$test <- 'LRT'
       test_detected <- TRUE
