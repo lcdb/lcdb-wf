@@ -126,7 +126,7 @@ dds_coefs <- function(dds, ..., expand=FALSE){
 #' @param dds_list List of dds objects. If NULL, then look in the global
 #'   environment for an object called "dds_list" and use that.
 #' @param type Type of shrinkage for use by lfcShrink(). If no type is given,
-#'   we use the current DESeq2 default argument for Type. If
+#'   we use the current DESeq2 default `type` argument for lfcShrink. If
 #'   NULL is given, we skip lfcShrink() altogether and directly return the object from results().
 #' @param ... Additional arguments are passed to results() and lfcShrink(). If
 #'   "parallel" is not explicitly specified here, then look in the global env for
@@ -231,9 +231,9 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
 
   return(
     list(
-      res = res,
-      dds = dds_name,
-      label = label
+      res=res,
+      dds=dds_name,
+      label=label
     )
   )
 }
