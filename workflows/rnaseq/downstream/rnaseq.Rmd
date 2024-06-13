@@ -185,6 +185,13 @@ lst <- list(
                 sampletable=colData,
                 design=~group,
                 kallisto=TRUE)
+
+            # Example 5: use LRT
+            LRT=list(
+                sampletable=colData,
+                design=~group,
+                reduced_design=~1,
+                test='LRT')
             # ------------------------------------------------------------------
           )
 dds_list <- map(lst, lcdbwf:::make_dds, config=config, parallel=config$parallel$parallel)
@@ -211,7 +218,7 @@ there are more tabs for the various output.
 #   - create each list in a different chunk
 #   - ensure chunk name starts with "results_"
 #   - ensure list name starts with "contr_[index]_". The rest of the name will be used
-#     as a readable label for each constrast. [index] is an alphanumeric string 
+#     as a readable label for each constrast. [index] is an alphanumeric string
 #     (ex: contr_01_* or contr_2b_*) that will be used to sort contrasts for output files.
 #     The index string must contain at least 1 character and cannot contain "_"
 #
@@ -269,6 +276,24 @@ contr_03_kallisto <- lcdbwf:::make_results(
 )
 ```
 
+```{r results_05, dependson='dds_list', cache=TRUE}
+# Example 5:
+#   - Examples 1-4 use the default DESeq2 test, Wald.
+#   - Here, we use the nBinomLRT (LRT) test.
+# NOTE: Use 'type=NULL' to skip LFC shrinkage as
+# make_results sets all LRT LFC values to 0.
+# 'contrast' and 'coef' should be omitted
+# since LRT uses the full vs. reduced design.
+# The 'test' argument can also be omitted as
+# make_results detects the test type from the
+# dds object in 'dds_name'.
+
+contr_05_lrt <- lcdbwf:::make_results(
+  dds_name="LRT",
+  type=NULL,
+  label='Using LRT'
+)
+```
 
 ```{r assemble_variables, cache=TRUE, config=config$annotation, dependson=knitr::all_labels()[grepl("^results_", knitr::all_labels())]}
 res_list <- lcdbwf:::collect_objects("^contr_[^_]+_")
