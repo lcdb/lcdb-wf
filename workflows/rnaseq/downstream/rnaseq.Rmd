@@ -285,8 +285,8 @@ contr_03_kallisto <- lcdbwf:::make_results(
 # 'contrast' and 'coef' should be omitted
 # since LRT uses the full vs. reduced design.
 # The 'test' argument can also be omitted as
-# make_results detects the test type from the
-# dds object in 'dds_name'.
+# make_results detects the 'test' type from the
+# dds object specified with 'dds_name'.
 
 contr_05_lrt <- lcdbwf:::make_results(
   dds_name="LRT",
