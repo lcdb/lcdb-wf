@@ -196,10 +196,10 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
   res <- do.call(DESeq2::results, results_dots)
 
   # When make_results is called with 'test' set to 'LRT',
-  # or when make_results is called with 'test' missing but
+  # or when make_results is called with 'test' missing but the
   # DDS object contains the LRT, we convert all values in the log2FoldChange
   # column of the DESeqResults object to 0. LFC values only make sense to report for a single
-  # comparison of two sample groups. This applies to the Wald test only.
+  # comparison of two sample groups. This only applies to the Wald test.
   # LRT is instead performing a test of the removal of one or more factor(s) from the design formula.
   # DESeq2 reports log2FoldChange values for a single pair-wise comparison when test == 'LRT'. This
   # can be misleading and so this is our solution.
@@ -207,6 +207,7 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
   # Adjust log2FoldChange for LRT test
   if (!is.null(dots$test) && dots$test == 'LRT') {
     res$log2FoldChange <- 0
+    warning("All log2FoldChange values in the DESeq2 results object have been set to 0. See https://github.com/lcdb/lcdb-wf/blob/master/docs/rnaseq-rmd.rst?plain=1#L269.")
   }
 
   # Checks for LRT test and non-NULL type
