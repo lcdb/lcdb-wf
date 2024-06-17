@@ -184,7 +184,7 @@ lst <- list(
             kallisto=list(
                 sampletable=colData,
                 design=~group,
-                kallisto=TRUE)
+                kallisto=TRUE),
 
             # Example 5: use LRT
             LRT=list(
