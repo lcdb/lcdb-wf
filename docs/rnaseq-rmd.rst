@@ -272,8 +272,8 @@ the removal of one or more terms from the design formula, a single
 log2FoldChange column doesn't reflect the test's complexity. DESeq2's results
 object is optimized for the Wald test, and when storing LRT results, it
 maintains consistency in datastructure by choosing a single pair-wise comparison for
-log2FoldChange values. To avoid confusion, we set all log2FoldChange values to
-0 for LRT results.
+log2FoldChange values. To avoid confusion, ***we set all log2FoldChange values to
+0 for LRT results***.
 
 For more details, see the DESeq2 documentation: `DESeq2 Likelihood Ratio Test <https://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#i-ran-a-likelihood-ratio-test-but-results-only-gives-me-one-comparison>`_.
 
