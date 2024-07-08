@@ -7,9 +7,14 @@
 plotPCA.ly <- function(rld, intgroup){
   mat <- DESeq2::plotPCA(rld, intgroup, returnData=TRUE)
   pv <- attr(mat, 'percentVar')
-  p <- ggplot2::ggplot(data=mat, aes_string(x='PC1', y='PC2', color='group', label='name')) +
-          geom_point(size=3) + xlab(paste0('PC1: ', round(pv[1]*100), '% variance')) +
-          ylab(paste0('PC2: ', round(pv[2]*100), '% variance')) + coord_fixed()
+  p <- ggplot2::ggplot(
+        data=mat, 
+        ggplot2::aes_string(x='PC1', y='PC2', color='group', label='name')
+    ) +
+    ggplot2::geom_point(size=3) +
+    ggplot2::xlab(paste0('PC1: ', round(pv[1]*100), '% variance')) +
+    ggplot2::ylab(paste0('PC2: ', round(pv[2]*100), '% variance')) +
+    ggplot2::coord_fixed()
   return(p)
 }
 
@@ -70,9 +75,15 @@ plotMA_label <- function(res,
   down.max.de <- down.max[rownames(down.max) %in% rownames(de.list),]
 
   # create ggplot with appropriate layers
-  p <- ggplot2::ggplot(res, aes(baseMean, log2FoldChange)) +
-    ggplot2::geom_point(col="gray40") + scale_x_log10() + ylim(fc_lim[1], fc_lim[2]) +
-    theme_bw() + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
+  p <- ggplot2::ggplot(res, ggplot2::aes(baseMean, log2FoldChange)) +
+    ggplot2::geom_point(col="gray40") + 
+    ggplot2::scale_x_log10() +
+    ggplot2::ylim(fc_lim[1], fc_lim[2]) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(
+        panel.grid.major=ggplot2::element_blank(),
+        panel.grid.minor=ggplot2::element_blank()
+    )
 
   p <- p + ggplot2::geom_hline(yintercept = 0, col="red", size=2, alpha=0.5)     # add horizontal line
   p <- p + ggplot2::geom_point(data=up.max, col="gray40", pch=2)                 # add points above max y
@@ -108,7 +119,7 @@ plotMA_label <- function(res,
 
     # add labels
     p <- p + ggplot2::geom_point(data=label.list, col="black", pch=1, size=3)
-    p <- p + ggrepel::geom_label_repel(data=label.list, aes(label=label.list$gene.labels, fontface="italic"))
+    p <- p + ggrepel::geom_label_repel(data=label.list, ggplot2::aes(label=label.list$gene.labels, fontface="italic"))
   }
   return(p)
 
@@ -171,9 +182,11 @@ plot_volcano_label <- function(res,
   down.max.de <- down.max[rownames(down.max) %in% rownames(de.list),]
 
   # create ggplot with appropriate layers
-  p <- ggplot(res, aes(log2FoldChange, -log10(padj))) +
-    geom_point(col="gray40") + xlim(fc_lim[1], fc_lim[2]) +
-    theme_bw() + theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank())
+  p <- ggplot2::ggplot(res, ggplot2::aes(log2FoldChange, -log10(padj))) +
+    ggplot2::geom_point(col="gray40") +
+    ggplot2::xlim(fc_lim[1], fc_lim[2]) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(panel.grid.major=ggplot2::element_blank(), panel.grid.minor=ggplot2::element_blank())
 
   p <- p + ggplot2::geom_point(data=up.max, col="gray40", pch=2)                 # add points above max y
   p <- p + ggplot2::geom_point(data=down.max, col="gray40", pch=6)               # add points below min y
@@ -211,7 +224,7 @@ plot_volcano_label <- function(res,
 
     # add labels
     p <- p + ggplot2::geom_point(data=label.list, col="black", pch=1, size=3)
-    p <- p + ggrepel::geom_label_repel(data=label.list, aes(label=label.list$gene.labels, fontface="italic"))
+    p <- p + ggrepel::geom_label_repel(data=label.list, ggplot2::aes(label=label.list$gene.labels, fontface="italic"))
   }
   return(p)
 
@@ -269,14 +282,14 @@ my.counts <- function(gene, dds, label=NULL, intgroup='group'){
 
   # Assumption: color genes by group
   geneCounts <- plotCounts(dds, gene=gene, intgroup=intgroup, returnData=TRUE)
-  p <- ggplot2::ggplot(geneCounts, aes_string(x=intgroup, y='count', color=intgroup, group=intgroup)) +
-    scale_y_log10() +
-    ggplot2::geom_point(position=position_jitter(width=.1, height=0),  size=3) +
+  p <- ggplot2::ggplot(geneCounts, ggplot2::aes_string(x=intgroup, y='count', color=intgroup, group=intgroup)) +
+    ggplot2::scale_y_log10() +
+    ggplot2::geom_point(position=ggplot2::position_jitter(width=.1, height=0),  size=3) +
     ggplot2::geom_line(color='#000000') +
     ggplot2::ggtitle(gene)
 
   if (!is.null(label)){
-    p <- p + ggtitle(label)
+    p <- p + ggplot2::ggtitle(label)
   }
   return(p)
 }
@@ -326,10 +339,10 @@ counts.plot <- function(df, rank.nb=NULL, no.aes=FALSE, facet='label') {
         dplyr::mutate(facet = factor(!!!syms(facet), levels = unique(!!!syms(facet))))
     plt <- ggplot2::ggplot(df) +
         ggplot2::scale_y_log10() +
-        ggplot2::geom_point(position=position_jitter(width=.1, height=0),  size=3) +
+        ggplot2::geom_point(position=ggplot2::position_jitter(width=.1, height=0),  size=3) +
         ggplot2::geom_line(color='#000000') +
         ggplot2::theme_bw() +
-        ggplot2::theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust=1)) +
         ggplot2::facet_wrap(.~facet, ncol=1, scales='free_y')
     if (!no.aes) {
         plt <- plt +
@@ -355,13 +368,13 @@ pval_hist <- function(res){
   df <- rbind(data.frame(x=h1$mids, counts=h1$counts, label='counts too low'),
               data.frame(x=h2$mids, counts=h2$counts, label='pass')
               )
-  plt <- ggplot2::ggplot(df, aes(x=x, y=counts, fill=label)) +
-    geom_bar(stat = 'identity', color='gray20') +
-    theme_classic() +
-    scale_fill_manual(values=c("#EBE379", "#A3DAE0")) +
-    xlab('p-value') +
-    ylab('frequency') +
-    theme(legend.position = c(0.8, 0.8))
+  plt <- ggplot2::ggplot(df, ggplot2::aes(x=x, y=counts, fill=label)) +
+    ggplot2::geom_bar(stat = 'identity', color='gray20') +
+    ggplot2::theme_classic() +
+    ggplot2::scale_fill_manual(values=c("#EBE379", "#A3DAE0")) +
+    ggplot2::xlab('p-value') +
+    ggplot2::ylab('frequency') +
+    ggplot2::theme(legend.position = c(0.8, 0.8))
   return(plt)
 }
 
@@ -393,7 +406,7 @@ sizefactors_vs_total <- function(dds){
     trc <- colSums(counts(dds)) %>%
             tibble::enframe(value = 'Total Read Count')
     trc_vs_sf <- dplyr::full_join(sf, trc, by='name')
-    p <- ggplot2::ggplot(data=trc_vs_sf, aes_string(x="`Total Read Count`", y="`Size Factor`", label='name')) +
+    p <- ggplot2::ggplot(data=trc_vs_sf, ggplot2::aes_string(x="`Total Read Count`", y="`Size Factor`", label='name')) +
         ggplot2::geom_point(size=3) +
         ggplot2::theme_bw() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust=1))
@@ -465,7 +478,7 @@ lfc_scatter <- function(res_i, res_j, padj.thr=0.1, name.col='SYMBOL', label_i=N
                 by= name.col)
     # add significance column
     df <- df %>%
-        mutate('Significance' = case_when(
+        dplyr::mutate('Significance' = case_when(
                         (padj.x <= padj.thr) & (padj.y <= padj.thr) & (log2FoldChange.x * log2FoldChange.y >= 0) ~ 'Both - same LFC sign',
                         (padj.x <= padj.thr) & (padj.y <= padj.thr) & (log2FoldChange.x * log2FoldChange.y < 0) ~ 'Both - opposite LFC sign',
                         (padj.x <= padj.thr) ~ label_i,
@@ -482,16 +495,16 @@ lfc_scatter <- function(res_i, res_j, padj.thr=0.1, name.col='SYMBOL', label_i=N
 
     names(color.palette) <- c('Both - same LFC sign', 'Both - opposite LFC sign', 'None', label_i, label_j)
 
-    p <- ggplot(df %>% arrange(Significance), aes_string(x='log2FoldChange.x', y='log2FoldChange.y',
+    p <- ggplot2::ggplot(df %>% arrange(Significance), ggplot2::aes_string(x='log2FoldChange.x', y='log2FoldChange.y',
                                color='Significance', label=name.col)) +
-            geom_point(size=1) +
-            theme_bw() +
-            scale_color_manual(values=color.palette) +
-            geom_abline(color="#333333", linetype="dashed", size=0.5, alpha=0.7) +
-            geom_hline(yintercept=0, color="#333333", linetype="dashed", size=0.5, alpha=0.7) +
-            geom_vline(xintercept=0, color="#333333", linetype="dashed", size=0.5, alpha=0.7) +
-            xlab(label_i) +
-            ylab(label_j)
+            ggplot2::geom_point(size=1) +
+            ggplot2::theme_bw() +
+            ggplot2::scale_color_manual(values=color.palette) +
+            ggplot2::geom_abline(color="#333333", linetype="dashed", size=0.5, alpha=0.7) +
+            ggplot2::geom_hline(yintercept=0, color="#333333", linetype="dashed", size=0.5, alpha=0.7) +
+            ggplot2::geom_vline(xintercept=0, color="#333333", linetype="dashed", size=0.5, alpha=0.7) +
+            ggplot2::xlab(label_i) +
+            ggplot2::ylab(label_j)
 
     return(p)
 }
