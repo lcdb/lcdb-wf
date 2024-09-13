@@ -100,7 +100,7 @@ dds_coefs <- function(dds, ..., expand=FALSE){
 }
 
 
-#' Convenience function for building contrasts 
+#' Convenience function for building contrasts
 #'
 #' @description
 #'
@@ -125,6 +125,9 @@ dds_coefs <- function(dds, ..., expand=FALSE){
 #' @param label Label to describe this contrast which will be used in headings.
 #' @param dds_list List of dds objects. If NULL, then look in the global
 #'   environment for an object called "dds_list" and use that.
+#' @param type Type of shrinkage for use by lfcShrink(). If no type is given,
+#'   we use the current DESeq2 default `type` argument for lfcShrink. If
+#'   NULL is given, we skip lfcShrink() altogether and directly return the object from results().
 #' @param ... Additional arguments are passed to results() and lfcShrink(). If
 #'   "parallel" is not explicitly specified here, then look in the global env for
 #'   a variable called "config" and find the parallel config setting from there.
@@ -154,48 +157,78 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
     if (is.null(parallel)) parallel <- FALSE
   }
 
-  # Modify the args based on what we detected. Note that results() expects the
-  dots['parallel'] <- parallel
+  # Modify the args based on what we detected.
+  dots[['parallel']] <- parallel
 
   # Note that results() expects the argument to be called 'object' rather than,
   # say, 'dds'.
   dots[['object']] <- dds
 
-  # Call results() with the subset of dots that it accepts.
-  results_dots <- lcdbwf:::match_from_dots(dots, results)
-  res <- do.call("results", results_dots)
-
-  # We're about to call lfcShrink, but it needs the res object...so inject the
-  # one we just made into dots.
-  dots[['res']] <- res
-
-  # lfcShrink also needs the dds object, so inject that too
-  dots[['dds']] <- dds
-
-  lfcShrink_dots <- lcdbwf:::match_from_dots(dots, lfcShrink)
-    res <- do.call("lfcShrink", lfcShrink_dots)
-
-  # Add the shrinkage type to the metadata of the results object.
-  #
-  # If "type" was specified when calling this function, it's easy and we use
-  # that. Otherwise, if it was not specified then DESeq2 used the default.
-  # Since that default can change as we have seen in the past, we need to
-  # inspect the lfcShrink function itself to see what the current default is,
-  # and use that.
-  shrinkage_type <- dots[['type']]
-  if (is.null(shrinkage_type)){
-    # The definition of lfcShrink has a character vector as the type argument,
-    # and we want to extract the first thing in that vector. But formals()
-    # return strings, so we need to eval that string to convert it to
-    # a character vector such that we can extract the first thing.
-    #
-    # In recent versions this should evaluate to "apeglm". But this way we
-    # are inspecting the function itself if it ever changes.
-    shrinkage_type <- eval(formals(DESeq2::lfcShrink)$type)[1]
+  # Ensure any provided `test` argument is consistent with the dds object provided.
+  # This uses names from mcols(dds) to detect how the dds object was created.
+  test_detected <- FALSE
+  if ('test' %in% names(dots)) {
+    if ((dots$test == 'Wald' && any(grepl('LRT', names(S4Vectors::mcols(dds))))) ||
+        (dots$test == 'LRT' && any(grepl('Wald', names(S4Vectors::mcols(dds)))))) {
+      stop("The 'test' passed to make_results does not match the detected test type in dds")
+    }
+  } else {
+    if (any(grepl('LRT', names(S4Vectors::mcols(dds))))) {
+      dots$test <- 'LRT'
+      test_detected <- TRUE
+    } else if (any(grepl('Wald', names(S4Vectors::mcols(dds))))) {
+      dots$test <- 'Wald'
+      test_detected <- TRUE
+    } else {
+      stop("test type was missing from make_results call and could not be detected from dds")
+    }
   }
 
-  # Add to results object so we can report it out later.
-  metadata(res)$type <- shrinkage_type
+  # Set the current default for 'type' from DESeq2 for lfcShrink if 'type' was not provided.
+  # This inspects the function definition of lfcShrink to see what the current default is
+  # (we have have seen it change before, hence the check).
+  if (!'type' %in% names(dots)) {
+    dots$type <- eval(formals(DESeq2::lfcShrink)$type)[1]
+  }
+
+  # Call results() with the subset of dots that it accepts.
+  results_dots <- lcdbwf:::match_from_dots(dots, DESeq2::results)
+  res <- do.call(DESeq2::results, results_dots)
+
+  # When make_results is called with 'test' set to 'LRT',
+  # or when make_results is called with 'test' missing but the
+  # DDS object contains the LRT, we convert all values in the log2FoldChange
+  # column of the DESeqResults object to 0. LFC values only make sense to report for a single
+  # comparison of two sample groups. This only applies to the Wald test.
+  # LRT is instead performing a test of the removal of one or more factor(s) from the design formula.
+  # DESeq2 reports log2FoldChange values for a single pair-wise comparison when test == 'LRT'. This
+  # can be misleading and so this is our solution.
+
+  # Adjust log2FoldChange for LRT test
+  if (!is.null(dots$test) && dots$test == 'LRT') {
+    res$log2FoldChange <- 0
+    warning("All log2FoldChange values in the DESeq2 results object have been set to 0. See https://github.com/lcdb/lcdb-wf/blob/master/docs/rnaseq-rmd.rst?plain=1#L269.")
+  }
+
+  # Checks for LRT test and non-NULL type
+  if (!is.null(dots$type) && !is.null(dots$test) && dots$test == 'LRT' && !test_detected) {
+    stop("You cannot pass a non-NULL or missing type to make_results with test == 'LRT'. For LRT, LFC values are set to 0 and should not be passed to lfcShrink. Use type == NULL in make_results for LRT DDS objects.")
+  } else if (!is.null(dots$type) && !is.null(dots$test) && dots$test == 'LRT' && test_detected) {
+    stop("You cannot pass a non-NULL or missing type to make_results with an LRT dds object. For LRT, LFC values are set to 0 and should not be passed to lfcShrink. Use type == NULL in make_results for LRT DDS objects.")
+  }
+
+  # Call lfcShrink if applicable
+  if (!is.null(dots$type) && dots$test != 'LRT') {
+    dots[['res']] <- res
+    dots[['dds']] <- dds
+
+    lfcShrink_dots <- lcdbwf:::match_from_dots(dots, DESeq2::lfcShrink)
+    res <- do.call(DESeq2::lfcShrink, lfcShrink_dots)
+
+    S4Vectors::metadata(res)$type <- dots$type
+  } else {
+    S4Vectors::metadata(res)$type <- NULL
+  }
 
   return(
     list(
@@ -206,33 +239,36 @@ make_results <- function(dds_name, label, dds_list=NULL, ...){
   )
 }
 
-
 results_diagnostics <- function(res, dds, name, config, text){
     lcdbwf:::mdcat('### Other diagnostics')
     print(knitr::kable(lcdbwf:::my_summary(res, dds, name)))
 
     lcdbwf:::folded_markdown(text$results_diagnostics$filter_ma, "Help")
-    filterThreshold <- metadata(res)$filterThreshold
-    p <- ggplot(res %>% as.data.frame() %>% mutate(filtered=res$baseMean < filterThreshold)) +
-      aes(x=log10(baseMean), y=log2FoldChange, color=filtered) +
-      geom_point()
-    print(p)
+    filterThreshold <- S4Vectors::metadata(res)$filterThreshold
+    p1 <- ggplot2::ggplot(res %>% as.data.frame() %>% dplyr::mutate(filtered=res$baseMean < filterThreshold)) +
+      ggplot2::aes(x=log10(baseMean), y=log2FoldChange, color=filtered) +
+      ggplot2::geom_point()
+    print(p1)
 
     lcdbwf:::folded_markdown(text$results_diagnostics$outlier_ma, "Help")
-    p <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
-      aes(x=log10(baseMean), y=log2FoldChange, color=outlier) +
-      geom_point()
-    print(p)
+    p2 <- ggplot2::ggplot(res %>% as.data.frame() %>% dplyr::mutate(outlier=is.na(res$pvalue))) +
+      ggplot2::aes(x=log10(baseMean), y=log2FoldChange, color=outlier) +
+      ggplot2::geom_point()
+    print(p2)
 
     lcdbwf:::folded_markdown(text$results_diagnostics$lfcse_basemean, "Help")
-    p <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
-      aes(x=log10(baseMean), y=lfcSE, color=outlier) +
-      geom_point()
-    print(p)
+    p3 <- ggplot2::ggplot(res %>% as.data.frame() %>% dplyr::mutate(outlier=is.na(res$pvalue))) +
+      ggplot2::aes(x=log10(baseMean), y=lfcSE, color=outlier) +
+      ggplot2::geom_point()
+    print(p3)
 
     lcdbwf:::folded_markdown(text$results_diagnostics$lfcse_lfc, "Help")
-    p <- ggplot(res %>% as.data.frame() %>% mutate(outlier=is.na(res$pvalue))) +
-      aes(x=log2FoldChange, y=lfcSE, color=outlier) +
-      geom_point()
-    print(p)
+    p4 <- ggplot2::ggplot(res %>% as.data.frame() %>% dplyr::mutate(outlier=is.na(res$pvalue))) +
+      ggplot2::aes(x=log2FoldChange, y=lfcSE, color=outlier) +
+      ggplot2::geom_point()
+    print(p4)
+
+    # Save plots to a list and return for testing
+    plots <- list(p1=p1, p2=p2, p3=p3, p4=p4)
+    return(plots)
 }

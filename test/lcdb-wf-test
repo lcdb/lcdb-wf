@@ -334,14 +334,16 @@ class Runner(object):
 
         if args.r_test:
             print_header("R test")
-            sp.run(
+            p = sp.run(
                 'eval "$(conda shell.bash hook)" '
                 f"&& conda activate {args.env_r} "
-                '''&& Rscript -e "devtools::test('lib/lcdbwf', export_all=TRUE)"''',
+                '''&& Rscript -e "devtools::test('lib/lcdbwf', reporter=c('summary', 'fail'), export_all=TRUE)"''',
                 shell=True,
                 check=True,
                 executable="/bin/bash"
             )
+            if p.returncode:
+                sys.exit(1)
 
         if args.ensure_docs:
             sp.run(["./ensure_docs.py"], check=True, cwd=TOPLEVEL / "ci")

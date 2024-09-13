@@ -4,10 +4,11 @@
 #' @param config Config object
 #' @param cores Number of cores to run it on
 #' @param sep Character to separate res_list names
+#' @param universe_list List of vectors for background genes
 #'
 #' @return nested list of enrichResult objects
 run_enricher <- function(res_list, ontology_list, config,
-                         cores=1, sep='*'){
+                         cores=1, sep='*', universe_list=universe_list){
     # This function supports running in parallel which works best with a flat
     # list; however for organizational purposese we want a nested structure. So
     # we convert between the two by collapsing nested keys for flat list, and
@@ -42,7 +43,8 @@ run_enricher <- function(res_list, ontology_list, config,
               direction=direction,
               TERM2GENE=ontology_list[['term2gene']][[ont]],
               TERM2NAME=ontology_list[['term2name']][[ont]],
-              config=config
+              config=config,
+              universe=universe_list[[name]]
             )
             enrich_res
         }, BPPARAM=BiocParallel::MulticoreParam(cores))
@@ -86,6 +88,21 @@ collapse_names <- function(res_list, config, sep='*'){
     return(names)
 }
 
+
+#' Function to retrieve genes with non-zero raw counts in one or more samples
+#'
+#' @param dds DESeqDataSet object
+#'
+#' @return a vector containing gene IDs with raw counts are greater than 0 in one or more samples
+nonzero_genes <- function(dds) {
+    # Extract raw count matrix
+    counts <- DESeq2::counts(dds, normalized=FALSE)
+    # Subset rows where rowsums are greater than zero
+    counts <- counts[rowSums(counts) > 0,]
+    # Return gene IDs
+    return(rownames(counts))
+}
+
 #' All-in-one enrichment function.
 #'
 #' Designed to not require an orgdb, and instead requires dataframes of
@@ -101,11 +118,13 @@ collapse_names <- function(res_list, config, sep='*'){
 #'   lfc_thresh from the config.
 #' @param kind One of "OR" for overrepresentation or "GSEA" for gene set
 #'   enrichment analysis.
+#' @param universe background genes. If missing, all genes listed in the database 
+#'   (e.g. TERM2GENE table) will be used as background. 
 #' @param ... Additional arguments are passed on to enricher() for kind="OR" or
 #'   GSEA() for kind="GSEA".
 #'
 #' @return An enrichResults object from
-enrich_test <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR', ...){
+enrich_test <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR', universe, ...){
 
   if (is.null(config$main$lfc_thresh)){
     lfc_thresh <- 0
@@ -128,6 +147,7 @@ enrich_test <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR',
       TERM2NAME=TERM2NAME,
       pvalueCutoff=config$functional_enrichment$pvalueCutoff,
       qvalueCutoff=config$functional_enrichment$qvalueCutoff,
+      universe=universe,
       ...
     )
   } else if (kind == "GSEA"){
@@ -141,6 +161,7 @@ enrich_test <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR',
       TERM2GENE=TERM2GENE,
       TERM2NAME=TERM2NAME,
       pvalueCutoff=config$functional_enrichment$pvalueCutoff,
+      universe=universe,
       ...
     )
 
