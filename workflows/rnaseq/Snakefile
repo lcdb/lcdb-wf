@@ -64,7 +64,7 @@ if config.get('merged_bigwigs', None):
     final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
 
 
-def render_r1_r2(pattern, r1_only=False):
+def render_r1_r2(pattern):
     return expand(pattern, sample='{sample}', n=c.n)
 
 def r1_only(pattern):
