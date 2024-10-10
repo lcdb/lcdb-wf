@@ -64,10 +64,9 @@ if config.get('merged_bigwigs', None):
     final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
 
 
-def render_r1_r2(pattern, r1_only=False):
+def render_r1_r2(pattern):
     return expand(pattern, sample='{sample}', n=c.n)
-
-def r1_only(pattern):
+def render_r1_only(pattern):
     return expand(pattern, sample='{sample}', n=1)
 
 rule targets:
@@ -126,7 +125,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
         output:
             fastq=render_r1_r2(c.patterns['fastq'])
         log:
-            r1_only(c.patterns['fastq'])[0] + '.log'
+            render_r1_only(c.patterns['fastq'])[0] + '.log'
         params:
             is_paired=c.is_paired,
             sampletable=_st,
@@ -472,7 +471,7 @@ rule rRNA:
     Map reads with bowtie2 to the rRNA reference
     """
     input:
-        fastq=r1_only(c.patterns['cutadapt']),
+        fastq=render_r1_only(c.patterns['cutadapt']),
         index=[c.refdict[c.organism][config['rrna']['tag']]['bowtie2']]
     output:
         bam=temporary(c.patterns['rrna']['bam'])
@@ -569,7 +568,7 @@ rule fastq_screen:
     """
     input:
         **fastq_screen_references(),
-        fastq=r1_only(rules.cutadapt.output.fastq),
+        fastq=render_r1_only(rules.cutadapt.output.fastq),
     output:
         txt=c.patterns['fastq_screen']
     log:
