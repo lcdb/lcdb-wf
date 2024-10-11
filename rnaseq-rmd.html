@@ -6,10 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Detailed documentation of RNA-Seq downstream &#8212; lcdb-wf 1.9 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b76e3c8a" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=c8a1a12d" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=9735eac1" />
     <script src="_static/documentation_options.js?v=754f84b7"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -18,13 +19,14 @@
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   <div class="document">
     
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="toc.html">lcdb-wf</a></h1>
 
@@ -76,7 +78,7 @@
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -84,7 +86,7 @@
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
@@ -256,7 +258,7 @@ error-prone. So for more complex use-cases, we have a function
 <span class="w">      </span><span class="n">subset.counts</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">))</span>
 <span class="p">)</span>
 
-<span class="n">dds.list</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">map</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span><span class="w"> </span><span class="n">lcdbwf</span><span class="o">::</span><span class="n">make_dds</span><span class="p">,</span><span class="w"> </span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span><span class="w"> </span><span class="n">parallel</span><span class="o">=</span><span class="n">config</span><span class="o">$</span><span class="n">parallel</span><span class="o">$</span><span class="n">parallel</span><span class="p">)</span>
+<span class="n">dds_list</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">map</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span><span class="w"> </span><span class="n">lcdbwf</span><span class="o">::</span><span class="n">make_dds</span><span class="p">,</span><span class="w"> </span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span><span class="w"> </span><span class="n">parallel</span><span class="o">=</span><span class="n">config</span><span class="o">$</span><span class="n">parallel</span><span class="o">$</span><span class="n">parallel</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>That is, first we create a list of lists (<code class="docutils literal notranslate"><span class="pre">lst</span></code>), and then we used <code class="docutils literal notranslate"><span class="pre">map()</span></code> to apply
@@ -300,6 +302,21 @@ a loose wrapper around <code class="docutils literal notranslate"><span class="p
 adds some extra convenience when working with lists of dds objects, including
 the detection of parallelization as set up in the config object. See the help
 for <code class="docutils literal notranslate"><span class="pre">lcdbwf::make_results()</span></code> for more details.</p>
+<p>By default, if no test argument is specified in the parameters for
+<code class="docutils literal notranslate"><span class="pre">lcdbwf::make_dds</span></code> found here in <a class="reference external" href="https://github.com/lcdb/lcdb-wf/blob/LRT/workflows/rnaseq/downstream/rnaseq.Rmd#L164-L187">examples 1-4,</a>
+the Wald test is performed. When <code class="docutils literal notranslate"><span class="pre">lcdbwf::make_results</span></code> processes a Wald test dds object, it
+detects the Wald test and expects a <code class="docutils literal notranslate"><span class="pre">contrast</span></code> or <code class="docutils literal notranslate"><span class="pre">coef</span></code> argument to specify which
+p-values and log2FoldChange values to report.</p>
+<p>DESeq2 also supports the nBinomLRT (LRT). <a class="reference external" href="https://github.com/lcdb/lcdb-wf/blob/LRT/workflows/rnaseq/downstream/rnaseq.Rmd#L189-L194">Example 5</a>
+demonstrates how to create a dds object with LRT data. Since the LRT tests
+the removal of one or more terms from the design formula, a single
+log2FoldChange column doesn’t reflect the test’s complexity. DESeq2’s results
+object is optimized for the Wald test, and when storing LRT results, it
+maintains consistency in datastructure by choosing a single pair-wise comparison for
+log2FoldChange values. To avoid confusion, <strong>*we set all log2FoldChange values to
+0 for LRT results*</strong>.</p>
+<p>For more details, see the DESeq2 documentation:
+<a class="reference external" href="https://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#i-ran-a-likelihood-ratio-test-but-results-only-gives-me-one-comparison">DESeq2 Likelihood Ratio Test</a>.</p>
 <p id="rules">To take advantage of this infrastructure, we put each of those contrasts into
 its own chunk <strong>according to the following rules</strong>:</p>
 <ul class="simple">
@@ -564,11 +581,11 @@ gene patterns, functional enrichment, and Shiny apps.</p>
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;2017, Ryan Dale, Justin Fear.
+      &#169;2017, Ryan Dale, Justin Fear.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
       <a href="_sources/rnaseq-rmd.rst.txt"

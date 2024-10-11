@@ -208,7 +208,7 @@ Here is how the code above would look using this method:
          subset.counts=TRUE))
    )
 
-   dds.list <- map(lst, lcdbwf::make_dds, config=config, parallel=config$parallel$parallel)
+   dds_list <- map(lst, lcdbwf::make_dds, config=config, parallel=config$parallel$parallel)
 
 That is, first we create a list of lists (``lst``), and then we used ``map()`` to apply
 the ``make_dds`` function to all items in the list. The collapsing of
@@ -259,6 +259,24 @@ a loose wrapper around ``DESeq2::results()`` and ``DESeq2::lfcshrink()`` that
 adds some extra convenience when working with lists of dds objects, including
 the detection of parallelization as set up in the config object. See the help
 for ``lcdbwf::make_results()`` for more details.
+
+By default, if no test argument is specified in the parameters for
+``lcdbwf::make_dds`` found here in `examples 1-4, <https://github.com/lcdb/lcdb-wf/blob/LRT/workflows/rnaseq/downstream/rnaseq.Rmd#L164-L187>`_
+the Wald test is performed. When ``lcdbwf::make_results`` processes a Wald test dds object, it
+detects the Wald test and expects a ``contrast`` or ``coef`` argument to specify which
+p-values and log2FoldChange values to report.
+
+DESeq2 also supports the nBinomLRT (LRT). `Example 5 <https://github.com/lcdb/lcdb-wf/blob/LRT/workflows/rnaseq/downstream/rnaseq.Rmd#L189-L194>`_
+demonstrates how to create a dds object with LRT data. Since the LRT tests
+the removal of one or more terms from the design formula, a single
+log2FoldChange column doesn't reflect the test's complexity. DESeq2's results
+object is optimized for the Wald test, and when storing LRT results, it
+maintains consistency in datastructure by choosing a single pair-wise comparison for
+log2FoldChange values. To avoid confusion, ***we set all log2FoldChange values to
+0 for LRT results***.
+
+For more details, see the DESeq2 documentation: 
+`DESeq2 Likelihood Ratio Test <https://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#i-ran-a-likelihood-ratio-test-but-results-only-gives-me-one-comparison>`_.
 
 .. _rules:
 
