@@ -594,6 +594,14 @@ rule featurecounts:
         counts='{sample_dir}/rnaseq_aggregation/featurecounts.txt'
     log:
         '{sample_dir}/rnaseq_aggregation/featurecounts.txt.log'
+    params:
+       strand_arg = helpers.strand_arg_lookup(
+            c, {
+                'unstranded': '-s0 ',
+                'fr-firststrand': '-s2 ',
+                'fr-secondstrand': '-s1 '
+            }
+        )
     threads: 8
     resources:
         mem_mb=gb(16),
@@ -603,18 +611,9 @@ rule featurecounts:
         p_arg = ''
         if c.is_paired:
             p_arg = '-p --countReadPairs '
-
-        strand_arg = helpers.strand_arg_lookup(
-            c, {
-                'unstranded': '-s0 ',
-                'fr-firststrand': '-s2 ',
-                'fr-secondstrand': '-s1 ',
-            }
-        )
-
         shell(
             'featureCounts '
-            '{strand_arg} '
+            '{params.strand_arg} '
             '{p_arg} '
             '-T {threads} '
             '-a {input.annotation} '
@@ -764,13 +763,20 @@ rule collectrnaseqmetrics:
         bam=c.patterns['markduplicates']['bam'],
         refflat=c.refdict[c.organism][config['gtf']['tag']]['refflat']
     output:
-        metrics=c.patterns['collectrnaseqmetrics']['metrics'],
+        metrics=c.patterns['collectrnaseqmetrics']['metrics']
     params:
         # NOTE: Be careful with the memory here; make sure you have enough
         # and/or it matches the resources you're requesting in the cluster
         # config.
-        java_args='-Xmx20g'
-        # java_args='-Xmx2g'  # [TEST SETTINGS -1]
+        java_args='-Xmx20g',
+        # java_args='-Xmx2g',  # [TEST SETTINGS -1]
+        strand_arg = helpers.strand_arg_lookup(
+            c, {
+                'unstranded': 'STRAND=NONE ',
+                'fr-firststrand': 'STRAND=SECOND_READ_TRANSCRIPTION_STRAND ',
+                'fr-secondstrand': 'STRAND=FIRST_READ_TRANSCRIPTION_STRAND '
+            }
+        )
     log:
         c.patterns['collectrnaseqmetrics']['metrics'] + '.log'
     threads: 1
@@ -778,18 +784,11 @@ rule collectrnaseqmetrics:
         mem_mb=gb(32),
         runtime=autobump(hours=2)
     run:
-        strand_arg = helpers.strand_arg_lookup(
-            c, {
-                'unstranded': 'STRAND=NONE ',
-                'fr-firststrand': 'STRAND=SECOND_READ_TRANSCRIPTION_STRAND ',
-                'fr-secondstrand': 'STRAND=FIRST_READ_TRANSCRIPTION_STRAND ',
-            }
-        )
         shell(
             'picard '
             '{params.java_args} '
             'CollectRnaSeqMetrics '
-            '{strand_arg} '
+            '{params.strand_arg} '
             'VALIDATION_STRINGENCY=LENIENT '
             'REF_FLAT={input.refflat} '
             'INPUT={input.bam} '
@@ -870,7 +869,14 @@ rule kallisto:
         c.patterns['kallisto']
     params:
         index_dir=os.path.dirname(c.refdict[c.organism][config['kallisto']['tag']]['kallisto']),
-        outdir=os.path.dirname(c.patterns['kallisto'])
+        outdir=os.path.dirname(c.patterns['kallisto']),
+        strand_arg = helpers.strand_arg_lookup(
+            c, {
+                'unstranded': '',
+                'fr-firststrand': '--rf-stranded',
+                'fr-secondstrand': '--fr-stranded'
+            }
+        )
     log:
         c.patterns['kallisto'] + '.log'
     threads:
@@ -887,15 +893,6 @@ rule kallisto:
             # and standard deviation here
             se_args = '--single --fragment-length 300 --sd 20 '
             assert len(input.fastq) == 1
-
-        strand_arg = helpers.strand_arg_lookup(
-            c, {
-                'unstranded': '',
-                'fr-firststrand': '--rf-stranded',
-                'fr-secondstrand': '--fr-stranded',
-            }
-        )
-
         shell(
             'kallisto quant '
             '--index {input.index} '
@@ -905,7 +902,7 @@ rule kallisto:
             '--bias '
             '--threads {threads} '
             '{se_args} '
-            '{strand_arg} '
+            '{params.strand_arg} '
             '{input.fastq} '
             '&> {log}'
         )
@@ -987,21 +984,22 @@ rule bigwig_neg:
         runtime=autobump(hours=2)
     log:
         c.patterns['bigwig']['neg'] + '.log'
-    run:
+    params:
         strand_arg = helpers.strand_arg_lookup(
             c, {
                 'unstranded': '',
                 'fr-firststrand': '--filterRNAstrand reverse ',
-                'fr-secondstrand': '--filterRNAstrand forward ',
+                'fr-secondstrand': '--filterRNAstrand forward '
             }
         )
+    run:
         shell(
             'bamCoverage '
             '--bam {input.bam} '
             '-o {output} '
             '-p {threads} '
             '{BAMCOVERAGE_ARGS} '
-            '{strand_arg} '
+            '{params.strand_arg} '
             '&> {log}'
         )
 
@@ -1020,22 +1018,22 @@ rule bigwig_pos:
         runtime=autobump(hours=2)
     log:
         c.patterns['bigwig']['pos'] + '.log'
-
-    run:
+    params:
         strand_arg = helpers.strand_arg_lookup(
             c, {
                 'unstranded': '',
                 'fr-firststrand': '--filterRNAstrand forward ',
-                'fr-secondstrand': '--filterRNAstrand reverse ',
+                'fr-secondstrand': '--filterRNAstrand reverse '
             }
         )
+    run:
         shell(
             'bamCoverage '
             '--bam {input.bam} '
             '-o {output} '
             '-p {threads} '
             '{BAMCOVERAGE_ARGS} '
-            '{strand_arg} '
+            '{params.strand_arg} '
             '&> {log}'
         )
 
