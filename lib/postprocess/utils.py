@@ -6,10 +6,11 @@ import zipfile
 import shutil
 import tempfile
 import pandas as pd
-from common import openfile
 
 here = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(here, "../../lib"))
+from common import openfile
+
 
 
 def extract_from_zip(tmpfiles, outfile, path_in_zip):
