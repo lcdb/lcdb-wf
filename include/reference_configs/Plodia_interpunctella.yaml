@@ -1,0 +1,41 @@
+references:
+  plodia:
+    ilPloInte3.2:
+      genome:
+        url: 'https://api.ncbi.nlm.nih.gov/datasets/v2/genome/accession/GCF_027563975.2/download?include_annotation_type=GENOME_FASTA'
+        postprocess:
+          function: 'lib.postprocess.utils.extract_from_zip'
+          kwargs:
+            path_in_zip: 'ncbi_dataset/data/GCF_027563975.2/GCF_027563975.2_ilPloInte3.2_genomic.fna'
+        indexes:
+          - 'hisat2'
+          - 'bowtie2'
+          - 'star'
+
+      annotation:
+        url: "https://api.ncbi.nlm.nih.gov/datasets/v2/genome/accession/GCF_027563975.2/download?include_annotation_type=GENOME_GTF"
+        postprocess:
+          function: 'lib.postprocess.utils.extract_from_zip'
+          kwargs:
+            path_in_zip: "ncbi_dataset/data/GCF_027563975.2/genomic.gtf"
+        conversions:
+          - 'refflat'
+          - 'bed12'
+
+      transcriptome:
+        indexes:
+          - 'salmon'
+          - 'kallisto'
+
+    rRNA:
+      genome:
+        url:
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+          - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+        indexes:
+          - 'hisat2'
+          - 'bowtie2'
+          - 'star'
+        postprocess:
+          function: 'lib.common.filter_fastas'
+          args: 'Plodia interpunctella'
