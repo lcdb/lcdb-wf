@@ -80,6 +80,10 @@ class SeqConfig(object):
             self.n = [1, 2]
         else:
             self.n = [1]
+        if 'Run' in self.sampletable.columns and sum(self.sampletable['Run'].str.startswith('SRR')) > 0:
+            self.is_sra = True
+        else:
+            self.is_sra = False
 
         helpers.preflight(self.config)
 
@@ -107,7 +111,19 @@ class RNASeqConfig(SeqConfig):
 
         self.fill = dict(sample=self.samples, n=self.n)
         self.patterns_by_aggregation = self.patterns.pop('patterns_by_aggregate', None)
-        self.targets = helpers.fill_patterns(self.patterns, self.fill, zip)
+        self.targets = helpers.fill_patterns(self.patterns, self.fill)
+
+        # If the sampletable is from an sra metadata table, then we need to set the value of
+        # 'orig_filename' for each of the samples to where the fastq was downloaded
+        if self.is_sra:
+            self.sampletable['orig_filename'] = None
+            for i in range(len(self.sampletable)):
+                for j in range(len(self.targets['sra_fastq'])):
+                    if self.sampletable.iloc[i, self.sampletable.columns.get_loc('samplename')] \
+                            in self.targets['sra_fastq'][j]:
+                        self.sampletable.iloc[i, self.sampletable.columns.get_loc('orig_filename')] \
+                            = self.targets['sra_fastq'][j]
+                        break
 
         # Then the aggregation
         if self.patterns_by_aggregation is not None and 'merged_bigwigs' in self.config:
