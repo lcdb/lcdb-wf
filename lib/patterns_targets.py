@@ -9,6 +9,7 @@ import yaml
 from . import common
 from . import chipseq
 from . import helpers
+from snakemake.io import expand
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
@@ -116,14 +117,9 @@ class RNASeqConfig(SeqConfig):
         # If the sampletable is from an sra metadata table, then we need to set the value of
         # 'orig_filename' for each of the samples to where the fastq was downloaded
         if self.is_sra:
-            self.sampletable['orig_filename'] = None
-            for i in range(len(self.sampletable)):
-                for j in range(len(self.targets['sra_fastq'])):
-                    if self.sampletable.iloc[i, self.sampletable.columns.get_loc('samplename')] \
-                            in self.targets['sra_fastq'][j]:
-                        self.sampletable.iloc[i, self.sampletable.columns.get_loc('orig_filename')] \
-                            = self.targets['sra_fastq'][j]
-                        break
+            self.sampletable['orig_filename'] = expand(self.patterns["sra_fastq"], sample=self.samples, n=1)
+            if self.is_paired:
+                self.sampletable['orig_filename_R2'] = expand(self.patterns["sra_fastq"], sample=self.samples, n=2)
 
         # Then the aggregation
         if self.patterns_by_aggregation is not None and 'merged_bigwigs' in self.config:
