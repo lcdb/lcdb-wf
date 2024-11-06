@@ -6,9 +6,10 @@ from textwrap import dedent
 import yaml
 import tempfile
 import pandas as pd
-from lib import common, utils, helpers, aligners
+from lib import common, utils, helpers, aligners, multiqc
 from lib.utils import autobump, gb, hours
 from lib.patterns_targets import RNASeqConfig
+from lib.multiqc import process_feature_counts, estimate_size_factors, regions_yaml, normalize_counts
 
 # ----------------------------------------------------------------------------
 #
@@ -44,21 +45,48 @@ def wrapper_for(path):
 # ----------------------------------------------------------------------------
 
 # See "patterns and targets" in the documentation for what's going on here.
-final_targets = utils.flatten((
-    utils.flatten(c.targets['fastqc']),
-    [c.targets['fastq_screen']],
-    [c.targets['rrna_percentages_table']],
-    [c.targets['multiqc']],
-    utils.flatten(c.targets['featurecounts']),
-    utils.flatten(c.targets['markduplicates']),
-    utils.flatten(c.targets['salmon']),
-    utils.flatten(c.targets['kallisto']),
-    utils.flatten(c.targets['preseq']),
-    utils.flatten(c.targets['rseqc']),
-    utils.flatten(c.targets['collectrnaseqmetrics']),
-    utils.flatten(c.targets['bigwig']),
-    utils.flatten(c.targets['samtools']),
-))
+targets_list = [
+    c.targets['fastqc'],
+    c.targets['fastq_screen'],
+    c.targets['rrna_percentages_table'],
+    c.targets['multiqc'],
+    c.targets['featurecounts'],
+    c.targets['markduplicates'],
+    c.targets['salmon'],
+    c.targets['kallisto'],
+    c.targets['preseq'],
+    c.targets['rseqc'],
+    c.targets['collectrnaseqmetrics'],
+    c.targets['bigwig'],
+    c.targets['size_factors'],
+    c.targets['counts'],
+    c.targets['normalized_counts'],
+    [c.targets['expression_mqc_yaml']] if config.get('expression_barchart_mqc') else []
+]
+final_targets = utils.flatten(targets_list)
+
+# Read regions and their start and stop positions from config file if any regions are specified
+if config.get('expression_barchart_mqc'):
+    final_targets.append(c.targets['expression_mqc_yaml'])
+    REGION_DICTS = []
+    for name, coord in config['expression_barchart_mqc'].items():
+        chrom, positions = coord.strip().split(':')
+        start, end = positions.strip().split('-')
+        start = int(start)
+        end = int(end)
+        REGION_DICTS.append({'name': name, 'chrom': chrom, 'start': start, 'end': end})
+
+    REGIONS = [region['name'] for region in REGION_DICTS]
+
+    def get_region_by_name(name):
+        for region in REGION_DICTS:
+            if region['name'] == name:
+                return region
+        raise ValueError('Region {} not found in config'.format(name))
+
+# This empty list will toggle OFF the MultiQC yaml data generation rules if no regions were specified in the config.yaml
+else:
+    REGIONS = []
 
 if config.get('merged_bigwigs', None):
     final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
@@ -115,6 +143,113 @@ if 'orig_filename' in c.sampletable.columns:
     rule symlink_targets:
         input: c.targets['fastq']
 
+rule process_feature_counts:
+    """
+    Use the featureCounts table to make a counts matrix with samplename columns and gene rows.
+    """
+    input:
+        featurecounts=c.targets['featurecounts'],
+        sampletable=config['sampletable']
+    output:
+        c.targets['counts']
+    log:
+        'logs/process_feature_counts.log'
+    threads: 1
+    resources:
+        mem_mb=100,
+        runtime=1
+    run:
+        process_feature_counts(input.featurecounts, input.sampletable, output)
+
+rule size_factors:
+    """
+    Use the median ratio of counts to geometic means to estimate a size factor normalization coefficient
+    for each sample.
+    """
+    input:
+        counts=c.targets['counts']
+    output:
+        size_factors=c.targets['size_factors']
+    log:
+        'logs/size_factors.log'
+    threads: 1
+    resources:
+        mem_mb=100,
+        runtime=1
+    run:
+        estimate_size_factors(input.counts, output.size_factors)
+
+rule normalize_counts:
+    """
+    Use size factors and the counts matrix to make a size factor normalized counts matrix.
+    """
+    input:
+        counts=c.targets['counts'],
+        size_factors=c.targets['size_factors']
+    output:
+        c.targets['normalized_counts']
+    log:
+        "logs/normalize_counts.log"
+    threads: 1
+    resources:
+        mem_mb=100,
+        runtime=1
+    run:
+        normalize_counts(input.counts, input.size_factors, output)
+
+if REGIONS:
+    rule count_reads_in_region:
+        """
+        Use samtools to count the number reads mapping to the user defined regions in config.
+        """
+        input:
+            bam=c.patterns['markduplicates']['bam'],
+            bai=c.patterns['markduplicates']['bam'] + '.bai'
+        output:
+            'data/rnaseq_samples/{sample}/{region}.counts.txt'
+        params:
+            chrom=lambda wildcards: get_region_by_name(wildcards.region)['chrom'],
+            start=lambda wildcards: get_region_by_name(wildcards.region)['start'],
+            stop=lambda wildcards: get_region_by_name(wildcards.region)['end']
+        threads: 1
+        resources:
+            mem_mb=100,
+            runtime=1
+        log:
+            'logs/count_reads_in_{sample}_{region}.log'
+        shell:
+            """
+            samtools view -c {input.bam} {params.chrom}:{params.start}-{params.stop} > "{output}" 2> "{log}"
+            """
+
+    rule generate_combined_region_yaml:
+        """
+        Write the _mqc.yaml MultiQC input file that contains the configuration and data for the 
+        MultiQC user defined region expression barchart. 
+        """
+        input:
+            size_factors=c.targets['size_factors'],
+            counts=lambda wildcards: expand(
+                'data/rnaseq_samples/{sample}/{region}.counts.txt',
+                sample=SAMPLES,
+                region=REGIONS
+            )
+        output:
+            c.targets['expression_mqc_yaml']
+        params:
+            REGIONS # Dictionary from config['expression_barchart_mqc']
+        log:
+            'logs/generate_combined_regions_yaml.log'
+        threads: 1
+        resources:
+            mem_mb=100,
+            runtime=1
+        run:
+            regions_yaml(input.size_factors, input.counts, params, output)
+
+else:
+    # No regions specified; no _mqc.yaml generated; dont pass an expression module yaml to MultiQC
+    c.targets['expression_mqc_yaml'] = []
 
 if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('SRR')) > 0:
 
@@ -686,6 +821,7 @@ rule multiqc:
     # NOTE: if you add more rules and want MultiQC to pick up the output, then
     # add outputs from those rules to the inputs here.
     input:
+        yaml=c.targets['expression_mqc_yaml'],
         files=(
             utils.flatten(c.targets['fastqc']) +
             utils.flatten(c.targets['rrna_percentages_yaml']) +
@@ -707,7 +843,9 @@ rule multiqc:
         mem_mb=gb(2),
         runtime=autobump(hours=2)
     run:
-        analysis_directory = set([os.path.dirname(i) for i in input])
+        analysis_directories = set([os.path.dirname(i) for i in input.files])
+        yaml_directories = set([os.path.dirname(i) for i in input.yaml]) # Allows for a list of yamls or a single yaml
+        all_directories = ' '.join(analysis_directories.union(yaml_directories))
         outdir = os.path.dirname(c.targets['multiqc'][0])
         basename = os.path.basename(c.targets['multiqc'][0])
         shell(
@@ -718,10 +856,9 @@ rule multiqc:
             '--force '
             '--filename {basename} '
             '--config {input.config} '
-            '{analysis_directory} '
+            '{all_directories} '
             '&> {log} '
         )
-
 
 rule markduplicates:
     """
