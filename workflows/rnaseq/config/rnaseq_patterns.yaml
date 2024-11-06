@@ -46,3 +46,7 @@ samtools:
   idxstats: 'data/rnaseq_samples/{sample}/idxstat_{sample}.txt'
   flagstat: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.flagstat'
   stats: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.stats'
+size_factors: 'data/rnaseq_aggregation/size_factors.tsv'
+expression_mqc_yaml: 'data/rnaseq_aggregation/expression_barchart_mqc.yaml'
+counts: 'data/rnaseq_aggregation/counts.tsv'
+normalized_counts: 'data/rnaseq_aggregation/normalized_counts.tsv'
