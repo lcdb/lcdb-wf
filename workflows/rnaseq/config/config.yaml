@@ -51,6 +51,11 @@ merged_bigwigs:
       - sample3
       - sample4
 
+# Arbitrarily named regions specified here will appear in a MultiQC expression barchart
+expression_barchart_mqc:
+  cold: chr2L:574291-575734
+  hop: chr2L:295122-297449
+
 # See the reference config files in the top level of the repo,
 # include/reference_configs, for inspiration for more species.
 
