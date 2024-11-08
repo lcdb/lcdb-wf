@@ -15,7 +15,7 @@ from lib import aligners
 from lib import utils
 from snakemake.shell import shell
 from snakemake.io import expand
-
+from . import helpers
 # List of possible keys in config that are to be interpreted as paths
 PATH_KEYS = [
     'references_dir',
@@ -616,13 +616,16 @@ def get_techreps(sampletable, label):
     return result
 
 
-def load_config(config, missing_references_ok=False):
+def load_config(config, missing_references_ok=False, test=False):
     """
     Loads the config.
 
     Resolves any included references directories/files and runs the deprecation
     handler.
     """
+    # If this is a test, then change the current working directory to the rnaseq workflow level
+    if test:
+        os.chdir(os.path.join(helpers.get_top_level_dir(), "workflows","rnaseq"))
     if isinstance(config, str):
         config = yaml.load(open(config), Loader=yaml.FullLoader)
 
@@ -728,7 +731,7 @@ def is_paired_end(sampletable, sample):
 
     if "Run" in sampletable.columns:
         if all(sampletable["Run"].str.startswith("SRR")):
-            if "Layout" not in sampletable.columns and "layout" not in sampletable.columns:
+            if "Layout" not in sampletable.columns and "layout" not in sampletable.columns and "LibraryLayout" not in sampletable.columns:
                 raise ValueError(
                     "Sampletable appears to be SRA, but no 'Layout' column "
                     "found. This is required to specify single- or paired-end "
@@ -737,7 +740,7 @@ def is_paired_end(sampletable, sample):
     row = sampletable.set_index(sampletable.columns[0]).loc[sample]
     if 'orig_filename_R2' in row:
         return True
-    if 'layout' in row and 'LibraryLayout' in row:
+    if 'layout' in row and 'LibraryLayout' in row or 'Layout' in row and 'LibraryLayout' in row:
         raise ValueError("Expecting column 'layout' or 'LibraryLayout', "
                          "not both")
     try:
@@ -746,6 +749,10 @@ def is_paired_end(sampletable, sample):
         pass
     try:
         return row['LibraryLayout'].lower() in ['pe', 'paired']
+    except KeyError:
+        pass
+    try:
+        return row['Layout'].lower() in ['pe', 'paired']
     except KeyError:
         pass
     return False
