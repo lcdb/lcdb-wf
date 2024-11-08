@@ -5,6 +5,7 @@ import pandas as pd
 from snakemake.shell import shell
 from snakemake.io import expand, regex
 from lib import common
+import os
 
 
 class ConfigurationError(Exception):
@@ -203,3 +204,22 @@ def strand_arg_lookup(config, lookup):
         keys = list(lookup.keys())
         raise KeyError(f"'{config.stranded}' not one of {keys}")
     return lookup[config.stranded]
+
+def get_top_level_dir(start_dir=None):
+    # Start from the specified directory or current working directory if none is given
+    current_dir = os.path.abspath(start_dir or os.getcwd())
+    # Search current directory and above for targets
+    while True:
+        # Check if the target directories exists in the current directory
+        if (os.path.isdir(os.path.join(current_dir, ".git")) and os.path.isdir(os.path.join(current_dir, "workflows"))):
+            return current_dir
+        # Move up one level
+        parent_dir = os.path.dirname(current_dir)
+        # Stop if we've reached the root directory
+        if current_dir == parent_dir:
+            break
+        current_dir = parent_dir
+        #TODO: Check for other edge cases?
+
+    return None
+
