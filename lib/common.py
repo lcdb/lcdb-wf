@@ -15,7 +15,7 @@ from lib import aligners
 from lib import utils
 from snakemake.shell import shell
 from snakemake.io import expand
-from . import helpers
+from lib import helpers
 # List of possible keys in config that are to be interpreted as paths
 PATH_KEYS = [
     'references_dir',
