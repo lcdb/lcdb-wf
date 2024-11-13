@@ -16,6 +16,8 @@ from lib import utils
 from snakemake.shell import shell
 from snakemake.io import expand
 from lib import helpers
+from pathlib import Path
+
 # List of possible keys in config that are to be interpreted as paths
 PATH_KEYS = [
     'references_dir',
@@ -616,18 +618,13 @@ def get_techreps(sampletable, label):
     return result
 
 
-def load_config(config, missing_references_ok=False, test=False):
+def load_config(config, missing_references_ok=False):
     """
     Loads the config.
 
     Resolves any included references directories/files and runs the deprecation
     handler.
     """
-    # If this is a test, then change the current working directory to the rnaseq workflow level
-    if test:
-        os.chdir(os.path.join(helpers.get_top_level_dir(), "workflows","rnaseq"))
-    if isinstance(config, str):
-        config = yaml.load(open(config), Loader=yaml.FullLoader)
 
     # Here we populate a list of reference sections. Items later on the list
     # will have higher priority
@@ -725,34 +722,18 @@ def is_paired_end(sampletable, sample):
     # We can't fall back to detecting PE based on two fastq files provided for
     # each sample when it's an SRA sampletable (which only has SRR accessions).
     #
-    # So detect first detect if SRA sampletable based on presence of "Run"
-    # column and all values of that column starting with "SRR", and then raise
-    # an error if the Layout column does not exist.
-
-    if "Run" in sampletable.columns:
-        if all(sampletable["Run"].str.startswith("SRR")):
-            if "Layout" not in sampletable.columns and "layout" not in sampletable.columns and "LibraryLayout" not in sampletable.columns:
-                raise ValueError(
-                    "Sampletable appears to be SRA, but no 'Layout' column "
-                    "found. This is required to specify single- or paired-end "
-                    "libraries.")
+    # So instead first detect if there is in fact a second fastq file listed,
+    # and if not then check if the layout of the library is listed
 
     row = sampletable.set_index(sampletable.columns[0]).loc[sample]
     if 'orig_filename_R2' in row:
         return True
-    if 'layout' in row and 'LibraryLayout' in row or 'Layout' in row and 'LibraryLayout' in row:
-        raise ValueError("Expecting column 'layout' or 'LibraryLayout', "
-                         "not both")
+    layout_columns = set(sampletable.columns).intersection(['layout', 'LibraryLayout', 'Layout'])
+    if len(layout_columns) != 1:
+        raise ValueError("Expected exactly one of ['layout', 'LibraryLayout', 'Layout'] in sample table")
+    layout_column = list(layout_columns)[0]
     try:
-        return row['layout'].lower() in ['pe', 'paired']
-    except KeyError:
-        pass
-    try:
-        return row['LibraryLayout'].lower() in ['pe', 'paired']
-    except KeyError:
-        pass
-    try:
-        return row['Layout'].lower() in ['pe', 'paired']
+        return row[layout_column].lower() in ['pe', 'paired']
     except KeyError:
         pass
     return False
