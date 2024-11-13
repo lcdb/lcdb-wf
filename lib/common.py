@@ -728,14 +728,16 @@ def is_paired_end(sampletable, sample):
     row = sampletable.set_index(sampletable.columns[0]).loc[sample]
     if 'orig_filename_R2' in row:
         return True
-    layout_columns = set(sampletable.columns).intersection(['layout', 'LibraryLayout', 'Layout'])
-    if len(layout_columns) != 1:
-        raise ValueError("Expected exactly one of ['layout', 'LibraryLayout', 'Layout'] in sample table")
-    layout_column = list(layout_columns)[0]
-    try:
-        return row[layout_column].lower() in ['pe', 'paired']
-    except KeyError:
-        pass
+    if "Run" in sampletable.columns:
+        if all(sampletable["Run"].str.startswith("SRR")):
+            layout_columns = set(sampletable.columns).intersection(['layout', 'LibraryLayout', 'Layout'])
+            if len(layout_columns) != 1:
+                raise ValueError("Expected exactly one of ['layout', 'LibraryLayout', 'Layout'] in sample table")
+            layout_column = list(layout_columns)[0]
+            try:
+                return row[layout_column].lower() in ['pe', 'paired']
+            except KeyError:
+                pass
     return False
 
 
