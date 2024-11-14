@@ -9,6 +9,7 @@ import pandas as pd
 from lib import common, utils, helpers, aligners
 from lib.utils import autobump, gb, hours
 from lib.patterns_targets import RNASeqConfig
+from pathlib import Path
 
 # ----------------------------------------------------------------------------
 #
@@ -27,7 +28,7 @@ include: '../references/Snakefile'
 # Verify configuration of config and sampletable files
 helpers.preflight(config)
 
-c = RNASeqConfig(config, config.get('patterns', 'config/rnaseq_patterns.yaml'))
+c = RNASeqConfig(config, config.get('patterns', 'config/rnaseq_patterns.yaml'), Path('.').resolve())
 
 SAMPLES = c.sampletable.iloc[:, 0].values
 wildcard_constraints:
