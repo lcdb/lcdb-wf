@@ -13,8 +13,8 @@ from lib import common, helpers, patterns_targets
 def config(request):
     config_path = request.param
     config = common.load_config(config_path)
-    os.chdir(os.path.join(helpers.get_top_level_dir(), "workflows","rnaseq"))
-    return patterns_targets.RNASeqConfig(config, config.get('patterns', '../workflows/rnaseq/config/rnaseq_patterns.yaml'))
+    rnaseq_workdir = os.path.join(helpers.get_top_level_dir(), "workflows","rnaseq")
+    return patterns_targets.RNASeqConfig(config, config.get('patterns', '../workflows/rnaseq/config/rnaseq_patterns.yaml'), workdir=rnaseq_workdir)
 
 # Call helpers.detect_layout(), which implicitly tests common.is_paired_end()
 @pytest.mark.parametrize("config, is_paired_ref", [("../../workflows/rnaseq/config/config.yaml", False)], indirect=["config"])

@@ -48,12 +48,13 @@ class SeqConfig(object):
         """
         self.path = None
         self.workdir = Path('.').resolve()
+        self.workdir = None
         if workdir is not None:
-            config = os.path.join(workdir, config)
             patterns = os.path.join(workdir, patterns)
             self.workdir = workdir
 
         if isinstance(config, str):
+            config = os.path.join(workdir, config)
             self.path = config
 
         self.config = common.load_config(
