@@ -626,6 +626,9 @@ def load_config(config, missing_references_ok=False):
     handler.
     """
 
+    if isinstance(config, str):
+        config = yaml.load(open(config), Loader=yaml.FullLoader)
+
     # Here we populate a list of reference sections. Items later on the list
     # will have higher priority
     includes = config.get('include_references', [])
