@@ -27,6 +27,7 @@ PATH_KEYS = [
     'merged_dir',
     'peaks_dir',
     'hub_config',
+    'include_references',
 ]
 
 
@@ -72,7 +73,11 @@ def resolve_config(config, workdir=None):
         return os.path.join(workdir, pth)
     for key in PATH_KEYS:
         if key in config and workdir:
-            config[key] = abs_path(config[key])
+            if isinstance(config[key], list):
+                for i in range(len(config[key])):
+                    config[key][i] = abs_path(config[key][i])
+            else:
+                config[key] = abs_path(config[key])
     return config
 
 
@@ -629,6 +634,7 @@ def load_config(config, missing_references_ok=False):
     if isinstance(config, str):
         config = yaml.load(open(config), Loader=yaml.FullLoader)
 
+    config = resolve_config(config)
     # Here we populate a list of reference sections. Items later on the list
     # will have higher priority
     includes = config.get('include_references', [])

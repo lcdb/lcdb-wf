@@ -324,6 +324,7 @@ class Runner(object):
         if args.pytest:
             print_header("pytest")
             sp.run(["pytest", "--doctest-modules", "lib"], check=True, cwd=TOPLEVEL)
+            sp.run(["pytest", "test/tests"], check=True, cwd=TOPLEVEL)
 
         if args.url_check:
             print_header("url check")

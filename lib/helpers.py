@@ -219,7 +219,6 @@ def get_top_level_dir(start_dir=None):
         if current_dir == parent_dir:
             break
         current_dir = parent_dir
-        #TODO: Check for other edge cases?
 
-    return None
+    return current_dir
 

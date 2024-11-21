@@ -2,22 +2,23 @@ import sys
 import os
 import subprocess
 from pathlib import Path
-top_level_dir = str(Path("../../").resolve())
+top_level_dir = str(Path(".").resolve())
 sys.path.insert(0, top_level_dir)
 import pytest
 from textwrap import dedent
 from lib import common, helpers, patterns_targets
+os.chdir(helpers.get_top_level_dir())
 
 # Make config object that can be re-used for any test
 @pytest.fixture
 def config(request):
     config_path = request.param
-    config = common.load_config(config_path)
     rnaseq_workdir = os.path.join(helpers.get_top_level_dir(), "workflows","rnaseq")
+    config = common.load_config(common.resolve_config(config_path, rnaseq_workdir))
     return patterns_targets.RNASeqConfig(config, config.get('patterns', '../workflows/rnaseq/config/rnaseq_patterns.yaml'), workdir=rnaseq_workdir)
 
 # Call helpers.detect_layout(), which implicitly tests common.is_paired_end()
-@pytest.mark.parametrize("config, is_paired_ref", [("../../workflows/rnaseq/config/config.yaml", False)], indirect=["config"])
+@pytest.mark.parametrize("config, is_paired_ref", [("workflows/rnaseq/config/config.yaml", False)], indirect=["config"])
 def test_is_paired_end(config, is_paired_ref):
     is_paired = helpers.detect_layout(config.sampletable) == 'PE'
     assert is_paired==is_paired_ref, f"Test failed, is_paired is {is_paired} when it should be {is_paired_ref}"

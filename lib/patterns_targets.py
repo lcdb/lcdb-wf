@@ -47,7 +47,6 @@ class SeqConfig(object):
             as relative to `workdir`
         """
         self.path = None
-        self.workdir = Path('.').resolve()
         self.workdir = None
         if workdir is not None:
             patterns = os.path.join(workdir, patterns)
