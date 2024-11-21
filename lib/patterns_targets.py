@@ -9,6 +9,7 @@ import yaml
 from . import common
 from . import chipseq
 from . import helpers
+from pathlib import Path
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
@@ -46,17 +47,17 @@ class SeqConfig(object):
             as relative to `workdir`
         """
         self.path = None
-        self.workdir = '.'
+        self.workdir = None
         if workdir is not None:
-            config = os.path.join(workdir, config)
             patterns = os.path.join(workdir, patterns)
             self.workdir = workdir
 
         if isinstance(config, str):
+            config = os.path.join(workdir, config)
             self.path = config
 
         self.config = common.load_config(
-            common.resolve_config(config, workdir))
+            common.resolve_config(config, self.workdir))
 
         stranded = self.config.get('stranded', None)
         self.stranded = None

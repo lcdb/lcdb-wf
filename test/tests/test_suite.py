@@ -1,7 +1,8 @@
 import sys
+import os
 import subprocess
-top_level_dir = subprocess.run(["dirname $(dirname $(pwd))"], shell=True, capture_output=True, text=True).stdout.strip()
-print("top level dir: ", top_level_dir)
+from pathlib import Path
+top_level_dir = str(Path(".").resolve())
 sys.path.insert(0, top_level_dir)
 import pytest
 from textwrap import dedent
@@ -11,15 +12,15 @@ from lib import common, helpers, patterns_targets
 @pytest.fixture
 def config(request):
     config_path = request.param
-    config = common.load_config(config_path, test=True)
-    return patterns_targets.RNASeqConfig(config, config.get('patterns', '../workflows/rnaseq/config/rnaseq_patterns.yaml'))
+    rnaseq_workdir = os.path.join(helpers.get_top_level_dir(), "workflows","rnaseq")
+    config = common.load_config(common.resolve_config(config_path, rnaseq_workdir))
+    return patterns_targets.RNASeqConfig(config, config.get('patterns', '../workflows/rnaseq/config/rnaseq_patterns.yaml'), workdir=rnaseq_workdir)
 
 # Call helpers.detect_layout(), which implicitly tests common.is_paired_end()
-# TODO: Make assertion condition NOT hard coded in to work with current example table
-@pytest.mark.parametrize("config", ['../../workflows/rnaseq/config/config.yaml'], indirect=True)
-def test_is_paired_end(config):
+@pytest.mark.parametrize("config, is_paired_ref", [("workflows/rnaseq/config/config.yaml", False)], indirect=["config"])
+def test_is_paired_end(config, is_paired_ref):
     is_paired = helpers.detect_layout(config.sampletable) == 'PE'
-    assert not is_paired, f"Test failed, is_paired = {is_paired}"
+    assert is_paired==is_paired_ref, f"Test failed, is_paired is {is_paired} when it should be {is_paired_ref}"
 
 def test_config_loading(tmpdir):
     f0 = tmpdir.mkdir('subdir').join('file0.yaml')
