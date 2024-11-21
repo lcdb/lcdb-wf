@@ -7,7 +7,6 @@ sys.path.insert(0, top_level_dir)
 import pytest
 from textwrap import dedent
 from lib import common, helpers, patterns_targets
-os.chdir(helpers.get_top_level_dir())
 
 # Make config object that can be re-used for any test
 @pytest.fixture
