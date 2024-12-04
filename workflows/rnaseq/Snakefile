@@ -64,10 +64,10 @@ if config.get('merged_bigwigs', None):
     final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
 
 
-def render_r1_r2(pattern, r1_only=False):
+def render_r1_r2(pattern):
     return expand(pattern, sample='{sample}', n=c.n)
 
-def r1_only(pattern):
+def render_r1_only(pattern):
     return expand(pattern, sample='{sample}', n=1)
 
 rule targets:
@@ -126,7 +126,7 @@ if 'Run' in c.sampletable.columns and sum(c.sampletable['Run'].str.startswith('S
         output:
             fastq=render_r1_r2(c.patterns['fastq'])
         log:
-            r1_only(c.patterns['fastq'])[0] + '.log'
+            render_r1_only(c.patterns['fastq'])[0] + '.log'
         params:
             is_paired=c.is_paired,
             sampletable=_st,
@@ -472,7 +472,7 @@ rule rRNA:
     Map reads with bowtie2 to the rRNA reference
     """
     input:
-        fastq=r1_only(c.patterns['cutadapt']),
+        fastq=render_r1_only(c.patterns['cutadapt']),
         index=[c.refdict[c.organism][config['rrna']['tag']]['bowtie2']]
     output:
         bam=temporary(c.patterns['rrna']['bam'])
@@ -569,7 +569,7 @@ rule fastq_screen:
     """
     input:
         **fastq_screen_references(),
-        fastq=r1_only(rules.cutadapt.output.fastq),
+        fastq=render_r1_only(rules.cutadapt.output.fastq),
     output:
         txt=c.patterns['fastq_screen']
     log:
@@ -598,12 +598,7 @@ rule featurecounts:
     resources:
         mem_mb=gb(16),
         runtime=autobump(hours=2)
-    run:
-        # NOTE: By default, we use -p for paired-end
-        p_arg = ''
-        if c.is_paired:
-            p_arg = '-p --countReadPairs '
-
+    params:
         strand_arg = helpers.strand_arg_lookup(
             c, {
                 'unstranded': '-s0 ',
@@ -611,10 +606,14 @@ rule featurecounts:
                 'fr-secondstrand': '-s1 ',
             }
         )
-
+    run:
+        # NOTE: By default, we use -p for paired-end
+        p_arg = ''
+        if c.is_paired:
+            p_arg = '-p --countReadPairs '
         shell(
             'featureCounts '
-            '{strand_arg} '
+            '{params.strand_arg} '
             '{p_arg} '
             '-T {threads} '
             '-a {input.annotation} '
@@ -769,15 +768,8 @@ rule collectrnaseqmetrics:
         # NOTE: Be careful with the memory here; make sure you have enough
         # and/or it matches the resources you're requesting in the cluster
         # config.
-        java_args='-Xmx20g'
-        # java_args='-Xmx2g'  # [TEST SETTINGS -1]
-    log:
-        c.patterns['collectrnaseqmetrics']['metrics'] + '.log'
-    threads: 1
-    resources:
-        mem_mb=gb(32),
-        runtime=autobump(hours=2)
-    run:
+        java_args='-Xmx20g',
+        # java_args='-Xmx2g',  # [TEST SETTINGS -1]
         strand_arg = helpers.strand_arg_lookup(
             c, {
                 'unstranded': 'STRAND=NONE ',
@@ -785,11 +777,18 @@ rule collectrnaseqmetrics:
                 'fr-secondstrand': 'STRAND=FIRST_READ_TRANSCRIPTION_STRAND ',
             }
         )
+    log:
+        c.patterns['collectrnaseqmetrics']['metrics'] + '.log'
+    threads: 1
+    resources:
+        mem_mb=gb(32),
+        runtime=autobump(hours=2)
+    run:
         shell(
             'picard '
             '{params.java_args} '
             'CollectRnaSeqMetrics '
-            '{strand_arg} '
+            '{params.strand_arg} '
             'VALIDATION_STRINGENCY=LENIENT '
             'REF_FLAT={input.refflat} '
             'INPUT={input.bam} '
@@ -870,7 +869,14 @@ rule kallisto:
         c.patterns['kallisto']
     params:
         index_dir=os.path.dirname(c.refdict[c.organism][config['kallisto']['tag']]['kallisto']),
-        outdir=os.path.dirname(c.patterns['kallisto'])
+        outdir=os.path.dirname(c.patterns['kallisto']),
+        strand_arg = helpers.strand_arg_lookup(
+            c, {
+                'unstranded': '',
+                'fr-firststrand': '--rf-stranded',
+                'fr-secondstrand': '--fr-stranded',
+            }
+        )
     log:
         c.patterns['kallisto'] + '.log'
     threads:
@@ -887,15 +893,6 @@ rule kallisto:
             # and standard deviation here
             se_args = '--single --fragment-length 300 --sd 20 '
             assert len(input.fastq) == 1
-
-        strand_arg = helpers.strand_arg_lookup(
-            c, {
-                'unstranded': '',
-                'fr-firststrand': '--rf-stranded',
-                'fr-secondstrand': '--fr-stranded',
-            }
-        )
-
         shell(
             'kallisto quant '
             '--index {input.index} '
@@ -905,7 +902,7 @@ rule kallisto:
             '--bias '
             '--threads {threads} '
             '{se_args} '
-            '{strand_arg} '
+            '{params.strand_arg} '
             '{input.fastq} '
             '&> {log}'
         )
@@ -987,7 +984,7 @@ rule bigwig_neg:
         runtime=autobump(hours=2)
     log:
         c.patterns['bigwig']['neg'] + '.log'
-    run:
+    params:
         strand_arg = helpers.strand_arg_lookup(
             c, {
                 'unstranded': '',
@@ -995,13 +992,14 @@ rule bigwig_neg:
                 'fr-secondstrand': '--filterRNAstrand forward ',
             }
         )
+    run:
         shell(
             'bamCoverage '
             '--bam {input.bam} '
             '-o {output} '
             '-p {threads} '
             '{BAMCOVERAGE_ARGS} '
-            '{strand_arg} '
+            '{params.strand_arg} '
             '&> {log}'
         )
 
@@ -1020,8 +1018,7 @@ rule bigwig_pos:
         runtime=autobump(hours=2)
     log:
         c.patterns['bigwig']['pos'] + '.log'
-
-    run:
+    params:
         strand_arg = helpers.strand_arg_lookup(
             c, {
                 'unstranded': '',
@@ -1029,13 +1026,14 @@ rule bigwig_pos:
                 'fr-secondstrand': '--filterRNAstrand reverse ',
             }
         )
+    run:
         shell(
             'bamCoverage '
             '--bam {input.bam} '
             '-o {output} '
             '-p {threads} '
             '{BAMCOVERAGE_ARGS} '
-            '{strand_arg} '
+            '{params.strand_arg} '
             '&> {log}'
         )
 
