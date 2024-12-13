@@ -330,6 +330,7 @@ if config['aligner']['index'].startswith('star'):
         '--readFilesIn {input.fastq} '
         '--readFilesCommand zcat '
         '--outFileNamePrefix {prefix} '
+        '--outTmpDir $TMPDIR '
 
         # NOTE: The STAR docs indicate that the following parameters are
         # standard options for ENCODE long-RNA-seq pipeline.  Comments are from
@@ -366,6 +367,7 @@ if config['aligner']['index'] == 'star':
         resources:
             mem_mb=gb(64),
             runtime=autobump(hours=8)
+            disk_mb=gb(100)
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
@@ -401,6 +403,7 @@ if config['aligner']['index'] == 'star-twopass':
         resources:
             mem_mb=gb(64),
             runtime=autobump(hours=8)
+            disk_mem=gb(100)
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
@@ -441,6 +444,7 @@ if config['aligner']['index'] == 'star-twopass':
         resources:
             mem_mb=gb(64),
             runtime=autobump(hours=8)
+            disk_mem=gb(100)
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
