@@ -366,8 +366,8 @@ if config['aligner']['index'] == 'star':
         threads: 16
         resources:
             mem_mb=gb(64),
-            runtime=autobump(hours=8)
-            disk_mb=gb(100)
+            runtime=autobump(hours=8),
+            disk_mb=gb(100),
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
@@ -402,8 +402,8 @@ if config['aligner']['index'] == 'star-twopass':
         threads: 16
         resources:
             mem_mb=gb(64),
-            runtime=autobump(hours=8)
-            disk_mem=gb(100)
+            runtime=autobump(hours=8),
+            disk_mem=gb(100),
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
@@ -443,8 +443,8 @@ if config['aligner']['index'] == 'star-twopass':
         threads: 16
         resources:
             mem_mb=gb(64),
-            runtime=autobump(hours=8)
-            disk_mem=gb(100)
+            runtime=autobump(hours=8),
+            disk_mem=gb(100),
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
