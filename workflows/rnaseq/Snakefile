@@ -319,6 +319,10 @@ if config['aligner']['index'] == 'hisat2':
             )
 
 if config['aligner']['index'].startswith('star'):
+    if os.getenv("TMPDIR"):
+        tmpdir_arg = "--outTmpDir $TMPDIR "
+    else:
+        tmpdir_arg = ""
 
     # STAR can be run in 1-pass or 2-pass modes. Since we may be running it
     # more than once in almost the same way, we pull out the shell command here
@@ -330,7 +334,7 @@ if config['aligner']['index'].startswith('star'):
         '--readFilesIn {input.fastq} '
         '--readFilesCommand zcat '
         '--outFileNamePrefix {prefix} '
-        '--outTmpDir $TMPDIR '
+        tmpdir_arg,
 
         # NOTE: The STAR docs indicate that the following parameters are
         # standard options for ENCODE long-RNA-seq pipeline.  Comments are from
