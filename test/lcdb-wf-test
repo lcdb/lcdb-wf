@@ -36,7 +36,6 @@ You can always see the CI tests (currently in .circleci/config.yml at the
 top-level of the repo) for how this tool is used.
 
 """
-
 import os
 import shlex
 from textwrap import dedent
@@ -99,6 +98,7 @@ class Runner(object):
 
                 %(prog)s data --kind all
                 %(prog)s unit_tests --pytest
+                %(prog)s unit_tests --validate-mqc
                 %(prog)s unit_tests --r-test
                 %(prog)s rnaseq --run-workflow
                 %(prog)s rnaseq --trackhub
@@ -114,6 +114,9 @@ class Runner(object):
             ----------
             # Run the pytest unit tests on the lib/
             %(prog)s unit_tests --pytest
+
+            # Validate the multiqc.html expression barchart exists and its normalized counts are correct
+            %(prog)s unit_tests --validate-mqc
 
             # Run tests on lcdbwf R package
             %(prog)s unit_tests --r-test
@@ -302,6 +305,11 @@ class Runner(object):
             help="Run pytest unit tests and module doctests on lib/ directory",
         )
         parser.add_argument(
+            "--validate-mqc",
+            action="store_true",
+            help="Confirm the multiqc.html contains the expression barchart and its normalized counts are valid",
+        )
+        parser.add_argument(
             "--url-check",
             action="store_true",
             help="Ensure that URLs found in config files (e.g., to genome references) are still valid",
@@ -312,7 +320,6 @@ class Runner(object):
             help="""Run devtools::test on the lcdbwf R package. Activates the
             conda environment specified by --env-r just before running.""",
         )
-
         parser.add_argument(
             "--ensure-docs",
             action="store_true",
@@ -324,6 +331,40 @@ class Runner(object):
         if args.pytest:
             print_header("pytest")
             sp.run(["pytest", "--doctest-modules", "lib"], check=True, cwd=TOPLEVEL)
+        if args.validate_mqc:
+            print_header("Validating multiqc.html expression barchart module")
+
+            # Check for 'expression_barchart' in MultiQC HTML file
+            result = sp.run(
+                ["grep", "-q", "#expression_barchart", "workflows/rnaseq/data/rnaseq_aggregation/multiqc.html"],
+                stdout=sp.PIPE,
+                stderr=sp.PIPE,
+                text=True
+            )
+
+            if result.returncode == 0:
+                print("Validation successful: 'expression_barchart' found in multiqc.html")
+            else:
+                print("Validation failed: 'expression_barchart' not found in multiqc.html")
+                sys.exit(1)
+
+            sys.path.insert(0, str(TOPLEVEL))
+            from lib.common import validate_counts
+            expr_mqc, normalized_counts, size_factors_dict, known_truth_size_factors = validate_counts()
+
+            # Validate Snakefile determined normalized counts of user defined regions
+            if expr_mqc == normalized_counts:
+                print("User specified region normalized counts validated")
+            else:
+                print("User specified region normalized counts invalid")
+                sys.exit(1)
+
+            # Validate Snakefile determined size factors
+            if size_factors_dict == known_truth_size_factors:
+                print("Size factors validated")
+            else:
+                print("Size factors invalid")
+                sys.exit(1)
 
         if args.url_check:
             print_header("url check")
