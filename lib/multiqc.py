@@ -1,13 +1,26 @@
+import yaml
+import pandas as pd
+import numpy as np
+from collections import defaultdict
+import os
+import math
+
+
 def lcdbwf_samplename(x):
     """
     Processes sample names by removing specific substrings and extracting relevant parts.
 
-    Args:
-        x (list of str): A list of sample name strings.
+    Parameters
+    ----------
+    x : list of str
+        A list of sample name strings.
 
-    Returns:
-        list of str: A list of processed sample names.
+    Returns
+    -------
+    list of str
+        A list of processed sample names.
     """
+
     processed_names = []
     for name in x:
         # Remove unnecessary substrings and split to obtain the core sample name
@@ -16,25 +29,31 @@ def lcdbwf_samplename(x):
         processed_names.append(name_parts[0])
     return processed_names
 
-def process_feature_counts(fc_path, sampletable_path, output_path, sample_func=lcdbwf_samplename, subset_counts=False):
+
+def process_featurecounts(fc_path, sampletable_path, output_path, sample_func=lcdbwf_samplename, subset_counts=False):
     """
-    Processes a feature counts table and matches it with a sample table, saving the processed table to the specified output path.
+    Processes a feature counts table and matches it with a sample table.
 
-    Args:
-        fc_path (str): Path to the feature counts file.
-        sampletable_path (str): Path to the sample table TSV file.
-        output_path (str): Path to save the processed counts DataFrame.
-        sample_func (function): Function to process sample names from counts data.
-        subset_counts (bool): If True, subsets counts to samples present in the sample table.
+    Parameters
+    ----------
+    fc_path : str
+        Path to the feature counts file.
+    sampletable_path : str
+        Path to the sample table TSV file.
+    output_path : str
+        Path to save the processed counts DataFrame.
+    sample_func : function, optional
+        Function to process sample names from counts data. Default is `lcdbwf_samplename`.
+    subset_counts : bool, optional
+        If True, subsets counts to samples present in the sample table. Default is False.
 
-    Returns:
-        None
+    Returns
+    -------
+    None
     """
-
-    import pandas as pd
 
     # Load counts, set 'Geneid' as index, remove metadata columns, and process sample names
-    m = pd.read_csv(fc_path[0], sep='\t', comment='#').set_index('Geneid').iloc[:, 5:]
+    m = pd.read_csv(fc_path, sep='\t', comment='#').set_index('Geneid').iloc[:, 5:]
     x = sample_func(m.columns.tolist())
     sampletable = pd.read_csv(sampletable_path, sep='\t')
     samplenames = sampletable.iloc[:, 0].tolist()
@@ -65,130 +84,202 @@ def process_feature_counts(fc_path, sampletable_path, output_path, sample_func=l
     # Align columns in m to sampletable order and save to output path
     m.columns = x
     m = m[samplenames]
-    m.to_csv(output_path[0], sep='\t')
+    m.to_csv(output_path, sep='\t')
+
 
 def geometric_mean(arr):
     """
     Calculates the geometric mean of non-zero elements of an array.
 
-    Args:
-        arr (array-like): Array of values.
+    Parameters
+    ----------
+    arr : Array of values.
 
-    Returns:
-        float: Geometric mean of non-zero elements in the array.
+    Returns
+    -------
+    float
+        Geometric mean of non-zero elements in the array.
     """
-    import numpy as np
     return np.exp(np.mean(np.log(arr)))
 
-def estimate_size_factors(counts, size_factors):
+
+def estimate_sizefactors(counts_path, sizefactors_path, sigfigs = 6):
     """
     Estimates size factors for normalization using the median of ratios of counts to geometric means.
 
-    Args:
-        counts (str): Path to the counts TSV file.
-        size_factors (str): Path to save the estimated size factors as a TSV file.
+    Parameters
+    ----------
+    counts_path : str
+        Path to the processed counts TSV file.
+    sizefactors_path : str
+        Path to save the estimated size factors as a TSV file.
 
-    Returns:
-        None
+    Returns
+    -------
+    None
     """
 
-    import pandas as pd
-    import numpy as np
-
     # Load counts, remove rows with zeros, and compute geometric means for each gene
-    counts_df = pd.read_csv(counts[0], sep='\t', index_col=0)
+    counts_df = pd.read_csv(counts_path, sep='\t', index_col=0)
     counts_df = counts_df[counts_df > 0].dropna()
     geometric_means = counts_df.apply(geometric_mean, axis=1)
 
     # Compute size factors by taking median of ratios of counts to geometric means
     ratios = counts_df.div(geometric_means, axis=0)
-    size_factors_df = ratios.apply(np.median, axis=0)
+    sizefactors_df = ratios.apply(np.median, axis=0)
 
     # Format size factors as DataFrame, reorder columns, and save
-    size_factors_df = pd.DataFrame(size_factors_df, columns=['sizeFactors'])
-    size_factors_df['samplename'] = size_factors_df.index
-    size_factors_df = size_factors_df[['samplename', 'sizeFactors']].reset_index(drop=True)
-    size_factors_df.to_csv(size_factors[0], sep='\t', header=True, index=False)
+    sizefactors_df = pd.DataFrame(sizefactors_df, columns=['sizeFactors'])
+    sizefactors_df['samplename'] = sizefactors_df.index
+    sizefactors_df = sizefactors_df[['samplename', 'sizeFactors']].reset_index(drop=True)
+    # Round size factors to 6 decimal places
+    sizefactors_df['sizeFactors'] = sizefactors_df['sizeFactors'].apply(lambda x: round(x, 6))
+    sizefactors_df.to_csv(sizefactors_path, sep='\t', header=True, index=False)
 
-def regions_yaml(size_factors, counts, regions, yaml_file):
+
+def normalize_user_region_counts_list(sizefactors_path, counts):
+    """
+    Normalize counts for specified regions using size factors.
+
+    Parameters
+    ----------
+    sizefactors_path : str
+        Path to the size factors TSV file.
+    counts : list of str
+        List of paths to counts files for different regions.
+
+    Returns
+    -------
+    defaultdict
+        Nested dictionary with normalized counts by sample and region.
+    """
+
+    sizefactors_df = pd.read_csv(sizefactors_path, sep='\t', index_col='samplename')
+    normalized_counts = defaultdict(dict)
+
+    for file_path in counts:
+        parts = file_path.strip().split(os.sep)
+        sample = parts[-2]
+        region = parts[-1].replace('.counts.txt', '')
+
+        with open(file_path) as infile:
+            count = int(infile.read())
+
+        size_factor = sizefactors_df.loc[sample, 'sizeFactors']
+        # Normalize and round counts to 3 decimal places
+        normalized_counts[sample][region] = round(float(count) / float(size_factor), 3)
+
+    return normalized_counts
+
+
+def make_regions_counts_yaml(sizefactors_path, counts_list, regions, yaml_path):
     """
     Generates a YAML file with normalized counts for specified regions for visualization in MultiQC.
 
-    Args:
-        size_factors (str): Path to the size factors TSV file.
-        counts (list of str): List of paths to counts files for different regions.
-        yaml (str): Path to save the generated YAML file.
+    Parameters
+    ----------
+    sizefactors_path : str
+        Path to the size factors TSV file.
+    counts : list of str
+        List of paths to counts files for different regions.
+    regions : list of str
+        Configured region names
+    yaml_path : str
+        Path to save the generated YAML file.
 
-    Returns:
-        None
+    Returns
+    -------
+    None
     """
-
-    import yaml
-    import pandas as pd
-    import os
-    from collections import defaultdict
-
-    # Load size factors and initialize dictionary for normalized counts
-    size_factors_df = pd.read_csv(size_factors[0], sep='\t', index_col='samplename')
-    normalized_counts = defaultdict(dict)
-
-    # Calculate normalized counts for each region and store in dictionary
-    for f in counts:
-        parts = f.strip().split(os.sep)
-        sample = parts[2]
-        region = parts[3].replace('.counts.txt', '')
-
-        with open(f) as infile:
-            count = int(infile.read())
-
-        size_factor = size_factors_df.loc[sample, 'sizeFactors']
-        normalized_counts[sample][region] = float(count) / float(size_factor)
-
-    # Prepare YAML structure with plot metadata for MultiQC and write to file
-    data = {sample: regions for sample, regions in normalized_counts.items()}
+    normalized_counts = normalize_user_region_counts_list(sizefactors_path, counts_list)
+    data = {sample: regions_data for sample, regions_data in normalized_counts.items()}
     y = {
         'id': 'expression_barchart',
         'section_name': 'Normalized Counts in User Defined Regions',
-        'description': f"The user-defined regions are: {', '.join(regions[0])}",
+        'description': f"The user-defined regions are: {', '.join(regions)}",
         'plot_type': 'bargraph',
         'pconfig': {
             'id': 'user_regions_counts_plot',
-            'title': f"Normalized counts in {', '.join(regions[0])}",
+            'title': f"Normalized counts in {', '.join(regions)}",
             'ylab': 'Normalized Counts',
             'xlab': 'Samples'
         },
         'data': data
     }
 
-    with open(yaml_file[0], 'w') as outfile:
+    with open(yaml_path, 'w') as outfile:
         yaml.dump(y, outfile, default_flow_style=False)
 
-def normalize_counts(counts_path, size_factors_path, output_path):
+
+def normalize_featurecounts(counts_path, sizefactors_path, output_path):
     """
-    Normalizes the counts table by size factors for each sample.
+    Normalizes the processed featurecounts table by size factors for each sample.
 
-    Args:
-        counts_path (str): Path to the counts TSV file.
-        size_factors_path (str): Path to the size factors TSV file.
-        output_path (str): Path to save the normalized counts TSV file.
+    Parameters
+    ----------
+    counts_path : str
+        Path to the counts TSV file.
+    sizefactors_path : str
+        Path to the size factors TSV file.
+    output_path : str
+        Path to save the normalized counts TSV file.
 
-    Returns:
-        None
+    Returns
+    -------
+    None
     """
-
-    import pandas as pd
 
     # Read counts and size factors
-    counts_df = pd.read_csv(counts_path[0], sep='\t', index_col=0)
-    size_factors_df = pd.read_csv(size_factors_path[0], sep='\t', index_col='samplename')
+    counts_df = pd.read_csv(counts_path, sep='\t', index_col=0)
+    sizefactors_df = pd.read_csv(sizefactors_path, sep='\t', index_col='samplename')
 
     # Normalize each sample's counts by its size factor
     for sample in counts_df.columns:
-        if sample in size_factors_df.index:
-            counts_df[sample] = counts_df[sample] / size_factors_df.loc[sample, 'sizeFactors']
+        if sample in sizefactors_df.index:
+            counts_df[sample] = round(counts_df[sample] / sizefactors_df.loc[sample, 'sizeFactors'], 3)
         else:
-            raise ValueError(f"Size factor for sample '{sample}' not found in size factors file.")
+            raise ValueError(f"Size factor for sample '{sample}' not found in sizefactors file: '{sizefactors_path}'.")
 
     # Save the normalized counts table
-    counts_df.to_csv(output_path[0], sep='\t')
+    counts_df.to_csv(output_path, sep='\t')
+
+def get_regions(config, c, final_targets):
+    """
+    Reads regions and their start and stop positions from config.
+    Saves the user configured loci to a dictionary and uses the dictionary
+    to make a list of region names. Updates final targets to include the expression
+    multiqc module.
+
+    Parameters
+    __________
+    config : dictionary
+        config object from config/config.yaml
+    c : what is c
+        object of dictionary of target paths
+    final_targets : list of strings
+        list of paths to targets
+
+    Returns
+    _______
+    Tuple of
+    REGIONS : list of str
+        region names defined in config
+    REGION_DICT : dict of str
+        region names and chrom:start-stop
+    final_targets : list of str
+        target output files
+    """
+
+    final_targets.append(c.targets['expression_mqc_yaml'])
+    REGION_DICTS = []
+    for name, coord in config['expression_barchart_multiqc'].items():
+        chrom, positions = coord.strip().split(':')
+        start, end = positions.strip().split('-')
+        start = int(start)
+        end = int(end)
+        REGION_DICTS.append({'name': name, 'chrom': chrom, 'start': start, 'end': end})
+
+    REGIONS = [region['name'] for region in REGION_DICTS]
+
+    return (REGIONS, REGION_DICTS, final_targets)
 
