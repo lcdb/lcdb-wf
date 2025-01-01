@@ -16,35 +16,14 @@ rule targets:
     input:
         list(modencode.keys()),
 
-
-rule download_chainfile:
-    """
-    Download the chainfile we need for liftover
-    """
-    output: 'data/dm3ToDm6.over.chain.gz'
-    shell:
-        'curl -L -v  https://hgdownload.cse.ucsc.edu/goldenPath/dm3/liftOver/dm3ToDm6.over.chain.gz -o  {output}'
-
 rule beds:
     """
-    Download URLs, get rid of "track" lines, and then prepare them for liftover
+    Download URLs, get rid of "track" lines.
     """
-    output: temporary('data/{factor}_{celltype}.bed.dm3')
+    output: 'data/{factor}_{celltype}.bed'
     run:
-        key = str(output[0]).replace('.dm3', '')
+        key = str(output[0])
         url = modencode[key]
-        shell(
-            'wget -O - "{url}" | grep -v "track" > {output}')
-
-rule liftover:
-    """
-    Perform the liftover
-    """
-    input:
-        bed='{prefix}.dm3',
-        chainfile=rules.download_chainfile.output
-    output: '{prefix}'
-    shell:
-        'liftOver {input.bed} {input.chainfile} {output} {output}.unmapped'
+        shell('wget -O - "{url}" | grep -v "track" > {output}')
 
 # vim: ft=python
