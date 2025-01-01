@@ -24,7 +24,7 @@ rule download_chainfile:
     output: 'data/dm3ToDm6.over.chain.gz'
     shell:
         'wget -O- '
-        'http://hgdownload.cse.ucsc.edu/goldenPath/dm3/liftOver/dm3ToDm6.over.chain.gz '
+        'https://hgdownload.cse.ucsc.edu/goldenPath/dm3/liftOver/dm3ToDm6.over.chain.gz '
         '> {output}'
 
 
