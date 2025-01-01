@@ -48,7 +48,8 @@ variables:
         name: Set path
         command: |
           # x11-utils required to avoid R::png() segfaulting
-          DEBIAN_FRONTEND=noninteractive apt update && apt install -y \
+          export DEBIAN_FRONTEND=noninteractive
+          apt update && apt install -y \
             curl \
             git \
             locales \
