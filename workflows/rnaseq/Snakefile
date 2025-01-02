@@ -900,7 +900,6 @@ rule kallisto:
             '--output-dir {params.outdir} '
             '--threads {threads} '
             '--bootstrap-samples 100 '
-            '--bias '
             '--threads {threads} '
             '{se_args} '
             '{params.strand_arg} '
