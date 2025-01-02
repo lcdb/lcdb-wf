@@ -64,13 +64,13 @@ def resolve_config(config, workdir=None):
     if isinstance(config, str):
         config = yaml.load(open(config), Loader=yaml.FullLoader)
 
-    def rel(pth):
-        if workdir is None or os.path.isabs(pth):
+    def abs_path(pth):
+        if os.path.isabs(pth):
             return pth
         return os.path.join(workdir, pth)
     for key in PATH_KEYS:
-        if key in config:
-            config[key] = rel(config[key])
+        if key in config and workdir:
+            config[key] = abs_path(config[key])
     return config
 
 

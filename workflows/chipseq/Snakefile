@@ -10,6 +10,7 @@ import pybedtools
 from lib import common, utils, helpers, aligners, chipseq
 from lib.patterns_targets import ChIPSeqConfig
 from lib.utils import autobump, gb, hours
+from pathlib import Path
 
 # ----------------------------------------------------------------------------
 #
@@ -30,7 +31,8 @@ helpers.preflight(config)
 
 c = ChIPSeqConfig(
     config,
-    config.get('patterns', 'config/chipseq_patterns.yaml')
+    config.get('patterns', 'config/chipseq_patterns.yaml'),
+    Path('.').resolve()
 )
 
 SAMPLES = c.sampletable.iloc[:, 0].values
