@@ -333,7 +333,8 @@ if config['aligner']['index'].startswith('star'):
         '--readFilesIn {input.fastq} '
         '--readFilesCommand zcat '
         '--outFileNamePrefix {prefix} '
-        tmpdir_arg,
+
+        '{tmpdir_arg}'
 
         # NOTE: The STAR docs indicate that the following parameters are
         # standard options for ENCODE long-RNA-seq pipeline.  Comments are from
