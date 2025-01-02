@@ -3,7 +3,7 @@ import re
 from itertools import product
 import pandas as pd
 from snakemake.shell import shell
-from snakemake.io import expand, regex
+from snakemake.io import expand, regex_from_filepattern
 from lib import common
 
 
@@ -118,7 +118,7 @@ def extract_wildcards(pattern, target):
     >>> assert extract_wildcards(pattern, target) == expected
     >>> assert extract_wildcards(pattern, 'asdf') is None
     """
-    m = re.compile(regex(pattern)).match(target)
+    m = re.compile(regex_from_filepattern(pattern)).match(target)
     if m:
         return m.groupdict()
 
