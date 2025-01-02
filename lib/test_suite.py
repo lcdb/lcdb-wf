@@ -30,8 +30,7 @@ def test_config_loading(tmpdir):
         tag_from_directory:
           fasta:
             url: "https://from_directory"
-
-	# Will get overwritten by a specific file
+        # Will get overwritten by a specific file
         tag_from_file:
           fasta:
             url: "https://from_directory"
