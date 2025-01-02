@@ -268,7 +268,7 @@ vargenes_heatmap <- function(rld, cols_for_grouping, n=50){
   mat <- mat - rowMeans(mat)
   df <- as.data.frame(colData(rld)[, cols_for_grouping])
   rownames(df) <- colnames(rld)
-  colnames(df) <- cols.for.grouping
+  colnames(df) <- cols_for_grouping
   pheatmap(mat, annotation_col=df, cluster_cols=TRUE)
 }
 
