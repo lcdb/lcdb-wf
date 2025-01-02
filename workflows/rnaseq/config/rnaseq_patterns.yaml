@@ -3,6 +3,7 @@ strand_check:
   bam: 'strand_check/{sample}/{sample}.strandedness.bam'
   tsv: 'strand_check/{sample}/{sample}.strandedness'
 fastq: 'data/rnaseq_samples/{sample}/{sample}_R{n}.fastq.gz'
+sra_fastq: 'original_data/sra_samples/{sample}/{sample}_R{n}.fastq.gz'
 cutadapt: 'data/rnaseq_samples/{sample}/{sample}_R{n}.cutadapt.fastq.gz'
 bam: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam'
 fastqc:
