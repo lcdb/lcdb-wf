@@ -15,6 +15,8 @@ from lib import aligners
 from lib import utils
 from snakemake.shell import shell
 from snakemake.io import expand
+from collections import defaultdict
+import pandas as pd
 
 # List of possible keys in config that are to be interpreted as paths
 PATH_KEYS = [
@@ -912,3 +914,50 @@ def gff2gtf(gff, gtf):
         shell('gzip -d -S .gz.0.tmp {gff} -c | gffread - -T -o- | gzip -c > {gtf}')
     else:
         shell('gffread {gff} -T -o- | gzip -c > {gtf}')
+
+def validate_counts():
+    # Validate region counts using pysam
+    # Get counts for these user defined regions in config.yaml:
+    #    expression_barchart_mqc:
+    #    cold: chr2L:574291-575734
+    #    hop: chr2L:295122-297449
+
+    # Load the config.yaml file
+    with open("workflows/rnaseq/config/config.yaml", "r") as file:
+        config = yaml.safe_load(file)
+
+    # Access 'expression_barchart_multiqc'
+    expression_barchart_multiqc = config.get("expression_barchart_multiqc")
+    # Initialize an empty dictionary to store the regions
+    regions = {}
+
+    # Loop through each item in expression_barchart_multiqc
+    for key, value in expression_barchart_multiqc.items():
+        # Split the value to extract chromosome, start, and end positions
+        chromosome, positions = value.split(':')
+        start, end = map(int, positions.split('-'))
+        # Assign the tuple to the regions dictionary
+        regions[key] = (chromosome, start, end)
+
+    # Load size factors
+    size_factors_df = pd.read_csv("workflows/rnaseq/data/rnaseq_aggregation/size_factors.tsv", sep='\t', index_col='samplename')
+    size_factors_dict = size_factors_df['sizeFactors'].to_dict()
+    known_truth_size_factors = {'sample1': 0.8978351212725632, 'sample2': 0.803021738695754, 'sample3': 1.1635520481783863, 'sample4': 1.128217861246003}
+
+    # Initialize a defaultdict to store normalized counts for each sample and region
+    normalized_counts = defaultdict(dict)
+    raw_counts = defaultdict(dict)
+
+    known_truth_raw_counts = {'sample1': {'cold': 329, 'hop': 2977}, 'sample2': {'cold': 547, 'hop': 1847}, 'sample3': {'cold': 405, 'hop': 4024}, 'sample4': {'cold': 290, 'hop': 3693}}
+    # Loop through each sample and region normalized counts
+    for sample in ['sample1', 'sample2', 'sample3', 'sample4']:
+        size_factor = size_factors_df.loc[sample, 'sizeFactors']
+        for region in regions.keys():
+            # Normalize the count by dividing by the size factor
+            normalized_counts[sample][region] = float(known_truth_raw_counts[sample][region]) / float(size_factor)
+
+    with open("workflows/rnaseq/data/rnaseq_aggregation/expression_barchart_mqc.yaml", "r") as file:
+        expr_mqc = yaml.safe_load(file)
+    expr_mqc = expr_mqc.get("data")
+
+    return(expr_mqc, normalized_counts, size_factors_dict, known_truth_size_factors)
