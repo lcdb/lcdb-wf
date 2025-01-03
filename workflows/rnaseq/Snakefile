@@ -8,26 +8,17 @@ import pandas as pd
 
 HERE = str(Path(workflow.snakefile).parent)
 sys.path.insert(0, HERE + "/../..")
-from lib import common, utils, helpers, aligners
+from lib import utils
 from lib.utils import autobump, gb, hours
 from lib.patterns_targets import RNASeqConfig
 
-# ----------------------------------------------------------------------------
-#
-# Search for the string "NOTE:" to look for points of configuration that might
-# be helpful for your experiment.
-#
-# ----------------------------------------------------------------------------
+configfile: 'config/config.yaml'
 
-if not workflow.overwrite_configfiles:
-    configfile: 'config/config.yaml'
+include: '../../rules/references.smk'
 
-config = common.load_config(config)
-
-include: '../references/Snakefile'
 
 # Verify configuration of config and sampletable files
-helpers.preflight(config)
+################utils.preflight(config)
 
 c = RNASeqConfig(config, config.get('patterns', 'config/rnaseq_patterns.yaml'))
 
@@ -47,19 +38,18 @@ def wrapper_for(path):
 
 # See "patterns and targets" in the documentation for what's going on here.
 final_targets = utils.flatten((
-    utils.flatten(c.targets['fastqc']),
-    [c.targets['fastq_screen']],
-    [c.targets['rrna_percentages_table']],
-    [c.targets['multiqc']],
-    utils.flatten(c.targets['featurecounts']),
-    utils.flatten(c.targets['markduplicates']),
-    utils.flatten(c.targets['salmon']),
-    utils.flatten(c.targets['kallisto']),
-    utils.flatten(c.targets['preseq']),
-    utils.flatten(c.targets['rseqc']),
-    utils.flatten(c.targets['collectrnaseqmetrics']),
-    utils.flatten(c.targets['bigwig']),
-    utils.flatten(c.targets['samtools']),
+    c.targets['fastqc'],
+    c.targets['rrna_percentages_table'],
+    c.targets['multiqc'],
+    c.targets['featurecounts'],
+    c.targets['markduplicates'],
+    c.targets['salmon'],
+    c.targets['kallisto'],
+    c.targets['preseq'],
+    c.targets['rseqc'],
+    c.targets['collectrnaseqmetrics'],
+    c.targets['bigwig'],
+    c.targets['samtools'],
 ))
 
 if config.get('merged_bigwigs', None):
@@ -146,9 +136,9 @@ config.setdefault('strand_check_reads', 1e5)
 
 rule sample_strand_check:
     input:
-        fastq=common.fill_r1_r2(c.sampletable, c.patterns['fastq']),
-        index=[c.refdict[c.organism][config['aligner']['tag']]['bowtie2']],
-        bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12']
+        fastq=utils.fill_r1_r2(c.sampletable, c.patterns['fastq']),
+        index=rules.bowtie2_index.output,
+        bed12=rules.conversion_bed12.output,
     output:
         strandedness=c.patterns['strand_check']['tsv'],
         bam=temporary(c.patterns['strand_check']['bam']),
@@ -276,14 +266,14 @@ rule fastqc:
         wrapper_for('fastqc/wrapper.py')
 
 
-if config['aligner']['index'] == 'hisat2':
+if config['aligner'] == 'hisat2':
     rule hisat2:
         """
         Map reads with HISAT2
         """
         input:
-            fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
-            index=[c.refdict[c.organism][config['aligner']['tag']]['hisat2']]
+            fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            index=rules.hisat2_index.output,
         output:
             bam=temporary(c.patterns['bam'])
         log:
@@ -293,8 +283,10 @@ if config['aligner']['index'] == 'hisat2':
             mem_mb=gb(32),
             runtime=autobump(hours=8)
         run:
-            prefix = aligners.prefix_from_bowtie2_index(input.index)
+
+            prefix = os.path.commonprefix(input.index).rstrip(".")
             sam = output.bam.replace('.bam', '.sam')
+
 
             if c.is_paired:
                 assert len(input.fastq) == 2
@@ -319,7 +311,7 @@ if config['aligner']['index'] == 'hisat2':
                 "&& rm {sam}"
             )
 
-if config['aligner']['index'].startswith('star'):
+if config['aligner'].startswith('star'):
 
     # STAR can be run in 1-pass or 2-pass modes. Since we may be running it
     # more than once in almost the same way, we pull out the shell command here
@@ -348,16 +340,16 @@ if config['aligner']['index'].startswith('star'):
     )
     logfile_extensions = ['Log.progress.out', 'Log.out', 'Log.final.out', 'Log.std.out']
 
-if config['aligner']['index'] == 'star':
+if config['aligner'] == 'star':
 
     rule star:
         """
         Align with STAR (1-pass mode)
         """
         input:
-            fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
-            index=[c.refdict[c.organism][config['aligner']['tag']]['star']],
-            annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
+            fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            index=rules.star_index.output,
+            annotation="references/annotation.gtf"
         output:
             bam=temporary(c.patterns['bam']),
             sjout=temporary(c.patterns['bam'].replace('.bam', '.star.SJ.out.tab')),
@@ -384,16 +376,16 @@ if config['aligner']['index'] == 'star':
             shell('mkdir -p {outdir}/star_logs '
                   '&& mv {logfiles} {outdir}/star_logs')
 
-if config['aligner']['index'] == 'star-twopass':
+if config['aligner'] == 'star-twopass':
 
     rule star_pass1:
         """
         First pass of alignment with STAR to get the junctions
         """
         input:
-            fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
-            index=[c.refdict[c.organism][config['aligner']['tag']]['star']],
-            annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
+            fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            index=rules.star_index.output,
+            annotation="references/annotation.gtf"
         output:
             sjout=temporary(c.patterns['bam'].replace('.bam', '.star-pass1.SJ.out.tab')),
         log:
@@ -430,9 +422,9 @@ if config['aligner']['index'] == 'star-twopass':
         """
         input:
             sjout=expand(c.patterns['bam'].replace('.bam', '.star-pass1.SJ.out.tab'), sample=SAMPLES),
-            fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
-            index=[c.refdict[c.organism][config['aligner']['tag']]['star']],
-            annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
+            fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            index=rules.star_index.output,
+            annotation="references/annotation.gtf"
         output:
             bam=temporary(c.patterns['bam']),
             sjout=temporary(c.patterns['bam'].replace('.bam', '.star-pass2.SJ.out.tab')),
@@ -474,7 +466,16 @@ rule rRNA:
     """
     input:
         fastq=render_r1_only(c.patterns['cutadapt']),
-        index=[c.refdict[c.organism][config['rrna']['tag']]['bowtie2']]
+        index=multiext(
+            "references/bowtie2/rrna",
+            ".1.bt2",
+            ".2.bt2",
+            ".3.bt2",
+            ".4.bt2",
+            ".rev.1.bt2",
+            ".rev.2.bt2",
+            ".fa",
+        ),
     output:
         bam=temporary(c.patterns['rrna']['bam'])
     log:
@@ -484,7 +485,7 @@ rule rRNA:
         mem_mb=gb(2),
         runtime=autobump(hours=2)
     run:
-        prefix = aligners.prefix_from_bowtie2_index(input.index)
+        prefix = os.path.commonprefix(input.index).rstrip(".")
         sam = output.bam.replace('.bam', '.sam')
 
         shell(
@@ -553,43 +554,12 @@ rule bam_index:
         'samtools index {input} {output}'
 
 
-def fastq_screen_references():
-    """
-    Returns the Bowtie2 indexes for the configured references from the
-    `fastq_screen:` section of the config
-    """
-    refs = {}
-    for i in config['fastq_screen']:
-        refs[i['label']] = c.refdict[i['organism']][i['tag']]['bowtie2']
-    return refs
-
-
-rule fastq_screen:
-    """
-    Run fastq_screen to look for contamination from other genomes
-    """
-    input:
-        **fastq_screen_references(),
-        fastq=render_r1_only(rules.cutadapt.output.fastq),
-    output:
-        txt=c.patterns['fastq_screen']
-    log:
-        c.patterns['fastq_screen'] + '.log'
-    threads: 6
-    resources:
-        mem_mb=gb(4),
-        runtime=autobump(hours=2)
-    params: subset=100000
-    script:
-        wrapper_for('fastq_screen/wrapper.py')
-
-
 rule featurecounts:
     """
     Count reads in annotations with featureCounts from the subread package
     """
     input:
-        annotation=c.refdict[c.organism][config['gtf']['tag']]['annotation'],
+        annotation=rules.gtf.output,
         bam=c.targets['markduplicates']['bam']
     output:
         counts='{sample_dir}/rnaseq_aggregation/featurecounts.txt'
@@ -600,7 +570,7 @@ rule featurecounts:
         mem_mb=gb(16),
         runtime=autobump(hours=2)
     params:
-        strand_arg = helpers.strand_arg_lookup(
+        strand_arg = utils.strand_arg_lookup(
             c, {
                 'unstranded': '-s0 ',
                 'fr-firststrand': '-s2 ',
@@ -640,10 +610,10 @@ rule rrna_libsizes_table:
         runtime=autobump(hours=2)
     run:
         def rrna_sample(f):
-            return helpers.extract_wildcards(c.patterns['rrna']['libsize'], f)['sample']
+            return utils.extract_wildcards(c.patterns['rrna']['libsize'], f)['sample']
 
         def sample(f):
-            return helpers.extract_wildcards(c.patterns['libsizes']['cutadapt'], f)['sample']
+            return utils.extract_wildcards(c.patterns['libsizes']['cutadapt'], f)['sample']
 
         def million(f):
             return float(open(f).read()) / 1e6
@@ -694,7 +664,6 @@ rule multiqc:
             utils.flatten(c.targets['markduplicates']) +
             utils.flatten(c.targets['salmon']) +
             utils.flatten(c.targets['rseqc']) +
-            utils.flatten(c.targets['fastq_screen']) +
             utils.flatten(c.targets['preseq']) +
             utils.flatten(c.targets['collectrnaseqmetrics']) +
             utils.flatten(c.targets['samtools'])
@@ -762,7 +731,7 @@ rule collectrnaseqmetrics:
     """
     input:
         bam=c.patterns['markduplicates']['bam'],
-        refflat=c.refdict[c.organism][config['gtf']['tag']]['refflat']
+        refflat=rules.conversion_refflat.output,
     output:
         metrics=c.patterns['collectrnaseqmetrics']['metrics'],
     params:
@@ -771,7 +740,7 @@ rule collectrnaseqmetrics:
         # config.
         java_args='-Xmx20g',
         # java_args='-Xmx2g',  # [TEST SETTINGS -1]
-        strand_arg = helpers.strand_arg_lookup(
+        strand_arg = utils.strand_arg_lookup(
             c, {
                 'unstranded': 'STRAND=NONE ',
                 'fr-firststrand': 'STRAND=SECOND_READ_TRANSCRIPTION_STRAND ',
@@ -822,12 +791,12 @@ rule salmon:
     Quantify reads coming from transcripts with Salmon
     """
     input:
-        fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
-        index=c.refdict[c.organism][config['salmon']['tag']]['salmon'],
+        fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+        index='references/salmon/versionInfo.json'
     output:
         c.patterns['salmon']
     params:
-        index_dir=os.path.dirname(c.refdict[c.organism][config['salmon']['tag']]['salmon']),
+        index_dir=os.path.dirname('references/salmon/versionInfo.json'),
         outdir=os.path.dirname(c.patterns['salmon'])
     log:
         c.patterns['salmon'] + '.log'
@@ -864,14 +833,14 @@ rule kallisto:
     Quantify reads coming from transcripts with Kallisto
     """
     input:
-        fastq=common.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
-        index=c.refdict[c.organism][config['kallisto']['tag']]['kallisto'],
+        fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+        index='references/kallisto/transcripts.idx',
     output:
         c.patterns['kallisto']
     params:
-        index_dir=os.path.dirname(c.refdict[c.organism][config['kallisto']['tag']]['kallisto']),
+        index_dir=os.path.dirname('references/kallisto/transcripts.idx'),
         outdir=os.path.dirname(c.patterns['kallisto']),
-        strand_arg = helpers.strand_arg_lookup(
+        strand_arg = utils.strand_arg_lookup(
             c, {
                 'unstranded': '',
                 'fr-firststrand': '--rf-stranded',
@@ -913,7 +882,7 @@ rule rseqc_infer_experiment:
     """
     input:
         bam=c.patterns['markduplicates']['bam'],
-        bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12']
+        bed12=rules.conversion_bed12.output,
     output:
         txt=c.patterns['rseqc']['infer_experiment']
     log:
@@ -931,7 +900,7 @@ rule rseqc_read_distribution:
     """
     input:
         bam=c.patterns['markduplicates']['bam'],
-        bed12=c.refdict[c.organism][config['gtf']['tag']]['bed12'],
+        bed12=rules.conversion_bed12.output,
     output:
         txt=c.patterns['rseqc']['read_distribution']
     log:
@@ -985,7 +954,7 @@ rule bigwig_neg:
     log:
         c.patterns['bigwig']['neg'] + '.log'
     params:
-        strand_arg = helpers.strand_arg_lookup(
+        strand_arg = utils.strand_arg_lookup(
             c, {
                 'unstranded': '',
                 'fr-firststrand': '--filterRNAstrand reverse ',
@@ -1019,7 +988,7 @@ rule bigwig_pos:
     log:
         c.patterns['bigwig']['pos'] + '.log'
     params:
-        strand_arg = helpers.strand_arg_lookup(
+        strand_arg = utils.strand_arg_lookup(
             c, {
                 'unstranded': '',
                 'fr-firststrand': '--filterRNAstrand forward ',
@@ -1059,7 +1028,7 @@ if 'merged_bigwigs' in config:
         """
         input:
             bigwigs=bigwigs_to_merge,
-            chromsizes=refdict[c.organism][config['aligner']['tag']]['chromsizes'],
+            chromsizes='references/genome.chromsizes'
         output:
             c.patterns['merged_bigwig']
         log:
