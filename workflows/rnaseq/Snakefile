@@ -1,11 +1,13 @@
-import sys
-
-sys.path.insert(0, srcdir('../..'))
 import os
+import sys
+from pathlib import Path
 from textwrap import dedent
 import yaml
 import tempfile
 import pandas as pd
+
+HERE = str(Path(workflow.snakefile).parent)
+sys.path.insert(0, HERE + "/../..")
 from lib import common, utils, helpers, aligners
 from lib.utils import autobump, gb, hours
 from lib.patterns_targets import RNASeqConfig
@@ -907,7 +909,6 @@ rule kallisto:
             '--output-dir {params.outdir} '
             '--threads {threads} '
             '--bootstrap-samples 100 '
-            '--bias '
             '--threads {threads} '
             '{se_args} '
             '{params.strand_arg} '

@@ -1,5 +1,4 @@
 import sys
-sys.path.insert(0, srcdir('../..'))
 import os
 from textwrap import dedent
 import yaml
@@ -7,6 +6,9 @@ import tempfile
 import pandas as pd
 import numpy as np
 import pybedtools
+
+HERE = str(Path(workflow.snakefile).parent)
+sys.path.insert(0, HERE + "/../..")
 from lib import common, utils, helpers, aligners, chipseq
 from lib.patterns_targets import ChIPSeqConfig
 from lib.utils import autobump, gb, hours
