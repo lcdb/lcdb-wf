@@ -1,7 +1,6 @@
 import os
 import sys
 from pathlib import Path
-from textwrap import dedent
 import yaml
 import tempfile
 import pandas as pd
@@ -462,9 +461,6 @@ if config['aligner'] == 'star-twopass':
 
 
 rule rRNA:
-    """
-    Map reads with bowtie2 to the rRNA reference
-    """
     input:
         fastq=render_r1_only(c.patterns['cutadapt']),
         index=multiext(
@@ -508,9 +504,6 @@ rule rRNA:
 
 
 rule fastq_count:
-    """
-    Count reads in a FASTQ file
-    """
     input:
         fastq='{sample_dir}/{sample}/{sample}{suffix}.fastq.gz'
     output:
@@ -524,9 +517,6 @@ rule fastq_count:
 
 
 rule bam_count:
-    """
-    Count reads in a BAM file
-    """
     input:
         bam='{sample_dir}/{sample}/{suffix}.bam'
     output:
@@ -540,9 +530,6 @@ rule bam_count:
 
 
 rule bam_index:
-    """
-    Index a BAM
-    """
     input:
         bam='{prefix}.bam'
     output:
