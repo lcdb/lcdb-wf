@@ -16,6 +16,7 @@ configfile: 'config/config.yaml'
 
 include: '../../rules/references.smk'
 
+REFERENCES = config.get('reference_dir', '../../references')
 
 # Verify configuration of config and sampletable files
 ################utils.preflight(config)
@@ -349,7 +350,7 @@ if config['aligner'] == 'star':
         input:
             fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
             index=rules.star_index.output,
-            annotation="references/annotation.gtf"
+            annotation=REFERENCES + "/annotation.gtf"
         output:
             bam=temporary(c.patterns['bam']),
             sjout=temporary(c.patterns['bam'].replace('.bam', '.star.SJ.out.tab')),
@@ -385,7 +386,7 @@ if config['aligner'] == 'star-twopass':
         input:
             fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
             index=rules.star_index.output,
-            annotation="references/annotation.gtf"
+            annotation=REFERENCES + "/annotation.gtf"
         output:
             sjout=temporary(c.patterns['bam'].replace('.bam', '.star-pass1.SJ.out.tab')),
         log:
@@ -424,7 +425,7 @@ if config['aligner'] == 'star-twopass':
             sjout=expand(c.patterns['bam'].replace('.bam', '.star-pass1.SJ.out.tab'), sample=SAMPLES),
             fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
             index=rules.star_index.output,
-            annotation="references/annotation.gtf"
+            annotation=REFERENCES + "/annotation.gtf"
         output:
             bam=temporary(c.patterns['bam']),
             sjout=temporary(c.patterns['bam'].replace('.bam', '.star-pass2.SJ.out.tab')),
@@ -467,7 +468,7 @@ rule rRNA:
     input:
         fastq=render_r1_only(c.patterns['cutadapt']),
         index=multiext(
-            "references/bowtie2/rrna",
+            REFERENCES + "/bowtie2/rrna",
             ".1.bt2",
             ".2.bt2",
             ".3.bt2",
@@ -792,11 +793,11 @@ rule salmon:
     """
     input:
         fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
-        index='references/salmon/versionInfo.json'
+        index=REFERENCES + "/salmon/versionInfo.json"
     output:
         c.patterns['salmon']
     params:
-        index_dir=os.path.dirname('references/salmon/versionInfo.json'),
+        index_dir=os.path.dirname(REFERENCES + "/salmon/versionInfo.json"),
         outdir=os.path.dirname(c.patterns['salmon'])
     log:
         c.patterns['salmon'] + '.log'
@@ -834,11 +835,11 @@ rule kallisto:
     """
     input:
         fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
-        index='references/kallisto/transcripts.idx',
+        index=REFERENCES + "/kallisto/transcripts.idx",
     output:
         c.patterns['kallisto']
     params:
-        index_dir=os.path.dirname('references/kallisto/transcripts.idx'),
+        index_dir=os.path.dirname(REFERENCES + "/kallisto/transcripts.idx"),
         outdir=os.path.dirname(c.patterns['kallisto']),
         strand_arg = utils.strand_arg_lookup(
             c, {
@@ -1028,7 +1029,7 @@ if 'merged_bigwigs' in config:
         """
         input:
             bigwigs=bigwigs_to_merge,
-            chromsizes='references/genome.chromsizes'
+            chromsizes=REFERENCES + "/genome.chromsizes"
         output:
             c.patterns['merged_bigwig']
         log:

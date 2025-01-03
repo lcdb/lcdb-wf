@@ -7,12 +7,16 @@ sys.path.insert(0, HERE + "/../..")
 from lib.utils import autobump, gb, hours
 from lib import utils
 
+REFERENCES = config.get('reference_dir', '../../references')
+
 def default_postprocess(origfn, newfn):
     shell("mv {origfn} {newfn}")
 
 rule fasta:
     output:
-        temporary('references/genome.fa.gz')
+        temporary(REFERENCES + '/genome.fa.gz')
+    log:
+        REFERENCES + "/logs/genome.fa.gz.log"
     run:
         utils.download_and_postprocess(
             urls=config['fasta']['url'],
@@ -24,7 +28,9 @@ rule fasta:
 
 rule gtf:
     output:
-        temporary('references/annotation.gtf.gz')
+        temporary(REFERENCES + '/annotation.gtf.gz')
+    log:
+        REFERENCES + "/logs/annotation.gtf.gz.log"
     run:
         utils.download_and_postprocess(
             urls=config['gtf']['url'],
@@ -36,7 +42,9 @@ rule gtf:
 
 rule rrna:
     output:
-        temporary('references/rrna.fa.gz')
+        temporary(REFERENCES + '/rrna.fa.gz')
+    log:
+        REFERENCES + "/logs/rrna.fa.gz.log"
     run:
         utils.download_and_postprocess(
             urls=config['rrna']['url'],
@@ -48,18 +56,18 @@ rule rrna:
 
 rule unzip:
     input:
-        "references/{prefix}.gz"
+        REFERENCES + '/{prefix}.gz'
     output:
-        "references/{prefix}"
+        REFERENCES + '/{prefix}'
     shell: 'gunzip -c {input} > {output}'
 
 
 rule bowtie2_index:
     input:
-        "references/{label}.fa",
+        REFERENCES + '/{label}.fa',
     output:
         multiext(
-            "references/bowtie2/{label}",
+            REFERENCES + '/bowtie2/{label}',
             ".1.bt2",
             ".2.bt2",
             ".3.bt2",
@@ -69,7 +77,7 @@ rule bowtie2_index:
             ".fa",
         ),
     log:
-        "references/logs/bowtie2_{label}.log"
+        REFERENCES + '/logs/bowtie2_{label}.log'
     resources:
         runtime=autobump(hours=8),
         mem_mb=autobump(gb=32),
@@ -90,12 +98,12 @@ rule bowtie2_index:
 
 rule star_index:
     input:
-        fasta='references/genome.fa',
-        gtf='references/annotation.gtf',
+        fasta=REFERENCES + '/genome.fa',
+        gtf=REFERENCES + '/annotation.gtf',
     output:
-        protected('references/star/Genome')
+        REFERENCES + '/star/Genome'
     log:
-        'references/logs/star.log'
+        REFERENCES + '/logs/star.log'
     threads:
         8
     resources:
@@ -131,10 +139,10 @@ rule star_index:
 
 rule hisat2_index:
     input:
-        "references/genome.fa",
+        REFERENCES + '/genome.fa',
     output:
         multiext(
-            "references/hisat2/genome",
+            REFERENCES + '/hisat2/genome',
             ".1.ht2",
             ".2.ht2",
             ".3.ht2",
@@ -146,7 +154,7 @@ rule hisat2_index:
             ".fa",
         )
     log:
-        "references/logs/hisat2.log"
+        REFERENCES + '/logs/hisat2.log'
     resources:
         runtime=autobump(hours=8),
         mem_mb=autobump(gb=32),
@@ -168,10 +176,10 @@ rule hisat2_index:
 
 rule transcriptome_fasta:
     input:
-        fasta='references/genome.fa',
-        gtf='references/annotation.gtf',
+        fasta=REFERENCES + '/genome.fa',
+        gtf=REFERENCES + '/annotation.gtf',
     output:
-        'references/transcriptome.fa' 
+        REFERENCES + '/transcriptome.fa' 
     resources:
         runtime=hours(1)
     shell:
@@ -180,13 +188,13 @@ rule transcriptome_fasta:
 
 rule salmon_index:
     input:
-        'references/transcriptome.fa'
+        REFERENCES + '/transcriptome.fa'
     output:
-        'references/salmon/versionInfo.json'
+        REFERENCES + '/salmon/versionInfo.json'
     log:
-        'references/logs/salmon.log'
+        REFERENCES + '/logs/salmon.log'
     params:
-        outdir='references/salmon'
+        outdir=REFERENCES + '/salmon'
     resources:
         mem_mb=gb(32),
         runtime=hours(2)
@@ -202,11 +210,11 @@ rule salmon_index:
 
 rule kallisto_index:
     output:
-        'references/kallisto/transcripts.idx',
+        REFERENCES + '/kallisto/transcripts.idx',
     input:
-        'references/genome.fa'
+        REFERENCES + '/genome.fa'
     log:
-        'references/logs/kallisto.log'
+        REFERENCES + '/logs/kallisto.log'
     resources:
         runtime=hours(2),
         mem_mb=gb(32),
@@ -219,11 +227,11 @@ rule kallisto_index:
 
 rule conversion_refflat:
     input:
-        'references/annotation.gtf'
+        REFERENCES + '/annotation.gtf'
     output:
-        protected('references/annotation.refflat')
+        REFERENCES + '/annotation.refflat'
     log:
-        'references/logs/annotation.refflat.log'
+        REFERENCES + '/logs/annotation.refflat.log'
     resources:
         runtime=hours(2),
         mem_mb=gb(2)
@@ -235,9 +243,9 @@ rule conversion_refflat:
 
 rule conversion_bed12:
     input:
-        'references/annotation.gtf'
+        REFERENCES + '/annotation.gtf'
     output:
-        protected('references/annotation.bed12')
+        REFERENCES + '/annotation.bed12'
     resources:
         runtime=hours(2),
         mem_mb=gb(2)
@@ -249,11 +257,11 @@ rule conversion_bed12:
 
 rule chromsizes:
     input:
-        'references/genome.fa'
+        REFERENCES + '/genome.fa'
     output:
-        protected('references/genome.chromsizes')
+        REFERENCES + '/genome.chromsizes'
     log:
-        'references/logs/genome.chromsizes.log'
+        REFERENCES + '/logs/genome.chromsizes.log'
     params:
         # NOTE: Be careful with the memory here; make sure you have enough
         # and/or it matches the resources you're requesting
@@ -280,9 +288,9 @@ rule mappings:
     Creates gzipped TSV mapping between attributes in the GTF.
     """
     input:
-        gtf='references/annotation.gtf'
+        gtf=REFERENCES + '/annotation.gtf'
     output:
-        protected('references/annotation.mapping.tsv.gz')
+        REFERENCES + '/annotation.mapping.tsv.gz'
     params:
         include_featuretypes=lambda wildcards, output: conversion_kwargs[output[0]].get('include_featuretypes', [])
     resources:
