@@ -6,9 +6,8 @@ within Snakefiles or in downstream (figure-making) scripts.
 import os
 import collections
 import yaml
-from . import common
+from . import utils
 from . import chipseq
-from . import helpers
 from snakemake.io import expand
 
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -53,11 +52,7 @@ class SeqConfig(object):
             patterns = os.path.join(workdir, patterns)
             self.workdir = workdir
 
-        if isinstance(config, str):
-            self.path = config
-
-        self.config = common.load_config(
-            common.resolve_config(config, workdir))
+        self.config = config
 
         stranded = self.config.get('stranded', None)
         self.stranded = None
@@ -71,12 +66,9 @@ class SeqConfig(object):
 
         # Read the config file and extract all sort of useful bits. This mostly
         # uses the `common` module to handle the details.
-        self.config['references_dir'] = common.get_references_dir(self.config)
-        self.samples, self.sampletable = common.get_sampletable(self.config)
-        self.refdict, self.conversion_kwargs = common.references_dict(self.config)
-        self.organism = self.config['organism']
+        self.samples, self.sampletable = utils.get_sampletable(self.config)
         self.patterns = yaml.load(open(patterns), Loader=yaml.FullLoader)
-        self.is_paired = helpers.detect_layout(self.sampletable) == 'PE'
+        self.is_paired = utils.detect_layout(self.sampletable) == 'PE'
         if self.is_paired:
             self.n = [1, 2]
         else:
@@ -86,7 +78,7 @@ class SeqConfig(object):
         else:
             self.is_sra = False
 
-        helpers.preflight(self.config)
+        ##########################utils.preflight(self.config)
 
 class RNASeqConfig(SeqConfig):
     def __init__(self, config, patterns, workdir=None):
@@ -112,7 +104,7 @@ class RNASeqConfig(SeqConfig):
 
         self.fill = dict(sample=self.samples, n=self.n)
         self.patterns_by_aggregation = self.patterns.pop('patterns_by_aggregate', None)
-        self.targets = helpers.fill_patterns(self.patterns, self.fill)
+        self.targets = utils.fill_patterns(self.patterns, self.fill)
 
         # If the sampletable is from an sra metadata table, then we need to set the value of
         # 'orig_filename' for each of the samples to where the fastq was downloaded
@@ -126,14 +118,14 @@ class RNASeqConfig(SeqConfig):
             self.fill_by_aggregation = dict(
                 merged_bigwig_label=self.config['merged_bigwigs'].keys(),
             )
-            self.targets_by_aggregation = helpers.fill_patterns(
+            self.targets_by_aggregation = utils.fill_patterns(
                 self.patterns_by_aggregation,
                 self.fill_by_aggregation
             )
             self.targets.update(self.targets_by_aggregation)
             self.patterns.update(self.patterns_by_aggregation)
 
-        helpers.rnaseq_preflight(self)
+        #########################utils.rnaseq_preflight(self)
 
 
 class ChIPSeqConfig(SeqConfig):
@@ -179,7 +171,7 @@ class ChIPSeqConfig(SeqConfig):
             ip_label=self.sampletable.label[
                 self.sampletable.antibody != 'input'].values
         )
-        self.targets_by_sample = helpers.fill_patterns(
+        self.targets_by_sample = utils.fill_patterns(
             self.patterns_by_sample, self.fill_by_sample)
 
         self.targets.update(self.targets_by_sample)
@@ -191,7 +183,7 @@ class ChIPSeqConfig(SeqConfig):
             self.fill_by_aggregation = dict(
                 merged_bigwig_label=self.config['merged_bigwigs'].keys(),
             )
-            self.targets_by_aggregation = helpers.fill_patterns(
+            self.targets_by_aggregation = utils.fill_patterns(
                 self.patterns_by_aggregation,
                 self.fill_by_aggregation
             )
@@ -254,11 +246,11 @@ class ChIPSeqConfig(SeqConfig):
             # targets as they're built.
             update_recursive(
                 self.targets_for_peaks,
-                helpers.fill_patterns(_peak_patterns, _fill)
+                utils.fill_patterns(_peak_patterns, _fill)
             )
 
 
         self.targets.update(self.targets_for_peaks)
         self.patterns.update(self.patterns_by_peaks)
 
-        helpers.chipseq_preflight(self)
+        utils.chipseq_preflight(self)
