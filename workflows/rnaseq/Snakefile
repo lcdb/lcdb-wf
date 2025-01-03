@@ -216,20 +216,21 @@ rule cutadapt:
     resources:
         mem_mb=gb(2),
         runtime=autobump(hours=2)
+    params:
+        extra=(
+            "--nextseq-trim 20 "
+            "--overlap 6 "
+            "--minimum-length 25 "
+            "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+        ) + "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT " if c.is_paired else ""
     run:
-
-        # NOTE: Change cutadapt params here
         if c.is_paired:
             shell(
                 "cutadapt "
                 "-o {output[0]} "
                 "-p {output[1]} "
-                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
-                "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
-                "--nextseq-trim 20 "
-                "--overlap 6 "
-                '-j {threads} '
-                '--minimum-length 25 '
+                "-j {threads} "
+                "{params.extra} "
                 "{input.fastq[0]} "
                 "{input.fastq[1]} "
                 "&> {log}"
@@ -238,11 +239,8 @@ rule cutadapt:
             shell(
                 "cutadapt "
                 "-o {output[0]} "
-                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
-                "--nextseq-trim 20 "
-                "--overlap 6 "
-                '-j {threads} '
-                '--minimum-length 25 '
+                "-j {threads} "
+                "{params.extra} "
                 "{input.fastq[0]} "
                 "&> {log}"
             )
@@ -282,6 +280,8 @@ if config['aligner'] == 'hisat2':
         resources:
             mem_mb=gb(32),
             runtime=autobump(hours=8)
+        params:
+            extra=""
         run:
 
             prefix = os.path.commonprefix(input.index).rstrip(".")
@@ -323,7 +323,9 @@ if config['aligner'].startswith('star'):
         '--readFilesIn {input.fastq} '
         '--readFilesCommand zcat '
         '--outFileNamePrefix {prefix} '
-
+        '{params.extra} '
+    )
+    STAR_PARAMS = (
         # NOTE: The STAR docs indicate that the following parameters are
         # standard options for ENCODE long-RNA-seq pipeline.  Comments are from
         # the STAR docs.
@@ -359,6 +361,9 @@ if config['aligner'] == 'star':
         resources:
             mem_mb=gb(64),
             runtime=autobump(hours=8)
+        params:
+            extra=STAR_PARAMS
+
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
@@ -394,6 +399,8 @@ if config['aligner'] == 'star-twopass':
         resources:
             mem_mb=gb(64),
             runtime=autobump(hours=8)
+        params:
+            extra=STAR_PARAMS
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
@@ -434,6 +441,8 @@ if config['aligner'] == 'star-twopass':
         resources:
             mem_mb=gb(64),
             runtime=autobump(hours=8)
+        params:
+            extra=STAR_PARAMS
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
@@ -481,6 +490,12 @@ rule rRNA:
     resources:
         mem_mb=gb(2),
         runtime=autobump(hours=2)
+    params:
+        extra=(
+            '-k 1 '       # NOTE: we only care if >=1 mapped
+            '--no-unal '  # NOTE: suppress unaligned reads
+        )
+
     run:
         prefix = os.path.commonprefix(input.index).rstrip(".")
         sam = output.bam.replace('.bam', '.sam')
@@ -489,10 +504,9 @@ rule rRNA:
             "bowtie2 "
             "-x {prefix} "
             "-U {input.fastq} "
-            '-k 1 '       # NOTE: we only care if >=1 mapped
-            '--no-unal '  # NOTE: suppress unaligned reads
             "--threads {threads} "
             "-S {sam} "
+            "{params.extra} "
             "> {log} 2>&1"
         )
 
@@ -558,13 +572,12 @@ rule featurecounts:
         mem_mb=gb(16),
         runtime=autobump(hours=2)
     params:
-        strand_arg = utils.strand_arg_lookup(
-            c, {
+        strand_arg={
                 'unstranded': '-s0 ',
                 'fr-firststrand': '-s2 ',
                 'fr-secondstrand': '-s1 ',
-            }
-        )
+            }[config["stranded"]],
+        extra=""
     run:
         # NOTE: By default, we use -p for paired-end
         p_arg = ''
