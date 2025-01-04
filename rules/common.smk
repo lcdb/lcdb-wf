@@ -1178,3 +1178,12 @@ def gff2gtf(gff, gtf):
         shell("gzip -d -S .gz.0.tmp {gff} -c | gffread - -T -o- | gzip -c > {gtf}")
     else:
         shell("gffread {gff} -T -o- | gzip -c > {gtf}")
+
+
+def wrapper_for(path):
+    return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
+
+def detect_sra(sampletable):
+    return 'Run' in self.sampletable.columns and any(self.sampletable['Run'].str.startswith('SRR'))
+
+# vim: ft=python
