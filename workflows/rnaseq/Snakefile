@@ -1,217 +1,78 @@
 import os
-import sys
-from pathlib import Path
 import yaml
 import tempfile
 import pandas as pd
 
-HERE = str(Path(workflow.snakefile).parent)
-sys.path.insert(0, HERE + "/../..")
-from lib import utils
-from lib.utils import autobump, gb, hours
-from lib.patterns_targets import RNASeqConfig
-
 configfile: 'config/config.yaml'
 
 include: '../../rules/references.smk'
+include: '../../rules/common.smk'
 
 REFERENCES = config.get('reference_dir', '../../references')
 
-# Verify configuration of config and sampletable files
-################utils.preflight(config)
+sampletable = pd.read_table(config["sampletable"], sep="\t")
+_st = c.sampletable.set_index(c.sampletable.columns[0])
+is_paired = detect_layout(sampletable) == "PE"
+is_sra = detect_sra(sampletable)
+n = ["1", "2"] if is_paired else ["1"]
+SAMPLES = sampletable.iloc[:, 0].values
 
-c = RNASeqConfig(config, config.get('patterns', 'config/rnaseq_patterns.yaml'))
+# TODO: moved utils.py over to common.smk; not sure if this means that postprocessing will fail or not...
 
-SAMPLES = c.sampletable.iloc[:, 0].values
 wildcard_constraints:
     n = '[1,2]',
     sample = '|'.join(SAMPLES)
 
+localrules: symlinks, symlink_targets
 
-def wrapper_for(path):
-    return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
+rule all:
+    input:
+        'data/rnaseq_aggregation/multiqc.html',
 
-
-# ----------------------------------------------------------------------------
-# RULES
-# ----------------------------------------------------------------------------
-
-# See "patterns and targets" in the documentation for what's going on here.
-final_targets = utils.flatten((
-    c.targets['fastqc'],
-    c.targets['rrna_percentages_table'],
-    c.targets['multiqc'],
-    c.targets['featurecounts'],
-    c.targets['markduplicates'],
-    c.targets['salmon'],
-    c.targets['kallisto'],
-    c.targets['preseq'],
-    c.targets['rseqc'],
-    c.targets['collectrnaseqmetrics'],
-    c.targets['bigwig'],
-    c.targets['samtools'],
-))
-
-if config.get('merged_bigwigs', None):
-    final_targets.extend(utils.flatten(c.targets['merged_bigwig']))
+if is_sra:
+    include: '../../rules/sra.smk'
 
 
-def render_r1_r2(pattern):
-    return expand(pattern, sample='{sample}', n=c.n)
-
-def render_r1_only(pattern):
-    return expand(pattern, sample='{sample}', n=1)
-
-rule targets:
+def orig_for_sample(wc):
     """
-    Final targets to create
+    Given a sample, returns either one or two original fastq files
+    depending on whether the library was single- or paired-end.
     """
-    input: final_targets
-
-if c.is_sra:
-
-    # Convert the sampletable to be indexed by the first column, for
-    # convenience in generating the input/output filenames.
-    _st = c.sampletable.set_index(c.sampletable.columns[0])
-
-    rule fastq_dump:
-        output:
-            fastq=render_r1_r2(c.patterns['sra_fastq'])
-        log:
-            render_r1_only(c.patterns['sra_fastq'])[0] + '.log'
-        params:
-            is_paired=c.is_paired,
-            sampletable=_st,
-            # limit = 100000, # [TEST SETTINGS]
-        resources:
-            mem_mb=gb(1),
-            disk_mb=autobump(gb=1),
-            runtime=autobump(hours=2)
-        conda:
-            '../../wrappers/wrappers/fastq-dump/environment.yaml'
-        script:
-            wrapper_for('fastq-dump/wrapper.py')
-
-if 'orig_filename' in c.sampletable.columns:
-
-    localrules: symlinks, symlink_targets
-
-    # Convert the sampletable to be indexed by the first column, for
-    # convenience in generating the input/output filenames.
-    _st = c.sampletable.set_index(c.sampletable.columns[0])
-
-    def orig_for_sample(wc):
-        """
-        Given a sample, returns either one or two original fastq files
-        depending on whether the library was single- or paired-end.
-        """
-        if c.is_paired:
-            return _st.loc[wc.sample, ['orig_filename', 'orig_filename_R2']]
-        return _st.loc[wc.sample, ['orig_filename']]
+    if is_paired:
+        return _st.loc[wc.sample, ['orig_filename', 'orig_filename_R2']]
+    return _st.loc[wc.sample, ['orig_filename']]
 
 
-    rule symlinks:
-        """
-        Symlinks files over from original filename
-        """
-        input:
-            orig_for_sample
-        output:
-            render_r1_r2(c.patterns['fastq'])
-        threads: 1
-        resources:
-            mem_mb=100,
-            runtime=10,
-        run:
-            assert len(output) == len(input), (input, output)
-            for src, linkname in zip(input, output):
-                utils.make_relative_symlink(src, linkname)
+rule symlinks:
+    input:
+        lambda wc: _st.loc[wc.sample, ['orig_filename', 'orig_filename_R2']] if is_paired
+        else _st.loc[wc.sample, ['orig_filename']]
+    output:
+        expand('data/rnaseq_samples/{sample}/{sample}_R{n}.fastq.gz', sample=SAMPLES, n=n)
+    threads: 1
+    resources:
+        mem_mb=100,
+        runtime=10,
+    run:
+        assert len(output) == len(input), (input, output)
+        for src, linkname in zip(input, output):
+            make_relative_symlink(src, linkname)
 
 
-    rule symlink_targets:
-        input: c.targets['fastq']
+rule symlink_targets:
+    input: c.targets['fastq']
 
 # This can be set at the command line with --config strand_check_reads=1000
 config.setdefault('strand_check_reads', 1e5)
-
-rule sample_strand_check:
-    input:
-        fastq=utils.fill_r1_r2(c.sampletable, c.patterns['fastq']),
-        index=rules.bowtie2_index.output,
-        bed12=rules.conversion_bed12.output,
-    output:
-        strandedness=c.patterns['strand_check']['tsv'],
-        bam=temporary(c.patterns['strand_check']['bam']),
-        idx=temporary(c.patterns['strand_check']['bam'] + '.bai'),
-        fastqs=temporary(render_r1_r2(c.patterns['strand_check']['fastq'])),
-    log:
-        c.patterns['strand_check']['tsv'] + '.log'
-    threads: 6
-    resources:
-        mem_mb=gb(8),
-        runtime=autobump(hours=2)
-    run:
-        prefix = aligners.prefix_from_bowtie2_index(input.index)
-        nreads = int(config['strand_check_reads']) * 4
-        if c.is_paired:
-            assert len(input.fastq) == 2
-            assert len(output.fastqs) == 2
-            shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output.fastqs[0]}')
-            shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output.fastqs[1]}')
-            fastqs = f'-1 {output.fastqs[0]} -2 {output.fastqs[1]} '
-        else:
-            assert len(input.fastq) == 1
-            assert len(output.fastqs) == 1
-            shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output.fastqs[0]}')
-            fastqs = f'-U {output.fastqs[0]} '
-        shell(
-            "bowtie2 "
-            "-x {prefix} "
-            "{fastqs} "
-            '--no-unal '
-            "--threads {threads} 2> {log} "
-            "| samtools view -Sb - "
-            "| samtools sort - -o {output.bam} "
-        )
-        shell("samtools index {output.bam}")
-        shell(
-            'infer_experiment.py -r {input.bed12} -i {output.bam} > {output} 2> {log}'
-        )
-
-rule strand_check:
-    input:
-        expand(c.patterns['strand_check']['tsv'], sample=SAMPLES)
-    output:
-        html='strand_check/strandedness.html',
-        filelist=temporary('strand_check/filelist')
-    log:
-        'strand_check/strandedness.log'
-    resources:
-        mem_mb=gb(1),
-        runtime=autobump(hours=2)
-    run:
-        with open(output.filelist, 'w') as fout:
-            for i in  input:
-                fout.write(i + '\n')
-        shell(
-            'multiqc '
-            '--force '
-            '--module rseqc '
-            '--file-list {output.filelist} '
-            '--filename {output.html} &> {log}'
-        )
-
+include: '../../rules/strand_check.smk'
 
 rule cutadapt:
-    """
-    Run cutadapt
-    """
     input:
-        fastq=render_r1_r2(c.patterns['fastq'])
+        fastq=expand('data/rnaseq_samples/{sample}/{sample}_R{n}.fastq.gz', sample=SAMPLES, n=n)
     output:
-        fastq=render_r1_r2(c.patterns['cutadapt'])
+        fastq=expand('data/rnaseq_samples/{sample}/{sample}_R{n}.cutadapt.fastq.gz', sample=SAMPLES, n=n)
     log:
-        render_r1_r2(c.patterns['cutadapt'])[0] + '.log'
+        'data/rnaseq_samples/{sample}/{sample}_R1.fastq.gz'
     threads: 6
     resources:
         mem_mb=gb(2),
@@ -222,7 +83,7 @@ rule cutadapt:
             "--overlap 6 "
             "--minimum-length 25 "
             "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
-        ) + "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT " if c.is_paired else ""
+        ) + "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT " if is_paired else ""
     run:
         if c.is_paired:
             shell(
@@ -245,11 +106,8 @@ rule cutadapt:
                 "&> {log}"
             )
 
-
+# TODO: rm wrapper
 rule fastqc:
-    """
-    Run FastQC
-    """
     input:
         '{sample_dir}/{sample}/{sample}{suffix}'
     threads:
@@ -266,11 +124,14 @@ rule fastqc:
 
 if config['aligner'] == 'hisat2':
     rule hisat2:
-        """
-        Map reads with HISAT2
-        """
         input:
-            fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            # TODO: make sure this works
+            fastq=(
+                 'data/rnaseq_samples/{sample}/{sample}_R1.fastq.gz',
+                 'data/rnaseq_samples/{sample}/{sample}_R2.fastq.gz',
+            ) if is_paired else (
+                 'data/rnaseq_samples/{sample}/{sample}_R1.fastq.gz',
+            ),
             index=rules.hisat2_index.output,
         output:
             bam=temporary(c.patterns['bam'])
@@ -349,7 +210,7 @@ if config['aligner'] == 'star':
         Align with STAR (1-pass mode)
         """
         input:
-            fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            fastq=fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
             index=rules.star_index.output,
             annotation=REFERENCES + "/annotation.gtf"
         output:
@@ -388,7 +249,7 @@ if config['aligner'] == 'star-twopass':
         First pass of alignment with STAR to get the junctions
         """
         input:
-            fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            fastq=fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
             index=rules.star_index.output,
             annotation=REFERENCES + "/annotation.gtf"
         output:
@@ -429,7 +290,7 @@ if config['aligner'] == 'star-twopass':
         """
         input:
             sjout=expand(c.patterns['bam'].replace('.bam', '.star-pass1.SJ.out.tab'), sample=SAMPLES),
-            fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+            fastq=fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
             index=rules.star_index.output,
             annotation=REFERENCES + "/annotation.gtf"
         output:
@@ -611,10 +472,10 @@ rule rrna_libsizes_table:
         runtime=autobump(hours=2)
     run:
         def rrna_sample(f):
-            return utils.extract_wildcards(c.patterns['rrna']['libsize'], f)['sample']
+            return extract_wildcards(c.patterns['rrna']['libsize'], f)['sample']
 
         def sample(f):
-            return utils.extract_wildcards(c.patterns['libsizes']['cutadapt'], f)['sample']
+            return extract_wildcards(c.patterns['libsizes']['cutadapt'], f)['sample']
 
         def million(f):
             return float(open(f).read()) / 1e6
@@ -651,27 +512,38 @@ rule rrna_libsizes_table:
 
 
 rule multiqc:
-    """
-    Aggregate various QC stats and logs into a single HTML report with MultiQC
-    """
-    # NOTE: if you add more rules and want MultiQC to pick up the output, then
-    # add outputs from those rules to the inputs here.
     input:
         files=(
-            utils.flatten(c.targets['fastqc']) +
-            utils.flatten(c.targets['rrna_percentages_yaml']) +
-            utils.flatten(c.targets['cutadapt']) +
-            utils.flatten(c.targets['featurecounts']) +
-            utils.flatten(c.targets['markduplicates']) +
-            utils.flatten(c.targets['salmon']) +
-            utils.flatten(c.targets['rseqc']) +
-            utils.flatten(c.targets['preseq']) +
-            utils.flatten(c.targets['collectrnaseqmetrics']) +
-            utils.flatten(c.targets['samtools'])
+            expand('data/rnaseq_samples/{sample}/{sample}_R{n}.fastq.gz', sample=SAMPLES, n=n),
+            expand(
+            'data/rnaseq_samples/{sample}/fastqc/{sample}_R1{kind}.fastq.gz_fastqc.zip',
+            sample=SAMPLES, kind=["", ".cutadapt", ".cutadapt.bam"]
+            ),
+            expand(
+                'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups{ext}',
+                sample=SAMPLES, ext=['.bam', '.bam.bai']
+            ),
+            expand(
+                'data/rnaseq_samples/{sample}/{sample}.salmon/quant.sf',
+                sample=SAMPLES
+            ),
+            expand('data/rnaseq_samples/{sample}/{sample}.kallisto/abundance.h5', sample=SAMPLES),
+            expand('data/rnaseq_samples/{sample}/{sample}_preseq_c_curve.txt', sample=SAMPLES),
+            expand('data/rnaseq_samples/{sample}/rseqc/{sample}_infer_experiment.txt', sample=SAMPLES),
+            expand('data/rnaseq_samples/{sample}/rseqc/{sample}_read_distribution.txt', sample=SAMPLES),
+            expand('data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.metrics', sample=SAMPLES),
+            expand('data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.pos.bigwig', sample=SAMPLES, dir=["pos", "neg"]),
+            expand('data/rnaseq_samples/{sample}/idxstat_{sample}.txt', sample=SAMPLES),
+            expand('data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.flagstat', sample=SAMPLES),
+            expand('data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.stats', sample=SAMPLES),
+            'data/rnaseq_aggregation/rrna_percentages_table.tsv',
+            'data/rnaseq_aggregation/featurecounts.txt',
         ),
         config='config/multiqc_config.yaml'
-    output: c.targets['multiqc']
-    log: c.targets['multiqc'][0] + '.log'
+    output:
+        'data/rnaseq_aggregation/multiqc.html'
+    log:
+        'data/rnaseq_aggregation/multiqc.log'
     threads: 1
     resources:
         mem_mb=gb(2),
@@ -741,13 +613,11 @@ rule collectrnaseqmetrics:
         # config.
         java_args='-Xmx20g',
         # java_args='-Xmx2g',  # [TEST SETTINGS -1]
-        strand_arg = utils.strand_arg_lookup(
-            c, {
+        strand_arg={
                 'unstranded': 'STRAND=NONE ',
                 'fr-firststrand': 'STRAND=SECOND_READ_TRANSCRIPTION_STRAND ',
                 'fr-secondstrand': 'STRAND=FIRST_READ_TRANSCRIPTION_STRAND ',
-            }
-        )
+            }[config["stranded"]
     log:
         c.patterns['collectrnaseqmetrics']['metrics'] + '.log'
     threads: 1
@@ -792,7 +662,7 @@ rule salmon:
     Quantify reads coming from transcripts with Salmon
     """
     input:
-        fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+        fastq=fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
         index=REFERENCES + "/salmon/versionInfo.json"
     output:
         c.patterns['salmon']
@@ -834,20 +704,18 @@ rule kallisto:
     Quantify reads coming from transcripts with Kallisto
     """
     input:
-        fastq=utils.fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
+        fastq=fill_r1_r2(c.sampletable, c.patterns['cutadapt']),
         index=REFERENCES + "/kallisto/transcripts.idx",
     output:
         c.patterns['kallisto']
     params:
         index_dir=os.path.dirname(REFERENCES + "/kallisto/transcripts.idx"),
         outdir=os.path.dirname(c.patterns['kallisto']),
-        strand_arg = utils.strand_arg_lookup(
-            c, {
+        strand_arg={
                 'unstranded': '',
                 'fr-firststrand': '--rf-stranded',
                 'fr-secondstrand': '--fr-stranded',
-            }
-        )
+            }[config["stranded"]
     log:
         c.patterns['kallisto'] + '.log'
     threads:
@@ -955,13 +823,11 @@ rule bigwig_neg:
     log:
         c.patterns['bigwig']['neg'] + '.log'
     params:
-        strand_arg = utils.strand_arg_lookup(
-            c, {
+        strand_arg = {
                 'unstranded': '',
                 'fr-firststrand': '--filterRNAstrand reverse ',
                 'fr-secondstrand': '--filterRNAstrand forward ',
-            }
-        )
+            }[config["stranded"]
     run:
         shell(
             'bamCoverage '
@@ -989,13 +855,11 @@ rule bigwig_pos:
     log:
         c.patterns['bigwig']['pos'] + '.log'
     params:
-        strand_arg = utils.strand_arg_lookup(
-            c, {
+        strand_arg={
                 'unstranded': '',
                 'fr-firststrand': '--filterRNAstrand forward ',
                 'fr-secondstrand': '--filterRNAstrand reverse ',
-            }
-        )
+            }[config["stranded"]
     run:
         shell(
             'bamCoverage '
@@ -1021,46 +885,6 @@ def bigwigs_to_merge(wc):
         sample=neg_labels)
     return pos_bigwigs + neg_bigwigs
 
-if 'merged_bigwigs' in config:
-    rule merge_bigwigs:
-        """
-        Merge together bigWigs as specified in the config ("merged_bigwigs"
-        section).
-        """
-        input:
-            bigwigs=bigwigs_to_merge,
-            chromsizes=REFERENCES + "/genome.chromsizes"
-        output:
-            c.patterns['merged_bigwig']
-        log:
-            c.patterns['merged_bigwig'] + '.log'
-        resources:
-            mem_mb=gb(16),
-            runtime=autobump(hours=2)
-        script:
-            wrapper_for('average-bigwigs/wrapper.py')
-
-
-rule rnaseq_rmarkdown:
-    """
-    Run and render the RMarkdown file that performs differential expression
-    """
-    input:
-        featurecounts=utils.flatten(c.targets['featurecounts']),
-        salmon=utils.flatten(c.targets['salmon']),
-
-        # NOTE: the Rmd will likely need heavy editing depending on the project.
-        rmd='downstream/rnaseq.Rmd',
-        sampletable=config['sampletable']
-    output:
-        'downstream/rnaseq.html'
-    log:
-        'downstream/rnaseq.log'
-    shell:
-        'Rscript -e '
-        '''"rmarkdown::render('{input.rmd}')" '''
-        '> {log} 2>&1'
-        # [TEST_SETTINGS -1]
 
 rule flagstat:
     input:
