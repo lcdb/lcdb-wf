@@ -6,67 +6,70 @@ sys.path.insert(0, os.path.dirname(workflow.snakefile) + "/../..")
 from lib.utils import autobump, gb, hours
 from lib import utils
 
-REFERENCES = config.get('reference_dir', '../../references')
+REFERENCES = config.get("reference_dir", "../../references")
+
 
 def default_postprocess(origfn, newfn):
     shell("mv {origfn} {newfn}")
 
+
 rule fasta:
     output:
-        temporary(f'{REFERENCES}/genome.fa.gz')
+        temporary(f"{REFERENCES}/genome.fa.gz"),
     log:
-        f"{REFERENCES}/logs/genome.fa.gz.log"
+        f"{REFERENCES}/logs/genome.fa.gz.log",
     run:
         utils.download_and_postprocess(
-            urls=config['fasta']['url'],
-            postprocess=config['fasta'].get('postprocess', None),
+            urls=config["fasta"]["url"],
+            postprocess=config["fasta"].get("postprocess", None),
             outfile=output[0],
-            log=log
+            log=log,
         )
 
 
 rule gtf:
     output:
-        temporary(f"{REFERENCES}/annotation.gtf.gz")
+        temporary(f"{REFERENCES}/annotation.gtf.gz"),
     log:
-        f"{REFERENCES}/logs/annotation.gtf.gz.log"
+        f"{REFERENCES}/logs/annotation.gtf.gz.log",
     run:
         utils.download_and_postprocess(
-            urls=config['gtf']['url'],
-            postprocess=config['gtf'].get('postprocess', None),
+            urls=config["gtf"]["url"],
+            postprocess=config["gtf"].get("postprocess", None),
             outfile=output[0],
-            log=log
+            log=log,
         )
 
 
 rule rrna:
     output:
-        temporary(f"{REFERENCES}/rrna.fa.gz")
+        temporary(f"{REFERENCES}/rrna.fa.gz"),
     log:
-        f"{REFERENCES}/logs/rrna.fa.gz.log"
+        f"{REFERENCES}/logs/rrna.fa.gz.log",
     run:
         utils.download_and_postprocess(
-            urls=config['rrna']['url'],
-            postprocess=config['rrna'].get('postprocess', None),
+            urls=config["rrna"]["url"],
+            postprocess=config["rrna"].get("postprocess", None),
             outfile=output[0],
-            log=log
+            log=log,
         )
 
 
 rule unzip:
     input:
-        f"{REFERENCES}/{prefix}.gz"
+        f"{REFERENCES}/{{prefix}}.gz",
     output:
-        f"{REFERENCES}/{prefix}"
-    shell: 'gunzip -c {input} > {output}'
+        f"{REFERENCES}/{{prefix}}",
+    shell:
+        "gunzip -c {input} > {output}"
 
 
 rule bowtie2_index:
     input:
-        f"{REFERENCES}/{label}.fa",
+        f"{REFERENCES}/{{label}}.fa",
     output:
         multiext(
-            f"{REFERENCES}/bowtie2/{label}",
+            f"{REFERENCES}/bowtie2/{{label}}",
             ".1.bt2",
             ".2.bt2",
             ".3.bt2",
@@ -76,22 +79,15 @@ rule bowtie2_index:
             ".fa",
         ),
     log:
-        f"{REFERENCES}/logs/bowtie2_{label}.log'
+        f"{REFERENCES}/logs/bowtie2_{{label}}.log",
     resources:
         runtime=autobump(hours=8),
         mem_mb=autobump(gb=32),
-        disk_mb=autobump(gb=50)
-    threads:
-        8
+        disk_mb=autobump(gb=50),
+    threads: 8
     run:
         index = os.path.commonprefix(output).rstrip(".")
-        shell(
-            "bowtie2-build"
-            " --threads {threads}"
-            " {input}"
-            " {index}"
-            " &> {log}"
-        )
+        shell("bowtie2-build" " --threads {threads}" " {input}" " {index}" " &> {log}")
         utils.make_relative_symlink(input[0], output[-1])
 
 
@@ -100,41 +96,38 @@ rule star_index:
         fasta=f"{REFERENCES}/genome.fa",
         gtf=f"{REFERENCES}/annotation.gtf",
     output:
-        f"{REFERENCES}/star/Genome"
+        f"{REFERENCES}/star/Genome",
     log:
-        f"{REFERENCES}/logs/star.log"
-    threads:
-        8
+        f"{REFERENCES}/logs/star.log",
+    threads: 8
     resources:
         runtime=autobump(hours=8),
-        mem_mb=gb(64)
+        mem_mb=gb(64),
     run:
         genomedir = os.path.dirname(output[0])
-        shell('rm -r {genomedir}')
-        shell('mkdir -p {genomedir}')
+        shell("rm -r {genomedir}")
+        shell("mkdir -p {genomedir}")
         shell(
-            'STAR '
-            '--runMode genomeGenerate '
-            '--runThreadN {threads} '
-            '--genomeDir {genomedir} '
-            '--genomeFastaFiles {input.fasta} '
-
+            "STAR "
+            "--runMode genomeGenerate "
+            "--runThreadN {threads} "
+            "--genomeDir {genomedir} "
+            "--genomeFastaFiles {input.fasta} "
             # NOTE: GTF is optional
-            '--sjdbGTFfile {input.gtf} '
-
+            "--sjdbGTFfile {input.gtf} "
             # NOTE: STAR docs say that 100 should work well.
-            '--sjdbOverhang 100 '
-
+            "--sjdbOverhang 100 "
             # NOTE: for small genomes, may need to scale this down to
             # min(14, log2(GenomeLength) / 2 - 1)
             # --genomeSAindexNbases 14
-            '&> {log}'
+            "&> {log}"
         )
         # STAR writes a hard-coded Log.out file to the current working
         # directory. So put that on the end of the log file for the rule and
         # then clean up.
-        shell('cat {genomedir}/Log.out >> {log} && rm {genomedir}/Log.out')
+        shell("cat {genomedir}/Log.out >> {log} && rm {genomedir}/Log.out")
         shell("ln -s {input.fasta} {genomedir}")
+
 
 rule hisat2_index:
     input:
@@ -151,26 +144,18 @@ rule hisat2_index:
             ".7.ht2",
             ".8.ht2",
             ".fa",
-        )
+        ),
     log:
-        f"{REFERENCES}/logs/hisat2.log"
+        f"{REFERENCES}/logs/hisat2.log",
     resources:
         runtime=autobump(hours=8),
         mem_mb=autobump(gb=32),
-        disk_mb=autobump(gb=50)
-    threads:
-        8
+        disk_mb=autobump(gb=50),
+    threads: 8
     run:
         index = os.path.commonprefix(output).rstrip(".")
-        shell(
-            "hisat2-build"
-            " --threads {threads}"
-            " {input}"
-            " {index}"
-            " &> {log}"
-        )
+        shell("hisat2-build" " --threads {threads}" " {input}" " {index}" " &> {log}")
         shell("ln -s {input} {output[-1]}")
-
 
 
 rule transcriptome_fasta:
@@ -178,108 +163,103 @@ rule transcriptome_fasta:
         fasta=f"{REFERENCES}/genome.fa",
         gtf=f"{REFERENCES}/annotation.gtf",
     output:
-        f"{REFERENCES}/transcriptome.fa" 
+        f"{REFERENCES}/transcriptome.fa",
     resources:
-        runtime=hours(1)
+        runtime=hours(1),
     shell:
-        'gffread {input.gtf} -w {output} -g {input.fasta}'
+        "gffread {input.gtf} -w {output} -g {input.fasta}"
 
 
 rule salmon_index:
     input:
-        f"{REFERENCES}/transcriptome.fa"
+        f"{REFERENCES}/transcriptome.fa",
     output:
-        f"{REFERENCES}/salmon/versionInfo.json"
+        f"{REFERENCES}/salmon/versionInfo.json",
     log:
-        f"{REFERENCES}/logs/salmon.log"
+        f"{REFERENCES}/logs/salmon.log",
     params:
-        outdir=f"{REFERENCES}/salmon"
+        outdir=f"{REFERENCES}/salmon",
     resources:
         mem_mb=gb(32),
-        runtime=hours(2)
+        runtime=hours(2),
     run:
         outdir = os.path.dirname(output[0])
-        shell(
-            'salmon index '
-            '--transcripts {input} '
-            '--index {outdir} '
-            '&> {log}'
-        )
+        shell("salmon index " "--transcripts {input} " "--index {outdir} " "&> {log}")
 
 
 rule kallisto_index:
     output:
         f"{REFERENCES}/kallisto/transcripts.idx",
     input:
-        f"{REFERENCES}/genome.fa"
+        f"{REFERENCES}/genome.fa",
     log:
-        f"{REFERENCES}/logs/kallisto.log"
+        f"{REFERENCES}/logs/kallisto.log",
     resources:
         runtime=hours(2),
         mem_mb=gb(32),
     shell:
-        'kallisto index '
-        '--index {output} '
-        '{input} '
-        '&> {log}'
+        "kallisto index "
+        "--index {output} "
+        "{input} "
+        "&> {log}"
 
 
 rule conversion_refflat:
     input:
-        f"{REFERENCES}/annotation.gtf"
+        f"{REFERENCES}/annotation.gtf",
     output:
-        f"{REFERENCES}/annotation.refflat"
+        f"{REFERENCES}/annotation.refflat",
     log:
-        f"{REFERENCES}/logs/annotation.refflat.log"
+        f"{REFERENCES}/logs/annotation.refflat.log",
     resources:
         runtime=hours(2),
-        mem_mb=gb(2)
+        mem_mb=gb(2),
     shell:
-        'gtfToGenePred -ignoreGroupsWithoutExons {input} {output}.tmp '
-        '''&& awk '{{print $1"\t"$0}}' {output}.tmp > {output} '''
-        '&& rm {output}.tmp '
+        "gtfToGenePred -ignoreGroupsWithoutExons {input} {output}.tmp "
+        """&& awk '{{print $1"\t"$0}}' {output}.tmp > {output} """
+        "&& rm {output}.tmp "
 
 
 rule conversion_bed12:
     input:
-        f"{REFERENCES}/annotation.gtf"
+        f"{REFERENCES}/annotation.gtf",
     output:
-        f"{REFERENCES}/annotation.bed12"
+        f"{REFERENCES}/annotation.bed12",
     resources:
         runtime=hours(2),
-        mem_mb=gb(2)
+        mem_mb=gb(2),
     shell:
-        'gtfToGenePred -ignoreGroupsWithoutExons {input} {output}.tmp '
-        '&& genePredToBed {output}.tmp {output} '
-        '&& rm {output}.tmp'
+        "gtfToGenePred -ignoreGroupsWithoutExons {input} {output}.tmp "
+        "&& genePredToBed {output}.tmp {output} "
+        "&& rm {output}.tmp"
 
 
 rule chromsizes:
     input:
-        f"{REFERENCES}/genome.fa"
+        f"{REFERENCES}/genome.fa",
     output:
-        f"{REFERENCES}/genome.chromsizes"
+        f"{REFERENCES}/genome.chromsizes",
     log:
-        f"{REFERENCES}/logs/genome.chromsizes.log"
+        f"{REFERENCES}/logs/genome.chromsizes.log",
     params:
         # NOTE: Be careful with the memory here; make sure you have enough
         # and/or it matches the resources you're requesting
-        java_args='-Xmx20g'
+        java_args="-Xmx20g",
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     resources:
         mem_mb=gb(24),
-        runtime=hours(2)
+        runtime=hours(2),
     shell:
-        'export LC_COLLATE=C; '
-        'rm -f {output}.tmp '
-        '&& picard '
-        '{params.java_args} '
-        'CreateSequenceDictionary R={input} O={output}.tmp &> {log} '
+        "export LC_COLLATE=C; "
+        "rm -f {output}.tmp "
+        "&& picard "
+        "{params.java_args} "
+        "CreateSequenceDictionary R={input} O={output}.tmp &> {log} "
         '&& grep "^@SQ" {output}.tmp '
-        '''| awk '{{print $2, $3}}' '''
+        """| awk '{{print $2, $3}}' """
         '| sed "s/SN://g;s/ LN:/\\t/g" '
-        '| sort -k1,1 > {output} '
-        '&& rm -f {output}.tmp '
+        "| sort -k1,1 > {output} "
+        "&& rm -f {output}.tmp "
 
 
 rule mappings:
@@ -287,14 +267,16 @@ rule mappings:
     Creates gzipped TSV mapping between attributes in the GTF.
     """
     input:
-        gtf=f"{REFERENCES}/annotation.gtf"
+        gtf=f"{REFERENCES}/annotation.gtf",
     output:
-        f"{REFERENCES}/annotation.mapping.tsv.gz"
+        f"{REFERENCES}/annotation.mapping.tsv.gz",
     params:
-        include_featuretypes=lambda wildcards, output: conversion_kwargs[output[0]].get('include_featuretypes', [])
+        include_featuretypes=lambda wildcards, output: conversion_kwargs[
+            output[0]
+        ].get("include_featuretypes", []),
     resources:
         runtime=hours(2),
-        mem_mb=gb(2)
+        mem_mb=gb(2),
     run:
         import gffutils
 
@@ -314,7 +296,7 @@ rule mappings:
                 continue
 
             d = dict(f.attributes)
-            d['__featuretype__'] = ft
+            d["__featuretype__"] = ft
             res.append(d)
 
         df = pandas.DataFrame(res)
@@ -323,7 +305,7 @@ rule mappings:
         # include_featuretypes settings, this may take a while.
         df = df.drop_duplicates()
 
-        df.to_csv(output[0], sep='\t', index=False, compression='gzip')
+        df.to_csv(output[0], sep="\t", index=False, compression="gzip")
 
         # Restore original setting
         gffutils.constants.always_return_list = orig_setting
