@@ -18,6 +18,12 @@ from snakemake.shell import shell
 
 # Small helper functions
 
+def render_r1_r2(pattern):
+    return expand(pattern, sample='{sample}', n=c.n)
+
+def render_r1_only(pattern):
+    return expand(pattern, sample='{sample}', n=1)
+
 
 def resolve_name(name):
     """
@@ -30,14 +36,14 @@ def resolve_name(name):
     parts_copy = parts[:]
     while parts_copy:
         try:
-            module = __import__(".".join(parts_copy))
+            module_ = __import__(".".join(parts_copy))
             break
         except ImportError:
             del parts_copy[-1]
             if not parts_copy:
                 raise
     parts = parts[1:]
-    obj = module
+    obj = module_
     for part in parts:
         obj = getattr(obj, part)
     return obj
@@ -559,10 +565,10 @@ def detect_layout(sampletable):
         p = sampletable.iloc[is_pe, 0].to_list()
         s = sampletable.iloc[[not i for i in is_pe], 0].to_list()
         if len(p) > len(s):
-            report = f"SE samples: {s}"
+            report_ = f"SE samples: {s}"
         else:
-            report = f"PE samples: {p}"
-        raise ValueError(f"Only a single layout (SE or PE) is supported. {report}")
+            report_ = f"PE samples: {p}"
+        raise ValueError(f"Only a single layout (SE or PE) is supported. {report_}")
 
 
 def fill_patterns(patterns, fill, combination=product):
@@ -1184,6 +1190,6 @@ def wrapper_for(path):
     return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
 
 def detect_sra(sampletable):
-    return 'Run' in self.sampletable.columns and any(self.sampletable['Run'].str.startswith('SRR'))
+    return 'Run' in sampletable.columns and any(sampletable['Run'].str.startswith('SRR'))
 
 # vim: ft=python
