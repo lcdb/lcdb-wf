@@ -11,7 +11,7 @@ from lib.utils import autobump, gb, hours
 
 configfile: 'config/config.yaml'
 
-include: '../../rules/references.smk'
+include: '../references/Snakefile'
 
 REFERENCES = config.get('reference_dir', '../../references')
 sampletable = pd.read_table(config["sampletable"], sep="\t")
