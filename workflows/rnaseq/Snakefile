@@ -840,7 +840,7 @@ rule bigwig_pos:
             '--bam {input.bam} '
             '-o {output} '
             '-p {threads} '
-            '{BAMCOVERAGE_ARGS} '
+            '{params.extra} '
             '{params.strand_arg} '
             '&> {log}'
         )
