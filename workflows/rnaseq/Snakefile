@@ -446,7 +446,7 @@ rule featurecounts:
             '&> {log}'
         )
 
-
+# TODO: port some of this over to utils, or maybe script.
 rule rrna_libsizes_table:
     """
     Aggregate rRNA counts into a table
@@ -558,14 +558,14 @@ rule markduplicates:
         metrics=patterns['markduplicates']['metrics'],
     log:
         patterns['markduplicates']['bam'] + '.log'
-    params:
-        java_args='-Xmx20g'
-        # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     threads: 1
     resources:
         mem_mb=gb(32),
         runtime=autobump(hours=2),
         disk_mb=autobump(gb=100),
+    params:
+        java_args='-Xmx20g'
+        # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     shell:
         'picard '
         '{params.java_args} '
@@ -586,6 +586,12 @@ rule collectrnaseqmetrics:
         refflat=rules.conversion_refflat.output,
     output:
         metrics=patterns['collectrnaseqmetrics']['metrics'],
+    log:
+        patterns['collectrnaseqmetrics']['metrics'] + '.log'
+    threads: 1
+    resources:
+        mem_mb=gb(32),
+        runtime=autobump(hours=2)
     params:
         java_args='-Xmx20g',
         # java_args='-Xmx2g',  # [TEST SETTINGS -1]
@@ -594,12 +600,6 @@ rule collectrnaseqmetrics:
                 'fr-firststrand': 'STRAND=SECOND_READ_TRANSCRIPTION_STRAND ',
                 'fr-secondstrand': 'STRAND=FIRST_READ_TRANSCRIPTION_STRAND ',
             }[config["stranded"]]
-    log:
-        patterns['collectrnaseqmetrics']['metrics'] + '.log'
-    threads: 1
-    resources:
-        mem_mb=gb(32),
-        runtime=autobump(hours=2)
     run:
         shell(
             'picard '
@@ -644,6 +644,10 @@ rule salmon:
         patterns['salmon']
     log:
         patterns['salmon'] + '.log'
+    threads: 6
+    resources:
+        mem_mb=gb(32),
+        runtime=autobump(hours=2)
     params:
         extra=(
             "--libType=A "
@@ -651,10 +655,6 @@ rule salmon:
             "--seqBias "
             "--validateMappings "
         )
-    threads: 6
-    resources:
-        mem_mb=gb(32),
-        runtime=autobump(hours=2)
     run:
         outdir = os.path.dirname(output[0])
         index_dir = os.path.dirname(input.index)
@@ -682,6 +682,13 @@ rule kallisto:
         index=REFERENCES + "/kallisto/transcripts.idx",
     output:
         patterns['kallisto']
+    log:
+        patterns['kallisto'] + '.log'
+    threads:
+        8
+    resources:
+        mem_mb=gb(32),
+        runtime=autobump(hours=2),
     params:
         strand_arg={
                 'unstranded': '',
@@ -692,13 +699,6 @@ rule kallisto:
             "--bootstrap-samples 100" if is_paired else
             "--single --fragment-length 300 --sd 20 --bootstrap-samples 100"
         ),
-    log:
-        patterns['kallisto'] + '.log'
-    threads:
-        8
-    resources:
-        mem_mb=gb(32),
-        runtime=autobump(hours=2),
     run:
         outdir = os.path.dirname(output[0])
         shell(
@@ -868,5 +868,3 @@ rule samtools_stats:
         patterns['samtools']['stats'] + '.log'
     shell:
         'samtools stats {input.bam} > {output}'
-
-# vim: ft=python
