@@ -2,8 +2,7 @@ import os
 import sys
 import pandas
 
-HERE = str(Path(workflow.snakefile).parent)
-sys.path.insert(0, HERE + "/../..")
+sys.path.insert(0, os.path.dirname(workflow.snakefile) + "/../..")
 from lib.utils import autobump, gb, hours
 from lib import utils
 
@@ -14,9 +13,9 @@ def default_postprocess(origfn, newfn):
 
 rule fasta:
     output:
-        temporary(REFERENCES + '/genome.fa.gz')
+        temporary(f'{REFERENCES}/genome.fa.gz')
     log:
-        REFERENCES + "/logs/genome.fa.gz.log"
+        f"{REFERENCES}/logs/genome.fa.gz.log"
     run:
         utils.download_and_postprocess(
             urls=config['fasta']['url'],
@@ -28,9 +27,9 @@ rule fasta:
 
 rule gtf:
     output:
-        temporary(REFERENCES + '/annotation.gtf.gz')
+        temporary(f"{REFERENCES}/annotation.gtf.gz")
     log:
-        REFERENCES + "/logs/annotation.gtf.gz.log"
+        f"{REFERENCES}/logs/annotation.gtf.gz.log"
     run:
         utils.download_and_postprocess(
             urls=config['gtf']['url'],
@@ -42,9 +41,9 @@ rule gtf:
 
 rule rrna:
     output:
-        temporary(REFERENCES + '/rrna.fa.gz')
+        temporary(f"{REFERENCES}/rrna.fa.gz")
     log:
-        REFERENCES + "/logs/rrna.fa.gz.log"
+        f"{REFERENCES}/logs/rrna.fa.gz.log"
     run:
         utils.download_and_postprocess(
             urls=config['rrna']['url'],
@@ -56,18 +55,18 @@ rule rrna:
 
 rule unzip:
     input:
-        REFERENCES + '/{prefix}.gz'
+        f"{REFERENCES}/{prefix}.gz"
     output:
-        REFERENCES + '/{prefix}'
+        f"{REFERENCES}/{prefix}"
     shell: 'gunzip -c {input} > {output}'
 
 
 rule bowtie2_index:
     input:
-        REFERENCES + '/{label}.fa',
+        f"{REFERENCES}/{label}.fa",
     output:
         multiext(
-            REFERENCES + '/bowtie2/{label}',
+            f"{REFERENCES}/bowtie2/{label}",
             ".1.bt2",
             ".2.bt2",
             ".3.bt2",
@@ -77,7 +76,7 @@ rule bowtie2_index:
             ".fa",
         ),
     log:
-        REFERENCES + '/logs/bowtie2_{label}.log'
+        f"{REFERENCES}/logs/bowtie2_{label}.log'
     resources:
         runtime=autobump(hours=8),
         mem_mb=autobump(gb=32),
@@ -98,12 +97,12 @@ rule bowtie2_index:
 
 rule star_index:
     input:
-        fasta=REFERENCES + '/genome.fa',
-        gtf=REFERENCES + '/annotation.gtf',
+        fasta=f"{REFERENCES}/genome.fa",
+        gtf=f"{REFERENCES}/annotation.gtf",
     output:
-        REFERENCES + '/star/Genome'
+        f"{REFERENCES}/star/Genome"
     log:
-        REFERENCES + '/logs/star.log'
+        f"{REFERENCES}/logs/star.log"
     threads:
         8
     resources:
@@ -139,10 +138,10 @@ rule star_index:
 
 rule hisat2_index:
     input:
-        REFERENCES + '/genome.fa',
+        f"{REFERENCES}/genome.fa",
     output:
         multiext(
-            REFERENCES + '/hisat2/genome',
+            f"{REFERENCES}/hisat2/genome",
             ".1.ht2",
             ".2.ht2",
             ".3.ht2",
@@ -154,7 +153,7 @@ rule hisat2_index:
             ".fa",
         )
     log:
-        REFERENCES + '/logs/hisat2.log'
+        f"{REFERENCES}/logs/hisat2.log"
     resources:
         runtime=autobump(hours=8),
         mem_mb=autobump(gb=32),
@@ -176,10 +175,10 @@ rule hisat2_index:
 
 rule transcriptome_fasta:
     input:
-        fasta=REFERENCES + '/genome.fa',
-        gtf=REFERENCES + '/annotation.gtf',
+        fasta=f"{REFERENCES}/genome.fa",
+        gtf=f"{REFERENCES}/annotation.gtf",
     output:
-        REFERENCES + '/transcriptome.fa' 
+        f"{REFERENCES}/transcriptome.fa" 
     resources:
         runtime=hours(1)
     shell:
@@ -188,13 +187,13 @@ rule transcriptome_fasta:
 
 rule salmon_index:
     input:
-        REFERENCES + '/transcriptome.fa'
+        f"{REFERENCES}/transcriptome.fa"
     output:
-        REFERENCES + '/salmon/versionInfo.json'
+        f"{REFERENCES}/salmon/versionInfo.json"
     log:
-        REFERENCES + '/logs/salmon.log'
+        f"{REFERENCES}/logs/salmon.log"
     params:
-        outdir=REFERENCES + '/salmon'
+        outdir=f"{REFERENCES}/salmon"
     resources:
         mem_mb=gb(32),
         runtime=hours(2)
@@ -210,11 +209,11 @@ rule salmon_index:
 
 rule kallisto_index:
     output:
-        REFERENCES + '/kallisto/transcripts.idx',
+        f"{REFERENCES}/kallisto/transcripts.idx",
     input:
-        REFERENCES + '/genome.fa'
+        f"{REFERENCES}/genome.fa"
     log:
-        REFERENCES + '/logs/kallisto.log'
+        f"{REFERENCES}/logs/kallisto.log"
     resources:
         runtime=hours(2),
         mem_mb=gb(32),
@@ -227,11 +226,11 @@ rule kallisto_index:
 
 rule conversion_refflat:
     input:
-        REFERENCES + '/annotation.gtf'
+        f"{REFERENCES}/annotation.gtf"
     output:
-        REFERENCES + '/annotation.refflat'
+        f"{REFERENCES}/annotation.refflat"
     log:
-        REFERENCES + '/logs/annotation.refflat.log'
+        f"{REFERENCES}/logs/annotation.refflat.log"
     resources:
         runtime=hours(2),
         mem_mb=gb(2)
@@ -243,9 +242,9 @@ rule conversion_refflat:
 
 rule conversion_bed12:
     input:
-        REFERENCES + '/annotation.gtf'
+        f"{REFERENCES}/annotation.gtf"
     output:
-        REFERENCES + '/annotation.bed12'
+        f"{REFERENCES}/annotation.bed12"
     resources:
         runtime=hours(2),
         mem_mb=gb(2)
@@ -257,11 +256,11 @@ rule conversion_bed12:
 
 rule chromsizes:
     input:
-        REFERENCES + '/genome.fa'
+        f"{REFERENCES}/genome.fa"
     output:
-        REFERENCES + '/genome.chromsizes'
+        f"{REFERENCES}/genome.chromsizes"
     log:
-        REFERENCES + '/logs/genome.chromsizes.log'
+        f"{REFERENCES}/logs/genome.chromsizes.log"
     params:
         # NOTE: Be careful with the memory here; make sure you have enough
         # and/or it matches the resources you're requesting
@@ -288,9 +287,9 @@ rule mappings:
     Creates gzipped TSV mapping between attributes in the GTF.
     """
     input:
-        gtf=REFERENCES + '/annotation.gtf'
+        gtf=f"{REFERENCES}/annotation.gtf"
     output:
-        REFERENCES + '/annotation.mapping.tsv.gz'
+        f"{REFERENCES}/annotation.mapping.tsv.gz"
     params:
         include_featuretypes=lambda wildcards, output: conversion_kwargs[output[0]].get('include_featuretypes', [])
     resources:
