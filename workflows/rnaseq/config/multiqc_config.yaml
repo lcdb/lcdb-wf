@@ -53,7 +53,6 @@ module_order:
             - '*.cutadapt.fastq.gz_fastqc.zip'
         path_filters:
             - '*.fastq.gz_fastqc.zip'
-    - libsizes_table
     - rrna_percentages_table
     - cutadapt
     - fastqc:
