@@ -321,7 +321,7 @@ if config['aligner']['index'] == 'hisat2':
 
 if config['aligner']['index'].startswith('star'):
     if os.getenv("TMPDIR"):
-        tmpdir_arg = "--outTmpDir $TMPDIR "
+        tmpdir_arg = "--outTmpDir $TMPDIR/star "
     else:
         tmpdir_arg = ""
 
