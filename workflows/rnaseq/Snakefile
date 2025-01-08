@@ -373,7 +373,7 @@ if config['aligner']['index'] == 'star':
         resources:
             mem_mb=gb(64),
             runtime=autobump(hours=8),
-            disk_mb=gb(100),
+            disk_mb=gb(80),
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
@@ -409,7 +409,7 @@ if config['aligner']['index'] == 'star-twopass':
         resources:
             mem_mb=gb(64),
             runtime=autobump(hours=8),
-            disk_mem=gb(100),
+            disk_mem=gb(80),
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
@@ -450,7 +450,7 @@ if config['aligner']['index'] == 'star-twopass':
         resources:
             mem_mb=gb(64),
             runtime=autobump(hours=8),
-            disk_mem=gb(100),
+            disk_mem=gb(80),
         run:
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
