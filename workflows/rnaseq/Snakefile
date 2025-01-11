@@ -16,7 +16,7 @@ include: "../references/Snakefile"
 
 
 REFERENCES = config.get("reference_dir", "../../references")
-sampletable = pd.read_table(config["sampletable"], sep="\t")
+sampletable = pd.read_table(config["sampletable"], sep="\t", comment="#")
 sampletable = sampletable.set_index(sampletable.columns[0], drop=False)
 is_paired = utils.detect_layout(sampletable) == "PE"
 is_sra = utils.detect_sra(sampletable)
