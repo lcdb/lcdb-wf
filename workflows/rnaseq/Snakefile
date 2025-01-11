@@ -605,8 +605,8 @@ rule markduplicates:
         runtime=autobump(hours=2),
         disk_mb=autobump(gb=100),
     params:
-        java_args="-Xmx20g",
-        # java_args='-Xmx2g'  # [TEST SETTINGS -1]
+        java_args="-Xmx20g",  # [disable for test]
+        # java_args='-Xmx2g'  # [enable for test]
     shell:
         "picard "
         "{params.java_args} "
@@ -634,8 +634,8 @@ rule collectrnaseqmetrics:
         mem_mb=gb(32),
         runtime=autobump(hours=2),
     params:
-        java_args="-Xmx20g",
-        # java_args='-Xmx2g',  # [TEST SETTINGS -1]
+        java_args="-Xmx20g",   # [disable for test]
+        # java_args='-Xmx2g',  # [enable for test]
         strand_arg={
             "unstranded": "STRAND=NONE ",
             "fr-firststrand": "STRAND=SECOND_READ_TRANSCRIPTION_STRAND ",
@@ -834,7 +834,7 @@ rule bigwig_neg:
         extra=(
             "--minMappingQuality 20 "
             "--smoothLength 10 "
-            "--normalizeUsing BPM "  # [TEST SETTINGS]
+            "--normalizeUsing BPM "  # [disable for test]
         ),
     run:
         shell(
@@ -872,7 +872,7 @@ rule bigwig_pos:
         extra=(
             "--minMappingQuality 20 "
             "--smoothLength 10 "
-            "--normalizeUsing BPM "  # [TEST SETTINGS]
+            "--normalizeUsing BPM "  # [disable for test]
         ),
     run:
         shell(
