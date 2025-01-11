@@ -1,7 +1,6 @@
 import sys
 import os
 import yaml
-import tempfile
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(workflow.snakefile) + "/../..")
@@ -38,6 +37,7 @@ localrules:
 rule all:
     input:
         patterns["multiqc"],
+        patterns["bigwig"],
 
 
 if is_sra:
@@ -124,19 +124,38 @@ rule cutadapt:
             )
 
 
-# TODO: rm wrapper
 rule fastqc:
     input:
-        "{sample_dir}/{sample}/{sample}{suffix}",
-    threads: 6
+        '{sample_dir}/{sample}/{sample}{suffix}'
+    threads:
+        1
     output:
-        html="{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html",
-        zip="{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip",
+        html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
+        zip='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
     resources:
         mem_mb=gb(8),
-        runtime=autobump(hours=2),
-    script:
-        utils.wrapper_for("fastqc/wrapper.py")
+        runtime=autobump(hours=2)
+    log:
+        '{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.log',
+    run:
+        outdir = os.path.dirname(output.html) or "."
+        shell(
+            'fastqc '
+            '--noextract '
+            '--quiet '
+            '--outdir {outdir} '
+            '{input} '
+            '{log} '
+        )
+        outfile = os.path.basename(input[0])
+        for s in ['.fastq', '.fq', '.gz', '.bam']:
+            outfile = outfile.replace(s, '')
+        out_zip = os.path.join(outdir, outfile + '_fastqc.zip')
+        if not os.path.abspath(out_zip) == os.path.abspath(output.zip):
+            shell('mv {out_zip} {output.zip}')
+        out_html = os.path.join(outdir, outfile + '_fastqc.html')
+        if not os.path.abspath(out_html) == os.path.abspath(output.html):
+            shell('mv {out_html} {output.html}')
 
 
 if config["aligner"] == "hisat2":
@@ -149,7 +168,7 @@ if config["aligner"] == "hisat2":
             bam=temporary(patterns["bam"]),
         log:
             patterns["bam"] + ".log",
-        threads: 6
+        threads: 16
         resources:
             mem_mb=gb(32),
             runtime=autobump(hours=8),
@@ -173,6 +192,7 @@ if config["aligner"] == "hisat2":
                 "--no-unal "
                 "--threads {threads} "
                 "-S {sam} "
+                "{params.extra} "
                 "> {log} 2>&1"
             )
 
