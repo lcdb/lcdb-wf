@@ -1,9 +1,11 @@
+from snakemake.io import expand
+
 """
 Helpers for ChIP-seq.
 """
 
 # Example config for reference
-# __example_config__ = {
+#  {
 #     'peak_calling': {
 #         [
 #             {
@@ -24,7 +26,32 @@ Helpers for ChIP-seq.
 #         ]
 #     }
 # }
+#
+# This needs to be expanded out to the following patterns:
+#
+# [
+#   'data/chipseq_peaks/macs2/rep1/peaks.bigbed',
+#   'data/chipseq_peaks/macs2/rep2/peaks.bigbed',
+# ]
+#
+# Which in turn needs these bams:
+#
+# [
+#   expand(patterns['merged_techreps'], label=['input_1', 'ip_1']),
+#   expand(patterns['merged_techreps'], label=['input_2', 'ip_2']),
+#
+#
 
+def add_bams_to_peak_calling(config):
+    d = peak_calling_dict(config)
+    for key, block in d.items():
+        peak_calling_run, algorithm = key
+        block['ip_bams'] = expand('data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam', label=block['ip'])
+        block['control_bams'] = expand('data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam', label=block['control'])
+        block['bed'] = f"data/chipseq_peaks/{algorithm}/{peak_calling_run}/peaks.bed"
+        block['bigbed'] = f"data/chipseq_peaks/{algorithm}/{peak_calling_run}/peaks.bigbed"
+        d[key] = block
+    return d
 
 def peak_calling_dict(config, algorithm=None):
     """
@@ -59,11 +86,6 @@ def peak_calling_dict(config, algorithm=None):
             key = key[0]
         if key in d:
             raise ValueError("peak calling run '{0}' already defined".format(key))
-
-        # If metadata key has been provided, then use that to populate the
-        # block as default values.
-        metadata = config['references'][config['organism']][config['aligner']['tag']].get('metadata', {})
-        block.update(metadata)
 
         d[key] = block
     return d
@@ -139,7 +161,7 @@ def merged_input_for_ip(sampletable, merged_ip):
     ... input1      input      s2cell-1             s2cell-input-1
     ... input3      input      s2cell-2             s2cell-input-3
     ... input9      input      s2cell-1             s2cell-input-1'''),
-    ... sep='\s+')
+    ... sep='\\s+')
 
 
     >>> merged_input_for_ip(df, 's2cell-gaf-1')

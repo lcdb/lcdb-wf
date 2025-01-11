@@ -49,7 +49,15 @@ patterns_by_sample:
     metrics: 'data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.collectinsertsizemetrics.metrics'
 
   samtools:
-    idxstats: 'data/rnaseq_samples/{sample}/idxstat_{sample}.txt'
+    idxstats: 'data/rnaseq_samples/{sample}/samtools_idxstats_{sample}.txt'
+    flagstat: 'data/rnaseq_samples/{sample}/samtools_flagstat_{sample}.txt'
+    stats: 'data/rnaseq_samples/{sample}/samtools_stats_{sample}.txt'
+
+  peaks:
+    macs2: 'data/chipseq_peaks/macs2/{macs2_run}/peaks.bed'
+    spp: 'data/chipseq_peaks/spp/{spp_run}/peaks.bed'
+    sicer: 'data/chipseq_peaks/sicer/{sicer_run}/peaks.bed'
+    epic2: 'data/chipseq_peaks/epic2/{epic2_run}/peaks.bed'
 
 patterns_by_peaks:
   peaks:

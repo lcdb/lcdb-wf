@@ -39,33 +39,10 @@ chipseq:
   # merging step of the workflow merges and de-dupes appropriately so that the
   # peak callers only see BAMs with all duplicates removed.
   #
-  # The "extra" block is used to pass extra information to the peak-caller in
-  # a run-specific manner. Check the wrapper README for details on this. For
-  # example, the macs2 wrapper passes `extra` verbatim to the command line, but
-  # the spp wrapper handles things differently.
-  #
   # Each wrapper is built to accept either single or multiple BAMs and output
   # at least a BED file of peaks.
   #
   peak_calling:
-    - label: gaf-embryo-sicer
-      algorithm: sicer
-      ip:
-        - gaf-embryo-1
-      control:
-        - input-embryo-1
-      redundancy_threshold: 1
-      window_size: 200
-      fragment_size: 150
-      # optional user-specified override mappable genome proportion if
-      # specified here, SICER will use this value instead of the value specific
-      # to the genome build if NOT specified here, SICER will use the
-      # mappability value for your genome build
-      effective_genome_fraction: 0.75
-      genome_build: dm6
-      gap_size: 600
-      fdr: 0.01
-
 
     - label: gaf-embryo-1
       algorithm: macs2
@@ -80,23 +57,6 @@ chipseq:
       effective_genome_count: 7e7
       extra: '--nomodel --extsize 147'
 
-    - label: gaf-embryo-1
-      algorithm: spp
-      ip:
-        - gaf-embryo-1
-      control:
-        - input-embryo-1
-      extra:
-        fdr: 0.3
-        zthr: 4
-
-    - label: gaf-embryo-1-defaults
-      algorithm: spp
-      ip:
-        - gaf-embryo-1
-      control:
-        - input-embryo-1
-
     - label: gaf-wingdisc-pooled
       algorithm: macs2
       ip:
@@ -107,17 +67,6 @@ chipseq:
         - input-wingdisc-2
       extra: '--nomodel --extsize 147'
 
-    - label: gaf-wingdisc-pooled
-      algorithm: spp
-      ip:
-        - gaf-wingdisc-1
-        - gaf-wingdisc-2
-      control:
-        - input-wingdisc-1
-        # - input-wingdisc-2
-      extra:
-        fdr: 0.5
-        zthr: 4
 
     - label: gaf-wingdisc-pooled-1
       algorithm: epic2
