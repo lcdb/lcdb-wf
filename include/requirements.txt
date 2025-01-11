@@ -4,6 +4,7 @@ bowtie
 bowtie2
 cutadapt>=3.0
 deeptools
+epic2
 fastq-screen
 fastqc
 font-ttf-dejavu-sans-mono
@@ -13,6 +14,7 @@ hisat2
 intervalstats
 ipython
 kallisto
+macs2
 multiqc
 pandas
 pandoc
