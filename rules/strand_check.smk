@@ -1,14 +1,13 @@
-
 rule sample_strand_check:
     input:
-        fastq=fill_r1_r2(c.sampletable, c.patterns['fastq']),
-        index=rules.bowtie2_index.output,
+        fastq=expand(patterns["fastq"], n=n, allow_missing=True),
+        index=expand(rules.bowtie2_index.output, label="genome"),
         bed12=rules.conversion_bed12.output,
     output:
         strandedness='strand_check/{sample}/{sample}.strandedness',
         bam=temporary('strand_check/{sample}/{sample}.strandedness.bam'),
         bai=temporary('strand_check/{sample}/{sample}.strandedness.bam.bai'),
-        fastqs=temporary(expand('strand_check/{sample}/{sample}_R{n}.strandedness.fastq', sample=SAMPLES, n=n)),
+        fastqs=temporary(expand('strand_check/{sample}/{sample}_R{n}.strandedness.fastq', n=n, allow_missing=True)),
     log:
         'strand_check/{sample}/{sample}.strandedness.log'
     threads: 6
@@ -16,17 +15,13 @@ rule sample_strand_check:
         mem_mb=gb(8),
         runtime=autobump(hours=2)
     run:
-        prefix = aligners.prefix_from_bowtie2_index(input.index)
-        nreads = int(config['strand_check_reads']) * 4
-        if c.is_paired:
-            assert len(input.fastq) == 2
-            assert len(output.fastqs) == 2
+        prefix = os.path.commonprefix(input.index).rstrip(".")
+        nreads = int(1e5 * 4)
+        if is_paired:
             shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output.fastqs[0]}')
             shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output.fastqs[1]}')
             fastqs = f'-1 {output.fastqs[0]} -2 {output.fastqs[1]} '
         else:
-            assert len(input.fastq) == 1
-            assert len(output.fastqs) == 1
             shell('set +o pipefail; zcat {input.fastq[0]} | head -n {nreads} > {output.fastqs[0]}')
             fastqs = f'-U {output.fastqs[0]} '
         shell(
