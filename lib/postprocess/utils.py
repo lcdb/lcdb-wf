@@ -9,7 +9,7 @@ import pandas as pd
 
 here = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(here, "../../lib"))
-from common import openfile
+from utils import openfile
 
 
 
