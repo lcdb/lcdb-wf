@@ -49,8 +49,8 @@ def uncomment_line(line):
     >>> assert uncomment_line('#    asdf') == '    asdf'
     >>> assert uncomment_line('  #    asdf') == '      asdf'
     >>> assert uncomment_line('do nothing') == 'do nothing'
-    >>> assert uncomment_line('do nothing # [disable for test]') == 'do nothing # [disable for test]')
-    >>> assert uncomment_line('#uncomment # [disable for test]') == 'uncomment # [disable for test]')
+    >>> assert uncomment_line('do nothing # [disable for test]') == 'do nothing # [disable for test]'
+    >>> assert uncomment_line('#uncomment # [disable for test]') == 'uncomment # [disable for test]'
     """
     first = line.find("#")
 
