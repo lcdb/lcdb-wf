@@ -45,19 +45,17 @@ rnaseq:
     desc: Tests running STAR in 2-pass mode. Only runs until the star_pass2 rule.
     args: |
         --until star_pass2
-        --configfile
-        __ORIG__/test/test_configs/test_rnaseq_config.yaml
-        __ORIG__/test/test_configs/star_override_2pass.yaml
+        --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
         --config sampletable=__ORIG__/test/test_configs/star_2pass.tsv
+        --config aligner="star-twopass"
 
-  star-1pass:
-    desc: Tests running STAR in 1-pass (default) mode. Only runs until the star rule.
+  hisat2:
+    desc: Tests running HISAT2
     args: |
-        --until star
-        --configfile
-        __ORIG__/test/test_configs/test_rnaseq_config.yaml
-        __ORIG__/test/test_configs/star_override_1pass.yaml
-        --config sampletable=__ORIG__/test/test_configs/star_1pass.tsv
+        --until hisat2
+        --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
+        --config sampletable=__ORIG__/test/test_configs/hisat2.tsv
+        --config aligner=hisat2
 
   pe:
     desc: Tests paired-end data

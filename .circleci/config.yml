@@ -221,16 +221,6 @@ variables:
           fi
 
   # --------------------------------------------------------------------------
-  # Standard references workflow.
-  references-step: &references-step
-      run:
-        name: references workflow
-        command: |
-          source /opt/miniforge/etc/profile.d/conda.sh
-          conda activate $LCDBWF_ENV
-          $DEPLOY/test/lcdb-wf-test references --run-workflow --configfile=config/config.yaml -j2 -p -k --orig $ORIG
-
-  # --------------------------------------------------------------------------
   # Standard RNA-seq workflow
   rnaseq-step: &rnaseq-step
       run:
@@ -408,14 +398,14 @@ jobs:
   #     - *get-data
   #     - *colocalization-step
 
-  references:
-    <<: *defaults
-    steps:
-      - checkout
-      - *restore_cache
-      - *set-path
-      - *get-data
-      - *references-step
+  # references:
+  #   <<: *defaults
+  #   steps:
+  #     - checkout
+  #     - *restore_cache
+  #     - *set-path
+  #     - *get-data
+  #     - *references-step
 
   build-docs:
     <<: *defaults
@@ -489,10 +479,10 @@ workflows:
           requires:
             - initial-setup
             - pytest
-      - references:
-          requires:
-            - initial-setup
-            - pytest
+      # - references:
+      #     requires:
+      #       - initial-setup
+      #       - pytest
       # - colocalization:
       #     requires:
       #       - initial-setup

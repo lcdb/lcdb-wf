@@ -1137,7 +1137,7 @@ def check_urls(config, verbose=False):
         too-many-connection issues
     """
     failures = []
-    urls = list(set(utils.flatten(pluck(config, "url"))))
+    urls = list(set(flatten(pluck(config, "url"))))
     for url in urls:
         if url.startswith("file://"):
             continue

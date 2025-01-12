@@ -14,7 +14,7 @@ rule fastq_dump:
     params:
         is_paired=is_paired,
         sampletable=_st,
-        # extra="-X 100000",  # [TEST SETTINGS]
+        # extra="-X 100000",  # [enable for test]
     resources:
         mem_mb=gb(1),
         disk_mb=autobump(gb=1),
