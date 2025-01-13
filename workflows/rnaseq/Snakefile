@@ -713,8 +713,9 @@ rule multiqc:
     log: c.targets['multiqc'][0] + '.log'
     threads: 1
     resources:
-        mem_mb=gb(2),
-        runtime=autobump(hours=2)
+        mem_mb=autobump(gb=2),
+        runtime=autobump(hours=2),
+        disk_mb=gb(100)
     run:
         analysis_directory = set([os.path.dirname(i) for i in input])
         outdir = os.path.dirname(c.targets['multiqc'][0])
