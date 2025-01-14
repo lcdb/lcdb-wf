@@ -11,7 +11,6 @@ from lib.utils import autobump, gb, hours
 configfile: "config/config.yaml"
 
 
-include: "../references/Snakefile"
 
 
 REFERENCES = config.get("reference_dir", "../../references")
@@ -20,8 +19,6 @@ sampletable = sampletable.set_index(sampletable.columns[0], drop=False)
 is_paired = utils.detect_layout(sampletable) == "PE"
 n = ["1", "2"] if is_paired else ["1"]
 SAMPLES = sampletable.index
-patterns = yaml.safe_load(open("config/rnaseq_patterns.yaml"))
-config["patterns"] = patterns
 
 
 wildcard_constraints:
@@ -36,10 +33,9 @@ localrules:
 
 rule all:
     input:
-        patterns["multiqc"],
-        expand(patterns["bigwig"]["pos"], sample=SAMPLES),
-        expand(patterns["bigwig"]["neg"], sample=SAMPLES),
+        "data/rnaseq_aggregation/multiqc.html",
 
+include: "../references/Snakefile"
 
 if utils.detect_sra(sampletable):
     sampletable['orig_filename'] = expand(
@@ -82,7 +78,7 @@ rule symlinks:
             else sampletable.loc[wc.sample, ["orig_filename"]]
         ),
     output:
-        expand(patterns["fastq"], n=n, allow_missing=True),
+        expand('data/rnaseq_samples/{{sample}}/{{sample}}_R{n}.fastq.gz', n=n)
     threads: 1
     resources:
         mem_mb=100,
@@ -104,7 +100,7 @@ rule symlink_targets:
 # automatically-subset data to evaluate strandedness.
 rule sample_strand_check:
     input:
-        fastq=expand(patterns["fastq"], n=n, allow_missing=True),
+        fastq=expand('data/rnaseq_samples/{{sample}}/{{sample}}_R{n}.fastq.gz', n=n),
         index=expand(rules.bowtie2_index.output, label="genome"),
         bed12=rules.conversion_bed12.output,
     output:
@@ -168,9 +164,9 @@ rule strand_check:
 
 rule cutadapt:
     input:
-        fastq=expand(patterns["fastq"], n=n, allow_missing=True),
+        fastq=expand('data/rnaseq_samples/{{sample}}/{{sample}}_R{n}.fastq.gz', n=n)
     output:
-        fastq=expand(patterns["cutadapt"], n=n, allow_missing=True),
+        fastq=expand('data/rnaseq_samples/{{sample}}/{{sample}}_R{n}.cutadapt.fastq.gz', n=n)
     log:
         "data/rnaseq_samples/{sample}/{sample}_cutadapt.fastq.gz.log",
     threads: 6
@@ -214,17 +210,17 @@ rule cutadapt:
 
 rule fastqc:
     input:
-        '{sample_dir}/{sample}/{sample}{suffix}'
+        'data/rnaseq_samples/{sample}/{sample}{suffix}'
     threads:
         1
     output:
-        html='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html',
-        zip='{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
+        html='data/rnaseq_samples/{sample}/fastqc/{sample}{suffix}_fastqc.html',
+        zip='data/rnaseq_samples/{sample}/fastqc/{sample}{suffix}_fastqc.zip',
     resources:
         mem_mb=gb(8),
         runtime=autobump(hours=2)
     log:
-        '{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.log',
+        'data/rnaseq_samples/{sample}/fastqc/{sample}{suffix}_fastqc.log',
     run:
         outdir = os.path.dirname(output.html) or "."
         shell(
@@ -250,12 +246,12 @@ if config["aligner"] == "hisat2":
 
     rule hisat2:
         input:
-            fastq=expand(patterns["cutadapt"], n=n, allow_missing=True),
+            fastq=rules.cutadapt.output,
             index=rules.hisat2_index.output,
         output:
-            bam=temporary(patterns["bam"]),
+            bam=temporary("data/rnaseq_samples/{sample}/{sample}.cutadapt.bam")
         log:
-            patterns["bam"] + ".log",
+            "data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.log"
         threads: 16
         resources:
             mem_mb=gb(32),
@@ -292,7 +288,10 @@ if config["aligner"] == "hisat2":
 
 
 if config["aligner"].startswith("star"):
-
+    if os.getenv("TMPDIR"):
+        tmpdir_arg = "--outTmpDir $TMPDIR/star "
+    else:
+        tmpdir_arg = ""
     # STAR can be run in 1-pass or 2-pass modes. Since we may be running it
     # more than once in almost the same way, we pull out the shell command here
     # and use it below.
@@ -303,6 +302,7 @@ if config["aligner"].startswith("star"):
         "--readFilesIn {input.fastq} "
         "--readFilesCommand zcat "
         "--outFileNamePrefix {prefix} "
+        "{tmpdir_arg} "
         "{params.extra} "
     )
     STAR_PARAMS = (
@@ -327,18 +327,19 @@ if config["aligner"] == "star":
     rule star:
         "Align with STAR (1-pass mode)"
         input:
-            fastq=expand(patterns["cutadapt"], n=n, allow_missing=True),
+            fastq=rules.cutadapt.output,
             index=rules.star_index.output,
             annotation=f"{REFERENCES}/annotation.gtf",
         output:
-            bam=temporary(patterns["bam"]),
-            sjout=temporary(patterns["bam"].replace(".bam", ".star.SJ.out.tab")),
+            bam=temporary("data/rnaseq_samples/{sample}/{sample}.cutadapt.bam"),
+            sjout=temporary("data/rnaseq_samples/{sample}/{sample}.cutadapt.star.SJ.out.tab")
         log:
-            patterns["bam"].replace(".bam", ".star.bam.log"),
+            "data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.log"
         threads: 16
         resources:
             mem_mb=gb(64),
             runtime=autobump(hours=8),
+            disk_mb=gb(80),
         params:
             extra=STAR_PARAMS,
         run:
@@ -366,17 +367,18 @@ if config["aligner"] == "star-twopass":
     rule star_pass1:
         "First pass of alignment with STAR to get the junctions"
         input:
-            fastq=expand(patterns["cutadapt"], n=n, allow_missing=True),
+            fastq=rules.cutadapt.output,
             index=rules.star_index.output,
             annotation=f"{REFERENCES}/annotation.gtf",
         output:
-            sjout=temporary(patterns["bam"].replace(".bam", ".star-pass1.SJ.out.tab")),
+            sjout=temporary("data/rnaseq_samples/{sample}/{sample}.cutadapt.star.SJ.out.tab")
         log:
-            patterns["bam"].replace(".bam", ".star-pass1.bam.log"),
+            "data/rnaseq_samples/{sample}/{sample}.cutadapt.star-pass1.log"
         threads: 16
         resources:
             mem_mb=gb(64),
             runtime=autobump(hours=8),
+            disk_mb=gb(80),
         params:
             extra=STAR_PARAMS,
         run:
@@ -407,22 +409,20 @@ if config["aligner"] == "star-twopass":
         samples to get the final BAM
         """
         input:
-            fastq=expand(patterns["cutadapt"], n=n, allow_missing=True),
+            fastq=rules.cutadapt.output,
             index=rules.star_index.output,
             annotation=f"{REFERENCES}/annotation.gtf",
-            sjout=expand(
-                patterns["bam"].replace(".bam", ".star-pass1.SJ.out.tab"),
-                sample=SAMPLES,
-            ),
+            sjout=expand(rules.star_pass1.output, sample=SAMPLES)
         output:
-            bam=temporary(patterns["bam"]),
-            sjout=temporary(patterns["bam"].replace(".bam", ".star-pass2.SJ.out.tab")),
+            bam=temporary("data/rnaseq_samples/{sample}/{sample}.cutadapt.bam"),
+            sjout=temporary("data/rnaseq_samples/{sample}/{sample}.cutadapt.star-pass2.SJ.out.tab")
         log:
-            patterns["bam"].replace(".bam", ".star-pass2.bam.log"),
+            "data/rnaseq_samples/{sample}/{sample}.cutadapt.star-pass2.log"
         threads: 16
         resources:
             mem_mb=gb(64),
             runtime=autobump(hours=8),
+            disk_mb=gb(80),
         params:
             extra=STAR_PARAMS,
         run:
@@ -455,7 +455,7 @@ if config["aligner"] == "star-twopass":
 
 rule rRNA:
     input:
-        fastq=expand(patterns["cutadapt"], n=1, allow_missing=True),
+        fastq='data/rnaseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz',
         index=multiext(
             f"{REFERENCES}/bowtie2/rrna",
             ".1.bt2",
@@ -467,9 +467,9 @@ rule rRNA:
             ".fa",
         ),
     output:
-        bam=temporary(patterns["rrna"]["bam"]),
+        bam='data/rnaseq_samples/{sample}/rRNA/{sample}.cutadapt.rrna.bam',
     log:
-        patterns["rrna"]["bam"] + ".log",
+        'data/rnaseq_samples/{sample}/rRNA/{sample}.cutadapt.rrna.bam.log'
     threads: 6
     resources:
         mem_mb=gb(2),
@@ -539,14 +539,40 @@ rule bam_index:
         "samtools index {input} {output}"
 
 
+rule markduplicates:
+    input:
+        bam='data/rnaseq_samples/{sample}/{sample}.cutadapt.bam'
+    output:
+        bam='data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam',
+        metrics='data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.metrics'
+    log:
+        'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.log'
+    threads: 1
+    resources:
+        mem_mb=gb(32),
+        runtime=autobump(hours=2),
+        disk_mb=autobump(gb=100),
+    params:
+        java_args="-Xmx20g",  # [disable for test]
+        # java_args='-Xmx2g'  # [enable for test]
+    shell:
+        "picard "
+        "{params.java_args} "
+        "MarkDuplicates "
+        "INPUT={input.bam} "
+        "OUTPUT={output.bam} "
+        "METRICS_FILE={output.metrics} "
+        "VALIDATION_STRINGENCY=LENIENT "
+        "&> {log}"
+
 rule featurecounts:
     input:
         annotation=rules.gtf.output,
-        bam=patterns["markduplicates"]["bam"],
+        bam=rules.markduplicates.output.bam
     output:
-        patterns["featurecounts"]["per_sample"]
+        'data/rnaseq_samples/{sample}/{sample}_featurecounts.txt'
     log:
-        patterns["featurecounts"]["per_sample"] + ".log"
+        'data/rnaseq_samples/{sample}/{sample}_featurecounts.txt.log'
     threads: 8
     resources:
         mem_mb=gb(16),
@@ -575,11 +601,11 @@ rule featurecounts:
 
 rule aggregate_featurecounts:
     input:
-        expand(patterns["featurecounts"]["per_sample"], sample=SAMPLES)
+        expand('data/rnaseq_samples/{sample}/{sample}_featurecounts.txt', sample=SAMPLES)
     output:
-        patterns["featurecounts"]["aggregated"]
+        'data/rnaseq_aggregation/featurecounts.txt'
     log: 
-        patterns["featurecounts"]["aggregated"] + ".log"
+        'data/rnaseq_aggregation/featurecounts.txt.log'
     threads:
         1
     resources:
@@ -595,13 +621,14 @@ rule aggregate_featurecounts:
             final[df.columns[-1]] = df[df.columns[-1]]
         final.to_csv(output[0], sep="\t", index=False)
 
+
 rule rrna_libsizes_table:
     input:
-        rrna=expand(patterns["rrna"]["libsize"], sample=SAMPLES),
-        fastq=expand(patterns["libsizes"]["cutadapt"], sample=SAMPLES),
+        rrna=expand('data/rnaseq_samples/{sample}/rRNA/{sample}.cutadapt.rrna.bam.libsize', sample=SAMPLES),
+        fastq=expand('data/rnaseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize', sample=SAMPLES),
     output:
-        json=patterns["rrna_percentages_yaml"],
-        tsv=patterns["rrna_percentages_table"],
+        tsv='data/rnaseq_aggregation/rrna_percentages_table.tsv',
+        json='data/rnaseq_aggregation/rrna_percentages_table_mqc.yaml',
     threads: 1
     resources:
         mem_mb=gb(2),
@@ -610,87 +637,18 @@ rule rrna_libsizes_table:
         "../../scripts/rrna_libsizes_table.py"
 
 
-rule multiqc:
-    input:
-        files=(
-            expand(patterns["fastqc"]["raw"], sample=SAMPLES),
-            expand(patterns["fastqc"]["cutadapt"], sample=SAMPLES),
-            expand(patterns["fastqc"]["bam"], sample=SAMPLES),
-            expand(patterns["markduplicates"]["bam"], sample=SAMPLES),
-            expand(patterns["salmon"], sample=SAMPLES),
-            expand(patterns["kallisto"], sample=SAMPLES),
-            expand(patterns["preseq"], sample=SAMPLES),
-            expand(patterns["rseqc"]["infer_experiment"], sample=SAMPLES),
-            expand(patterns["rseqc"]["read_distribution"], sample=SAMPLES),
-            expand(patterns["collectrnaseqmetrics"]["metrics"], sample=SAMPLES),
-            expand(patterns["samtools"]["idxstats"], sample=SAMPLES),
-            expand(patterns["samtools"]["flagstat"], sample=SAMPLES),
-            expand(patterns["samtools"]["stats"], sample=SAMPLES),
-
-            patterns["rrna_percentages_table"],
-            patterns["featurecounts"]["aggregated"],
-        ),
-        config="config/multiqc_config.yaml",
-    output:
-        "data/rnaseq_aggregation/multiqc.html",
-    log:
-        "data/rnaseq_aggregation/multiqc.log",
-    threads: 1
-    resources:
-        mem_mb=gb(2),
-        runtime=autobump(hours=2),
-    run:
-        analysis_directory = set([os.path.dirname(i) for i in input])
-        outdir = os.path.dirname(output[0])
-        basename = os.path.basename(output[0])
-        shell(
-            "LC_ALL=en_US.utf8 LC_LANG=en_US.utf8 "
-            "multiqc "
-            "--quiet "
-            "--outdir {outdir} "
-            "--force "
-            "--filename {basename} "
-            "--config {input.config} "
-            "{analysis_directory} "
-            "&> {log} "
-        )
 
 
-rule markduplicates:
-    input:
-        bam=patterns["bam"],
-    output:
-        bam=patterns["markduplicates"]["bam"],
-        metrics=patterns["markduplicates"]["metrics"],
-    log:
-        patterns["markduplicates"]["bam"] + ".log",
-    threads: 1
-    resources:
-        mem_mb=gb(32),
-        runtime=autobump(hours=2),
-        disk_mb=autobump(gb=100),
-    params:
-        java_args="-Xmx20g",  # [disable for test]
-        # java_args='-Xmx2g'  # [enable for test]
-    shell:
-        "picard "
-        "{params.java_args} "
-        "MarkDuplicates "
-        "INPUT={input.bam} "
-        "OUTPUT={output.bam} "
-        "METRICS_FILE={output.metrics} "
-        "VALIDATION_STRINGENCY=LENIENT "
-        "&> {log}"
 
 
 rule collectrnaseqmetrics:
     input:
-        bam=patterns["markduplicates"]["bam"],
+        bam=rules.markduplicates.output.bam,
         refflat=rules.conversion_refflat.output,
     output:
-        metrics=patterns["collectrnaseqmetrics"]["metrics"],
+        metrics='data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.metrics'
     log:
-        patterns["collectrnaseqmetrics"]["metrics"] + ".log",
+        'data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.metrics.log'
     threads: 1
     resources:
         mem_mb=gb(32),
@@ -719,9 +677,11 @@ rule collectrnaseqmetrics:
 
 rule preseq:
     input:
-        bam=patterns["bam"],
+        bam='data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam',
     output:
-        patterns["preseq"],
+        'data/rnaseq_samples/{sample}/{sample}_preseq_c_curve.txt'
+    log:
+        'data/rnaseq_samples/{sample}/{sample}_preseq_c_curve.txt.log'
     threads: 1
     resources:
         mem_mb=gb(1),
@@ -731,16 +691,17 @@ rule preseq:
         "c_curve "
         "-B {input} "
         "-o {output} "
+        "&> {log}"
 
 
 rule salmon:
     input:
-        fastq=expand(patterns["cutadapt"], n=n, allow_missing=True),
+        fastq=rules.cutadapt.output,
         index=REFERENCES + "/salmon/versionInfo.json",
     output:
-        patterns["salmon"],
+        'data/rnaseq_samples/{sample}/{sample}.salmon/quant.sf'
     log:
-        patterns["salmon"] + ".log",
+        'data/rnaseq_samples/{sample}/{sample}.salmon/quant.sf.log'
     threads: 6
     resources:
         mem_mb=gb(32),
@@ -772,12 +733,12 @@ rule salmon:
 
 rule kallisto:
     input:
-        fastq=expand(patterns["cutadapt"], n=n, allow_missing=True),
+        fastq=rules.cutadapt.output,
         index=REFERENCES + "/kallisto/transcripts.idx",
     output:
-        patterns["kallisto"],
+        'data/rnaseq_samples/{sample}/{sample}.kallisto/abundance.h5'
     log:
-        patterns["kallisto"] + ".log",
+        'data/rnaseq_samples/{sample}/{sample}.kallisto/abundance.h5.log'
     threads: 8
     resources:
         mem_mb=gb(32),
@@ -811,12 +772,12 @@ rule kallisto:
 
 rule rseqc_infer_experiment:
     input:
-        bam=patterns["markduplicates"]["bam"],
+        bam=rules.markduplicates.output,
         bed12=rules.conversion_bed12.output,
     output:
-        txt=patterns["rseqc"]["infer_experiment"],
+        'data/rnaseq_samples/{sample}/rseqc/{sample}_infer_experiment.txt',
     log:
-        patterns["rseqc"]["infer_experiment"] + ".log",
+        'data/rnaseq_samples/{sample}/rseqc/{sample}_infer_experiment.txt.log'
     resources:
         mem_mb=gb(2),
         runtime=autobump(hours=2),
@@ -826,12 +787,12 @@ rule rseqc_infer_experiment:
 
 rule rseqc_read_distribution:
     input:
-        bam=patterns["markduplicates"]["bam"],
+        bam=rules.markduplicates.output,
         bed12=rules.conversion_bed12.output,
     output:
-        txt=patterns["rseqc"]["read_distribution"],
+        'data/rnaseq_samples/{sample}/rseqc/{sample}_read_distribution.txt',
     log:
-        patterns["rseqc"]["read_distribution"] + ".log",
+        'data/rnaseq_samples/{sample}/rseqc/{sample}_read_distribution.txt.log'
     resources:
         mem_mb=gb(2),
         runtime=autobump(hours=2),
@@ -839,33 +800,57 @@ rule rseqc_read_distribution:
         "read_distribution.py -i {input.bam} -r {input.bed12} > {output} &> {log}"
 
 
-rule idxstats:
+rule samtools_idxstats:
     input:
-        bam=patterns["markduplicates"]["bam"],
-        bai=patterns["markduplicates"]["bam"] + ".bai",
+        bam=rules.markduplicates.output.bam,
+        bai=rules.markduplicates.output.bam + ".bai",
     output:
-        txt=patterns["samtools"]["idxstats"],
+        'data/rnaseq_samples/{sample}/idxstat_{sample}.txt'
     log:
-        patterns["samtools"]["idxstats"] + ".log",
+        'data/rnaseq_samples/{sample}/idxstat_{sample}.txt.log'
     resources:
         mem_mb=gb(16),
         runtime=autobump(hours=2),
-    run:
-        shell("samtools idxstats {input.bam} 2> {log} 1> {output.txt}")
+    shell:
+        "samtools idxstats {input.bam} 2> {log} 1> {output}"
+
+
+rule samtools_flagstat:
+    input:
+        bam=rules.markduplicates.output.bam,
+        bai=rules.markduplicates.output.bam + ".bai",
+    output:
+        'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.flagstat'
+    log:
+        'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.flagstat.log'
+    shell:
+        "samtools flagstat {input.bam} > {output}"
+
+
+rule samtools_stats:
+    input:
+        bam=rules.markduplicates.output.bam,
+        bai=rules.markduplicates.output.bam + ".bai",
+    output:
+        'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.stats'
+    log:
+        'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.stats.log'
+    shell:
+        "samtools stats {input.bam} > {output}"
 
 
 rule bigwig_neg:
     input:
-        bam=patterns["markduplicates"]["bam"],
-        bai=patterns["markduplicates"]["bam"] + ".bai",
+        bam=rules.markduplicates.output.bam,
+        bai=rules.markduplicates.output.bam + ".bai",
     output:
-        patterns["bigwig"]["neg"],
+        'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.neg.bigwig'
     threads: 8
     resources:
         mem_mb=gb(16),
         runtime=autobump(hours=2),
     log:
-        patterns["bigwig"]["neg"] + ".log",
+        'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.neg.bigwig.log'
     params:
         strand_arg={
             "unstranded": "",
@@ -891,16 +876,16 @@ rule bigwig_neg:
 
 rule bigwig_pos:
     input:
-        bam=patterns["markduplicates"]["bam"],
-        bai=patterns["markduplicates"]["bam"] + ".bai",
+        bam=rules.markduplicates.output.bam,
+        bai=rules.markduplicates.output.bam + ".bai",
     output:
-        patterns["bigwig"]["pos"],
+        'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.pos.bigwig'
     threads: 8
     resources:
         mem_mb=gb(16),
         runtime=autobump(hours=2),
     log:
-        patterns["bigwig"]["pos"] + ".log",
+        'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.pos.bigwig.log'
     params:
         strand_arg={
             "unstranded": "",
@@ -923,26 +908,47 @@ rule bigwig_pos:
             "&> {log}"
         )
 
-
-rule flagstat:
+rule multiqc:
     input:
-        bam=patterns["markduplicates"]["bam"],
-        bai=patterns["markduplicates"]["bam"] + ".bai",
+        files=(
+            expand(rules.fastqc.output.zip, sample=SAMPLES, suffix=["_R1.fastq.gz", "_R1.cutadapt.fastq.gz", ".cutadapt.bam"]),
+            expand(rules.markduplicates.output, sample=SAMPLES),
+            expand(rules.salmon.output, sample=SAMPLES),
+            expand(rules.kallisto.output, sample=SAMPLES),
+            expand(rules.preseq.output, sample=SAMPLES),
+            expand(rules.collectrnaseqmetrics.output, sample=SAMPLES),
+            expand(rules.samtools_stats.output, sample=SAMPLES),
+            expand(rules.samtools_flagstat.output, sample=SAMPLES),
+            expand(rules.samtools_idxstats.output, sample=SAMPLES),
+            expand(rules.rseqc_infer_experiment.output, sample=SAMPLES),
+            expand(rules.rseqc_read_distribution.output, sample=SAMPLES),
+            expand(rules.bigwig_pos.output, sample=SAMPLES),
+            expand(rules.bigwig_neg.output, sample=SAMPLES),
+            rules.rrna_libsizes_table.output,
+        ),
+        config="config/multiqc_config.yaml",
     output:
-        patterns["samtools"]["flagstat"],
+        "data/rnaseq_aggregation/multiqc.html",
     log:
-        patterns["samtools"]["flagstat"] + ".log",
-    shell:
-        "samtools flagstat {input.bam} > {output}"
+        "data/rnaseq_aggregation/multiqc.log",
+    threads: 1
+    resources:
+        mem_mb=gb(2),
+        runtime=autobump(hours=2),
+        disk_mb=gb(10)
+    run:
+        analysis_directory = set([os.path.dirname(i) for i in input])
+        outdir = os.path.dirname(output[0])
+        basename = os.path.basename(output[0])
+        shell(
+            "LC_ALL=en_US.utf8 LC_LANG=en_US.utf8 "
+            "multiqc "
+            "--quiet "
+            "--outdir {outdir} "
+            "--force "
+            "--filename {basename} "
+            "--config {input.config} "
+            "{analysis_directory} "
+            "&> {log} "
+        )
 
-
-rule samtools_stats:
-    input:
-        bam=patterns["markduplicates"]["bam"],
-        bai=patterns["markduplicates"]["bam"] + ".bai",
-    output:
-        patterns["samtools"]["stats"],
-    log:
-        patterns["samtools"]["stats"] + ".log",
-    shell:
-        "samtools stats {input.bam} > {output}"
