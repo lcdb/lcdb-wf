@@ -26,13 +26,11 @@ fi
 # Run snakemake
 (
     time snakemake \
-    -p \
+    --printshellcmds \
     --directory $PWD \
-    -k \
-    --restart-times 3 \
+    --keep-going \
     --rerun-incomplete \
     --jobname "s.{rulename}.{jobid}.sh" \
-    -j 999 \
     --use-conda \
     --configfile config/config.yaml \
     $PROFILE_CMD \
