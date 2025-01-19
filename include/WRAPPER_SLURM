@@ -19,11 +19,13 @@ if [ -z "$LCDBWF_SNAKEMAKE_PROFILE" ]; then
         PROFILE_CMD="--profile $SNAKEMAKE_PROFILE"
     fi
 else
-# LCDBWF_SNAKEMAKE_PROFILE found, this takes priority if both profile variables are set
+# LCDBWF_SNAKEMAKE_PROFILE takes priority if both profile variables are set
 PROFILE_CMD="--profile $LCDBWF_SNAKEMAKE_PROFILE"
 fi
 
-# Run snakemake
+# Timestamped log file
+LOGFILE="Snakefile_$(date +"%Y-%m-%d_%H%M").log"
+
 (
     time snakemake \
     --printshellcmds \
@@ -35,7 +37,7 @@ fi
     --configfile config/config.yaml \
     $PROFILE_CMD \
     "$@"
-    ) > "Snakefile.log" 2>&1
+    ) > "$LOGFILE" 2>&1
 
 SNAKE_PID=$!
 
