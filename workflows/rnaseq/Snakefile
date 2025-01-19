@@ -5,7 +5,6 @@ import pandas as pd
 
 sys.path.insert(0, os.path.dirname(workflow.snakefile) + "/../..")
 from lib import utils
-from lib.utils import autobump, gb, hours
 
 
 configfile: "config/config.yaml"
@@ -62,9 +61,9 @@ if utils.detect_sra(sampletable):
             is_paired=is_paired,
             # extra="-X 100000",  # [enable for test]
         resources:
-            mem_mb=gb(1),
-            disk_mb=autobump(gb=1),
-            runtime=autobump(hours=2),
+            mem="1g",
+            disk="1g",
+            runtime="2h",
         run:
             srr = sampletable.loc[wildcards.sample, "Run"]
             extra = params.get("extra", "")
@@ -91,8 +90,8 @@ rule symlinks:
         expand("data/rnaseq_samples/{{sample}}/{{sample}}_R{n}.fastq.gz", n=n),
     threads: 1
     resources:
-        mem_mb=100,
-        runtime=10,
+        mem="1g",
+        runtime="10m",
     run:
         assert len(output) == len(input), (input, output)
         for src, linkname in zip(input, output):
@@ -128,8 +127,8 @@ rule sample_strand_check:
         "strand_check/{sample}/{sample}.strandedness.log",
     threads: 6
     resources:
-        mem_mb=gb(8),
-        runtime=autobump(hours=2),
+        mem="8g",
+        runtime="2h",
     run:
         prefix = os.path.commonprefix(input.index).rstrip(".")
         nreads = int(1e5 * 4)
@@ -170,8 +169,8 @@ rule strand_check:
     log:
         "strand_check/strandedness.log",
     resources:
-        mem_mb=gb(1),
-        runtime=autobump(hours=2),
+        mem="1g",
+        runtime="2h",
     run:
         with open(output.filelist, "w") as fout:
             for i in input:
@@ -196,8 +195,8 @@ rule cutadapt:
         "data/rnaseq_samples/{sample}/{sample}_cutadapt.fastq.gz.log",
     threads: 6
     resources:
-        mem_mb=gb(2),
-        runtime=autobump(hours=2),
+        mem="2g",
+        runtime="2h",
     params:
         extra=(
             (
@@ -241,8 +240,8 @@ rule fastqc:
         html="data/rnaseq_samples/{sample}/fastqc/{sample}{suffix}_fastqc.html",
         zip="data/rnaseq_samples/{sample}/fastqc/{sample}{suffix}_fastqc.zip",
     resources:
-        mem_mb=gb(8),
-        runtime=autobump(hours=2),
+        mem="8g",
+        runtime="2h",
     log:
         "data/rnaseq_samples/{sample}/fastqc/{sample}{suffix}_fastqc.log",
     run:
@@ -278,8 +277,8 @@ if config["aligner"] == "hisat2":
             "data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.log",
         threads: 16
         resources:
-            mem_mb=gb(32),
-            runtime=autobump(hours=8),
+            mem="32g",
+            runtime="8h",
         params:
             extra="",
         run:
@@ -364,9 +363,9 @@ if config["aligner"] == "star":
             "data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.log",
         threads: 16
         resources:
-            mem_mb=gb(64),
-            runtime=autobump(hours=8),
-            disk_mb=gb(80),
+            mem="64g",
+            runtime="8h",
+            disk="80g",
         params:
             extra=STAR_PARAMS,
         run:
@@ -405,9 +404,9 @@ if config["aligner"] == "star-twopass":
             "data/rnaseq_samples/{sample}/{sample}.cutadapt.star-pass1.log",
         threads: 16
         resources:
-            mem_mb=gb(64),
-            runtime=autobump(hours=8),
-            disk_mb=gb(80),
+            mem="64g",
+            runtime="8h",
+            disk="80g",
         params:
             extra=STAR_PARAMS,
         run:
@@ -451,9 +450,9 @@ if config["aligner"] == "star-twopass":
             "data/rnaseq_samples/{sample}/{sample}.cutadapt.star-pass2.log",
         threads: 16
         resources:
-            mem_mb=gb(64),
-            runtime=autobump(hours=8),
-            disk_mb=gb(80),
+            mem="64g",
+            runtime="8h",
+            disk="80g",
         params:
             extra=STAR_PARAMS,
         run:
@@ -503,8 +502,8 @@ rule rRNA:
         "data/rnaseq_samples/{sample}/rRNA/{sample}.cutadapt.rrna.bam.log",
     threads: 6
     resources:
-        mem_mb=gb(2),
-        runtime=autobump(hours=2),
+        mem="2g",
+        runtime="2h",
     params:
         extra=(
             "-k 1 "
@@ -538,8 +537,8 @@ rule fastq_count:
         "{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize",
     threads: 1
     resources:
-        mem_mb=gb(1),
-        runtime=autobump(hours=2),
+        mem="1g",
+        runtime="2h",
     shell:
         "zcat {input} | echo $((`wc -l`/4)) > {output}"
 
@@ -551,8 +550,8 @@ rule bam_count:
         "{sample_dir}/{sample}/{suffix}.bam.libsize",
     threads: 1
     resources:
-        mem_mb=gb(2),
-        runtime=autobump(hours=2),
+        mem="2g",
+        runtime="2h",
     shell:
         "samtools view -c {input} > {output}"
 
@@ -564,8 +563,8 @@ rule bam_index:
         bai="{prefix}.bam.bai",
     threads: 1
     resources:
-        mem_mb=gb(2),
-        runtime=autobump(hours=2),
+        mem="2g",
+        runtime="2h",
     shell:
         "samtools index {input} {output}"
 
@@ -580,9 +579,9 @@ rule markduplicates:
         "data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.log",
     threads: 1
     resources:
-        mem_mb=gb(32),
-        runtime=autobump(hours=2),
-        disk_mb=autobump(gb=100),
+        mem="32g",
+        runtime="2h",
+        disk="100g",
     params:
         java_args="-Xmx20g",  # [disable for test]
         # java_args='-Xmx2g'  # [enable for test]
@@ -607,8 +606,8 @@ rule featurecounts:
         "data/rnaseq_samples/{sample}/{sample}_featurecounts.txt.log",
     threads: 8
     resources:
-        mem_mb=gb(16),
-        runtime=autobump(hours=2),
+        mem="16g",
+        runtime="2h",
     params:
         strand_arg={
             "unstranded": "-s0 ",
@@ -643,8 +642,8 @@ rule aggregate_featurecounts:
         "data/rnaseq_aggregation/featurecounts.txt.log",
     threads: 1
     resources:
-        mem_mb=gb(8),
-        runtime=autobump(hours=1),
+        mem="8g",
+        runtime="1h"
     run:
         for i, file in enumerate(input):
             df = pd.read_csv(file, sep="\t", comment="#")
@@ -674,8 +673,8 @@ rule rrna_libsizes_table:
         rrna_pattern=lambda wc: "data/rnaseq_samples/{sample}/rRNA/{sample}.cutadapt.rrna.bam.libsize",
         fastq_pattern=lambda wc: "data/rnaseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize",
     resources:
-        mem_mb=gb(2),
-        runtime=autobump(hours=2),
+        mem="2g",
+        runtime="2h",
     script:
         "../../scripts/rrna_libsizes_table.py"
 
@@ -690,8 +689,8 @@ rule collectrnaseqmetrics:
         "data/rnaseq_samples/{sample}/{sample}.collectrnaseqmetrics.metrics.log",
     threads: 1
     resources:
-        mem_mb=gb(32),
-        runtime=autobump(hours=2),
+        mem="32g",
+        runtime="2h",
     params:
         java_args="-Xmx20g",  # [disable for test]
         # java_args='-Xmx2g',  # [enable for test]
@@ -723,8 +722,8 @@ rule preseq:
         "data/rnaseq_samples/{sample}/{sample}_preseq_c_curve.txt.log",
     threads: 1
     resources:
-        mem_mb=gb(1),
-        runtime=autobump(hours=2),
+        mem="1g",
+        runtime="2h",
     shell:
         "preseq "
         "c_curve "
@@ -743,8 +742,8 @@ rule salmon:
         "data/rnaseq_samples/{sample}/{sample}.salmon/quant.sf.log",
     threads: 6
     resources:
-        mem_mb=gb(32),
-        runtime=autobump(hours=2),
+        mem="32g",
+        runtime="2h",
     params:
         extra=(
             "--libType=A "
@@ -780,8 +779,8 @@ rule kallisto:
         "data/rnaseq_samples/{sample}/{sample}.kallisto/abundance.h5.log",
     threads: 8
     resources:
-        mem_mb=gb(32),
-        runtime=autobump(hours=2),
+        mem="32g",
+        runtime="2h",
     params:
         strand_arg={
             "unstranded": "",
@@ -818,8 +817,8 @@ rule rseqc_infer_experiment:
     log:
         "data/rnaseq_samples/{sample}/rseqc/{sample}_infer_experiment.txt.log",
     resources:
-        mem_mb=gb(2),
-        runtime=autobump(hours=2),
+        mem="2g",
+        runtime="2h",
     shell:
         "infer_experiment.py -r {input.bed12} -i {input.bam} > {output} &> {log}"
 
@@ -833,8 +832,8 @@ rule rseqc_read_distribution:
     log:
         "data/rnaseq_samples/{sample}/rseqc/{sample}_read_distribution.txt.log",
     resources:
-        mem_mb=gb(2),
-        runtime=autobump(hours=2),
+        mem="2g",
+        runtime="2h",
     shell:
         "read_distribution.py -i {input.bam} -r {input.bed12} > {output} &> {log}"
 
@@ -848,8 +847,8 @@ rule samtools_idxstats:
     log:
         "data/rnaseq_samples/{sample}/idxstat_{sample}.txt.log",
     resources:
-        mem_mb=gb(16),
-        runtime=autobump(hours=2),
+        mem="16g",
+        runtime="2h",
     shell:
         "samtools idxstats {input.bam} 2> {log} 1> {output}"
 
@@ -862,6 +861,9 @@ rule samtools_flagstat:
         "data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.flagstat",
     log:
         "data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.flagstat.log",
+    resources:
+        mem="8g",
+        runtime="2h",
     shell:
         "samtools flagstat {input.bam} > {output}"
 
@@ -874,6 +876,9 @@ rule samtools_stats:
         "data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.stats",
     log:
         "data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.stats.log",
+    resources:
+        mem="8g",
+        runtime="2h",
     shell:
         "samtools stats {input.bam} > {output}"
 
@@ -886,8 +891,8 @@ rule bigwig_neg:
         "data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.neg.bigwig",
     threads: 8
     resources:
-        mem_mb=gb(16),
-        runtime=autobump(hours=2),
+        mem="16g",
+        runtime="2h",
     log:
         "data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.neg.bigwig.log",
     params:
@@ -921,8 +926,8 @@ rule bigwig_pos:
         "data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.pos.bigwig",
     threads: 8
     resources:
-        mem_mb=gb(16),
-        runtime=autobump(hours=2),
+        mem="16g",
+        runtime="2h",
     log:
         "data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.pos.bigwig.log",
     params:
@@ -977,9 +982,9 @@ rule multiqc:
         "data/rnaseq_aggregation/multiqc.log",
     threads: 1
     resources:
-        mem_mb=gb(2),
-        runtime=autobump(hours=2),
-        disk_mb=gb(10),
+        mem="2g",
+        runtime="2h",
+        disk="10g",
     run:
         analysis_directory = set([os.path.dirname(i) for i in input])
         outdir = os.path.dirname(output[0])
