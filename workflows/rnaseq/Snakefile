@@ -670,6 +670,9 @@ rule rrna_libsizes_table:
         tsv="data/rnaseq_aggregation/rrna_percentages_table.tsv",
         json="data/rnaseq_aggregation/rrna_percentages_table_mqc.yaml",
     threads: 1
+    params:
+        rrna_pattern=lambda wc: "data/rnaseq_samples/{sample}/rRNA/{sample}.cutadapt.rrna.bam.libsize",
+        fastq_pattern=lambda wc: "data/rnaseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz.libsize",
     resources:
         mem_mb=gb(2),
         runtime=autobump(hours=2),

@@ -2,21 +2,31 @@
 Prepares a TSV and JSON file for multiqc to pick up and display as a sortable
 table
 """
-import sys
 import os
+import re
 import pandas as pd
 import yaml
-
-sys.path.insert(0, os.path.dirname(__file__) + "/..")
-from lib import utils
+from snakemake.io import regex_from_filepattern
 
 
 def rrna_sample(f):
-    return utils.extract_wildcards(snakemake.config["patterns"]["rrna"]["libsize"], f)["sample"]
+    m = re.compile(
+        regex_from_filepattern(
+            snakemake.params.rrna_pattern,
+        )
+    ).match(f)
+    if m:
+        return m.groupdict()["sample"]
 
 
 def sample(f):
-    return utils.extract_wildcards(snakemake.config["patterns"]["libsizes"]["cutadapt"], f)["sample"]
+    m = re.compile(
+        regex_from_filepattern(
+            snakemake.params.fastq_pattern,
+        )
+    ).match(f)
+    if m:
+        return m.groupdict()["sample"]
 
 
 def million(f):
