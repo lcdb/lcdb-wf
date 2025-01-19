@@ -3,7 +3,6 @@ import sys
 import pandas
 
 sys.path.insert(0, os.path.dirname(workflow.snakefile) + "/../..")
-from lib.utils import autobump, gb, hours
 from lib import utils
 
 REFERENCES = config.get("reference_dir", "../../references")
@@ -18,6 +17,9 @@ rule fasta:
         temporary(f"{REFERENCES}/genome.fa.gz"),
     log:
         f"{REFERENCES}/logs/genome.fa.gz.log",
+    resources:
+        mem_mb="4g",
+        runtime="2h",
     run:
         utils.download_and_postprocess(
             urls=config["fasta"]["url"],
@@ -32,6 +34,9 @@ rule gtf:
         temporary(f"{REFERENCES}/annotation.gtf.gz"),
     log:
         f"{REFERENCES}/logs/annotation.gtf.gz.log",
+    resources:
+        mem="4g",
+        runtime="2h",
     run:
         utils.download_and_postprocess(
             urls=config["gtf"]["url"],
@@ -46,6 +51,9 @@ rule rrna:
         temporary(f"{REFERENCES}/rrna.fa.gz"),
     log:
         f"{REFERENCES}/logs/rrna.fa.gz.log",
+    resources:
+        mem="4g",
+        runtime="2h",
     run:
         utils.download_and_postprocess(
             urls=config["rrna"]["url"],
@@ -60,6 +68,9 @@ rule unzip:
         f"{REFERENCES}/{{prefix}}.gz",
     output:
         f"{REFERENCES}/{{prefix}}",
+    resources:
+        mem="4g",
+        runtime="2h",
     shell:
         "gunzip -c {input} > {output}"
 
@@ -81,9 +92,9 @@ rule bowtie2_index:
     log:
         f"{REFERENCES}/logs/bowtie2_{{label}}.log",
     resources:
-        runtime=autobump(hours=8),
-        mem_mb=autobump(gb=32),
-        disk_mb=autobump(gb=50),
+        mem="32g",
+        disk="50g",
+        runtime="8h",
     threads: 8
     run:
         index = os.path.commonprefix(output).rstrip(".")
@@ -101,8 +112,8 @@ rule star_index:
         f"{REFERENCES}/logs/star.log",
     threads: 8
     resources:
-        runtime=autobump(hours=8),
-        mem_mb=gb(64),
+        mem="64g",
+        runtime="8h",
     run:
         genomedir = os.path.dirname(output[0])
         shell("rm -r {genomedir}")
@@ -148,9 +159,9 @@ rule hisat2_index:
     log:
         f"{REFERENCES}/logs/hisat2.log",
     resources:
-        runtime=autobump(hours=8),
-        mem_mb=autobump(gb=32),
-        disk_mb=autobump(gb=50),
+        mem="32g",
+        disk="50g",
+        runtime="8h",
     threads: 8
     run:
         index = os.path.commonprefix(output).rstrip(".")
@@ -165,7 +176,8 @@ rule transcriptome_fasta:
     output:
         f"{REFERENCES}/transcriptome.fa",
     resources:
-        runtime=hours(1),
+        mem="4g",
+        runtime="2h",
     shell:
         "gffread {input.gtf} -w {output} -g {input.fasta}"
 
@@ -180,8 +192,8 @@ rule salmon_index:
     params:
         outdir=f"{REFERENCES}/salmon",
     resources:
-        mem_mb=gb(32),
-        runtime=hours(2),
+        mem="32g",
+        runtime="2h",
     run:
         outdir = os.path.dirname(output[0])
         shell("salmon index " "--transcripts {input} " "--index {outdir} " "&> {log}")
@@ -195,8 +207,8 @@ rule kallisto_index:
     log:
         f"{REFERENCES}/logs/kallisto.log",
     resources:
-        runtime=hours(2),
-        mem_mb=gb(32),
+        mem="32g",
+        runtime="2h",
     shell:
         "kallisto index "
         "--index {output} "
@@ -212,8 +224,8 @@ rule conversion_refflat:
     log:
         f"{REFERENCES}/logs/annotation.refflat.log",
     resources:
-        runtime=hours(2),
-        mem_mb=gb(2),
+        mem="2g",
+        runtime="2h",
     shell:
         "gtfToGenePred -ignoreGroupsWithoutExons {input} {output}.tmp "
         """&& awk '{{print $1"\t"$0}}' {output}.tmp > {output} """
@@ -226,8 +238,8 @@ rule conversion_bed12:
     output:
         f"{REFERENCES}/annotation.bed12",
     resources:
-        runtime=hours(2),
-        mem_mb=gb(2),
+        mem="2g",
+        runtime="2h",
     shell:
         "gtfToGenePred -ignoreGroupsWithoutExons {input} {output}.tmp "
         "&& genePredToBed {output}.tmp {output} "
@@ -247,8 +259,8 @@ rule chromsizes:
         java_args="-Xmx20g",
         # java_args='-Xmx2g'  # [TEST SETTINGS -1]
     resources:
-        mem_mb=gb(24),
-        runtime=hours(2),
+        mem="24g",
+        runtime="2h",
     shell:
         "export LC_COLLATE=C; "
         "rm -f {output}.tmp "
@@ -275,8 +287,8 @@ rule mappings:
             output[0]
         ].get("include_featuretypes", []),
     resources:
-        runtime=hours(2),
-        mem_mb=gb(2),
+        mem="2g",
+        runtime="2h",
     run:
         import gffutils
 
