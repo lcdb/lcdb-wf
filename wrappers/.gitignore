@@ -1,5 +1,0 @@
-.test*
-__pycache__
-.snakemake
-.cache
-**.snakemake*

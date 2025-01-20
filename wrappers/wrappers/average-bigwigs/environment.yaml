@@ -1,5 +1,0 @@
-channels:
-  - bioconda
-dependencies:
-  - ucsc-bigwigmerge
-  - ucsc-bedgraphtobigwig
