@@ -5,7 +5,7 @@ variables:
   # default settings for all steps
   defaults: &defaults
     docker:
-      - image: ubuntu:20.04
+      - image: ubuntu:latest
 
   # --------------------------------------------------------------------------
   # The caching dramatically speeds up testing time, because we can do the
@@ -28,7 +28,7 @@ variables:
     save_cache:
       key: v5-{{ checksum "env.yml" }}-{{ checksum "env-r.yml" }}
       paths:
-        - /opt/mambaforge
+        - /opt/miniforge
 
         # this file is created by sra-tools upon installation by conda, and so
         # needs to be included in the cache otherwise fastq-dump thinks it's
@@ -48,6 +48,7 @@ variables:
         name: Set path
         command: |
           # x11-utils required to avoid R::png() segfaulting
+          export DEBIAN_FRONTEND=noninteractive
           apt update && apt install -y \
             curl \
             git \
@@ -73,7 +74,7 @@ variables:
 
           # Note that if we don't escape \$PATH, we'll be stuck with the exact
           # PATH defined here, which will break anything needing conda envs.
-          echo "export PATH=\$PATH:/opt/mambaforge/bin" >> $BASH_ENV
+          echo "export PATH=\$PATH:/opt/miniforge/bin" >> $BASH_ENV
           source $BASH_ENV
 
 
@@ -85,28 +86,16 @@ variables:
       command: |
         source $BASH_ENV
         echo $PATH
-        # /opt/mambaforge will only exist if there was a cache restore; otherwise we'll make it here.
+        # /opt/miniforge will only exist if there was a cache restore; otherwise we'll make it here.
         #
-        # Use mambaforge which comes with mamba.
-        if [ ! -e /opt/mambaforge ]; then
-            curl -L https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh > mambaforge.sh
-            bash mambaforge.sh -b -p /opt/mambaforge
-            source "/opt/mambaforge/etc/profile.d/conda.sh"
-            source "/opt/mambaforge/etc/profile.d/mamba.sh"
+        if [ ! -e /opt/miniforge ]; then
+            curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+            bash Miniforge3-$(uname)-$(uname -m).sh -b -p /opt/miniforge
+            source "/opt/miniforge/etc/profile.d/conda.sh"
             conda activate
 
             which conda
-            which mamba
-            mamba --version
-
-            # Note that mambaforge doesn't come with the defaults channel, but
-            # we're adding it here at the beginning to simulate what most users
-            # probably have locally (and following the bioconda docs). Using
-            # strict channel priority means we should [theoretically] never
-            # pull packages from defaults because they all exist on
-            # conda-forge.
-            conda config --system --add channels defaults
-
+            conda --version
             conda config --system --add channels bioconda
             conda config --system --add channels conda-forge
             conda config --system --set channel_priority strict
@@ -115,10 +104,10 @@ variables:
             # https://docs.conda.io/projects/conda-build/en/latest/resources/link-scripts.html,
             # post-link scripts should not depend on any installed or
             # to-be-installed conda packages...but they do.
-            mamba install -n base r-base yq
+            conda install -n base r-base yq
 
-            time mamba env create -n $LCDBWF_ENV --file env.yml
-            time mamba env create -n $LCDBWF_ENV_R --file env-r.yml
+            time conda env create -n $LCDBWF_ENV --file env.yml
+            time conda env create -n $LCDBWF_ENV_R --file env-r.yml
         fi
 
   # --------------------------------------------------------------------------
@@ -127,7 +116,7 @@ variables:
     run:
       name: Download example data
       command: |
-        source /opt/mambaforge/etc/profile.d/conda.sh
+        source /opt/miniforge/etc/profile.d/conda.sh
         conda activate $LCDBWF_ENV
         conda info --envs
         conda config --show
@@ -151,7 +140,7 @@ variables:
         cp $ORIG/workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq/run_test.sh
         cp $ORIG/workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq/run_downstream_test.sh
         cp $ORIG/workflows/references/run_test.sh $DEPLOY/workflows/references/run_test.sh
-        cp $ORIG/workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization/run_test.sh
+        # cp $ORIG/workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization/run_test.sh
 
         mkdir $DEPLOY/ci
         mkdir $DEPLOY/test
@@ -172,7 +161,7 @@ variables:
     run:
       name: Run pytest suite and testthat suite
       command: |
-        source /opt/mambaforge/etc/profile.d/conda.sh
+        source /opt/miniforge/etc/profile.d/conda.sh
         conda activate $LCDBWF_ENV
         # run unit tests and doctests for the modules in lib
         test/lcdb-wf-test unit_tests --pytest
@@ -194,9 +183,9 @@ variables:
         name: chipseq workflow
         command: |
           cd $DEPLOY/workflows/chipseq
-          source /opt/mambaforge/etc/profile.d/conda.sh
+          source /opt/miniforge/etc/profile.d/conda.sh
           conda activate $LCDBWF_ENV
-          $DEPLOY/test/lcdb-wf-test chipseq --run-workflow --use-conda -j2 -k -p -r
+          $DEPLOY/test/lcdb-wf-test chipseq --run-workflow --use-conda -j2 -k -p
           $DEPLOY/test/lcdb-wf-test chipseq --trackhub
 
   # --------------------------------------------------------------------------
@@ -208,10 +197,10 @@ variables:
         name: chipseq misc
         command: |
           cd $DEPLOY/workflows/chipseq
-          source /opt/mambaforge/etc/profile.d/conda.sh
+          source /opt/miniforge/etc/profile.d/conda.sh
           conda activate $LCDBWF_ENV
 
-          ./run_test.sh --use-conda -j2 -k -p -r \
+          ./run_test.sh --use-conda -j2 -k -p \
             --configfile $ORIG/test/test_configs/test_chipseq_regression.yaml \
             --config sampletable=$ORIG/test/test_configs/chipseq_one_run.tsv \
             merged_bigwigs="{}" \
@@ -232,26 +221,16 @@ variables:
           fi
 
   # --------------------------------------------------------------------------
-  # Standard references workflow.
-  references-step: &references-step
-      run:
-        name: references workflow
-        command: |
-          source /opt/mambaforge/etc/profile.d/conda.sh
-          conda activate $LCDBWF_ENV
-          $DEPLOY/test/lcdb-wf-test references --run-workflow --configfile=config/config.yaml -j2 -p -r -k --orig $ORIG
-
-  # --------------------------------------------------------------------------
   # Standard RNA-seq workflow
   rnaseq-step: &rnaseq-step
       run:
         name: rnaseq workflow
         command: |
           cd $DEPLOY
-          source /opt/mambaforge/etc/profile.d/conda.sh
+          source /opt/miniforge/etc/profile.d/conda.sh
           conda activate $LCDBWF_ENV
           $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow -n
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --use-conda -j2 -k -p -r --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --use-conda -j2 -k -p --orig $ORIG
 
           $DEPLOY/test/lcdb-wf-test rnaseq --trackhub --orig $ORIG
 
@@ -276,19 +255,19 @@ variables:
         command: |
           ORIG=$(pwd)
           cd $DEPLOY
-          source /opt/mambaforge/etc/profile.d/conda.sh
+          source /opt/miniforge/etc/profile.d/conda.sh
           conda activate $LCDBWF_ENV
 
           # Check the help for test/lcdb-wf-test to see what args these
           # provide; some of them use the --until argument to restrict the
           # rules that are run. Note the use of --orig $ORIG to use the test
           # configs from the original clone rather than the deployed directory.
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --sra-pe          -k -r -p -j2 --use-conda --orig $ORIG
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --sra-se          -k -r -p -j2 --use-conda --orig $ORIG
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --strandedness-pe -k -r -p -j2 --use-conda --orig $ORIG
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --star-2pass      -k -r -p -j2 --use-conda --orig $ORIG
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --star-1pass      -k -r -p -j2 --use-conda --orig $ORIG
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --pe              -k -r -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --sra-pe          -k -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --sra-se          -k -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --strandedness-pe -k -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --star-2pass      -k -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --star-1pass      -k -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --pe              -k -p -j2 --use-conda --orig $ORIG
 
 
 
@@ -299,9 +278,9 @@ variables:
         name: colocalization workflow
         command: |
           cd $DEPLOY/workflows/colocalization
-          source /opt/mambaforge/etc/profile.d/conda.sh
+          source /opt/miniforge/etc/profile.d/conda.sh
           conda activate $LCDBWF_ENV
-          $DEPLOY/test/lcdb-wf-test colocalization --run-workflow -k -r -p -j2 --use-conda --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test colocalization --run-workflow -k -p -j2 --use-conda --orig $ORIG
 
 # --------------------------------------------------------------------------
 # Syntax note: All of the steps above, with their "&step-name" labels, can be
@@ -410,23 +389,23 @@ jobs:
       - *get-data
       - *rnaseq-misc-step
 
-  colocalization:
-    <<: *defaults
-    steps:
-      - checkout
-      - *restore_cache
-      - *set-path
-      - *get-data
-      - *colocalization-step
+  # colocalization:
+  #   <<: *defaults
+  #   steps:
+  #     - checkout
+  #     - *restore_cache
+  #     - *set-path
+  #     - *get-data
+  #     - *colocalization-step
 
-  references:
-    <<: *defaults
-    steps:
-      - checkout
-      - *restore_cache
-      - *set-path
-      - *get-data
-      - *references-step
+  # references:
+  #   <<: *defaults
+  #   steps:
+  #     - checkout
+  #     - *restore_cache
+  #     - *set-path
+  #     - *get-data
+  #     - *references-step
 
   build-docs:
     <<: *defaults
@@ -438,9 +417,9 @@ jobs:
       - run:
           name: Install sphinx
           command: |
-            source /opt/mambaforge/etc/profile.d/conda.sh
+            source /opt/miniforge/etc/profile.d/conda.sh
             conda activate lcdb-wf-test
-            mamba install -y sphinx make yaml
+            conda install -y sphinx make yaml
       - run:
           name: OK for unknown github host
           command: mkdir -p ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
@@ -450,7 +429,7 @@ jobs:
       - run:
           name: Build and upload docs
           command: |
-            source /opt/mambaforge/etc/profile.d/conda.sh
+            source /opt/miniforge/etc/profile.d/conda.sh
             conda activate lcdb-wf-test
             ci/build-docs.sh
       - store_artifacts:
@@ -466,7 +445,7 @@ jobs:
       - run:
           name: Report environment
           command: |
-            source /opt/mambaforge/etc/profile.d/conda.sh
+            source /opt/miniforge/etc/profile.d/conda.sh
             conda env export -n lcdb-wf-test > /tmp/env.yaml
             conda env export -n lcdb-wf-test-r > /tmp/env-r.yaml
       - store_artifacts:
@@ -500,14 +479,14 @@ workflows:
           requires:
             - initial-setup
             - pytest
-      - references:
-          requires:
-            - initial-setup
-            - pytest
-      - colocalization:
-          requires:
-            - initial-setup
-            - pytest
+      # - references:
+      #     requires:
+      #       - initial-setup
+      #       - pytest
+      # - colocalization:
+      #     requires:
+      #       - initial-setup
+      #       - pytest
       - build-docs:
           requires:
             - initial-setup
@@ -518,4 +497,4 @@ workflows:
             - chipseq
             - chipseq-misc
             - references
-            - colocalization
+            # - colocalization

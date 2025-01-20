@@ -1,11 +1,48 @@
 import sys
 import os
-import pandas as pd
-import gzip
 import re
+import gzip
+import zipfile
+import shutil
+import tempfile
+import pandas as pd
+
 here = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(here, '../../lib'))
-from common import openfile
+sys.path.insert(0, os.path.join(here, "../../lib"))
+from utils import openfile
+
+
+
+def extract_from_zip(tmpfiles, outfile, path_in_zip):
+    """
+    Parameters
+    ----------
+
+    tmpfiles : list
+        One-item list containing zip file
+
+    outfile : str
+        gzipped output file to create
+
+    path_in_zip : str
+        Path within zipfile to extract. You can identify the path using unzip
+        -l x.zip from bash.
+    """
+    assert len(tmpfiles) == 1, f"expected single zip file, got {tmpfiles}"
+
+    extraction_dir = tempfile.mkdtemp()
+
+    with zipfile.ZipFile(tmpfiles[0], "r") as z:
+        z.extract(path_in_zip, path=extraction_dir)
+
+    full_path_to_extracted = os.path.join(extraction_dir, path_in_zip)
+
+    with open(full_path_to_extracted, "rb") as fin:
+        with gzip.open(outfile, "wb") as fout:
+            shutil.copyfileobj(fin, fout)
+
+    shutil.rmtree(extraction_dir)
+
 
 def match_gtf_9th(tmpfiles, outfile, strmatch, optstrand = "None"):
     """

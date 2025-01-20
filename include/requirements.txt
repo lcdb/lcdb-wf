@@ -4,16 +4,17 @@ bowtie
 bowtie2
 cutadapt>=3.0
 deeptools
+epic2
 fastq-screen
 fastqc
 font-ttf-dejavu-sans-mono
-gat
 gffread
 gffutils
 hisat2
 intervalstats
 ipython
 kallisto
+macs2
 multiqc
 pandas
 pandoc
@@ -27,7 +28,7 @@ pyfaidx
 pysam
 pytest
 pytest-xdist
-python>=3.10
+python
 rseqc
 
 # earlier versions of salmon can segfault on Slurm
@@ -35,7 +36,7 @@ salmon>=1.10.1
 
 samtools
 seaborn
-snakemake-minimal
+snakemake>8
 sra-tools
 star
 subread

@@ -1,59 +1,27 @@
+fasta:
+  url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa"
+  postprocess: 'lib.utils.gzipped'
+
+gtf:
+  url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf"
+  postprocess: 'lib.utils.gzipped'
+
+rrna:
+  url:
+    - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+    - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+  postprocess:
+    function: 'lib.utils.filter_fastas'
+    args: 'Drosophila melanogaster'
+
+
 sampletable: 'config/sampletable.tsv'
 
 patterns: 'config/rnaseq_patterns.yaml'
 
-# Which key in the `references` dict below to use
-organism: 'dmel'
-
-# If not specified here, use the environment variable REFERENCES_DIR.
-references_dir: 'references_data'
- 
 # See https://rnabio.org/module-09-appendix/0009/12/01/StrandSettings for more info.
 stranded: 'fr-firststrand'     # for dUTP libraries
 #         'fr-secondstrand'    # for ligation libraries
 #         'unstranded'         # for libraries without strand specificity
 
-aligner:
-  index: 'star'
-  tag: 'test'
-
-rrna:
-  index: 'bowtie2'
-  tag: 'rRNA'
-
-gtf:
-  tag: "test"
-
-salmon:
-  tag: "test"
-
-kallisto:
-  tag: "test"
-
-fastq_screen:
-  - label: rRNA
-    organism: dmel
-    tag: test
-  - label: Fly
-    organism: dmel
-    tag: test
-
-merged_bigwigs:
-  control_pos:
-    pos:
-      - sample1
-      - sample2
-  treatment_all:
-    pos:
-      - sample3
-      - sample4
-    neg:
-      - sample3
-      - sample4
-
-# See the reference config files in the top level of the repo,
-# include/reference_configs, for inspiration for more species.
-
-include_references:
-  - '../../include/reference_configs/test.yaml'
-  - '../../include/reference_configs/Drosophila_melanogaster.yaml'
+aligner: 'star'

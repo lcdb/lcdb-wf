@@ -142,8 +142,11 @@ class Runner(object):
             %(prog)s rnaseq --run-workflow --strandedness-pe
             %(prog)s rnaseq --run-workflow --strandedness-se
             %(prog)s rnaseq --run-workflow --star-2pass
-            %(prog)s rnaseq --run-workflow --star-1pass
+            %(prog)s rnaseq --run-workflow --hisat2
             %(prog)s rnaseq --run-workflow --pe
+
+            # Since there are a lot of parameters here, see
+            # "workflow_test_params.yaml" for how they are managed.
 
             """,
             formatter_class=argparse.RawDescriptionHelpFormatter
@@ -328,7 +331,7 @@ class Runner(object):
         if args.url_check:
             print_header("url check")
             sys.path.insert(0, str(TOPLEVEL))
-            from lib.common import check_all_urls_found
+            from lib.utils import check_all_urls_found
 
             check_all_urls_found()
 

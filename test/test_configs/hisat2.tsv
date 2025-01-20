@@ -1,0 +1,3 @@
+samplename	group	layout	orig_filename
+sample1-hisat2	control	SE	data/example_data/rnaseq_sample1PE_1.fq.gz
+sample2-hisat2	control	SE	data/example_data/rnaseq_sample2.fq.gz
