@@ -25,7 +25,6 @@ from trackhub.helpers import filter_composite_from_subgroups, dimensions_from_su
 from trackhub.upload import upload_hub, stage_hub
 
 from lib import chipseq
-from lib.patterns_targets import ChIPSeqConfig
 
 ap = argparse.ArgumentParser()
 ap.add_argument('config', help='Main config.yaml file')
@@ -52,8 +51,6 @@ hub, genomes_file, genome, trackdb = default_hub(
     email=hub_config['hub']['email'],
     genome=hub_config['hub']['genome']
 )
-
-c = ChIPSeqConfig(config, os.path.join(os.path.dirname(args.config), 'chipseq_patterns.yaml'))
 
 # Set up subgroups based on unique values from columns specified in the config
 df = pandas.read_csv(config['sampletable'], comment='#', sep='\t')
@@ -82,8 +79,7 @@ subgroups.append(
     SubGroupDefinition(
         name='algorithm', label='algorithm', mapping={
             'macs2': 'macs2',
-            'spp': 'spp',
-            'sicer': 'sicer',
+            'epic2': 'epic2',
             'NA': 'NA',
         }))
 
@@ -146,8 +142,7 @@ def decide_color(samplename):
 
 for label in df['label'].unique():
 
-    # ASSUMPTION: bigwig filename pattern
-    bigwig = c.patterns['bigwig'].format(label=label)
+    bigwig = f"data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.bam.bigwig"
 
     subgroup = df[df.loc[:, 'label'] == label].to_dict('records')[0]
     subgroup = {
