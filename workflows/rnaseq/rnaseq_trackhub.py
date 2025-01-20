@@ -9,8 +9,6 @@ are stranded.  Such assumptions are indicated in the comments below.
 """
 
 import os
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 import re
 from pprint import pprint
 import pandas
@@ -21,8 +19,6 @@ from trackhub.helpers import sanitize, hex2rgb, dimensions_from_subgroups, filte
 from trackhub import CompositeTrack, ViewTrack, SubGroupDefinition, Track, default_hub
 from trackhub.upload import upload_hub, stage_hub
 import argparse
-
-from lib.patterns_targets import RNASeqConfig
 
 ap = argparse.ArgumentParser()
 ap.add_argument('config', help='Main config.yaml file')
@@ -41,7 +37,6 @@ if args.additional_configs:
     for cfg in args.additional_configs:
         update_config(config, yaml.load(open(cfg), Loader=yaml.FullLoader))
 
-c = RNASeqConfig(config, os.path.join(os.path.dirname(args.config), 'rnaseq_patterns.yaml'))
 
 hub, genomes_file, genome, trackdb = default_hub(
     hub_name=hub_config['hub']['name'],
@@ -126,7 +121,7 @@ for sample in df[df.columns[0]]:
     for direction in 'pos', 'neg':
 
         # ASSUMPTION: bigwig filename pattern
-        bigwig = c.patterns['bigwig'][direction].format(sample=sample)
+        bigwig = f"data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.{direction}.bigwig"
 
         subgroup = df[df.iloc[:, 0] == sample].to_dict('records')[0]
         subgroup = {
