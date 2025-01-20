@@ -6,7 +6,6 @@ import pandas as pd
 sys.path.insert(0, os.path.dirname(workflow.snakefile) + "/../..")
 from lib import utils
 from lib import chipseq
-from lib.utils import autobump, gb, hours
 
 
 configfile: "config/config.yaml"
@@ -59,9 +58,9 @@ if utils.detect_sra(sampletable):
             is_paired=is_paired,
             # extra="-X 100000",  # [enable for test]
         resources:
-            mem_mb=gb(1),
-            disk_mb=autobump(gb=1),
-            runtime=autobump(hours=2)
+            mem="1g",
+            disk="1g",
+            runtime="2h",
         run:
             srr = sampletable.loc[wildcards.sample, "Run"]
             extra = params.get("extra", "")
@@ -85,8 +84,8 @@ rule symlinks:
         expand(patterns["fastq"], n=n, allow_missing=True),
     threads: 1
     resources:
-        mem_mb=100,
-        runtime=10,
+        mem="1g",
+        runtime="10m",
     run:
         assert len(output) == len(input), (input, output)
         for src, linkname in zip(input, output):
@@ -109,8 +108,8 @@ rule cutadapt:
         "data/chipseq_samples/{sample}/{sample}_cutadapt.fastq.gz.log",
     threads: 6
     resources:
-        mem_mb=gb(2),
-        runtime=autobump(hours=2),
+        mem="2g",
+        runtime="2h",
     params:
         extra=(
             (
@@ -154,8 +153,8 @@ rule fastqc:
         html="{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html",
         zip="{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip",
     resources:
-        mem_mb=gb(8),
-        runtime=autobump(hours=2),
+        mem="8g",
+        runtime="2h",
     log:
         "{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.log",
     run:
@@ -198,8 +197,8 @@ rule bowtie2:
         patterns["bam"] + ".log",
     threads: 16
     resources:
-        mem_mb=gb(32),
-        runtime=autobump(hours=2),
+        mem="32g",
+        runtime="2h",
     params:
         extra="",
     run:
@@ -235,8 +234,8 @@ rule unique:
         patterns["unique"],
     threads: 1
     resources:
-        mem_mb=gb(1),
-        runtime=autobump(hours=2),
+        mem="1g",
+        runtime="2h",
     params:
         # NOTE: the quality score chosen here should reflect the scores output
         # by the aligner used. For example, STAR uses 255 as max mapping
@@ -253,8 +252,8 @@ rule fastq_count:
         "{sample_dir}/{sample}/{sample}{suffix}.fastq.gz.libsize",
     threads: 1
     resources:
-        mem_mb=gb(1),
-        runtime=autobump(hours=2),
+        mem="1g",
+        runtime="2h",
     shell:
         "zcat {input} | echo $((`wc -l`/4)) > {output}"
 
@@ -266,8 +265,8 @@ rule bam_count:
         "{sample_dir}/{sample}/{suffix}.bam.libsize",
     threads: 1
     resources:
-        mem_mb=gb(2),
-        runtime=autobump(hours=2),
+        mem="2g",
+        runtime="2h",
     shell:
         "samtools view -c {input} > {output}"
 
@@ -279,8 +278,8 @@ rule bam_index:
         bai="{prefix}.bam.bai",
     threads: 1
     resources:
-        mem_mb=gb(2),
-        runtime=autobump(hours=2),
+        mem="2g",
+        runtime="2h",
     shell:
         "samtools index {input} {output}"
 
@@ -295,9 +294,9 @@ rule markduplicates:
         patterns["markduplicates"]["bam"] + ".log",
     threads: 1
     resources:
-        mem_mb=gb(32),
-        runtime=autobump(hours=2),
-        disk_mb=gb(100),
+        mem="32g",
+        disk="100g",
+        runtime="2h",
     params:
         java_args="-Xmx20g",  # [disable for test]
         # java_args='-Xmx2g'  # [enable for test]
@@ -326,9 +325,9 @@ rule merge_techreps:
         patterns["merged_techreps"] + ".log",
     threads: 1
     resources:
-        mem_mb=gb(32),
-        runtime=autobump(hours=2),
-        disk_mb=gb(100),
+        mem="32g",
+        disk="100g",
+        runtime="2h",
     params:
         java_args="-Xmx32g",  # [disable for test]
         # java_args='-Xmx2g'  # [enable for test]
@@ -348,8 +347,8 @@ if is_paired:
             patterns["collectinsertsizemetrics"]["metrics"] + ".log",
         threads: 1
         resources:
-            mem_mb=gb(32),
-            runtime=autobump(hours=2),
+            mem="32g",
+            runtime="2h",
         params:
             java_args="-Xmx20g",  # [disable for test]
             # java_args='-Xmx2g'  # [enable for test]
@@ -373,8 +372,8 @@ rule bigwig:
         patterns["bigwig"] + ".log",
     threads: 1
     resources:
-        mem_mb=gb(16),
-        runtime=autobump(hours=2),
+        mem="16g",
+        runtime="2h",
     shell:
         "bamCoverage "
         "--bam {input.bam} "
@@ -416,8 +415,8 @@ rule fingerprint:
         patterns["fingerprint"]["metrics"] + ".log",
     threads: 1
     resources:
-        mem_mb=gb(32),
-        runtime=autobump(hours=2),
+        mem="32g",
+        runtime="2h",
     run:
         if len(input.control) == 0:
             jsdsample_arg = ""
@@ -461,8 +460,8 @@ rule macs2:
     output:
         bed=patterns["peaks"]["macs2"],
     resources:
-        mem_mb=gb(16),
-        runtime=autobump(hours=2),
+        mem="16g",
+        runtime="2h",
     log:
         patterns["peaks"]["macs2"] + ".log",
     params:
@@ -496,8 +495,8 @@ rule epic2:
     output:
         bed=patterns["peaks"]["epic2"],
     resources:
-        mem_mb=gb(16),
-        runtime=autobump(hours=2),
+        mem="16g",
+        runtime="2h",
     log:
         patterns["peaks"]["epic2"] + ".log",
     params:
@@ -517,8 +516,8 @@ rule bed_to_bigbed:
     output:
         "{prefix}.bigbed",
     resources:
-        mem_mb=gb(2),
-        runtime=autobump(hours=2),
+        mem="2g",
+        runtime="2h",
     log:
         "{prefix}.bigbed.log",
     script:
@@ -536,8 +535,8 @@ rule multibigwigsummary:
         tab=patterns["multibigwigsummary"]["tab"],
     threads: 16
     resources:
-        mem_mb=gb(16),
-        runtime=autobump(hours=2),
+        mem="16g",
+        runtime="2h",
     run:
         # from the input files, figure out the sample name.
         labels = " ".join([i.split("/")[-2] for i in input])
@@ -562,8 +561,8 @@ rule plotcorrelation:
         heatmap=patterns["plotcorrelation"]["heatmap"],
         tab=patterns["plotcorrelation"]["tab"],
     resources:
-        mem_mb=gb(2),
-        runtime=autobump(hours=2),
+        mem="2g",
+        runtime="2h",
     shell:
         "plotCorrelation "
         "--corData {input} "
@@ -587,8 +586,8 @@ rule idxstats:
     output:
         txt=patterns["samtools"]["idxstats"],
     resources:
-        mem_mb=gb(16),
-        runtime=autobump(hours=2),
+        mem="16g",
+        runtime="2h",
     log:
         patterns["samtools"]["idxstats"] + ".log",
     shell:
@@ -601,6 +600,9 @@ rule flagstat:
         bai=patterns["markduplicates"]["bam"] + ".bai",
     output:
         patterns["samtools"]["flagstat"],
+    resources:
+        mem="8g",
+        runtime="2h",
     log:
         patterns["samtools"]["flagstat"] + ".log",
     shell:
@@ -613,6 +615,9 @@ rule samtools_stats:
         bai=patterns["markduplicates"]["bam"] + ".bai",
     output:
         patterns["samtools"]["stats"],
+    resources:
+        mem="8g",
+        runtime="2h",
     log:
         patterns["samtools"]["stats"] + ".log",
     shell:
@@ -647,8 +652,8 @@ rule multiqc:
         patterns["multiqc"] + ".log",
     threads: 1
     resources:
-        mem_mb=gb(2),
-        runtime=autobump(hours=2),
+        mem="2g",
+        runtime="2h",
     run:
         analysis_directory = "data"
         outdir = os.path.dirname(output[0])
