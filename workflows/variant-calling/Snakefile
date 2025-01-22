@@ -668,7 +668,7 @@ rule snpeff:
         # mem_mb=gb(4), # [ TEST SETTINGS -1 ]
         runtime=autobump(120)
     input:
-        vcf='results/filtered/all.normed.vcf.gz',
+        unpack(snpeff_input)
     log: 'logs/snpeff.log'
     output:
         ann='results/annotated/ann.vcf.gz',
@@ -914,7 +914,7 @@ rule snpeff_cancer:
         # mem_mb=gb(4), # [ TEST SETTINGS -1 ]
         runtime=autobump(120)
     input:
-        vcf='results/somatic_filtered/normed.{comp}.vcf.gz',
+        unpack(snpeff_cancer_input),
     output:
         vcf='results/mutect2_annotated/snpeff.{comp}.vcf.gz',
         stats='results/qc/snpEff_{comp}_summary.csv',
