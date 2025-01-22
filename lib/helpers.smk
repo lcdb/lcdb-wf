@@ -343,4 +343,45 @@ def get_bed_nomenclature(input):
     return nom
 
 
+def snpeff_input(wildcards):
+    """
+    Ensure all correct input files for snpEff rule are available
+    """
+    dbnsfp = (
+            config['ref']['paths']['dbnsfp']
+            if config['ref']['paths']['dbnsfp']
+            else []
+    )
+    dbnsfp_tbi = dbnsfp + '.tbi'
+    vcf = 'results/filtered/all.normed.vcf.gz'
+
+    # make dictionary containing the required snpEff input files
+    d = dict(
+        dbnsfp=dbnsfp,
+        dbnsfp_tbi=dbnsfp_tbi,
+        vcf=vcf,
+    )
+    return d
+
+
+def snpeff_cancer_input(wildcards):
+    """
+    Ensure all correct input files for snpEff cancer rule are available
+    """
+    dbnsfp = (
+            config['ref']['paths']['dbnsfp']
+            if config['ref']['paths']['dbnsfp']
+            else []
+    )
+    dbnsfp_tbi = dbnsfp + '.tbi'
+    vcf = 'results/somatic_filtered/normed.{comp}.vcf.gz'.format(comp = wildcards.comp)
+
+    # make dictionary containing the required snpEff cancer input files
+    d = dict(
+        dbnsfp=dbnsfp,
+        dbnsfp_tbi=dbnsfp_tbi,
+        vcf=vcf,
+    )
+    return d
+
 # vim: ft=python
