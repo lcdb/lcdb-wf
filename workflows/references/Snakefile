@@ -5,7 +5,8 @@ import gzip
 import yaml
 import importlib
 import tempfile
-import pandas
+from tempfile import TemporaryDirectory
+import pandas as pd
 from snakemake.utils import makedirs
 from lib.imports import resolve_name
 from lib import utils
@@ -61,6 +62,29 @@ rule unzip:
         '{references_dir}/logs/{organism}/{tag}/{_type}/{organism}_{tag}.{_ext}.log'
     shell: 'gunzip -c {input} > {output}'
 
+rule bwa_index:
+    """
+    Build bwa index
+    """
+    input:
+        '{references_dir}/{organism}/{tag}/genome/{organism}_{tag}.fasta'
+    output:
+        protected(aligners.bwa_index_from_prefix('{references_dir}/{organism}/{tag}/genome/bwa/{organism}_{tag}'))
+    log:
+        '{references_dir}/logs/{organism}/{tag}/genome/bwa/{organism}_{tag}.log'
+    resources:
+        runtime=autobump(hours=3),
+        mem_mb=gb(24),
+        disk_mb=gb(24)
+    run:
+        prefix=aligners.bwa_prefix_from_index(output)
+        print(prefix)
+        shell(
+            'bwa index '
+            '-p {prefix} '
+            '-a bwtsw '
+            '{input} '
+            '&> {log}')
 
 rule bowtie2_index:
     """
@@ -353,7 +377,7 @@ rule mappings:
             d['__featuretype__'] = ft
             res.append(d)
 
-        df = pandas.DataFrame(res)
+        df = pd.DataFrame(res)
 
         # Depending on how many attributes there were and the
         # include_featuretypes settings, this may take a while.
@@ -363,5 +387,177 @@ rule mappings:
 
         # Restore original setting
         gffutils.constants.always_return_list = orig_setting
+
+
+checkpoint genome_index:
+    """
+    Build fasta index. GATK uses this file for rapid fasta accession as well as
+    the fasta index is used to identify chromosomes and contigs in the genome
+    to download the appropriate known variation file
+    """
+    input:
+        '{references_dir}/{organism}/{tag}/genome/{organism}_{tag}.fasta'
+    output:
+        protected('{references_dir}/{organism}/{tag}/genome/{organism}_{tag}.fai')
+    log:
+        '{references_dir}/logs/{organism}/{tag}/genome/{organism}_{tag}.fai.log'
+    resources:
+        runtime=hours(1),
+        mem_mb=gb(4)
+    run:
+        shell(
+            'samtools '
+            'faidx '
+            '-o {output} {input} '
+            '&> {log}'
+        )
+
+
+rule known_variation:
+    """
+    Download all the chromosomes on the ensembl ftp site and combine them to
+    create a known variation vcf
+    """
+    input:
+        fai='{references_dir}/{organism}/{tag}/genome/{organism}_{tag}.fai'
+    output:
+        protected('{references_dir}/{organism}/{tag}/known/{organism}_{tag}.vcf.gz')
+    log:
+        '{references_dir}/{organism}/{tag}/known/{organism}_{tag}.known.log'
+    resources:
+        runtime=hours(4),
+        mem_mb=gb(16),
+        disk_mb=gb(32)
+    run:
+        release = int(config['references'][wildcards.organism][wildcards.tag]['metadata']['release'])
+        species = config['references'][wildcards.organism][wildcards.tag]['metadata']['species']
+        build = config['references'][wildcards.organism][wildcards.tag]['metadata']['build']
+        typ = config['references'][wildcards.organism][wildcards.tag]['known']['type']
+
+        # ----------------------------------------------------------------------
+        # NOTE: species-specific configuration may be required
+        # ----------------------------------------------------------------------
+        #
+        # Ensembl has many species available, but the code below is designed to
+        # work for human.
+        #
+        # For available species, see https://ftp.ensembl.org/pub/release-109/variation/vcf/
+        #
+
+        # Human-specific patching to deal with GRCh37 filenames and directory
+        # structure on Ensembl FTP
+        branch = ""
+        if release >= 81 and build == "GRCh37":
+            branch="grch37/"
+        if typ == "all":
+            suffixes = [""]
+
+            # Starting in release 93, human germline VCFs are split by chrom
+            if species == "homo_sapiens" and release >= 93:
+                ser =  (
+                    pd.read_table(input.fai, header=None, usecols=[0], dtype=str)
+                    .squeeze()
+                )
+                contigs = ser[ser.apply(lambda x: len(x)) <= 2]
+                suffixes = expand("-chr{chrom}", chrom=contigs)
+
+        elif typ == "somatic":
+            suffixes=["_somatic"]
+        elif typ == "structural_variations":
+            suffixes=["_structural_variations"]
+        species = species.lower()
+        release = int(release)
+        build = build
+        typ = typ
+
+        # Prior to release 91, species names started with a capital letter
+        species_filename = species if release >= 91 else species.capitalize()
+
+        urls = expand(
+            "ftp://ftp.ensembl.org/pub/{branch}release-{release}/variation/vcf/{species}/{species_filename}{suffix}.{ext}",
+            release=release,
+            species=species,
+            suffix=suffixes,
+            species_filename=species_filename,
+            branch=branch,
+            ext=["vcf.gz", "vcf.gz.csi"]
+        )
+        vcfs = [os.path.basename(url) for url in urls if url.endswith(".gz")]
+
+        # Compose a command that downloads all vcf.gz files (possibly one for
+        # each contig in human Ensembl releases >=93)
+        gather = "curl {urls}".format(urls=" ".join(map("-O {}".format, urls)))
+
+        # We'll be downloading in a temp dir, so get absolute paths to make things easier
+        fai = os.path.abspath(input.fai)
+        log = os.path.abspath(str(log))
+        with tempfile.TemporaryDirectory() as tmpdir:
+            if input.get("fai"):
+                shell(
+                    "cd {tmpdir}; {gather} 2> {log} "
+                    "&& bcftools concat -Oz --naive-force {vcfs} > concat.vcf.gz 2>> {log}"
+                )
+                shell(
+                    "bcftools reheader --fai {fai} {tmpdir}/concat.vcf.gz> {output} 2>> {log} "
+                    "&& tabix -p vcf {output} 2>> {log} "
+                )
+
+#if config['references']['human'].get('variation'):
+#    rule dbnsfp:
+#        """
+#        Download and process dbNSFP database. This involves downloading and
+#        extracting the zip file, then combining the chromosomes to create
+#        a single file. For genome builds like hg19 and GRCh37, some processing
+#        needs to be done to make them compatible with dbNSFP version > 3.X
+#        dbNSFP is only for human genomes.
+#        """
+#        output:
+#            protected(
+#                '{{references_dir}}/{{organism}}/{{tag}}/{dbnsfp_version}_{build}/{{organism}}_{{tag}}.vcf.gz'.format(
+#                    dbnsfp_version=config['references']['human']['variation']['dbnsfp']['version'],
+#                    build=config['references']['human']['variation']['dbnsfp']['build']
+#                )
+#            )
+#        log:
+#            '{{references_dir}}/{{organism}}/{{tag}}/{dbnsfp_version}_{build}/{{organism}}_{{tag}}.log'.format(
+#                dbnsfp_version=config['references']['human']['variation']['dbnsfp']['version'],
+#                build=config['references']['human']['variation']['dbnsfp']['build']
+#            )
+#        resources:
+#            disk_mb=gb(500),
+#            mem_mb=gb(500),
+#            runtime=hours(8)
+#        threads: 16
+#        run:
+#            version = config['references']['human'][wildcards.tag]['dbnsfp']['version']
+#            URL = config['references']['human'][wildcards.tag]['dbnsfp']['url']
+#            build = config['references']['human'][wildcards.tag]['dbnsfp']['build']
+#            workdir = wildcards.references_dir
+#            if build == 'GRCh37':
+#                # We need to process the dbNSFP file to make it compatible with older genomes
+#                with tempfile.TemporaryDirectory() as tmpdir:
+#                    shell(
+#                        '''(cd {tmpdir}; wget -O- {URL} > dbnsfp.zip && '''
+#                        '''unzip dbnsfp.zip && zcat dbNSFP*_variant.chr1* | awk "NR<=1" > h && '''
+#                        '''zgrep -v "^#" dbNSFP*_variant.chr* > all_chrs && '''
+#                        '''awk '$8 != "." ' all_chrs > all_chrs_filtered && '''
+#                        '''sort -S 50% --parallel=12 all_chrs_filtered -k8,8 -k9,9n > all_chrs_filtered_sorted && '''
+#                        '''cat h all_chrs_filtered_sorted > all_chrs_filtered_sorted_header && '''
+#                        '''bgzip -c all_chrs_filtered_sorted_header > {output}) && '''
+#                        '''tabix -s 8 -b 9 -e 9 {output} '''
+#                    )
+#            if build == 'GRCh38':
+#                with tempfile.TemporaryDirectory() as tmpdir:
+#                    # No need for processing and we can use the first 2 columns for coordinates
+#                    shell(
+#                        '''(cd {tmpdir}; wget -O- {URL} > dbnsfp.zip && '''
+#                        '''unzip dbnsfp.zip && zcat dbNSFP*_variant.chr1* | awk "NR<=1" > h && '''
+#                        '''zgrep -v "^#" dbNSFP*_variant.chr* > all_chrs && '''
+#                        '''sort -S 50% --parallel=24 all_chrs -k1,1 -k2,2n > all_chrs_sorted && '''
+#                        '''cat h all_chrs_sorted > all_chrs_sorted_header && '''
+#                        '''bgzip -c all_chrs_sorted_header > {output}) && '''
+#                        '''tabix -s 1 -b 2 -e 2 {output} '''
+#                    )
+#
 
 # vim: ft=python

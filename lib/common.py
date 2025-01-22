@@ -419,6 +419,7 @@ def references_dict(config):
         'bowtie2': aligners.bowtie2_index_from_prefix('')[0],
         'hisat2': aligners.hisat2_index_from_prefix('')[0],
         'star': '/Genome',
+        'bwa': aligners.bwa_index_from_prefix('')[0],
 
         # Notes on salmon indexing:
         #   - pre-1.0 versions had hash.bin
@@ -451,13 +452,39 @@ def references_dict(config):
     type_extensions = {
         'genome': 'fasta',
         'annotation': 'gtf',
-        'transcriptome': 'fasta'
+        'transcriptome': 'fasta',
+        'known': 'vcf.gz'
     }
 
     for organism in merged_references.keys():
         d[organism] = {}
         for tag in merged_references[organism].keys():
             e = {}
+            if tag == 'variation':
+                # variation databases should be the the keys of a dictionary
+                # containing a URL and postprocess block
+                for type_ in merged_references[organism][tag].keys():
+                    ext = '.vcf.gz'
+                    if type_ == 'dbnsfp':
+                        type_ = merged_references[organism][tag][type_]['version'] + '_' +  merged_references[organism][tag][type_]['build']
+                        e[type_] = (
+                            '{references_dir}/'
+                            '{organism}/'
+                            '{tag}/'
+                            '{type_}/'
+                            '{organism}_{tag}{ext}'.format(**locals())
+                        )
+                        d[organism][tag] = e
+                        continue
+                    e[type_] = (
+                        '{references_dir}/'
+                        '{organism}/'
+                        '{tag}/'
+                        '{type_}/'
+                        '{organism}_{tag}{ext}'.format(**locals())
+                    )
+                    d[organism][tag] = e
+                continue
             for type_, block in merged_references[organism][tag].items():
                 if type_ == 'metadata':
                     continue
@@ -537,7 +564,8 @@ def references_dict(config):
                             .format(**locals())
                         )
 
-                    # Only makes sense to have chromsizes for genome fasta, not transcriptome.
+                    # Only makes sense to have chromsizes and faidx for genome
+                    # fasta, not transcriptome.
                     if type_ == 'genome':
                         e['chromsizes'] = (
                             '{references_dir}/'
@@ -546,6 +574,16 @@ def references_dict(config):
                             '{type_}/'
                             '{organism}_{tag}.chromsizes'.format(**locals())
                         )
+                        e['faidx'] = (
+                            '{references_dir}/'
+                            '{organism}/'
+                            '{tag}/'
+                            '{type_}/'
+                            '{organism}_{tag}.fai'.format(**locals())
+                        )
+
+
+
                 d[organism][tag] = e
     return d, conversion_kwargs
 
@@ -912,3 +950,4 @@ def gff2gtf(gff, gtf):
         shell('gzip -d -S .gz.0.tmp {gff} -c | gffread - -T -o- | gzip -c > {gtf}')
     else:
         shell('gffread {gff} -T -o- | gzip -c > {gtf}')
+

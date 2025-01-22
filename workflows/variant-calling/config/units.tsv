@@ -1,0 +1,3 @@
+sample	unit	platform	fq1	fq2
+tumor	1	Illumina	data/example_data/tumor_R1.fq.gz	data/example_data/tumor_R2.fq.gz
+normal	1	Illumina	data/example_data/normal_R1.fq.gz	data/example_data/normal_R2.fq.gz

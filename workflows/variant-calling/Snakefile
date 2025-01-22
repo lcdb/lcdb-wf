@@ -1,0 +1,938 @@
+import sys
+sys.path.insert(0, srcdir('.'))
+import pandas as pd
+import tempfile
+import os
+from os import path
+import re
+from tempfile import TemporaryDirectory,NamedTemporaryFile
+from snakemake.shell import shell
+import yaml
+from textwrap import dedent
+from pathlib import Path
+from urllib.request import urlretrieve
+from zipfile import ZipFile
+sys.path.append('../..')
+from lib import common, utils, helpers, aligners
+from lib.utils import autobump, gb, hours
+
+configfile: "config/config.yaml"
+
+include: '../../lib/helpers.smk'
+
+aln_index, dbnsfp, dictionary, indexed, known_sites, reference = preflight()
+
+wildcard_constraints:
+    vartype="snvs|indels",
+    sample="|".join(samples.index),
+    unit="|".join(units["unit"]),
+    comp="|".join(config['mutect2'].keys())
+
+
+rule all:
+    input:
+        "results/annotated/ann.vcf.gz",
+        "results/qc/multiqc.html",
+        "results/filtered/all.normed.vcf.gz",
+        expand("results/somatic_filtered/normed.{comp}.vcf.gz", comp = config['mutect2'].keys()),
+        expand("results/mutect2_annotated/snpeff.{comp}.vcf.gz", comp = config['mutect2'].keys()),
+
+
+
+checkpoint genome_index:
+    threads: 2
+    resources:
+        mem_mb=gb(4),
+        runtime=autobump(60)
+    input:
+        reference
+    output:
+        indexed
+    log:
+        'logs/fasta_index.log'
+    shell:
+        "samtools "
+        "faidx "
+        "{input} > {output} 2> {log} "
+
+
+rule fasta_dict:
+    threads: 1
+    resources:
+        mem_mb=gb(4),
+        # mem_mb=gb(4), # [ TEST SETTINGS -1 ]
+        disk_mb=gb(4),
+        runtime=autobump(60)
+    input:
+        ref=reference
+    output: dictionary
+    log: "logs/sequence_dictionary.log"
+    run:
+        java_opts = set_java_opts(resources)
+        shell(
+            'picard CreateSequenceDictionary {java_opts} ' 
+            '-R {input.ref} '
+            '-O {output} &> {log} '
+        )
+
+
+if not aln_index:
+    rule bwa_index:
+        """
+        Generate BWA index for the reference genome if we are not using lcdb-wf references workflow
+        """
+        threads: 8
+        resources:
+            disk_mb=gb(24),
+            mem_mb=gb(24),
+            runtime=autobump(180)
+        input:
+            reference
+        output:
+            multiext(reference, ".amb", ".ann", ".bwt", ".pac", ".sa")
+        log:
+            "logs/bwa_index.log"
+        params:
+            "bwtsw "
+        shell:
+            "bwa index -a {params} "
+            "{input} "
+            " &> {log}"
+
+
+rule trim_adapters:
+    threads: 8
+    resources:
+        mem_mb=gb(32),
+        runtime=autobump(360)
+    input: unpack(get_fastq),
+    output:
+        r1="results/trimmed/{sample}-{unit}.1.fastq.gz",
+        r2="results/trimmed/{sample}-{unit}.2.fastq.gz",
+    log:
+        "logs/{sample}-{unit}_trimming.log"
+    shell:
+        'cutadapt '
+        '-o {output.r1} '
+        '-p {output.r2} '
+        '-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT '
+        '--nextseq-trim 20 '
+        '--overlap 6 '
+        '-j {threads} '
+        '--minimum-length 25 '
+        '{input.r1} '
+        '{input.r2} '
+        ' &> {log} '
+
+
+rule map_reads:
+    threads: 32
+    resources:
+        disk_mb=gb(40),
+        mem_mb=gb(48),
+        runtime=autobump(1920)
+    input:
+        reads=["results/trimmed/{sample}-{unit}.1.fastq.gz","results/trimmed/{sample}-{unit}.2.fastq.gz"],
+        idx=multiext(reference, ".amb", ".ann", ".bwt", ".pac", ".sa"),
+    output:
+        bam=temp("results/mapped/{sample}-{unit}.sorted.bam"),
+    params:
+        extra=get_read_group,
+        index=lambda w, input: os.path.splitext(input.idx[0])[0],
+    log:
+        "logs/{sample}-{unit}_bwamem.log"
+    shell:
+        "bwa mem "
+        "-t {threads} "
+        "{params.extra} "
+        "{params.index} "
+        "{input.reads} | "
+        "samtools view -bh | samtools sort -o {output} -O BAM "
+        "2> {log}"
+
+
+rule mark_duplicates:
+    """
+    If we run bqsr, then we do not need to save the output of mark duplicates, since those bams will
+    be recalibrated. However, if we don't recalibrate, then we need to save the bams from mark duplicates 
+    and we don't want to mark them as temporary
+    """
+    threads: 4
+    # threads: 1 # [ TEST SETTINGS -1 ]
+    resources:
+        disk_mb=gb(40),
+        mem_mb=gb(32),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(720)
+    input:
+        bam = "results/mapped/{sample}-{unit}.sorted.bam", 
+    output:
+        metrics="results/qc/picard/markdups/{sample}-{unit}_marked_dup_metrics.txt",
+        bam=(
+            temp("results/dedup/{sample}-{unit}.bam") if config['filtering']['bqsr']
+            else "results/dedup/{sample}-{unit}.bam"
+        )
+
+    log:
+        "logs/{sample}-{unit}_mark_dup.log"
+    params:
+        rm = ('-REMOVE_DUPLICATES true '
+              if config['processing']['remove-duplicates']
+              else '')
+    run:
+        java_opts = set_java_opts(resources)
+        shell(
+            'picard MarkDuplicates '
+            '{java_opts} '
+            '-INPUT {input.bam} '
+            '-OUTPUT {output.bam} '
+            '-ASSUME_SORT_ORDER coordinate '
+            '{params.rm} '
+            '-METRICS_FILE {output.metrics} '
+            ' 2> {log} '
+        )
+
+
+if config["filtering"]['bqsr']:
+    rule base_recalibrator:
+        threads: 4
+        # threads: 1 # [ TEST SETTINGS -1 ]
+        resources:
+            mem_mb=gb(8),
+            # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+            disk_mb=gb(40),
+            runtime=autobump(960)
+        input:
+            bam=get_recal_input(bai=False),
+            bai=get_recal_input(bai=True),
+            ref=reference,
+            dict=dictionary,
+            known=known_sites,
+            known_idx=known_sites + '.tbi'
+        output:
+            recal_table="results/recal/{sample}-{unit}.grp"
+        log:
+            "logs/{sample}-{unit}_base_recalibrator.log"
+        run:
+            java_opts = set_java_opts(resources)
+            shell(
+                'gatk --java-options {java_opts} BaseRecalibrator '
+                '-R {input.ref} '
+                '-I {input.bam} '
+                '-O {output.recal_table} '
+                '--known-sites  {input.known} 2> {log}'
+            )
+
+
+    rule apply_bqsr:
+        threads: 8
+        # threads: 1 # [ TEST SETTINGS -1 ]
+        resources:
+            mem_mb=gb(32),
+            # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+            disk_mb=gb(40),
+            runtime=autobump(960)
+        input:
+            bam=get_recal_input(bai=False),
+            bai=get_recal_input(bai=True),
+            ref=reference,
+            dict=dictionary,
+            recal_table="results/recal/{sample}-{unit}.grp",  
+        output:
+            bam=protected("results/recal/{sample}-{unit}.bam")
+        log:
+            "logs/{sample}-{unit}_apply_bsqr.log"
+        run:
+            java_opts = set_java_opts(resources)
+            shell(
+                'gatk --java-options {java_opts} ApplyBQSR '
+                '-R {input.ref} '
+                '-I {input.bam} '
+                '--bqsr-recal-file {input.recal_table} '
+                '-O {output.bam} 2> {log}'
+            )
+
+
+rule build_bam_index:
+    resources:
+        mem_mb=gb(2),
+        disk_mb=gb(2),
+        runtime=autobump(30)
+    input:
+        bam ="{prefix}.bam"
+    output:
+        "{prefix}.bam.bai"
+    run:
+        basename = os.path.basename(input.bam)
+        log = 'logs/' + os.path.splitext(basename)[0] + '_buildbamindex.log'
+        shell("samtools index {input.bam} > {output} 2> {log}")
+
+
+if config["processing"]["restrict-regions"]:
+    rule compose_regions:
+        """
+        This command will ONLY work if the chromosome nomeclature matches the format in the reference genome
+        That is, chromosomes DO NOT have the 'chr' prefix. 
+
+        .bed files are formatted like so:
+        <chromosome>    <start region>    <end region>
+        Some bed files have header lines that can start with the word 'browser' or 'track' per UCSC
+
+        To check this, we will read the lines of the .bed file and compare them to what is in the fasta index.
+        If we encounter any mismatches, then we exit with division by zero error and a print
+        statement that explains the bed file needs to be edited to make the nomenclature match.
+
+        The awk command in the shell statement prints the entire lines of the input bed
+        into distinct files that are each named by the first column (chromosome)
+        Basically, we are splitting the provided .bed file up into contigs. 
+        """
+        resources:
+            disk_mb=1024,
+            mem_mb=1024,
+            runtime=20
+        input:
+            bed = config["processing"]["restrict-regions"],
+        output:
+            "results/called/{contig}.regions.bed"
+        log:
+            "logs/{contig}_compose_regions.log"
+        run:
+            # Check for nomenclature mismatch using helper function in helpers.smk
+            chr_fai = get_fai_nomenclature
+            chr_bed = get_bed_nomenclature
+            if chr_fai != chr_bed:
+                raise ValueError("Nomenclature mismatch detected. Please review the fasta index file and the .bed files being used. The chromosome format MUST match between the .bed file and the reference. Please edit the bed file. For GRCh38 genomes, there should be no 'chr' prefix.")
+            shell(''' awk '$1 == "{wildcards.contig}" {{print $0 >> (t "/" $1 ".regions.bed" )}}' t=results/called {input} ''')
+
+
+rule call_variants:
+    input:
+        bam=get_sample_bams,
+        ref=reference,
+        dict=dictionary,
+        known=known_sites,
+        tbi=(
+            known_sites + '.tbi' if known_sites else []
+        ),
+        regions=(
+            "results/called/{contig}.regions.bed"
+            if config["processing"]["restrict-regions"]
+            else []
+        ),
+    output:
+        gvcf=protected("results/called/{sample}.{contig}.g.vcf.gz"),
+    log: "logs/{sample}_{contig}_call_variants.log"
+    resources:
+        disk_mb=gb(16),
+        mem_mb=gb(40),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(hours=8)
+    threads: 8
+    # threads: 1 # [ TEST SETTINGS -1 ]
+    params:
+        extra=get_call_variants_params,
+        pcr=(
+            '--pcr-indel-model ' + config['processing']['pcr']
+            if config['processing']['pcr']
+            else ''
+        )
+    run:
+        java_opts = set_java_opts(resources)
+        known = input.known
+        if known:
+            known = "--dbsnp " + str(known)
+        regions = params.extra
+        bams = input.bam
+        if isinstance(bams, str):
+            bams = [bams]
+        bams = list(map("-I {}".format, bams))
+        shell(
+            'gatk --java-options {java_opts} HaplotypeCaller {regions} '
+            '-R {input.ref} '
+            '{bams} '
+            '-ERC GVCF '
+            '{params.pcr} '
+            '-O {output.gvcf} {known} 2> {log} ' 
+        )
+
+
+rule combine_calls:
+    threads: 4
+    # threads: 1 # [ TEST SETTINGS -1 ]
+    resources:
+        disk_mb=gb(10),
+        mem_mb=gb(4),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(720)
+    input:
+        ref=reference,
+        gvcfs=expand("results/called/{sample}.{{contig}}.g.vcf.gz", sample=samples.index),
+    output: 
+        gvcf="results/called/all.{contig}.g.vcf.gz",
+    log: "logs/{contig}_combine_calls.log"
+    run:
+        java_opts = set_java_opts(resources)
+        gvcfs=list(map("-V {}".format, input.gvcfs))
+        shell(
+            'gatk --java-options {java_opts} CombineGVCFs '
+            '{gvcfs} '
+            '-R {input.ref} '
+            '-O {output.gvcf} 2> {log} '
+        )
+
+
+rule genotype_variants:
+    threads: 4
+    # threads: 1 # [ TEST SETTINGS -1 ]
+    resources:
+        disk_mb=gb(10),
+        mem_mb=gb(8),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(480)
+    input:
+        ref=reference,
+        idx="results/called/all.{contig}.g.vcf.gz.tbi",
+        gvcf="results/called/all.{contig}.g.vcf.gz",
+    output:
+        vcf=temp("results/genotyped/all.{contig}.vcf.gz"),
+    log:
+        "logs/genotypegvcfs.{contig}.log",
+    run:
+        java_opts = set_java_opts(resources)
+        shell(
+            'gatk --java-options {java_opts} GenotypeGVCFs '
+            '-V {input.gvcf} '
+            '-R {input.ref} '
+            '-O {output.vcf} 2> {log}'
+        )
+
+
+rule merge_variants:
+    threads: 4
+    # threads: 1 # [ TEST SETTINGS -1 ]
+    resources:
+        disk_mb=gb(10),
+        mem_mb=gb(8),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(480)
+    input:
+        vcfs=lambda w: expand(
+            "results/genotyped/all.{contig}.vcf.gz", contig=get_contigs()
+        ),
+    output:
+        vcf="results/genotyped/all.vcf.gz",
+    log:
+        "logs/merge-genotyped.log",
+    run:
+        inputs = " ".join("-INPUT {}".format(f) for f in input.vcfs)
+        java_opts = set_java_opts(resources)
+        shell(
+            'picard'
+            ' MergeVcfs'
+            ' {java_opts}'
+            ' {inputs}'
+            ' -OUTPUT {output}'
+            ' 2> {log}'
+        )
+
+
+rule tabix_variants:
+    threads: 2
+    resources:
+        disk_mb=gb(2),
+        mem_mb=gb(2),
+        runtime=autobump(30)
+    input:
+        vcf="{prefix}.vcf.gz",
+    output:
+        "{prefix}.vcf.gz.tbi",
+    run:
+        basename = os.path.basename(input.vcf)
+        log = 'logs/' + os.path.splitext(basename)[0] + '_tabix.log'
+        shell("tabix -p vcf {input.vcf} 2> {log} ")
+
+
+rule select_calls:
+    threads: 4
+    # threads: 1 # [ TEST SETTINGS -1 ]
+    resources:
+        disk_mb=gb(10),
+        mem_mb=gb(4),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(480)
+    input:
+        ref=reference,
+        vcf="results/genotyped/all.vcf.gz",
+    output:
+        vcf=temp("results/filtered/all.{vartype}.vcf.gz"),
+    log:
+        "logs/selectvariants_{vartype}.log",
+    run:
+        java_opts = set_java_opts(resources)
+        vartype_arg="--select-type-to-include {}".format(
+            "SNP" if wildcards.vartype == "snvs" else "INDEL"
+        ),
+        shell(
+            'gatk --java-options {java_opts} SelectVariants '
+            '-R {input.ref} '
+            '-V {input.vcf} '
+            '{vartype_arg} '
+            '-O {output.vcf} 2> {log}'
+        )
+
+
+rule hard_filter_calls:
+    threads: 4
+    # threads: 1 # [ TEST SETTINGS -1 ]
+    resources:
+        disk_mb=gb(10),
+        mem_mb=gb(4),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(480)
+    input:
+        ref=reference,
+        vcf="results/filtered/all.{vartype}.vcf.gz",
+    output:
+        vcf=temp("results/filtered/all.{vartype}.hardfiltered.vcf.gz"),
+    log:
+        "logs/variantfiltration_{vartype}.log",
+    run:
+        java_opts = set_java_opts(resources)
+        filter_arg = {'snv_hard_filer' : config['filtering']['hard'][wildcards.vartype]}
+        filters = [
+            "--filter-name {} --filter-expression '{}'".format(name, expr.replace("'", "\\'"))
+            for name, expr in filter_arg.items()
+        ]
+        shell(
+            'gatk --java-options {java_opts} VariantFiltration '
+            '-R {input.ref} '
+            '-V {input.vcf} '
+            '{filters} '
+            '-O {output.vcf} 2> {log}'
+        )
+
+
+rule merge_calls:
+    threads: 2
+    resources:
+        disk_mb=gb(10),
+        mem_mb=gb(8),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(480)
+    input:
+        vcfs=expand(
+            "results/filtered/all.{vartype}.{filtertype}.vcf.gz",
+            vartype=["snvs", "indels"], filtertype='hardfiltered',
+        ),
+    output:
+        vcf=temp("results/filtered/all.final.vcf.gz"),
+    log:
+        "logs/merge-filtered.log", 
+    run:
+        inputs = " ".join("-INPUT {}".format(f) for f in input.vcfs)
+        java_opts = set_java_opts(resources)
+        shell(
+            'picard '
+            ' MergeVcfs'
+            ' {java_opts}'
+            ' {inputs}'
+            ' -OUTPUT {output}'
+            ' 2> {log}'
+        )
+
+
+rule norm:
+    """
+    Split multiallielic variants into multiple biallelic ones.
+    """
+    resources:
+        mem_mb=gb(16),
+        runtime=autobump(120)
+    input:
+        ref=reference,
+        vcf="results/filtered/all.final.vcf.gz"
+    output:
+        "results/filtered/all.normed.vcf.gz"
+    log:
+        "logs/norm-vcf.log"
+    shell:
+        "bcftools norm -f {input.ref} "
+        "-m- "
+        "{input.vcf} "
+        "--output-type z "
+        "--output {output} 2> {log}"
+
+
+rule fastqc:
+    resources:
+        mem_mb=gb(12),
+        runtime=autobump(120),
+    threads: 8
+    input:
+        unpack(get_fastq),
+    output:
+        html="results/qc/fastqc/data/{sample}-{unit}_fastqc.html",
+        zip="results/qc/fastqc/zip/{sample}-{unit}_fastqc.zip"
+    log:
+        "logs/{sample}-{unit}_fastqc.log"
+    run:
+        def base_file(file_path):
+            baseName = Path(path.basename(file_path))
+            while baseName.suffix in {'.gz','.bz2','.txt','.fastq','.fq','.sam','.bam'}:
+                baseName = baseName.with_suffix('')
+            return str(baseName)
+        with TemporaryDirectory() as tempdir:
+            shell(
+                "fastqc "
+                "--threads {threads} "
+                "--noextract "
+                "--quiet "
+                "--outdir {tempdir:q} "
+                "{input:q} "
+                "&> {log} "
+            )
+            output_base = base_file(input[0])
+            html_path = path.join(tempdir, output_base + "_fastqc.html")
+            zip_path = path.join(tempdir, output_base + "_fastqc.zip")
+            if output.html != html_path:
+                shell("mv {html_path:q} {output.html:q}")
+            if output.zip != zip_path:
+                shell("mv {zip_path:q} {output.zip:q}")
+
+
+rule samtools_stats:
+    """
+    Run samtools stats
+    """
+    resources:
+        mem_mb=gb(16),
+        runtime=autobump(120)
+    input:
+        get_sample_unit_bams
+    output:
+        "results/qc/samtools-stats/{sample}-{unit}.txt"
+    log:
+        "logs/samtools-stats_{sample}-{unit}.log"
+    shell:
+        "samtools stats {input} 1> {output} 2> {log} "
+
+
+snpeff_input_for_multiqc = []
+if config['snpeff']['germline']:
+    snpeff_input_for_multiqc.append('results/qc/snpEff_summary.csv')
+if config['snpeff']['somatic']:
+    soms = expand('results/qc/snpEff_{comp}_summary.csv', comp = config['mutect2'].keys())
+    snpeff_input_for_multiqc.extend(soms)
+
+
+
+rule multiqc:
+    """
+    Gather qc metrics and run MultiQC
+    Get the html output from somatic and germline VCF annotation if specified in the config.
+    """
+    resources:
+        mem_mb=gb(4),
+        runtime=autobump(60)
+    input:
+        fastqc=expand("results/qc/fastqc/zip/{u.sample}-{u.unit}_fastqc.zip", u=units.itertuples()),
+        markdup=expand("results/qc/picard/markdups/{u.sample}-{u.unit}_marked_dup_metrics.txt", u=units.itertuples()),
+        samstats=expand("results/qc/samtools-stats/{u.sample}-{u.unit}.txt", u=units.itertuples()),
+        snpeff=snpeff_input_for_multiqc
+    output:
+        "results/qc/multiqc.html",
+    params:
+        dirname="results/qc/",
+        name="multiqc.html",
+    log:
+        "logs/multiqc.log",
+    run:
+        input_dirs=params.dirname
+        shell(
+            "multiqc "
+            "--force "
+            "-o {params.dirname} "
+            "-n {params.name} "
+            "{input_dirs} "
+            " &> {log} "
+        )
+
+
+rule snpeff:
+    """
+    Annotate variants with SnpEff
+    """
+    resources:
+        disk_mb=gb(20),
+        mem_mb=gb(16),
+        # mem_mb=gb(4), # [ TEST SETTINGS -1 ]
+        runtime=autobump(120)
+    input:
+        unpack(snpeff_input)
+    log: 'logs/snpeff.log'
+    output:
+        ann='results/annotated/ann.vcf.gz',
+        stats='results/qc/snpEff_summary.csv',
+        html='results/qc/snpEff_summary.html'
+    params:
+        annotations = config['snpeff']['annotations'],
+        gen = config['snpeff']['genome']
+    # threads: 2 # [ TEST SETTINGS ]
+    run:
+        java_opts = '''"-Xmx{}g"'''.format(int(resources.mem_mb * 0.75 /1024))
+        shell(
+            "snpEff {java_opts} "
+            "-o vcf "
+            "-csvStats {output.stats} "
+            "-stats {output.html} "
+            "{params.gen} {input.vcf} "
+            "| bcftools view -Oz > {output.ann} 2> {log} "
+        )
+        dbnsfp_arg = []
+        if dbnsfp:
+            dbnsfp_arg = "DbNsfp -db {}".format(dbnsfp)
+        if dbnsfp_arg:
+            sift_output = 'results/annotated/dbnsfp.ann.vcf.gz'
+            field_arg = (
+                "-f '{}'".format(params.annotations)
+                if params.annotations
+                else ''
+            )
+
+            shell(
+                "SnpSift {java_opts} "
+                "{dbnsfp_arg} "
+                "{field_arg} {output.ann} "
+                "| bcftools view -Oz > {sift_output} 2>> {log} " 
+            )
+
+
+rule mutect2:
+    """
+    Use Mutect2 to call variants on individual samples, one per contig
+    """
+    resources:
+        disk_mb=gb(40),
+        mem_mb=gb(32),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(720)
+    input:
+        unpack(input_for_somatic)
+    output:
+        vcf="results/mutect2_called/raw.{comp}.{contig}.vcf.gz",
+        stats='results/mutect2_called/raw.{comp}.{contig}.vcf.gz.stats',
+        orientation='results/lrom/{contig}_{comp}.tar.gz'
+    log:
+        "logs/{comp}_{contig}_mutect2_call_variants.log"
+    params:
+        pon = (
+            '--panel-of-normals ' + config['mutect2']['PON']
+            if config['PON']
+            else []
+        ),
+        extra=get_call_variants_params,
+        pcr=(
+            '--pcr-indel-model ' + config['processing']['pcr']
+            if config['processing']['pcr']
+            else ''
+        )
+    # threads: 1 # [ TEST SETTINGS ]
+    run:
+        java_opts = set_java_opts(resources)
+        normals = " ".join("-I {} ".format(n) for n in input.normals)
+        tumors = " ".join("-I {} ".format(t) for t in input.tumors)
+        names = names_for_somatic(wildcards)
+        formatted_names = " ".join('-normal {} '.format(name) for name in names)
+        shell(
+            "gatk Mutect2 "
+            "--java-options {java_opts} "
+            "-R {input.ref} "
+            "{normals} "
+            "{tumors} "
+            "{params.extra} "
+            "{formatted_names} "
+            "{params.pcr} "
+            "--f1r2-tar-gz {output.orientation} "
+            "{params.pon} "
+            "-O {output.vcf} 2> {log}"
+        )
+
+
+rule lrom:
+    """
+    Run LearnReadOrientationModel to get the maximum likelihood estimates of artifact prior probabilities 
+    in the orientation bias mixture model filter
+    """
+    resources:
+        disk_mb=gb(20),
+        mem_mb=gb(32),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(120)
+    input:
+        orientation=lambda w: expand('results/lrom/{contig}_{{comp}}.tar.gz', contig=get_contigs())
+    output:
+        lrom='results/lrom/artifact-prior-{comp}.tar.gz'
+    log:
+        'logs/lrom_{comp}.log'
+    # threads: 1 # [ TEST SETTINGS ]
+    run:
+        java_opts = set_java_opts(resources)
+        def get_format_lrom():
+            names= ['-I {} '.format(i) for i in input.orientation]
+            names = ' '.join(names)
+            return names
+        lrom_names = get_format_lrom()
+
+        shell(
+            'gatk --java-options {java_opts} LearnReadOrientationModel {lrom_names} '
+            '-O {output.lrom} &> {log}'
+        )
+
+
+rule merge_mutect2_variants:
+    """
+    After individual contigs are called via mutect2, we merge them together here.
+    """
+    resources:
+        disk_mb=gb(20),
+        mem_mb=gb(32),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(120)
+    input:
+        vcfs=lambda w: expand(
+            "results/mutect2_called/raw.{{comp}}.{contig}.vcf.gz", contig=get_contigs()
+        ),
+    output:
+        temp("results/somatic/merged.{comp}.vcf.gz")
+    log:
+        "logs/merge_mutect2.{comp}.log",
+    # threads: 1 # [ TEST SETTINGS ]
+    run:
+        inputs = " ".join("-INPUT {}".format(f) for f in input.vcfs)
+        java_opts = set_java_opts(resources)
+        shell(
+            'picard'
+            ' MergeVcfs'
+            ' {java_opts}'
+            ' {inputs}'
+            ' -OUTPUT {output}'
+            ' &> {log}'
+        )
+
+
+rule merge_mutect2_stats:
+    """
+    Just like merging VCFs for Mutect2, we also need to merge stats for filtering.
+    """
+    resources:
+        disk_mb=gb(20),
+        mem_mb=gb(16),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(120)
+    input:
+        stats=lambda w: expand(
+            "results/mutect2_called/raw.{{comp}}.{contig}.vcf.gz.stats", contig=get_contigs()
+        ),
+    output:
+        temp("results/somatic/merged.{comp}.vcf.gz.stats")
+    log:
+        "logs/merge_mutect2_stats.{comp}.log"
+    # threads: 1 # [ TEST SETTINGS ]
+    run:
+        java_opts = set_java_opts(resources)
+        inputs = " ".join(" -stats {} ".format(f) for f in input.stats)
+        shell(
+            "gatk MergeMutectStats "
+            "--java-options {java_opts} "
+            "{inputs} "
+            "-O {output} "
+            "&> {log}"
+        )
+
+
+rule filter_mutect2_calls:
+    """
+    New versions of Mutect2 have optimized defaults for filtering; we can just use those.
+    """
+    resources:
+        disk_mb=gb(20),
+        mem_mb=gb(16),
+        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        runtime=autobump(120)
+    input:
+        ref=reference,
+        unfiltered="results/somatic/merged.{comp}.vcf.gz",
+        stats="results/somatic/merged.{comp}.vcf.gz.stats",
+        lrom='results/lrom/artifact-prior-{comp}.tar.gz'
+    output:
+        "results/somatic_filtered/filtered.{comp}.vcf.gz"
+    log:
+        "logs/{comp}.vcf.gz.log"
+    # threads: 1 # [ TEST SETTINGS ]
+    run:
+        java_opts = set_java_opts(resources)
+        shell(
+            "gatk FilterMutectCalls "
+            "--java-options {java_opts} "
+            "-stats {input.stats} "
+            "--orientation-bias-artifact-priors {input.lrom} "
+            "-R {input.ref} "
+            "-V {input.unfiltered} "
+            "-O {output}"
+        )
+
+
+rule mutect2_norm:
+    """
+    Split multiallielic variants into multiple biallelic ones.
+    """
+    resources:
+        mem_mb=gb(16),
+        runtime=autobump(120)
+    input:
+        ref=reference,
+        vcf="results/somatic_filtered/filtered.{comp}.vcf.gz"
+    output:
+        "results/somatic_filtered/normed.{comp}.vcf.gz"
+    log:
+        "logs/norm-{comp}-vcf.log"
+    shell:
+        "bcftools norm -f {input.ref} "
+        "-m- "
+        "{input.vcf} "
+        "--output-type z "
+        "--output {output} 2> {log}"
+
+
+rule snpeff_cancer:
+    """
+    Annotate somatic variants with SnpEff Cancer
+    """
+    resources:
+        disk_mb=gb(20),
+        mem_mb=gb(16),
+        # mem_mb=gb(4), # [ TEST SETTINGS -1 ]
+        runtime=autobump(120)
+    input:
+        unpack(snpeff_cancer_input),
+    output:
+        vcf='results/mutect2_annotated/snpeff.{comp}.vcf.gz',
+        stats='results/qc/snpEff_{comp}_summary.csv',
+        html='results/qc/snpEff_{comp}.html'
+    log:
+        'logs/cancer_snpeff_{comp}.log'
+    params:
+        snpeff_genome = config['snpeff']['genome']
+    # threads: 2 # [ TEST SETTINGS ]
+    run:
+        java_opts = '''"-Xmx{}g"'''.format(int(resources.mem_mb * 0.75 /1024))
+        shell(
+            'snpEff {java_opts} '
+            '-v -o vcf -cancer '
+            '-csvStats {output.stats} '
+            '-stats {output.html} '
+            '{params.snpeff_genome} {input.vcf} '
+            '| bcftools view -Oz > {output.vcf} 2> {log}'
+        )
+
+# vim: ft=python
