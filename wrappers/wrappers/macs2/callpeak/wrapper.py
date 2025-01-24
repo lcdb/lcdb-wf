@@ -15,7 +15,7 @@ effective_genome_count = snakemake.params.block.get('effective_genome_count',
 
 genome_count_flag = ''
 if effective_genome_count != '':
-    genome_count_flag = ' -g ' + str(effective_genome_count) + ' '
+    genome_count_flag = '-g ' + str(effective_genome_count)
 
 cmds = (
     'macs2 '
