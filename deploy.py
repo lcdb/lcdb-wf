@@ -282,10 +282,16 @@ def build_envs(dest, conda_frontend="mamba"):
     conda_frontend : 'mamba' | 'conda'
         Which front-end to use (terminology borrowed from Snakemake)
     """
-    mapping = [
-        ("./env", "env.yml"),
-        ("./env-r", "env-r.yml"),
-    ]
+    if biowulf:
+        mapping = [
+            ("./env", "env-biowulf.yml"),
+            ("./env-r", "env-r.yml"),
+        ]
+    else:
+        mapping = [
+            ("./env", "env.yml"),
+            ("./env-r", "env-r.yml"),
+        ]
     for env, yml in mapping:
         info("Building environment " + os.path.join(dest, env))
 
@@ -365,6 +371,13 @@ if __name__ == "__main__":
         provided for --dest.""",
     )
     ap.add_argument(
+        "--biowulf",
+        action="store_true",
+        help="""If specified, installs extra packages to make the workflow compatible with
+            the snakemake 8 snakemake_profile created by Biowulf.
+            """,
+    )
+    ap.add_argument(
         "--conda-frontend",
         help="Set program (conda or mamba) to use when creating environments. Default is %(default)s.",
         default="mamba",
@@ -382,6 +395,7 @@ if __name__ == "__main__":
     args = ap.parse_args()
     dest = args.dest
     flavor = args.flavor
+    biowulf = args.biowulf
 
     if args.staging and not args.clone:
             print("ERROR: --staging was specified but --clone was not. Did you want to use --clone?", file=sys.stderr)
