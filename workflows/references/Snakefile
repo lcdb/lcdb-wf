@@ -59,6 +59,8 @@ rule unzip:
         protected('{references_dir}/{organism}/{tag}/{_type}/{organism}_{tag}.{_ext}')
     wildcard_constraints:
         _type="genome|annotation"
+    resources:
+        mem_mb=gb(2)
     log:
         '{references_dir}/logs/{organism}/{tag}/{_type}/{organism}_{tag}.{_ext}.log'
     shell: 'gunzip -c {input} > {output}'
@@ -160,7 +162,8 @@ rule symlink_fasta_to_index_dir:
     output:
         '{references_dir}/{organism}/{tag}/{_type}/{index}/{organism}_{tag}.fasta'
     resources:
-        runtime=hours(1)
+        runtime=hours(1),
+        mem_mb=gb(2)
     log:
         '{references_dir}/logs/{organism}/{tag}/{_type}/{index}/{organism}_{tag}.fasta.log'
     run:
@@ -174,7 +177,8 @@ rule transcriptome_fasta:
     output:
         protected('{references_dir}/{organism}/{tag}/transcriptome/{organism}_{tag}.fasta')
     resources:
-        runtime=hours(1)
+        runtime=hours(1),
+        mem_mb=gb(2)
     shell:
         'gffread {input.gtf} -w {output} -g {input.fasta}'
 

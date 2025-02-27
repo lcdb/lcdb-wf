@@ -1094,6 +1094,8 @@ rule rnaseq_rmarkdown:
         sampletable=config['sampletable']
     output:
         'downstream/rnaseq.html'
+    resources:
+        mem_mb=gb(2)
     log:
         'downstream/rnaseq.log'
     shell:
@@ -1108,6 +1110,8 @@ rule flagstat:
         bai=c.patterns['markduplicates']['bam'] + '.bai'
     output:
         c.patterns['samtools']['flagstat']
+    resources:
+        mem_mb=gb(2)
     log:
         c.patterns['samtools']['flagstat'] + '.log'
     shell:
@@ -1120,6 +1124,8 @@ rule samtools_stats:
         bai=c.patterns['markduplicates']['bam'] + '.bai'
     output:
         c.patterns['samtools']['stats']
+    resources:
+        mem_mb=gb(2)
     log:
         c.patterns['samtools']['stats'] + '.log'
     shell:
