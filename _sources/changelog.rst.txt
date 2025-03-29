@@ -1,6 +1,51 @@
 Changelog
 =========
 
+v1.12
+-----
+
+- Fixed render_r1_r2 function(s) in Snakefiles (#413) which cleans up some
+  Snakefile functions
+
+- add Plodia interpunctella reference config (#417) which adds some
+  postprocessing functionality for dealing with references in zip files, and
+  adds references for Plodia interpunctella
+
+- Make ``strand_arg`` a param (#415) which moves strandedness arguments to
+  params: directive, letting jobs re-run if strandedness changed in config.
+  Previously, rules needed to be manually re-run after changing strandedness in
+  config.
+
+- Update ``plotting.R`` (#423) to fix a typo in the (infrequently-used)
+  lcdbwf::vargenes_heatmap() function
+
+- Change SRA fastq directory (#418) which improves how SRA-configured runs are
+  handled, addressing #408
+
+- Use tempdir, if configured, for STAR (#425) which allows STAR to use a temp
+  dir if configured
+
+v1.11
+-----
+
+- Add samtools stats and samtools flagstat (#397) for additional QC options
+
+- Generate RDS object ready for carnation (#399), which overhauls the way
+  output Rds objects are made from RNA-seq downstream RMarkdown files. This
+  prepares for integration with Carnation, an interactive web interface
+  currently still in development but being used internally Rds files are
+  dramatically smaller after stripping out superfluous data Better support for
+  running rnaseq.Rmd followed by functional-enrichment.Rmd, and/or
+  gene-patterns.Rmd without overwriting existing Rds files.
+
+- Limit background genes in overrepresentation analysis in
+  functional-enrichment.Rmd (#401) to support universe of expressed genes by
+  default when running functional enrichment, while also supporting
+  customization if needed.
+
+- Implemented LRT functionality (#396) to support LRT in the lcdb::make_results
+  machinery
+
 v1.10.3
 -------
 
