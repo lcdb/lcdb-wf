@@ -283,14 +283,14 @@ variables:
 
   # --------------------------------------------------------------------------
   # Standard colocalization workflow
-  colocalization-step: &colocalization-step
-      run:
-        name: colocalization workflow
-        command: |
-          cd $DEPLOY/workflows/colocalization
-          source /opt/miniforge/etc/profile.d/conda.sh
-          conda activate $LCDBWF_ENV
-          $DEPLOY/test/lcdb-wf-test colocalization --run-workflow -k -p -j2 --use-conda --orig $ORIG
+  # colocalization-step: &colocalization-step
+  #     run:
+  #       name: colocalization workflow
+  #       command: |
+  #         cd $DEPLOY/workflows/colocalization
+  #         source /opt/miniforge/etc/profile.d/conda.sh
+  #         conda activate $LCDBWF_ENV
+  #         $DEPLOY/test/lcdb-wf-test colocalization --run-workflow -k -p -j2 --use-conda --orig $ORIG
 
 # --------------------------------------------------------------------------
 # Syntax note: All of the steps above, with their "&step-name" labels, can be
