@@ -1,8 +1,0 @@
-beds:
-  # from the external workflow
-  SuHw_Kc: data/suhw_kc.bed
-  CTCF_Kc: data/ctcf_kc.bed
-domains:
-  dm6: results/dm6.bed
-output: results
-organism: dm6
