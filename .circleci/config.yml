@@ -140,7 +140,6 @@ variables:
         cp $ORIG/workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq/run_test.sh
         cp $ORIG/workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq/run_downstream_test.sh
         cp $ORIG/workflows/references/run_test.sh $DEPLOY/workflows/references/run_test.sh
-        # cp $ORIG/workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization/run_test.sh
 
         mkdir $DEPLOY/ci
         mkdir $DEPLOY/test
@@ -271,17 +270,6 @@ variables:
 
 
 
-  # --------------------------------------------------------------------------
-  # Standard colocalization workflow
-  colocalization-step: &colocalization-step
-      run:
-        name: colocalization workflow
-        command: |
-          cd $DEPLOY/workflows/colocalization
-          source /opt/miniforge/etc/profile.d/conda.sh
-          conda activate $LCDBWF_ENV
-          $DEPLOY/test/lcdb-wf-test colocalization --run-workflow -k -p -j2 --use-conda --orig $ORIG
-
 # --------------------------------------------------------------------------
 # Syntax note: All of the steps above, with their "&step-name" labels, can be
 # referred to by a corresponding "*step-name" below. The "<<: *defaults"
@@ -389,23 +377,6 @@ jobs:
       - *get-data
       - *rnaseq-misc-step
 
-  # colocalization:
-  #   <<: *defaults
-  #   steps:
-  #     - checkout
-  #     - *restore_cache
-  #     - *set-path
-  #     - *get-data
-  #     - *colocalization-step
-
-  # references:
-  #   <<: *defaults
-  #   steps:
-  #     - checkout
-  #     - *restore_cache
-  #     - *set-path
-  #     - *get-data
-  #     - *references-step
 
   build-docs:
     <<: *defaults
@@ -479,14 +450,6 @@ workflows:
           requires:
             - initial-setup
             - pytest
-      # - references:
-      #     requires:
-      #       - initial-setup
-      #       - pytest
-      # - colocalization:
-      #     requires:
-      #       - initial-setup
-      #       - pytest
       - build-docs:
           requires:
             - initial-setup
@@ -496,5 +459,3 @@ workflows:
             - rnaseq-misc
             - chipseq
             - chipseq-misc
-            - references
-            # - colocalization
