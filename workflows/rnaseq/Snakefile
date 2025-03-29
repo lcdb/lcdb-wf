@@ -320,10 +320,6 @@ if config['aligner']['index'] == 'hisat2':
             )
 
 if config['aligner']['index'].startswith('star'):
-    if os.getenv("TMPDIR"):
-        tmpdir_arg = "--outTmpDir $TMPDIR/star "
-    else:
-        tmpdir_arg = ""
 
     # STAR can be run in 1-pass or 2-pass modes. Since we may be running it
     # more than once in almost the same way, we pull out the shell command here
@@ -336,7 +332,6 @@ if config['aligner']['index'].startswith('star'):
         '--readFilesCommand zcat '
         '--outFileNamePrefix {prefix} '
 
-        '{tmpdir_arg}'
 
         # NOTE: The STAR docs indicate that the following parameters are
         # standard options for ENCODE long-RNA-seq pipeline.  Comments are from
@@ -375,11 +370,16 @@ if config['aligner']['index'] == 'star':
             runtime=autobump(hours=8),
             disk_mb=gb(80),
         run:
+            if os.getenv("TMPDIR"):
+                tmpdir_arg = "--outTmpDir $TMPDIR/star "
+            else:
+                tmpdir_arg = ""
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
             prefix = output.bam.replace('.bam', '.star.')
             shell(
                 STAR_CMD + (
+                    '{tmpdir_arg}'
                     '--outSAMtype BAM SortedByCoordinate '
                     '--outStd BAM_SortedByCoordinate > {output.bam} '
                     '2> {log} '
@@ -411,6 +411,10 @@ if config['aligner']['index'] == 'star-twopass':
             runtime=autobump(hours=8),
             disk_mem=gb(80),
         run:
+            if os.getenv("TMPDIR"):
+                tmpdir_arg = "--outTmpDir $TMPDIR/star "
+            else:
+                tmpdir_arg = ""
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
             prefix = output.sjout.replace('SJ.out.tab', '')
@@ -421,6 +425,7 @@ if config['aligner']['index'] == 'star-twopass':
                     # alignment -- just the detected junctions. So we output
                     # the SAM to /dev/null.
                     '--outStd SAM > /dev/null '
+                    '{tmpdir_arg}'
                     '2> {log} '
                 )
             )
@@ -452,6 +457,10 @@ if config['aligner']['index'] == 'star-twopass':
             runtime=autobump(hours=8),
             disk_mem=gb(80),
         run:
+            if os.getenv("TMPDIR"):
+                tmpdir_arg = "--outTmpDir $TMPDIR/star "
+            else:
+                tmpdir_arg = ""
             genomedir = os.path.dirname(input.index[0])
             outdir = os.path.dirname(output[0])
             prefix = output.bam.replace('.bam', '.star-pass2.')
@@ -465,6 +474,7 @@ if config['aligner']['index'] == 'star-twopass':
                     # pass.
                     '--sjdbFileChrStartEnd {input.sjout} '
                     '--outStd BAM_SortedByCoordinate > {output.bam} '
+                    '{tmpdir_arg}'
                     '2> {log} '
                 )
             )
