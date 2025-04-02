@@ -148,222 +148,70 @@ rule fastqc:
             shell("mv {out_html} {output.html}")
 
 
-if config["aligner"] == "hisat2":
 
-    rule hisat2:
-        input:
-            fastq=rules.cutadapt.output,
-            index=rules.hisat2_index.output,
-        output:
-            bam=temporary("data/rnaseq_samples/{sample}/{sample}.cutadapt.bam"),
-        log:
-            "data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.log",
-        threads: 16
-        resources:
-            mem="32g",
-            runtime="8h",
-        params:
-            extra="",
-        run:
-            prefix = os.path.commonprefix(input.index).rstrip(".")
-            sam = output.bam.replace(".bam", ".sam")
+rule star:
+    "Align with STAR (1-pass mode)"
+    input:
+        fastq=rules.cutadapt.output,
+        index=rules.star_index.output,
+        annotation=f"{REFERENCES}/annotation.gtf",
+    output:
+        bam=temporary("data/rnaseq_samples/{sample}/{sample}.cutadapt.bam"),
+        sjout=temporary(
+            "data/rnaseq_samples/{sample}/{sample}.cutadapt.star.SJ.out.tab"
+        ),
+    log:
+        "data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.log",
+    threads: 16
+    resources:
+        mem="64g",
+        runtime="8h",
+        disk="80g",
+    run:
+        genomedir = os.path.dirname(input.index[0])
+        outdir = os.path.dirname(output[0])
+        prefix = output.bam.replace(".bam", ".star.")
+        if os.getenv("TMPDIR"):
+            tmpdir_arg = "--outTmpDir $TMPDIR/star "
+        else:
+            tmpdir_arg = ""
+        shell(
+            "STAR "
+            "--runThreadN {threads} "
+            "--genomeDir {genomedir} "
+            "--readFilesIn {input.fastq} "
+            "--readFilesCommand zcat "
+            "--outFileNamePrefix {prefix} "
+            "{tmpdir_arg} "
+            "--outSAMtype BAM SortedByCoordinate "
+            "--outStd BAM_SortedByCoordinate > {output.bam} "
 
-            if is_paired:
-                assert len(input.fastq) == 2
-                fastqs = "-1 {0} -2 {1} ".format(*input.fastq)
-            else:
-                assert len(input.fastq) == 1
-                fastqs = "-U {0} ".format(input.fastq)
+            # NOTE: The STAR docs indicate that the following parameters are
+            # standard options for ENCODE long-RNA-seq pipeline.  Comments are from
+            # the STAR docs.
+            "--outFilterType BySJout "  # reduces number of spurious junctions
+            "--outFilterMultimapNmax 20 "  # if more than this many multimappers, consider unmapped
+            "--alignSJoverhangMin 8 "  # min overhang for unannotated junctions
+            "--alignSJDBoverhangMin 1 "  # min overhang for annotated junctions
+            "--outFilterMismatchNmax 999 "  # max mismatches per pair
+            "--outFilterMismatchNoverReadLmax 0.04 "  # max mismatches per pair relative to read length
+            "--alignIntronMin 20 "  # min intron length
+            "--alignIntronMax 1000000 "  # max intron length
+            "--alignMatesGapMax 1000000 "  # max distance between mates
+            "--outSAMunmapped None "  # do not report aligned reads in output
+            "2> {log} "
+        )
 
-            shell(
-                "hisat2 "
-                "-x {prefix} "
-                "{fastqs} "
-                "--no-unal "
-                "--threads {threads} "
-                "-S {sam} "
-                "{params.extra} "
-                "> {log} 2>&1"
-            )
-
-            shell(
-                "samtools view -Sb {sam} "
-                "| samtools sort - -o {output.bam} -O BAM "
-                "&& rm {sam}"
-            )
-
-
-
-if config["aligner"].startswith("star"):
-    if os.getenv("TMPDIR"):
-        tmpdir_arg = "--outTmpDir $TMPDIR/star "
-    else:
-        tmpdir_arg = ""
-    # STAR can be run in 1-pass or 2-pass modes. Since we may be running it
-    # more than once in almost the same way, we pull out the shell command here
-    # and use it below.
-    STAR_CMD = (
-        "STAR "
-        "--runThreadN {threads} "
-        "--genomeDir {genomedir} "
-        "--readFilesIn {input.fastq} "
-        "--readFilesCommand zcat "
-        "--outFileNamePrefix {prefix} "
-        "{tmpdir_arg} "
-        "{params.extra} "
-    )
-    STAR_PARAMS = (
-        # NOTE: The STAR docs indicate that the following parameters are
-        # standard options for ENCODE long-RNA-seq pipeline.  Comments are from
-        # the STAR docs.
-        "--outFilterType BySJout "  # reduces number of spurious junctions
-        "--outFilterMultimapNmax 20 "  # if more than this many multimappers, consider unmapped
-        "--alignSJoverhangMin 8 "  # min overhang for unannotated junctions
-        "--alignSJDBoverhangMin 1 "  # min overhang for annotated junctions
-        "--outFilterMismatchNmax 999 "  # max mismatches per pair
-        "--outFilterMismatchNoverReadLmax 0.04 "  # max mismatches per pair relative to read length
-        "--alignIntronMin 20 "  # min intron length
-        "--alignIntronMax 1000000 "  # max intron length
-        "--alignMatesGapMax 1000000 "  # max distance between mates
-        "--outSAMunmapped None "  # do not report aligned reads in output
-    )
-    logfile_extensions = ["Log.progress.out", "Log.out", "Log.final.out", "Log.std.out"]
-
-if config["aligner"] == "star":
-
-    rule star:
-        "Align with STAR (1-pass mode)"
-        input:
-            fastq=rules.cutadapt.output,
-            index=rules.star_index.output,
-            annotation=f"{REFERENCES}/annotation.gtf",
-        output:
-            bam=temporary("data/rnaseq_samples/{sample}/{sample}.cutadapt.bam"),
-            sjout=temporary(
-                "data/rnaseq_samples/{sample}/{sample}.cutadapt.star.SJ.out.tab"
-            ),
-        log:
-            "data/rnaseq_samples/{sample}/{sample}.cutadapt.bam.log",
-        threads: 16
-        resources:
-            mem="64g",
-            runtime="8h",
-            disk="80g",
-        params:
-            extra=STAR_PARAMS,
-        run:
-            genomedir = os.path.dirname(input.index[0])
-            outdir = os.path.dirname(output[0])
-            prefix = output.bam.replace(".bam", ".star.")
-            shell(
-                STAR_CMD
-                + (
-                    "--outSAMtype BAM SortedByCoordinate "
-                    "--outStd BAM_SortedByCoordinate > {output.bam} "
-                    "2> {log} "
-                )
-            )
-
-            # move various hard-coded log files to log directory
-            logfiles = expand(prefix + "{ext}", ext=logfile_extensions)
-            shell(
-                "mkdir -p {outdir}/star_logs " "&& mv {logfiles} {outdir}/star_logs"
-            )
-
-
-if config["aligner"] == "star-twopass":
-
-    rule star_pass1:
-        "First pass of alignment with STAR to get the junctions"
-        input:
-            fastq=rules.cutadapt.output,
-            index=rules.star_index.output,
-            annotation=f"{REFERENCES}/annotation.gtf",
-        output:
-            sjout=temporary(
-                "data/rnaseq_samples/{sample}/{sample}.cutadapt.star.SJ.out.tab"
-            ),
-        log:
-            "data/rnaseq_samples/{sample}/{sample}.cutadapt.star-pass1.log",
-        threads: 16
-        resources:
-            mem="64g",
-            runtime="8h",
-            disk="80g",
-        params:
-            extra=STAR_PARAMS,
-        run:
-            genomedir = os.path.dirname(input.index[0])
-            outdir = os.path.dirname(output[0])
-            prefix = output.sjout.replace("SJ.out.tab", "")
-            shell(
-                STAR_CMD
-                + (
-                    # In this first pass, we don't actually care about the
-                    # alignment -- just the detected junctions. So we output
-                    # the SAM to /dev/null.
-                    "--outStd SAM > /dev/null "
-                    "2> {log} "
-                )
-            )
-
-            # move various hard-coded log files to log directory
-            logfiles = expand(prefix + "{ext}", ext=logfile_extensions)
-            shell(
-                "mkdir -p {outdir}/star-pass1_logs "
-                "&& mv {logfiles} {outdir}/star-pass1_logs"
-            )
-
-    rule star_pass2:
-        """
-        Second pass of alignment with STAR using splice junctions across all
-        samples to get the final BAM
-        """
-        input:
-            fastq=rules.cutadapt.output,
-            index=rules.star_index.output,
-            annotation=f"{REFERENCES}/annotation.gtf",
-            sjout=expand(rules.star_pass1.output, sample=SAMPLES),
-        output:
-            bam=temporary("data/rnaseq_samples/{sample}/{sample}.cutadapt.bam"),
-            sjout=temporary(
-                "data/rnaseq_samples/{sample}/{sample}.cutadapt.star-pass2.SJ.out.tab"
-            ),
-        log:
-            "data/rnaseq_samples/{sample}/{sample}.cutadapt.star-pass2.log",
-        threads: 16
-        resources:
-            mem="64g",
-            runtime="8h",
-            disk="80g",
-        params:
-            extra=STAR_PARAMS,
-        run:
-            genomedir = os.path.dirname(input.index[0])
-            outdir = os.path.dirname(output[0])
-            prefix = output.bam.replace(".bam", ".star-pass2.")
-            shell(
-                STAR_CMD
-                + (
-                    # In contrast to pass 1, we will be keeping these BAMs --
-                    # so sort them
-                    "--outSAMtype BAM SortedByCoordinate "
-                    # Splice junction databases from all samples in the first
-                    # pass.
-                    "--sjdbFileChrStartEnd {input.sjout} "
-                    "--outStd BAM_SortedByCoordinate > {output.bam} "
-                    "2> {log} "
-                )
-            )
-
-            # move various hard-coded log files to log directory
-            logfiles = expand(prefix + "{ext}", ext=logfile_extensions)
-            shell(
-                "mkdir -p {outdir}/star-pass2_logs "
-                "&& mv {logfiles} {outdir}/star-pass2_logs"
-            )
-
-            shell("rm -r {prefix}_STARgenome")
+        # move various hard-coded log files to log directory
+        logfile_extensions = 
+        logfiles = expand(
+            prefix + "{ext}",
+            ext=["Log.progress.out", "Log.out", "Log.final.out", "Log.std.out"]
+        )
+        shell(
+            "mkdir -p {outdir}/star_logs "
+            "&& mv {logfiles} {outdir}/star_logs"
+        )
 
 
 rule rRNA:

@@ -23,5 +23,3 @@ patterns: 'config/rnaseq_patterns.yaml'
 stranded: 'fr-firststrand'     # for dUTP libraries
 #         'fr-secondstrand'    # for ligation libraries
 #         'unstranded'         # for libraries without strand specificity
-
-aligner: 'star'

@@ -140,35 +140,6 @@ rule star_index:
         shell("ln -s {input.fasta} {genomedir}")
 
 
-rule hisat2_index:
-    input:
-        f"{REFERENCES}/genome.fa",
-    output:
-        multiext(
-            f"{REFERENCES}/hisat2/genome",
-            ".1.ht2",
-            ".2.ht2",
-            ".3.ht2",
-            ".4.ht2",
-            ".5.ht2",
-            ".6.ht2",
-            ".7.ht2",
-            ".8.ht2",
-            ".fa",
-        ),
-    log:
-        f"{REFERENCES}/logs/hisat2.log",
-    resources:
-        mem="32g",
-        disk="50g",
-        runtime="8h",
-    threads: 8
-    run:
-        index = os.path.commonprefix(output).rstrip(".")
-        shell("hisat2-build" " --threads {threads}" " {input}" " {index}" " &> {log}")
-        shell("ln -s {input} {output[-1]}")
-
-
 rule transcriptome_fasta:
     input:
         fasta=f"{REFERENCES}/genome.fa",
