@@ -83,18 +83,6 @@ rule cutadapt:
     resources:
         mem="2g",
         runtime="2h",
-    params:
-        extra=(
-            (
-                "--nextseq-trim 20 "
-                "--overlap 6 "
-                "--minimum-length 25 "
-                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
-            )
-            + "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
-            if is_paired
-            else ""
-        ),
     run:
         if is_paired:
             shell(
@@ -102,6 +90,11 @@ rule cutadapt:
                 "-o {output[0]} "
                 "-p {output[1]} "
                 "-j {threads} "
+                "--nextseq-trim 20 "
+                "--overlap 6 "
+                "--minimum-length 25 "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
                 "{params.extra} "
                 "{input.fastq[0]} "
                 "{input.fastq[1]} "
@@ -112,6 +105,10 @@ rule cutadapt:
                 "cutadapt "
                 "-o {output[0]} "
                 "-j {threads} "
+                "--nextseq-trim 20 "
+                "--overlap 6 "
+                "--minimum-length 25 "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 "{params.extra} "
                 "{input.fastq[0]} "
                 "&> {log}"
@@ -390,21 +387,16 @@ rule rRNA:
     resources:
         mem="2g",
         runtime="2h",
-    params:
-        extra=(
-            "-k 1 "
-            "--no-unal "
-        ),
     run:
         prefix = os.path.commonprefix(input.index).rstrip(".")
         sam = output.bam.replace(".bam", ".sam")
-
         shell(
             "bowtie2 "
             "-x {prefix} "
             "-U {input.fastq} "
             "--threads {threads} "
-            "{params.extra} "
+            "-k 1 "
+            "--no-unal "
             "-S {sam} "
             "> {log} 2>&1"
         )
@@ -630,13 +622,6 @@ rule salmon:
     resources:
         mem="32g",
         runtime="2h",
-    params:
-        extra=(
-            "--libType=A "
-            "--gcBias "
-            "--seqBias "
-            "--validateMappings "
-        ),
     run:
         outdir = os.path.dirname(output[0])
         index_dir = os.path.dirname(input.index)
@@ -649,7 +634,10 @@ rule salmon:
             "--index {index_dir} "
             "--output {outdir} "
             "--threads {threads} "
-            "{params.extra} "
+            "--libType=A "
+            "--gcBias "
+            "--seqBias "
+            "--validateMappings "
             "{fastq_arg} "
             "&> {log}"
         )
@@ -787,19 +775,16 @@ rule bigwig_neg:
             "fr-firststrand": "--filterRNAstrand reverse ",
             "fr-secondstrand": "--filterRNAstrand forward ",
         }[config["stranded"]],
-        extra=(
-            "--minMappingQuality 20 "
-            "--smoothLength 10 "
-            "--normalizeUsing BPM "  # [disable for test]
-        ),
     run:
         shell(
             "bamCoverage "
             "--bam {input.bam} "
             "-o {output} "
             "-p {threads} "
-            "{params.extra} "
             "{params.strand_arg} "
+            "--minMappingQuality 20 "
+            "--smoothLength 10 "
+            "--normalizeUsing BPM "  # [disable for test]
             "&> {log}"
         )
 
@@ -822,18 +807,15 @@ rule bigwig_pos:
             "fr-firststrand": "--filterRNAstrand forward ",
             "fr-secondstrand": "--filterRNAstrand reverse ",
         }[config["stranded"]],
-        extra=(
-            "--minMappingQuality 20 "
-            "--smoothLength 10 "
-            "--normalizeUsing BPM "  # [disable for test]
-        ),
     run:
         shell(
             "bamCoverage "
             "--bam {input.bam} "
             "-o {output} "
             "-p {threads} "
-            "{params.extra} "
+            "--minMappingQuality 20 "
+            "--smoothLength 10 "
+            "--normalizeUsing BPM "  # [disable for test]
             "{params.strand_arg} "
             "&> {log}"
         )

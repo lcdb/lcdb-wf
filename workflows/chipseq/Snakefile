@@ -115,18 +115,6 @@ rule cutadapt:
     resources:
         mem="2g",
         runtime="2h",
-    params:
-        extra=(
-            (
-                "--nextseq-trim 20 "
-                "--overlap 6 "
-                "--minimum-length 25 "
-                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
-            )
-            + "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
-            if is_paired
-            else ""
-        ),
     run:
         if is_paired:
             shell(
@@ -134,7 +122,11 @@ rule cutadapt:
                 "-o {output[0]} "
                 "-p {output[1]} "
                 "-j {threads} "
-                "{params.extra} "
+                "--nextseq-trim 20 "
+                "--overlap 6 "
+                "--minimum-length 25 "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
+                "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
                 "{input.fastq[0]} "
                 "{input.fastq[1]} "
                 "&> {log}"
@@ -144,7 +136,10 @@ rule cutadapt:
                 "cutadapt "
                 "-o {output[0]} "
                 "-j {threads} "
-                "{params.extra} "
+                "--nextseq-trim 20 "
+                "--overlap 6 "
+                "--minimum-length 25 "
+                "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 "{input.fastq[0]} "
                 "&> {log}"
             )
@@ -205,8 +200,6 @@ rule bowtie2:
     resources:
         mem="32g",
         runtime="2h",
-    params:
-        extra="",
     run:
         prefix = os.path.commonprefix(input.index).rstrip(".")
         sam = output.bam.replace(".bam", ".sam")
@@ -222,7 +215,6 @@ rule bowtie2:
             "--no-unal "
             "--threads {threads} "
             "-S {sam} "
-            "{params.extra} "
             "> {log} 2>&1"
         )
 
