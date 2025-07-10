@@ -367,7 +367,7 @@ if __name__ == "__main__":
     ap.add_argument(
         "--conda-frontend",
         help="Set program (conda or mamba) to use when creating environments. Default is %(default)s.",
-        default="mamba",
+        default="conda",
     )
     ap.add_argument(
         "--rsync-args",
