@@ -267,7 +267,7 @@ def deployment_json(source, dest):
     info("Wrote details of deployment to {log}".format(**locals()))
 
 
-def build_envs(dest, conda_frontend="mamba"):
+def build_envs(dest, additional_main=None, additional_r=None, conda_frontend="conda"):
     """
     Build conda environments.
 
@@ -279,15 +279,25 @@ def build_envs(dest, conda_frontend="mamba"):
         the command line with --dest) in which the env and env-r yaml files
         should already exist. Envs will be created in here.
 
+    additional_main : list
+        Other packages to install, e.g., a snakemake plugin needed for
+        a cluster profile, into the main environment.
+
+    additional_r : list
+        Other packages to install into the R environment.
+
     conda_frontend : 'mamba' | 'conda'
         Which front-end to use (terminology borrowed from Snakemake)
+
     """
     mapping = [
-        ("./env", "env.yml"),
-        ("./env-r", "env-r.yml"),
+        ("./env", "env.yml", additional_main),
+        ("./env-r", "env-r.yml", additional_r),
     ]
-    for env, yml in mapping:
+    for env, yml, additional in mapping:
         info("Building environment " + os.path.join(dest, env))
+        if additional:
+            info(f"Adding {additional} to environment")
 
         try:
             # conda and mamba can be hard to kill, possibly because they're
@@ -305,6 +315,8 @@ def build_envs(dest, conda_frontend="mamba"):
                 "--file",
                 yml,
             ]
+            if additional:
+                cmds += additional
             p = sp.Popen(cmds, universal_newlines=True, cwd=dest)
             p.wait()
 
@@ -376,6 +388,20 @@ if __name__ == "__main__":
     )
 
     ap.add_argument(
+        "--additional-main",
+        help="""Additional packages to install in main environment (only
+        relevant with --build-envs). For example,
+        'snakemake-executor-plugin-cluster-generic' to support a cluster
+        profile.""",
+        nargs="+"
+    )
+    ap.add_argument(
+        "--additional-r",
+        help="Additional packages to install in R environment (only relevant with --build-envs)",
+        nargs="+"
+    )
+
+    ap.add_argument(
         "--mismatch-ok",
         action="store_true",
         help="Used for testing")
@@ -398,7 +424,28 @@ if __name__ == "__main__":
     rsync(include, source, dest, args.rsync_args)
     deployment_json(source, dest)
 
+    if args.additional_main and additional_main_from_env_var:
+        print(
+            "ERROR: Unset LCDBWF_ADDITIONAL_MAIN env var if you want to use the --additional-main argument."
+        )
+        sys.exit(1)
+
+    if additional_main_from_env_var:
+        if args.additional_main:
+            print(
+                "ERROR: Unset LCDBWF_ADDITIONAL_MAIN env var if you want to use the --additional-main argument."
+            )
+            sys.exit(1)
+        additional_main = [additional_main_from_env_var]
+    else:
+        additional_main = args.additional_main
+
     if args.build_envs:
-        build_envs(dest, conda_frontend=args.conda_frontend)
+        build_envs(
+            dest,
+            additional_main=additional_main,
+            additional_r=args.additional_r,
+            conda_frontend=args.conda_frontend,
+        )
 
     warning("Deployment complete in {args.dest}".format(**locals()))
