@@ -63,16 +63,23 @@ script. For example:
 
 .. code-block:: bash
 
+    # Install any additional plugins required for running on your cluster
+    EXTRA="snakemake-executor-plugin-cluster-generic"
+
     python deploy.py \
       --dest analysis/project \
       --staging /tmp/lcdb-wf-tmp \
       --branch $BRANCH \
       --flavor rnaseq \
       --clone \
-      --build-envs
+      --build-envs \
+      --additional_main=$EXTRA
 
     # You can clean up the cloned copy if you want:
     # rm -rf /tmp/lcdb-wf-tmp
+    # and the downloaded script:
+    # rm deploy.py
+
 
 This will clone the full git repo to ``/tmp/lcdb-wf-tmp``, check out the master
 branch (or whatever branch ``$BRANCH`` is set to), copy the files required for
@@ -169,9 +176,13 @@ your cluster's batch system.
 On NIH's Biowulf cluster, the profile can be found at
 https://github.com/NIH-HPC/snakemake_profile. If you are not already using this for other Snakemake workflows, you can set it up the first time like this:
 
-1. Clone the profile to a location of your choosing, maybe
-   ``~/snakemake_profile``
-2. Set the environment variable ``LCDBWF_SNAKEMAKE_PROFILE``, perhaps in your
+1. Install the ``snakemake-executor-plugin-cluster-generic`` package into the
+   main conda env. You can use the ``--additional-main`` argument to
+   ``deploy.py --build-envs``, or manually do this.
+2. Clone the profile to a location of your choosing, maybe
+   ``~/snakemake_profile_v8``
+3. Check out the ``snakemake8`` branch
+4. Set the environment variable ``LCDBWF_SNAKEMAKE_PROFILE_V8``, perhaps in your
    ``~/.bashrc`` file.
 
 Then back in your deployed and configured project, submit the wrapper script as

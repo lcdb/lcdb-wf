@@ -62,7 +62,9 @@ a cluster-specific `Snakemake profile
 these resources are translated into cluster-specific commands.
 
 For example, if runnng NIH's Biowulf HPC cluster, use the `Biowulf profile
-<https://github.com/NIH-HPC/snakemake_profile>`_.
+<https://github.com/NIH-HPC/snakemake_profile>`_. When using a recent version
+of lcdb-wf, you will need the ``snakemake8`` branch of this repo (since pre-v8
+snakemake profiles are incompatible).
 
 Generally, you shouldn't run long-running tasks on a login node of a cluster,
 and this includes long-running Snakemake workflows. So lcdb-wf comes with
