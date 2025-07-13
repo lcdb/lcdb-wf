@@ -1,5 +1,19 @@
 Changelog
 =========
+v1.13
+-----
+
+- Improved support for Snakemake v8+ and cluster profiles while maintaining
+  backward compatibility. Set two different env vars,
+  ``LCDBWF_SNAKEMAKE_PROFILE`` and ``LCDBWF_SNAKEMAKE_PROFILE_V8`` to the
+  corresponding profile directories. The ``include/WRAPPER_SLURM`` will inspect
+  the running Snakemake version and select the appropriate profile to use.
+
+- During deployment, support installing additional packages into the
+  environment. This is useful in particular when using a cluster profile that
+  depends on an executor plugin.
+
+- Default to conda rather than mamba as a conda front-end
 
 v1.12
 -----

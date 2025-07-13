@@ -61,19 +61,65 @@ a cluster-specific `Snakemake profile
 <https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles>`_,
 these resources are translated into cluster-specific commands.
 
-For example, if runnng NIH's Biowulf HPC cluster, use the `Biowulf profile
-<https://github.com/NIH-HPC/snakemake_profile>`_.
+Setting up a cluster profile
+---------------------------
 
-Generally, you shouldn't run long-running tasks on a login node of a cluster,
-and this includes long-running Snakemake workflows. So lcdb-wf comes with
-a wrapper script, ``include/WRAPPER_SLURM``, that runs Snakemake which can be
-submitted to a compute node on a Slurm cluster.
+To run on a cluster, you need a Snakemake profile for your specific cluster
+environment.
 
-For example, to run a workflow on a Slurm cluster, from the workflow directory
-(e.g., ``workflows/rnaseq``, run the following command::
+Typically this is set up by the cluster admins, but you can find some existing
+profiles for common submission systems in the `Snakemake-Profiles project
+<https://github.com/snakemake-profiles/doc>`__.
+
+The profile, in turn, may require additional snakemake plugins to be
+installed. These would need to go into the main environment; you can use the
+``--additional-main`` argument for :file:`deploy.py` if/when you know the
+package in advance. Otherwise, install the required plugin into the main
+environment.
+
+Then set the ``LCDBWF_SNAKEMAKE_PROFILE`` and ``LCDBWF_SNAKEMAKE_PROFILE_V8``
+env vars to point to the <8 and >8 profiles respectively.
+
+
+For NIH's Biowulf cluster
+-------------------------
+
+On NIH's Biowulf HPC cluster, use the `Biowulf profile
+<https://github.com/NIH-HPC/snakemake_profile>`_. For recent versions
+of lcdb-wf, you need the ``snakemake8`` branch of the profile:
+
+.. code-block:: bash
+
+    git clone https://github.com/NIH-HPC/snakemake_profile ~/snakemake_profile_v8
+    cd ~/snakemake_profile_v8
+    git checkout snakemake8
+
+    # Set the environment variable (add to your ~/.bashrc for persistence)
+    export LCDBWF_SNAKEMAKE_PROFILE_V8=~/snakemake_profile_v8
+
+Running on a cluster
+-------------------
+
+In general, we should avoid running long-running Snakemake workflows on the
+login node of a cluster. lcdb-wf comes with a wrapper script,
+``include/WRAPPER_SLURM``, that runs Snakemake as a batch job on Slurm.
+
+To run a workflow on a Slurm cluster, from the workflow directory (e.g.,
+``workflows/rnaseq``), and with the main environment activated, run:
+
+.. code-block:: bash
 
     sbatch ../../include/WRAPPER_SLURM
 
-The ``WRAPPER_SLURM`` script submits the main Snakemake process on a separate
-node to avoid any restrictions from running on the head node. That main
-Snakemake process then submits each rule separately to the cluster scheduler.
+
+The environment is inherited, and the version of Snakemake is detected so that
+the appropriate profile can be used. Then Snakemake is run. Via the profile,
+the main Snakemake process started by the initial WRAPPER_SLURM batch job will
+automatically submit jobs to the cluster.
+
+You can keep an eye on :file:`Snakefile.log` to watch progress (e.g. `tail -f
+Snakefile.log`).
+
+For other cluster environments, consult the Snakemake documentation on:
+- `Cluster execution <https://snakemake.readthedocs.io/en/stable/executing/cluster.html>`_
+- `Cloud execution <https://snakemake.readthedocs.io/en/stable/executing/cloud.html>`_
