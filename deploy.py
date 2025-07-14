@@ -8,7 +8,6 @@ import argparse
 import subprocess as sp
 import datetime
 import json
-import fnmatch
 import logging
 import hashlib
 from pathlib import Path
