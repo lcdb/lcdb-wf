@@ -187,7 +187,7 @@ def clone_repo(dest, branch="master", mismatch_ok=False):
         full_here = Path(__file__).resolve()
         full_there = Path(dest) / "deploy.py"
         error(
-            "Files {full_here} and {full_there} do not match! ".format(**locals())
+            f"Files {full_here} and {full_there} do not match! "
             + "The deploy script you are running appears to be out of date. "
             "Please get an updated copy from https://github.com/lcdb/lcdb-wf, perhaps "
             "with 'wget https://raw.githubusercontent.com/lcdb/lcdb-wf/master/deploy.py'"
@@ -335,7 +335,7 @@ def build_envs(dest, additional_main=None, additional_r=None, conda_frontend="co
             sys.exit(1)
 
         full_env = Path(dest) / env
-        info("Created env {full_env}".format(**locals()))
+        info(f"Created env {full_env}")
 
 
 if __name__ == "__main__":
