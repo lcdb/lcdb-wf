@@ -444,14 +444,14 @@ if __name__ == "__main__":
                 "ERROR: Unset LCDBWF_ADDITIONAL_MAIN env var if you want to use the --additional-main argument."
             )
             sys.exit(1)
-        additional_main = additional_main_from_env_var
+        additional_main = [additional_main_from_env_var]
     else:
         additional_main = args.additional_main
 
     if args.build_envs:
         build_envs(
             dest,
-            additional_main=args.additional_main,
+            additional_main=additional_main,
             additional_r=args.additional_r,
             conda_frontend=args.conda_frontend,
         )
