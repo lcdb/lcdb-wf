@@ -339,6 +339,8 @@ def build_envs(dest, additional_main=None, additional_r=None, conda_frontend="co
 
 if __name__ == "__main__":
 
+    additional_main_from_env_var = os.getenv("LCDBWF_ADDITIONAL_MAIN", [])
+
     ap = argparse.ArgumentParser(usage=usage)
     ap.add_argument(
         "--flavor",
@@ -397,7 +399,8 @@ if __name__ == "__main__":
         help="""Additional packages to install in main environment (only
         relevant with --build-envs). For example,
         'snakemake-executor-plugin-cluster-generic' to support a cluster
-        profile.""",
+        profile. You can use the env var LCDBWF_ADDITIONAL_MAIN to supply this
+        argument automatically instead.""",
         nargs="+",
     )
     ap.add_argument(
