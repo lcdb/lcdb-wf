@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>lib.patterns_targets &#8212; lcdb-wf 1.9 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9735eac1" />
     <script src="../../_static/documentation_options.js?v=754f84b7"></script>
@@ -95,13 +95,13 @@
 <span class="sd">within Snakefiles or in downstream (figure-making) scripts.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">collections</span>
-<span class="kn">import</span> <span class="nn">yaml</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">common</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">chipseq</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">helpers</span>
-<span class="kn">from</span> <span class="nn">snakemake.io</span> <span class="kn">import</span> <span class="n">expand</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">common</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">chipseq</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">helpers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">snakemake.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">expand</span>
 
 <span class="n">HERE</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
 
@@ -109,7 +109,7 @@
 <span class="n">PEAK_CALLERS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;macs2&#39;</span><span class="p">,</span> <span class="s1">&#39;spp&#39;</span><span class="p">,</span> <span class="s1">&#39;sicer&#39;</span><span class="p">,</span> <span class="s1">&#39;epic2&#39;</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">update_recursive</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_recursive</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Update dictionary `d` with items in dictionary `u`, recursively</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -123,8 +123,8 @@
 
 <div class="viewcode-block" id="SeqConfig">
 <a class="viewcode-back" href="../../lib.patterns_targets.html#lib.patterns_targets.SeqConfig">[docs]</a>
-<span class="k">class</span> <span class="nc">SeqConfig</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">patterns</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SeqConfig</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">patterns</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This class takes care of common tasks related to config and patterns</span>
 <span class="sd">        files (reading the sampletable, etc) but is intended to be subclassed.</span>
@@ -185,8 +185,8 @@
 
 <div class="viewcode-block" id="RNASeqConfig">
 <a class="viewcode-back" href="../../lib.patterns_targets.html#lib.patterns_targets.RNASeqConfig">[docs]</a>
-<span class="k">class</span> <span class="nc">RNASeqConfig</span><span class="p">(</span><span class="n">SeqConfig</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">patterns</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RNASeqConfig</span><span class="p">(</span><span class="n">SeqConfig</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">patterns</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Config object specific to RNA-seq workflows.</span>
 
@@ -236,8 +236,8 @@
 
 <div class="viewcode-block" id="ChIPSeqConfig">
 <a class="viewcode-back" href="../../lib.patterns_targets.html#lib.patterns_targets.ChIPSeqConfig">[docs]</a>
-<span class="k">class</span> <span class="nc">ChIPSeqConfig</span><span class="p">(</span><span class="n">SeqConfig</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">patterns</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ChIPSeqConfig</span><span class="p">(</span><span class="n">SeqConfig</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">patterns</span><span class="p">,</span> <span class="n">workdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Config object specific to ChIP-seq workflows.</span>
 

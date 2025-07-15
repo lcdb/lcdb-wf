@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Configuration &#8212; lcdb-wf 1.9 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=9735eac1" />
     <script src="_static/documentation_options.js?v=754f84b7"></script>
@@ -53,7 +53,12 @@
 <li class="toctree-l3"><a class="reference internal" href="patterns-targets.html">Patterns and targets</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#running-on-a-cluster">Running on a cluster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-on-a-cluster">Running on a cluster</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#setting-up-a-cluster-profile">Setting up a cluster profile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#for-nih-s-biowulf-cluster">For NIH’s Biowulf cluster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Running on a cluster</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References workflow</a></li>
@@ -165,19 +170,53 @@ making it easy to run these workflows on many different cluster environments.</p
 configuration. Each rule has resources specified. When running with
 a cluster-specific <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles">Snakemake profile</a>,
 these resources are translated into cluster-specific commands.</p>
-<p>For example, if runnng NIH’s Biowulf HPC cluster, use the <a class="reference external" href="https://github.com/NIH-HPC/snakemake_profile">Biowulf profile</a>.</p>
-<p>Generally, you shouldn’t run long-running tasks on a login node of a cluster,
-and this includes long-running Snakemake workflows. So lcdb-wf comes with
-a wrapper script, <code class="docutils literal notranslate"><span class="pre">include/WRAPPER_SLURM</span></code>, that runs Snakemake which can be
-submitted to a compute node on a Slurm cluster.</p>
-<p>For example, to run a workflow on a Slurm cluster, from the workflow directory
-(e.g., <code class="docutils literal notranslate"><span class="pre">workflows/rnaseq</span></code>, run the following command:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sbatch</span> <span class="o">../../</span><span class="n">include</span><span class="o">/</span><span class="n">WRAPPER_SLURM</span>
+<section id="setting-up-a-cluster-profile">
+<h3>Setting up a cluster profile<a class="headerlink" href="#setting-up-a-cluster-profile" title="Link to this heading">¶</a></h3>
+<p>To run on a cluster, you need a Snakemake profile for your specific cluster
+environment.</p>
+<p>Typically this is set up by the cluster admins, but you can find some existing
+profiles for common submission systems in the <a class="reference external" href="https://github.com/snakemake-profiles/doc">Snakemake-Profiles project</a>.</p>
+<p>The profile, in turn, may require additional snakemake plugins to be
+installed. These would need to go into the main environment; you can use the
+<code class="docutils literal notranslate"><span class="pre">--additional-main</span></code> argument for <code class="file docutils literal notranslate"><span class="pre">deploy.py</span></code> if/when you know the
+package in advance. Otherwise, install the required plugin into the main
+environment.</p>
+<p>Then set the <code class="docutils literal notranslate"><span class="pre">LCDBWF_SNAKEMAKE_PROFILE</span></code> and <code class="docutils literal notranslate"><span class="pre">LCDBWF_SNAKEMAKE_PROFILE_V8</span></code>
+env vars to point to the &lt;8 and &gt;8 profiles respectively.</p>
+</section>
+<section id="for-nih-s-biowulf-cluster">
+<h3>For NIH’s Biowulf cluster<a class="headerlink" href="#for-nih-s-biowulf-cluster" title="Link to this heading">¶</a></h3>
+<p>On NIH’s Biowulf HPC cluster, use the <a class="reference external" href="https://github.com/NIH-HPC/snakemake_profile">Biowulf profile</a>. For recent versions
+of lcdb-wf, you need the <code class="docutils literal notranslate"><span class="pre">snakemake8</span></code> branch of the profile:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/NIH-HPC/snakemake_profile<span class="w"> </span>~/snakemake_profile_v8
+<span class="nb">cd</span><span class="w"> </span>~/snakemake_profile_v8
+git<span class="w"> </span>checkout<span class="w"> </span>snakemake8
+
+<span class="c1"># Set the environment variable (add to your ~/.bashrc for persistence)</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">LCDBWF_SNAKEMAKE_PROFILE_V8</span><span class="o">=</span>~/snakemake_profile_v8
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">WRAPPER_SLURM</span></code> script submits the main Snakemake process on a separate
-node to avoid any restrictions from running on the head node. That main
-Snakemake process then submits each rule separately to the cluster scheduler.</p>
+</section>
+<section id="id1">
+<h3>Running on a cluster<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<p>In general, we should avoid running long-running Snakemake workflows on the
+login node of a cluster. lcdb-wf comes with a wrapper script,
+<code class="docutils literal notranslate"><span class="pre">include/WRAPPER_SLURM</span></code>, that runs Snakemake as a batch job on Slurm.</p>
+<p>To run a workflow on a Slurm cluster, from the workflow directory (e.g.,
+<code class="docutils literal notranslate"><span class="pre">workflows/rnaseq</span></code>), and with the main environment activated, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sbatch<span class="w"> </span>../../include/WRAPPER_SLURM
+</pre></div>
+</div>
+<p>The environment is inherited, and the version of Snakemake is detected so that
+the appropriate profile can be used. Then Snakemake is run. Via the profile,
+the main Snakemake process started by the initial WRAPPER_SLURM batch job will
+automatically submit jobs to the cluster.</p>
+<p>You can keep an eye on <code class="file docutils literal notranslate"><span class="pre">Snakefile.log</span></code> to watch progress (e.g. <cite>tail -f
+Snakefile.log</cite>).</p>
+<p>For other cluster environments, consult the Snakemake documentation on:
+- <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/executing/cluster.html">Cluster execution</a>
+- <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/executing/cloud.html">Cloud execution</a></p>
+</section>
 </section>
 </section>
 
