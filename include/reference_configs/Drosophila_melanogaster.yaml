@@ -12,9 +12,9 @@ references:
           - 'hisat2'
           - 'bowtie2'
           - 'star'
-    r6-24:
+    r6-63:
       annotation:
-        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.24_FB2018_05/gtf/dmel-all-r6.24.gtf.gz'
+        url: 'https://s3ftp.flybase.org/genomes/Drosophila_melanogaster/dmel_r6.63_FB2025_02/gtf/dmel-all-r6.63.gtf.gz'
         postprocess:
           - function: 'lib.postprocess.utils.match_gtf_9th'
             args:
@@ -28,38 +28,7 @@ references:
           - 'bed12'
 
       genome:
-        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.24_FB2018_05/fasta/dmel-all-chromosome-r6.24.fasta.gz'
-        postprocess:
-          function: 'lib.postprocess.utils.convert_fasta_chroms'
-          args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/5c2f949f82ef62b9e9e37e673aabe6c857890d2a/mappings/fly/flybase_r6.23_BDGP6_to_ucsc_dm6/mappings_flybase_r6.23_BDGP6_to_ucsc_dm6.tsv'
-        indexes:
-          - 'bowtie2'
-          - 'hisat2'
-          - 'star'
-
-      transcriptome:
-        indexes:
-          - 'salmon'
-          - 'kallisto'
-
-    # Note: the mappings from r6.23 still work well for r6.28.
-    r6-28:
-      annotation:
-        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.28_FB2019_03/gtf/dmel-all-r6.28.gtf.gz'
-        postprocess:
-          - function: 'lib.postprocess.utils.match_gtf_9th'
-            args:
-              - ['FBgn0002781']
-              - '-'
-          - function: 'lib.postprocess.utils.convert_gtf_chroms'
-            args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/5c2f949f82ef62b9e9e37e673aabe6c857890d2a/mappings/fly/flybase_r6.23_BDGP6_to_ucsc_dm6/mappings_flybase_r6.23_BDGP6_to_ucsc_dm6.tsv'
-
-        conversions:
-          - 'refflat'
-          - 'bed12'
-
-      genome:
-        url: 'ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.28_FB2019_03/fasta/dmel-all-chromosome-r6.28.fasta.gz'
+        url: 'https://s3ftp.flybase.org/genomes/Drosophila_melanogaster/dmel_r6.63_FB2025_02/fasta/dmel-all-chromosome-r6.63.fasta.gz'
         postprocess:
           function: 'lib.postprocess.utils.convert_fasta_chroms'
           args: 'https://raw.githubusercontent.com/NICHD-BSPC/chrom-name-mappings/5c2f949f82ef62b9e9e37e673aabe6c857890d2a/mappings/fly/flybase_r6.23_BDGP6_to_ucsc_dm6/mappings_flybase_r6.23_BDGP6_to_ucsc_dm6.tsv'
