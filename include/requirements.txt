@@ -34,7 +34,7 @@ salmon>=1.10.1
 
 samtools
 seaborn
-snakemake>8
+snakemake>9
 sra-tools
 star
 subread

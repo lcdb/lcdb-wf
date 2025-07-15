@@ -23,6 +23,8 @@ The general steps to use lcdb-wf in a new project are:
 2. **Configure:** set up samples table for experiments and edit configuration file
 3. **Run:** activate environment and run the Snakemake file either locally or on a cluster
 
+See :ref:`cluster` for detailed information on running on HPC clusters.
+
 .. _deploy:
 
 1. Deploying lcdb-wf
@@ -63,16 +65,23 @@ script. For example:
 
 .. code-block:: bash
 
+    # Install any additional plugins required for running on your cluster
+    EXTRA="snakemake-executor-plugin-cluster-generic"
+
     python deploy.py \
       --dest analysis/project \
       --staging /tmp/lcdb-wf-tmp \
       --branch $BRANCH \
       --flavor rnaseq \
       --clone \
-      --build-envs
+      --build-envs \
+      --additional_main=$EXTRA
 
     # You can clean up the cloned copy if you want:
     # rm -rf /tmp/lcdb-wf-tmp
+    # and the downloaded script:
+    # rm deploy.py
+
 
 This will clone the full git repo to ``/tmp/lcdb-wf-tmp``, check out the master
 branch (or whatever branch ``$BRANCH`` is set to), copy the files required for
@@ -161,37 +170,26 @@ project. To run locally, choose the number of CPUs you want to use with the
 
 The recommended way is to run on a cluster.
 
-To run on a cluster, you will need a `Snakemake profile
-<https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles>`_ for
-your cluster that translates generic resource requirements into arguments for
-your cluster's batch system.
+Running on a cluster requires a `Snakemake profile
+<https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles>`_ that translates 
+resource requirements into arguments for your cluster's batch system.
 
-On NIH's Biowulf cluster, the profile can be found at
-https://github.com/NIH-HPC/snakemake_profile. If you are not already using this for other Snakemake workflows, you can set it up the first time like this:
-
-1. Clone the profile to a location of your choosing, maybe
-   ``~/snakemake_profile``
-2. Set the environment variable ``LCDBWF_SNAKEMAKE_PROFILE``, perhaps in your
-   ``~/.bashrc`` file.
-
-Then back in your deployed and configured project, submit the wrapper script as
-a batch job:
+For example, on NIH's Biowulf cluster:
 
 .. code-block:: bash
 
     sbatch ../../include/WRAPPER_SLURM
 
-This will submit Snakemake as a batch job, use the profile to translate
-resources to cluster arguments and set default command-line arguments, and
-submit the various jobs created by Snakemake to the cluster on your behalf. See
-:ref:`cluster` for more details on this.
+This submits Snakemake as a batch job, which then submits individual workflow jobs to the cluster.
 
-Other clusters will need different configuration, but everything in `lcdb-wf`
-is standard Snakemake. The Snakemake documentation on `cluster execution
-<https://snakemake.readthedocs.io/en/stable/executing/cluster.html>`_ and
-`cloud execution
-<https://snakemake.readthedocs.io/en/stable/executing/cloud.html>`_ can be
-consulted for running on your particular system.
+See :ref:`cluster` for detailed setup instructions for different cluster environments, including:
+
+- Setting up Snakemake profiles
+- Installing required plugins
+- Configuring environment variables
+- Running on specific clusters like NIH's Biowulf
+
+The :ref:`cluster` section also links to Snakemake's documentation for various execution environments.
 
 You can typically run simultaneous workflows when they are in different
 directories; see :ref:`workflows` for details.

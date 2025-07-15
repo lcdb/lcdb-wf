@@ -8,14 +8,13 @@ import argparse
 import subprocess as sp
 import datetime
 import json
-import fnmatch
 import logging
 import hashlib
 from pathlib import Path
 from distutils import filelist
 
 # Determine default staging area, used in help
-default_staging = "/tmp/{0}-lcdb-wf-staging".format(os.getenv('USER'))
+default_staging = "/tmp/{0}-lcdb-wf-staging".format(os.getenv("USER"))
 
 usage = f"""
 This script assists in the deployment of relevant code from the lcdb-wf
@@ -74,52 +73,51 @@ def error(s):
     logging.error(RED + s + RESET)
 
 
-def write_include_file(source, flavor='all'):
+def write_include_file(source, flavor="all"):
 
     # Patterns follow that of MANIFEST.in
     # (https://packaging.python.org/en/latest/guides/using-manifest-in/),
     # and distutils.filelist is used below to parse them.
 
     PATTERN_DICT = {
-        'rnaseq': [
-            'include workflows/rnaseq/Snakefile',
-            'recursive-include workflows/rnaseq/config *',
-            'include workflows/rnaseq/rnaseq_trackhub.py',
-            'recursive-include workflows/rnaseq/downstream *.Rmd',
-            'recursive-include workflows/rnaseq/downstream *.yaml',
+        "rnaseq": [
+            "include workflows/rnaseq/Snakefile",
+            "recursive-include workflows/rnaseq/config *",
+            "include workflows/rnaseq/rnaseq_trackhub.py",
+            "recursive-include workflows/rnaseq/downstream *.Rmd",
+            "recursive-include workflows/rnaseq/downstream *.yaml",
         ],
-        'chipseq': [
-            'include workflows/chipseq/Snakefile',
-            'recursive-include workflows/chipseq/config *',
-            'include workflows/chipseq/chipseq_trackhub.py',
+        "chipseq": [
+            "include workflows/chipseq/Snakefile",
+            "recursive-include workflows/chipseq/config *",
+            "include workflows/chipseq/chipseq_trackhub.py",
         ],
-        'all': [
-            'recursive-include wrappers *',
-            'recursive-include include *',
-            'recursive-include lib *', 
-            'include env.yml env-r.yml .gitignore',
-            'include workflows/references/Snakefile',
-            'recursive-include workflows/references/config *',
-            'global-exclude __pycache__',
+        "all": [
+            "recursive-include wrappers *",
+            "recursive-include include *",
+            "recursive-include lib *",
+            "include env.yml env-r.yml .gitignore",
+            "include workflows/references/Snakefile",
+            "recursive-include workflows/references/config *",
+            "global-exclude __pycache__",
         ],
-        'full': [
-            'include workflows/colocalization/Snakefile',
-            'recursive-include workflows/colocalization/config *',
-            'recursive-include workflows/colocalization/scripts *',
-            'recursive-include workflows/figures *',
-            'recursive-include workflows/external *',
-        ]
-
+        "full": [
+            "include workflows/colocalization/Snakefile",
+            "recursive-include workflows/colocalization/config *",
+            "recursive-include workflows/colocalization/scripts *",
+            "recursive-include workflows/figures *",
+            "recursive-include workflows/external *",
+        ],
     }
 
     patterns = []
-    if flavor in ('full', 'rnaseq'):
-        patterns.extend(PATTERN_DICT['rnaseq'])
-    if flavor in ('full', 'chipseq'):
-        patterns.extend(PATTERN_DICT['chipseq'])
-    if flavor == 'full':
-        patterns.extend(PATTERN_DICT['full'])
-    patterns.extend(PATTERN_DICT['all'])
+    if flavor in ("full", "rnaseq"):
+        patterns.extend(PATTERN_DICT["rnaseq"])
+    if flavor in ("full", "chipseq"):
+        patterns.extend(PATTERN_DICT["chipseq"])
+    if flavor == "full":
+        patterns.extend(PATTERN_DICT["full"])
+    patterns.extend(PATTERN_DICT["all"])
 
     def fastwalk(path):
         """
@@ -128,13 +126,13 @@ def write_include_file(source, flavor='all'):
         """
         path = str(path)
         for root, dirs, files in os.walk(path, topdown=True):
-            if 'conda-meta' in dirs:
+            if "conda-meta" in dirs:
                 dirs[:] = []
                 files[:] = []
             for d in dirs:
-                yield os.path.join(root, d).replace(path + '/', '')
+                yield os.path.join(root, d).replace(path + "/", "")
             for f in files:
-                yield os.path.join(root, f).replace(path + '/', '')
+                yield os.path.join(root, f).replace(path + "/", "")
 
     f = filelist.FileList()
     f.allfiles = list(fastwalk(source))
@@ -153,9 +151,9 @@ def write_include_file(source, flavor='all'):
 
     to_transfer = list(set(under_version_control).intersection(f.files))
     include = tempfile.NamedTemporaryFile(delete=False).name
-    with open(include, 'w') as fout:
-        fout.write('\n\n')
-        fout.write('\n'.join(to_transfer))
+    with open(include, "w") as fout:
+        fout.write("\n\n")
+        fout.write("\n".join(to_transfer))
 
     return include
 
@@ -188,8 +186,8 @@ def clone_repo(dest, branch="master", mismatch_ok=False):
         full_here = Path(__file__).resolve()
         full_there = Path(dest) / "deploy.py"
         error(
-            "Files {full_here} and {full_there} do not match! ".format(**locals()) +
-            "The deploy script you are running appears to be out of date. "
+            f"Files {full_here} and {full_there} do not match! "
+            + "The deploy script you are running appears to be out of date. "
             "Please get an updated copy from https://github.com/lcdb/lcdb-wf, perhaps "
             "with 'wget https://raw.githubusercontent.com/lcdb/lcdb-wf/master/deploy.py'"
         )
@@ -267,7 +265,7 @@ def deployment_json(source, dest):
     info("Wrote details of deployment to {log}".format(**locals()))
 
 
-def build_envs(dest, conda_frontend="mamba"):
+def build_envs(dest, additional_main=None, additional_r=None, conda_frontend="conda"):
     """
     Build conda environments.
 
@@ -279,15 +277,25 @@ def build_envs(dest, conda_frontend="mamba"):
         the command line with --dest) in which the env and env-r yaml files
         should already exist. Envs will be created in here.
 
+    additional_main : list
+        Other packages to install, e.g., a snakemake plugin needed for
+        a cluster profile, into the main environment.
+
+    additional_r : list
+        Other packages to install into the R environment.
+
     conda_frontend : 'mamba' | 'conda'
         Which front-end to use (terminology borrowed from Snakemake)
+
     """
     mapping = [
-        ("./env", "env.yml"),
-        ("./env-r", "env-r.yml"),
+        ("./env", "env.yml", additional_main),
+        ("./env-r", "env-r.yml", additional_r),
     ]
-    for env, yml in mapping:
+    for env, yml, additional in mapping:
         info("Building environment " + os.path.join(dest, env))
+        if additional:
+            info(f"Adding {additional} to environment")
 
         try:
             # conda and mamba can be hard to kill, possibly because they're
@@ -305,30 +313,41 @@ def build_envs(dest, conda_frontend="mamba"):
                 "--file",
                 yml,
             ]
+            if additional:
+                cmds += additional
             p = sp.Popen(cmds, universal_newlines=True, cwd=dest)
             p.wait()
 
         except KeyboardInterrupt:
             print("")
-            error("Killing running {conda_frontend} job, '".format(**locals()) + " ".join(cmds))
+            error(
+                "Killing running {conda_frontend} job, '".format(**locals())
+                + " ".join(cmds)
+            )
             p.kill()
             sys.exit(1)
 
         if p.returncode:
-            error("Error running {conda_frontend}, '".format(**locals()) + " ".join(cmds))
+            error(
+                "Error running {conda_frontend}, '".format(**locals()) + " ".join(cmds)
+            )
             sys.exit(1)
 
         full_env = Path(dest) / env
-        info("Created env {full_env}".format(**locals()))
+        info(f"Created env {full_env}")
 
 
 if __name__ == "__main__":
+
+    additional_main_from_env_var = os.getenv("LCDBWF_ADDITIONAL_MAIN", [])
 
     ap = argparse.ArgumentParser(usage=usage)
     ap.add_argument(
         "--flavor",
         default="full",
-        help="""Options are {0}. Default is full.""".format(['full', 'rnaseq', 'chipseq']),
+        help="""Options are {0}. Default is full.""".format(
+            ["full", "rnaseq", "chipseq"]
+        ),
     )
     ap.add_argument(
         "--dest", help="""Destination directory in which to copy files""", required=True
@@ -340,7 +359,7 @@ if __name__ == "__main__":
         help=f"""Make a new clone to a staging area (at the location specified
         by --staging which defaults to {default_staging}) and deploy from
         there. Useful if using this script as a standalone tool. You can also
-        use --branch to configure which branch to deploy from that clone."""
+        use --branch to configure which branch to deploy from that clone.""",
     )
 
     ap.add_argument(
@@ -367,25 +386,40 @@ if __name__ == "__main__":
     ap.add_argument(
         "--conda-frontend",
         help="Set program (conda or mamba) to use when creating environments. Default is %(default)s.",
-        default="mamba",
+        default="conda",
     )
     ap.add_argument(
         "--rsync-args",
         help="Options for rsync when deploying to a new directory. Default is %(default)s.",
-        default="-rlt"
+        default="-rlt",
     )
 
     ap.add_argument(
-        "--mismatch-ok",
-        action="store_true",
-        help="Used for testing")
+        "--additional-main",
+        help="""Additional packages to install in main environment (only
+        relevant with --build-envs). For example,
+        'snakemake-executor-plugin-cluster-generic' to support a cluster
+        profile. You can use the env var LCDBWF_ADDITIONAL_MAIN to supply this
+        argument automatically instead.""",
+        nargs="+",
+    )
+    ap.add_argument(
+        "--additional-r",
+        help="Additional packages to install in R environment (only relevant with --build-envs)",
+        nargs="+",
+    )
+
+    ap.add_argument("--mismatch-ok", action="store_true", help="Used for testing")
     args = ap.parse_args()
     dest = args.dest
     flavor = args.flavor
 
     if args.staging and not args.clone:
-            print("ERROR: --staging was specified but --clone was not. Did you want to use --clone?", file=sys.stderr)
-            sys.exit(1)
+        print(
+            "ERROR: --staging was specified but --clone was not. Did you want to use --clone?",
+            file=sys.stderr,
+        )
+        sys.exit(1)
     if args.clone:
         if args.staging is None:
             args.staging = default_staging
@@ -398,7 +432,28 @@ if __name__ == "__main__":
     rsync(include, source, dest, args.rsync_args)
     deployment_json(source, dest)
 
+    if args.additional_main and additional_main_from_env_var:
+        print(
+            "ERROR: Unset LCDBWF_ADDITIONAL_MAIN env var if you want to use the --additional-main argument."
+        )
+        sys.exit(1)
+
+    if additional_main_from_env_var:
+        if args.additional_main:
+            print(
+                "ERROR: Unset LCDBWF_ADDITIONAL_MAIN env var if you want to use the --additional-main argument."
+            )
+            sys.exit(1)
+        additional_main = [additional_main_from_env_var]
+    else:
+        additional_main = args.additional_main
+
     if args.build_envs:
-        build_envs(dest, conda_frontend=args.conda_frontend)
+        build_envs(
+            dest,
+            additional_main=additional_main,
+            additional_r=args.additional_r,
+            conda_frontend=args.conda_frontend,
+        )
 
     warning("Deployment complete in {args.dest}".format(**locals()))
