@@ -45,6 +45,9 @@ rule download_and_process:
     """
     output:
         temporary('{references_dir}/{organism}/{tag}/{_type}/{organism}_{tag}.{_ext}.gz')
+    resources:
+        runtime=autobump(hours=1),
+        mem_mb=autobump(gb=1),
     run:
         common.download_and_postprocess(output[0], config, wildcards.organism, wildcards.tag, wildcards._type)
 
@@ -61,6 +64,9 @@ rule unzip:
         _type="genome|annotation"
     log:
         '{references_dir}/logs/{organism}/{tag}/{_type}/{organism}_{tag}.{_ext}.log'
+    resources:
+        runtime=autobump(hours=1),
+        mem_mb=autobump(gb=1),
     shell: 'gunzip -c {input} > {output}'
 
 
@@ -174,7 +180,8 @@ rule transcriptome_fasta:
     output:
         protected('{references_dir}/{organism}/{tag}/transcriptome/{organism}_{tag}.fasta')
     resources:
-        runtime=hours(1)
+        runtime=hours(1),
+        mem=gb(16)
     shell:
         'gffread {input.gtf} -w {output} -g {input.fasta}'
 
