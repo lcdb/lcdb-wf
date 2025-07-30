@@ -1,8 +1,25 @@
-import os
-import pprint
+import sys
+import subprocess
+top_level_dir = subprocess.run(["dirname $(dirname $(pwd))"], shell=True, capture_output=True, text=True).stdout.strip()
+print("top level dir: ", top_level_dir)
+sys.path.insert(0, top_level_dir)
+import pytest
 from textwrap import dedent
-from . import common
+from lib import common, helpers, patterns_targets
 
+# Make config object that can be re-used for any test
+@pytest.fixture
+def config(request):
+    config_path = request.param
+    config = common.load_config(config_path, test=True)
+    return patterns_targets.RNASeqConfig(config, config.get('patterns', '../workflows/rnaseq/config/rnaseq_patterns.yaml'))
+
+# Call helpers.detect_layout(), which implicitly tests common.is_paired_end()
+# TODO: Make assertion condition NOT hard coded in to work with current example table
+@pytest.mark.parametrize("config", ['../../workflows/rnaseq/config/config.yaml'], indirect=True)
+def test_is_paired_end(config):
+    is_paired = helpers.detect_layout(config.sampletable) == 'PE'
+    assert not is_paired, f"Test failed, is_paired = {is_paired}"
 
 def test_config_loading(tmpdir):
     f0 = tmpdir.mkdir('subdir').join('file0.yaml')
