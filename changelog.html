@@ -55,6 +55,7 @@
 <li class="toctree-l1"><a class="reference internal" href="tests.html">Testing the installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faqs.html">FAQs</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#v1-13-1">v1.13.1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v1-13">v1.13</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v1-12">v1.12</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v1-11">v1.11</a></li>
@@ -198,6 +199,14 @@
             
   <section id="changelog">
 <h1>Changelog<a class="headerlink" href="#changelog" title="Link to this heading">¶</a></h1>
+<section id="v1-13-1">
+<h2>v1.13.1<a class="headerlink" href="#v1-13-1" title="Link to this heading">¶</a></h2>
+<p>Bugfixes:</p>
+<ul class="simple">
+<li><p>references workflow was missing runtime and mem resources for some rules, causing cluster submission to fail on those rules.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">deploy.py</span></code> was not properly installing the provided extra packages to install into the main env</p></li>
+</ul>
+</section>
 <section id="v1-13">
 <h2>v1.13<a class="headerlink" href="#v1-13" title="Link to this heading">¶</a></h2>
 <ul class="simple">
