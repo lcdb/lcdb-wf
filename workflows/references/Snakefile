@@ -181,7 +181,7 @@ rule transcriptome_fasta:
         protected('{references_dir}/{organism}/{tag}/transcriptome/{organism}_{tag}.fasta')
     resources:
         runtime=hours(1),
-        mem=gb(16)
+        mem_mb=gb(16)
     shell:
         'gffread {input.gtf} -w {output} -g {input.fasta}'
 
