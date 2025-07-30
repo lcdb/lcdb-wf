@@ -1,5 +1,13 @@
 Changelog
 =========
+
+v1.13.1
+-------
+Bugfixes:
+
+- references workflow was missing runtime and mem resources for some rules, causing cluster submission to fail on those rules.
+- :file:`deploy.py` was not properly installing the provided extra packages to install into the main env
+
 v1.13
 -----
 
