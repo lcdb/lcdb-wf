@@ -32,10 +32,14 @@ wildcard_constraints:
 rule all:
     input:
         "results/annotated/ann.vcf.gz",
+        'results/annotated/filtered_ann.vcf.gz',
+        'results/annotated/filtered_ann.vcf.gz.tbi',
         "results/qc/multiqc.html",
         "results/filtered/all.normed.vcf.gz",
         expand("results/somatic_filtered/normed.{comp}.vcf.gz", comp = config['mutect2'].keys()),
         expand("results/mutect2_annotated/snpeff.{comp}.vcf.gz", comp = config['mutect2'].keys()),
+        expand("results/merged/{sample}.bam", sample=samples.index),
+        expand("results/merged/{sample}.bam.bai", sample=samples.index),
 
 
 
@@ -666,7 +670,7 @@ rule snpeff:
         disk_mb=gb(20),
         mem_mb=gb(16),
         # mem_mb=gb(4), # [ TEST SETTINGS -1 ]
-        runtime=autobump(120)
+        runtime=autobump(480)
     input:
         unpack(snpeff_input)
     log: 'logs/snpeff.log'
@@ -688,23 +692,53 @@ rule snpeff:
             "{params.gen} {input.vcf} "
             "| bcftools view -Oz > {output.ann} 2> {log} "
         )
-        dbnsfp_arg = []
-        if dbnsfp:
-            dbnsfp_arg = "DbNsfp -db {}".format(dbnsfp)
-        if dbnsfp_arg:
-            sift_output = 'results/annotated/dbnsfp.ann.vcf.gz'
-            field_arg = (
-                "-f '{}'".format(params.annotations)
-                if params.annotations
-                else ''
-            )
 
-            shell(
-                "SnpSift {java_opts} "
-                "{dbnsfp_arg} "
-                "{field_arg} {output.ann} "
-                "| bcftools view -Oz > {sift_output} 2>> {log} " 
-            )
+
+rule snpsift_ann:
+    """
+    Annotate variants with the gnomAD database
+    """
+    resources:
+        disk_mb=gb(20),
+        mem_mb=gb(16),
+        # mem_mb=gb(4), # [ TEST SETTINGS -1 ]
+        runtime=autobump(960)
+    threads: 6
+    input:
+        ann="results/annotated/ann.vcf.gz",
+        gnomad="/data/NICHD-core0/references/human/variation/gnomAD/trimmed_gnomad.joint.v4.1.sites.all_chrom.vcf.bgz"
+    log: 'logs/snpsift_ann.log'
+    output: 'results/annotated/gnomad_ann.vcf.gz'
+    run:
+        java_opts = '''"-Xmx{}g"'''.format(int(resources.mem_mb * 0.75 /1024))
+
+        shell(
+            "SnpSift {java_opts} "
+            "annotate -noId "
+            "{input.gnomad} {input.ann}"
+            "| bcftools view -Oz > {output}"
+        )
+
+rule snpsift_filter:
+    """
+    Filter out common variants with SnpSift filter
+    """
+    resources:
+        disk_mb=gb(20),
+        mem_mb=gb(16),
+        # mem_mb=gb(4), # [ TEST SETTINGS -1 ]
+        runtime=autobump(960)
+    input: 'results/annotated/gnomad_ann.vcf.gz'
+    output: 'results/annotated/filtered_ann.vcf.gz'
+    log: 'logs/snpsift_filter.log'
+
+
+    run:
+        shell(
+            "SnpSift filter \"!(AF_joint > 0.1)\" "
+            "{input} "
+            "| bcftools view -Oz > {output} 2>> {log} "
+        )
 
 
 rule mutect2:
@@ -934,5 +968,22 @@ rule snpeff_cancer:
             '{params.snpeff_genome} {input.vcf} '
             '| bcftools view -Oz > {output.vcf} 2> {log}'
         )
+
+rule merge_bams:
+    """
+    Merge technical replicates together to get single bam files used for validation.
+    """
+    input:
+        bam=get_sample_bams
+    output:
+        bam=protected("results/merged/{sample}.bam"),
+    resources:
+        disk_mb=gb(20),
+        mem_mb=gb(16),
+        runtime=autobump(120)
+    threads:
+        6
+    shell:
+        """samtools merge -@ {threads} -o {output.bam} {input}"""
 
 # vim: ft=python
