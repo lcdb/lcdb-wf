@@ -562,6 +562,28 @@ enrichment RMarkdown document.
 
 The output of sessionInfo records the versions of packages used in the analysis.
 
+Errors
+------
+
+This section addresses errors encountered during the RNA-Seq downstream analysis.
+
+Error: "Found duplicate names after removing pattern ^contr_[^_]+_"
+
+   Cause:
+       - If no duplicate contrast names exist in your ``results_##`` chunks,
+         the error can arise from changes to previously cached chunks.
+         Even if the change is undone and the environment is cleared,
+         the error may persist. For example, changing ``contr_01``
+         in ``results_01`` to ``contr_05`` and then reknitting the file
+         will cause the R environment to contain both ``contr_01`` and
+         ``contr_05`` patterns after that chunk is loaded, leading to
+         this error.
+
+   Solution:
+      - Clear all cache and R environment objects.
+        Quit R without saving the workspace, delete the .RData file,
+        remove the ``rnaseq_cache`` directory, open rnaseq.Rmd and re-knit.
+
 Glossary
 --------
 .. glossary::
