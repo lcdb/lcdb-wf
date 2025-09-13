@@ -232,7 +232,7 @@ variables:
           $DEPLOY/test/lcdb-wf-test references --run-workflow --configfile=config/config.yaml -j2 -p -k --orig $ORIG
 
           # Variant-calling references
-          $DEPLOY/test/lcdb-wf-test references --run-workflow --configfile=$ORIG/test/test_configs/variant-calling.yaml -j2 -p -r -k --orig $ORIG
+          $DEPLOY/test/lcdb-wf-test references --run-workflow --configfile=$ORIG/test/test_configs/variant-calling.yaml -j2 -p -k --orig $ORIG
 
 
 
