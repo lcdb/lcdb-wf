@@ -3,7 +3,7 @@ import re
 from itertools import product
 import pandas as pd
 from snakemake.shell import shell
-from snakemake.io import expand, regex
+from snakemake.io import expand, regex_from_filepattern
 from lib import common
 
 
@@ -34,22 +34,31 @@ def detect_layout(sampletable):
 
 def fill_patterns(patterns, fill, combination=product):
     """
-    Fills in a dictionary of patterns with the dictionary or DataFrame `fill`.
+    Fills in a dictionary of patterns with the dictionary `fill`.
 
     >>> patterns = dict(a='{sample}_R{N}.fastq')
-    >>> fill = dict(sample=['one', 'two'], N=[1, 2])
+    >>> fill = dict(sample=['one', 'two', 'three'], N=[1, 2])
     >>> sorted(fill_patterns(patterns, fill)['a'])
-    ['one_R1.fastq', 'one_R2.fastq', 'two_R1.fastq', 'two_R2.fastq']
+    ['one_R1.fastq', 'one_R2.fastq', 'three_R1.fastq', 'three_R2.fastq', 'two_R1.fastq', 'two_R2.fastq']
+
+    If using `zip` as a combination, checks to ensure all values in `fill` are
+    the same length to avoid truncated output.
+
+    This fails:
 
     >>> patterns = dict(a='{sample}_R{N}.fastq')
-    >>> fill = dict(sample=['one', 'two'], N=[1, 2])
+    >>> fill = dict(sample=['one', 'two', 'three'], N=[1, 2])
+    >>> sorted(fill_patterns(patterns, fill, zip)['a']) # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    ...
+    ValueError: {'sample': ['one', 'two', 'three'], 'N': [1, 2]} does not have the same number of entries for each key
+
+    But this works:
+
+    >>> patterns = dict(a='{sample}_R{N}.fastq')
+    >>> fill = dict(sample=['one', 'one', 'two', 'two', 'three', 'three'], N=[1, 2, 1, 2, 1, 2])
     >>> sorted(fill_patterns(patterns, fill, zip)['a'])
-    ['one_R1.fastq', 'two_R2.fastq']
-
-    >>> patterns = dict(a='{sample}_R{N}.fastq')
-    >>> fill = pd.DataFrame({'sample': ['one', 'two'], 'N': [1, 2]})
-    >>> sorted(fill_patterns(patterns, fill)['a'])
-    ['one_R1.fastq', 'two_R2.fastq']
+    ['one_R1.fastq', 'one_R2.fastq', 'three_R1.fastq', 'three_R2.fastq', 'two_R1.fastq', 'two_R2.fastq']
 
     """
     # In recent Snakemake versions (e.g., this happens in 5.4.5) file patterns
@@ -64,12 +73,17 @@ def fill_patterns(patterns, fill, combination=product):
     #
     #   expand('x', zip, d=[1,2,3]) == ['x', 'x', 'x']
 
+    if combination == zip:
+        lengths = set([len(v) for v in fill.values()])
+        if len(lengths) != 1:
+            raise ValueError(f"{fill} does not have the same number of entries for each key")
+
     def update(d, u, c):
         for k, v in u.items():
             if isinstance(v, collections.abc.Mapping):
                 r = update(d.get(k, {}), v, c)
                 d[k] = r
-            else:
+            else:  # not a dictionary, so we're at a leaf
                 if isinstance(fill, pd.DataFrame):
                     d[k] = list(set(expand(u[k], zip, **fill.to_dict("list"))))
                 else:
@@ -104,7 +118,7 @@ def extract_wildcards(pattern, target):
     >>> assert extract_wildcards(pattern, target) == expected
     >>> assert extract_wildcards(pattern, 'asdf') is None
     """
-    m = re.compile(regex(pattern)).match(target)
+    m = re.compile(regex_from_filepattern(pattern)).match(target)
     if m:
         return m.groupdict()
 

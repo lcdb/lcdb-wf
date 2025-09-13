@@ -7,20 +7,24 @@
 # make logdir
 if [[ ! -e logs ]]; then mkdir -p logs; fi
 
-# use SNAKEMAKE_PROFILE if one is set in the environment variables
-if [ -z "$LCDBWF_SNAKEMAKE_PROFILE" ]; then
-    if [ -z "$SNAKEMAKE_PROFILE" ]; then
-        # no snakemake profile found
-        PROFILE_CMD=""
-        echo "No environment variable SNAKEMAKE_PROFILE or LCDBWF_SNAKE_PROFILE found."
-        echo "snakemake will run in single job."
-    else
-        # generic SNAKEMAKE_PROFILE found
-        PROFILE_CMD="--profile $SNAKEMAKE_PROFILE"
-    fi
+# Support both Snakemake <8 and >=8 profiles
+SNAKEMAKE_MAJOR_VERSION=$(snakemake --version | cut -f1 -d ".")
+if [ "$SNAKEMAKE_MAJOR_VERSION" -gt 7 ]; then
+    profile_var="LCDBWF_SNAKEMAKE_PROFILE_V8"
 else
-# LCDBWF_SNAKEMAKE_PROFILE found, this takes priority if both profile variables are set
-PROFILE_CMD="--profile $LCDBWF_SNAKEMAKE_PROFILE"
+    profile_var="LCDBWF_SNAKEMAKE_PROFILE"
+fi
+
+# If either LCDBWF_SNAKEMAKE_PROFILE or LCDB_SNAKEMAKE_PROFILE_V8 exist, use
+# that; otherwise fall back to SNAKEMAKE_PROFILE or no profile.
+if [ -n "${!profile_var}" ]; then
+    PROFILE_CMD="--profile ${!profile_var}"
+elif [ -n "$SNAKEMAKE_PROFILE" ]; then
+    PROFILE_CMD="--profile $SNAKEMAKE_PROFILE"
+else
+    PROFILE_CMD=""
+    echo "No environment variable SNAKEMAKE_PROFILE or LCDBWF_SNAKEMAKE_PROFILE found."
+    echo "snakemake will run in single job."
 fi
 
 # Run snakemake

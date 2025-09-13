@@ -64,29 +64,22 @@ if ADD_CHIPSEQ_PEAKS:
         config['beds'][key] = fn
 
 
-# Number of shufflings for GAT
-# N = 100 [TEST_SETTINGS +1]
-N = 10000
-
 targets = expand(
     '{outdir}/{algorithm}/{domain}/{query}/{query}_vs_{reference}.txt',
     outdir=config['output'],
     domain=config['domains'].keys(),
     query=config['beds'].keys(),
     reference=config['beds'].keys(),
-    algorithm=['IntervalStats', 'GAT', 'jaccard', 'fisher'],
+    algorithm=['IntervalStats', 'jaccard', 'fisher'],
 )
 
 # Currently-supported options {algorithm: (possible values)}
 # IntervalStats: (f_05, f_01, f_001)
-# GAT: (l2fold, fractions)
 # jaccard: (jaccard)
 # fisher: (pval)
 pattern = '{outdir}/{algorithm}/{domain}/{value}_heatmap.pdf'
 targets += expand(pattern, outdir=config['output'], domain=config['domains'],
                   algorithm='IntervalStats', value=['f_01'])
-targets += expand(pattern, outdir=config['output'], domain=config['domains'],
-                  algorithm='GAT', value=['l2fold'])
 targets += expand(pattern, outdir=config['output'], domain=config['domains'],
                   algorithm='jaccard', value=['jaccard'])
 targets += expand(pattern, outdir=config['output'], domain=config['domains'],
@@ -214,33 +207,6 @@ rule intervalstats:
             ]
         )
         df.to_csv(str(output[0]), sep='\t', index=False)
-
-
-rule gat:
-    input:
-        domain=lambda wc: config['domains'][getattr(wc, 'domain')],
-        query=lambda wc: config['beds'][getattr(wc, 'query')],
-        reference=lambda wc: config['beds'][getattr(wc, 'reference')],
-    output: '{outdir}/GAT/{domain}/{query}/{query}_vs_{reference}.txt'
-    run:
-        shell('cut -f1,2,3 {input.query} > {output}.query.tmp')
-        shell('cut -f1,2,3 {input.reference} > {output}.reference.tmp')
-        if os.stat(output[0] + '.query.tmp').st_size == 0:
-            shell('touch {output}')
-        else:
-            shell(
-                'gat-run.py '
-                '--ignore-segment-tracks '
-                '--annotations {output}.reference.tmp '
-                '--segments {output}.query.tmp '
-                '--workspace {input.domain} '
-                '--counter nucleotide-overlap '
-                '--num-samples {N} '
-                '--output-counts-pattern {output}.%s.counts '
-                '--log {output}.log '
-                '--stdout {output} '
-            )
-        shell('rm {output}.query.tmp {output}.reference.tmp')
 
 
 rule heatmap:

@@ -62,3 +62,7 @@ workflows/rnaseq/downstream/results
 workflows/rnaseq/downstream/rnaseq_cache
 workflows/rnaseq/downstream/rnaseq_files
 workflows/rnaseq/downstream/rnaseq.html
+*.xlsx
+._*
+Rplots.pdf
+/lib/include/*

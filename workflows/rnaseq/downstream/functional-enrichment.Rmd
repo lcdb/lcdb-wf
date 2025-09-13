@@ -20,6 +20,8 @@ knitr::opts_chunk$set(
 library(AnnotationHub)
 library(dplyr)
 library(BiocParallel)
+library(GeneTonic)
+library(DESeq2)
 ```
 
 # Functional enrichment analysis
@@ -44,8 +46,8 @@ if (config$parallel$parallel){
 }
 ```
 
-```{r load, cache=TRUE, cache.extra=file.info('combined.Rds')$mtime}
-obj <- readRDS('combined.Rds')
+```{r load}
+obj <- readRDS('combined-raw.Rds')
 res_list <- obj$res_list
 dds_list <- obj$dds_list
 
@@ -55,31 +57,69 @@ if(!'rld_list' %in% names(obj)){
 } else {
   rld_list <- obj$rld_list
 }
+
+# check if 'degpatterns_list' exists in the object, if not sets to NULL
+if(!'degpatterns_list' %in% names(obj)){
+  degpatterns_list <- NULL
+} else {
+  degpatterns_list <- obj$degpatterns_list
+}
 ```
 
-```{r functional_enrichment_prep, cache=TRUE, config=config$annotation$keytype, eval=config$toggle$functional_enrichment, dependson='load'}
+```{r functional_enrichment_prep, cache=TRUE, config=config$annotation$keytype, eval=config$toggle$functional_enrichment, cache.extra=res_list}
 
 # obtain ontology information for all ontologies
 ontology_list <- lcdbwf:::get_ontology_list(config)
 
+# Define background gene pool for overrepresentation analysis
+univ_option <- config$functional_enrichment$limit_background_genes
+
+# Set `universe_list` based on configuration or custom background
+if (univ_option == "exclude_zero_in_all") {
+  # Retrieve all genes detected in one or more samples per contrast
+  universe_list <- lapply(names(dds_list), function(name) nonzero_genes(dds_list[[name]]))
+  names(universe_list) <- names(dds_list)
+} else if (univ_option == "no_filter") {
+  ########################################################################################
+  # Here, a user can manually set the `universe_list` to a named list of vectors for     #
+  # custom background genes. Ensure to have names matched between `universe_list` and    #
+  # `res_list`.                                                                          #
+  ########################################################################################
+  universe_list <- NULL
+  # Raise an error if names are unmatched
+  if (!identical(names(universe_list), names(res_list)) & !is.null(universe_list)) {
+    stop("universe_list has different names from res_list.")
+  }
+} else {
+  stop("Correct your background option in the config.yaml file.")
+}
 ```
 
-```{r enrich, cache=TRUE, eval=config$toggle$functional_enrichment, config=c(config$main, config$functional_enrichment), dependson=c('functional_enrichment_prep', 'assemble_variables')}
+
+```{r enrich, cache=TRUE, eval=config$toggle$functional_enrichment, config=c(config$main, config$functional_enrichment), dependson='functional_enrichment_prep'}
 enrich_list <- lcdbwf:::run_enricher(res_list=res_list,
                                      ontology_list=ontology_list,
                                      config=config,
+                                     universe_list=universe_list,
                                      cores=cores, sep='*')
 
 ```
 
-```{r combined_rds, cache=TRUE, dependson='enrich'}
+```{r combined_rds}
+obj <- list(res_list=res_list,
+            dds_list=dds_list,
+            rld_list=rld_list,
+            enrich_list=enrich_list)
 
-obj <- lcdbwf:::compose_results(res_list=res_list,
-                                dds_list=dds_list,
-                                rld_list=rld_list,
-                                enrich_list=enrich_list)
+if(!is.null(degpatterns_list)) obj$degpatterns_list <- degpatterns_list
 
-saveRDS(obj, file='combined.Rds', compress=FALSE)
+saveRDS(obj, file='combined-raw.Rds', compress=FALSE)
+
+app_obj <- lcdbwf:::compose_results(rds_file='combined-raw.Rds',
+                                    enrich_list=enrich_list,
+                                    degpatterns_list=degpatterns_list)
+saveRDS(app_obj, file='combined.Rds', compress=FALSE)
+
 ```
 
 ```{r functional_enrichment_plots}

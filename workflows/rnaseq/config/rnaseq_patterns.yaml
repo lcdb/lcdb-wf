@@ -3,6 +3,7 @@ strand_check:
   bam: 'strand_check/{sample}/{sample}.strandedness.bam'
   tsv: 'strand_check/{sample}/{sample}.strandedness'
 fastq: 'data/rnaseq_samples/{sample}/{sample}_R{n}.fastq.gz'
+sra_fastq: 'original_data/sra_samples/{sample}/{sample}_R{n}.fastq.gz'
 cutadapt: 'data/rnaseq_samples/{sample}/{sample}_R{n}.cutadapt.fastq.gz'
 bam: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.bam'
 fastqc:
@@ -44,3 +45,5 @@ patterns_by_aggregate:
   merged_bigwig: 'data/rnaseq_aggregation/merged_bigwigs/{merged_bigwig_label}.bigwig'
 samtools:
   idxstats: 'data/rnaseq_samples/{sample}/idxstat_{sample}.txt'
+  flagstat: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.flagstat'
+  stats: 'data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.bam.stats'

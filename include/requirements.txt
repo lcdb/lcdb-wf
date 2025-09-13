@@ -10,7 +10,6 @@ deeptools
 fastq-screen
 fastqc
 font-ttf-dejavu-sans-mono
-gat
 gatk4
 gffread
 gffutils
@@ -37,9 +36,10 @@ rust-bio-tools
 
 # earlier versions of salmon can segfault on Slurm
 salmon>=1.10.1
+
 samtools
 seaborn
-snakemake-minimal
+snakemake>9
 snpeff
 snpsift
 sra-tools
