@@ -306,7 +306,7 @@ variables:
         name: variantcalling workflow
         command: |
           cd $DEPLOY
-          source /opt/mambaforge/etc/profile.d/conda.sh
+          source /opt/miniforge/etc/profile.d/conda.sh
           conda activate $LCDBWF_ENV
           $DEPLOY/test/lcdb-wf-test variantcalling --run-workflow -n
           $DEPLOY/test/lcdb-wf-test variantcalling --run-workflow --use-conda -j2
