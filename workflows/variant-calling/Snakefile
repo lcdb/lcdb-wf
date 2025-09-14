@@ -1,5 +1,4 @@
 import sys
-sys.path.insert(0, srcdir('.'))
 import pandas as pd
 import tempfile
 import os
@@ -12,7 +11,8 @@ from textwrap import dedent
 from pathlib import Path
 from urllib.request import urlretrieve
 from zipfile import ZipFile
-sys.path.append('../..')
+HERE = str(Path(workflow.snakefile).parent)
+sys.path.insert(0, HERE + "/../..")
 from lib import common, utils, helpers, aligners
 from lib.utils import autobump, gb, hours
 
