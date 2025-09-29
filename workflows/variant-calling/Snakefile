@@ -705,17 +705,17 @@ rule snpsift_ann:
         runtime=autobump(960)
     threads: 6
     input:
-        ann="results/annotated/ann.vcf.gz",
-        gnomad="/data/NICHD-core0/references/human/variation/gnomAD/trimmed_gnomad.joint.v4.1.sites.all_chrom.vcf.bgz"
+        vcf="results/annotated/ann.vcf.gz",
+        ann="/data/NICHD-core0/references/human/variation/gnomAD/trimmed_gnomad.joint.v4.1.sites.all_chrom.vcf.bgz"
     log: 'logs/snpsift_ann.log'
-    output: 'results/annotated/gnomad_ann.vcf.gz'
+    output: 'results/annotated/snpsift_ann.vcf.gz'
     run:
         java_opts = '''"-Xmx{}g"'''.format(int(resources.mem_mb * 0.75 /1024))
 
         shell(
             "SnpSift {java_opts} "
             "annotate -noId "
-            "{input.gnomad} {input.ann}"
+            "{input.ann} {input.vcf}"
             "| bcftools view -Oz > {output}"
         )
 
@@ -728,10 +728,9 @@ rule snpsift_filter:
         mem_mb=gb(16),
         # mem_mb=gb(4), # [ TEST SETTINGS -1 ]
         runtime=autobump(960)
-    input: 'results/annotated/gnomad_ann.vcf.gz'
+    input: 'results/annotated/snpsift_ann.vcf.gz'
     output: 'results/annotated/filtered_ann.vcf.gz'
     log: 'logs/snpsift_filter.log'
-
 
     run:
         shell(

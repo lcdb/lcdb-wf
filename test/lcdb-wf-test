@@ -319,6 +319,10 @@ class Runner(object):
                     "dbnsfp_6_20.vcf.gz.tbi",
                     "workflows/variant-calling/references/dbnsfp_6_20.vcf.gz.tbi"
                 ),
+                (
+                    "trimmed_gnomad.joint.v4.1.sites.all_chrom.vcf.bgz",
+                    "workflows/variant-calling/references/trimmed_gnomad.joint.v4.1.sites.all_chrom.vcf.bgz"
+                ),
             ]
         }
 
