@@ -706,7 +706,7 @@ rule snpsift_ann:
     threads: 6
     input:
         vcf="results/annotated/ann.vcf.gz",
-        ann="/data/NICHD-core0/references/human/variation/gnomAD/trimmed_gnomad.joint.v4.1.sites.all_chrom.vcf.bgz"
+        ann="references/trimmed_gnomad.joint.v4.1.sites.all_chrom.vcf.bgz"
     log: 'logs/snpsift_ann.log'
     output: 'results/annotated/snpsift_ann.vcf.gz'
     run:
