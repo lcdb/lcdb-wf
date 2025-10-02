@@ -104,7 +104,7 @@ variables:
             # https://docs.conda.io/projects/conda-build/en/latest/resources/link-scripts.html,
             # post-link scripts should not depend on any installed or
             # to-be-installed conda packages...but they do.
-            conda install -n base r-base yq
+            # conda install -n base r-base yq
 
             time conda env create -n $LCDBWF_ENV --file env.yml
             time conda env create -n $LCDBWF_ENV_R --file env-r.yml
