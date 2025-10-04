@@ -302,11 +302,11 @@ rule markduplicates:
         "picard "
         "{params.java_args} "
         "MarkDuplicates "
-        "INPUT={input.bam} "
-        "OUTPUT={output.bam} "
-        "REMOVE_DUPLICATES=true "
-        "METRICS_FILE={output.metrics} "
-        "VALIDATION_STRINGENCY=LENIENT "
+        "-INPUT {input.bam} "
+        "-OUTPUT {output.bam} "
+        "-REMOVE_DUPLICATES true "
+        "-METRICS_FILE {output.metrics} "
+        "-VALIDATION_STRINGENCY LENIENT "
         "&> {log}"
 
 
