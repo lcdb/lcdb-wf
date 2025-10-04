@@ -203,7 +203,6 @@ rule star:
         )
 
         # move various hard-coded log files to log directory
-        logfile_extensions = 
         logfiles = expand(
             prefix + "{ext}",
             ext=["Log.progress.out", "Log.out", "Log.final.out", "Log.std.out"]
