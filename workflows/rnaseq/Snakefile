@@ -390,7 +390,6 @@ rule fastqc:
             shell("mv {out_html} {output.html}")
 
 
-
 rule star:
     "Align with STAR (1-pass mode)"
     input:
