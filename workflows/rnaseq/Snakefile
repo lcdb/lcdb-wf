@@ -314,7 +314,6 @@ rule symlink_targets:
         ),
 
 
-
 rule cutadapt:
     input:
         fastq=expand("data/rnaseq_samples/{{sample}}/{{sample}}_R{n}.fastq.gz", n=n),
@@ -397,7 +396,7 @@ rule star:
     input:
         fastq=rules.cutadapt.output,
         index=rules.star_index.output,
-        annotation=f"{REFERENCES}/annotation.gtf",
+        annotation=f"{REFERENCES}/annotation.gtf.gz",
     output:
         bam=temporary("data/rnaseq_samples/{sample}/{sample}.cutadapt.bam"),
         sjout=temporary(
@@ -459,16 +458,7 @@ rule star:
 rule rRNA:
     input:
         fastq="data/rnaseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz",
-        index=multiext(
-            f"{REFERENCES}/bowtie2/rrna",
-            ".1.bt2",
-            ".2.bt2",
-            ".3.bt2",
-            ".4.bt2",
-            ".rev.1.bt2",
-            ".rev.2.bt2",
-            ".fa",
-        ),
+        index=f"{REFERENCES}/bowtie2/rrna.1.bt2",
     output:
         bam="data/rnaseq_samples/{sample}/rRNA/{sample}.cutadapt.rrna.bam",
     log:
