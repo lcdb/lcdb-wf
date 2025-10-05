@@ -78,7 +78,7 @@ for col in cols:
 subgroups.append(
     SubGroupDefinition(
         name='algorithm', label='algorithm', mapping={
-            'macs2': 'macs2',
+            'macs': 'macs',
             'epic2': 'epic2',
             'NA': 'NA',
         }))

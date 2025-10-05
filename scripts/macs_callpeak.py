@@ -18,7 +18,7 @@ if effective_genome_count != '':
     genome_count_flag = ' -g ' + effective_genome_count + ' '
 
 cmds = (
-    'macs2 '
+    'macs3 '
     'callpeak '
     '-c {snakemake.input.control} '
     '-t {snakemake.input.ip} '

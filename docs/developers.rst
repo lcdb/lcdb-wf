@@ -96,7 +96,7 @@ Testing
 Adding a new peak-caller
 ------------------------
 
-First, write a wrapper for the peak-caller. You can use the ``macs2``, ``spp``,
+First, write a wrapper for the peak-caller. You can use the ``macs``, ``spp``,
 and ``sicer`` wrappers as a guide. A wrapper should expect one or more sorted
 and indexed BAM files as IP, one or more sorted and indexed BAM files as input.
 The wrapper should create at least a sorted BED file of peaks, and can
@@ -105,7 +105,7 @@ optionally create other supplemental files as well.
 Next, add the peak-caller to the top of ``lib/patterns_targets.py`` in the
 ``PEAK_CALLERS`` list.
 
-Then write a rule for the peak-caller, again using ``macs2``, ``spp``, or
+Then write a rule for the peak-caller, again using ``macs``, ``spp``, or
 ``sicer`` rules as a guide.
 
 Last, add additional lines in

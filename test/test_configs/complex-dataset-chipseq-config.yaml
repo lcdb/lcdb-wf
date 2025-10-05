@@ -44,49 +44,49 @@ merged_bigwigs:
 chipseq:
   peak_calling:
     - label: BRD4-dBET6-1
-      algorithm: macs2
+      algorithm: macs
       ip:
         - BRD4-dBET6-1
       control:
         - input-dBET6-1
     - label: BRD4-dBET6-2
-      algorithm: macs2
+      algorithm: macs
       ip:
         - BRD4-dBET6-2
       control:
         - input-dBET6-2
     - label: BRD4-DMSO-1
-      algorithm: macs2
+      algorithm: macs
       ip:
         - BRD4-DMSO-1
       control:
         - input-DMSO-1
     - label: BRD4-DMSO-2
-      algorithm: macs2
+      algorithm: macs
       ip:
         - BRD4-DMSO-2
       control:
         - input-DMSO-2
     - label: MTHFD1-dBET6-1
-      algorithm: macs2
+      algorithm: macs
       ip:
         - MTHFD1-dBET6-1
       control:
         - input-dBET6-1
     - label: MTHFD1-dBET6-2
-      algorithm: macs2
+      algorithm: macs
       ip:
         - MTHFD1-dBET6-2
       control:
         - input-dBET6-2
     - label: MTHFD1-DMSO-1
-      algorithm: macs2
+      algorithm: macs
       ip:
         - MTHFD1-DMSO-1
       control:
         - input-DMSO-1
     - label: MTHFD1-DMSO-2
-      algorithm: macs2
+      algorithm: macs
       ip:
         - MTHFD1-DMSO-2
       control:

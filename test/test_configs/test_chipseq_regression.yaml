@@ -7,7 +7,7 @@ chipseq:
   peak_calling:
 
     - label: gaf-wingdisc-1
-      algorithm: macs2
+      algorithm: macs
       ip:
         - gaf-wingdisc-1
       control:

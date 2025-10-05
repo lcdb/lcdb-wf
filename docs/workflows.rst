@@ -99,7 +99,7 @@ Situtations where we use wrappers:
   These wrappers call the aligner, followed by samtools sort and view. The end
   result is that FASTQs go in, and a sorted BAM comes out.
 - Tools with legacy dependencies like Python 2.7 that must be run in an
-  independent environment (macs2, sicer, rseqc)
+  independent environment (sicer, rseqc)
 - R analyses (particularly spp and dupradar, which build up an R script
   incrementally before calling it).
 - Tools that need complicated setup, or handling output files hard-coded by the

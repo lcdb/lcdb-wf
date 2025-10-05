@@ -48,7 +48,7 @@ chipseq:
   peak_calling:
 
     - label: gaf-embryo-1
-      algorithm: macs2
+      algorithm: macs
       ip:
         - gaf-embryo-1
       control:
@@ -61,7 +61,7 @@ chipseq:
       extra: '--nomodel --extsize 147'
 
     - label: gaf-wingdisc-pooled
-      algorithm: macs2
+      algorithm: macs
       ip:
         - gaf-wingdisc-1
         - gaf-wingdisc-2

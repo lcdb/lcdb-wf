@@ -124,7 +124,7 @@ The major differences between ChIP-seq and RNA-seq configs are:
       peak_calling:
 
         - label: gaf-embryo-1
-          algorithm: macs2
+          algorithm: macs
           ip:
             - gaf-embryo-1
           control:
@@ -138,7 +138,7 @@ The major differences between ChIP-seq and RNA-seq configs are:
             - input-embryo-1
 
         - label: gaf-wingdisc-pooled
-          algorithm: macs2
+          algorithm: macs
           ip:
             - gaf-wingdisc-1
             - gaf-wingdisc-2
@@ -529,7 +529,7 @@ ChIP-seq-only fields
     ``algorithm``. This way, we can use the same label (e.g., `gaf-embryo-1`)
     across multiple peak-callers to help organize the output.
 
-   The currently-supported peak-callers are ``macs2``, ``spp``, and ``sicer``.
+   The currently-supported peak-callers are ``macs``, ``spp``, and ``sicer``.
    They each have corresponding wrappers in the ``wrappers`` directory. To add
    other peak-callers, see :ref:`new-peak-caller`.
 
@@ -537,7 +537,7 @@ ChIP-seq-only fields
     assessing the peak-calling performance.
 
     Here is a minimal example of a peak-calling config section. It defines
-    a single peak-calling run using the `macs2` algorithm. Note that the
+    a single peak-calling run using the `macs` algorithm. Note that the
     ``ip:`` and ``control:`` keys are lists of **labels** from the ChIP-seq
     sample table's ``label`` column, **not sample IDs** from the first column.
 
@@ -547,18 +547,18 @@ ChIP-seq-only fields
           peak_calling:
 
             - label: gaf-embryo-1
-              algorithm: macs2
+              algorithm: macs
               ip:
                 - gaf-embryo-1
               control:
                 - input-embryo-1
 
     The above peak-calling config will result in a file
-    ``data/chipseq_peaks/macs2/gaf-embryo-1/peaks.bed`` (that pattern is
+    ``data/chipseq_peaks/macs/gaf-embryo-1/peaks.bed`` (that pattern is
     defined in ``chipseq_patterns.yaml`` if you need to change it).
 
     We can specify additional command-line arguments that are passed verbatim
-    to `macs2` with the ``extra:`` section, for example:
+    to `macs` with the ``extra:`` section, for example:
 
     .. code-block:: yaml
 
@@ -566,7 +566,7 @@ ChIP-seq-only fields
           peak_calling:
 
             - label: gaf-embryo-1
-              algorithm: macs2
+              algorithm: macs
               ip:
                 - gaf-embryo-1
               control:
@@ -574,8 +574,8 @@ ChIP-seq-only fields
               extra: '--nomodel --extsize 147'
 
 
-    `macs2` supports multiple IP and input files, which internally are merged
-    by `macs2`. We can supply multiple IP and input labels for biological
+    `macs` supports multiple IP and input files, which internally are merged
+    by `macs`. We can supply multiple IP and input labels for biological
     replicates to get a set of peaks called on pooled samples. Note that we
     give it a different label so it doesn't overwrite the other peak-calling
     run we already have configured.
@@ -586,7 +586,7 @@ ChIP-seq-only fields
           peak_calling:
 
             - label: gaf-embryo-1
-              algorithm: macs2
+              algorithm: macs
               ip:
                 - gaf-embryo-1
               control:
@@ -595,7 +595,7 @@ ChIP-seq-only fields
 
 
             - label: gaf-embryo-pooled
-              algorithm: macs2
+              algorithm: macs
               ip:
                 - gaf-embryo-1
                 - gaf-embryo-2

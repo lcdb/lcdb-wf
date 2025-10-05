@@ -99,7 +99,7 @@ accordingly.
 
     A partial exception to this is that the peak-calling for ChIP-seq supports
     specifying custom parameters for each peak-calling run. For example, when
-    running macs2 you can specify "--nomodel" for a single peak-calling run, or
+    running macs you can specify "--nomodel" for a single peak-calling run, or
     any other parameter supported by the peak-caller.
 
     However, the BAM files used in peak-calling still need to have used uniform

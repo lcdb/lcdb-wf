@@ -443,28 +443,28 @@ rule fingerprint:
 
 
 
-rule macs2:
+rule macs:
     input:
         ip=lambda wc: expand(
             "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam",
-            label=chipseq.samples_for_run(config, wc.macs2_run, "macs2", "ip"),
+            label=chipseq.samples_for_run(config, wc.macs_run, "macs", "ip"),
         ),
         control=lambda wc: expand(
             "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam",
-            label=chipseq.samples_for_run(config, wc.macs2_run, "macs2", "control"),
+            label=chipseq.samples_for_run(config, wc.macs_run, "macs", "control"),
         ),
         chromsizes=rules.chromsizes.output,
     output:
-        bed="data/chipseq_peaks/macs2/{macs2_run}/peaks.bed",
+        bed="data/chipseq_peaks/macs/{macs_run}/peaks.bed",
     resources:
         mem="16g",
         runtime="2h",
     log:
-        "data/chipseq_peaks/macs2/{macs2_run}/peaks.bed.log",
+        "data/chipseq_peaks/macs/{macs_run}/peaks.bed.log",
     params:
-        block=lambda wc: chipseq.block_for_run(config, wc.macs2_run, "macs2"),
+        block=lambda wc: chipseq.block_for_run(config, wc.macs_run, "macs"),
     script:
-        "../../scripts/macs2_callpeak.py"
+        "../../scripts/macs_callpeak.py"
 
 
 rule epic2:

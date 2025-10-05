@@ -20,7 +20,7 @@ Specifically, the workflow does the following:
     - optionally merges bigWigs to create one signal track for all replicates
     - runs deepTools plotFingerprint on grouped IP and input for QC and
       evaluation of enrichment
-    - calls peaks using macs2, spp, and/or sicer, with support for multiple
+    - calls peaks using macs, spp, and/or sicer, with support for multiple
       peak-calling runs using different parameters to assist with assessing
       performance and to help make decisions for downstream analysis
     - optionally runs a template diffBind RMarkdown file used for differential binding analysis

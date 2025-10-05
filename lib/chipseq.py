@@ -10,14 +10,14 @@ Helpers for ChIP-seq.
 #         [
 #             {
 #                 'label': 'rep1',
-#                 'algorithm': 'macs2',
+#                 'algorithm': 'macs',
 #                 'input': ['input_1'],
 #                 'ip': ['ip_1'],
 #                 'extra': '--gs dm',
 #             },
 #             {
 #                 'label': 'rep2',
-#                 'algorithm': 'macs2',
+#                 'algorithm': 'macs',
 #                 'input': ['input_2'],
 #                 'ip': ['ip_2'],
 #                 'extra': '--gs dm',
@@ -30,8 +30,8 @@ Helpers for ChIP-seq.
 # This needs to be expanded out to the following patterns:
 #
 # [
-#   'data/chipseq_peaks/macs2/rep1/peaks.bigbed',
-#   'data/chipseq_peaks/macs2/rep2/peaks.bigbed',
+#   'data/chipseq_peaks/macs/rep1/peaks.bigbed',
+#   'data/chipseq_peaks/macs/rep2/peaks.bigbed',
 # ]
 #
 # Which in turn needs these bams:
