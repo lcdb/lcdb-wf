@@ -485,25 +485,18 @@ rule rRNA:
     resources:
         mem="2g",
         runtime="2h",
-    run:
-        prefix = os.path.commonprefix(input.index).rstrip(".")
-        sam = output.bam.replace(".bam", ".sam")
-        shell(
-            "bowtie2 "
-            "-x {prefix} "
-            "-U {input.fastq} "
-            "--threads {threads} "
-            "-k 1 "
-            "--no-unal "
-            "-S {sam} "
-            "> {log} 2>&1"
-        )
-
-        shell(
-            "samtools view -Sb {sam} "
-            "| samtools sort - -o {output.bam} -O BAM "
-            "&& rm {sam}"
-        )
+    shell:
+        "bowtie2 "
+        f"-x {REFERENCES}/bowtie2/rrna "
+        "-U {input.fastq} "
+        "--threads {threads} "
+        "-k 1 "
+        "--no-unal "
+        "-S {output.bam}.sam "
+        "> {log} 2>&1 "
+        "&& samtools view -Sb {output.bam}.sam "
+        "| samtools sort - -o {output.bam} -O BAM "
+        "&& rm {output.bam}.sam"
 
 
 rule fastq_count:
