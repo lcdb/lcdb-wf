@@ -95,7 +95,6 @@ rule cutadapt:
                 "--minimum-length 25 "
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
                 "-A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT "
-                "{params.extra} "
                 "{input.fastq[0]} "
                 "{input.fastq[1]} "
                 "&> {log}"
@@ -109,7 +108,6 @@ rule cutadapt:
                 "--overlap 6 "
                 "--minimum-length 25 "
                 "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA "
-                "{params.extra} "
                 "{input.fastq[0]} "
                 "&> {log}"
             )
