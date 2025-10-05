@@ -1,7 +1,7 @@
 rule sample_strand_check:
     input:
         fastq=expand("data/rnaseq_samples/{{sample}}/{{sample}}_R{n}.fastq.gz", n=n),
-        index=expand(rules.bowtie2_index.output, label="genome"),
+        index=expand(rules.rrna_index.output, label="genome"),
         bed12=rules.conversion_bed12.output,
     output:
         strandedness="strand_check/{sample}/{sample}.strandedness",
