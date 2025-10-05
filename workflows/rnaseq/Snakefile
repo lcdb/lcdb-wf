@@ -33,14 +33,6 @@ rule all:
         "data/rnaseq_aggregation/multiqc.html",
 
 
-# Optionally run `snakemake strand_check` to do a preliminary run on
-# automatically-subset data to evaluate strandedness.
-include: "strand_check.smk"
-
-# If the sampletable is from SRA, handle it here.
-include: "sra.smk"
-
-
 rule symlinks:
     input:
         lambda wc: (
@@ -959,3 +951,10 @@ rule multiqc:
             "{analysis_directory} "
             "&> {log} "
         )
+
+# Optionally run `snakemake strand_check` to do a preliminary run on
+# automatically-subset data to evaluate strandedness.
+include: "strand_check.smk"
+
+# If the sampletable is from SRA, handle it here.
+include: "sra.smk"
