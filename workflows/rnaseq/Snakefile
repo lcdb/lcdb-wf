@@ -16,6 +16,7 @@ sampletable = sampletable.set_index(sampletable.columns[0], drop=False)
 is_paired = utils.detect_layout(sampletable) == "PE"
 n = ["1", "2"] if is_paired else ["1"]
 SAMPLES = sampletable.index
+sample_dir = "data/rnaseq_samples"
 
 
 wildcard_constraints:
@@ -129,8 +130,13 @@ rule rrna_index:
         runtime="8h",
     threads: 8
     run:
-        index = f"{REFERENCES}/bowtie2/rrna"
-        shell("bowtie2-build" " --threads {threads}" " {input}" " {index}" " &> {log}")
+        prefix = subpath(output[0], strip_suffix=".1.bt2")
+        shell(
+            "bowtie2-build "
+            "--threads {threads} "
+            "{input} "
+            "{prefix} &> {log}"
+        )
         utils.make_relative_symlink(input[0], output[-1])
 
 
@@ -199,7 +205,12 @@ rule salmon_index:
         runtime="2h",
     run:
         outdir = os.path.dirname(output[0])
-        shell("salmon index " "--transcripts {input} " "--index {outdir} " "&> {log}")
+        shell(
+            "salmon index "
+            "--transcripts {input} "
+            "--index {outdir} "
+            "&> {log}"
+        )
 
 
 rule conversion_refflat:
@@ -240,8 +251,8 @@ rule chromsizes:
     log:
         f"{REFERENCES}/logs/genome.chromsizes.log",
     params:
-        java_args="-Xmx20g",
-        # java_args='-Xmx2g'  # [TEST SETTINGS -1]
+        java_args="-Xmx20g",  # [disable for test]
+        # java_args='-Xmx2g'  # [enable for test]
     resources:
         mem="24g",
         runtime="2h",
@@ -275,10 +286,6 @@ rule mappings:
         runtime="2h",
     run:
         import gffutils
-
-        # Will want to change the setting back to what it was originally when
-        # we're done
-        orig_setting = gffutils.constants.always_return_list
         gffutils.constants.always_return_list = False
 
         include_featuretypes = params.include_featuretypes
@@ -302,9 +309,6 @@ rule mappings:
         df = df.drop_duplicates()
 
         df.to_csv(output[0], sep="\t", index=False, compression="gzip")
-
-        # Restore original setting
-        gffutils.constants.always_return_list = orig_setting
 
 
 rule symlink_targets:
@@ -370,22 +374,26 @@ rule fastqc:
     log:
         "data/rnaseq_samples/{sample}/fastqc/{sample}{suffix}_fastqc.log",
     run:
+        # Calculate the paths FastQC will create so we can move them to
+        # specified output files if needed.
         outdir = os.path.dirname(output.html) or "."
+        outfile = os.path.basename(input[0])
+        for s in [".fastq", ".fq", ".gz", ".bam"]:
+            outfile = outfile.replace(s, "")
+        out_zip = os.path.join(outdir, outfile + "_fastqc.zip")
+        out_html = os.path.join(outdir, outfile + "_fastqc.html")
+
         shell(
             "fastqc "
             "--noextract "
             "--quiet "
             "--outdir {outdir} "
             "{input} "
-            "2> {log} "
+            "&> {log} "
         )
-        outfile = os.path.basename(input[0])
-        for s in [".fastq", ".fq", ".gz", ".bam"]:
-            outfile = outfile.replace(s, "")
-        out_zip = os.path.join(outdir, outfile + "_fastqc.zip")
+
         if not os.path.abspath(out_zip) == os.path.abspath(output.zip):
             shell("mv {out_zip} {output.zip}")
-        out_html = os.path.join(outdir, outfile + "_fastqc.html")
         if not os.path.abspath(out_html) == os.path.abspath(output.html):
             shell("mv {out_html} {output.html}")
 
@@ -466,19 +474,23 @@ rule rRNA:
     resources:
         mem="2g",
         runtime="2h",
-    shell:
-        "bowtie2 "
-        f"-x {REFERENCES}/bowtie2/rrna "
-        "-U {input.fastq} "
-        "--threads {threads} "
-        "-k 1 "
-        "--no-unal "
-        "-S {output.bam}.sam "
-        "> {log} 2>&1 "
-        "&& samtools view -Sb {output.bam}.sam "
-        "| samtools sort - -o {output.bam} -O BAM "
-        "&& rm {output.bam}.sam"
-
+    params:
+    run:
+        prefix = subpath(input.index, strip_suffix=".1.bt2")
+        shell(
+            "bowtie2 "
+            f"-x {prefix} "
+            "-U {input.fastq} "
+            "--threads {threads} "
+            "--no-unal "
+            "-k 1 "
+            "-S {output.bam}.sam "
+            "> {log} 2>&1 ")
+        shell(
+            "samtools view -Sb {output.bam}.sam "
+            "| samtools sort -O BAM - -o {output.bam}"
+        )
+        shell("rm {output.bam}.sam")
 
 rule fastq_count:
     input:
@@ -564,11 +576,8 @@ rule featurecounts:
             "fr-firststrand": "-s2 ",
             "fr-secondstrand": "-s1 ",
         }[config["stranded"]],
-        extra="",
     run:
-        p_arg = ""
-        if is_paired:
-            p_arg = "-p --countReadPairs "
+        p_arg = "-p --countReadPairs " if is_paired else ""
         shell(
             "featureCounts "
             "{params.strand_arg} "
@@ -711,45 +720,6 @@ rule salmon:
             "--seqBias "
             "--validateMappings "
             "{fastq_arg} "
-            "&> {log}"
-        )
-
-
-rule kallisto:
-    input:
-        fastq=rules.cutadapt.output,
-        index=REFERENCES + "/kallisto/transcripts.idx",
-    output:
-        "data/rnaseq_samples/{sample}/{sample}.kallisto/abundance.h5",
-    log:
-        "data/rnaseq_samples/{sample}/{sample}.kallisto/abundance.h5.log",
-    threads: 8
-    resources:
-        mem="32g",
-        runtime="2h",
-    params:
-        strand_arg={
-            "unstranded": "",
-            "fr-firststrand": "--rf-stranded",
-            "fr-secondstrand": "--fr-stranded",
-        }[config["stranded"]],
-        extra=(
-            "--bootstrap-samples 100"
-            if is_paired
-            else "--single --fragment-length 300 --sd 20 --bootstrap-samples 100"
-        ),
-    run:
-        outdir = os.path.dirname(output[0])
-        shell(
-            "kallisto quant "
-            "--index {input.index} "
-            "--output-dir {outdir} "
-            "--threads {threads} "
-            "--bootstrap-samples 100 "
-            "--threads {threads} "
-            "{params.strand_arg} "
-            "{params.extra} "
-            "{input.fastq} "
             "&> {log}"
         )
 
@@ -903,7 +873,6 @@ rule multiqc:
             ),
             expand(rules.markduplicates.output, sample=SAMPLES),
             expand(rules.salmon.output, sample=SAMPLES),
-            expand(rules.kallisto.output, sample=SAMPLES),
             expand(rules.preseq.output, sample=SAMPLES),
             expand(rules.collectrnaseqmetrics.output, sample=SAMPLES),
             expand(rules.samtools_stats.output, sample=SAMPLES),

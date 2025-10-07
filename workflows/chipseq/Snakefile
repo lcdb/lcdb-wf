@@ -11,9 +11,6 @@ from lib import chipseq
 configfile: "config/config.yaml"
 
 
-include: "../references/Snakefile"
-
-
 REFERENCES = config.get("reference_dir", "../../references")
 sampletable = pd.read_table(config["sampletable"], sep="\t", comment="#")
 sampletable = sampletable.set_index(sampletable.columns[0], drop=False)
@@ -27,6 +24,7 @@ peaks = chipseq.add_bams_to_peak_calling(config)
 wildcard_constraints:
     n="[1,2]",
     sample="|".join(SAMPLES),
+    ext=".fa|.gtf",
 
 
 localrules:
@@ -34,43 +32,93 @@ localrules:
     symlink_targets,
 
 
-rule targets:
+rule all:
     input:
         "data/chipseq_aggregation/multiqc.html",
         expand("data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.bam.bigwig", label=LABELS),
         [v["bed"] for k, v in peaks.items()],
 
 
-if utils.detect_sra(sampletable):
-    sampletable['orig_filename'] = expand(
-        'original_data/sra_samples/{sample}/{sample}_R{n}.fastq.gz', sample=SAMPLES, n=1)
+# If the sampletable is from SRA, handle it here.
+include: "sra.smk"
 
-    if is_paired:
-        sampletable['orig_filename_R2'] = expand(
-            'original_data/sra_samples/{sample}/{sample}_R{n}.fastq.gz', sample=SAMPLES, n=2)
+rule fasta:
+    output:
+        temporary(f"{REFERENCES}/genome.fa.gz"),
+    log:
+        f"{REFERENCES}/logs/genome.fa.gz.log",
+    resources:
+        mem_mb="4g",
+        runtime="2h",
+    run:
+        utils.download_and_postprocess(
+            urls=config["fasta"]["url"],
+            postprocess=config["fasta"].get("postprocess", None),
+            outfile=output[0],
+            log=log,
+        )
 
-    rule fastq_dump:
-        output:
-            fastq=expand('original_data/sra_samples/{sample}/{sample}_R{n}.fastq.gz', n=n, allow_missing=True)
-        log:
-            'original_data/sra_samples/{sample}/{sample}.fastq.gz.log'
-        params:
-            is_paired=is_paired,
-            # extra="-X 100000",  # [enable for test]
-        resources:
-            mem="1g",
-            disk="1g",
-            runtime="2h",
-        run:
-            srr = sampletable.loc[wildcards.sample, "Run"]
-            extra = params.get("extra", "")
-            if is_paired:
-                shell("fastq-dump {srr} --gzip --split-files {extra} &> {log}")
-                shell("mv {srr}_1.fastq.gz {output[0]}")
-                shell("mv {srr}_2.fastq.gz {output[1]}")
-            else:
-                shell("fastq-dump {srr} -Z {extra} 2> {log} | gzip -c > {output[0]}.tmp")
-                shell("mv {output[0]}.tmp {output[0]}")
+
+rule chromsizes:
+    input:
+        f"{REFERENCES}/genome.fa.gz",
+    output:
+        f"{REFERENCES}/genome.chromsizes",
+    log:
+        f"{REFERENCES}/logs/genome.chromsizes.log",
+    params:
+        java_args="-Xmx20g",  # [disable for test]
+        # java_args='-Xmx2g'  # [enable for test]
+    resources:
+        mem="24g",
+        runtime="2h",
+    shell:
+        "export LC_COLLATE=C; "
+        "rm -f {output}.tmp "
+        "&& picard "
+        "{params.java_args} "
+        "CreateSequenceDictionary R={input} O={output}.tmp &> {log} "
+        '&& grep "^@SQ" {output}.tmp '
+        """| awk '{{print $2, $3}}' """
+        '| sed "s/SN://g;s/ LN:/\\t/g" '
+        "| sort -k1,1 > {output} "
+        "&& rm -f {output}.tmp "
+
+
+rule unzip:
+    input:
+        f"{REFERENCES}/{{prefix}}{{ext}}.gz",
+    output:
+        f"{REFERENCES}/{{prefix}}{{ext}}",
+    resources:
+        mem="4g",
+        runtime="2h",
+    shell:
+        "gunzip -c {input} > {output}"
+
+
+rule bowtie2_index:
+    input:
+        f"{REFERENCES}/genome.fa",
+    output:
+        f"{REFERENCES}/bowtie2/genome.1.bt2",
+        f"{REFERENCES}/bowtie2/genome.fa",
+    log:
+        f"{REFERENCES}/logs/bowtie2_genome.log",
+    resources:
+        mem="32g",
+        disk="50g",
+        runtime="8h",
+    threads: 8
+    run:
+        prefix = subpath(output[0], strip_suffix=".1.bt2")
+        shell(
+            "bowtie2-build "
+            "--threads {threads} "
+            "{input} "
+            "{prefix} &> {log}"
+        )
+        utils.make_relative_symlink(input[0], output[-1])
 
 
 rule symlinks:
@@ -119,9 +167,9 @@ rule cutadapt:
         if is_paired:
             shell(
                 "cutadapt "
+                "-j {threads} "
                 "-o {output[0]} "
                 "-p {output[1]} "
-                "-j {threads} "
                 "--nextseq-trim 20 "
                 "--overlap 6 "
                 "--minimum-length 25 "
@@ -134,8 +182,8 @@ rule cutadapt:
         else:
             shell(
                 "cutadapt "
-                "-o {output[0]} "
                 "-j {threads} "
+                "-o {output[0]} "
                 "--nextseq-trim 20 "
                 "--overlap 6 "
                 "--minimum-length 25 "
@@ -145,20 +193,29 @@ rule cutadapt:
             )
 
 
+
 rule fastqc:
     input:
-        "{sample_dir}/{sample}/{sample}{suffix}",
+        "data/chipseq_samples/{sample}/{sample}{suffix}",
     threads: 1
     output:
-        html="{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.html",
-        zip="{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.zip",
+        html="data/chipseq_samples/{sample}/fastqc/{sample}{suffix}_fastqc.html",
+        zip="data/chipseq_samples/{sample}/fastqc/{sample}{suffix}_fastqc.zip",
     resources:
         mem="8g",
         runtime="2h",
     log:
-        "{sample_dir}/{sample}/fastqc/{sample}{suffix}_fastqc.log",
+        "data/chipseq_samples/{sample}/fastqc/{sample}{suffix}_fastqc.log",
     run:
+        # Calculate the paths FastQC will create so we can move them to
+        # specified output files if needed.
         outdir = os.path.dirname(output.html) or "."
+        outfile = os.path.basename(input[0])
+        for s in [".fastq", ".fq", ".gz", ".bam"]:
+            outfile = outfile.replace(s, "")
+        out_zip = os.path.join(outdir, outfile + "_fastqc.zip")
+        out_html = os.path.join(outdir, outfile + "_fastqc.html")
+
         shell(
             "fastqc "
             "--noextract "
@@ -167,13 +224,9 @@ rule fastqc:
             "{input} "
             "&> {log} "
         )
-        outfile = os.path.basename(input[0])
-        for s in [".fastq", ".fq", ".gz", ".bam"]:
-            outfile = outfile.replace(s, "")
-        out_zip = os.path.join(outdir, outfile + "_fastqc.zip")
+
         if not os.path.abspath(out_zip) == os.path.abspath(output.zip):
             shell("mv {out_zip} {output.zip}")
-        out_html = os.path.join(outdir, outfile + "_fastqc.html")
         if not os.path.abspath(out_html) == os.path.abspath(output.html):
             shell("mv {out_html} {output.html}")
 
@@ -182,16 +235,7 @@ rule bowtie2:
     input:
         fastq=expand(
             "data/chipseq_samples/{sample}/{sample}_R{n}.cutadapt.fastq.gz", n=n, allow_missing=True),
-        index=multiext(
-            f"{REFERENCES}/bowtie2/genome",
-            ".1.bt2",
-            ".2.bt2",
-            ".3.bt2",
-            ".4.bt2",
-            ".rev.1.bt2",
-            ".rev.2.bt2",
-            ".fa",
-        ),
+        index=f"{REFERENCES}/bowtie2/genome.1.bt2",
     output:
         bam=temporary("data/chipseq_samples/{sample}/{sample}.cutadapt.bam"),
     log:
@@ -201,28 +245,26 @@ rule bowtie2:
         mem="32g",
         runtime="2h",
     run:
-        prefix = os.path.commonprefix(input.index).rstrip(".")
-        sam = output.bam.replace(".bam", ".sam")
-        fastqs = (
-            f"-1 {input.fastq[0]} -2 {input.fastq[1]}"
-            if is_paired
-            else f"-U {input.fastq}"
-        )
-        shell(
-            "bowtie2 "
-            "-x {prefix} "
-            "{fastqs} "
-            "--no-unal "
-            "--threads {threads} "
-            "-S {sam} "
-            "> {log} 2>&1"
-        )
+        prefix = subpath(input.index, strip_suffix=".1.bt2")
+
+        if is_paired:
+            fastqs = f"-1 {input.fastq[0]} -2 {input.fastq[1]}"
+        else:
+            fastqs = f"-U {input.fastq}"
 
         shell(
-            "samtools view -Sb {sam} "
-            "| samtools sort - -o {output.bam} -O BAM "
-            "&& rm {sam}"
+            "bowtie2 "
+            f"-x {prefix} "
+            "{fastqs} "
+            "--threads {threads} "
+            "--no-unal "
+            "-S {output.bam}.sam "
+            "> {log} 2>&1 ")
+        shell(
+            "samtools view -Sb {output.bam}.sam "
+            "| samtools sort -O BAM - -o {output.bam}"
         )
+        shell("rm {output.bam}.sam")
 
 
 rule unique:
@@ -235,12 +277,15 @@ rule unique:
         mem="1g",
         runtime="2h",
     params:
+    shell:
+        "samtools view "
+        "-b "
         # NOTE: the quality score chosen here should reflect the scores output
         # by the aligner used. For example, STAR uses 255 as max mapping
         # quality.
-        extra="-q 20",
-    shell:
-        "samtools view -b {params.extra} {input} > {output}"
+        "-q 20 "
+        "{input} "
+        "> {output}"
 
 
 rule fastq_count:
@@ -304,8 +349,8 @@ rule markduplicates:
         "MarkDuplicates "
         "-INPUT {input.bam} "
         "-OUTPUT {output.bam} "
-        "-REMOVE_DUPLICATES true "
         "-METRICS_FILE {output.metrics} "
+        "-REMOVE_DUPLICATES true "
         "-VALIDATION_STRINGENCY LENIENT "
         "&> {log}"
 
@@ -379,20 +424,12 @@ rule bigwig:
         "-p {threads} "
         "--minMappingQuality 20 "
         "--ignoreDuplicates "
-        # Can't use the CPM normalization for testing due to <1000 reads total
-        # in example data
-        "--normalizeUsing CPM "  # [disable for test]
         "--extendReads 300 "
+        "--normalizeUsing CPM "  # [disable for test]
         "&> {log}"
 
 
 rule fingerprint:
-    """
-    Runs deepTools plotFingerprint to assess how well the ChIP experiment
-    worked.
-
-    Note: uses the merged techreps.
-    """
     input:
         bams=lambda wc: expand("data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam", label=wc.ip_label),
         control=lambda wc: expand(
@@ -429,18 +466,17 @@ rule fingerprint:
             # The JSDsample argument is disabled for testing as it dramatically
             # increases the run time.
             "{jsdsample_arg} "  # [disable for test]
-            "--smartLabels "
-            "--extendReads=300 "
-            "--skipZeros "
             "--outQualityMetrics {output.metrics} "
             "--outRawCounts {output.raw_counts} "
             "--plotFile {output.plot} "
             # Default is 500k; use fewer to speed up testing:
             # '--numberOfSamples 50 '  # [enable for test]
+            "--smartLabels "
+            "--extendReads=300 "
+            "--skipZeros "
             "&> {log} "
             '&& sed -i "s/NA/0.0/g" {output.metrics} '
         )
-
 
 
 rule macs:
@@ -560,11 +596,11 @@ rule plotcorrelation:
     shell:
         "plotCorrelation "
         "--corData {input} "
+        "--plotFile {output.heatmap} "
+        "--outFileCorMatrix {output.tab} "
         "--corMethod spearman "
         "--whatToPlot heatmap "
-        "--plotFile {output.heatmap} "
         "--colorMap Reds "
-        "--outFileCorMatrix {output.tab}"
         # NOTE: if you're expecting negative correlation, try a divergent
         # colormap and setting the min/max to ensure that the colomap is
         # centered on zero:
@@ -573,7 +609,7 @@ rule plotcorrelation:
         # '--zMax 1 '
 
 
-rule idxstats:
+rule samtools_idxstats:
     input:
         bam="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam",
         bai="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.bai",
@@ -588,7 +624,7 @@ rule idxstats:
         "samtools idxstats {input.bam} 2> {log} 1> {output.txt}"
 
 
-rule flagstat:
+rule samtools_flagstat:
     input:
         bam="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam",
         bai="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.bai",
@@ -620,15 +656,20 @@ rule samtools_stats:
 
 rule multiqc:
     input:
-        expand("data/chipseq_samples/{sample}/{sample}.cutadapt.bam", sample=SAMPLES),
-        expand("data/chipseq_samples/{sample}/fastqc/{sample}_R1.fastq.gz_fastqc.zip", sample=SAMPLES),
-        expand("data/chipseq_samples/{sample}/fastqc/{sample}_R1.cutadapt.fastq.gz_fastqc.zip", sample=SAMPLES),
-        expand("data/chipseq_samples/{sample}/fastqc/{sample}.cutadapt.unique.nodups.bam_fastqc.zip", sample=SAMPLES),
-        expand("data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.bam.bigwig", label=sampletable.label),
-        expand("data/chipseq_samples/{sample}/samtools_stats_{sample}.txt", sample=SAMPLES),
-        expand("data/chipseq_samples/{sample}/samtools_flagstat_{sample}.txt", sample=SAMPLES),
-        expand("data/chipseq_samples/{sample}/samtools_idxstats_{sample}.txt", sample=SAMPLES),
-        expand("data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam", label=sampletable.label),
+        expand(
+            rules.fastqc.output.zip,
+            sample=SAMPLES,
+            suffix=["_R1.fastq.gz", "_R1.cutadapt.fastq.gz", ".cutadapt.bam"],
+        ),
+        expand(rules.cutadapt.output, sample=SAMPLES),
+        expand(rules.bowtie2.output, sample=SAMPLES),
+        expand(rules.markduplicates.output, sample=SAMPLES),
+        expand(rules.unique.output, sample=SAMPLES),
+        expand(rules.samtools_stats.output, sample=SAMPLES),
+        expand(rules.samtools_flagstat.output, sample=SAMPLES),
+        expand(rules.samtools_idxstats.output, sample=SAMPLES),
+        expand(rules.bigwig.output, label=sampletable.label),
+        expand(rules.merge_techreps.output, label=sampletable.label),
         expand(
             "data/chipseq_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.metrics",
             ip_label=sampletable.loc[sampletable.antibody != "input", "label"],
@@ -638,8 +679,6 @@ rule multiqc:
              sample=SAMPLES
         ) if is_paired else [],
         [v["bigbed"] for v in peaks.values()],
-        "data/chipseq_aggregation/deeptools/plotcorrelation.tab",
-        "data/chipseq_aggregation/deeptools/multibigwigsummary.tab",
         config="config/multiqc_config.yaml",
     output:
         "data/chipseq_aggregation/multiqc.html",
