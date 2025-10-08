@@ -45,7 +45,7 @@ include: "sra.smk"
 
 rule fasta:
     output:
-        temporary(f"{REFERENCES}/genome.fa.gz"),
+        f"{REFERENCES}/genome.fa.gz",
     log:
         f"{REFERENCES}/logs/genome.fa.gz.log",
     resources:

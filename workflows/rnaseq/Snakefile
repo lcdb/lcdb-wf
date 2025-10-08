@@ -55,7 +55,7 @@ rule symlinks:
 
 rule fasta:
     output:
-        temporary(f"{REFERENCES}/genome.fa.gz"),
+        f"{REFERENCES}/genome.fa.gz",
     log:
         f"{REFERENCES}/logs/genome.fa.gz.log",
     resources:
@@ -75,7 +75,7 @@ rule fasta:
 
 rule gtf:
     output:
-        temporary(f"{REFERENCES}/annotation.gtf.gz"),
+        f"{REFERENCES}/annotation.gtf.gz",
     log:
         f"{REFERENCES}/logs/annotation.gtf.gz.log",
     resources:
@@ -224,7 +224,7 @@ rule salmon_index:
 
 rule conversion_refflat:
     input:
-        f"{REFERENCES}/annotation.gtf.gz",
+        f"{REFERENCES}/annotation.gtf",
     output:
         f"{REFERENCES}/annotation.refflat",
     log:
@@ -240,7 +240,7 @@ rule conversion_refflat:
 
 rule conversion_bed12:
     input:
-        f"{REFERENCES}/annotation.gtf.gz",
+        f"{REFERENCES}/annotation.gtf",
     output:
         f"{REFERENCES}/annotation.bed12",
     resources:
@@ -283,7 +283,7 @@ rule mappings:
     Creates gzipped TSV mapping between attributes in the GTF.
     """
     input:
-        gtf=f"{REFERENCES}/annotation.gtf.gz",
+        gtf=f"{REFERENCES}/annotation.gtf",
     output:
         f"{REFERENCES}/annotation.mapping.tsv.gz",
     params:
@@ -412,7 +412,7 @@ rule star:
     input:
         fastq=rules.cutadapt.output,
         index=rules.star_index.output,
-        annotation=f"{REFERENCES}/annotation.gtf.gz",
+        annotation=f"{REFERENCES}/annotation.gtf",
     output:
         bam=temporary("data/rnaseq_samples/{sample}/{sample}.cutadapt.bam"),
         sjout=temporary(
@@ -569,7 +569,7 @@ rule markduplicates:
 
 rule featurecounts:
     input:
-        annotation=rules.gtf.output,
+        annotation=f"{REFERENCES}/annotation.gtf",
         bam=rules.markduplicates.output.bam,
     output:
         "data/rnaseq_samples/{sample}/{sample}_featurecounts.txt",
