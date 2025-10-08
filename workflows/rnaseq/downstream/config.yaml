@@ -139,7 +139,7 @@ toggle:
 
   # Create diagnostic plots for results objects? If TRUE, will check the
   # config$plotting$diagnostics_for_results list.
-  results_diagnostics: TRUE
+  results_diagnostics: FALSE
 
 # ANNOTATION -------------------------------------------------------------------
 # Configuration specific to annotations and databases
