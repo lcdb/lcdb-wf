@@ -134,10 +134,6 @@ toggle:
   # `salmon=TRUE` argument to lcdbwf::make_dds.
   salmon: FALSE
 
-  # Import Kallisto results instead of featureCounts? See similar notes above
-  # for Salmon.
-  kallisto: FALSE
-
   # Create diagnostic plots for all dds objects?
   dds_diagnostics: TRUE
 

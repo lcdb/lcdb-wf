@@ -15,7 +15,6 @@ knitr::opts_chunk$set(
     message=FALSE,
     cache.extra_file_dep_1 = file.info('../config/sampletable.tsv')$mtime,
     cache.extra_file_dep_2 = file.info('../data/rnaseq_aggregation/featurecounts.txt')$mtime,
-    cache.extra_file_dep_3 = file.info('../data/rnaseq_samples/*/*.kallisto/abundance.h5')$mtime,
     cache.extra_file_dep_4 = file.info('../data/rnaseq_samples/*/*.salmon/quant.sf')$mtime
 )
 ```
@@ -90,7 +89,7 @@ colData <- read.table(config$main$sampletable, sep='\t', header=TRUE, stringsAsF
 rownames(colData) <- colData[,1]
 ```
 
-```{r dds_initial, cache=TRUE, config=c(config$main, config$toggle$salmon, config$toggle$kallisto)}
+```{r dds_initial, cache=TRUE, config=c(config$main, config$toggle$salmon)}
 # Convert featureCounts gene-level counts into DESeq2 object, and run
 # variance-stabiliizing transform.
 dds_initial <- lcdbwf:::make_dds(
@@ -106,7 +105,7 @@ vsd <- varianceStabilizingTransformation(dds_initial, blind=TRUE)
 Here is the sample table with metadata used for this analysis:
 
 ```{r print_coldata}
-exclude.for.printing <- c('featurecounts.path', 'salmon.path', 'kallisto.path',
+exclude.for.printing <- c('featurecounts.path', 'salmon.path',
                           'orig_filename', 'orig_filename_R2', 'layout',
                           'sizeFactor')
 colData(dds_initial) %>%
@@ -138,8 +137,8 @@ for(group in config$plotting$covariates_for_plots){
 }
 ```
 
-```{r sizefactors, results='asis', eval=!(config$toggle$salmon | config$toggle$kallisto)}
-# Note that when loading Salmon or Kallisto, DESeq2 does not calculate size
+```{r sizefactors, results='asis', eval=!(config$toggle$salmon)}
+# Note that when loading Salmon, DESeq2 does not calculate size
 # factors.
 
 lcdbwf:::mdcat(text$sizefactors)
@@ -180,13 +179,8 @@ lst <- list(
                 design=~group,
                 salmon=TRUE),
 
-            # Example 4: use kallisto
-            kallisto=list(
-                sampletable=colData,
-                design=~group,
-                kallisto=TRUE),
 
-            # Example 5: use LRT
+            # Example 4: use LRT
             LRT=list(
                 sampletable=colData,
                 design=~group,
@@ -265,20 +259,10 @@ contr_03a_salmon <- lcdbwf:::make_results(
 )
 ```
 
+
 ```{r results_04, dependson='dds_list', cache=TRUE}
 # Example 4:
-#   - like example 3, but kallisto instead of salmon
-contr_03_kallisto <- lcdbwf:::make_results(
-  dds_name="kallisto",
-  contrast=c('group', 'treatment', 'control'),
-  type='normal',
-  label='Using Kallisto'
-)
-```
-
-```{r results_05, dependson='dds_list', cache=TRUE}
-# Example 5:
-#   - Examples 1-4 use the default DESeq2 test, Wald.
+#   - Examples 1-3 use the default DESeq2 test, Wald.
 #   - Here, we use the nBinomLRT (LRT) test.
 # NOTE: Use 'type=NULL' to skip LFC shrinkage as
 # make_results sets all LRT LFC values to 0.
@@ -288,7 +272,7 @@ contr_03_kallisto <- lcdbwf:::make_results(
 # make_results detects the 'test' type from the
 # dds object specified with 'dds_name'.
 
-contr_05_lrt <- lcdbwf:::make_results(
+contr_04_lrt <- lcdbwf:::make_results(
   dds_name="LRT",
   type=NULL,
   label='Using LRT'
