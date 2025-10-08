@@ -892,6 +892,7 @@ rule multiqc:
             expand(rules.bigwig_pos.output, sample=SAMPLES),
             expand(rules.bigwig_neg.output, sample=SAMPLES),
             rules.rrna_libsizes_table.output,
+            rules.aggregate_featurecounts.output,
         ),
         config="config/multiqc_config.yaml",
     output:
