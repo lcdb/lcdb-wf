@@ -61,10 +61,13 @@ rule fasta:
     resources:
         mem_mb="4g",
         runtime="2h",
+    params:
+        urls=config["fasta"]["url"],
+        postprocess=config["fasta"].get("postprocess", None)
     run:
         utils.download_and_postprocess(
-            urls=config["fasta"]["url"],
-            postprocess=config["fasta"].get("postprocess", None),
+            urls=params.urls,
+            postprocess=params.postprocess,
             outfile=output[0],
             log=log,
         )
@@ -78,10 +81,13 @@ rule gtf:
     resources:
         mem="4g",
         runtime="2h",
+    params:
+        urls=config["gtf"]["url"],
+        postprocess=config["gtf"].get("postprocess", None)
     run:
         utils.download_and_postprocess(
-            urls=config["gtf"]["url"],
-            postprocess=config["gtf"].get("postprocess", None),
+            urls=params.urls,
+            postprocess=params.postprocess,
             outfile=output[0],
             log=log,
         )
@@ -95,10 +101,13 @@ rule rrna_fasta:
     resources:
         mem="4g",
         runtime="2h",
+    params:
+        urls=config["rrna"]["url"],
+        postprocess=config["rrna"].get("postprocess", None)
     run:
         utils.download_and_postprocess(
-            urls=config["rrna"]["url"],
-            postprocess=config["rrna"].get("postprocess", None),
+            urls=params.urls,
+            postprocess=params.postprocess,
             outfile=output[0],
             log=log,
         )

@@ -42,6 +42,7 @@ rule all:
 # If the sampletable is from SRA, handle it here.
 include: "sra.smk"
 
+
 rule fasta:
     output:
         temporary(f"{REFERENCES}/genome.fa.gz"),
@@ -50,10 +51,13 @@ rule fasta:
     resources:
         mem_mb="4g",
         runtime="2h",
+    params:
+        urls=config["fasta"]["url"],
+        postprocess=config["fasta"].get("postprocess", None)
     run:
         utils.download_and_postprocess(
-            urls=config["fasta"]["url"],
-            postprocess=config["fasta"].get("postprocess", None),
+            urls=params.urls,
+            postprocess=params.postprocess,
             outfile=output[0],
             log=log,
         )
