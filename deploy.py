@@ -91,7 +91,7 @@ def write_include_file(source, flavor="all"):
         ],
         "chipseq": [
             "include workflows/chipseq/Snakefile",
-            "include workflows/rnaseq/sra.smk",
+            "include workflows/chipseq/sra.smk",
             "recursive-include workflows/chipseq/config *",
             "include workflows/chipseq/chipseq_trackhub.py",
         ],
@@ -100,8 +100,7 @@ def write_include_file(source, flavor="all"):
             "recursive-include include *",
             "recursive-include lib *",
             "include env.yml env-r.yml .gitignore",
-            "include workflows/references/Snakefile",
-            "recursive-include workflows/references/config *",
+            "recursive-include scripts *",
             "global-exclude __pycache__",
         ],
         "full": [
