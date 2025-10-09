@@ -343,27 +343,6 @@ Required for RNA-seq
     Rules that require information about strand will check the config file at
     run time and raise an error if this field doesn't exist.
 
-    If you don't know the strandedness of the library, run the Snakefile in
-    such a way to only run the ``strand_check`` rule:
-
-    .. code-block:: bash
-
-        snakemake -j 2 strand_check
-
-    Or, when using the Slurm wrapper on cluster,
-
-    .. code-block:: bash
-
-        sbatch ../../include/WRAPPER_SLURM strand_check
-
-    When complete, there will be a MultiQC HTML file in the ``strand_check/``
-    directory that you can inspect to make your choice.
-
-    This will align the first 10,000 reads to the specified reference and run
-    RSeQC's ``infer_experiment.py`` on the results and then run MultiQC on just
-    those output files.
-
-    .. versionadded:: 1.8
 
 Optional fields
 ~~~~~~~~~~~~~~~

@@ -27,20 +27,6 @@ rnaseq:
       --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
       --config sampletable=__ORIG__/test/test_configs/test_sra_sampletable_SE_only.tsv
 
-  strandedness-pe:
-    desc: Tests running the strandedness pre-check using paired-end data.
-    args: |
-      --until strand_check
-      --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
-      --config sampletable=__ORIG__/test/test_configs/test_pe_sampletable.tsv
-
-  strandedness-se:
-    desc: Tests running the strandedness pre-check using single-ended data.
-    args: |
-      --until strand_check
-      --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
-      --config sampletable=__ORIG__/test/test_configs/two_samples.tsv
-
   star-2pass:
     desc: Tests running STAR in 2-pass mode. Only runs until the star_pass2 rule.
     args: |

@@ -712,9 +712,7 @@ def strand_arg_lookup(config, lookup):
         raise ConfigurationError(
             "Starting in v1.8, 'stranded' is required in the config file. "
             "Values can be 'unstranded', 'fr-firststrand' (R1 aligns antisense to original transcript), "
-            "or 'fr-secondstrand' (R1 aligns sense to original transcript). If you are not sure, "
-            "run the workflow with only the 'strand_check' rule, like "
-            "'snakemake -j 5 strand_check'."
+            "or 'fr-secondstrand' (R1 aligns sense to original transcript)."
         )
     if config.stranded not in lookup:
         keys = list(lookup.keys())
