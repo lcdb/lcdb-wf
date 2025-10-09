@@ -404,3 +404,31 @@ Guidelines:
 - SE/PE arguments should be handled inside a ``run:`` block
 - Any other arguments should be written in a  ``shell:`` block or a ``shell()``
   call directly, to visually match the equivalent command-line call
+
+Arguments for and against a separate references workflow
+--------------------------------------------------------
+
+RNA-seq, ChIP-seq, and the upcoming variant calling all need to do something
+with references, including possibly patching them. So we have to deal with this
+inherent complexity. It initially made sense to put such common rules in the
+separate references workflow.
+
+However, only a subset of the rules in the references workflow are actually
+shared across RNA-seq and ChIP-seq -- currently, only the bowtie2 index
+(genome-wide ChIP-seq alignment; rRNA screening for RNA-seq), the fasta rule,
+chromsizes, and the generic unzip rule. The others (gtf, mappings,
+conversion_bed12, conversion_refflat, kallisto_index, salmon_index,
+transcriptome_fasta, star_index, rrna) are all unique to RNA-seq. So the
+current references workflow is actually mostly an RNA-seq-only references
+workflow.
+
+Furthermore, much of the complexity is handled in the
+lib.utils.download_and_postprocess function, rather than in the workflow rules.
+We already are using the utils module separately in the ChIP-seq and RNA-seq
+workflows, so there's no additional overhead to import it.
+
+Last, having a workflow split across two Snakefiles hampers the ability to
+understand the complete workflow.
+
+Taken together, it made more sense to eliminate the references workflow
+entirely, and port the rules to the respective workflows.
