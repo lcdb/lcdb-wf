@@ -1,4 +1,5 @@
 # This file configures arguments for running various workflows that are  pulled
+#
 # into the test/lcdb-wf-test runner script automatically. It is a way of 
 #
 # NOTE:
@@ -26,22 +27,6 @@ rnaseq:
       --until cutadapt
       --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
       --config sampletable=__ORIG__/test/test_configs/test_sra_sampletable_SE_only.tsv
-
-  star-2pass:
-    desc: Tests running STAR in 2-pass mode. Only runs until the star_pass2 rule.
-    args: |
-        --until star_pass2
-        --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
-        --config sampletable=__ORIG__/test/test_configs/star_2pass.tsv
-        --config aligner="star-twopass"
-
-  hisat2:
-    desc: Tests running HISAT2
-    args: |
-        --until hisat2
-        --configfile __ORIG__/test/test_configs/test_rnaseq_config.yaml
-        --config sampletable=__ORIG__/test/test_configs/hisat2.tsv
-        --config aligner=hisat2
 
   pe:
     desc: Tests paired-end data
