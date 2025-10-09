@@ -4,7 +4,6 @@
 
 
 salmon.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
-kallisto.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, paste0(x, '.salmon'), 'quant.sf')
 
 
 
@@ -34,11 +33,10 @@ kallisto.path.func <- function (x) file.path('..', 'data', 'rnaseq_samples', x, 
 #' @param strip_dotted_version If TRUE, then remove Ensembl-style dotted
 #'   version numbers from gene IDs (ENSG000001.1 -> ENSG000001)
 #'
-#' @param salmon_pattern, kallisto_pattern Specify the patterns to locations of
-#'   Salmon or Kallisto files. Use the special placeholder string
+#' @param salmon_pattern Specify the pattern to locations of
+#'   Salmon files. Use the special placeholder string
 #'   `__SAMPLENAME__` which will be replaced with the sample name. Only
-#'   relevant if one of config$toggle$salmon or config$toggle$kallisto are
-#'   TRUE.
+#'   relevant if config$toggle$salmon is TRUE
 #'
 #' @param ... Additional arguments will be passed on to the DESeq() call (e.g.,
 #'   parallel, fitType, etc)
@@ -48,7 +46,6 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
                      strip_dotted_version=NULL,
                      featureCounts='../data/rnaseq_aggregation/featurecounts.txt',
                      salmon_pattern="../data/rnaseq_samples/__SAMPLENAME__/__SAMPLENAME__.salmon/quant.sf",
-                     kallisto_pattern="../data/rnaseq_samples/__SAMPLENAME__/__SAMPLENAME__.kallisto/abundance.h5",
                      ...){
 
   # Note we're using pluck() here for the convenience of setting defaults
@@ -65,33 +62,27 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
   }
   location <- purrr::pluck(design_data, 'filename', .default=featureCounts)
   salmon <- purrr::pluck(design_data, 'salmon')
-  kallisto <- purrr::pluck(design_data, 'kallisto')
   subset_counts <- purrr::pluck(design_data, 'subset_counts')
   sample_func <- purrr::pluck(design_data, 'sample_func', .default=lcdbwf_samplename)
 
   # Allow overriding of config values.
   if (!is.null(config)){
     if (is.null(salmon)) salmon <- config$toggle$salmon
-    if (is.null(kallisto)) kallisto <- config$toggle$kallisto
     if (is.null(collapse_by)) collapse_by <- config$main$collapse_by
     if (is.null(strip_dotted_version)) strip_dotted_version <- config$main$strip_dotted_version
   }
 
-  if (salmon & kallisto){
-    stop("Both salmon and kallisto are set to TRUE, not sure how to handle this.")
-  }
-
-  if (salmon | kallisto){
+  if (salmon) {
     # If these arguments were provided, the corresponding loading functions
     # don't accept them so we need to remove. Issue a warning as well.
     if (!is.null(subset_counts) | !is.null(sample_func)){
-      warning("Salmon or Kallisto was specified, but additional arguments ",
+      warning("Salmon was specified, but additional arguments ",
               "were provided to the loading function.")
       subset_counts <- NULL
       sample_func <- NULL
     }
 
-    # For Salmon and Kallisto, we need a tx2gene dataframe. We can get this
+    # For Salmon, we need a tx2gene dataframe. We can get this
     # from a TxDb, which in turn can be retrieved from AnnotationHub, which in
     # turn can be configured with the config object. Luckily, we have the
     # config object here!
@@ -104,12 +95,6 @@ make_dds <- function(design_data, config=NULL, collapse_by=NULL,
       coldata$salmon.path <- sapply(coldata$samplename, function (x) gsub("__SAMPLENAME__", x, salmon_pattern))
       txi <- tximport::tximport(coldata[, 'salmon.path'], type='salmon', tx2gene=tx2gene, ignoreTxVersion=strip_dotted_version)
       dds <- DESeq2::DESeqDataSetFromTximport(txi, colData=coldata, design=design)
-
-  } else if (kallisto) {
-      coldata$kallisto.path <- sapply(coldata$samplename, function (x) gsub("__SAMPLENAME__", x, kallisto_pattern))
-      txi <- tximport::tximport(coldata[, 'kallisto.path'], type='kallisto', tx2gene=tx2gene, ignoreTxVersion=strip_dotted_version)
-      dds <- DESeq2::DESeqDataSetFromTximport(txi, colData=coldata, design=design)
-
   } else {
     dds <- lcdbwf:::DESeqDataSetFromCombinedFeatureCounts(
       location,

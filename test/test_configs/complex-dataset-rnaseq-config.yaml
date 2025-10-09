@@ -23,9 +23,6 @@ gtf:
 salmon:
   tag: "gencode-v28"
 
-kallisto:
-  tag: "gencode-v28"
-
 fastq_screen:
   - label: rRNA
     organism: human

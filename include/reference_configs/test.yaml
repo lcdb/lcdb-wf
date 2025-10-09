@@ -38,7 +38,6 @@ references:
       transcriptome:
         indexes:
           - 'salmon'
-          - 'kallisto'
 
       metadata:
         reference_genome_build: 'dm6'

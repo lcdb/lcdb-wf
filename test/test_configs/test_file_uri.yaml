@@ -24,10 +24,6 @@ gtf:
 salmon:
   tag: "test"
 
-kallisto:
-  tag: "test"
-
-
 fastq_screen:
   - label: test
     organism: filebased

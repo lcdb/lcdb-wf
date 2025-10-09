@@ -28,7 +28,6 @@ references:
       transcriptome:
         indexes:
           - 'salmon'
-          - 'kallisto'
 
     gencode_m12:
 
@@ -52,7 +51,6 @@ references:
       transcriptome:
         indexes:
           - 'salmon'
-          - 'kallisto'
 
     rRNA:
       genome:

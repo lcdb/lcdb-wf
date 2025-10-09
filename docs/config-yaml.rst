@@ -319,9 +319,10 @@ Required for RNA-seq
 ``stranded`` field
 ``````````````````
     This field specifies the strandedness of the library. This is used by
-    various rule to set the parameters correctly. For example,
-    ``featureCounts`` will use ``-s0``, ``-s1``, or ``-s2`` accordingly;
-    ``kallisto`` will use ``--fr-stranded`` if needed, and so on.
+    various rule to set the parameters correctly. For example, if this is set to ``fr-firststrand`` then
+    ``featureCounts`` will use ``-s2``; CollectRnaSeqMetrics will use
+    ``STRAND=SECOND_READ_TRANSCRIPTION_STRAND``, and deepTools bamCoverage will
+    use ``-filterRNAstrand reverse``.
 
     This field can take the following options:
 
