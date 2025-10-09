@@ -82,8 +82,6 @@ def write_include_file(source, flavor="all"):
     PATTERN_DICT = {
         "rnaseq": [
             "include workflows/rnaseq/Snakefile",
-            "include workflows/rnaseq/strand_check.smk",
-            "include workflows/rnaseq/sra.smk",
             "recursive-include workflows/rnaseq/config *",
             "include workflows/rnaseq/rnaseq_trackhub.py",
             "recursive-include workflows/rnaseq/downstream *.Rmd",
@@ -91,7 +89,6 @@ def write_include_file(source, flavor="all"):
         ],
         "chipseq": [
             "include workflows/chipseq/Snakefile",
-            "include workflows/chipseq/sra.smk",
             "recursive-include workflows/chipseq/config *",
             "include workflows/chipseq/chipseq_trackhub.py",
         ],
