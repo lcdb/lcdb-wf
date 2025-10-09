@@ -39,10 +39,6 @@ rule all:
         [v["bed"] for k, v in peaks.items()],
 
 
-# If the sampletable is from SRA, handle it here.
-include: "sra.smk"
-
-
 rule fasta:
     output:
         f"{REFERENCES}/genome.fa.gz",
@@ -709,6 +705,7 @@ rule multiqc:
         )
 
 
+# If the sampletable is from SRA, handle it here.
 if utils.detect_sra(sampletable):
     sampletable["orig_filename"] = expand(
         "original_data/sra_samples/{sample}/{sample}_R{n}.fastq.gz", sample=SAMPLES, n=1
