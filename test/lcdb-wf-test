@@ -141,8 +141,6 @@ class Runner(object):
             %(prog)s rnaseq --run-workflow --sra-se
             %(prog)s rnaseq --run-workflow --strandedness-pe
             %(prog)s rnaseq --run-workflow --strandedness-se
-            %(prog)s rnaseq --run-workflow --star-2pass
-            %(prog)s rnaseq --run-workflow --hisat2
             %(prog)s rnaseq --run-workflow --pe
 
             # Since there are a lot of parameters here, see

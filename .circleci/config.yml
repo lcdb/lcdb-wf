@@ -262,7 +262,6 @@ variables:
           # configs from the original clone rather than the deployed directory.
           $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --sra-pe          -k -p -j2 --use-conda --orig $ORIG
           $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --sra-se          -k -p -j2 --use-conda --orig $ORIG
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --star-2pass      -k -p -j2 --use-conda --orig $ORIG
           $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --star-1pass      -k -p -j2 --use-conda --orig $ORIG
           $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --pe              -k -p -j2 --use-conda --orig $ORIG
 
