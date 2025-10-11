@@ -66,3 +66,6 @@ workflows/rnaseq/downstream/rnaseq.html
 ._*
 Rplots.pdf
 /lib/include/*
+
+workflows/*/references
+
