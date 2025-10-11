@@ -552,14 +552,36 @@ rule markduplicates:
         "&> {log}"
 
 
-rule featurecounts:
+rule namesorted_bam:
     input:
-        annotation="references/annotation.gtf",
         bam=rules.markduplicates.output.bam,
     output:
-        "data/rnaseq_samples/{sample}/{sample}_featurecounts.txt",
+        temporary(
+            "data/rnaseq_samples/{sample}/{sample}.cutadapt.markdups.namesort.bam"
+        ),
+    threads: 1
+    resources:
+        mem="16g",
+        runtime="2h",
+    shell:
+        "samtools sort -n -o {output} {input}"
+
+
+rule featurecounts:
+    input:
+        annotation="references/annotation.gtf.gz",
+        bam=expand(
+            (
+                rules.namesorted_bam.output
+                if is_paired
+                else rules.markduplicates.output.bam
+            ),
+            sample=SAMPLES,
+        ),
+    output:
+        "data/rnaseq_aggregation/featurecounts.txt",
     log:
-        "data/rnaseq_samples/{sample}/{sample}_featurecounts.txt.log",
+        "data/rnaseq_aggregation/featurecounts.txt.log",
     threads: 8
     resources:
         mem="16g",
@@ -582,30 +604,6 @@ rule featurecounts:
             "{input.bam} "
             "&> {log}"
         )
-
-
-rule aggregate_featurecounts:
-    input:
-        expand(
-            "data/rnaseq_samples/{sample}/{sample}_featurecounts.txt", sample=SAMPLES
-        ),
-    output:
-        "data/rnaseq_aggregation/featurecounts.txt",
-    log:
-        "data/rnaseq_aggregation/featurecounts.txt.log",
-    threads: 1
-    resources:
-        mem="8g",
-        runtime="1h",
-    run:
-        for i, file in enumerate(input):
-            df = pd.read_csv(file, sep="\t", comment="#")
-            df = df.set_index("Geneid", drop=False)
-            if i == 0:
-                final = df
-                continue
-            final[df.columns[-1]] = df[df.columns[-1]]
-        final.to_csv(output[0], sep="\t", index=False)
 
 
 rule rrna_libsizes_table:
@@ -877,7 +875,7 @@ rule multiqc:
             expand(rules.bigwig_pos.output, sample=SAMPLES),
             expand(rules.bigwig_neg.output, sample=SAMPLES),
             rules.rrna_libsizes_table.output,
-            rules.aggregate_featurecounts.output,
+            rules.featurecounts.output,
         ),
         config="config/multiqc_config.yaml",
     output:
