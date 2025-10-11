@@ -62,7 +62,7 @@ rule fasta:
         runtime="2h",
     params:
         urls=config["fasta"]["url"],
-        postprocess=config["fasta"].get("postprocess", None)
+        postprocess=config["fasta"].get("postprocess", None),
     run:
         utils.download_and_postprocess(
             urls=params.urls,
@@ -82,7 +82,7 @@ rule gtf:
         runtime="2h",
     params:
         urls=config["gtf"]["url"],
-        postprocess=config["gtf"].get("postprocess", None)
+        postprocess=config["gtf"].get("postprocess", None),
     run:
         utils.download_and_postprocess(
             urls=params.urls,
@@ -102,7 +102,7 @@ rule rrna_fasta:
         runtime="2h",
     params:
         urls=config["rrna"]["url"],
-        postprocess=config["rrna"].get("postprocess", None)
+        postprocess=config["rrna"].get("postprocess", None),
     run:
         utils.download_and_postprocess(
             urls=params.urls,
@@ -139,12 +139,7 @@ rule rrna_index:
     threads: 8
     run:
         prefix = subpath(output[0], strip_suffix=".1.bt2")
-        shell(
-            "bowtie2-build "
-            "--threads {threads} "
-            "{input} "
-            "{prefix} &> {log}"
-        )
+        shell("bowtie2-build --threads {threads} {input} {prefix} &> {log}")
         utils.make_relative_symlink(input[0], output[-1])
 
 
@@ -213,12 +208,7 @@ rule salmon_index:
         runtime="2h",
     run:
         outdir = os.path.dirname(output[0])
-        shell(
-            "salmon index "
-            "--transcripts {input} "
-            "--index {outdir} "
-            "&> {log}"
-        )
+        shell("salmon index --transcripts {input} --index {outdir} &> {log}")
 
 
 rule conversion_refflat:
@@ -259,8 +249,8 @@ rule chromsizes:
     log:
         "references/logs/genome.chromsizes.log",
     params:
-        java_args="-Xmx20g",  # [disable for test]
         # java_args='-Xmx2g'  # [enable for test]
+        java_args="-Xmx20g",  # [disable for test]
     resources:
         mem="24g",
         runtime="2h",
@@ -294,6 +284,7 @@ rule mappings:
         runtime="2h",
     run:
         import gffutils
+
         gffutils.constants.always_return_list = False
 
         include_featuretypes = params.include_featuretypes
@@ -382,8 +373,6 @@ rule fastqc:
     log:
         "data/rnaseq_samples/{sample}/fastqc/{sample}{suffix}_fastqc.log",
     run:
-        # Calculate the paths FastQC will create so we can move them to
-        # specified output files if needed.
         outdir = os.path.dirname(output.html) or "."
         outfile = os.path.basename(input[0])
         for s in [".fastq", ".fq", ".gz", ".bam"]:
@@ -442,7 +431,6 @@ rule star:
             "{tmpdir_arg} "
             "--outSAMtype BAM SortedByCoordinate "
             "--outStd BAM_SortedByCoordinate > {output.bam} "
-
             # NOTE: The STAR docs indicate that the following parameters are
             # standard options for ENCODE long-RNA-seq pipeline.  Comments are from
             # the STAR docs.
@@ -462,12 +450,9 @@ rule star:
         # move various hard-coded log files to log directory
         logfiles = expand(
             prefix + "{ext}",
-            ext=["Log.progress.out", "Log.out", "Log.final.out", "Log.std.out"]
+            ext=["Log.progress.out", "Log.out", "Log.final.out", "Log.std.out"],
         )
-        shell(
-            "mkdir -p {outdir}/star_logs "
-            "&& mv {logfiles} {outdir}/star_logs"
-        )
+        shell("mkdir -p {outdir}/star_logs && mv {logfiles} {outdir}/star_logs")
 
 
 rule rRNA:
@@ -482,7 +467,6 @@ rule rRNA:
     resources:
         mem="2g",
         runtime="2h",
-    params:
     run:
         prefix = subpath(input.index, strip_suffix=".1.bt2")
         shell(
@@ -493,12 +477,14 @@ rule rRNA:
             "--no-unal "
             "-k 1 "
             "-S {output.bam}.sam "
-            "> {log} 2>&1 ")
+            "> {log} 2>&1 "
+        )
         shell(
             "samtools view -Sb {output.bam}.sam "
             "| samtools sort -O BAM - -o {output.bam}"
         )
         shell("rm {output.bam}.sam")
+
 
 rule fastq_count:
     input:
@@ -553,8 +539,8 @@ rule markduplicates:
         runtime="2h",
         disk="100g",
     params:
-        java_args="-Xmx20g",  # [disable for test]
         # java_args='-Xmx2g'  # [enable for test]
+        java_args="-Xmx20g",  # [disable for test]
     shell:
         "picard "
         "{params.java_args} "
@@ -610,7 +596,7 @@ rule aggregate_featurecounts:
     threads: 1
     resources:
         mem="8g",
-        runtime="1h"
+        runtime="1h",
     run:
         for i, file in enumerate(input):
             df = pd.read_csv(file, sep="\t", comment="#")
@@ -659,8 +645,8 @@ rule collectrnaseqmetrics:
         mem="32g",
         runtime="2h",
     params:
+        # java_args='-Xmx2g', # [enable for test]
         java_args="-Xmx20g",  # [disable for test]
-        # java_args='-Xmx2g',  # [enable for test]
         strand_arg={
             "unstranded": "STRAND=NONE ",
             "fr-firststrand": "STRAND=SECOND_READ_TRANSCRIPTION_STRAND ",
@@ -942,8 +928,8 @@ if utils.detect_sra(sampletable):
         log:
             "original_data/sra_samples/{sample}/{sample}.fastq.gz.log",
         params:
-            is_paired=is_paired,
             # extra="-X 100000",  # [enable for test]
+            is_paired=is_paired,
         resources:
             mem="1g",
             disk="1g",
