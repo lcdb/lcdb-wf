@@ -116,7 +116,7 @@ rule unzip:
     input:
         "references/{prefix}.gz",
     output:
-        "references/{prefix}",
+        temporary("references/{prefix}"),
     resources:
         mem="4g",
         runtime="2h",
@@ -126,10 +126,10 @@ rule unzip:
 
 rule rrna_index:
     input:
-        "references/rrna.fa",
+        "references/rrna.fa.gz",
     output:
         "references/bowtie2/rrna.1.bt2",
-        "references/bowtie2/rrna.fa",
+        "references/bowtie2/rrna.fa.gz",
     log:
         "references/logs/bowtie2_rrna.log",
     resources:
@@ -213,7 +213,7 @@ rule salmon_index:
 
 rule conversion_refflat:
     input:
-        "references/annotation.gtf",
+        "references/annotation.gtf.gz",
     output:
         "references/annotation.refflat",
     log:
@@ -229,7 +229,7 @@ rule conversion_refflat:
 
 rule conversion_bed12:
     input:
-        "references/annotation.gtf",
+        "references/annotation.gtf.gz",
     output:
         "references/annotation.bed12",
     resources:
@@ -272,7 +272,7 @@ rule mappings:
     Creates gzipped TSV mapping between attributes in the GTF.
     """
     input:
-        gtf="references/annotation.gtf",
+        gtf="references/annotation.gtf.gz",
     output:
         "references/annotation.mapping.tsv.gz",
     params:

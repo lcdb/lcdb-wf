@@ -87,21 +87,9 @@ rule chromsizes:
         "&& rm -f {output}.tmp "
 
 
-rule unzip:
-    input:
-        "references/{prefix}{ext}.gz",
-    output:
-        "references/{prefix}{ext}",
-    resources:
-        mem="4g",
-        runtime="2h",
-    shell:
-        "gunzip -c {input} > {output}"
-
-
 rule bowtie2_index:
     input:
-        "references/genome.fa",
+        "references/genome.fa.gz",
     output:
         "references/bowtie2/genome.1.bt2",
         "references/bowtie2/genome.fa",
