@@ -38,6 +38,8 @@ args = ap.parse_args()
 # details
 config = yaml.load(open(args.config), Loader=yaml.FullLoader)
 
+peaks_dir = "data/chipseq_peaks"
+
 if args.additional_configs:
     for cfg in args.additional_configs:
         update_config(config, yaml.load(open(cfg), Loader=yaml.FullLoader))
@@ -208,14 +210,14 @@ for (label, algorithm), v in pd.items():
 
     # ASSUMPTION: BED filename pattern
     bed_filename = os.path.join(
-        config['peaks_dir'],
+        peaks_dir,
         algorithm,
         label,
         'peaks.bed')
 
     # ASSUMPTION: bigBed filename pattern
     bigbed_filename = os.path.join(
-        config['peaks_dir'],
+        peaks_dir,
         algorithm,
         label,
         'peaks.bigbed')
@@ -241,7 +243,7 @@ for (label, algorithm), v in pd.items():
 
     if algorithm == "sicer":
         subgroup['peaks'] = 'no'
-        prefilter_wig = glob.glob(os.path.join(config['peaks_dir'],
+        prefilter_wig = glob.glob(os.path.join(peaks_dir,
                                                algorithm,
                                                label,
                                                '*prefilter.bigWig'))
@@ -249,7 +251,7 @@ for (label, algorithm), v in pd.items():
             prefilter_wig = prefilter_wig[0]
         else:
             raise ValueError('SICER output for {0} has no prefilter bigWig file'.format(label))
-        postfilter_wig = glob.glob(os.path.join(config['peaks_dir'],
+        postfilter_wig = glob.glob(os.path.join(peaks_dir,
                                                 algorithm,
                                                 label,
                                                 '*postfilter.bigWig'))
