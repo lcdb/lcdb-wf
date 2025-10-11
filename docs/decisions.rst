@@ -7,82 +7,98 @@ References
 ----------
 Here are use-cases we have that are common enough to warrant supporting:
 
-- References should support multiple workflows (ChIP-seq, RNA-seq, etc)
-  - This implies that the means the references dir should be in the
-    ``workflows`` directory or above.
-  - For example, this may mean a STAR index for RNA-seq, a bowtie2 index for
-    rRNA contamination, and another bowtie2 index for ChIP-seq.
+**References should support multiple workflows (ChIP-seq, RNA-seq, etc)**
 
-- References should support different organisms in different workflows. There
-  should beo only one organism per workflow though.
+- This implies that the means the references dir should be in the ``workflows``
+  directory or above.
+- For example, this may mean a STAR index for RNA-seq, a bowtie2 index for rRNA
+  contamination, and another bowtie2 index for ChIP-seq.
 
-- References should be re-created for each project.
-  - What we've found is that if we have a central location for the references
-    (shared by multiple deployments of lcdb-wf over the years) then we get
-    conflicts where one deployment's aligner version is more recent, causing
-    errors when using the index for an older version.
-  - To keep using this, we'd need to version indexes based on aligner version.
-  - However, when writing up methods for a paper we need to be able to trace
-    back what commands were run to generate the reference, including additional
-    patching that may have taken place (as is supported by the references
-    workflow).
-  - Re-using indexes is space- and time-efficient in the short term, but has
-    shown to be inefficient in time and reproducibility in the long term.
-  - Keeping everything in the same deployment director also helps with the
-    archiving process. 
+**References should support different organisms in different workflows. There
+should be only one organism per workflow though.**
 
-Naming:
+- For example, ``workflows/mouse-rnaseq`` and ``workflows/human-rnaseq`` should
+  be supported in the same project.
 
-- Top level should be organsim. Doesn't really matter in the case of
-  a single-organism workflow.
-- Next should be what has historically been called "tag". This could be the
-  assembly name for genomic indexes, or some combination of assembly
-  + annotation for transcriptome.
-- If we're assuming "deployment-local" references, these no longer have to be
-  globally unique. If we have a mouse reference with a transgene, we can just
-  call it "mouse/mm39" but have the transgene patched into it, and not worry
-  about conflicting (or worse, overwriting!) a central reference with the same
-  name that didn't have the transgene.
-- Fasta files are included next to their respective index.
 
-This example uses the ``dmel`` organism and ``test`` tag which is configured by
-default for tests.
+**References should be re-created for each project.**
 
-This uses ``$ORG/$TAG/<genome|annotation|transcriptome>/$TOOL`` as the path
-template. This lets us keep the fastq file used for building the various
-indexes alongside the indexes.
+- Historically we had a central location for the references (shared by multiple
+  deployments of lcdb-wf over the years) but we got conflicts where one
+  deployment's aligner version was more recent, causing errors when using the
+  index for an older version.
+- To keep using this, we'd need to version indexes based on aligner version.
+- However, when writing up methods for a paper we need to be able to trace
+  back what commands were run to generate the reference, including additional
+  patching that may have taken place (as is supported by the references
+  workflow).
+- Re-using indexes is space- and time-efficient in the short term, but has
+  shown to be inefficient in time and reproducibility in the long term.
+- Keeping everything in the same deployment directory also helps with the
+  archiving process. 
+- We were hesitant to update the references in the central location due to
+  being unsure of what was depending on them.
+- Overall, making the decision that the time and space cost to re-make
+  references for each project is worth the gain in simplicity and isolation.
+
+Reference nomenclature and directory structure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Options considered:
+
+1. ``references`` (top-level of project, shared by all workflows)
+2. ``workflows/<workflow>/references`` (workflow-specific)
+
+The location ``workflows/references`` is functionally similar to top-level
+``references`` (in a parent directory of individual workflows) but references
+is no longer a workflow so it doesn't make sense to have it right in the
+``workflows`` directory.
+
+Recall that in lcdb-wf <2.0, we have organism and then tag. For example, we
+might have configurations available for different human genome assemblies
+(hg19, hg38) and in the central location we needed to differentiate between
+them (e.g. ``references/human/hg19/``).
+
+If we assume a single organism per workflow, and that the references are
+workflow-specific, then we don't need any of this.
+``workflows/<workflow>/references/genome.fa`` for example should cover it.
+
+This becomes inefficient in the case where there are multiple workflows, all
+for the same organism and all the same workflow type. However in such cases,
+manually creating symlinks can get around this, and I think it's an acceptable
+workaround for the benefit of simplified references more generally.
 
 ::
 
-  references_data/
-  ├── dmel
-      ├── rRNA
-      │   └── genome
-      │       ├── bowtie2
-      │       │   └── dmel_rRNA.* <bowtie2 files>
-      │       └── dmel_rRNA.fasta
-      └── test
-          ├── annotation
-          │   ├── dmel_test.bed12
-          │   ├── dmel_test.gtf
-          │   └── dmel_test.refflat
-          ├── genome
-          │   ├── bowtie2
-          │   │   └── dmel_test.* <bowtie2 files>
-          │   ├── star
-          │   │   └── dmel_test
-          │   │       └── <STAR files>
-          │   ├── dmel_test.chromsizes
-          │   ├── dmel_test.fasta
-          │   ├── dmel_test.fasta.fai
-          └── transcriptome
-              ├── kallisto
-              │   └── dmel_test
-              │       └── transcripts.idx
-              ├── salmon
-              │   └── dmel_test
-              │       └── <salmon files>
-              └── dmel_test.fasta
+  workflows/rnaseq/references
+    genome.fasta
+    genome.chromsizes
+    rrna.fasta
+    annotation.gtf
+    annotation.bed12
+    annotation.refflat
+    transcriptome.fasta
+    star/
+      genome.fasta <symlink to ../genome.fasta>
+      <star files>
+    bowtie2/
+      rrna.fasta <symlink to ../rrna.fasta>
+      <bowtie2 files>
+    salmon/
+      transcriptome.fasta <symlink to ../transcriptome.fasta>
+      <salmon files>
+
+For ChIP-seq:
+
+::
+
+  workflows/chipseq/references
+    genome.fasta
+    genome.chromsizes
+    bowtie2/
+      genome.fasta <symlink to ../genome.fasta>
+      <bowtie2 files>
+
 
 Params
 ------
