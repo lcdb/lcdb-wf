@@ -34,7 +34,10 @@ localrules:
 rule all:
     input:
         "data/chipseq_aggregation/multiqc.html",
-        expand("data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.bam.bigwig", label=LABELS),
+        expand(
+            "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.bam.bigwig",
+            label=LABELS,
+        ),
         [v["bed"] for k, v in peaks.items()],
 
 
@@ -48,7 +51,7 @@ rule fasta:
         runtime="2h",
     params:
         urls=config["fasta"]["url"],
-        postprocess=config["fasta"].get("postprocess", None)
+        postprocess=config["fasta"].get("postprocess", None),
     run:
         utils.download_and_postprocess(
             urls=params.urls,
@@ -66,8 +69,8 @@ rule chromsizes:
     log:
         "references/logs/genome.chromsizes.log",
     params:
-        java_args="-Xmx20g",  # [disable for test]
         # java_args='-Xmx2g'  # [enable for test]
+        java_args="-Xmx20g",  # [disable for test]
     resources:
         mem="24g",
         runtime="2h",
@@ -111,12 +114,7 @@ rule bowtie2_index:
     threads: 8
     run:
         prefix = subpath(output[0], strip_suffix=".1.bt2")
-        shell(
-            "bowtie2-build "
-            "--threads {threads} "
-            "{input} "
-            "{prefix} &> {log}"
-        )
+        shell("bowtie2-build --threads {threads} {input} {prefix} &> {log}")
         utils.make_relative_symlink(input[0], output[-1])
 
 
@@ -128,8 +126,11 @@ rule symlinks:
             else sampletable.loc[wc.sample, ["orig_filename"]]
         ),
     output:
-        expand("data/chipseq_samples/{sample}/{sample}_R{n}.fastq.gz", n=n,
-               allow_missing=True),
+        expand(
+            "data/chipseq_samples/{sample}/{sample}_R{n}.fastq.gz",
+            n=n,
+            allow_missing=True,
+        ),
     threads: 1
     resources:
         mem="1g",
@@ -151,11 +152,15 @@ rule cutadapt:
     input:
         fastq=expand(
             "data/chipseq_samples/{sample}/{sample}_R{n}.fastq.gz",
-            n=n, allow_missing=True),
+            n=n,
+            allow_missing=True,
+        ),
     output:
         fastq=expand(
             "data/chipseq_samples/{sample}/{sample}_R{n}.cutadapt.fastq.gz",
-            n=n, allow_missing=True),
+            n=n,
+            allow_missing=True,
+        ),
     log:
         "data/chipseq_samples/{sample}/{sample}_cutadapt.fastq.gz.log",
     threads: 6
@@ -192,7 +197,6 @@ rule cutadapt:
             )
 
 
-
 rule fastqc:
     input:
         "data/chipseq_samples/{sample}/{sample}{suffix}",
@@ -206,8 +210,6 @@ rule fastqc:
     log:
         "data/chipseq_samples/{sample}/fastqc/{sample}{suffix}_fastqc.log",
     run:
-        # Calculate the paths FastQC will create so we can move them to
-        # specified output files if needed.
         outdir = os.path.dirname(output.html) or "."
         outfile = os.path.basename(input[0])
         for s in [".fastq", ".fq", ".gz", ".bam"]:
@@ -233,7 +235,10 @@ rule fastqc:
 rule bowtie2:
     input:
         fastq=expand(
-            "data/chipseq_samples/{sample}/{sample}_R{n}.cutadapt.fastq.gz", n=n, allow_missing=True),
+            "data/chipseq_samples/{sample}/{sample}_R{n}.cutadapt.fastq.gz",
+            n=n,
+            allow_missing=True,
+        ),
         index="references/bowtie2/genome.1.bt2",
     output:
         bam=temporary("data/chipseq_samples/{sample}/{sample}.cutadapt.bam"),
@@ -258,7 +263,8 @@ rule bowtie2:
             "--threads {threads} "
             "--no-unal "
             "-S {output.bam}.sam "
-            "> {log} 2>&1 ")
+            "> {log} 2>&1 "
+        )
         shell(
             "samtools view -Sb {output.bam}.sam "
             "| samtools sort -O BAM - -o {output.bam}"
@@ -275,13 +281,9 @@ rule unique:
     resources:
         mem="1g",
         runtime="2h",
-    params:
     shell:
         "samtools view "
         "-b "
-        # NOTE: the quality score chosen here should reflect the scores output
-        # by the aligner used. For example, STAR uses 255 as max mapping
-        # quality.
         "-q 20 "
         "{input} "
         "> {output}"
@@ -331,17 +333,17 @@ rule markduplicates:
         bam="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.bam",
     output:
         bam="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam",
-        metrics="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.metrics"
+        metrics="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.metrics",
     log:
-        "data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.log"
+        "data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.log",
     threads: 1
     resources:
         mem="32g",
         disk="100g",
         runtime="2h",
     params:
-        java_args="-Xmx20g",  # [disable for test]
         # java_args='-Xmx2g'  # [enable for test]
+        java_args="-Xmx20g",  # [disable for test]
     shell:
         "picard "
         "{params.java_args} "
@@ -364,15 +366,15 @@ rule merge_techreps:
         bam="data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam",
         metrics="data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam.metrics",
     log:
-        "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam.log"
+        "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam.log",
     threads: 1
     resources:
         mem="32g",
         disk="100g",
         runtime="2h",
     params:
-        java_args="-Xmx32g",  # [disable for test]
         # java_args='-Xmx2g'  # [enable for test]
+        java_args="-Xmx32g",  # [disable for test]
     script:
         "../../scripts/merge_and_dedup.py"
 
@@ -386,14 +388,14 @@ if is_paired:
             pdf="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.collectinsertsizemetrics.pdf",
             metrics="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.collectinsertsizemetrics.metrics",
         log:
-            "data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.collectinsertsizemetrics.metrics.log"
+            "data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.collectinsertsizemetrics.metrics.log",
         threads: 1
         resources:
             mem="32g",
             runtime="2h",
         params:
-            java_args="-Xmx20g",  # [disable for test]
             # java_args='-Xmx2g'  # [enable for test]
+            java_args="-Xmx20g",  # [disable for test]
         shell:
             "picard "
             "{params.java_args} "
@@ -424,20 +426,24 @@ rule bigwig:
         "--minMappingQuality 20 "
         "--ignoreDuplicates "
         "--extendReads 300 "
-        "--normalizeUsing CPM "  # [disable for test]
+        "--normalizeUsing CPM "
         "&> {log}"
 
 
 rule fingerprint:
     input:
-        bams=lambda wc: expand("data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam", label=wc.ip_label),
+        bams=lambda wc: expand(
+            "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam",
+            label=wc.ip_label,
+        ),
         control=lambda wc: expand(
             "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam",
             label=chipseq.merged_input_for_ip(sampletable, wc.ip_label),
         ),
         bais=lambda wc: expand(
             "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam.bai",
-            label=wc.ip_label),
+            label=wc.ip_label,
+        ),
         control_bais=lambda wc: expand(
             "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam.bai",
             label=chipseq.merged_input_for_ip(sampletable, wc.ip_label),
@@ -476,6 +482,7 @@ rule fingerprint:
             "&> {log} "
             '&& sed -i "s/NA/0.0/g" {output.metrics} '
         )
+
 
 
 rule macs:
@@ -527,7 +534,7 @@ rule epic2:
         mem="16g",
         runtime="2h",
     log:
-        "data/chipseq_peaks/epic2/{epic2_run}/peaks.bed.log"
+        "data/chipseq_peaks/epic2/{epic2_run}/peaks.bed.log",
     params:
         block=lambda wc: chipseq.block_for_run(config, wc.epic2_run, "epic2"),
         is_paired=is_paired,
@@ -558,7 +565,10 @@ rule multibigwigsummary:
     Summarize the bigWigs across genomic bins
     """
     input:
-        expand("data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.bam.bigwig", label=sampletable.label),
+        expand(
+            "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.bam.bigwig",
+            label=sampletable.label,
+        ),
     output:
         npz="data/chipseq_aggregation/deeptools/multibigwigsummary_matrix.npz",
         tab="data/chipseq_aggregation/deeptools/multibigwigsummary.tab",
@@ -600,12 +610,6 @@ rule plotcorrelation:
         "--corMethod spearman "
         "--whatToPlot heatmap "
         "--colorMap Reds "
-        # NOTE: if you're expecting negative correlation, try a divergent
-        # colormap and setting the min/max to ensure that the colomap is
-        # centered on zero:
-        # '--colorMap RdBu_r '
-        # '--zMin -1 '
-        # '--zMax 1 '
 
 
 rule samtools_idxstats:
@@ -618,7 +622,7 @@ rule samtools_idxstats:
         mem="16g",
         runtime="2h",
     log:
-        "data/chipseq_samples/{sample}/samtools_idxstats_{sample}.txt.log"
+        "data/chipseq_samples/{sample}/samtools_idxstats_{sample}.txt.log",
     shell:
         "samtools idxstats {input.bam} 2> {log} 1> {output.txt}"
 
@@ -633,7 +637,7 @@ rule samtools_flagstat:
         mem="8g",
         runtime="2h",
     log:
-        "data/chipseq_samples/{sample}/samtools_flagstat_{sample}.txt.log"
+        "data/chipseq_samples/{sample}/samtools_flagstat_{sample}.txt.log",
     shell:
         "samtools flagstat {input.bam} > {output}"
 
@@ -648,7 +652,7 @@ rule samtools_stats:
         mem="8g",
         runtime="2h",
     log:
-        "data/chipseq_samples/{sample}/samtools_stats_{sample}.txt.log"
+        "data/chipseq_samples/{sample}/samtools_stats_{sample}.txt.log",
     shell:
         "samtools stats {input.bam} > {output}"
 
@@ -675,8 +679,10 @@ rule multiqc:
         ),
         expand(
             "data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.collectinsertsizemetrics.metrics",
-             sample=SAMPLES
-        ) if is_paired else [],
+            sample=SAMPLES,
+        )
+        if is_paired
+        else [],
         [v["bigbed"] for v in peaks.values()],
         config="config/multiqc_config.yaml",
     output:
@@ -727,8 +733,8 @@ if utils.detect_sra(sampletable):
         log:
             "original_data/sra_samples/{sample}/{sample}.fastq.gz.log",
         params:
-            is_paired=is_paired,
             # extra="-X 100000",  # [enable for test]
+            is_paired=is_paired,
         resources:
             mem="1g",
             disk="1g",
