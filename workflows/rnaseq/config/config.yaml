@@ -1,3 +1,10 @@
+sampletable: 'config/sampletable.tsv'
+
+# See https://rnabio.org/module-09-appendix/0009/12/01/StrandSettings for more info.
+stranded: 'fr-firststrand'     # for dUTP libraries
+#         'fr-secondstrand'    # for ligation libraries
+#         'unstranded'         # for libraries without strand specificity
+
 fasta:
   url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa"
   postprocess: 'lib.utils.gzipped'
@@ -13,13 +20,3 @@ rrna:
   postprocess:
     function: 'lib.utils.filter_fastas'
     args: 'Drosophila melanogaster'
-
-
-sampletable: 'config/sampletable.tsv'
-
-patterns: 'config/rnaseq_patterns.yaml'
-
-# See https://rnabio.org/module-09-appendix/0009/12/01/StrandSettings for more info.
-stranded: 'fr-firststrand'     # for dUTP libraries
-#         'fr-secondstrand'    # for ligation libraries
-#         'unstranded'         # for libraries without strand specificity
