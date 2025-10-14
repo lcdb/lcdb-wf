@@ -5,11 +5,11 @@ stranded: 'fr-firststrand'     # for dUTP libraries
 #         'fr-secondstrand'    # for ligation libraries
 #         'unstranded'         # for libraries without strand specificity
 
-fasta:
+genome:
   url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa"
   postprocess: 'lib.utils.gzipped'
 
-gtf:
+annotation:
   url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf"
   postprocess: 'lib.utils.gzipped'
 

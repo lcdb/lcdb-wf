@@ -62,8 +62,8 @@ rule fasta:
         mem_mb="4g",
         runtime="2h",
     params:
-        urls=config["fasta"]["url"],
-        postprocess=config["fasta"].get("postprocess", None),
+        urls=config["genome"]["url"],
+        postprocess=config["genome"].get("postprocess", None),
     run:
         utils.download_and_postprocess(
             urls=params.urls,
@@ -73,7 +73,7 @@ rule fasta:
         )
 
 
-rule gtf:
+rule annotation:
     output:
         "references/annotation.gtf.gz",
     log:
@@ -82,8 +82,8 @@ rule gtf:
         mem="4g",
         runtime="2h",
     params:
-        urls=config["gtf"]["url"],
-        postprocess=config["gtf"].get("postprocess", None),
+        urls=config["annotation"]["url"],
+        postprocess=config["annotation"].get("postprocess", None),
     run:
         utils.download_and_postprocess(
             urls=params.urls,
