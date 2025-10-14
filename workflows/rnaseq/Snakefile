@@ -72,6 +72,16 @@ rule fasta:
             log=log,
         )
 
+rule faidx:
+    input:
+        "references/genome.fa"
+    output:
+        "references/genome.fa.fai"
+    resources:
+        mem_mb="4g",
+        runtime="2h",
+    shell:
+        "samtools faidx {input}"
 
 rule annotation:
     output:
