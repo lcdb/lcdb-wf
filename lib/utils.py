@@ -265,7 +265,7 @@ def extract_wildcards(pattern, target):
         return m.groupdict()
 
 
-def _is_gzipped(fn):
+def is_gzipped(fn):
     """
     Filename-independent method of checking if a file is gzipped or not. Uses
     the magic number.
@@ -280,7 +280,7 @@ def openfile(tmp, mode):
     """
     Returns an open file handle; auto-detects gzipped files.
     """
-    if _is_gzipped(tmp):
+    if is_gzipped(tmp):
         return gzip.open(tmp, mode)
     else:
         return open(tmp, mode)
@@ -783,6 +783,8 @@ def twobit_to_fasta(tmpfiles, outfile):
     shell("cat {fastas} | gzip -c > {outfile}")
     shell("rm {fastas}")
 
+def default_postprocess(origfn, newfn):
+    shell("mv {origfn} {newfn}")
 
 def download_and_postprocess(urls, postprocess, outfile, log):
     """
@@ -865,8 +867,6 @@ def download_and_postprocess(urls, postprocess, outfile, log):
 
     """
 
-    def default_postprocess(origfn, newfn):
-        shell("mv {origfn} {newfn}")
 
     if not isinstance(postprocess, list):
         postprocess = [postprocess]
@@ -990,7 +990,7 @@ def download_and_postprocess(urls, postprocess, outfile, log):
         for i in to_delete:
             if os.path.exists(i):
                 shell("rm {i}")
-    if not _is_gzipped(outfile):
+    if not is_gzipped(outfile):
         raise ValueError(f"{outfile} does not appear to be gzipped.")
 
 
@@ -1181,7 +1181,7 @@ def gff2gtf(gff, gtf):
     """
     Converts a gff file to a gtf format using the gffread function from Cufflinks
     """
-    if _is_gzipped(gff[0]):
+    if is_gzipped(gff[0]):
         shell("gzip -d -S .gz.0.tmp {gff} -c | gffread - -T -o- | gzip -c > {gtf}")
     else:
         shell("gffread {gff} -T -o- | gzip -c > {gtf}")
