@@ -1,16 +1,118 @@
-import sys
+import gzip
+import logging
 import os
 import re
-import gzip
-import zipfile
-import shutil
+import sys
 import tempfile
+import zipfile
+
+import gffutils
 import pandas as pd
+from snakemake.shell import shell
 
 here = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(here, "../../lib"))
-from utils import openfile
+from .. import utils as u
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO)
+
+
+def ensure_single_unzipped(tmpfiles, outfile):
+    """
+    Sometimes it makes things easier in downstream code to assume there's
+    a single uncompressed file to work with.
+    """
+    all_gzipped = all([u.is_gzipped(i) for i in tmpfiles])
+    none_gzipped = all([not u.is_gzipped(i) for i in tmpfiles])
+
+    if all_gzipped:
+        shell("zcat {tmpfiles} > {outfile}")
+        return outfile
+
+    elif none_gzipped:
+        shell("cat {tmpfiles} > {outfile}")
+        return outfile
+
+    else:
+        raise ValueError("Mixture of compressed and uncompressed files")
+
+
+def _patterns(include_patterns, exclude_patterns):
+    """
+    Return a function that will include/exclude strings based on the patterns
+    provided.
+    """
+
+    if include_patterns and exclude_patterns:
+        raise ValueError("include_patterns and exclude_patterns are mutually exclusive")
+    patterns = []
+    if include_patterns:
+        for p in include_patterns:
+            patterns.append(re.compile(p))
+
+        def keep(s):
+            for p in patterns:
+                if p.search(s):
+                    logger.info(f"Keeping {s} because it matches {p}")
+                    return True
+            return False
+
+    elif exclude_patterns:
+        for p in exclude_patterns:
+            patterns.append(re.compile(p))
+
+        def keep(s):
+            for p in patterns:
+                if p.search(s):
+                    logger.info(f"Excluding {s} because it matches {p}")
+                    return False
+            return True
+
+    else:
+        raise ValueError(
+            "Expecting exactly one of include_patterns or exclude_patterns"
+        )
+
+    return keep
+
+
+def filter_fasta_chroms(
+    tmpfiles, outfile, include_patterns=None, exclude_patterns=None
+):
+    # samtools won't work with gzip (only bgzip) files, so the lowest common
+    # denominator is to use uncompressed.
+    working_file = ensure_single_unzipped(tmpfiles, outfile + ".tmp")
+    if include_patterns and exclude_patterns:
+        raise ValueError("include_patterns and exclude_patterns are mutually exclusive")
+
+    logger.info(f"Finding chrom names and putting them in {working_file}.record_names")
+    shell(
+        'grep ">" {working_file} | cut -f1 -d " " | sed "s/>//g" > {working_file}.record_names'
+    )
+
+    keep = _patterns(include_patterns, exclude_patterns)
+    with open(outfile + ".keep", "w") as fout, open(
+        working_file + ".record_names", "r"
+    ) as fin:
+        for line in fin:
+            line = line.replace(">", "").strip()
+            chrom = line.split()[0]
+            if keep(chrom):
+                fout.write(chrom + "\n")
+    shell("samtools faidx -r {outfile}.keep {working_file} | bgzip -c > {outfile}")
+    # shell("rm {outfile}.tmp {outfile}.tmp.fai {outfile}.keep")
+    shell("rm {tmpfiles}")
+
+
+def filter_gtf_chroms(tmpfiles, outfile, include_patterns=None, exclude_patterns=None):
+    working_file = ensure_single_unzipped(tmpfiles, outfile + ".tmp")
+    keep = _patterns(include_patterns, exclude_patterns)
+    with gzip.open(outfile, "wt") as fout:
+        for feature in gffutils.DataIterator(working_file):
+            if keep(feature.chrom):
+                fout.write(str(feature) + "\n")
+    shell("rm {tmpfiles}")
 
 
 def extract_from_zip(tmpfiles, outfile, path_in_zip):
