@@ -4,6 +4,7 @@ import os
 import re
 import sys
 import tempfile
+import shutil
 import zipfile
 
 import gffutils
@@ -38,7 +39,7 @@ def ensure_single_unzipped(tmpfiles, outfile):
         raise ValueError("Mixture of compressed and uncompressed files")
 
 
-def _patterns(include_patterns, exclude_patterns):
+def _patterns(include_patterns, exclude_patterns, verbose=False):
     """
     Return a function that will include/exclude strings based on the patterns
     provided.
@@ -51,10 +52,11 @@ def _patterns(include_patterns, exclude_patterns):
         for p in include_patterns:
             patterns.append(re.compile(p))
 
-        def keep(s):
+        def keep(s):     
             for p in patterns:
                 if p.search(s):
-                    logger.info(f"Keeping {s} because it matches {p}")
+                    if verbose:
+                        logger.info(f"Keeping {s} because it matches {p}")
                     return True
             return False
 
@@ -65,7 +67,8 @@ def _patterns(include_patterns, exclude_patterns):
         def keep(s):
             for p in patterns:
                 if p.search(s):
-                    logger.info(f"Excluding {s} because it matches {p}")
+                    if verbose:
+                        logger.info(f"Excluding {s} because it matches {p}")
                     return False
             return True
 
@@ -107,7 +110,7 @@ def filter_fasta_chroms(
 
 def filter_gtf_chroms(tmpfiles, outfile, include_patterns=None, exclude_patterns=None):
     working_file = ensure_single_unzipped(tmpfiles, outfile + ".tmp")
-    keep = _patterns(include_patterns, exclude_patterns)
+    keep = _patterns(include_patterns, exclude_patterns, verbose=False)
     with gzip.open(outfile, "wt") as fout:
         for feature in gffutils.DataIterator(working_file):
             if keep(feature.chrom):
@@ -181,8 +184,6 @@ def match_gtf_9th(tmpfiles, outfile, strmatch, optstrand="None"):
                         ):
                             fout.write(line)
 
-
-# match_gtf_9th(['/home/esnaultcm/Downloads/Rattus_norvegicus.Rnor_6.0.94.gtf.gz'], "test.gz", ['ENSRNOG00000046319'], '-')
 
 
 def convert_gtf_chroms(tmpfiles, outfile, conv_table):
