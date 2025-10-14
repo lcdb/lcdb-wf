@@ -31,6 +31,7 @@ localrules:
 rule all:
     input:
         "data/rnaseq_aggregation/multiqc.html",
+        "references/annotation.mapping.tsv",
 
 
 rule symlinks:
@@ -268,46 +269,24 @@ rule chromsizes:
 
 
 rule mappings:
-    """
-    Creates gzipped TSV mapping between attributes in the GTF.
-    """
     input:
         gtf="references/annotation.gtf.gz",
     output:
-        "references/annotation.mapping.tsv.gz",
-    params:
-        include_featuretypes=lambda wildcards, output: conversion_kwargs[
-            output[0]
-        ].get("include_featuretypes", []),
+        tsv="references/annotation.mapping.tsv",
     resources:
         mem="2g",
         runtime="2h",
     run:
-        import gffutils
+        mappings_args = dict(
+            exclude_featuretypes=None,
+            include_featuretypes=None,
+            include_attributes=None,
+        )
+        print(config["annotation"].get("mappings", {}))
 
-        gffutils.constants.always_return_list = False
+        mappings_args.update(config["annotation"].get("mappings", {}))
 
-        include_featuretypes = params.include_featuretypes
-
-        res = []
-        for f in gffutils.DataIterator(input[0]):
-
-            ft = f.featuretype
-
-            if include_featuretypes and (ft not in include_featuretypes):
-                continue
-
-            d = dict(f.attributes)
-            d["__featuretype__"] = ft
-            res.append(d)
-
-        df = pandas.DataFrame(res)
-
-        # Depending on how many attributes there were and the
-        # include_featuretypes settings, this may take a while.
-        df = df.drop_duplicates()
-
-        df.to_csv(output[0], sep="\t", index=False, compression="gzip")
+        utils.mappings_tsv(input.gtf, output.tsv, **mappings_args)
 
 
 rule symlink_targets:

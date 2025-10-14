@@ -4,6 +4,7 @@ import contextlib
 import gzip
 import os
 import re
+import sys
 import subprocess
 import warnings
 from collections.abc import Iterable
@@ -15,6 +16,8 @@ import yaml
 from Bio import SeqIO
 from snakemake.io import expand, regex_from_filepattern
 from snakemake.shell import shell
+import gffutils
+import csv
 
 # Small helper functions
 
@@ -1189,5 +1192,65 @@ def wrapper_for(path):
 
 def detect_sra(sampletable):
     return 'Run' in sampletable.columns and any(sampletable['Run'].str.startswith('SRR'))
+
+
+def mappings_tsv(gtf, tsv, exclude_featuretypes=None, include_featuretypes=None, include_attributes=None):
+    """
+    Create a TSV file of attributes found in a GTF file.
+
+    Parameters
+    ----------
+
+    gtf, tsv : str
+        Input and output filenames respectively
+
+    exclude_featuretypes, include_featuretypes : list
+        Mutually exclusive; use these to restrict the features considered.
+        E.g., we likely don't need entries for start_codon if those are in the
+        GTF.
+
+    include_attributes : list
+        Restrict the attributes reported in the TSV. Should at least have
+        a column for gene ID and transcript ID in order for downstream RNA-seq
+        work.
+    """
+
+    if exclude_featuretypes and include_featuretypes:
+        raise ValueError("Both include_featuretypes and exclude_featuretypes were specified.")
+
+    res = []
+    keys = set(['__featuretype__'])
+    seen = set()
+    for f in gffutils.DataIterator(gtf):
+        ft = f.featuretype
+        if exclude_featuretypes and ft in exclude_featuretypes:
+            continue
+        if include_featuretypes and ft not in include_featuretypes:
+            continue
+        d = dict(f.attributes)
+        keys.update(d.keys())
+        d["__featuretype__"] = ft
+        h = hash(str(d))
+        if h in seen:
+            continue
+        seen.update([h])
+        res.append(d)
+
+    def unlist_dict(d):
+        for k, v in d.items():
+            if isinstance(v, list):
+                d[k] = "|".join(v)
+        return d
+
+    if include_attributes:
+        sorted_keys = sorted(include_attributes)
+    else:
+        sorted_keys = sorted(keys)
+    with open(tsv, 'w') as fout:
+        writer = csv.DictWriter(fout, fieldnames=sorted_keys, restval="", delimiter='\t')
+        writer.writeheader()
+        for row in res:
+            writer.writerow(unlist_dict(row))
+
 
 # vim: ft=python
