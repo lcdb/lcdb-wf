@@ -1,0 +1,10 @@
+# This config is intended to always point to the latest GENCODE version. If
+# there is a newer version, please update and submit a pull request.
+#
+# https://www.gencodegenes.org/human/
+#
+genome:
+  url: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_49/GRCh38.primary_assembly.genome.fa.gz"
+
+annotation:
+  url: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_49/gencode.v49.primary_assembly.annotation.gtf.gz"
