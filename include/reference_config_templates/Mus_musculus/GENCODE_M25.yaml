@@ -1,0 +1,20 @@
+# This is the latest GENCODE release for GRCm38/mm10.
+#
+# Primary assembly and associated annotations are directly available from GENCODE,
+# https://www.gencodegenes.org/mouse/release_M25.html
+
+species: "Mus musculus"
+
+genome:
+  url: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M25/GRCm38.primary_assembly.genome.fa.gz"
+
+annotation:
+  url: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M25/gencode.vM25.primary_assembly.annotation.gtf.gz"
+  
+rrna:
+  url:
+    - 'https://www.arb-silva.de/fileadmin/silva_databases/release_138.2/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
+    - 'https://www.arb-silva.de/fileadmin/silva_databases/release_138.2/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
+  postprocess:
+    function: 'lib.utils.filter_fastas'
+    args: 'Mus musculus'
