@@ -448,3 +448,100 @@ understand the complete workflow.
 
 Taken together, it made more sense to eliminate the references workflow
 entirely, and port the rules to the respective workflows.
+
+featureCounts all-in-one or individually
+----------------------------------------
+
+featureCounts can accept a list of BAMs and run everything in one shot, or can
+be run once per sample and then manusally aggregated later. Previously, we
+provided all BAMs. However, for paired-end BAMs, featureCounts will internally
+name sort each BAM before counting. It does this serially. The result is
+possibly substantial memory usage and a lot of time. 
+
+One approach could be to temporarily name-sort BAMs in a separate rule,
+conditional on paired-end reads, and the featureCounts rule would need to have
+conditional input filenames as well. This adds a little bit of complexity for
+the benefit of being able to more finely control resource usage. Another
+approach would be to run featureCounts independently on each BAM, allosing it
+to name-sort independently each one in parallel, and then manually aggregate
+the featureCounts output of each.
+
+Since the conditional inclusion of a namesorted rule was straightforward (a
+matter of choosing the input file for featureCounts rule), it made the most
+sense to run featureCounts once, providing it all samples.
+
+Selection of reference genomes and annotations
+----------------------------------------------
+
+Where possible, we select "primary" assemblies -- those with th canonical
+chromosomes and unassembled contigs (scaffolds) but NOT haplotypes, alternate
+loci, or assembly patches.
+
+`Heng Li's blog post
+<https://lh3.github.io/2017/11/13/which-human-reference-genome-to-use>`__ on
+the subject is a useful guideline. To summarize, we want to exclude alt contigs
+/ haplotypes because they may create multimapping issues, and we want to
+include unassembled contigs because excluding them will artificially decrease
+alignment percentage.
+
+Since lcdb-wf is intended to be used with arbitrary organisms, the PAR and
+mitochondrial sequences mentioned there are not relevant in general.
+
+Ideally, we would have a tool that, given the URLs for raw fastq and gtf,
+
+1. Displays the set of chromosomes
+2. Infers if there are any that look like rDNA or mtDNA
+3. Ensures the GTF matches the fasta match chromosomes
+4. Accepts a template config to assess to process
+
+
+Annotations
+-----------
+
+We use the most comprehensive annotations. For human and mouse, this is the
+GENCODE "comprehensive" annotation for the primary assembly, which will include
+many more than just protein-coding transcripts. For example, here are the
+frequencies of ``transcript_type`` values in GENCODE v19's comprehensive
+annotation:
+
+::
+
+  1726632 protein_coding
+  214952 nonsense_mediated_decay
+  154780 processed_transcript
+  135772 retained_intron
+   54584 lincRNA
+   44207 antisense
+   22976 processed_pseudogene
+   15313 pseudogene
+   11202 unprocessed_pseudogene
+    9477 miRNA
+    7090 transcribed_unprocessed_pseudogene
+    6149 misc_RNA
+    5783 snRNA
+    4521 snoRNA
+    3148 sense_intronic
+    1662 polymorphic_pseudogene
+    1610 rRNA
+    1430 unitary_pseudogene
+    1417 sense_overlapping
+    1117 IG_V_gene
+    1091 transcribed_processed_pseudogene
+    1035 non_stop_decay
+     755 TR_V_gene
+     681 IG_V_pseudogene
+     300 TR_J_gene
+     185 IG_C_gene
+     152 IG_D_gene
+     100 3prime_overlapping_ncrna
+      99 TR_V_pseudogene
+      80 IG_J_gene
+      66 Mt_tRNA
+      56 TR_C_gene
+      36 IG_C_pseudogene
+      12 TR_J_pseudogene
+      12 TR_D_gene
+       9 IG_J_pseudogene
+       6 Mt_rRNA
+       3 translated_processed_pseudogene
+
