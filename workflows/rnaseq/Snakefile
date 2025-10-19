@@ -72,16 +72,18 @@ rule fasta:
             log=log,
         )
 
+
 rule faidx:
     input:
-        "references/genome.fa"
+        "references/genome.fa",
     output:
-        "references/genome.fa.fai"
+        "references/genome.fa.fai",
     resources:
         mem_mb="4g",
         runtime="2h",
     shell:
         "samtools faidx {input}"
+
 
 rule annotation:
     output:
@@ -116,9 +118,9 @@ rule rrna_fasta:
         silva_release="138.1",
     run:
         # SILVA database fasta file with all species
-        urls=[
-            f'https://www.arb-silva.de/fileadmin/silva_databases/release_{params.silva_release.replace('.', '_')}/Exports/SILVA_{params.silva_release}_LSURef_NR99_tax_silva.fasta.gz',
-            f'https://www.arb-silva.de/fileadmin/silva_databases/release_{params.silva_release.replace('.', '_')}/Exports/SILVA_{params.silva_release}_SSURef_NR99_tax_silva.fasta.gz',
+        urls = [
+            f"https://www.arb-silva.de/fileadmin/silva_databases/release_{params.silva_release.replace('.', '_')}/Exports/SILVA_{params.silva_release}_LSURef_NR99_tax_silva.fasta.gz",
+            f"https://www.arb-silva.de/fileadmin/silva_databases/release_{params.silva_release.replace('.', '_')}/Exports/SILVA_{params.silva_release}_SSURef_NR99_tax_silva.fasta.gz",
         ]
 
         # Keep only sequences for the configured organism
