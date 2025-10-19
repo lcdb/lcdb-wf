@@ -35,7 +35,7 @@
 genome:
   url: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/GRCh37.p13.genome.fa.gz"
   postprocess:
-    function: "lib.postprocess.utils.filter_fasta_chroms"
+    function: "lib.postprocess.filter_fasta_chroms"
     kwargs:
       include_patterns:
         - chr.*
@@ -103,7 +103,7 @@ genome:
 annotation:
   url: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/gencode.v19.chr_patch_hapl_scaff.annotation.gtf.gz"
   postprocess:
-    function: "lib.postprocess.utils.filter_gtf_chroms"
+    function: "lib.postprocess.filter_gtf_chroms"
     kwargs:
       include_patterns:
         - chr.*

@@ -5,6 +5,8 @@
 #
 genome:
   url: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_49/GRCh38.primary_assembly.genome.fa.gz"
+  postprocess: lib.postprocess.default
 
 annotation:
   url: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_49/gencode.v49.primary_assembly.annotation.gtf.gz"
+  postprocess: lib.postprocess.default

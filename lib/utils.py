@@ -783,8 +783,6 @@ def twobit_to_fasta(tmpfiles, outfile):
     shell("cat {fastas} | gzip -c > {outfile}")
     shell("rm {fastas}")
 
-def default_postprocess(origfn, newfn):
-    shell("mv {origfn} {newfn}")
 
 def download_and_postprocess(urls, postprocess, outfile, log):
     """
