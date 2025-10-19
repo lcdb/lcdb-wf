@@ -4,19 +4,3 @@ sampletable: 'config/sampletable.tsv'
 stranded: 'fr-firststrand'     # for dUTP libraries
 #         'fr-secondstrand'    # for ligation libraries
 #         'unstranded'         # for libraries without strand specificity
-
-genome:
-  url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa"
-  postprocess: 'lib.utils.gzipped'
-
-annotation:
-  url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/annotation/dm6.small.gtf"
-  postprocess: 'lib.utils.gzipped'
-
-rrna:
-  url:
-    - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
-    - 'https://www.arb-silva.de/fileadmin/silva_databases/release_128/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
-  postprocess:
-    function: 'lib.utils.filter_fastas'
-    args: 'Drosophila melanogaster'
