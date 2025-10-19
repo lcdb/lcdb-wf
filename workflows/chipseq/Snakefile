@@ -50,8 +50,8 @@ rule fasta:
         mem_mb="4g",
         runtime="2h",
     params:
-        urls=config["fasta"]["url"],
-        postprocess=config["fasta"].get("postprocess", None),
+        urls=config["genome"]["url"],
+        postprocess=config["genome"].get("postprocess", None),
     run:
         utils.download_and_postprocess(
             urls=params.urls,

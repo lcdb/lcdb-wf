@@ -1,6 +1,6 @@
 sampletable: 'config/sampletable.tsv'
 
-fasta:
+genome:
   url: "https://raw.githubusercontent.com/lcdb/lcdb-test-data/master/data/seq/dm6.small.fa"
   postprocess: 'lib.utils.gzipped'
 
