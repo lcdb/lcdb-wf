@@ -723,7 +723,7 @@ def strand_arg_lookup(config, lookup):
     return lookup[config.stranded]
 
 
-def filter_fastas(tmpfiles, outfile, pattern):
+def filter_rrna_fastas(tmpfiles, outfile, pattern):
     """
     Extract records from fasta file(s) given a search pattern.
 
@@ -742,7 +742,8 @@ def filter_fastas(tmpfiles, outfile, pattern):
         Look for this string in each record's description
 
     """
-
+    if pattern is None:
+        raise ValueError("Pattern cannot be None")
     def gen():
         for tmp in tmpfiles:
             handle = gzip.open(tmp, "rt")
@@ -751,7 +752,7 @@ def filter_fastas(tmpfiles, outfile, pattern):
                 if pattern not in rec.description:
                     continue
                 rec.seq = rec.seq.back_transcribe()
-                rec.description = rec.name
+                # rec.description = rec.name
                 yield rec
 
     with gzip.open(outfile, "wt") as fout:

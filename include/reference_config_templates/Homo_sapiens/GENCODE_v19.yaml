@@ -32,6 +32,9 @@
 #
 # So we can use this list of chroms to filter both the fasta as well as the gtf.
 #
+
+organism: "Homo sapiens"
+
 genome:
   url: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/GRCh37.p13.genome.fa.gz"
   postprocess:
@@ -166,11 +169,3 @@ annotation:
         - GL000247.1
         - GL000248.1
         - GL000249.1
-
-rrna:
-  url:
-    - 'https://www.arb-silva.de/fileadmin/silva_databases/release_138.2/Exports/SILVA_128_LSURef_tax_silva_trunc.fasta.gz'
-    - 'https://www.arb-silva.de/fileadmin/silva_databases/release_138.2/Exports/SILVA_128_SSURef_Nr99_tax_silva_trunc.fasta.gz'
-  postprocess:
-    function: 'lib.utils.filter_fastas'
-    args: 'Homo sapiens'

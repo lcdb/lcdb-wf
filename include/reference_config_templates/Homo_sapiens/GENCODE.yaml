@@ -3,6 +3,8 @@
 #
 # https://www.gencodegenes.org/human/
 #
+organism: "Homo sapiens"
+
 genome:
   url: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_49/GRCh38.primary_assembly.genome.fa.gz"
   postprocess: lib.postprocess.default
