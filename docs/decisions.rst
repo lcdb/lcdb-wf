@@ -545,3 +545,19 @@ annotation:
        6 Mt_rRNA
        3 translated_processed_pseudogene
 
+Erring on the side of too many annotations (i.e., using the comprehensive
+annotation instead of a curated version) will result in more features, which at
+face value might make the FDR adjustment more harsh in DESeq2. But DESeq2's
+independent filtering (not even testing those features with so few reads that
+they would not reach significance) guards against this.
+
+Zipping/unzipping references
+----------------------------
+STAR requires uncogffread references/annotation.gtf -w
+references/transcriptome.fa -g references/genome.fampressed
+FASTA and GTF files to build the index. Making uncompressed
+temporary means running the risk of another rule needing
+uncompressed to trigger costly STAR alignment. The extra
+storage cost of leaving an uncompressed fasta (~3 GB) around is
+minimal compared to the scale of all other data, and guards
+against inadvertently re-running all alignment jobs.
