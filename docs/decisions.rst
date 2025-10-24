@@ -567,4 +567,47 @@ Test framework
 I had previously thought that the CircleCI tests were annoying to run and
 reproduce locally, so the ``tests/lcdb-wf-test`` script was born. Turns out
 that got rather complicated, and ended up being just as annoying. In the spirit
-of reducing complexity, that test harness script is removed.
+of reducing complexity, that test harness script is removed. In part, the new
+reference config simplification allows control over configs from the
+commandline, reducing the need to handle that from the test script.
+
+rRNA
+----
+Assessing ribosomal RNA contamination is an important QC step. Different
+annotation sources have different ways of indicating ribosomal RNA. For example,
+Ensembl GTF files typically have "trancript_biotype" attributes on transcript
+featuretypes and "gene_biotype" attributes on gene features, depending on
+version (older versions have separate rRNA featuretypes). FlyBase uses separate
+rRNA feature types. Dictyostelium does not have anything in the GTF. PomBase
+uses the "biotype" attribute.
+
+One way of handling this is to have post-processing steps that extract the rRNA
+features from a GTF (probably defaulting to assuming an Ensembl-like
+"gene_biotype" attribute) and convert them to `IntervalList format
+<https://samtools.github.io/htsjdk/javadoc/htsjdk/htsjdk/samtools/util/IntervalList.html>`__
+to pass to Picard CollectRnaSeqMetrics.
+
+Another way is to bypass the GTF altogether and align to rRNA directly, which is
+what we have historically done here. Previously, the reference configs would all
+need an rRNA entry that basically did the same thing for each organism, since
+every model organism we've worked with is in the SILVA database. It would
+download the full SILVA fasta (for large and small subunits), grep out the
+records for our species of interest, and build a bowtie2 index out of that. That
+means this method is more general, and arguably more complete, but has its own
+complexity: we need to download and filter the fasta, build the bowtie2 index,
+and aggregate the results into a MultiQC module.
+
+In the 2.0 refactor, rRNA fasta creation now only needs an organism name and the
+Snakefile does what was always in the references config, which is to use the
+post-process mechanism to filter the fasta.
+
+
+
+
+Aligners
+--------
+
+Previously, HISAT2 and STAR were both supported; salmon and kallisto were both
+supported. This created additional complexity in the references workflow and in
+the configs. Now, we're just using STAR and salmon (for RNA-seq) and bowtie2 for
+ChIP-seq.
