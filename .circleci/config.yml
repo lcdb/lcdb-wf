@@ -240,6 +240,7 @@ variables:
 
           python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
 
+          conda activate $LCDBWF_ENV_R
           ./run_downstream_test.sh
 
           # bundle up the entire directory to be used as an artifact
