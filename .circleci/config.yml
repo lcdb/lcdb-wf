@@ -108,6 +108,8 @@ variables:
 
             time conda env create -n $LCDBWF_ENV --file env.yml
             time conda env create -n $LCDBWF_ENV_R --file env-r.yml
+            conda env export -n $LCDBWF_ENV > /opt/miniconda/env.yml
+            conda env export -n $LCDBWF_ENV_R > /opt/miniconda/env.yml
         fi
 
   # --------------------------------------------------------------------------
@@ -135,32 +137,31 @@ variables:
         tree $ORIG
         set +x
 
-        # Separately copy over some test-specific files
+        # Separately copy over some test-specific files that are not part of deploying
         cp $ORIG/workflows/chipseq/run_test.sh $DEPLOY/workflows/chipseq/run_test.sh
         cp $ORIG/workflows/rnaseq/run_test.sh $DEPLOY/workflows/rnaseq/run_test.sh
         cp $ORIG/workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq/run_downstream_test.sh
 
         mkdir $DEPLOY/ci
         mkdir $DEPLOY/test
-        cp $ORIG/test/lcdb-wf-test $DEPLOY/test/lcdb-wf-test
-        cp $ORIG/test/workflow_test_params.yaml $DEPLOY/test/workflow_test_params.yaml
         cp $ORIG/ci/get-data.py $DEPLOY/ci/get-data.py
 
         # the ./run_test.sh scripts run this
         cp $ORIG/ci/preprocessor.py $DEPLOY/ci/preprocessor.py
 
-        # download example data
+        # Now we can download example data
         cd $DEPLOY
-        test/lcdb-wf-test data --kind=all --verbose
+        ci/get-data.py
 
   # --------------------------------------------------------------------------
   # Run the doctests across the included modules
   pytest-step: &pytest-step
     run:
-      name: Run pytest suite and testthat suite
+      name: Run pytest suite and R testthat suite
       command: |
         source /opt/miniforge/etc/profile.d/conda.sh
         conda activate $LCDBWF_ENV
+
         # run unit tests and doctests for the modules in lib
         test/lcdb-wf-test unit_tests --pytest
 
@@ -183,8 +184,9 @@ variables:
           cd $DEPLOY/workflows/chipseq
           source /opt/miniforge/etc/profile.d/conda.sh
           conda activate $LCDBWF_ENV
-          $DEPLOY/test/lcdb-wf-test chipseq --run-workflow --use-conda -j2 -k -p
-          $DEPLOY/test/lcdb-wf-test chipseq --trackhub
+          cd $DEPLOY/workflows/chipseq
+          ./run_test.sh --use-conda -j2 -k -p
+          python chipseq_trackhub.py config/config.yaml config/hub_config.yaml
 
   # --------------------------------------------------------------------------
   # Previous versions had an error where chipseq peaks needed to be defined for
@@ -194,10 +196,9 @@ variables:
       run:
         name: chipseq misc
         command: |
-          cd $DEPLOY/workflows/chipseq
           source /opt/miniforge/etc/profile.d/conda.sh
           conda activate $LCDBWF_ENV
-
+          cd $DEPLOY/workflows/chipseq
           ./run_test.sh --use-conda -j2 -k -p \
             --configfile $ORIG/test/test_configs/test_chipseq_regression.yaml \
             --config sampletable=$ORIG/test/test_configs/chipseq_one_run.tsv \
@@ -227,15 +228,18 @@ variables:
           cd $DEPLOY
           source /opt/miniforge/etc/profile.d/conda.sh
           conda activate $LCDBWF_ENV
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow -n
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --use-conda -j2 -k -p --orig $ORIG
 
-          $DEPLOY/test/lcdb-wf-test rnaseq --trackhub --orig $ORIG
+          cd workflows/rnaseq
 
-          # This run the preprocessor on the Rmd files and stores them
-          # in a new download-test directory (see the comments in the script
-          # for details)
-          $DEPLOY/test/lcdb-wf-test rnaseq --downstream
+          ./run_test.sh -n \
+            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml
+
+          ./run_test.sh --use-conda -j2 -k -p \
+            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml
+
+          python rnaseq_trackhub.py config/config.yaml config/hub_config.yaml
+
+          ./run_downstream_test.sh
 
           # bundle up the entire directory to be used as an artifact
           tar -zcf /tmp/downstream.tar.gz workflows/rnaseq/downstream-test/
@@ -256,13 +260,22 @@ variables:
           source /opt/miniforge/etc/profile.d/conda.sh
           conda activate $LCDBWF_ENV
 
-          # Check the help for test/lcdb-wf-test to see what args these
-          # provide; some of them use the --until argument to restrict the
-          # rules that are run. Note the use of --orig $ORIG to use the test
-          # configs from the original clone rather than the deployed directory.
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --sra-pe          -k -p -j2 --use-conda --orig $ORIG
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --sra-se          -k -p -j2 --use-conda --orig $ORIG
-          $DEPLOY/test/lcdb-wf-test rnaseq --run-workflow --pe              -k -p -j2 --use-conda --orig $ORIG
+          cd workflows/rnaseq
+
+          # SRA test
+          ./run_test.sh -k -p -j2 --use-conda \
+            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
+            --config sampletable=$ORIG/test/test_configs/test_sra_sampletable.tsv
+
+          # SRA SE only
+          ./run_test.sh -k -p -j2 --use-conda \
+            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
+            --config sampletable=$ORIG/test/test_configs/test_sra_sampletable_SE_only.tsv
+
+          # PE
+          ./run_test.sh -k -p -j2 --use-conda \
+            --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
+            --config sampletable=$ORIG/test/test_configs/test_pe_sampletable.tsv
 
 
 
@@ -305,10 +318,13 @@ jobs:
       # themselves.
       - *save_cache
 
+      # These files were created during conda setup, and become part of the
+      # cache. So we should get them as artifacts regardless of if the conda
+      # setup ran this time.
       - store_artifacts:
-          path: /tmp/lcdb-wf-test/env.yaml
+          path: /opt/miniforge/env.yml
       - store_artifacts:
-          path: /tmp/lcdb-wf-test/env-r.yaml
+          path: /opt/miniforge/env-r.yml
   pytest:
     <<: *defaults
     resource_class: small
@@ -328,7 +344,7 @@ jobs:
       - *get-data
       - *chipseq-step
       - store_artifacts:
-          path: /tmp/lcdb-wf-test/workflows/chipseq/data/chipseq_aggregation/multiqc.html
+          path: $DEST/workflows/chipseq/data/chipseq_aggregation/multiqc.html
 
   chipseq-misc:
     <<: *defaults
@@ -363,7 +379,6 @@ jobs:
           path: /tmp/gene-patterns.html
           destination: gene-patterns.html
 
-
   rnaseq-misc:
     <<: *defaults
     steps:
@@ -372,7 +387,6 @@ jobs:
       - *set-path
       - *get-data
       - *rnaseq-misc-step
-
 
   build-docs:
     <<: *defaults
@@ -402,24 +416,6 @@ jobs:
       - store_artifacts:
           path: /tmp/docs.tar.gz
 
-  report-env:
-    <<: *defaults
-    resource_class: small
-    steps:
-      - checkout
-      - *restore_cache
-      - *set-path
-      - run:
-          name: Report environment
-          command: |
-            source /opt/miniforge/etc/profile.d/conda.sh
-            conda env export -n lcdb-wf-test > /tmp/env.yaml
-            conda env export -n lcdb-wf-test-r > /tmp/env-r.yaml
-      - store_artifacts:
-          path: /tmp/env.yaml
-      - store_artifacts:
-          path: /tmp/env-r.yaml
-
 # ----------------------------------------------------------------------------
 # This section configures the dependencies across jobs.
 workflows:
@@ -438,6 +434,7 @@ workflows:
          requires:
            - initial-setup
            - pytest
+           - chipseq
       - rnaseq:
           requires:
             - initial-setup
@@ -446,12 +443,7 @@ workflows:
           requires:
             - initial-setup
             - pytest
+            - rnaseq
       - build-docs:
           requires:
             - initial-setup
-      - report-env:
-          requires:
-            - rnaseq
-            - rnaseq-misc
-            - chipseq
-            - chipseq-misc

@@ -1,7 +1,4 @@
-patterns: 'config/rnaseq_patterns.yaml'
-
-# Which key in the `references` dict below to use
-organism: 'human'
+organism: 'Homo sapiens'
 
 # If not specified here, use the environment variable REFERENCES_DIR.
 references_dir: 'references_data'
