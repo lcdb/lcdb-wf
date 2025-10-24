@@ -553,11 +553,18 @@ they would not reach significance) guards against this.
 
 Zipping/unzipping references
 ----------------------------
-STAR requires uncogffread references/annotation.gtf -w
-references/transcriptome.fa -g references/genome.fampressed
-FASTA and GTF files to build the index. Making uncompressed
-temporary means running the risk of another rule needing
-uncompressed to trigger costly STAR alignment. The extra
-storage cost of leaving an uncompressed fasta (~3 GB) around is
-minimal compared to the scale of all other data, and guards
-against inadvertently re-running all alignment jobs.
+
+STAR requires uncompressed FASTA and GTF files to build the index. Making
+uncompressed files temporary means running the risk of another rule needing
+uncompressed to trigger costly STAR alignment. The extra storage cost of
+leaving an uncompressed fasta (~3 GB) around is minimal compared to the scale
+of all other data, and guards against inadvertently re-running all alignment
+jobs.
+
+Test framework
+--------------
+
+I had previously thought that the CircleCI tests were annoying to run and
+reproduce locally, so the ``tests/lcdb-wf-test`` script was born. Turns out
+that got rather complicated, and ended up being just as annoying. In the spirit
+of reducing complexity, that test harness script is removed.
