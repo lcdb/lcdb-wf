@@ -108,8 +108,8 @@ variables:
 
             time conda env create -n $LCDBWF_ENV --file env.yml
             time conda env create -n $LCDBWF_ENV_R --file env-r.yml
-            conda env export -n $LCDBWF_ENV > /opt/miniconda/env.yml
-            conda env export -n $LCDBWF_ENV_R > /opt/miniconda/env.yml
+            conda env export -n $LCDBWF_ENV > /opt/miniforge/env.yml
+            conda env export -n $LCDBWF_ENV_R > /opt/miniforge/env.yml
         fi
 
   # --------------------------------------------------------------------------
