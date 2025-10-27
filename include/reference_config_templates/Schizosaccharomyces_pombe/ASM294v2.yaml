@@ -1,0 +1,7 @@
+organism: "Schizosaccharomyces pombe"
+genome:
+  url: "http://ftp.ensemblgenomes.org/pub/fungi/release-62/fasta/schizosaccharomyces_pombe/dna/Schizosaccharomyces_pombe.ASM294v2.dna_sm.toplevel.fa.gz"
+
+annotation:
+  url: "https://ftp.ensemblgenomes.ebi.ac.uk/pub/fungi/release-62/gff3/schizosaccharomyces_pombe/Schizosaccharomyces_pombe.ASM294v2.62.gff3.gz"
+  postprocess: 'lib.postprocess.gff2gtf'

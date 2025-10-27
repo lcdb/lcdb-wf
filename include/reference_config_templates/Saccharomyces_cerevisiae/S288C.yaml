@@ -1,0 +1,9 @@
+# https://www.yeastgenome.org/strain/s288c
+
+# From Ensembl. According to README in this FTP dir, if there's no primary
+# assembly then the toplevel is assumed to be the primary assembly.
+genome:
+  url: "https://ftp.ensembl.org/pub/release-115/fasta/saccharomyces_cerevisiae/dna/Saccharomyces_cerevisiae.R64-1-1.dna_sm.toplevel.fa.gz"
+
+annotation:
+  url: "https://ftp.ensembl.org/pub/release-115/gtf/saccharomyces_cerevisiae/Saccharomyces_cerevisiae.R64-1-1.115.gtf.gz"

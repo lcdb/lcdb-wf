@@ -1,0 +1,12 @@
+# This is the latest release for GRCm39 (mm39).
+
+organism: "Mus musculus"
+
+genome:
+  url: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M38/GRCm39.primary_assembly.genome.fa.gz"
+
+# Although there is a separate lncRNA annotation that does not specify that it
+# is a subset, it does appear to be a subset because those features are in
+# this primary assembly annotation.
+annotation:
+  url: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M38/gencode.vM38.primary_assembly.annotation.gtf.gz"

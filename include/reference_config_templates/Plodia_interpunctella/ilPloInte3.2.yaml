@@ -1,0 +1,7 @@
+organism: "Plodia interpunctella"
+
+genome:
+  url: "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/027/563/975/GCF_027563975.2_ilPloInte3.2/GCF_027563975.2_ilPloInte3.2_genomic.fna.gz"
+
+annotation:
+  url: "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/027/563/975/GCF_027563975.2_ilPloInte3.2/GCF_027563975.2_ilPloInte3.2_genomic.gtf.gz"

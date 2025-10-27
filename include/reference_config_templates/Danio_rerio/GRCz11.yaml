@@ -1,0 +1,10 @@
+organism: "Danio rerio"
+
+# Primary assembly (excludes haplotypes and alt regions) from Ensembl,
+# soft-masked
+genome:
+  url: "https://ftp.ensembl.org/pub/release-115/fasta/danio_rerio/dna/Danio_rerio.GRCz11.dna_sm.primary_assembly.fa.gz"
+
+# Ensembl provides a version with "chr" prefixes, but this one matches the fasta above.
+annotation:
+  url: "https://ftp.ensembl.org/pub/release-115/gtf/danio_rerio/Danio_rerio.GRCz11.115.gtf.gz"

@@ -1,0 +1,7 @@
+organism: "Drosophila melanogaster"
+
+genome:
+  url: "https://s3ftp.flybase.org/genomes/Drosophila_melanogaster/dmel_r6.65_FB2025_04/fasta/dmel-all-chromosome-r6.65.fasta.gz"
+
+annotation:
+  url: "https://s3ftp.flybase.org/genomes/Drosophila_melanogaster/dmel_r6.65_FB2025_04/gtf/dmel-all-r6.65.gtf.gz"

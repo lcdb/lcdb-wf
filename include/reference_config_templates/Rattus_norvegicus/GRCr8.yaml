@@ -1,0 +1,13 @@
+organism: "Rattus norvegicus"
+
+# Although there are individual chromosome fastas with "primary" in the
+# filename, there is no corresponding genome-wide fasta file with "primary" in
+# the filename. However, the toplevel fasta here has "dna_sm:primary_assembly"
+# in all of its record descriptions, so it does not appear to have haplotypes
+# or alt regions.
+genome:
+  url: "https://ftp.ensembl.org/pub/release-115/fasta/rattus_norvegicus/dna/Rattus_norvegicus.GRCr8.dna_sm.toplevel.fa.gz"
+
+annotation:
+  url: "https://ftp.ensembl.org/pub/release-115/gtf/rattus_norvegicus/Rattus_norvegicus.GRCr8.115.gtf.gz"
+
