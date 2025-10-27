@@ -208,6 +208,7 @@ rule transcriptome_fasta:
     input:
         fasta="references/genome.fa",
         gtf="references/annotation.gtf",
+        fai="references/genome.fa.fai",
     output:
         "references/transcriptome.fa",
     log:
