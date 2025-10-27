@@ -9,17 +9,11 @@ Here are use-cases we have that are common enough to warrant supporting:
 
 **References should support multiple workflows (ChIP-seq, RNA-seq, etc)**
 
-- This implies that the means the references dir should be in the ``workflows``
-  directory or above.
-- For example, this may mean a STAR index for RNA-seq, a bowtie2 index for rRNA
-  contamination, and another bowtie2 index for ChIP-seq.
-
 **References should support different organisms in different workflows. There
 should be only one organism per workflow though.**
 
 - For example, ``workflows/mouse-rnaseq`` and ``workflows/human-rnaseq`` should
   be supported in the same project.
-
 
 **References should be re-created for each project.**
 
@@ -32,13 +26,13 @@ should be only one organism per workflow though.**
   back what commands were run to generate the reference, including additional
   patching that may have taken place (as is supported by the references
   workflow).
-- Re-using indexes is space- and time-efficient in the short term, but has
-  shown to be inefficient in time and reproducibility in the long term.
+- Re-using indexes is space- and time-efficient in the short term, but experience has
+  shown it to be inefficient in time and reproducibility in the long term.
 - Keeping everything in the same deployment directory also helps with the
   archiving process. 
 - We were hesitant to update the references in the central location due to
   being unsure of what was depending on them.
-- Overall, making the decision that the time and space cost to re-make
+- Overall, here we make the decision that the time and space cost to re-make
   references for each project is worth the gain in simplicity and isolation.
 
 Reference nomenclature and directory structure
@@ -49,24 +43,28 @@ Options considered:
 1. ``references`` (top-level of project, shared by all workflows)
 2. ``workflows/<workflow>/references`` (workflow-specific)
 
-The location ``workflows/references`` is functionally similar to top-level
-``references`` (in a parent directory of individual workflows) but references
-is no longer a workflow so it doesn't make sense to have it right in the
-``workflows`` directory.
+The possible location ``workflows/references`` is functionally similar to
+top-level ``references`` (in a parent directory of individual workflows) but
+references is no longer a workflow so it doesn't make sense to have it right in
+the ``workflows`` directory. So this was excluded as an option.
 
 Recall that in lcdb-wf <2.0, we have organism and then tag. For example, we
 might have configurations available for different human genome assemblies
 (hg19, hg38) and in the central location we needed to differentiate between
-them (e.g. ``references/human/hg19/``).
+them (e.g. ``references/human/hg19/``), which we did with tags.
 
-If we assume a single organism per workflow, and that the references are
-workflow-specific, then we don't need any of this.
+If we assume a single organism per workflow, which seems reasonable and that
+the references are workflow-specific, then we don't need any of this.
 ``workflows/<workflow>/references/genome.fa`` for example should cover it.
 
 This becomes inefficient in the case where there are multiple workflows, all
-for the same organism and all the same workflow type. However in such cases,
-manually creating symlinks can get around this, and I think it's an acceptable
-workaround for the benefit of simplified references more generally.
+for the same organism and all the same workflow type. For example, a project
+with chipseq and a two different RNA-seq experiments would have three copies of
+the genome fasta. However in such cases, manually creating symlinks can get
+around this if space is a problem, and I think it's an acceptable workaround
+for the benefit of simplified references more generally.
+
+So we might have something like the following:
 
 ::
 
@@ -117,8 +115,8 @@ can be quite close to the equivalent command-line call. Since rules in these
 Snakefiles are intended to be edited, it makes sense to keep them as close to
 the command-line as is reasonable.
 
-Take the cutadapt rule, for example, where we typically would want to include
-the adapters in the call, but it's not uncommon to add other arguments. Here
+Take the cutadapt rule for example, where we typically would want to include
+the adapters but it's not uncommon to add other arguments. Here
 we're working with a simplified, single-end version of it:
 
 .. code-block:: python
@@ -128,8 +126,7 @@ we're working with a simplified, single-end version of it:
           fastq='{sample}.fastq.gz"
       output:
           fastq='{sample}.cutadapt.fastq.gz'
-      threads:
-          8
+      threads: 8
       shell:
           "cutadapt "
           "-o {output[0]} "
@@ -248,8 +245,9 @@ cutadapt depend on that. Here's the actual rule:
                   "&> {log}"
               )
 
-Notice that we have some shared arguments as well as a PE-specific adapter
-argument. Converting this one to params would be something like the following:
+Notice that we have some shared arguments (``--nextseq-trim``, ``--overlap``,
+``--minimum-length``) as well as a PE-specific adapter argument. Converting
+this one to params would be something like the following:
 
 .. code-block:: python
 
@@ -350,7 +348,8 @@ specific is handled there?
 
 Now it becomes a little harder to understand what's going on, and we may have
 gone too far in pulling everything out into params. So maybe an absolute
-principle of "everything in params" is not useful.
+principle of "everything must go in params" is not useful because it impacts
+clarity.
 
 Let's take another example, the featureCounts rule for RNA-seq:
 
@@ -393,13 +392,15 @@ Let's take another example, the featureCounts rule for RNA-seq:
           )
 
 Here, it is important to have ``strand_arg`` be in the params. To understand
-why, imagine if instead we determined that argument inside the ``run:`` block,
-and then we changed the config file's stranded entry (``config["stranded"]``).
-Then this rule would NOT re-run because the code didn't change -- Snakemake
-does not *evaluate* the code in a ``run:`` block to determine if it changed.
-However, it *does* evaluate the params. So in this case, it's necessary to keep
-the strand argument detection in the params to take advantage of this behavior,
-and correctly re-run the rule if the config's strand argument has changed.
+why, imagine if we determined that argument inside the ``run:`` block instead
+of in params, and then we changed the config file's stranded entry
+(``config["stranded"]``). Even though we would want it to re-run (since the
+config changed), this rule would NOT re-run because the *code* didn't change --
+Snakemake does not *evaluate* the code in a ``run:`` block to determine if it
+changed. However, it *does* evaluate the params. So in this case, it's
+necessary to keep the strand argument detection in the params to take advantage
+of this behavior, and correctly re-run the rule if the config's strand argument
+has changed.
 
 Next, we would want to decide whether *all* arguments should go in ``params:``.
 In this case, since we're sort of forced to split out ``strand_arg``, we might
@@ -419,29 +420,34 @@ Guidelines:
 - Stranded arguments must be in params
 - SE/PE arguments should be handled inside a ``run:`` block
 - Any other arguments should be written in a  ``shell:`` block or a ``shell()``
-  call directly, to visually match the equivalent command-line call
+  call directly, to visually match the equivalent command-line call and to make
+  it clear what should be edited.
 
 Arguments for and against a separate references workflow
 --------------------------------------------------------
 
 RNA-seq, ChIP-seq, and the upcoming variant calling all need to do something
-with references, including possibly patching them. So we have to deal with this
-inherent complexity. It initially made sense to put such common rules in the
+with references, including possibly patching them. We have to deal with this
+inherent complexity. It initially made sense to put common rules in the
 separate references workflow.
 
 However, only a subset of the rules in the references workflow are actually
 shared across RNA-seq and ChIP-seq -- currently, only the bowtie2 index
 (genome-wide ChIP-seq alignment; rRNA screening for RNA-seq), the fasta rule,
-chromsizes, and the generic unzip rule. The others (gtf, mappings,
-conversion_bed12, conversion_refflat, kallisto_index, salmon_index,
-transcriptome_fasta, star_index, rrna) are all unique to RNA-seq. So the
-current references workflow is actually mostly an RNA-seq-only references
-workflow.
+chromsizes, and the generic unzip rule. The other rules in the <v2.0 references
+workflow (gtf, mappings, conversion_bed12, conversion_refflat, kallisto_index,
+salmon_index, transcriptome_fasta, star_index, rrna) are all unique to RNA-seq.
+So the <v2.0 references workflow is actually mostly an RNA-seq-only references
+workflow. It would make more sense to have those RNA-seq-specific rules in the
+RNA-seq workflow directly.
 
 Furthermore, much of the complexity is handled in the
 lib.utils.download_and_postprocess function, rather than in the workflow rules.
-We already are using the utils module separately in the ChIP-seq and RNA-seq
-workflows, so there's no additional overhead to import it.
+This is the function that downloads, figures out what functions to apply for
+post-processing, and outputs the prepared file. We already are using the utils
+module separately in the ChIP-seq and RNA-seq workflows, so there's no
+additional overhead to import it into the Snakefiles. We can use that function
+directly.
 
 Last, having a workflow split across two Snakefiles hampers the ability to
 understand the complete workflow.
@@ -453,22 +459,25 @@ featureCounts all-in-one or individually
 ----------------------------------------
 
 featureCounts can accept a list of BAMs and run everything in one shot, or can
-be run once per sample and then manusally aggregated later. Previously, we
-provided all BAMs. However, for paired-end BAMs, featureCounts will internally
-name sort each BAM before counting. It does this serially. The result is
-possibly substantial memory usage and a lot of time. 
+be run once per sample and then those outputs can be aggregated later. Previously, we
+provided all BAMs to a single all-in-one call of featureCounts. However, for
+paired-end BAMs, featureCounts will internally name sort each BAM before
+counting. It does this serially. The result is possibly substantial memory
+usage and a lot of time. 
 
 One approach could be to temporarily name-sort BAMs in a separate rule,
 conditional on paired-end reads, and the featureCounts rule would need to have
 conditional input filenames as well. This adds a little bit of complexity for
 the benefit of being able to more finely control resource usage. Another
-approach would be to run featureCounts independently on each BAM, allosing it
-to name-sort independently each one in parallel, and then manually aggregate
-the featureCounts output of each.
+approach would be to run featureCounts independently on each BAM, allowing it
+to name-sort independently each one (which would happen in parallel jobs
+managed by Snakemake), and then manually aggregate the featureCounts output of
+each.
 
-Since the conditional inclusion of a namesorted rule was straightforward (a
+Turns out the conditional inclusion of a namesorted rule was straightforward (a
 matter of choosing the input file for featureCounts rule), it made the most
-sense to run featureCounts once, providing it all samples.
+sense to run featureCounts once, providing it all samples, and having it use
+the temporarily name-sorted BAMs as input for paired-end experiments.
 
 Selection of reference genomes and annotations
 ----------------------------------------------
@@ -481,18 +490,11 @@ loci, or assembly patches.
 <https://lh3.github.io/2017/11/13/which-human-reference-genome-to-use>`__ on
 the subject is a useful guideline. To summarize, we want to exclude alt contigs
 / haplotypes because they may create multimapping issues, and we want to
-include unassembled contigs because excluding them will artificially decrease
+include unassembled contigs because excluding them would artificially decrease
 alignment percentage.
 
 Since lcdb-wf is intended to be used with arbitrary organisms, the PAR and
 mitochondrial sequences mentioned there are not relevant in general.
-
-Ideally, we would have a tool that, given the URLs for raw fastq and gtf,
-
-1. Displays the set of chromosomes
-2. Infers if there are any that look like rDNA or mtDNA
-3. Ensures the GTF matches the fasta match chromosomes
-4. Accepts a template config to assess to process
 
 
 Annotations
@@ -549,17 +551,30 @@ Erring on the side of too many annotations (i.e., using the comprehensive
 annotation instead of a curated version) will result in more features, which at
 face value might make the FDR adjustment more harsh in DESeq2. But DESeq2's
 independent filtering (not even testing those features with so few reads that
-they would not reach significance) guards against this.
+they would not reach significance) guards against this. So we stick with the
+comprehensive annotations when available.
 
 Zipping/unzipping references
 ----------------------------
 
-STAR requires uncompressed FASTA and GTF files to build the index. Making
-uncompressed files temporary means running the risk of another rule needing
-uncompressed to trigger costly STAR alignment. The extra storage cost of
-leaving an uncompressed fasta (~3 GB) around is minimal compared to the scale
-of all other data, and guards against inadvertently re-running all alignment
-jobs.
+Some tools need uncompressed files, others are fine with compressed. For example,
+STAR requires uncompressed FASTA and GTF files to build the index, but bowtie2
+can use a compressed fasta. gffread nees uncompressed FASTA and GTF to make
+a transcriptome fasta.
+
+Previously, anything using a FASTA or GTF would use the uncompressed version,
+and the ``unzip`` rule marked the uncompressed output as temporary. The problem
+with this was when we wanted to make a change in featureCounts. Since this used
+the temp uncompressed GTF file, the ``unzip`` rule needed to run again...but
+that would then trigger the STAR rule to rerun, because it too used that temp
+file and it was being changed (well, re-created but that's the same to
+Snakemake). As a result, we had to spend the time/resource cost to realign
+*everything* and all the downstream jobs after alignment, just to run
+featureCounts.
+
+Making the featureCounts rule use the compressed GTF avoids this issue. Now,
+just the transcriptome fasta and the STAR index need the uncompressed
+references, and these are set in the ``unzip`` rule to be temporary.
 
 Test framework
 --------------
@@ -603,7 +618,6 @@ post-process mechanism to filter the fasta.
 
 
 
-
 Aligners
 --------
 
@@ -611,3 +625,20 @@ Previously, HISAT2 and STAR were both supported; salmon and kallisto were both
 supported. This created additional complexity in the references workflow and in
 the configs. Now, we're just using STAR and salmon (for RNA-seq) and bowtie2 for
 ChIP-seq.
+
+Aligners don't seem to make that much of a difference, and officially
+supporting just one (plus a psueodaligner for RNA-seq) makes the workflows and
+config simpler.
+
+Reference genome and annotation sources
+---------------------------------------
+
+lcdb-wf has always been organism-agnostic. It would be nice to have a single
+source of all genomics data such that we could pass an organism name and get
+back the referencs. But even Ensembl and NCBI are not uniform in their support.
+Sometimes primary assemblies are available; sometimes primary chromosome fastas
+are available but the top-level is actually primary (rat, Ensembl); A GTF might
+not be available (pombe, Ensembl); or only a toplevel assembly is available and
+we need to remove the haplotypes and alt loci out (hg19, Ensembl).
+
+
