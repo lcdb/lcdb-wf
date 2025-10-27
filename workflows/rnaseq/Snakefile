@@ -139,7 +139,7 @@ rule unzip:
     input:
         "references/{prefix}.gz",
     output:
-        "references/{prefix}",
+        temporary("references/{prefix}"),
     resources:
         mem="4g",
         runtime="2h",
