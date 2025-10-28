@@ -1,31 +1,33 @@
 import binascii
 import collections
 import contextlib
+import csv
 import gzip
 import os
 import re
-import sys
 import subprocess
+import sys
 import warnings
 from collections.abc import Iterable
 from itertools import product
 
+import gffutils
 import pandas
 import pandas as pd
 import yaml
 from Bio import SeqIO
 from snakemake.io import expand, regex_from_filepattern
 from snakemake.shell import shell
-import gffutils
-import csv
 
 # Small helper functions
 
+
 def render_r1_r2(pattern):
-    return expand(pattern, sample='{sample}', n=c.n)
+    return expand(pattern, sample="{sample}", n=c.n)
+
 
 def render_r1_only(pattern):
-    return expand(pattern, sample='{sample}', n=1)
+    return expand(pattern, sample="{sample}", n=1)
 
 
 def resolve_name(name):
@@ -744,6 +746,7 @@ def filter_rrna_fastas(tmpfiles, outfile, pattern):
     """
     if pattern is None:
         raise ValueError("Pattern cannot be None")
+
     def gen():
         for tmp in tmpfiles:
             handle = gzip.open(tmp, "rt")
@@ -865,7 +868,6 @@ def download_and_postprocess(urls, postprocess, outfile, log):
                 skip: exon
 
     """
-
 
     if not isinstance(postprocess, list):
         postprocess = [postprocess]
@@ -1187,10 +1189,13 @@ def gff2gtf(gff, gtf):
 
 
 def wrapper_for(path):
-    return 'file:' + os.path.join('../..','wrappers', 'wrappers', path)
+    return "file:" + os.path.join("../..", "wrappers", "wrappers", path)
+
 
 def detect_sra(sampletable):
-    return 'Run' in sampletable.columns and any(sampletable['Run'].str.startswith('SRR'))
+    return "Run" in sampletable.columns and any(
+        sampletable["Run"].str.startswith("SRR")
+    )
 
 
 def mappings_tsv(gtf, tsv, exclude_featuretypes=None, include_featuretypes=None, include_attributes=None):
@@ -1218,7 +1223,7 @@ def mappings_tsv(gtf, tsv, exclude_featuretypes=None, include_featuretypes=None,
         raise ValueError("Both include_featuretypes and exclude_featuretypes were specified.")
 
     res = []
-    keys = set(['__featuretype__'])
+    keys = set(["__featuretype__"])
     seen = set()
     for f in gffutils.DataIterator(gtf):
         ft = f.featuretype
@@ -1245,8 +1250,10 @@ def mappings_tsv(gtf, tsv, exclude_featuretypes=None, include_featuretypes=None,
         sorted_keys = sorted(include_attributes)
     else:
         sorted_keys = sorted(keys)
-    with open(tsv, 'w') as fout:
-        writer = csv.DictWriter(fout, fieldnames=sorted_keys, restval="", delimiter='\t')
+    with open(tsv, "w") as fout:
+        writer = csv.DictWriter(
+            fout, fieldnames=sorted_keys, restval="", delimiter="\t"
+        )
         writer.writeheader()
         for row in res:
             writer.writerow(unlist_dict(row))
