@@ -1198,7 +1198,14 @@ def detect_sra(sampletable):
     )
 
 
-def mappings_tsv(gtf, tsv, exclude_featuretypes=None, include_featuretypes=None, include_attributes=None):
+def mappings_tsv(
+    gtf,
+    tsv,
+    exclude_featuretypes=None,
+    include_featuretypes=None,
+    include_attributes=None,
+    exclude_attributes=None,
+):
     """
     Create a TSV file of attributes found in a GTF file.
 
@@ -1213,14 +1220,20 @@ def mappings_tsv(gtf, tsv, exclude_featuretypes=None, include_featuretypes=None,
         E.g., we likely don't need entries for start_codon if those are in the
         GTF.
 
-    include_attributes : list
-        Restrict the attributes reported in the TSV. Should at least have
+    include_attributes, exclude_attributes : list
+        Mutually exclusive. Restrict the attributes reported in the TSV. Should at least have
         a column for gene ID and transcript ID in order for downstream RNA-seq
         work.
     """
 
     if exclude_featuretypes and include_featuretypes:
-        raise ValueError("Both include_featuretypes and exclude_featuretypes were specified.")
+        raise ValueError(
+            "Both include_featuretypes and exclude_featuretypes were specified."
+        )
+    if exclude_attributes and include_attributes:
+        raise ValueError(
+            "Both include_attributes and exclude_attributes were specified."
+        )
 
     res = []
     keys = set(["__featuretype__"])
@@ -1231,13 +1244,23 @@ def mappings_tsv(gtf, tsv, exclude_featuretypes=None, include_featuretypes=None,
             continue
         if include_featuretypes and ft not in include_featuretypes:
             continue
+
         d = dict(f.attributes)
+
+        if include_featuretypes:
+            d = {k: v for k, v in d.items() if k in include_featuretypes}
+        if exclude_featuretypes:
+            d = {k: v for k, v in d.items() if k not in exclude_featuretypes}
+
         keys.update(d.keys())
         d["__featuretype__"] = ft
+
+        # Exclude duplicates (rather than sorting and uniq-ing the file later)
         h = hash(str(d))
         if h in seen:
             continue
         seen.update([h])
+
         res.append(d)
 
     def unlist_dict(d):
