@@ -31,7 +31,7 @@ localrules:
 rule all:
     input:
         "data/rnaseq_aggregation/multiqc.html",
-        "references/annotation.mapping.tsv",
+        "references/annotation.mapping.tsv.gz",
 
 
 rule symlinks:
@@ -210,19 +210,21 @@ rule transcriptome_fasta:
         gtf="references/annotation.gtf",
         fai="references/genome.fa.fai",
     output:
-        "references/transcriptome.fa",
+        fa=temporary("references/transcriptome.fa"),
+        gz="references/transcriptome.fa.gz",
     log:
         "references/transcriptome.log",
     resources:
         mem="4g",
         runtime="2h",
     shell:
-        "gffread {input.gtf} -w {output} -g {input.fasta} &> {log}"
+        "gffread {input.gtf} -w {output.fa} -g {input.fasta} &> {log} "
+        "&& gzip -c {output.fa} > {output.gz} "
 
 
 rule salmon_index:
     input:
-        "references/transcriptome.fa",
+        "references/transcriptome.fa.gz",
     output:
         "references/salmon/versionInfo.json",
     log:
@@ -297,21 +299,20 @@ rule mappings:
     input:
         gtf="references/annotation.gtf.gz",
     output:
-        tsv="references/annotation.mapping.tsv",
+        "references/annotation.mapping.tsv.gz",
     resources:
-        mem="2g",
+        mem="24g",
         runtime="2h",
     run:
+        tsv = output[0].replace(".gz", "")
         mappings_args = dict(
             exclude_featuretypes=None,
             include_featuretypes=None,
             include_attributes=None,
         )
-        print(config["annotation"].get("mappings", {}))
-
         mappings_args.update(config["annotation"].get("mappings", {}))
-
-        utils.mappings_tsv(input.gtf, output.tsv, **mappings_args)
+        utils.mappings_tsv(input.gtf, tsv, **mappings_args)
+        shell("gzip {tsv}")
 
 
 rule symlink_targets:
