@@ -17,6 +17,7 @@ is_paired = utils.detect_layout(sampletable) == "PE"
 n = ["1", "2"] if is_paired else ["1"]
 SAMPLES = sampletable.iloc[:, 0].values
 LABELS = sampletable.label.values
+REFERENCES = config.get("references", "references")
 peaks = chipseq.add_bams_to_peak_calling(config)
 
 
@@ -43,9 +44,9 @@ rule all:
 
 rule fasta:
     output:
-        "references/genome.fa.gz",
+        f"{REFERENCES}/genome.fa.gz",
     log:
-        "references/logs/genome.fa.gz.log",
+        f"{REFERENCES}/logs/genome.fa.gz.log",
     resources:
         mem_mb="4g",
         runtime="2h",
@@ -63,11 +64,11 @@ rule fasta:
 
 rule chromsizes:
     input:
-        "references/genome.fa.gz",
+        f"{REFERENCES}/genome.fa.gz",
     output:
-        "references/genome.chromsizes",
+        f"{REFERENCES}/genome.chromsizes",
     log:
-        "references/logs/genome.chromsizes.log",
+        f"{REFERENCES}/logs/genome.chromsizes.log",
     params:
         # java_args='-Xmx2g'  # [enable for test]
         java_args="-Xmx20g",  # [disable for test]
@@ -89,12 +90,12 @@ rule chromsizes:
 
 rule bowtie2_index:
     input:
-        "references/genome.fa.gz",
+        f"{REFERENCES}/genome.fa.gz",
     output:
-        "references/bowtie2/genome.1.bt2",
-        "references/bowtie2/genome.fa",
+        f"{REFERENCES}/bowtie2/genome.1.bt2",
+        f"{REFERENCES}/bowtie2/genome.fa",
     log:
-        "references/logs/bowtie2_genome.log",
+        f"{REFERENCES}/logs/bowtie2_genome.log",
     resources:
         mem="32g",
         disk="50g",
@@ -227,7 +228,7 @@ rule bowtie2:
             n=n,
             allow_missing=True,
         ),
-        index="references/bowtie2/genome.1.bt2",
+        index=f"{REFERENCES}/bowtie2/genome.1.bt2",
     output:
         bam=temporary("data/chipseq_samples/{sample}/{sample}.cutadapt.bam"),
     log:

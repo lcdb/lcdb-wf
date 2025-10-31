@@ -15,6 +15,7 @@ sampletable = sampletable.set_index(sampletable.columns[0], drop=False)
 is_paired = utils.detect_layout(sampletable) == "PE"
 n = ["1", "2"] if is_paired else ["1"]
 SAMPLES = sampletable.index
+REFERENCES = config.get("references", "references")
 sample_dir = "data/rnaseq_samples"
 
 
@@ -31,7 +32,7 @@ localrules:
 rule all:
     input:
         "data/rnaseq_aggregation/multiqc.html",
-        "references/annotation.mapping.tsv.gz",
+        f"{REFERENCES}/annotation.mapping.tsv.gz",
 
 
 rule symlinks:
@@ -55,9 +56,9 @@ rule symlinks:
 
 rule fasta:
     output:
-        "references/genome.fa.gz",
+        f"{REFERENCES}/genome.fa.gz",
     log:
-        "references/logs/genome.fa.gz.log",
+        f"{REFERENCES}/logs/genome.fa.gz.log",
     resources:
         mem_mb="4g",
         runtime="2h",
@@ -75,9 +76,9 @@ rule fasta:
 
 rule faidx:
     input:
-        "references/genome.fa",
+        f"{REFERENCES}/genome.fa",
     output:
-        "references/genome.fa.fai",
+        f"{REFERENCES}/genome.fa.fai",
     resources:
         mem_mb="4g",
         runtime="2h",
@@ -87,9 +88,9 @@ rule faidx:
 
 rule annotation:
     output:
-        "references/annotation.gtf.gz",
+        f"{REFERENCES}/annotation.gtf.gz",
     log:
-        "references/logs/annotation.gtf.gz.log",
+        f"{REFERENCES}/logs/annotation.gtf.gz.log",
     resources:
         mem="4g",
         runtime="2h",
@@ -107,9 +108,9 @@ rule annotation:
 
 rule rrna_fasta:
     output:
-        "references/rrna.fa.gz",
+        f"{REFERENCES}/rrna.fa.gz",
     log:
-        "references/logs/rrna.fa.log",
+        f"{REFERENCES}/logs/rrna.fa.log",
     resources:
         mem="4g",
         runtime="2h",
@@ -137,9 +138,9 @@ rule rrna_fasta:
 
 rule unzip:
     input:
-        "references/{prefix}.gz",
+        f"{REFERENCES}/{{prefix}}.gz",
     output:
-        temporary("references/{prefix}"),
+        temporary(f"{REFERENCES}/{{prefix}}"),
     resources:
         mem="4g",
         runtime="2h",
@@ -149,12 +150,12 @@ rule unzip:
 
 rule rrna_index:
     input:
-        "references/rrna.fa.gz",
+        f"{REFERENCES}/rrna.fa.gz",
     output:
-        "references/bowtie2/rrna.1.bt2",
-        "references/bowtie2/rrna.fa.gz",
+        f"{REFERENCES}/bowtie2/rrna.1.bt2",
+        f"{REFERENCES}/bowtie2/rrna.fa.gz",
     log:
-        "references/logs/bowtie2_rrna.log",
+        f"{REFERENCES}/logs/bowtie2_rrna.log",
     resources:
         mem="32g",
         disk="50g",
@@ -168,12 +169,12 @@ rule rrna_index:
 
 rule star_index:
     input:
-        fasta="references/genome.fa",
-        gtf="references/annotation.gtf",
+        fasta=f"{REFERENCES}/genome.fa",
+        gtf=f"{REFERENCES}/annotation.gtf",
     output:
-        "references/star/Genome",
+        f"{REFERENCES}/star/Genome",
     log:
-        "references/logs/star.log",
+        f"{REFERENCES}/logs/star.log",
     threads: 8
     resources:
         mem="64g",
@@ -206,14 +207,14 @@ rule star_index:
 
 rule transcriptome_fasta:
     input:
-        fasta="references/genome.fa",
-        gtf="references/annotation.gtf",
-        fai="references/genome.fa.fai",
+        fasta=f"{REFERENCES}/genome.fa",
+        gtf=f"{REFERENCES}/annotation.gtf",
+        fai=f"{REFERENCES}/genome.fa.fai",
     output:
-        fa=temporary("references/transcriptome.fa"),
-        gz="references/transcriptome.fa.gz",
+        fa=temporary(f"{REFERENCES}/transcriptome.fa"),
+        gz=f"{REFERENCES}/transcriptome.fa.gz",
     log:
-        "references/transcriptome.log",
+        f"{REFERENCES}/transcriptome.log",
     resources:
         mem="4g",
         runtime="2h",
@@ -224,13 +225,13 @@ rule transcriptome_fasta:
 
 rule salmon_index:
     input:
-        "references/transcriptome.fa.gz",
+        f"{REFERENCES}/transcriptome.fa.gz",
     output:
-        "references/salmon/versionInfo.json",
+        f"{REFERENCES}/salmon/versionInfo.json",
     log:
-        "references/logs/salmon.log",
+        f"{REFERENCES}/logs/salmon.log",
     params:
-        outdir="references/salmon",
+        outdir=f"{REFERENCES}/salmon",
     resources:
         mem="32g",
         runtime="2h",
@@ -241,11 +242,11 @@ rule salmon_index:
 
 rule conversion_refflat:
     input:
-        "references/annotation.gtf.gz",
+        f"{REFERENCES}/annotation.gtf.gz",
     output:
-        "references/annotation.refflat",
+        f"{REFERENCES}/annotation.refflat",
     log:
-        "references/logs/annotation.refflat.log",
+        f"{REFERENCES}/logs/annotation.refflat.log",
     resources:
         mem="2g",
         runtime="2h",
@@ -257,9 +258,9 @@ rule conversion_refflat:
 
 rule conversion_bed12:
     input:
-        "references/annotation.gtf.gz",
+        f"{REFERENCES}/annotation.gtf.gz",
     output:
-        "references/annotation.bed12",
+        f"{REFERENCES}/annotation.bed12",
     resources:
         mem="2g",
         runtime="2h",
@@ -271,11 +272,11 @@ rule conversion_bed12:
 
 rule chromsizes:
     input:
-        "references/genome.fa.gz",
+        f"{REFERENCES}/genome.fa.gz",
     output:
-        "references/genome.chromsizes",
+        f"{REFERENCES}/genome.chromsizes",
     log:
-        "references/logs/genome.chromsizes.log",
+        f"{REFERENCES}/logs/genome.chromsizes.log",
     params:
         # java_args='-Xmx2g'  # [enable for test]
         java_args="-Xmx20g",  # [disable for test]
@@ -297,9 +298,9 @@ rule chromsizes:
 
 rule mappings:
     input:
-        gtf="references/annotation.gtf.gz",
+        gtf=f"{REFERENCES}/annotation.gtf.gz",
     output:
-        "references/annotation.mapping.tsv.gz",
+        f"{REFERENCES}/annotation.mapping.tsv.gz",
     resources:
         mem="24g",
         runtime="2h",
@@ -405,7 +406,7 @@ rule star:
     input:
         fastq=rules.cutadapt.output,
         index=rules.star_index.output,
-        annotation="references/annotation.gtf",
+        annotation=f"{REFERENCES}/annotation.gtf",
     output:
         bam=temporary("data/rnaseq_samples/{sample}/{sample}.cutadapt.bam"),
         sjout=temporary(
@@ -463,7 +464,7 @@ rule star:
 rule rRNA:
     input:
         fastq="data/rnaseq_samples/{sample}/{sample}_R1.cutadapt.fastq.gz",
-        index="references/bowtie2/rrna.1.bt2",
+        index=f"{REFERENCES}/bowtie2/rrna.1.bt2",
     output:
         bam="data/rnaseq_samples/{sample}/rRNA/{sample}.cutadapt.rrna.bam",
     log:
@@ -574,7 +575,7 @@ rule namesorted_bam:
 
 rule featurecounts:
     input:
-        annotation="references/annotation.gtf.gz",
+        annotation=f"{REFERENCES}/annotation.gtf.gz",
         bam=expand(
             (
                 rules.namesorted_bam.output
@@ -691,7 +692,7 @@ rule preseq:
 rule salmon:
     input:
         fastq=rules.cutadapt.output,
-        index="references/salmon/versionInfo.json",
+        index=f"{REFERENCES}/salmon/versionInfo.json",
     output:
         "data/rnaseq_samples/{sample}/{sample}.salmon/quant.sf",
     log:
