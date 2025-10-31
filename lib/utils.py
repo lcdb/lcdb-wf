@@ -698,14 +698,28 @@ def preflight(config):
     check_unique_samplename(sampletable)
     if "orig_filename" in sampletable.columns:
         check_unique_fn(sampletable)
+    if "genome" not in config:
+        raise ConfigurationError("Config is missing 'genome' key")
+    if "url" not in config["genome"]:
+        raise ConfigurationError("Config is missing 'url' key for 'genome'")
 
 
-def rnaseq_preflight(c):
-    pass
+def rnaseq_preflight(config):
+    preflight(config)
+    if "annotation" not in config:
+        raise ConfigurationError("Config is missing 'annotation' key")
+    if "url" not in config["annotation"]:
+        raise ConfigurationError("Config is missing 'url' key for 'annotation'")
+    if "stranded" not in config:
+        raise ConfigurationError("Config is missing 'stranded' key")
+    if "organism" not in config:
+        raise ConfigurationError("Config is missing 'organism' key")
 
 
-def chipseq_preflight(c):
-    pass
+def chipseq_preflight(config):
+    preflight(config)
+    if "peaks" not in config:
+        config["peaks"] = []
 
 
 def strand_arg_lookup(config, lookup):

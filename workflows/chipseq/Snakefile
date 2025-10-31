@@ -11,6 +11,7 @@ from lib import chipseq
 configfile: "config/config.yaml"
 
 
+utils.chipseq_preflight(config)
 sampletable = pd.read_table(config["sampletable"], sep="\t", comment="#")
 sampletable = sampletable.set_index(sampletable.columns[0], drop=False)
 is_paired = utils.detect_layout(sampletable) == "PE"
