@@ -895,10 +895,13 @@ def download_and_postprocess(urls, postprocess, outfile, log):
     #
     #   ]
     #
+    def _default(origfn, newfn):
+        shell("mv {origfn} {newfn}")
+
     for i, postprocess_i in enumerate(postprocess):
 
         if postprocess_i is None:
-            func = default_postprocess
+            func = _default
             args = ()
             kwargs = {}
             name = None
