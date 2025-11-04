@@ -421,61 +421,6 @@ rule bigwig:
         "&> {log}"
 
 
-rule fingerprint:
-    input:
-        bams=lambda wc: expand(
-            "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam",
-            label=wc.ip_label,
-        ),
-        control=lambda wc: expand(
-            "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam",
-            label=chipseq.merged_input_for_ip(sampletable, wc.ip_label),
-        ),
-        bais=lambda wc: expand(
-            "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam.bai",
-            label=wc.ip_label,
-        ),
-        control_bais=lambda wc: expand(
-            "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam.bai",
-            label=chipseq.merged_input_for_ip(sampletable, wc.ip_label),
-        ),
-    output:
-        plot="data/chipseq_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.png",
-        raw_counts="data/chipseq_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.tab",
-        metrics="data/chipseq_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.metrics",
-    threads: 8
-    log:
-        "data/chipseq_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.metrics.log",
-    threads: 1
-    resources:
-        mem="32g",
-        runtime="2h",
-    run:
-        if len(input.control) == 0:
-            jsdsample_arg = ""
-        else:
-            jsdsample_arg = "--JSDsample " + str(input.control)
-        shell(
-            "plotFingerprint "
-            "--bamfiles {input.bams} "
-            "-p {threads} "
-            # The JSDsample argument is disabled for testing as it dramatically
-            # increases the run time.
-            "{jsdsample_arg} "  # [disable for test]
-            "--outQualityMetrics {output.metrics} "
-            "--outRawCounts {output.raw_counts} "
-            "--plotFile {output.plot} "
-            # Default is 500k; use fewer to speed up testing:
-            # '--numberOfSamples 50 '  # [enable for test]
-            "--smartLabels "
-            "--extendReads=300 "
-            "--skipZeros "
-            "&> {log} "
-            '&& sed -i "s/NA/0.0/g" {output.metrics} '
-        )
-
-
-
 rule macs:
     input:
         ip=lambda wc: expand(
@@ -664,16 +609,7 @@ rule multiqc:
         expand(rules.samtools_idxstats.output, sample=SAMPLES),
         expand(rules.bigwig.output, label=sampletable.label),
         expand(rules.merge_techreps.output, label=sampletable.label),
-        expand(
-            "data/chipseq_aggregation/fingerprints/{ip_label}/{ip_label}_fingerprint.metrics",
-            ip_label=sampletable.loc[sampletable.antibody != "input", "label"],
-        ),
-        expand(
-            "data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.collectinsertsizemetrics.metrics",
-            sample=SAMPLES,
-        )
-        if is_paired
-        else [],
+        expand(rules.collectinsertsizemetrics.output.metric, sample=SAMPLES) if is_paired else [],
         [v["bigbed"] for v in peaks.values()],
         config="config/multiqc_config.yaml",
     output:
