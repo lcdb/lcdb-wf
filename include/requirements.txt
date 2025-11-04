@@ -1,18 +1,13 @@
 bedtools
 biopython
-bowtie
 bowtie2
 cutadapt>=3.0
 deeptools
 epic2
-fastq-screen
 fastqc
 font-ttf-dejavu-sans-mono
 gffread
 gffutils
-hisat2
-intervalstats
-ipython
 macs3
 multiqc
 pandas
@@ -25,16 +20,14 @@ preseq
 pybedtools
 pyfaidx
 pysam
-pytest
-pytest-xdist
 python
+pytest
 rseqc
 
 # earlier versions of salmon can segfault on Slurm
 salmon>=1.10.1
 
 samtools
-seaborn
 snakemake>8
 sra-tools
 star
@@ -43,11 +36,6 @@ trackhub
 ucsc-bedgraphtobigwig
 ucsc-bedsort
 ucsc-bedtobigbed
-ucsc-bigwigmerge
-ucsc-fetchchromsizes
 ucsc-genepredtobed
 ucsc-gtftogenepred
-ucsc-liftover
-ucsc-oligomatch
 ucsc-twobittofa
-ucsc-wigtobigwig
