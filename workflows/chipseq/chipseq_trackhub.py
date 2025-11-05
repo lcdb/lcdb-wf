@@ -24,7 +24,7 @@ from trackhub import CompositeTrack, ViewTrack, SubGroupDefinition, Track, defau
 from trackhub.helpers import filter_composite_from_subgroups, dimensions_from_subgroups, hex2rgb
 from trackhub.upload import upload_hub, stage_hub
 
-from lib import chipseq
+from lib import chipseq, utils
 
 ap = argparse.ArgumentParser()
 ap.add_argument('config', help='Main config.yaml file')
@@ -55,7 +55,7 @@ hub, genomes_file, genome, trackdb = default_hub(
 )
 
 # Set up subgroups based on unique values from columns specified in the config
-df = pandas.read_csv(config['sampletable'], comment='#', sep='\t')
+df = utils.prepare_chipseq_sampletable(config)
 cols = hub_config['subgroups']['columns']
 subgroups = []
 for col in cols:

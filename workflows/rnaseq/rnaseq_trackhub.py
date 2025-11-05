@@ -9,6 +9,7 @@ are stranded.  Such assumptions are indicated in the comments below.
 """
 
 import os
+import sys
 import re
 from pprint import pprint
 import pandas
@@ -19,6 +20,9 @@ from trackhub.helpers import sanitize, hex2rgb, dimensions_from_subgroups, filte
 from trackhub import CompositeTrack, ViewTrack, SubGroupDefinition, Track, default_hub
 from trackhub.upload import upload_hub, stage_hub
 import argparse
+
+sys.path.insert(0, os.path.dirname(workflow.snakefile) + "/../..")
+from lib import utils
 
 ap = argparse.ArgumentParser()
 ap.add_argument('config', help='Main config.yaml file')
@@ -47,7 +51,7 @@ hub, genomes_file, genome, trackdb = default_hub(
 )
 
 # Set up subgroups based on the configured columns
-df = pandas.read_csv(config['sampletable'], comment='#', sep='\t')
+df = utils.prepare_rnaseq_sampletable(config)
 cols = hub_config['subgroups']['columns']
 subgroups = []
 for col in cols:
