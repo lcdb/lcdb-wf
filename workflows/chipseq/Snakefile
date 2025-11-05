@@ -11,13 +11,10 @@ from lib import chipseq
 configfile: "config/config.yaml"
 
 
-utils.chipseq_preflight(config)
-sampletable = pd.read_table(config["sampletable"], sep="\t", comment="#")
-sampletable = sampletable.set_index(sampletable.columns[0], drop=False)
-sampletable["label"] = sampletable["label"].fillna(sampletable.iloc[:, 0])
+sampletable = utils.prepare_chipseq_sampletable(config)
 is_paired = utils.detect_layout(sampletable) == "PE"
 n = ["1", "2"] if is_paired else ["1"]
-SAMPLES = sampletable.iloc[:, 0].values
+SAMPLES = sampletable.index.values
 LABELS = sampletable.label.values
 REFERENCES = config.get("references", "references")
 peaks = chipseq.add_bams_to_peak_calling(config)
@@ -607,8 +604,8 @@ rule multiqc:
         expand(rules.samtools_stats.output, sample=SAMPLES),
         expand(rules.samtools_flagstat.output, sample=SAMPLES),
         expand(rules.samtools_idxstats.output, sample=SAMPLES),
-        expand(rules.bigwig.output, label=sampletable.label),
-        expand(rules.merge_techreps.output, label=sampletable.label),
+        expand(rules.bigwig.output, label=LABELS),
+        expand(rules.merge_techreps.output, label=LABELS),
         expand(rules.collectinsertsizemetrics.output.metric, sample=SAMPLES) if is_paired else [],
         [v["bigbed"] for v in peaks.values()],
         config="config/multiqc_config.yaml",

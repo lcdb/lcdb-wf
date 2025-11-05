@@ -1299,4 +1299,21 @@ def mappings_tsv(
             writer.writerow(unlist_dict(row))
 
 
+def prepare_chipseq_sampletable(config):
+    chipseq_preflight(config)
+    sampletable_fn = config.get("sampletable", "config/sampletable.tsv")
+    sampletable = pd.read_table(sampletable_fn, sep="\t", comment="#")
+    sampletable = sampletable.set_inde(sampletable.columns[0], drop=False)
+    sampletable["label"] = sampletable["label"].fillna(sampletable.iloc[:, 0])
+    return sampletable
+
+
+def prepare_rnaseq_sampletable(config):
+    rnaseq_preflight(config)
+    sampletable_fn = config.get("sampletable", "config/sampletable.tsv")
+    sampletable = pd.read_table(sampletable_fn, sep="\t", comment="#")
+    sampletable = sampletable.set_inde(sampletable.columns[0], drop=False)
+    return sampletable
+
+
 # vim: ft=python
