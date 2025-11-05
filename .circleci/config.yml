@@ -263,7 +263,7 @@ variables:
           # SRA test
           ./run_test.sh -k -p -j2 --use-conda \
             --configfile $ORIG/test/test_configs/test_rnaseq_config.yaml \
-            --config sampletable=$ORIG/test/test_configs/test_sra_sampletable.tsv
+            --config sampletable=$ORIG/test/test_configs/test_sra_sampletable.csv
 
           # SRA SE only
           ./run_test.sh -k -p -j2 --use-conda \
