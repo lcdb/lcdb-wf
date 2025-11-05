@@ -1,33 +1,15 @@
 import binascii
-import collections
-import contextlib
 import csv
 import gzip
 import os
-import re
 import subprocess
-import sys
 import warnings
 from collections.abc import Iterable
-from itertools import product
 
 import gffutils
-import pandas
 import pandas as pd
-import yaml
 from Bio import SeqIO
-from snakemake.io import expand, regex_from_filepattern
 from snakemake.shell import shell
-
-# Small helper functions
-
-
-def render_r1_r2(pattern):
-    return expand(pattern, sample="{sample}", n=c.n)
-
-
-def render_r1_only(pattern):
-    return expand(pattern, sample="{sample}", n=1)
 
 
 def resolve_name(name):
@@ -52,22 +34,6 @@ def resolve_name(name):
     for part in parts:
         obj = getattr(obj, part)
     return obj
-
-
-@contextlib.contextmanager
-def temp_env(env):
-    """
-    Context manager to temporarily set os.environ.
-    """
-    env = dict(env)
-    orig = os.environ.copy()
-    _env = {k: str(v) for k, v in env.items()}
-    os.environ.update(_env)
-    try:
-        yield
-    finally:
-        os.environ.clear()
-        os.environ.update(orig)
 
 
 def flatten(iter, unlist=False):
@@ -121,110 +87,6 @@ def test_flatten():
     assert flatten(["a"]) == ["a"]
 
 
-def updatecopy(orig, update_with, keys=None, override=False):
-    """
-    Update a copy of a dictionary, with a bit more control than the built-in
-    dict.update.
-
-    Parameters
-    -----------
-
-    orig : dict
-        Dict to update
-
-    update_with : dict
-        Dict with new values
-
-    keys : list or None
-        If not None, then only consider these keys in `update_with`. Otherwise
-        consider all.
-
-    override : bool
-        If True, then this is similar to `dict.update`, except only those keys
-        in `keys` will be considered. If False (default), then if a key exists
-        in both `orig` and `update_with`, no updating will occur so `orig` will
-        retain its original value.
-    """
-    d = orig.copy()
-    if keys is None:
-        keys = update_with.keys()
-    for k in keys:
-        if k in update_with:
-            if k in d and not override:
-                continue
-            d[k] = update_with[k]
-    return d
-
-
-def update_recursive(orig, update_with):
-    """
-    Recursively update one dict with another.
-
-    From https://stackoverflow.com/a/3233356
-
-    >>> orig = {'a': {'b': 1, 'c': 2, 'd': [7, 8, 9]}}
-    >>> update_with = {'a': {'b': 5}}
-    >>> expected = {'a': {'b': 5, 'c': 2, 'd': [7, 8, 9]}}
-    >>> result = update_recursive(orig, update_with)
-    >>> assert result == expected, result
-
-    >>> update_with = {'a': {'d': 1}}
-    >>> result = update_recursive(orig, update_with)
-    >>> expected = {'a': {'b': 5, 'c': 2, 'd': 1}}
-    >>> result = update_recursive(orig, update_with)
-    >>> assert result == expected, result
-    """
-    for k, v in update_with.items():
-        if isinstance(v, collections.abc.Mapping):
-            orig[k] = update_recursive(orig.get(k, {}), v)
-        else:
-            orig[k] = v
-    return orig
-
-
-def boolean_labels(names, idx, mapping={True: "AND", False: "NOT"}, strip="AND_"):
-    """
-    Creates labels for boolean lists.
-
-    For example:
-
-    >>> names = ['exp1', 'exp2', 'exp3']
-    >>> idx = [True, True, False]
-    >>> boolean_labels(names, idx)
-    'exp1_AND_exp2_NOT_exp3'
-
-    Parameters
-    ----------
-
-    names : list
-        List of names to include in output
-
-    idx : list
-        List of booleans, same size as `names`
-
-    mapping : dict
-        Linking words to use for True and False
-
-    strip : str
-        Strip this text off the beginning of labels.
-
-    given a list of names and a same-size boolean, return strings like
-
-    a_NOT_b_AND_c
-
-    or
-
-    a_AND_b_AND_c_NOT_d_AND_e
-    """
-    s = []
-    for n, x in zip(names, idx):
-        s.append(mapping[x] + "_" + n)
-    s = "_".join(s)
-    if s.startswith(strip):
-        s = s.replace(strip, "", 1)
-    return s
-
-
 def make_relative_symlink(target, linkname):
     """
     Helper function to create a relative symlink.
@@ -238,33 +100,6 @@ def make_relative_symlink(target, linkname):
     if not os.path.exists(linkdir):
         shell("mkdir -p {linkdir}")
     shell(f"cd {linkdir}; ln -sf {relative_target} {linkbase}")
-
-
-def extract_wildcards(pattern, target):
-    """
-    Return a dictionary of wildcards and values identified from `target`.
-
-    Returns None if the regex match failed.
-
-    Parameters
-    ----------
-    pattern : str
-        Snakemake-style filename pattern, e.g. ``{output}/{sample}.bam``.
-
-    target : str
-        Filename from which to extract wildcards, e.g., ``data/a.bam``.
-
-    Examples
-    --------
-    >>> pattern = '{output}/{sample}.bam'
-    >>> target = 'data/a.bam'
-    >>> expected = {'output': 'data', 'sample': 'a'}
-    >>> assert extract_wildcards(pattern, target) == expected
-    >>> assert extract_wildcards(pattern, 'asdf') is None
-    """
-    m = re.compile(regex_from_filepattern(pattern)).match(target)
-    if m:
-        return m.groupdict()
 
 
 def is_gzipped(fn):
@@ -299,16 +134,6 @@ def gzipped(tmpfiles, outfile):
                     fout.write(line)
 
 
-def cat(tmpfiles, outfile):
-    """
-    Simple concatenation of files.
-
-    Note that gzipped files can be concatenated as-is without un- and re-
-    compressing.
-    """
-    shell(f"cat {tmpfiles} > {outfile}")
-
-
 def is_paired_end(sampletable, sample):
     """
     Inspects the sampletable to see if the sample is paired-end or not
@@ -316,9 +141,12 @@ def is_paired_end(sampletable, sample):
     Parameters
     ----------
     sampletable : pandas.DataFrame
-        Contains a "layout" or "LibraryLayout" column (but not both). If the
-        lowercase value is "pe" or "paired", consider the sample paired-end.
-        Otherwise consider single-end.
+        If SRA sampletable, contains a "layout" or "LibraryLayout" column (but
+        not both). If the lowercase value is "pe" or "paired", consider the
+        sample paired-end. Otherwise consider single-end.
+
+        Otherwise, if there's an "orig_filename_R2" column consider it
+        paired-end, otherwise single-end.
 
     sample : str
         Assumed to be found in the first column of `sampletable`
@@ -358,46 +186,6 @@ def is_paired_end(sampletable, sample):
     return False
 
 
-def fill_r1_r2(sampletable, pattern, r1_only=False):
-    """
-    Returns a function intended to be used as a rule's input function.
-
-    The returned function, when provided with wildcards, will return one or two
-    rendered versions of a pattern depending on SE or PE respectively.
-    Specifically, given a pattern (which is expected to contain a placeholder
-    for "{sample}" and "{n}"), look up in the sampletable whether or not it is
-    paired-end.
-
-    Parameters
-    ----------
-
-    sampletable : pandas.DataFrame
-        Contains a "layout" column with either "SE" or "PE", or "LibraryLayout"
-        column with "SINGLE" or "PAIRED". If column does not exist, assume SE.
-
-    pattern : str
-        Must contain at least a "{sample}" placeholder.
-
-    r1_only : bool
-        If True, then only return the file for R1 even if PE is configured.
-    """
-
-    def func(wc):
-        try:
-            wc.sample
-        except AttributeError:
-            raise ValueError(
-                'Need "{{sample}}" in pattern ' '"{pattern}"'.format(pattern=pattern)
-            )
-        n = [1]
-        if is_paired_end(sampletable, wc.sample) and not r1_only:
-            n = [1, 2]
-        res = expand(pattern, sample=wc.sample, n=n)
-        return res
-
-    return func
-
-
 def pluck(obj, kv):
     """
     For a given dict or list that somewhere contains keys `kv`, return the
@@ -416,136 +204,6 @@ def pluck(obj, kv):
         for j in obj.values():
             for x in pluck(j, kv):
                 yield x
-
-
-# Functions for conveniently working with resources
-
-
-def autobump(*args, **kwargs):
-    """
-    Used to automatically bump resources depending on how many times the job
-    was attempted. This will return a function that is appropriate to use for
-    an entry in Snakemake's `resources:` directive::
-
-        rule example:
-            input: "a.txt"
-            resources:
-                mem_mb=autobump(gb=10),
-                runtime=autobump(hours=2, increment_hours=10)
-
-    Values can be specified in multiple ways.
-
-    A single number will be provided as the resource, and will be used to
-    increment each time. For example, this is the equivalent of 10 GB for the
-    first attempt, and 20 GB for the second:
-
-    >>> f = autobump(1024 * 10)
-    >>> f(None, 1)
-    10240
-
-    Adding a second unnamed argument will use it as a value to increment by for
-    each subsequent attempt. This will use 10 GB for the first attempt, and 110
-    GB for the second attempt.
-
-    >>> f = autobump(1024 * 10, 1024 * 100)
-    >>> f(None, 1)
-    10240
-
-    >>> f(None, 2)
-    112640
-
-    Instead of bare numbers, keyword arguments can be used for more convenient
-    specification of units. The above two examples can also take this form:
-
-    >>> f = autobump(gb=10)
-    >>> f(None, 1)
-    10240
-
-    >>> f = autobump(gb=10, increment_gb=100)
-    >>> f(None, 2)
-    112640
-
-
-    Units can be minutes, hours, days, mb, gb, or tb. For example:
-
-    >>> f = autobump(hours=2, increment_hours=5)
-    >>> f(None, 2)
-    420
-
-    """
-    multiplier = {
-        "mb": 1,
-        "minutes": 1,
-        "gb": 1024,
-        "hours": 60,
-        "days": 1440,
-        "tb": 1024 * 1024,
-    }
-    units = list(multiplier.keys())
-
-    if args and kwargs:
-        raise ValueError(
-            "Mixture of unnamed and keyword arguments not supported with autobump()"
-        )
-
-    if len(kwargs) > 2:
-        raise ValueError("Only 2 kwargs allowed for autobump()")
-
-    elif len(args) == 1 and not kwargs:
-        baseline_converted = args[0]
-        increment_converted = baseline_converted
-
-    elif len(args) == 2 and not kwargs:
-        baseline_converted, increment_converted = args
-
-    elif len(kwargs) <= 2:
-        baseline_kwargs = [k for k in kwargs.keys() if k in units]
-        if len(baseline_kwargs) != 1:
-            raise ValueError(
-                "Multiple baseline kwargs found. Do you need to change one to have an 'increment_' prefix?"
-            )
-
-        baseline_kwarg = baseline_kwargs[0]
-        baseline_value = kwargs[baseline_kwarg]
-        baseline_unit = baseline_kwarg
-
-        increment_kwargs = [k for k in kwargs if k.startswith("increment_")]
-        if increment_kwargs:
-            assert len(increment_kwargs) == 1
-            increment_kwarg = increment_kwargs[0]
-            increment_value = kwargs[increment_kwarg]
-            increment_unit = increment_kwarg.split("_")[-1]
-        else:
-            increment_value = baseline_value
-            increment_unit = baseline_unit
-
-        if baseline_unit not in multiplier:
-            raise ValueError(
-                f"Baseline unit {baseline_unit} not in valid units {units}"
-            )
-        if increment_unit not in multiplier:
-            raise ValueError(
-                f"Increment unit {increment_unit} not in valid units {units}"
-            )
-
-        baseline_converted = baseline_value * multiplier[baseline_unit]
-        increment_converted = increment_value * multiplier[increment_unit]
-
-    else:
-        raise ValueError(f"Unhandled args and kwargs: {args}, {kwargs}")
-
-    def f(wildcards, attempt):
-        return baseline_converted + (attempt - 1) * increment_converted
-
-    return f
-
-
-def gb(size_in_gb):
-    return 1024 * size_in_gb
-
-
-def hours(time_in_hours):
-    return time_in_hours * 60
 
 
 # Config parsing and handling
@@ -574,96 +232,6 @@ def detect_layout(sampletable):
         else:
             report_ = f"PE samples: {p}"
         raise ValueError(f"Only a single layout (SE or PE) is supported. {report_}")
-
-
-def fill_patterns(patterns, fill, combination=product):
-    """
-    Fills in a dictionary of patterns with the dictionary `fill`.
-
-    >>> patterns = dict(a='{sample}_R{N}.fastq')
-    >>> fill = dict(sample=['one', 'two', 'three'], N=[1, 2])
-    >>> sorted(fill_patterns(patterns, fill)['a'])
-    ['one_R1.fastq', 'one_R2.fastq', 'three_R1.fastq', 'three_R2.fastq', 'two_R1.fastq', 'two_R2.fastq']
-
-    If using `zip` as a combination, checks to ensure all values in `fill` are
-    the same length to avoid truncated output.
-
-    This fails:
-
-    >>> patterns = dict(a='{sample}_R{N}.fastq')
-    >>> fill = dict(sample=['one', 'two', 'three'], N=[1, 2])
-    >>> sorted(fill_patterns(patterns, fill, zip)['a']) # doctest: +IGNORE_EXCEPTION_DETAIL
-    Traceback (most recent call last):
-    ...
-    ValueError: {'sample': ['one', 'two', 'three'], 'N': [1, 2]} does not have the same number of entries for each key
-
-    But this works:
-
-    >>> patterns = dict(a='{sample}_R{N}.fastq')
-    >>> fill = dict(sample=['one', 'one', 'two', 'two', 'three', 'three'], N=[1, 2, 1, 2, 1, 2])
-    >>> sorted(fill_patterns(patterns, fill, zip)['a'])
-    ['one_R1.fastq', 'one_R2.fastq', 'three_R1.fastq', 'three_R2.fastq', 'two_R1.fastq', 'two_R2.fastq']
-
-    """
-    # In recent Snakemake versions (e.g., this happens in 5.4.5) file patterns
-    # with no wildcards in them are removed from expand when `zip` is used as
-    # the combination function.
-    #
-    # For example, in 5.4.5:
-    #
-    #   expand('x', zip, d=[1,2,3]) == []
-    #
-    # But in 4.4.0:
-    #
-    #   expand('x', zip, d=[1,2,3]) == ['x', 'x', 'x']
-
-    if combination == zip:
-        lengths = set([len(v) for v in fill.values()])
-        if len(lengths) != 1:
-            raise ValueError(
-                f"{fill} does not have the same number of entries for each key"
-            )
-
-    def update(d, u, c):
-        for k, v in u.items():
-            if isinstance(v, collections.abc.Mapping):
-                r = update(d.get(k, {}), v, c)
-                d[k] = r
-            else:  # not a dictionary, so we're at a leaf
-                if isinstance(fill, pd.DataFrame):
-                    d[k] = list(set(expand(u[k], zip, **fill.to_dict("list"))))
-                else:
-                    d[k] = list(set(expand(u[k], c, **fill)))
-            if not d[k]:
-                d[k] = [u[k]]
-        return d
-
-    d = {}
-    return update(d, patterns, combination)
-
-
-def rscript(string, scriptname, log=None):
-    """
-    Saves the string as `scriptname` and then runs it
-
-    Parameters
-    ----------
-    string : str
-        Filled-in template to be written as R script
-
-    scriptname : str
-        File to save script to
-
-    log : str
-        File to redirect stdout and stderr to. If None, no redirection occurs.
-    """
-    with open(scriptname, "w") as fout:
-        fout.write(string)
-    if log:
-        _log = "> {0} 2>&1".format(log)
-    else:
-        _log = ""
-    shell("Rscript {scriptname} {_log}")
 
 
 def check_unique_fn(df):
@@ -720,23 +288,6 @@ def chipseq_preflight(config):
     preflight(config)
     if "peaks" not in config:
         config["peaks"] = []
-
-
-def strand_arg_lookup(config, lookup):
-    """
-    Given a config object and lookup dictionary, confirm that the config has
-    correctly specified strandedness and then return the value for that key.
-    """
-    if not config.stranded:
-        raise ConfigurationError(
-            "Starting in v1.8, 'stranded' is required in the config file. "
-            "Values can be 'unstranded', 'fr-firststrand' (R1 aligns antisense to original transcript), "
-            "or 'fr-secondstrand' (R1 aligns sense to original transcript)."
-        )
-    if config.stranded not in lookup:
-        keys = list(lookup.keys())
-        raise KeyError(f"'{config.stranded}' not one of {keys}")
-    return lookup[config.stranded]
 
 
 def filter_rrna_fastas(tmpfiles, outfile, pattern):
@@ -1012,24 +563,6 @@ def download_and_postprocess(urls, postprocess, outfile, log):
         raise ValueError(f"{outfile} does not appear to be gzipped.")
 
 
-def get_sampletable(config):
-    """
-    Return samples and pandas.DataFrame of parsed sampletable.
-
-    Returns the sample IDs and the parsed sampletable from the file specified
-    in the config.
-
-    The sample IDs are assumed to be the first column of the sampletable.
-
-    Parameters
-    ----------
-    config : dict
-    """
-    sampletable = pandas.read_csv(config["sampletable"], comment="#", sep="\t")
-    samples = sampletable.iloc[:, 0]
-    return samples, sampletable
-
-
 def get_techreps(sampletable, label):
     """
     Return all sample IDs for which the "label" column is `label`.
@@ -1176,25 +709,6 @@ def check_urls(config, verbose=False):
         )
 
 
-def check_all_urls_found(verbose=True):
-    """
-    Recursively loads all references that can be included and checks them.
-    Reports out if there are any failures.
-    """
-    check_urls(
-        {
-            "include_references": [
-                "include/reference_configs",
-                "test/test_configs",
-                "workflows/rnaseq/config",
-                "workflows/chipseq/config",
-                "workflows/references/config",
-            ]
-        },
-        verbose=verbose,
-    )
-
-
 def gff2gtf(gff, gtf):
     """
     Converts a gff file to a gtf format using the gffread function from Cufflinks
@@ -1203,10 +717,6 @@ def gff2gtf(gff, gtf):
         shell("gzip -d -S .gz.0.tmp {gff} -c | gffread - -T -o- | gzip -c > {gtf}")
     else:
         shell("gffread {gff} -T -o- | gzip -c > {gtf}")
-
-
-def wrapper_for(path):
-    return "file:" + os.path.join("../..", "wrappers", "wrappers", path)
 
 
 def detect_sra(sampletable):
