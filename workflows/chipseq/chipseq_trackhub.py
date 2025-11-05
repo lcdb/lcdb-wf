@@ -11,7 +11,6 @@ assumptions are indicated in the comments below.
 
 import os
 import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 import re
 import argparse
 from pprint import pprint
@@ -24,6 +23,7 @@ from trackhub import CompositeTrack, ViewTrack, SubGroupDefinition, Track, defau
 from trackhub.helpers import filter_composite_from_subgroups, dimensions_from_subgroups, hex2rgb
 from trackhub.upload import upload_hub, stage_hub
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 from lib import chipseq, utils
 
 ap = argparse.ArgumentParser()

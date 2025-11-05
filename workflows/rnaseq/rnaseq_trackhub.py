@@ -21,7 +21,7 @@ from trackhub import CompositeTrack, ViewTrack, SubGroupDefinition, Track, defau
 from trackhub.upload import upload_hub, stage_hub
 import argparse
 
-sys.path.insert(0, os.path.dirname(workflow.snakefile) + "/../..")
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 from lib import utils
 
 ap = argparse.ArgumentParser()
