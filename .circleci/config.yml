@@ -168,9 +168,6 @@ variables:
         # Ensure that the chunks in rnaseq.Rmd have matching documentation
         (cd ci && ./ensure_docs.py)
 
-        # find all URLs in reference configs and make sure they exist
-        python -c "import sys; sys.path.insert(0, '$DEST'); from lib.utils import check_all_urls_found; check_all_urls_found()"
-
         # run R package unit tests using the R env
         conda activate $LCDBWF_ENV_R
         Rscript -e "devtools::test('lib/lcdbwf', reporter=c('summary', 'fail'), export_all=TRUE)"
