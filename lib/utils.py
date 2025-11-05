@@ -766,9 +766,9 @@ def preflight(config, sampletable):
 
     # For non-SRA sampletables
     if "orig_filename" in sampletable.columns:
-        fns = df["orig_filename"]
-        if "orig_filename_R2" in df.columns:
-            fns = pd.concat([fns, df["orig_filename_R2"]])
+        fns = sampletable["orig_filename"]
+        if "orig_filename_R2" in sampletable.columns:
+            fns = pd.concat([fns, sampletable["orig_filename_R2"]])
         if len(fns.unique()) < len(fns):
             raise ValueError("Fastq filenames non unique, check the sampletable\n")
 
