@@ -156,14 +156,13 @@ def is_paired_end(sampletable, sample):
     #
     # So detect first detect if SRA sampletable based on presence of "Run"
     # column and all values of that column starting with "SRR", and then raise
-    # an error if the Layout column does not exist.
+    # an error if the Layout or LibraryLayout column does not exist.
 
-    if "Run" in sampletable.columns:
+    sra_layout_columns = ["layout", "librarylayout"]
+    sampletable_columns = [i.lower() for i in sampletable.columns]
+    if "run" in sampletable_columns:
         if all(sampletable["Run"].str.startswith("SRR")):
-            if (
-                "Layout" not in sampletable.columns
-                and "layout" not in sampletable.columns
-            ):
+            if len(set(sra_layout_columns).intersection(sampletable_columns)) == 0:
                 raise ValueError(
                     "Sampletable appears to be SRA, but no 'Layout' column "
                     "found. This is required to specify single- or paired-end "
@@ -232,62 +231,6 @@ def detect_layout(sampletable):
         else:
             report_ = f"PE samples: {p}"
         raise ValueError(f"Only a single layout (SE or PE) is supported. {report_}")
-
-
-def check_unique_fn(df):
-    """
-    Raises an error if the fastq filenames are not unique
-    """
-    fns = df["orig_filename"]
-    if "orig_filename_R2" in df.columns:
-        fns = pd.concat([fns, df["orig_filename_R2"]])
-    if len(fns.unique()) < len(fns):
-        raise ValueError("Fastq filenames non unique, check the sampletable\n")
-
-
-def check_unique_samplename(df):
-    """
-    Raises an error if the samplenames are not unique
-    """
-    ns = df.index
-    if len(ns.unique()) < len(ns):
-        raise ConfigurationError("Samplenames non unique, check the sampletable\n")
-
-
-def preflight(config):
-    """
-    Performs verifications on config and sampletable files
-
-    Parameters
-    ----------
-    config: yaml config object
-    """
-    sampletable = pd.read_table(config["sampletable"], index_col=0, comment="#")
-    check_unique_samplename(sampletable)
-    if "orig_filename" in sampletable.columns:
-        check_unique_fn(sampletable)
-    if "genome" not in config:
-        raise ConfigurationError("Config is missing 'genome' key")
-    if "url" not in config["genome"]:
-        raise ConfigurationError("Config is missing 'url' key for 'genome'")
-
-
-def rnaseq_preflight(config):
-    preflight(config)
-    if "annotation" not in config:
-        raise ConfigurationError("Config is missing 'annotation' key")
-    if "url" not in config["annotation"]:
-        raise ConfigurationError("Config is missing 'url' key for 'annotation'")
-    if "stranded" not in config:
-        raise ConfigurationError("Config is missing 'stranded' key")
-    if "organism" not in config:
-        raise ConfigurationError("Config is missing 'organism' key")
-
-
-def chipseq_preflight(config):
-    preflight(config)
-    if "peaks" not in config:
-        config["peaks"] = []
 
 
 def filter_rrna_fastas(tmpfiles, outfile, pattern):
@@ -809,20 +752,86 @@ def mappings_tsv(
             writer.writerow(unlist_dict(row))
 
 
-def prepare_chipseq_sampletable(config):
-    chipseq_preflight(config)
+def preflight(config, sampletable):
+    """
+    Performs verifications on config and sampletable files
+
+    Parameters
+    ----------
+    config: yaml config object
+    """
+
+    if len(sampletable) != len(sampletable.iloc[:, 0].unique()):
+        raise ConfigurationError("Samplenames non unique, check the sampletable")
+
+    # For non-SRA sampletables
+    if "orig_filename" in sampletable.columns:
+        fns = df["orig_filename"]
+        if "orig_filename_R2" in df.columns:
+            fns = pd.concat([fns, df["orig_filename_R2"]])
+        if len(fns.unique()) < len(fns):
+            raise ValueError("Fastq filenames non unique, check the sampletable\n")
+
+    if "genome" not in config:
+        raise ConfigurationError("Config is missing 'genome' key")
+    if "url" not in config["genome"]:
+        raise ConfigurationError("Config is missing 'url' key for 'genome'")
+
+
+def rnaseq_preflight(config, sampletable):
+    preflight(config, sampletable)
+    if "annotation" not in config:
+        raise ConfigurationError("Config is missing 'annotation' key")
+    if "url" not in config["annotation"]:
+        raise ConfigurationError("Config is missing 'url' key for 'annotation'")
+    if "stranded" not in config:
+        raise ConfigurationError("Config is missing 'stranded' key")
+    if "organism" not in config:
+        raise ConfigurationError("Config is missing 'organism' key")
+
+
+def chipseq_preflight(config, sampletable):
+    preflight(config, sampletable)
+    if "peaks" not in config:
+        config["peaks"] = []
+
+
+def read_sampletable(config):
+    """
+    Given a config object, return the sampletable with the first column used as the index.
+
+    Autodetect tsv/csv.
+    """
     sampletable_fn = config.get("sampletable", "config/sampletable.tsv")
-    sampletable = pd.read_table(sampletable_fn, sep="\t", comment="#")
+    if sampletable_fn.endswith(".tsv"):
+        sep = "\t"
+    elif sampletable_fn.endswith(".csv"):
+        sep = ","
+    else:
+        raise ConfigurationError(
+            f"Sampletable should end in .csv or .tsv to indicate format, got {sampletable_fn}"
+        )
+    sampletable = pd.read_table(sampletable_fn, sep=sep, comment="#")
     sampletable = sampletable.set_index(sampletable.columns[0], drop=False)
+    return sampletable
+
+
+def prepare_chipseq_sampletable(config):
+    """
+    Given a config, return the validated and prepared ChIP-seq table.
+    """
+    sampletable = read_sampletable(config)
     sampletable["label"] = sampletable["label"].fillna(sampletable.iloc[:, 0])
+    chipseq_preflight(config, sampletable)
     return sampletable
 
 
 def prepare_rnaseq_sampletable(config):
-    rnaseq_preflight(config)
-    sampletable_fn = config.get("sampletable", "config/sampletable.tsv")
-    sampletable = pd.read_table(sampletable_fn, sep="\t", comment="#")
-    sampletable = sampletable.set_index(sampletable.columns[0], drop=False)
+    """
+    Given a config, return the validated and prepared RNA-seq table.
+    """
+    sampletable = read_sampletable(config)
+    rnaseq_preflight(config, sampletable)
     return sampletable
 
 
