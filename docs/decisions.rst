@@ -641,4 +641,122 @@ are available but the top-level is actually primary (rat, Ensembl); A GTF might
 not be available (pombe, Ensembl); or only a toplevel assembly is available and
 we need to remove the haplotypes and alt loci out (hg19, Ensembl).
 
+.. _decisions-sample-specific-params:
 
+Lack of sample-specific parameters
+----------------------------------
+
+Currently if we have samples with different library preps that need different
+arguments for cutadapt, then they need to be split into two separate workflow
+directories. Supporting sample-specific parameters would certainly be possible,
+but the addtional complexity this would impose would go against the goal of
+reducing complexity. For example, we'd need a location to store multiple sets
+of parameters (probably in the config file) and a mechanism to retrieve them
+based on sample names. This could be an additional column in the sampletable
+indicating "parameter sets", which could be used as a lookup in a ``params:``
+directive lookup function.
+
+Again, this would be possible, but it is a deliberate design choice to opt for
+a simpler approach, which is to use multiple workflow directories and edit the
+respective Snakefiles appropriately. In cases where samples across the split
+workflows need to be compared or considered together, an additional workflow
+can be introduced to aggregate their output.
+
+PEP support
+-----------
+
+Support for `Portable Encapsulated Projects
+<http://pep.databio.org/spec/specification/>`__ is built into Snakemake. Using
+a combination of PEP config files, sample tables, and subsample tables, it is
+possible to set up the workflows to use PEP in such a way that it can be
+backwards-compatible with prior lcdb-wf versions. Specifically, by providing
+TSV sampletables, forcing a sample column name, and populating the table with
+subsamples. It would be convenient to offload the complexity of handling
+technical replicate configuration to a third-party package.
+
+However, getting technical replicates to work correctly proved to be tricky,
+due to the way they come in as lists in the resulting dataframe with PEP. While
+it would be possible to fix this, some initial experimentation with this
+suggested that it would actually be more complex to do that, so deferring to
+another package did not result in a net gain in convenience or in complexity
+reduction.
+
+PEP configs are not ruled out completely, but we might need a rewiring and
+possible rewriting of the ChIP-seq (and possibly RNA-seq) workflows to fully
+support PEP subsamples. I don't consider that effort to be worth it right now,
+especially because the current config system already supports technical
+replicates.
+
+Technical replicates
+--------------------
+In practice, it's not uncommon for something to go wrong in library prep or
+sequencing such that it makes sense to re-do a library. Typically, if it's just
+resequencing the same library (perhaps after rebalancing the multiplexing), we
+consider that a technical replicate.
+
+The conventional method for handling technical replicates in RNA-seq is to sum
+the counts. That is, we take the Salmon or featureCounts files, where technical
+replicates are quantified separately, and sum them after import into R. This
+allows us to check QC on individual tech reps e.g. to see if they worked. If we
+merged at an early stage (like cocatting the FASTQs), then we would not be able
+to check QC separately.
+
+For ChIP-seq, the conventional method is to merge BAM files. However, we still
+want to keep observability of individual technical replicates where possible,
+which includes inspecting duplicates. However, when we merge BAMs of technical
+replicates that each had duplicates removed, it's possible that we're
+introducing additional duplicates. So we do another round of duplicate removal
+after merging.
+
+The end result of all of this is that we get MultiQC output for all of the
+technical replicates separately. For ChIP-seq, the post-merging files are
+bigWigs and merged-and-deduped BAMs. Currently these do not have separate
+entries in MultiQC.
+
+Removing built-in support for plotFingerprint
+---------------------------------------------
+
+deepTools' `plotFingerprint
+<https://deeptools.readthedocs.io/en/develop/content/tools/plotFingerprint.html>`__
+needs matched input to each antibody. Previously, we configured this in the
+sampletable with the combination of "biological_material" and "antibody"
+columns. Samples with exactly "input" as the antibody were the matched control
+for the non-input samples with the same biological material.
+
+This ended up being a little complicated because "biological material" is easily
+confused with "biological replicate". And now with common CUT&RUN and Cut&Tag
+assays that use IgG as control, "IgG" and "control" should probably be aliases
+for "input".
+
+It turns out the "biological_material" column was only ever used for the
+plotFingerprint rule. It introduced complexity (in code, configuration,
+documentation, and user support) for a single rule. In addition, in practice we
+ended up visualizing the bigWigs rather than relying exclusively on the
+plotFingerprint metrics. So to reduce complexity, plotFingerpring support is
+being removed.
+
+Clearer ChIP-seq config
+-----------------------
+
+For "label", it was not clear that it was the merged name. And even if there
+were no technical replicates in an experiment, it still needed to be filled out
+with copies of the sample name.
+
+Now, ``merged_label`` is an alias for ``label``. If the column is missing
+entirely, or if the value is empty for a row, then the samplename will be used
+automatically.
+
+Removal of autobump
+-------------------
+For several versions, resources were wrapped with the ``autobump()`` function,
+which would automatically retry jobs with more resources if they failed. Turns
+out this wasn't as helpful as expected, because errors (like syntax errors or
+other mistakes) ended up being a lot more frequent than exceeding resources.
+This resulted in escalating resource allocations and longer run time with no
+need. So the autobump was removed.
+
+Cleanup of lib/utils.py
+-----------------------
+We had accumulated a lot of useful functions over time, but things have changed
+enough that they haven't been used. To avoid clutter and additional maintenance
+burden in supporting otherwise unused code, these functions were removed.
