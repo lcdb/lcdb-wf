@@ -23,14 +23,17 @@ Configuration happens in two places:
 Config file
 -----------
 
+Within a workflow directory, the default config file is expected to be at :file:`config/config.yaml`.
+
 Config files, at a minimum, specify which reference FASTA to use (:ref:`reference-config`).
 
-For RNA-seq (:ref:`rnaseq-config`) the config file also specifies strandedness.
+For RNA-seq (:ref:`rnaseq-config`) the config file also specifies a GTF
+reference and strandedness of the libraries.
 
 For ChIP-seq (:ref:`chipseq-config`) the config file specifies peak-calling runs.
 
-Config files are in YAML format. By default, they are expected to be at
-:file:`config/config.yaml`, but you can override from the command line like this::
+You can override the default config file location when calling snakemake like
+this::
 
   snakemake --configfile="otherdir/myconfig.yaml" ...
 
@@ -39,8 +42,39 @@ default config file (:file:`config/config.yaml`).
 
 .. _reference-config:
 
-Configuring genome fasta (RNA-seq & ChIP-seq)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+References section
+~~~~~~~~~~~~~~~~~~
+
+This section is just about the references part of the config; see
+:ref:`rnaseq-config` and :ref:`chipseq-config` for any additional config for
+those workflows.
+
+Using included reference config templates
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The repository includes pre-configured reference genome and annotation
+templates in :file:`include/reference_config_templates/` for common model
+organisms. These templates provide organism name, genome FASTA URL, and
+annotation GTF URL (for RNA-seq). They can be used for both ChIP-seq and
+RNA-seq to conveniently fill in the references part of the config.
+
+This is the easiest way to configure references. There are two ways to use
+these templates:
+
+1. Command-line: Point to the template using ``--configfile`` when calling Snakemake::
+
+    snakemake --configfile=../../include/reference_config_templates/Homo_sapiens/GENCODE.yaml ...
+
+   This merges the template with your default :file:`config/config.yaml`,
+   creating new or replacing existing keys.
+
+2. Copy-paste: Copy the contents from a template file into your
+   :file:`config/config.yaml` file.
+
+Otherwise, see the next section for customizing the references section.
+
+Configuring references
+^^^^^^^^^^^^^^^^^^^^^^
 
 Both RNA-seq and ChIP-seq need a reference fasta configured, like this:
 
@@ -49,24 +83,65 @@ Both RNA-seq and ChIP-seq need a reference fasta configured, like this:
   genome:
     url: <URL to gzipped FASTA file>
 
-The value of ``url`` can be a file, like
-``file:///data/references/Homo_sapiens/gencode.fa.gz``, or any FTP or HTTP URL.
+
+RNA-seq also needs a GTF annotation configured, which works similarly:
+
+.. code-block:: yaml
+
+  annotation:
+    url: <URL to gzipped GTF>
 
 
-You could optionally use the included reference configs to fill in the genome
-and annotation from the commandline, and Snakemake would be called like this::
+The value of ``url`` can be a file (like
+``file:///data/references/Homo_sapiens/gencode.fa.gz``) or any FTP or HTTP URL.
 
-  snakemake --configfile=../../include/reference_config_templates/Homo_sapiens/GENCODE.yaml ...
+This is useful if you have existing reference files you want to use.
 
-Or you could copy the contents of the reference config templates and paste in
-your own :file:`config/config.yaml`.
+By default, reference files will be downloaded to the :file:`references`
+directory within the current workflow. Aligner indexes will be built here as well.
+
+For ChIP-seq, the references directory will look like:
+
+.. code-block:: text
+
+  references/
+  ├── genome.fa.gz  # Downloaded FASTA
+  ├── bowtie2/  # bowtie2 index
+  │   └── genome.*.bt2
+  └── genome.chromsizes  # chromsizes from fasta
+
+For RNA-seq, it will look like:
+
+.. code-block:: text
+
+  references/
+  ├── bowtie2/  # bowtie2 index for rRNA
+  │   └── rrna.*.bt2
+  ├── salmon/  # salmon index
+  ├── star/   # STAR index
+  ├── annotation.gtf.gz  # downloaded GTF
+  ├── annotation.refflat # GTF converted to refflat
+  ├── annotation.bed12   # GTF converted to bed12
+  ├── annotation.mapping.tsv.gz  # TSV of attributes from GTF
+  ├── genome.fa.gz  # downloaded FASTA
+  ├── genome.fa.fai  # chrom sizes
+  ├── rrna.fa.gz  # rRNA sequence for organism from SILVA
+  └── transcriptome.fa.gz  # created from genome FASTA and GTF
 
 
-- url can be file
-- postprocessing
-- overrides
-- included reference configs
+See :ref:`decisions-references` for a discussion on why it's done this way. You
+can control this behavior by using the optional ``references`` entry in the
+config file, which will instead look for (and create if needed) the specified
+directory. If you do this, keep in mind that each reference directory uses
+generic labels like ``genome``, ``annotation``, etc, so using the same
+directory for different organisms will cause the files to be overwritten for
+the last-run organism. So if you use this approach you should consider putting
+your references in directories named after organisms and the versions of
+aligners used.
 
+
+
+.. _rnaseq-config:
 
 RNA-seq config
 ~~~~~~~~~~~~~~
@@ -101,21 +176,23 @@ Here is an example for human:
       url: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_49/gencode.v49.primary_assembly.annotation.gtf.gz"
     stranded: "fr-firststrand"
 
-In :file:`include/reference_configs` you can find configs for common model
-organisms. These have both genome and annotation, so you can point Snakemake to
-them on the command line. You would still need to specify strandedness, which
-can be the only config entry in :file:`config/config.yaml`. Or it could be
-specified directly on the command line, like this:
+In :file:`include/reference_config_templates` you can find configs for common
+model organisms. These have both genome and annotation, so you can point
+Snakemake to them on the command line. You would still need to specify
+strandedness, which can be a config entry in
+:file:`config/config.yaml`. Or it could be specified directly on the command
+line, like this:
 
 .. code-block:: bash
 
   snakemake \
-    --configfile=../../include/reference_configs/Homo_sapiens/GENCODE.yaml \
+    --configfile=../../include/reference_config_templates/Homo_sapiens/GENCODE.yaml \
     --config stranded=fr-firststrand
 
-(in this case no separate :file:`config/config.yaml` would be needed, as long
-as you use the default :file:`config/sampletable.tsv` as your sampletable)
+(in this case a separate :file:`config/config.yaml` would not be needed, as
+long as you use the default :file:`config/sampletable.tsv` as your sampletable)
 
+.. _chipseq-config:
 
 ChIP-seq config
 ~~~~~~~~~~~~~~~
@@ -225,7 +302,7 @@ RNA-seq sample table
 ~~~~~~~~~~~~~~~~~~~~
 
 Here is an example minimal sample table for single-end RNA-seq data. The column
-``orig_filename`` is required:
+``orig_filename`` is required. Paths are **relative to the Snakefile**.
 
 .. code-block:: text
 
@@ -248,9 +325,8 @@ For paired-end data, we need to specify the second end of the pair in the
     t2       ../../raw-data/t2_1.fq.gz       ../../raw-data/t2_2.fq.gz
 
 
-Relative paths are interpreted relative to the Snakefile
-(:file:`workflows/rnaseq`), so the paired-end example above would result in the
-following symlinks being created:
+The paired-end example above would result in the following symlinks being
+created:
 
 .. code-block:: text
 
@@ -369,3 +445,109 @@ With the sampletable above, a peak-calling config section might then look like t
   In general, you may find it useful to add an antibody column and a chromatin
   prep column to the sampletable so you know which inputs/controls go with
   which IPs.
+
+Advanced: post-processing reference files
+-----------------------------------------
+
+In some cases, reference files may need to be modified after download. This is
+becoming increasingly rare thanks to updates from providers like Ensembl and
+NCBI, but sometimes files need to be post-processed. For example:
+
+- only a GFF is available, so it needs to be post-processed into GTF format
+- extra chromosomes are included that should be removed
+- renaming chromosomes (e.g. to match UCSC Genome Browser nomenclature)
+- adding transgenic constructs to FASTA and/or GTF
+- removing problematic annotations (like trans-splicing events which some tools have issues with)
+
+To handle these situations, a reference file config can take an optional
+``postprocess:`` key. This is a string containing a dotted name referring to
+a Python function importable by :file:`lib.utils`. For
+:file:`lib/postprocess/__init__.py` has many such functions, but you can write
+your own.
+
+This is a bit of an advanced topic. See the help and comments in
+``lib.utils.download_and_postprocess`` (in the file :file:`lib/utils.py`) for
+details; the following attempts to provide enough information and direction
+for you to implement your own customizations.
+
+A function used for post-processing must have the signature:
+
+.. code-block:: python
+
+    def name_of_function(tmpfiles, outfile, **kwargs):
+        pass
+
+It should expect ``tmpfiles`` to be a list of files that were just downloaded,
+and ``outfile`` is the final gzipped file to create.
+
+If the function does not need any kwargs, configure it like this:
+
+.. code-block:: yaml
+
+  genome:
+    url: <URL>
+    postprocess: "lib.postprocess.name_of_function"
+
+If it needs kwargs, configure it like this:
+
+.. code-block:: yaml
+
+  genome:
+    url: <URL>
+    postprocess:
+      function: "lib.postprocess.name_of_function"
+      kwargs:
+        kwarg1:
+          - list
+          - of
+          - items
+        verbose: true
+
+Note these examples use the genome fasta, but the functionality works for
+annotations as well.
+
+If a post-processing function has a keyword argument with starts and ends with
+a double underscore (``__``), the config system will assume this is a string
+that should be interpreted as a dotted function name and the actual function
+will be resolved and passed to the post-processing function.
+
+Here is a complete (and complex) example to illustrate the mechanism. In this
+example, we want to include ERCC spike-ins to the reference genome as well as
+to the GTF file so we can quantify them. However, only a GFF file is available
+for *S. pombe*, so we also need to post-process that into a GTF before
+appending ERCC annotations. As another wrinkle, there is no ERCC spike-in GTF,
+so we need to create our own from the FASTA file. Here is how this would be
+configured:
+
+.. code-block:: yaml
+
+    genome:
+      url:
+        # S. pombe fasta
+        - "ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/fasta/schizosaccharomyces_pombe/dna/Schizosaccharomyces_pombe.ASM294v2.dna_sm.toplevel.fa.gz"
+        # ERCC fasta
+        - "https://tsapps.nist.gov/srmext/certificates/documents/SRM2374_Sequence_v1.FASTA"
+      postprocess:
+        # See lib/postprocess/ercc.py
+        function: "lib.postprocess.ercc.add_fasta_to_genome"
+
+    annotation:
+      url:
+        # S. pombe GFF, which needs to be converted to GTF
+        - "ftp://ftp.ensemblgenomes.org/pub/fungi/release-41/gff3/schizosaccharomyces_pombe/Schizosaccharomyces_pombe.ASM294v2.41.gff3.gz"
+
+        # ERCC GTF is not available; conversion function needed to convert
+        # fasta to GTF
+        - "https://tsapps.nist.gov/srmext/certificates/documents/SRM2374_Sequence_v1.FASTA"
+
+      postprocess:
+        function: "lib.postprocess.ercc.add_gtf_to_genome"
+        kwargs:
+          # As per the docs for add_gtf_to_genome(), this function will be
+          # applied to all but the last input file. It is specified as a string
+          # here, but the config-processing system will resolve this to the
+          # actual function and pass that along to add_gtf_to_genome
+          __preprocess__: "lib.common.gff2gtf"
+
+The end result is a genomic fasta with ERCC spike-ins added and a GTF version
+of Ensembl's GFF file with ERCC spike-ins added as additional annotations.
