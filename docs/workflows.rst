@@ -43,43 +43,42 @@ completes due to the frequent need for project-specific customization.
 
 The primary output of the Snakefile consists of the following:
 
-- Salmon quantification files for each sample
+- Salmon quantification files for each sample:
 
-::
+.. code-block:: text
 
   data/rnaseq_samples/{sample_id}/{sample_id}.salmon/quant.sf
 
+- Aligned BAM files for each sample (duplicates marked but not removed):
 
-- aligned BAM files for each sample (duplicates marked but not removed)
-
-::
+.. code-block:: text
 
    data/rnaseq_samples/{sample_id}/{sample_id}.cutadapt.markdups.bam
 
-- strand-specific bigWig files for each sample
+- Strand-specific bigWig files for each sample:
 
-::
+.. code-block:: text
 
   data/rnaseq_samples/{sample_id}/{sample_id}.cutadapt.bam.neg.bigwig
   data/rnaseq_samples/{sample_id}/{sample_id}.cutadapt.bam.pos.bigwig
 
-- single featureCounts file with all samples
+- Single featureCounts file with all samples:
 
-::
+.. code-block:: text
 
   data/rnaseq_aggregation/featurecounts.txt
 
-- MultiQC output
+- MultiQC output:
 
-::
+.. code-block:: text
 
   data/rnaseq_aggregation/multiqc.html
 
 The primary output of the downstream analysis (:ref:`rnaseq-downstream`) is the
 final HTML report and the RDS files ready for exploration with `Carnation
-<https://github.com/NICHD-BSPC/carnation>`__.
+<https://github.com/NICHD-BSPC/carnation>`__:
 
-::
+.. code-block:: text
 
    downstream/rnaseq.html
    downstream/combined.Rds
@@ -92,9 +91,8 @@ ChIP-seq (and other chromatin-associated assays)
 **Config** :ref:`chipseq-config`
 
 This workflow can be used for various bulk Illumina-based sequencing assays related
-to chromatin binding, like ChIP-seq, CUT&RUN, Cut&Tag, ATAC-seq. There may need
-to be modifications you need to make within the particular tool calls, but the
-framework is useful for all of them.
+to chromatin binding, including ChIP-seq, CUT&RUN, Cut&Tag, and ATAC-seq. You may need
+to make modifications to specific tool parameters, but the framework is useful for all of them.
 
 This workflow trims raw reads with cutadapt, aligns with bowtie2, and runs peak
 calling on all samples. Extensive QC is performed at each stage which is
@@ -102,35 +100,35 @@ aggregated with MultiQC.
 
 The biggest advantage of using this workflow is the flexibility of
 peak-calling. Since peak-calling tends to need extensive tweaking depending on
-the antibody or assay, it is straightfoward to configure multiple peak-calling
-runs (different algorithmss, each with possibley different parameters) on the
+the antibody or assay, it is straightforward to configure multiple peak-calling
+runs (different algorithms, each with possibly different parameters) on the
 same sample, and view them all together in a genome browser to decide on
 a final strategy.
 
 The primary output of the Snakefile consists of the following:
 
-- aligned BAM files (multimappers removed, duplicates removed)
+- Aligned BAM files (multimappers removed, duplicates removed):
 
-::
+.. code-block:: text
 
   data/chipseq_samples/{sample_id}/{sample_id}.cutadapt.unique.nodups.bam
 
-- peak calls
+- Peak calls:
 
-::
+.. code-block:: text
 
   data/chipseq_peaks/{algorithm}/{peak_run}/peaks.bed
   data/chipseq_peaks/{algorithm}/{peak_run}/peaks.bigbed
 
-- bigWigs for merged technical replicates
+- BigWig files for merged technical replicates:
 
-::
+.. code-block:: text
 
-  data/chipseq_merged/{biological_material}/{biological-material}.cutadapt.unique.nodups.bam.bigwig
+  data/chipseq_merged/{merged_label}/{merged_label}.cutadapt.unique.nodups.bam.bigwig
 
-- MultiQC output
+- MultiQC output:
 
-::
+.. code-block:: text
 
   data/chipseq_aggregation/multiqc.html
 
@@ -138,32 +136,39 @@ The primary output of the Snakefile consists of the following:
 Multiple workflows
 ------------------
 
-If you have multiple experiments of the same type, and the same parameters can
-be used for all of them, then they can go in the same sampletable. 
+When to use multiple workflows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If samples need different parameters in any way, then make a copy of the
-respective workflow directory and consider them as part of a different workflow.
+**Same sampletable:** If you have multiple experiments of the same type and the same parameters can
+be used for all of them, then they can go in the same sampletable.
 
-(see :ref:`decisions-sample-specific-params` for rationale on this)
+**Separate workflows:** If samples need different parameters in any way, then make a copy of the
+respective workflow directory and treat them as separate workflows.
 
-For example, miRNA-seq and SMART-seq would likely need different cutadapt
-parameters and maybe alignment parameters, so we might put them in different
-workflows:
+See :ref:`decisions-sample-specific-params` for the rationale behind this design choice.
 
-::
+Examples of multiple workflows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Different library preparations** require different parameters:
+
+.. code-block:: text
 
   workflows/
     mirnaseq/
     smartseq/
 
 Each of these would be a copy of the ``rnaseq`` workflow, but with appropriate
-changes in the respective Snakefiles.
+changes in the respective Snakefiles to handle different cutadapt parameters
+and alignment settings.
 
-This is also the mechanism for working with different genomes, which would have different references in the config::
+**Different organisms** require different reference genomes:
+
+.. code-block:: text
 
   workflows/
     chipseq-human/
     chipseq-mouse/
 
-Each workflow can be considered as independent, which gives lots of flexibility
-in configuring and customizing the Snakefile.
+Each workflow directory contains its own config file pointing to the appropriate
+reference genome and annotations.
