@@ -29,7 +29,7 @@ should be only one organism per workflow though.**
 - Re-using indexes is space- and time-efficient in the short term, but experience has
   shown it to be inefficient in time and reproducibility in the long term.
 - Keeping everything in the same deployment directory also helps with the
-  archiving process. 
+  archiving process.
 - We were hesitant to update the references in the central location due to
   being unsure of what was depending on them.
 - Overall, here we make the decision that the time and space cost to re-make
@@ -463,7 +463,7 @@ be run once per sample and then those outputs can be aggregated later. Previousl
 provided all BAMs to a single all-in-one call of featureCounts. However, for
 paired-end BAMs, featureCounts will internally name sort each BAM before
 counting. It does this serially. The result is possibly substantial memory
-usage and a lot of time. 
+usage and a lot of time.
 
 One approach could be to temporarily name-sort BAMs in a separate rule,
 conditional on paired-end reads, and the featureCounts rule would need to have
@@ -648,18 +648,25 @@ Lack of sample-specific parameters
 
 Currently if we have samples with different library preps that need different
 arguments for cutadapt, then they need to be split into two separate workflow
-directories. Supporting sample-specific parameters would certainly be possible,
-but the addtional complexity this would impose would go against the goal of
-reducing complexity. For example, we'd need a location to store multiple sets
-of parameters (probably in the config file) and a mechanism to retrieve them
-based on sample names. This could be an additional column in the sampletable
-indicating "parameter sets", which could be used as a lookup in a ``params:``
-directive lookup function.
+directories and the Snakefiles edited accordingly to have the correct parameters
+for rules.
 
-Again, this would be possible, but it is a deliberate design choice to opt for
-a simpler approach, which is to use multiple workflow directories and edit the
-respective Snakefiles appropriately. In cases where samples across the split
-workflows need to be compared or considered together, an additional workflow
+Supporting sample-specific parameters would certainly be possible. But this
+would go against the goal of reducing complexity.
+
+For example, we'd need a location to store multiple sets of parameters (probably
+in the config file) and a mechanism to retrieve them based on sample names. This
+could be an additional column in the sampletable indicating "parameter sets".
+Then we could create a lookup table in the config storing the different
+parameter sets, with each set containing parameters for all rules. We'd need to
+handle default params in case they weren't specified. Then we'd need to have
+each rules' ``params:`` directive do the lookup in a sample-specific manner,
+which would be a lookup function in :file:`lib/utils.py`.
+
+Again, this would all be possible. But to reduce complexity it is a deliberate
+design choice to opt for a simpler approach: use multiple workflow directories
+and edit the respective Snakefiles appropriately. In cases where samples need to
+be compared or considered together across the workflows, an additional workflow
 can be introduced to aggregate their output.
 
 PEP support
@@ -686,6 +693,8 @@ possible rewriting of the ChIP-seq (and possibly RNA-seq) workflows to fully
 support PEP subsamples. I don't consider that effort to be worth it right now,
 especially because the current config system already supports technical
 replicates.
+
+.. _decisions-techreps:
 
 Technical replicates
 --------------------
@@ -760,3 +769,5 @@ Cleanup of lib/utils.py
 We had accumulated a lot of useful functions over time, but things have changed
 enough that they haven't been used. To avoid clutter and additional maintenance
 burden in supporting otherwise unused code, these functions were removed.
+
+

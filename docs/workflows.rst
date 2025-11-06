@@ -1,145 +1,169 @@
 .. _workflows:
 
-Overview of workflows
-=====================
+Workflows
+=========
 
-.. note::
+The workflows are RNA-seq-like, ChIP-seq-like, and variant calling.
 
-   These workflows **are intended to be edited and customized by the user**.
+They are currently labeled ``rnaseq``, ``chipseq``, and ``variant-calling``,
+but you can rename the workflow directories to whatever you need. And you can
+make copies of a workflow directory to support multiple experiments.
 
-   See :ref:`getting-started` for recommendations on setting up these workflows in
-   your project directory.
+If multiple experiments can all use the same parameters in the Snakefile, all
+the samples can be combined into the same sampletable. But if they differ --
+for example, they had different library prep such that the cutadapt parameters
+need to be changed -- then they need to split up into multiple workflow
+directories, each with their own sample and with respective edits to the
+Snakefile. See :ref:`decisions-sample-specific-params` for rationale.
 
-Each workflow lives in its own directory:
+RNA-seq
+-------
+
+**Sampletable:** :ref:`rnaseq-sampletable`
+
+**Config:** :ref:`rnaseq-config`
+
+**Downstream:** :ref:`rnaseq-downstream`
+
+This workflow can be used for any bulk Illumina-based RNA-seq-like assay that
+quantifies transcripts of some sort and where a gene-by-sample matrix of counts
+is useful.
+
+This of course includes standard bulk RNA-seq, but also things like
+RIP-seq, small RNA-seq, or even differential ChIP-seq within gene
+bodies.
+
+This workflow trims raw reads with cutadapt, aligns with STAR and quantifies
+reads in genes with featureCounts. It also quantifies reads with Salmon.
+Extensive QC is performed at each stage and is aggregated with MultiQC.
+
+The biggest advantage of using this workflow is the extensive downstream
+analysis (see :ref:`rnaseq-downstream`), which is run after the Snakefile
+completes due to the frequent need for project-specific customization.
+
+The primary output of the Snakefile consists of the following:
+
+- Salmon quantification files for each sample
 
 ::
 
-    ├── references/
-    │   ├── Snakefile
-    │   └── ...
-    ├── rnaseq/
-    │   ├── Snakefile
-    │   └── ...
-    ├── chipseq/
-    │   ├── Snakefile
-    │   └── ...
-    ├── colocalization/
-    │   ├── Snakefile
-    │   └── ...
-    ├── external/
-    │   ├── Snakefile
-    │   └── ...
-    └── figures/
-        ├── Snakefile
-        └── ...
+  data/rnaseq_samples/{sample_id}/{sample_id}.salmon/quant.sf
 
 
-There are two general classes of workflows, **primary analysis** and the
-**integrative analysis**. 
+- aligned BAM files for each sample (duplicates marked but not removed)
 
-Each workflow is driven by a ``Snakefile`` and is configured by plain text
-`YAML <https://en.wikipedia.org/wiki/YAML>`_ and `TSV
-<https://en.wikipedia.org/wiki/Tab-separated_values>`_ format files (see
-:ref:`config` for much more on this).
+::
 
-Features common to workflows
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In this section, we will take a higher-level look at the features common to
-the primary analysis workflows.
+   data/rnaseq_samples/{sample_id}/{sample_id}.cutadapt.markdups.bam
 
-- The ``lib`` module is imported in each Snakefile, allowing various helper
-  functions to be used.
+- strand-specific bigWig files for each sample
 
-- The config file is hard-coded to be ``config/config.yaml`` by default, but
-  a custom config can be specified at the command-line, using  ``snakemake
-  --configfile <path to other config file>``.
+::
 
-- The config file is loaded using ``lib.common.load_config``. This function
-  resolves various paths (especially the references config section) and checks
-  to see if the config is well-formatted.
+  data/rnaseq_samples/{sample_id}/{sample_id}.cutadapt.bam.neg.bigwig
+  data/rnaseq_samples/{sample_id}/{sample_id}.cutadapt.bam.pos.bigwig
 
-- The ``c`` object: To make it easier to work with the config, a `SeqConfig`
-  object is created. It needs that parsed config file as well as the patterns
-  file (see :ref:`patterns-and-targets` for more on this). The act of creating
-  this object reads the sample table, fills in the patterns with sample names,
-  creates a reference dictionary (see ``common.references_dict``) for easy
-  access to reference files, and for ChIP-seq, also fills in the filenames for
-  the configured peak-calling runs. This object, called ``c`` for convenience,
-  can be accessed to get all sort of information -- ``c.sampletable``,
-  ``c.config``, ``c.patterns``, ``c.targets``, and ``c.refdict`` are frequently
-  used in rules throughout the Snakefiles.
+- single featureCounts file with all samples
+
+::
+
+  data/rnaseq_aggregation/featurecounts.txt
+
+- MultiQC output
+
+::
+
+  data/rnaseq_aggregation/multiqc.html
+
+The primary output of the downstream analysis (:ref:`rnaseq-downstream`) is the
+final HTML report and the RDS files ready for exploration with `Carnation
+<https://github.com/NICHD-BSPC/carnation>`__.
+
+::
+
+   downstream/rnaseq.html
+   downstream/combined.Rds
+
+ChIP-seq (and other chromatin-associated assays)
+------------------------------------------------
+
+**Sampletable:** :ref:`chipseq-sampletable`
+
+**Config** :ref:`chipseq-config`
+
+This workflow can be used for various bulk Illumina-based sequencing assays related
+to chromatin binding, like ChIP-seq, CUT&RUN, Cut&Tag, ATAC-seq. There may need
+to be modifications you need to make within the particular tool calls, but the
+framework is useful for all of them.
+
+This workflow trims raw reads with cutadapt, aligns with bowtie2, and runs peak
+calling on all samples. Extensive QC is performed at each stage which is
+aggregated with MultiQC.
+
+The biggest advantage of using this workflow is the flexibility of
+peak-calling. Since peak-calling tends to need extensive tweaking depending on
+the antibody or assay, it is straightfoward to configure multiple peak-calling
+runs (different algorithmss, each with possibley different parameters) on the
+same sample, and view them all together in a genome browser to decide on
+a final strategy.
+
+The primary output of the Snakefile consists of the following:
+
+- aligned BAM files (multimappers removed, duplicates removed)
+
+::
+
+  data/chipseq_samples/{sample_id}/{sample_id}.cutadapt.unique.nodups.bam
+
+- peak calls
+
+::
+
+  data/chipseq_peaks/{algorithm}/{peak_run}/peaks.bed
+  data/chipseq_peaks/{algorithm}/{peak_run}/peaks.bigbed
+
+- bigWigs for merged technical replicates
+
+::
+
+  data/chipseq_merged/{biological_material}/{biological-material}.cutadapt.unique.nodups.bam.bigwig
+
+- MultiQC output
+
+::
+
+  data/chipseq_aggregation/multiqc.html
 
 
-Primary analysis workflows
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-The primary analysis workflows are generally used for transforming raw data
-(fastq files) into usable results. For RNA-seq, that's differentially-expressed
-genes (along with comprehensive QC and analysis). For ChIP-seq, that's called
-peaks or differentially bound chromatin regions.
+Multiple workflows
+------------------
 
-The primary analysis workflows are:
+If you have multiple experiments of the same type, and the same parameters can
+be used for all of them, then they can go in the same sampletable. 
 
-   - References
-   - RNA-seq
-   - ChIP-seq
+If samples need different parameters in any way, then make a copy of the
+respective workflow directory and consider them as part of a different workflow.
 
-These are each described further in their respective sections.
+(see :ref:`decisions-sample-specific-params` for rationale on this)
 
-While the references workflow can be stand-alone, usually it is run as
-a by-product of running the RNA-seq or ChIP-seq workflows. Here we will
-focus on RNA-seq and ChIP-seq which share some common properties.
+For example, miRNA-seq and SMART-seq would likely need different cutadapt
+parameters and maybe alignment parameters, so we might put them in different
+workflows:
 
-Where possible, we prefer to have rules use the normal command-line syntax for
-tools (examples include rules calling samtools, deepTools bamCoverage, picard,
-salmon).  However in some cases we use wrapper scripts. 
+::
 
-Situtations where we use wrappers:
+  workflows/
+    mirnaseq/
+    smartseq/
 
-- Ensuring various aligners (HISAT2, Bowtie2, STAR, bwa) behave uniformly.
-  These wrappers call the aligner, followed by samtools sort and view. The end
-  result is that FASTQs go in, and a sorted BAM comes out.
-- Tools with legacy dependencies like Python 2.7 that must be run in an
-  independent environment (sicer, rseqc)
-- R analyses (particularly spp and dupradar, which build up an R script
-  incrementally before calling it).
-- Tools that need complicated setup, or handling output files hard-coded by the
-  tool (fastqc, fastq_screen).
+Each of these would be a copy of the ``rnaseq`` workflow, but with appropriate
+changes in the respective Snakefiles.
 
-In all cases, search for the string **NOTE:** in the Snakefile to read notes on
-how to configure each rule, and make adjustments as necessary. You may see some
-comments that say `# [TEST SETTINGS]`; you can ignore these, and see
-:ref:`test-settings` for more info.
+This is also the mechanism for working with different genomes, which would have different references in the config::
 
-.. note:: 
+  workflows/
+    chipseq-human/
+    chipseq-mouse/
 
-    If you have two different RNA-seq experiments, from different species, they
-    have to be run separately. However, if downstream analyses will use them both
-    then you would like to keep them in the same project. In this case, you can copy
-    the ``workflows/rnaseq`` directory to two other directories:
-
-    .. code-block:: bash
-
-        cp -r workflows/rnaseq workflows/genome1-rnaseq
-        cp -r workflows/rnaseq workflows/genome2-rnaseq
-
-    This way, downstream analyses can link to and utilize results from these
-    individual folders, while the whole project remains self-contained.
-
-Integrative analysis workflows
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The integrative analysis workflows take input from the primary workflows and
-tie them together.
-
-The integrative analysis workflows are described in :ref:`integrative`:
-
-- Colocalization
-- "External"
-- Figures
-
-These are each described in more detail in their respective sections.
-
-Next Steps
-~~~~~~~~~~
-
-Next we look at :ref:`config` for details on how to configure specific
-workflows.
+Each workflow can be considered as independent, which gives lots of flexibility
+in configuring and customizing the Snakefile.
