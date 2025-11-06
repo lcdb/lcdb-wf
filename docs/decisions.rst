@@ -3,6 +3,8 @@ Decision log
 
 This document keeps track of the reasoning behind various architecture decisions.
 
+.. _decisions-references:
+
 References
 ----------
 Here are use-cases we have that are common enough to warrant supporting:
@@ -34,6 +36,67 @@ should be only one organism per workflow though.**
   being unsure of what was depending on them.
 - Overall, here we make the decision that the time and space cost to re-make
   references for each project is worth the gain in simplicity and isolation.
+
+Arguments for and against a separate references workflow
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+RNA-seq, ChIP-seq, and the upcoming variant calling all need to do something
+with references, including possibly patching them. We have to deal with this
+inherent complexity. It initially made sense to put common rules in the
+separate references workflow.
+
+However, only a subset of the rules in the references workflow are actually
+shared across RNA-seq and ChIP-seq -- currently, only the bowtie2 index
+(genome-wide ChIP-seq alignment; rRNA screening for RNA-seq), the fasta rule,
+chromsizes, and the generic unzip rule. The other rules in the <v2.0 references
+workflow (gtf, mappings, conversion_bed12, conversion_refflat, kallisto_index,
+salmon_index, transcriptome_fasta, star_index, rrna) are all unique to RNA-seq.
+So the <v2.0 references workflow is actually mostly an RNA-seq-only references
+workflow. It would make more sense to have those RNA-seq-specific rules in the
+RNA-seq workflow directly.
+
+Furthermore, much of the complexity is handled in the
+lib.utils.download_and_postprocess function, rather than in the workflow rules.
+This is the function that downloads, figures out what functions to apply for
+post-processing, and outputs the prepared file. We already are using the utils
+module separately in the ChIP-seq and RNA-seq workflows, so there's no
+additional overhead to import it into the Snakefiles. We can use that function
+directly.
+
+Last, having a workflow split across two Snakefiles hampers the ability to
+understand the complete workflow.
+
+Taken together, it made more sense to eliminate the references workflow
+entirely, and port the rules to the respective workflows.
+
+
+Selection of reference genomes and annotations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Where possible, we select "primary" assemblies -- those with th canonical
+chromosomes and unassembled contigs (scaffolds) but NOT haplotypes, alternate
+loci, or assembly patches.
+
+`Heng Li's blog post
+<https://lh3.github.io/2017/11/13/which-human-reference-genome-to-use>`__ on
+the subject is a useful guideline. To summarize, we want to exclude alt contigs
+/ haplotypes because they may create multimapping issues, and we want to
+include unassembled contigs because excluding them would artificially decrease
+alignment percentage.
+
+Since lcdb-wf is intended to be used with arbitrary organisms, the PAR and
+mitochondrial sequences mentioned there are not relevant in general.
+
+Reference genome and annotation sources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+lcdb-wf has always been organism-agnostic. It would be nice to have a single
+source of all genomics data such that we could pass an organism name and get
+back the referencs. But even Ensembl and NCBI are not uniform in their support.
+Sometimes primary assemblies are available; sometimes primary chromosome fastas
+are available but the top-level is actually primary (rat, Ensembl); A GTF might
+not be available (pombe, Ensembl); or only a toplevel assembly is available and
+we need to remove the haplotypes and alt loci out (hg19, Ensembl).
 
 Reference nomenclature and directory structure
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -97,6 +160,84 @@ For ChIP-seq:
       genome.fasta <symlink to ../genome.fasta>
       <bowtie2 files>
 
+Zipping/unzipping references
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some tools need uncompressed files, others are fine with compressed. For example,
+STAR requires uncompressed FASTA and GTF files to build the index, but bowtie2
+can use a compressed fasta. gffread nees uncompressed FASTA and GTF to make
+a transcriptome fasta.
+
+Previously, anything using a FASTA or GTF would use the uncompressed version,
+and the ``unzip`` rule marked the uncompressed output as temporary. The problem
+with this was when we wanted to make a change in featureCounts. Since this used
+the temp uncompressed GTF file, the ``unzip`` rule needed to run again...but
+that would then trigger the STAR rule to rerun, because it too used that temp
+file and it was being changed (well, re-created but that's the same to
+Snakemake). As a result, we had to spend the time/resource cost to realign
+*everything* and all the downstream jobs after alignment, just to run
+featureCounts.
+
+Making the featureCounts rule use the compressed GTF avoids this issue. Now,
+just the transcriptome fasta and the STAR index need the uncompressed
+references, and these are set in the ``unzip`` rule to be temporary.
+
+Annotations
+~~~~~~~~~~~
+
+We use the most comprehensive annotations. For human and mouse, this is the
+GENCODE "comprehensive" annotation for the primary assembly, which will include
+many more than just protein-coding transcripts. For example, here are the
+frequencies of ``transcript_type`` values in GENCODE v19's comprehensive
+annotation:
+
+::
+
+  1726632 protein_coding
+  214952 nonsense_mediated_decay
+  154780 processed_transcript
+  135772 retained_intron
+   54584 lincRNA
+   44207 antisense
+   22976 processed_pseudogene
+   15313 pseudogene
+   11202 unprocessed_pseudogene
+    9477 miRNA
+    7090 transcribed_unprocessed_pseudogene
+    6149 misc_RNA
+    5783 snRNA
+    4521 snoRNA
+    3148 sense_intronic
+    1662 polymorphic_pseudogene
+    1610 rRNA
+    1430 unitary_pseudogene
+    1417 sense_overlapping
+    1117 IG_V_gene
+    1091 transcribed_processed_pseudogene
+    1035 non_stop_decay
+     755 TR_V_gene
+     681 IG_V_pseudogene
+     300 TR_J_gene
+     185 IG_C_gene
+     152 IG_D_gene
+     100 3prime_overlapping_ncrna
+      99 TR_V_pseudogene
+      80 IG_J_gene
+      66 Mt_tRNA
+      56 TR_C_gene
+      36 IG_C_pseudogene
+      12 TR_J_pseudogene
+      12 TR_D_gene
+       9 IG_J_pseudogene
+       6 Mt_rRNA
+       3 translated_processed_pseudogene
+
+Erring on the side of too many annotations (i.e., using the comprehensive
+annotation instead of a curated version) will result in more features, which at
+face value might make the FDR adjustment more harsh in DESeq2. But DESeq2's
+independent filtering (not even testing those features with so few reads that
+they would not reach significance) guards against this. So we stick with the
+comprehensive annotations when available.
 
 Params
 ------
@@ -423,37 +564,31 @@ Guidelines:
   call directly, to visually match the equivalent command-line call and to make
   it clear what should be edited.
 
-Arguments for and against a separate references workflow
---------------------------------------------------------
+Lack of sample-specific parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-RNA-seq, ChIP-seq, and the upcoming variant calling all need to do something
-with references, including possibly patching them. We have to deal with this
-inherent complexity. It initially made sense to put common rules in the
-separate references workflow.
+Currently if we have samples with different library preps that need different
+arguments for cutadapt, then they need to be split into two separate workflow
+directories and the Snakefiles edited accordingly to have the correct parameters
+for rules.
 
-However, only a subset of the rules in the references workflow are actually
-shared across RNA-seq and ChIP-seq -- currently, only the bowtie2 index
-(genome-wide ChIP-seq alignment; rRNA screening for RNA-seq), the fasta rule,
-chromsizes, and the generic unzip rule. The other rules in the <v2.0 references
-workflow (gtf, mappings, conversion_bed12, conversion_refflat, kallisto_index,
-salmon_index, transcriptome_fasta, star_index, rrna) are all unique to RNA-seq.
-So the <v2.0 references workflow is actually mostly an RNA-seq-only references
-workflow. It would make more sense to have those RNA-seq-specific rules in the
-RNA-seq workflow directly.
+Supporting sample-specific parameters would certainly be possible. But this
+would go against the goal of reducing complexity.
 
-Furthermore, much of the complexity is handled in the
-lib.utils.download_and_postprocess function, rather than in the workflow rules.
-This is the function that downloads, figures out what functions to apply for
-post-processing, and outputs the prepared file. We already are using the utils
-module separately in the ChIP-seq and RNA-seq workflows, so there's no
-additional overhead to import it into the Snakefiles. We can use that function
-directly.
+For example, we'd need a location to store multiple sets of parameters (probably
+in the config file) and a mechanism to retrieve them based on sample names. This
+could be an additional column in the sampletable indicating "parameter sets".
+Then we could create a lookup table in the config storing the different
+parameter sets, with each set containing parameters for all rules. We'd need to
+handle default params in case they weren't specified. Then we'd need to have
+each rules' ``params:`` directive do the lookup in a sample-specific manner,
+which would be a lookup function in :file:`lib/utils.py`.
 
-Last, having a workflow split across two Snakefiles hampers the ability to
-understand the complete workflow.
-
-Taken together, it made more sense to eliminate the references workflow
-entirely, and port the rules to the respective workflows.
+Again, this would all be possible. But to reduce complexity it is a deliberate
+design choice to opt for a simpler approach: use multiple workflow directories
+and edit the respective Snakefiles appropriately. In cases where samples need to
+be compared or considered together across the workflows, an additional workflow
+can be introduced to aggregate their output.
 
 featureCounts all-in-one or individually
 ----------------------------------------
@@ -479,102 +614,9 @@ matter of choosing the input file for featureCounts rule), it made the most
 sense to run featureCounts once, providing it all samples, and having it use
 the temporarily name-sorted BAMs as input for paired-end experiments.
 
-Selection of reference genomes and annotations
-----------------------------------------------
-
-Where possible, we select "primary" assemblies -- those with th canonical
-chromosomes and unassembled contigs (scaffolds) but NOT haplotypes, alternate
-loci, or assembly patches.
-
-`Heng Li's blog post
-<https://lh3.github.io/2017/11/13/which-human-reference-genome-to-use>`__ on
-the subject is a useful guideline. To summarize, we want to exclude alt contigs
-/ haplotypes because they may create multimapping issues, and we want to
-include unassembled contigs because excluding them would artificially decrease
-alignment percentage.
-
-Since lcdb-wf is intended to be used with arbitrary organisms, the PAR and
-mitochondrial sequences mentioned there are not relevant in general.
 
 
-Annotations
------------
 
-We use the most comprehensive annotations. For human and mouse, this is the
-GENCODE "comprehensive" annotation for the primary assembly, which will include
-many more than just protein-coding transcripts. For example, here are the
-frequencies of ``transcript_type`` values in GENCODE v19's comprehensive
-annotation:
-
-::
-
-  1726632 protein_coding
-  214952 nonsense_mediated_decay
-  154780 processed_transcript
-  135772 retained_intron
-   54584 lincRNA
-   44207 antisense
-   22976 processed_pseudogene
-   15313 pseudogene
-   11202 unprocessed_pseudogene
-    9477 miRNA
-    7090 transcribed_unprocessed_pseudogene
-    6149 misc_RNA
-    5783 snRNA
-    4521 snoRNA
-    3148 sense_intronic
-    1662 polymorphic_pseudogene
-    1610 rRNA
-    1430 unitary_pseudogene
-    1417 sense_overlapping
-    1117 IG_V_gene
-    1091 transcribed_processed_pseudogene
-    1035 non_stop_decay
-     755 TR_V_gene
-     681 IG_V_pseudogene
-     300 TR_J_gene
-     185 IG_C_gene
-     152 IG_D_gene
-     100 3prime_overlapping_ncrna
-      99 TR_V_pseudogene
-      80 IG_J_gene
-      66 Mt_tRNA
-      56 TR_C_gene
-      36 IG_C_pseudogene
-      12 TR_J_pseudogene
-      12 TR_D_gene
-       9 IG_J_pseudogene
-       6 Mt_rRNA
-       3 translated_processed_pseudogene
-
-Erring on the side of too many annotations (i.e., using the comprehensive
-annotation instead of a curated version) will result in more features, which at
-face value might make the FDR adjustment more harsh in DESeq2. But DESeq2's
-independent filtering (not even testing those features with so few reads that
-they would not reach significance) guards against this. So we stick with the
-comprehensive annotations when available.
-
-Zipping/unzipping references
-----------------------------
-
-Some tools need uncompressed files, others are fine with compressed. For example,
-STAR requires uncompressed FASTA and GTF files to build the index, but bowtie2
-can use a compressed fasta. gffread nees uncompressed FASTA and GTF to make
-a transcriptome fasta.
-
-Previously, anything using a FASTA or GTF would use the uncompressed version,
-and the ``unzip`` rule marked the uncompressed output as temporary. The problem
-with this was when we wanted to make a change in featureCounts. Since this used
-the temp uncompressed GTF file, the ``unzip`` rule needed to run again...but
-that would then trigger the STAR rule to rerun, because it too used that temp
-file and it was being changed (well, re-created but that's the same to
-Snakemake). As a result, we had to spend the time/resource cost to realign
-*everything* and all the downstream jobs after alignment, just to run
-featureCounts.
-
-Making the featureCounts rule use the compressed GTF avoids this issue. Now,
-just the transcriptome fasta and the STAR index need the uncompressed
-references, and these are set in the ``unzip`` rule to be temporary.
 
 Test framework
 --------------
@@ -630,44 +672,9 @@ Aligners don't seem to make that much of a difference, and officially
 supporting just one (plus a psueodaligner for RNA-seq) makes the workflows and
 config simpler.
 
-Reference genome and annotation sources
----------------------------------------
-
-lcdb-wf has always been organism-agnostic. It would be nice to have a single
-source of all genomics data such that we could pass an organism name and get
-back the referencs. But even Ensembl and NCBI are not uniform in their support.
-Sometimes primary assemblies are available; sometimes primary chromosome fastas
-are available but the top-level is actually primary (rat, Ensembl); A GTF might
-not be available (pombe, Ensembl); or only a toplevel assembly is available and
-we need to remove the haplotypes and alt loci out (hg19, Ensembl).
 
 .. _decisions-sample-specific-params:
 
-Lack of sample-specific parameters
-----------------------------------
-
-Currently if we have samples with different library preps that need different
-arguments for cutadapt, then they need to be split into two separate workflow
-directories and the Snakefiles edited accordingly to have the correct parameters
-for rules.
-
-Supporting sample-specific parameters would certainly be possible. But this
-would go against the goal of reducing complexity.
-
-For example, we'd need a location to store multiple sets of parameters (probably
-in the config file) and a mechanism to retrieve them based on sample names. This
-could be an additional column in the sampletable indicating "parameter sets".
-Then we could create a lookup table in the config storing the different
-parameter sets, with each set containing parameters for all rules. We'd need to
-handle default params in case they weren't specified. Then we'd need to have
-each rules' ``params:`` directive do the lookup in a sample-specific manner,
-which would be a lookup function in :file:`lib/utils.py`.
-
-Again, this would all be possible. But to reduce complexity it is a deliberate
-design choice to opt for a simpler approach: use multiple workflow directories
-and edit the respective Snakefiles appropriately. In cases where samples need to
-be compared or considered together across the workflows, an additional workflow
-can be introduced to aggregate their output.
 
 PEP support
 -----------
