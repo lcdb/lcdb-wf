@@ -107,7 +107,7 @@ them on the command line. You would still need to specify strandedness, which
 can be the only config entry in :file:`config/config.yaml`. Or it could be
 specified directly on the command line, like this:
 
-.. code:block:: bash
+.. code-block:: bash
 
   snakemake \
     --configfile=../../include/reference_configs/Homo_sapiens/GENCODE.yaml \
@@ -213,7 +213,9 @@ a commandline config option if you want to use something different:
 
     # ...remainder of config
 
-or don't edit the config and instead modify the command-line call::
+or don't edit the config and instead modify the command-line call:
+
+.. code-block:: bash
 
   snakemake --config sampletable="config/mytable.csv" ...
 
@@ -223,7 +225,9 @@ RNA-seq sample table
 ~~~~~~~~~~~~~~~~~~~~
 
 Here is an example minimal sample table for single-end RNA-seq data. The column
-``orig_filename`` is required::
+``orig_filename`` is required:
+
+.. code-block:: text
 
     # Example RNA-seq sample table
     sample   orig_filename
@@ -233,18 +237,22 @@ Here is an example minimal sample table for single-end RNA-seq data. The column
     t2       ../../raw-data/t2_1.fq.gz
 
 For paired-end data, we need to specify the second end of the pair in the
-``orig_filename_R2`` column::
+``orig_filename_R2`` column:
+
+.. code-block:: text
 
     sample   orig_filename                   orig_filename_R2
     c1       /data/c1_R1.fastq.gz            /data/c1_R2.fastq.gz
-    c2       /data/c2_rR.fastq.gz            /data/c2_R1.fastq.gz
+    c2       /data/c2_R1.fastq.gz            /data/c2_R2.fastq.gz
     t1       other-data/treatment_1_1.fq.gz  other-data/treatment_1_2.fq.gz
     t2       ../../raw-data/t2_1.fq.gz       ../../raw-data/t2_2.fq.gz
 
 
 Relative paths are interpreted relative to the Snakefile
-(:file:`workflows/rnaseq`), so the paired-end examplea above would result in the
-following symlinks being created::
+(:file:`workflows/rnaseq`), so the paired-end example above would result in the
+following symlinks being created:
+
+.. code-block:: text
 
   data/rnaseq_samples/c1/c1_R1.fastq.gz --> /data/c1_R1.fastq.gz
   data/rnaseq_samples/c1/c1_R2.fastq.gz --> /data/c1_R2.fastq.gz
@@ -257,11 +265,13 @@ following symlinks being created::
 
 This sampletable will be read into the downstream differential expression
 analysis, so it's a good idea to add lots of metadata here. Here is a final
-paired-end sample table we could use::
+paired-end sample table we could use:
+
+.. code-block:: text
 
     sample   group     replicate  orig_filename                   orig_filename_R2
     c1       control   1          /data/c1_R1.fastq.gz            /data/c1_R2.fastq.gz
-    c2       control   2          /data/c2_rR.fastq.gz            /data/c2_R1.fastq.gz
+    c2       control   2          /data/c2_R1.fastq.gz            /data/c2_R2.fastq.gz
     t1       treatment 1          other-data/treatment_1_1.fq.gz  other-data/treatment_1_2.fq.gz
     t2       treatment 2          ../../raw-data/t2_1.fq.gz       ../../raw-data/t2_2.fq.gz
 
@@ -275,7 +285,8 @@ Here are some additional tips:
   sampletable becomes a single source of truth.
 - Creating sampletables is by far the most error-prone step -- it's very easy
   to miss changing an R1 to an R2, for example. Double- and triple-check!
-- You can split up experiments
+- You can split up experiments across multiple sampletables if needed
+- Descriptive sample names help with interpreting QC and downstream analysis
 
 
 .. _chipseq-sampletable:
@@ -292,7 +303,9 @@ sampletable for ChIP-seq. This is in contrast to RNA-seq, where we can simply
 sum counts of tech reps in R. See :ref:`decisions-techreps` for details.
 
 Use the ``merged_label`` column to control this. Rows with the same
-``merged_label`` value will merged together. Take the following example::
+``merged_label`` value will be merged together. Take the following example:
+
+.. code-block:: text
 
   samplename  merged_label  orig_filename
   ip1a        ip1           /data/run1/ip1.fq.gz
@@ -315,7 +328,9 @@ peak-calling.
 
 The workflow will automatically fill in missing values in ``merged_label`` with
 values from the first column. Or, to be explicit, we could write it all out
-like this::
+like this:
+
+.. code-block:: text
 
   samplename  merged_label  orig_filename
   ip1a        ip1           /data/run1/ip1.fq.gz
