@@ -2,6 +2,8 @@
 
 # From Ensembl. According to README in this FTP dir, if there's no primary
 # assembly then the toplevel is assumed to be the primary assembly.
+
+organism: "Saccharomyces cerevisiae"
 genome:
   url: "https://ftp.ensembl.org/pub/release-115/fasta/saccharomyces_cerevisiae/dna/Saccharomyces_cerevisiae.R64-1-1.dna_sm.toplevel.fa.gz"
 
