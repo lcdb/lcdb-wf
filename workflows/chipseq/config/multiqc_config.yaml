@@ -14,15 +14,12 @@ extra_fn_clean_exts:
   - '.salmon'
   - '_R1'
   - '_R2'
+  - '_samtools'
 
 
-# Modify the module search patterns to match what we're creating in the
-# workflow.
-#
-# See http://multiqc.info/docs/#module-search-patterns
-sp:
-  fastq_screen:
-    fn: '*.screen.txt'
+fn_ignore_files:
+  - '*.merged.bam.metrics'
+
 
 # Set the module order to reflect the order of the workflow. Note that here
 # we're also running the FastQC module multiple times, and putting them in
@@ -35,19 +32,35 @@ sp:
 # See http://multiqc.info/docs/#order-of-modules
 module_order:
     - fastqc:
-        name: 'FastQC (raw)'
+        name: 'FastQC (raw R1)'
         path_filters_exclude:
             - '*.cutadapt.fastq.gz_fastqc.zip'
+            - '*_R2.*'
         path_filters:
-            - '*.fastq.gz_fastqc.zip'
+            - '*_R1.fastq.gz_fastqc.zip'
+    - fastqc:
+        name: 'FastQC (raw R2)'
+        path_filters_exclude:
+            - '*.cutadapt.fastq.gz_fastqc.zip'
+            - '*_R1.*'
+        path_filters:
+            - '*_R2.fastq.gz_fastqc.zip'
     - libsizes_table
     - cutadapt
     - fastqc:
-        name: 'FastQC (trimmed)'
+        name: 'FastQC (trimmed R1)'
         target: ''
+        path_filters_exclude:
+            - '*_R2.*'
         path_filters:
-            - '*.cutadapt.fastq.gz_fastqc.zip'
-    - fastq_screen
+            - '*_R1.cutadapt.fastq.gz_fastqc.zip'
+    - fastqc:
+        name: 'FastQC (trimmed R2)'
+        target: ''
+        path_filters_exclude:
+            - '*_R1.*'
+        path_filters:
+            - '*_R2.cutadapt.fastq.gz_fastqc.zip'
     - bowtie2
     - fastqc:
         name: 'FastQC (aligned, unique, nodups)'
@@ -62,15 +75,23 @@ module_order:
 #
 # See http://multiqc.info/docs/#customising-tables
 table_columns_placement:
-  FastQC (raw):
+  FastQC (raw R1):
     total_sequences: 20
     percent_duplicates: 30
     percent_gc: 40
-  FastQC (trimmed):
+  FastQC (raw R2):
     total_sequences: 21
     percent_duplicates: 31
     percent_gc: 41
-  FastQC (aligned, unique, nodups):
+  FastQC (trimmed R1):
     total_sequences: 22
     percent_duplicates: 32
     percent_gc: 42
+  FastQC (trimmed R2):
+    total_sequences: 23
+    percent_duplicates: 33
+    percent_gc: 43
+  FastQC (aligned, unique, nodups):
+    total_sequences: 24
+    percent_duplicates: 34
+    percent_gc: 44

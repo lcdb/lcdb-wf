@@ -9,6 +9,7 @@ from lib import utils
 
 configfile: "config/config.yaml"
 
+
 sampletable = utils.prepare_rnaseq_sampletable(config)
 is_paired = utils.detect_layout(sampletable) == "PE"
 n = ["1", "2"] if is_paired else ["1"]
@@ -865,7 +866,16 @@ rule multiqc:
             expand(
                 rules.fastqc.output.zip,
                 sample=SAMPLES,
-                suffix=["_R1.fastq.gz", "_R1.cutadapt.fastq.gz", ".cutadapt.bam"],
+                suffix=utils.flatten(
+                    [
+                        expand(i, n=n)
+                        for i in [
+                            "_R{n}.fastq.gz",
+                            "_R{n}.cutadapt.fastq.gz",
+                            ".cutadapt.bam",
+                        ]
+                    ]
+                ),
             ),
             expand(rules.markduplicates.output, sample=SAMPLES),
             expand(rules.salmon.output, sample=SAMPLES),

@@ -16,15 +16,6 @@ extra_fn_clean_exts:
   - '_R2'
 
 
-# Modify the module search patterns to match what we're creating in the
-# workflow.
-#
-# See http://multiqc.info/docs/#module-search-patterns
-sp:
-  fastq_screen:
-    fn: '*.screen.txt'
-
-
 # Ignore the rRNA files, which were just cluttering the tables. We're
 # independently calculating the rRNA libsizes anyway, so there's no need for
 # them to be included.
@@ -32,10 +23,6 @@ sp:
 # See http://multiqc.info/docs/#ignoring-files
 fn_ignore_files:
   - '*rrna.bam*'
-
-  # ignore log files from the first pass of STAR 2-pass alignment
-  - '*pass1*'
-
 
 # Set the module order to reflect the order of the workflow. Note that here
 # we're also running the FastQC module multiple times, and putting them in
@@ -48,18 +35,35 @@ fn_ignore_files:
 # See http://multiqc.info/docs/#order-of-modules
 module_order:
     - fastqc:
-        name: 'FastQC (raw)'
+        name: 'FastQC (raw R1)'
         path_filters_exclude:
-            - '*.cutadapt.fastq.gz_fastqc.zip'
+            - '*_R2*'
+            - '*_R1.cutadapt.fastq.gz_fastqc.zip'
         path_filters:
-            - '*.fastq.gz_fastqc.zip'
+            - '*_R1.fastq.gz_fastqc.zip'
+    - fastqc:
+        name: 'FastQC (raw R2)'
+        path_filters_exclude:
+            - '*_R1*'
+            - '*_R2.cutadapt.fastq.gz_fastqc.zip'
+        path_filters:
+            - '*_R2.fastq.gz_fastqc.zip'
     - rrna_percentages_table
     - cutadapt
     - fastqc:
-        name: 'FastQC (trimmed)'
+        name: 'FastQC (trimmed R1)'
         target: ''
+        path_filters_exclude:
+            - '*_R2*'
         path_filters:
-            - '*.cutadapt.fastq.gz_fastqc.zip'
+            - '*_R1.cutadapt.fastq.gz_fastqc.zip'
+    - fastqc:
+        name: 'FastQC (trimmed R2)'
+        target: ''
+        path_filters_exclude:
+            - '*_R1*'
+        path_filters:
+            - '*_R2.cutadapt.fastq.gz_fastqc.zip'
     - fastq_screen
     - bowtie2
     - fastqc:
@@ -84,16 +88,46 @@ remove_sections:
 # of the different stages on the stats.
 #
 # See http://multiqc.info/docs/#customising-tables
+table_columns_name:
+  FastQC (raw R1):
+    total_sequences: "Seq (raw R1)"
+    percent_duplicates: "Dups (raw R1)"
+    percent_gc: "GC (raw R1)"
+  FastQC (raw R2):
+    total_sequences: "Seq (raw R2)"
+    percent_duplicates: "Dups (raw R2)"
+    percent_gc: "GC (raw R2)"
+  FastQC (trimmed R1):
+    total_sequences: "Seq (trim R1)"
+    percent_duplicates: "Dups (trim R1)"
+    percent_gc: "GC (trim R1)"
+  FastQC (trimmed R2):
+    total_sequences: "Seq (trim R2)"
+    percent_duplicates: "Dups (trim R2)"
+    percent_gc: "GC (trim R2)"
+  FastQC (aligned):
+    total_sequences: "Seq (aligned)"
+    percent_duplicates: "Dups (aligned)"
+    percent_gc: "GC (aligned)"
+
 table_columns_placement:
-  FastQC (raw):
+  FastQC (raw R1):
     total_sequences: 20
     percent_duplicates: 30
     percent_gc: 40
-  FastQC (trimmed):
+  FastQC (raw R2):
     total_sequences: 21
     percent_duplicates: 31
     percent_gc: 41
-  FastQC (aligned):
+  FastQC (trimmed R1):
     total_sequences: 22
     percent_duplicates: 32
     percent_gc: 42
+  FastQC (trimmed R2):
+    total_sequences: 23
+    percent_duplicates: 33
+    percent_gc: 43
+  FastQC (aligned):
+    total_sequences: 24
+    percent_duplicates: 34
+    percent_gc: 44

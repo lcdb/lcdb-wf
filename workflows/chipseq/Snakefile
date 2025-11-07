@@ -550,12 +550,12 @@ rule samtools_idxstats:
         bam="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam",
         bai="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.bai",
     output:
-        txt="data/chipseq_samples/{sample}/samtools_idxstats_{sample}.txt",
+        txt="data/chipseq_samples/{sample}/{sample}.samtools_idxstats.txt",
     resources:
         mem="16g",
         runtime="2h",
     log:
-        "data/chipseq_samples/{sample}/samtools_idxstats_{sample}.txt.log",
+        "data/chipseq_samples/{sample}/{sample}.samtools_idxstats.txt.log"
     shell:
         "samtools idxstats {input.bam} 2> {log} 1> {output.txt}"
 
@@ -565,12 +565,12 @@ rule samtools_flagstat:
         bam="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam",
         bai="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.bai",
     output:
-        "data/chipseq_samples/{sample}/samtools_flagstat_{sample}.txt",
+        "data/chipseq_samples/{sample}/{sample}.samtools_flagstat.txt",
     resources:
         mem="8g",
         runtime="2h",
     log:
-        "data/chipseq_samples/{sample}/samtools_flagstat_{sample}.txt.log",
+        "data/chipseq_samples/{sample}/{sample}.samtools_flagstat.txt.log"
     shell:
         "samtools flagstat {input.bam} > {output}"
 
@@ -580,12 +580,12 @@ rule samtools_stats:
         bam="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam",
         bai="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.bai",
     output:
-        "data/chipseq_samples/{sample}/samtools_stats_{sample}.txt",
+        "data/chipseq_samples/{sample}/{sample}.samtools_stats.txt",
     resources:
         mem="8g",
         runtime="2h",
     log:
-        "data/chipseq_samples/{sample}/samtools_stats_{sample}.txt.log",
+        "data/chipseq_samples/{sample}/{sample}.samtools_stats.txt.log"
     shell:
         "samtools stats {input.bam} > {output}"
 
