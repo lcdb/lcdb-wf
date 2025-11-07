@@ -243,8 +243,57 @@ independent filtering (not even testing those features with so few reads that
 they would not reach significance) guards against this. So we stick with the
 comprehensive annotations when available.
 
+.. _decisions-patterns:
+
+Patterns/targets
+----------------
+
+Previously, we had a system of "patterns", which were the string filenames with
+wildcards, stored in a separate yaml file. The original idea was to provide
+flexibility in reorganizing outputs -- if you didn't like where things were
+stored (e.g., if you didn't want your files to always have ``{sample}`` in the
+basename), then you could edit that one file and everything would be updated.
+
+The config system would fill in the patterns so that you also had a list of the
+filled-in targets. This was mildly convenient for aggregation rules like
+multiqc that use lots of inputs.
+
+It was also useful in integrative workflows (e.g., making figures using results
+from ChIP-seq and RNA-seq workflows), where you could use the single patterns
+yaml file as a record of all the files created. This made writing rules and
+keeping track of input/output files a bit easier:
+
+.. code-block:: python
+
+  rule downstream_figure:
+      input: c.targets["bam"]
+      output: "fig1.pdf"
+
+instead of:
+
+.. code-block:: python
+
+  rule downstream_figure:
+      input: expand('../rnaseq/data/{sample}/{sample}.cutadapt.markdups.bam', sample=SAMPLES)
+      output: "fig1.pdf"
+
+However, over the years, this system proved to be too obscure, hampering
+understandibility of the workflows. I'm not aware of anyone making changes to
+it to modify the output locations. In fact, over the years we realized that the
+consistency of output directory structure across hundreds of projects is
+a *major* benefit, so we specifically *don't* want to change output locations.
+
+So in version 2.0, this system has been completely removed, preferring to use
+hard-coded filenames and plenty of ``expand()`` calls.
+
+Advanced users can always create their own patterns yaml files to use in
+downstream work.
+
+.. _decisions-params:
+
 Params
 ------
+
 The ``params:`` directive allows `non-file parameters for rules
 <https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules>`__.
 Much (perhaps all?) of what can be done in a ``params:`` directive can also be
@@ -618,6 +667,8 @@ matter of choosing the input file for featureCounts rule), it made the most
 sense to run featureCounts once, providing it all samples, and having it use
 the temporarily name-sorted BAMs as input for paired-end experiments.
 
+
+.. _decisions-testframework:
 
 Test framework
 --------------

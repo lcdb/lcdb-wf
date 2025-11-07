@@ -8,3 +8,6 @@ Table of Contents
    getting-started
    workflows
    config
+   decisions
+   changelog
+   v2.0.rst

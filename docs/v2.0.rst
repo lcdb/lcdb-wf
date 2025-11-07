@@ -1,0 +1,111 @@
+Version 2.0
+===========
+
+This is a major release, heavily focused on simplification where possible.
+
+Config has been dramatically simplified, especially reference configurations.
+Many fixes and improvements that have been requested over the years have been
+addressed here. The docs have been completely rewritten.
+
+
+Reference handling
+------------------
+
+- The separate ``workflows/references/`` workflow has been completely removed.
+  Reference generation rules are now integrated directly into the respective
+  RNA-seq and ChIP-seq workflows. See :ref:`decisions-references` for detailed
+  reasoning.
+
+- The reference configs have been **dramatically** simplified.
+
+- Using prepared reference configs is now more obvious and can use standard
+  Snakemake commandline args (``--configfile``, ``--config``) to modify at run
+  time.
+
+- The prepared reference configs have been updated to the latest assemblies.
+
+Infrastructure
+--------------
+
+- Simplified the test framework (see :ref:`decision log: test framework <decisions-testframework>`)
+
+- The custom wrappers system (``wrappers/`` directory) has been removed.
+  Peak callers and other tools are now implemented as straightforward scripts in the
+  :file:`scripts` directory.
+
+- Cleanup of :file:`lib/utils.py`, removing unused functions.
+
+- Updated all tool versions in ``env.yml`` and ``env-r.yml``
+
+- Removed unused dependencies (GAT, kallisto, etc.)
+
+- Default to conda rather than mamba as package manager frontend
+
+- Complete rewrite of documentation.
+
+- New ``decisions.rst`` documenting architectural decisions and rationale
+
+Snakefiles
+----------
+
+- **Snakemake 8+ is now required**.
+
+- Resource specifications changed, for example ``mem_mb=8192`` is now
+  ``mem="8g"``. With this string representation, we no longer need the
+  ``utils.gb()`` convenience functions, so they have been removed.
+
+- Autobump functionality was removed.
+
+- Snakefiles are formatted using ``snakefmt``.
+
+- The patterns/targets system has been removed (see :ref:`decision log for patterns/targets <decisions-patterns>`).
+
+- A principled approach to ``params:`` was used (see :ref:`decision log for params <decisions-params>`).
+
+Workflow removals
+-----------------
+
+- Removed colocalization workflow due to limited usage and maintenance burden.
+
+
+RNA-seq workflow
+----------------
+
+- Removed kallisto (but kept salmon)
+
+- Removed STAR two-pass mode (it added complexity and was rarely used in practice)
+
+- Removed preliminary strand check on subset of data; use the existing strand
+  check on full data.
+
+- Self-contained reference rules
+
+- Improved preflight checks that catch configuration errors before workflow runs:
+  required columns in sampletables, reference configuration validation, SRA Layout
+  column verification, and warnings about common misconfigurations
+
+- Removed separate libsizes table in MultiQC (redundant with General Stats table)
+
+- Use config's organism key to automatically handle rRNA FASTA, rather than manually configuring
+
+- Paired-end BAMs are temporarily name-sorted before featureCounts, dramatically improving performance
+
+- Paired-end FastQC results are run and properly reported in separate sections in MultiQC
+
+
+ChIP-seq workflow
+-----------------
+
+- Removed plotFingerprint rule (see :ref:`decision log: plotFingerprint <decisions-plotfingerprint>`).
+
+- Simpler sampletable no longer requires antibody and biological material
+  (though they're still recommended for clarity)
+
+- Sampletable ``merged_label`` now an alias for ``label`` to be more clear that
+  it reflects the name of merged tech reps
+
+- ``merged_label`` automatically filled in with samplenames if there are no techreps
+
+- macs2 --> macs3
+
+- Paired-end FastQC results are run and properly reported in separate sections in MultiQC
