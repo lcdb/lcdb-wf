@@ -178,9 +178,13 @@ Snakemake). As a result, we had to spend the time/resource cost to realign
 *everything* and all the downstream jobs after alignment, just to run
 featureCounts.
 
-Making the featureCounts rule use the compressed GTF avoids this issue. Now,
-just the transcriptome fasta and the STAR index need the uncompressed
-references, and these are set in the ``unzip`` rule to be temporary.
+Making the featureCounts rule use the compressed GTF avoids this issue.
+However, the transcriptome fasta and the STAR index need the uncompressed
+references. During testing, there were multiple times when the entire workflow
+needed to run because a file marked as temporary was transiently needed. Upon
+closer inspection, this was correct behavior, but it happened enough for subtle
+reasons that, to avoid future confusion, we keep both compressed and
+uncompressed.
 
 Annotations
 ~~~~~~~~~~~
@@ -613,9 +617,6 @@ Turns out the conditional inclusion of a namesorted rule was straightforward (a
 matter of choosing the input file for featureCounts rule), it made the most
 sense to run featureCounts once, providing it all samples, and having it use
 the temporarily name-sorted BAMs as input for paired-end experiments.
-
-
-
 
 
 Test framework

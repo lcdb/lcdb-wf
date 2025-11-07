@@ -138,7 +138,7 @@ rule unzip:
     input:
         f"{REFERENCES}/{{prefix}}.gz",
     output:
-        temporary(f"{REFERENCES}/{{prefix}}"),
+        f"{REFERENCES}/{{prefix}}",
     resources:
         mem="4g",
         runtime="2h",
@@ -209,7 +209,7 @@ rule transcriptome_fasta:
         gtf=f"{REFERENCES}/annotation.gtf",
         fai=f"{REFERENCES}/genome.fa.fai",
     output:
-        fa=temporary(f"{REFERENCES}/transcriptome.fa"),
+        fa=f"{REFERENCES}/transcriptome.fa",
         gz=f"{REFERENCES}/transcriptome.fa.gz",
     log:
         f"{REFERENCES}/transcriptome.log",
