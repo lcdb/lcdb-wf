@@ -508,11 +508,11 @@ def download_and_postprocess(urls, postprocess, outfile, log):
 
 def get_techreps(sampletable, label):
     """
-    Return all sample IDs for which the "label" column is `label`.
+    Return all sample IDs for which the "merged_label" column is `label`.
     """
     # since we're not requiring a name but we want to use `loc`
     first_col = sampletable.columns[0]
-    result = list(sampletable.loc[sampletable["label"] == label, first_col])
+    result = list(sampletable.loc[sampletable["merged_label"] == label, first_col])
 
     # If we're using a ChIP-seq-like sampletable we can provide a more
     # informative error message.
@@ -821,7 +821,9 @@ def prepare_chipseq_sampletable(config):
     Given a config, return the validated and prepared ChIP-seq table.
     """
     sampletable = read_sampletable(config)
-    sampletable["label"] = sampletable["label"].fillna(sampletable.iloc[:, 0])
+    if "label" in sampletable.columns:
+        sampletable["merged_label"] = sampletable["label"]
+    sampletable["merged_label"] = sampletable["merged_label"].fillna(sampletable.iloc[:, 0])
     chipseq_preflight(config, sampletable)
     return sampletable
 

@@ -15,7 +15,7 @@ sampletable = utils.prepare_chipseq_sampletable(config)
 is_paired = utils.detect_layout(sampletable) == "PE"
 n = ["1", "2"] if is_paired else ["1"]
 SAMPLES = sampletable.index.values
-LABELS = sampletable.label.values
+LABELS = sampletable.merged_label.values
 REFERENCES = config.get("references", "references")
 peaks = chipseq.add_bams_to_peak_calling(config)
 
