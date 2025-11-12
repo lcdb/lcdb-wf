@@ -984,5 +984,3 @@ rule merge_bams:
         6
     shell:
         """samtools merge -@ {threads} -o {output.bam} {input}"""
-
-# vim: ft=python
