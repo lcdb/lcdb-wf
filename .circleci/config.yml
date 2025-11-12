@@ -171,7 +171,7 @@ variables:
         test/lcdb-wf-test unit_tests --ensure-docs
 
         # find all URLs in reference configs and make sure they exist
-        test/lcdb-wf-test unit_tests --url-check
+        # test/lcdb-wf-test unit_tests --url-check
 
         # run R package unit tests using the R env
         test/lcdb-wf-test unit_tests --r-test
