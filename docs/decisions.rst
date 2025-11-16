@@ -829,4 +829,28 @@ We had accumulated a lot of useful functions over time, but things have changed
 enough that they haven't been used. To avoid clutter and additional maintenance
 burden in supporting otherwise unused code, these functions were removed.
 
+Variant-calling workflow
+------------------------
 
+lcdb-wf originally started as a way of combining RNA-seq and ChIP-seq
+experiments for different model organisms. It was important to have an
+organism-agnostic system that could be highly customized.
+
+An experimental variant calling workflow was added. This worked well for human
+and, with some effort, mouse. However, it was difficult to support an
+organism-agnostic workflow for variant annotation which depends on large
+amounts of downloaded annotation data that is typically very human-focused.
+
+All that said, it is useful to have an organism-agnostic variant-calling
+workflow that at least does everything upstream of annotation and that can be
+integrated with RNA-seq and ChIP-seq if needed.
+
+This will be added back in to lcdb-wf v2 at a later point once it is refactored
+to be similar to the other workflows (i.e., following the decisions outlined in
+this document when possible).
+
+For human variant calling, consider the `snakemake workflows
+dna-seq-gatk-variant-calling
+<https://github.com/snakemake-workflows/dna-seq-gatk-variant-calling>`__
+workflow, the `nf-core/raredisease <https://nf-co.re/raredisease>`__ NextFlow
+pipeline, or the `nf-core/sarek <https://nf-co.re/sarek/>`__ NextFlow pipeline.
