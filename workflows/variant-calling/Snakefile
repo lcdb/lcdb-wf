@@ -349,7 +349,7 @@ rule call_variants:
             '{bams} '
             '-ERC GVCF '
             '{params.pcr} '
-            '-O {output.gvcf} 2> {log} ' 
+            '-O {output.gvcf} ' 
         )
 
 
