@@ -31,13 +31,9 @@ wildcard_constraints:
 
 rule all:
     input:
-        "results/annotated/ann.vcf.gz",
-        'results/annotated/filtered_ann.vcf.gz',
-        'results/annotated/filtered_ann.vcf.gz.tbi',
         "results/qc/multiqc.html",
         "results/filtered/all.normed.vcf.gz",
         expand("results/somatic_filtered/normed.{comp}.vcf.gz", comp = config['mutect2'].keys()),
-        expand("results/mutect2_annotated/snpeff.{comp}.vcf.gz", comp = config['mutect2'].keys()),
         expand("results/merged/{sample}.bam", sample=samples.index),
         expand("results/merged/{sample}.bam.bai", sample=samples.index),
 
@@ -166,7 +162,7 @@ rule mark_duplicates:
     resources:
         disk_mb=gb(40),
         mem_mb=gb(32),
-        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(2),  # [ TEST SETTINGS -1 ]
         runtime=autobump(720)
     input:
         bam = "results/mapped/{sample}-{unit}.sorted.bam", 
@@ -203,7 +199,7 @@ if config["filtering"]['bqsr']:
         # threads: 1 # [ TEST SETTINGS -1 ]
         resources:
             mem_mb=gb(8),
-            # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+            # mem_mb=gb(2),  # [ TEST SETTINGS -1 ]
             disk_mb=gb(40),
             runtime=autobump(960)
         input:
@@ -342,9 +338,6 @@ rule call_variants:
         )
     run:
         java_opts = set_java_opts(resources)
-        known = input.known
-        if known:
-            known = "--dbsnp " + str(known)
         regions = params.extra
         bams = input.bam
         if isinstance(bams, str):
@@ -356,7 +349,7 @@ rule call_variants:
             '{bams} '
             '-ERC GVCF '
             '{params.pcr} '
-            '-O {output.gvcf} {known} 2> {log} ' 
+            '-O {output.gvcf} 2> {log} ' 
         )
 
 
@@ -391,7 +384,7 @@ rule genotype_variants:
     resources:
         disk_mb=gb(10),
         mem_mb=gb(8),
-        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(2),  # [ TEST SETTINGS -1 ]
         runtime=autobump(480)
     input:
         ref=reference,
@@ -417,7 +410,7 @@ rule merge_variants:
     resources:
         disk_mb=gb(10),
         mem_mb=gb(8),
-        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(2),  # [ TEST SETTINGS -1 ]
         runtime=autobump(480)
     input:
         vcfs=lambda w: expand(
@@ -462,7 +455,7 @@ rule select_calls:
     resources:
         disk_mb=gb(10),
         mem_mb=gb(4),
-        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(2),  # [ TEST SETTINGS -1 ]
         runtime=autobump(480)
     input:
         ref=reference,
@@ -491,7 +484,7 @@ rule hard_filter_calls:
     resources:
         disk_mb=gb(10),
         mem_mb=gb(4),
-        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(2),  # [ TEST SETTINGS -1 ]
         runtime=autobump(480)
     input:
         ref=reference,
@@ -521,7 +514,7 @@ rule merge_calls:
     resources:
         disk_mb=gb(10),
         mem_mb=gb(8),
-        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(2),  # [ TEST SETTINGS -1 ]
         runtime=autobump(480)
     input:
         vcfs=expand(
@@ -621,15 +614,6 @@ rule samtools_stats:
         "samtools stats {input} 1> {output} 2> {log} "
 
 
-snpeff_input_for_multiqc = []
-if config['snpeff']['germline']:
-    snpeff_input_for_multiqc.append('results/qc/snpEff_summary.csv')
-if config['snpeff']['somatic']:
-    soms = expand('results/qc/snpEff_{comp}_summary.csv', comp = config['mutect2'].keys())
-    snpeff_input_for_multiqc.extend(soms)
-
-
-
 rule multiqc:
     """
     Gather qc metrics and run MultiQC
@@ -642,7 +626,6 @@ rule multiqc:
         fastqc=expand("results/qc/fastqc/zip/{u.sample}-{u.unit}_fastqc.zip", u=units.itertuples()),
         markdup=expand("results/qc/picard/markdups/{u.sample}-{u.unit}_marked_dup_metrics.txt", u=units.itertuples()),
         samstats=expand("results/qc/samtools-stats/{u.sample}-{u.unit}.txt", u=units.itertuples()),
-        snpeff=snpeff_input_for_multiqc
     output:
         "results/qc/multiqc.html",
     params:
@@ -661,83 +644,6 @@ rule multiqc:
             " &> {log} "
         )
 
-
-rule snpeff:
-    """
-    Annotate variants with SnpEff
-    """
-    resources:
-        disk_mb=gb(20),
-        mem_mb=gb(16),
-        # mem_mb=gb(4), # [ TEST SETTINGS -1 ]
-        runtime=autobump(480)
-    input:
-        unpack(snpeff_input)
-    log: 'logs/snpeff.log'
-    output:
-        ann='results/annotated/ann.vcf.gz',
-        stats='results/qc/snpEff_summary.csv',
-        html='results/qc/snpEff_summary.html'
-    params:
-        annotations = config['snpeff']['annotations'],
-        gen = config['snpeff']['genome']
-    # threads: 2 # [ TEST SETTINGS ]
-    run:
-        java_opts = '''"-Xmx{}g"'''.format(int(resources.mem_mb * 0.75 /1024))
-        shell(
-            "snpEff {java_opts} "
-            "-o vcf "
-            "-csvStats {output.stats} "
-            "-stats {output.html} "
-            "{params.gen} {input.vcf} "
-            "| bcftools view -Oz > {output.ann} 2> {log} "
-        )
-
-
-rule snpsift_ann:
-    """
-    Annotate variants with the gnomAD database
-    """
-    resources:
-        disk_mb=gb(20),
-        mem_mb=gb(16),
-        # mem_mb=gb(4), # [ TEST SETTINGS -1 ]
-        runtime=autobump(960)
-    threads: 6
-    input:
-        vcf="results/annotated/ann.vcf.gz",
-        ann="references/trimmed_gnomad.joint.v4.1.sites.all_chrom.vcf.bgz"
-    log: 'logs/snpsift_ann.log'
-    output: 'results/annotated/snpsift_ann.vcf.gz'
-    run:
-        java_opts = '''"-Xmx{}g"'''.format(int(resources.mem_mb * 0.75 /1024))
-
-        shell(
-            "SnpSift {java_opts} "
-            "annotate -noId "
-            "{input.ann} {input.vcf}"
-            "| bcftools view -Oz > {output}"
-        )
-
-rule snpsift_filter:
-    """
-    Filter out common variants with SnpSift filter
-    """
-    resources:
-        disk_mb=gb(20),
-        mem_mb=gb(16),
-        # mem_mb=gb(4), # [ TEST SETTINGS -1 ]
-        runtime=autobump(960)
-    input: 'results/annotated/snpsift_ann.vcf.gz'
-    output: 'results/annotated/filtered_ann.vcf.gz'
-    log: 'logs/snpsift_filter.log'
-
-    run:
-        shell(
-            "SnpSift filter \"!(AF_joint > 0.1)\" "
-            "{input} "
-            "| bcftools view -Oz > {output} 2>> {log} "
-        )
 
 
 rule mutect2:
@@ -829,7 +735,7 @@ rule merge_mutect2_variants:
     resources:
         disk_mb=gb(20),
         mem_mb=gb(32),
-        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(2),  # [ TEST SETTINGS -1 ]
         runtime=autobump(120)
     input:
         vcfs=lambda w: expand(
@@ -860,7 +766,7 @@ rule merge_mutect2_stats:
     resources:
         disk_mb=gb(20),
         mem_mb=gb(16),
-        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(2),  # [ TEST SETTINGS -1 ]
         runtime=autobump(120)
     input:
         stats=lambda w: expand(
@@ -890,7 +796,7 @@ rule filter_mutect2_calls:
     resources:
         disk_mb=gb(20),
         mem_mb=gb(16),
-        # mem_mb=gb(4),  # [ TEST SETTINGS -1 ]
+        # mem_mb=gb(2),  # [ TEST SETTINGS -1 ]
         runtime=autobump(120)
     input:
         ref=reference,
@@ -935,38 +841,6 @@ rule mutect2_norm:
         "{input.vcf} "
         "--output-type z "
         "--output {output} 2> {log}"
-
-
-rule snpeff_cancer:
-    """
-    Annotate somatic variants with SnpEff Cancer
-    """
-    resources:
-        disk_mb=gb(20),
-        mem_mb=gb(16),
-        # mem_mb=gb(4), # [ TEST SETTINGS -1 ]
-        runtime=autobump(120)
-    input:
-        unpack(snpeff_cancer_input),
-    output:
-        vcf='results/mutect2_annotated/snpeff.{comp}.vcf.gz',
-        stats='results/qc/snpEff_{comp}_summary.csv',
-        html='results/qc/snpEff_{comp}.html'
-    log:
-        'logs/cancer_snpeff_{comp}.log'
-    params:
-        snpeff_genome = config['snpeff']['genome']
-    # threads: 2 # [ TEST SETTINGS ]
-    run:
-        java_opts = '''"-Xmx{}g"'''.format(int(resources.mem_mb * 0.75 /1024))
-        shell(
-            'snpEff {java_opts} '
-            '-v -o vcf -cancer '
-            '-csvStats {output.stats} '
-            '-stats {output.html} '
-            '{params.snpeff_genome} {input.vcf} '
-            '| bcftools view -Oz > {output.vcf} 2> {log}'
-        )
 
 rule merge_bams:
     """

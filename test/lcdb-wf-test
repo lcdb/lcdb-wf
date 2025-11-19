@@ -310,19 +310,7 @@ class Runner(object):
                 (
                     "tumor_R2.6.20.fq.gz",
                     "workflows/variant-calling/data/example_data/tumor_R2.fq.gz"
-                ),
-                (
-                    "dbnsfp_6_20.vcf.gz",
-                    "workflows/variant-calling/references/dbnsfp_6_20.vcf.gz"
-                ),
-                (
-                    "dbnsfp_6_20.vcf.gz.tbi",
-                    "workflows/variant-calling/references/dbnsfp_6_20.vcf.gz.tbi"
-                ),
-                (
-                    "trimmed_gnomad.joint.v4.1.sites.all_chrom.vcf.bgz",
-                    "workflows/variant-calling/references/trimmed_gnomad.joint.v4.1.sites.all_chrom.vcf.bgz"
-                ),
+                )
             ]
         }
 
