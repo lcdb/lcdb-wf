@@ -13,6 +13,7 @@ import binascii
 from lib.imports import resolve_name
 from lib import aligners
 from lib import utils
+from urllib.parse import urlparse
 from snakemake.shell import shell
 from snakemake.io import expand
 
@@ -313,6 +314,7 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
     if isinstance(urls, str):
         urls = [urls]
 
+
     # Download tempfiles into reasonably-named filenames
     tmpfiles = ['{0}.{1}.tmp'.format(outfile, i) for i in range(len(urls))]
     tmpinputfiles = tmpfiles
@@ -321,6 +323,11 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
             if url.startswith('file:'):
                 url = url.replace('file://', '')
                 shell('cp {url} {tmpfile} 2> {outfile}.log')
+            elif url.lower().startswith('ftp'):
+                parsed_url = urlparse(url)
+                ftp_url = f"{parsed_url.scheme}://{parsed_url.netloc}" # scheme ~ protocol; netloc ~ domain name
+                ftp_path = parsed_url.path # File path on server
+                shell('lftp -e "get {ftp_path}; bye" {ftp_url} -O {tmpfile}')  # lftp more resilient to certain kinds of ftp errors than wget
             else:
                 shell("wget {url} -O- > {tmpfile}")
 

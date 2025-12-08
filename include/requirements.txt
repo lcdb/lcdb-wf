@@ -17,6 +17,7 @@ hisat2
 intervalstats
 ipython
 kallisto
+lftp
 multiqc
 pandas
 pandoc
