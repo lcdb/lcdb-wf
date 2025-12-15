@@ -323,11 +323,6 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
             if url.startswith('file:'):
                 url = url.replace('file://', '')
                 shell('cp {url} {tmpfile} 2> {outfile}.log')
-            elif url.lower().startswith('ftp'):
-                parsed_url = urlparse(url)
-                ftp_url = f"{parsed_url.scheme}://{parsed_url.netloc}" # scheme ~ protocol; netloc ~ domain name
-                ftp_path = parsed_url.path # File path on server
-                shell('lftp -e "get {ftp_path}; bye" {ftp_url} -O {tmpfile}')  # lftp more resilient to certain kinds of ftp errors than wget
             else:
                 shell("wget {url} -O- > {tmpfile}")
 
