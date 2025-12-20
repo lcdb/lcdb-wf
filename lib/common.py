@@ -324,7 +324,7 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
                 url = url.replace('file://', '')
                 shell('cp {url} {tmpfile} 2> {outfile}.log')
             else:
-                shell("wget {url} -O- > {tmpfile}")
+                shell("curl -L {url} > {tmpfile}")
 
         for func, args, kwargs, outfile in funcs:
             func(tmpinputfiles, outfile, *args, **kwargs)
