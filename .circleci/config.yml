@@ -425,6 +425,7 @@ jobs:
 
   rnaseq-misc:
     <<: *defaults
+    resource_class: large
     steps:
       - checkout
       - *restore_cache
