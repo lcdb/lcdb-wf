@@ -66,3 +66,6 @@ workflows/rnaseq/downstream/rnaseq.html
 ._*
 Rplots.pdf
 /lib/include/*
+WORKLOG.rst
+workflows/variant-calling/references/
+workflows/variant-calling/results/

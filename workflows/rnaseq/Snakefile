@@ -409,7 +409,7 @@ if config['aligner']['index'] == 'star-twopass':
         resources:
             mem_mb=gb(64),
             runtime=autobump(hours=8),
-            disk_mem=gb(80),
+            disk_mb=gb(80),
         run:
             if os.getenv("TMPDIR"):
                 tmpdir_arg = "--outTmpDir $TMPDIR/star "
@@ -455,7 +455,7 @@ if config['aligner']['index'] == 'star-twopass':
         resources:
             mem_mb=gb(64),
             runtime=autobump(hours=8),
-            disk_mem=gb(80),
+            disk_mb=gb(80),
         run:
             if os.getenv("TMPDIR"):
                 tmpdir_arg = "--outTmpDir $TMPDIR/star "
@@ -1120,6 +1120,9 @@ rule flagstat:
         c.patterns['samtools']['flagstat']
     log:
         c.patterns['samtools']['flagstat'] + '.log'
+    resources:
+        mem_mb=gb(4),
+        runtime=autobump(hours=2)
     shell:
         'samtools flagstat {input.bam} > {output}'
 
@@ -1132,6 +1135,9 @@ rule samtools_stats:
         c.patterns['samtools']['stats']
     log:
         c.patterns['samtools']['stats'] + '.log'
+    resources:
+        mem_mb=gb(4),
+        runtime=autobump(hours=2)
     shell:
         'samtools stats {input.bam} > {output}'
 

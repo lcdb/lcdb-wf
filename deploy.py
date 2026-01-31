@@ -108,6 +108,12 @@ def write_include_file(source, flavor="all"):
             "recursive-include workflows/figures *",
             "recursive-include workflows/external *",
         ],
+
+        "variant-calling": [
+            "include workflows/variant-calling/Snakefile",
+            "recursive-include workflows/variant-calling/config *",
+        ],
+
     }
 
     patterns = []
@@ -115,6 +121,8 @@ def write_include_file(source, flavor="all"):
         patterns.extend(PATTERN_DICT["rnaseq"])
     if flavor in ("full", "chipseq"):
         patterns.extend(PATTERN_DICT["chipseq"])
+    if flavor in ("full", "variant-calling"):
+        patterns.extend(PATTERN_DICT["variant-calling"])
     if flavor == "full":
         patterns.extend(PATTERN_DICT["full"])
     patterns.extend(PATTERN_DICT["all"])
@@ -294,8 +302,6 @@ def build_envs(dest, additional_main=None, additional_r=None, conda_frontend="co
     ]
     for env, yml, additional in mapping:
         info("Building environment " + os.path.join(dest, env))
-        if additional:
-            info(f"Adding {additional} to environment")
 
         try:
             # conda and mamba can be hard to kill, possibly because they're
@@ -313,8 +319,12 @@ def build_envs(dest, additional_main=None, additional_r=None, conda_frontend="co
                 "--file",
                 yml,
             ]
+            p = sp.Popen(cmds, universal_newlines=True, cwd=dest)
+            p.wait()
+
             if additional:
-                cmds += additional
+                info(f"Adding {additional} to environment")
+                cmds = [conda_frontend, "install", "-y", "-p", env] + additional
             p = sp.Popen(cmds, universal_newlines=True, cwd=dest)
             p.wait()
 
@@ -346,7 +356,7 @@ if __name__ == "__main__":
         "--flavor",
         default="full",
         help="""Options are {0}. Default is full.""".format(
-            ["full", "rnaseq", "chipseq"]
+            ["full", "rnaseq", "chipseq", "variant-calling"]
         ),
     )
     ap.add_argument(
@@ -431,12 +441,6 @@ if __name__ == "__main__":
     include = write_include_file(source, flavor)
     rsync(include, source, dest, args.rsync_args)
     deployment_json(source, dest)
-
-    if args.additional_main and additional_main_from_env_var:
-        print(
-            "ERROR: Unset LCDBWF_ADDITIONAL_MAIN env var if you want to use the --additional-main argument."
-        )
-        sys.exit(1)
 
     if additional_main_from_env_var:
         if args.additional_main:

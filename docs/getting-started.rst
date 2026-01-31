@@ -75,7 +75,7 @@ script. For example:
       --flavor rnaseq \
       --clone \
       --build-envs \
-      --additional_main=$EXTRA
+      --additional-main=$EXTRA
 
     # You can clean up the cloned copy if you want:
     # rm -rf /tmp/lcdb-wf-tmp

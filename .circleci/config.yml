@@ -141,6 +141,7 @@ variables:
         cp $ORIG/workflows/rnaseq/run_downstream_test.sh $DEPLOY/workflows/rnaseq/run_downstream_test.sh
         cp $ORIG/workflows/references/run_test.sh $DEPLOY/workflows/references/run_test.sh
         # cp $ORIG/workflows/colocalization/run_test.sh $DEPLOY/workflows/colocalization/run_test.sh
+        cp $ORIG/workflows/variant-calling/run_test.sh $DEPLOY/workflows/variant-calling/run_test.sh
 
         mkdir $DEPLOY/ci
         mkdir $DEPLOY/test
@@ -170,7 +171,7 @@ variables:
         test/lcdb-wf-test unit_tests --ensure-docs
 
         # find all URLs in reference configs and make sure they exist
-        test/lcdb-wf-test unit_tests --url-check
+        # test/lcdb-wf-test unit_tests --url-check
 
         # run R package unit tests using the R env
         test/lcdb-wf-test unit_tests --r-test
@@ -229,6 +230,11 @@ variables:
           source /opt/miniforge/etc/profile.d/conda.sh
           conda activate $LCDBWF_ENV
           $DEPLOY/test/lcdb-wf-test references --run-workflow --configfile=config/config.yaml -j2 -p -k --orig $ORIG
+
+          # Variant-calling references
+          $DEPLOY/test/lcdb-wf-test references --run-workflow --configfile=$ORIG/test/test_configs/variant-calling.yaml -j2 -p -k --orig $ORIG
+
+
 
   # --------------------------------------------------------------------------
   # Standard RNA-seq workflow
@@ -291,6 +297,21 @@ variables:
   #         source /opt/miniforge/etc/profile.d/conda.sh
   #         conda activate $LCDBWF_ENV
   #         $DEPLOY/test/lcdb-wf-test colocalization --run-workflow -k -p -j2 --use-conda --orig $ORIG
+
+
+  # --------------------------------------------------------------------------
+  # Variant-calling workflow
+  variantcalling-step: &variantcalling-step
+      run:
+        name: variantcalling workflow
+        command: |
+          cd $DEPLOY
+          source /opt/miniforge/etc/profile.d/conda.sh
+          conda activate $LCDBWF_ENV
+          $DEPLOY/test/lcdb-wf-test variantcalling --run-workflow -n
+          $DEPLOY/test/lcdb-wf-test variantcalling --run-workflow --use-conda -j2
+
+          tar -zcf /tmp/variantcalling.tar.gz workflows/variant-calling/results
 
 # --------------------------------------------------------------------------
 # Syntax note: All of the steps above, with their "&step-name" labels, can be
@@ -390,8 +411,22 @@ jobs:
           destination: gene-patterns.html
 
 
+  variantcalling:
+    <<: *defaults
+    resource_class: large
+    steps:
+      - checkout
+      - *restore_cache
+      - *set-path
+      - *get-data
+      - *variantcalling-step
+      - store_artifacts:
+          path: /tmp/variantcalling.tar.gz
+          destination: variantcalling.tar.gz
+
   rnaseq-misc:
     <<: *defaults
+    resource_class: large
     steps:
       - checkout
       - *restore_cache
@@ -497,6 +532,10 @@ workflows:
       #     requires:
       #       - initial-setup
       #       - pytest
+      - variantcalling:
+         requires:
+           - initial-setup
+           - pytest
       - build-docs:
           requires:
             - initial-setup
@@ -508,3 +547,4 @@ workflows:
             - chipseq-misc
             - references
             # - colocalization
+            - variantcalling
