@@ -16,12 +16,15 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r}
+```{r libraries}
 library(AnnotationHub)
 library(dplyr)
 library(BiocParallel)
 library(GeneTonic)
 library(DESeq2)
+library(enrichplot)
+library(cowplot)
+library(ggplot2)
 ```
 
 # Functional enrichment analysis
@@ -39,8 +42,9 @@ devtools::load_all('../../../lib/lcdbwf')
 config <- lcdbwf:::load_config('config.yaml')
 
 # set cores for operation
-if (config$parallel$parallel){
-    cores <- as.numeric(config$parallel$cores)
+slurm_cores <- config$parallel$cores
+if (config$parallel$parallel & slurm_cores != "") {
+    cores <- as.numeric(slurm_cores)
 } else {
     cores <- 1
 }
@@ -67,41 +71,52 @@ if(!'degpatterns_list' %in% names(obj)){
 ```
 
 ```{r functional_enrichment_prep, cache=TRUE, config=config$annotation$keytype, eval=config$toggle$functional_enrichment, cache.extra=res_list}
-
-# obtain ontology information for all ontologies
+# Obtain ontology information for all ontologies
 ontology_list <- lcdbwf:::get_ontology_list(config)
 
-# Define background gene pool for overrepresentation analysis
-univ_option <- config$functional_enrichment$limit_background_genes
+# Check if we are running Overrepresentation Analysis (ORA) or Gene Set Enrichment Analysis (GSEA)
+kind <- config$functional_enrichment$kind
+if (is.null(kind)) {
+  kind <- "ORA"
+}
 
-# Set `universe_list` based on configuration or custom background
-if (univ_option == "exclude_zero_in_all") {
-  # Retrieve all genes detected in one or more samples per contrast
-  universe_list <- lapply(names(dds_list), function(name) nonzero_genes(dds_list[[name]]))
-  names(universe_list) <- names(dds_list)
-} else if (univ_option == "no_filter") {
-  ########################################################################################
-  # Here, a user can manually set the `universe_list` to a named list of vectors for     #
-  # custom background genes. Ensure to have names matched between `universe_list` and    #
-  # `res_list`.                                                                          #
-  ########################################################################################
-  universe_list <- NULL
-  # Raise an error if names are unmatched
-  if (!identical(names(universe_list), names(res_list)) & !is.null(universe_list)) {
-    stop("universe_list has different names from res_list.")
+# We only need the universe_list/background gene pool if we're doing ORA
+if (kind == "ORA" | kind == "OR") {
+  # Define background gene pool for overrepresentation analysis
+  univ_option <- config$functional_enrichment$limit_background_genes
+
+  # Set `universe_list` based on configuration or custom background
+  if (univ_option == "exclude_zero_in_all") {
+    # Retrieve all genes detected in one or more samples per contrast
+    universe_list <- lapply(names(dds_list), function(name) nonzero_genes(dds_list[[name]]))
+    names(universe_list) <- names(dds_list)
+  } else if (univ_option == "no_filter") {
+    ########################################################################################
+    # Here, a user can manually set the `universe_list` to a named list of vectors for     #
+    # custom background genes. Ensure to have names matched between `universe_list` and    #
+    # `res_list`.                                                                          #
+    ########################################################################################
+    universe_list <- NULL
+    # Raise an error if names are unmatched
+    if (!identical(names(universe_list), names(res_list)) & !is.null(universe_list)) {
+      stop("universe_list has different names from res_list.")
+    }
+  } else {
+    stop("Correct your background option in the config.yaml file.")
   }
 } else {
-  stop("Correct your background option in the config.yaml file.")
+  universe_list = NULL
 }
 ```
 
 
 ```{r enrich, cache=TRUE, eval=config$toggle$functional_enrichment, config=c(config$main, config$functional_enrichment), dependson='functional_enrichment_prep'}
 enrich_list <- lcdbwf:::run_enricher(res_list=res_list,
-                                     ontology_list=ontology_list,
-                                     config=config,
-                                     universe_list=universe_list,
-                                     cores=cores, sep='*')
+                                   ontology_list=ontology_list,
+                                   config=config,
+                                   kind=kind,
+                                   universe_list=universe_list,
+                                   cores=cores, sep='*')
 
 ```
 
@@ -138,7 +153,7 @@ knitr::kable(config$functional_enrichment$ontologies %>% as.data.frame %>% t())
 
 # Plots {.tabset}
 
-```{r, results='asis'}
+```{r plots, results='asis'}
 
 for (name in names(res_list)){
   mdcat("## ", name, "{.tabset}")

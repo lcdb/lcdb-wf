@@ -7,7 +7,7 @@
 #' @param universe_list List of vectors for background genes
 #'
 #' @return nested list of enrichResult objects
-run_enricher <- function(res_list, ontology_list, config,
+run_enricher <- function(res_list, ontology_list, config, kind = "ORA",
                          cores=1, sep='*', universe_list=universe_list){
     # This function supports running in parallel which works best with a flat
     # list; however for organizational purposese we want a nested structure. So
@@ -28,9 +28,10 @@ run_enricher <- function(res_list, ontology_list, config,
                         config=config,
                         sep=sep)
 
-    # run enrichment on flattened res_list
+
+    # Run enrichment on flattened res_list
     enrich_list_flat <- BiocParallel::bplapply(n,
-        function(x){
+        function(x) {
             # split name into 3 fields:
             #   comparison, direction, ontology
             toks <- unlist(strsplit(x, split=sep, fixed=TRUE))
@@ -38,16 +39,32 @@ run_enricher <- function(res_list, ontology_list, config,
             direction <- toks[2]
             ont <- toks[3]
 
-            enrich_res <- enrich_test(
-              res_list[[name]],
-              direction=direction,
-              TERM2GENE=ontology_list[['term2gene']][[ont]],
-              TERM2NAME=ontology_list[['term2name']][[ont]],
-              config=config,
-              universe=universe_list[[name]]
-            )
-            enrich_res
-        }, BPPARAM=BiocParallel::MulticoreParam(cores))
+            # Run either ORA or GSEA
+            if (kind == "GSEA") {
+              enrich_res <- run_GSEA(
+                res_list[[name]],
+                direction=direction,
+                TERM2GENE=ontology_list[['term2gene']][[ont]],
+                TERM2NAME=ontology_list[['term2name']][[ont]],
+                config=config,
+                cores=cores
+              )
+              enrich_res
+            } else {
+              enrich_res <- run_ORA(
+                res_list[[name]],
+                direction=direction,
+                TERM2GENE=ontology_list[['term2gene']][[ont]],
+                TERM2NAME=ontology_list[['term2name']][[ont]],
+                config=config,
+                universe=universe_list[[name]]
+              )
+              enrich_res
+            }
+
+        }, BPPARAM=BiocParallel::MulticoreParam(cores)
+    )
+
 
     # create nested list structure keyed by
     # comparison, direction, ontology
@@ -116,15 +133,12 @@ nonzero_genes <- function(dds) {
 #' @param config Config object. pvalueCutoff and qvalueCutoff will be taken from here.
 #' @param direction One of "up", "down", or "changed". Will use alpha and
 #'   lfc_thresh from the config.
-#' @param kind One of "OR" for overrepresentation or "GSEA" for gene set
-#'   enrichment analysis.
 #' @param universe background genes. If missing, all genes listed in the database 
 #'   (e.g. TERM2GENE table) will be used as background. 
-#' @param ... Additional arguments are passed on to enricher() for kind="OR" or
-#'   GSEA() for kind="GSEA".
+#' @param ... Additional arguments are passed on to enricher()
 #'
 #' @return An enrichResults object from
-enrich_test <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR', universe, ...){
+run_ORA <- function(res, TERM2GENE, TERM2NAME, config, cores, direction, universe, ...){
 
   if (is.null(config$main$lfc_thresh)){
     lfc_thresh <- 0
@@ -132,42 +146,26 @@ enrich_test <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR',
     lfc_thresh <- config$main$lfc_thresh
   }
 
-  if (kind == "OR"){
-    genes <- get_sig(
-      res$res,
-      alpha=config$main$alpha,
-      lfc_thresh=lfc_thresh,
-      direction=direction,
-      return_type="rownames"
-    )
+  set.seed(143)
 
-    e <- clusterProfiler::enricher(
-      genes,
-      TERM2GENE=TERM2GENE,
-      TERM2NAME=TERM2NAME,
-      pvalueCutoff=config$functional_enrichment$pvalueCutoff,
-      qvalueCutoff=config$functional_enrichment$qvalueCutoff,
-      universe=universe,
-      ...
-    )
-  } else if (kind == "GSEA"){
-    genes <- res$res$log2FoldChange
-    names(genes) <- rownames(res$res)
-    genes <- genes[!is.na(genes)]
-    genes <- genes[order(genes, decreasing=TRUE)]
+  genes <- get_sig(
+    res$res,
+    alpha=config$main$alpha,
+    lfc_thresh=lfc_thresh,
+    direction=direction,
+    return_type="rownames"
+  )
 
-    e <- clusterProfiler::GSEA(
-      genes,
-      TERM2GENE=TERM2GENE,
-      TERM2NAME=TERM2NAME,
-      pvalueCutoff=config$functional_enrichment$pvalueCutoff,
-      universe=universe,
-      ...
-    )
+  e <- clusterProfiler::enricher(
+    genes,
+    TERM2GENE=TERM2GENE,
+    TERM2NAME=TERM2NAME,
+    pvalueCutoff=config$functional_enrichment$pvalueCutoff,
+    qvalueCutoff=config$functional_enrichment$qvalueCutoff,
+    universe=universe,
+    ...
+  )
 
-  } else {
-    stop(paste0("Don't know how to handle enrichment type '", kind, "'."))
-  }
   if (is.null(e)){
     return(e)
   }
@@ -202,6 +200,100 @@ enrich_test <- function(res, TERM2GENE, TERM2NAME, config, direction, kind='OR',
   e@result <- eres
   return(e)
 }
+
+#' GSEA Enrichment Function
+#'
+#' Designed to not require an orgdb, and instead requires dataframes of
+#' term2gene and optionally term2name.
+#'
+#' @param res DESeq2 results object
+#' @param TERM2GENE A data.frame, first column GO ID, second column gene name.
+#'   It is assumed that the gene names are the same format as those in
+#'   rownames(res).
+#' @param TERM2NAME A data.frame, first column GO ID, second column description.
+#' @param config Config object. pvalueCutoff and qvalueCutoff will be taken from here.
+#' @param direction One of "up", "down", or "changed". Will use alpha and
+#'   lfc_thresh from the config.
+#' @param config The config object for the analysis
+#' @param cores The number of cores used in parallelization
+#'
+#' @return An enrichResults object from clusterProfiler::GSEA
+run_GSEA <- function(res, TERM2GENE, TERM2NAME, direction, config, cores, ...){
+
+  if (is.null(config$main$lfc_thresh)){
+    lfc_thresh <- 0
+  } else {
+    lfc_thresh <- config$main$lfc_thresh
+  }
+
+  kind <- config$functional_enrichment$kind
+
+  set.seed(143)
+
+  genes <- res$res$log2FoldChange
+  names(genes) <- rownames(res$res)
+  genes <- genes[genes != 0]
+  duplicated_genes <- duplicated(genes)
+  genes[duplicated_genes] <- genes[duplicated_genes] + runif(sum(duplicated_genes), min = 0.0000001, max = 0.0002)
+
+  genes <- genes[order(genes, decreasing=TRUE)]
+
+  gsea_obj <- clusterProfiler::GSEA(
+    genes,
+    TERM2GENE=TERM2GENE,
+    TERM2NAME=TERM2NAME,
+    pvalueCutoff=config$functional_enrichment$pvalueCutoff,
+    verbose=TRUE,
+    BPPARAM=BiocParallel::MulticoreParam(cores)
+  )
+
+  # If result isn't empty, subset result by direction of regulation and sort according to direction
+  if (is.null(gsea_obj)){
+    return(gsea_obj)
+  } else if (direction == "up") {
+    gsea_obj@result <- gsea_obj@result[gsea_obj@result$NES >= 0, ]
+    gsea_obj@result <- gsea_obj@result[order(gsea_obj@result$NES, decreasing=TRUE),]
+  } else {
+    gsea_obj@result <- gsea_obj@result[gsea_obj@result$NES <= 0, ]
+    gsea_obj@result <- gsea_obj@result[order(gsea_obj@result$NES, decreasing=FALSE),]
+  }
+
+
+  # Convert enrichment IDs to gene symbols
+  #
+  # Portions of this were copied and simplified from clusterProfiler::setReadable(),
+  # but written here to avoid needing an orgdb. Also, comments added for
+  # clarity.
+
+  # Keys are term IDs, values are lists of gene IDs.
+  gc <- clusterProfiler::geneInCategory(gsea_obj)
+
+  # Create a lookup of keytype -> label_column
+  gn <- res$res[[config$annotation$label_column]]
+  names(gn) <- rownames(res$res)
+
+  # Rebuild geneID column after ID conversion
+  geneID <- lapply(gc, function(x){
+                       paste0(gn[x], collapse='/')
+            })
+
+  # Plug back into enrichResult
+  eres <- gsea_obj@result
+
+
+
+  if (is(gsea_obj, "gseaResult")){
+    eres$core_enrichment <- unlist(geneID)
+  } else {
+    eres$geneID <- unlist(geneID)
+  }
+  gsea_obj@gene2Symbol <- gn
+  gsea_obj@keytype <- config$annotation$label_column
+  gsea_obj@readable <- TRUE
+  gsea_obj@result <- eres
+  return(gsea_obj)
+}
+
 
 
 #' Get the MSigDB data for the organism provided in the config.
