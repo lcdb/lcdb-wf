@@ -371,7 +371,7 @@ if is_paired:
 
     rule collectinsertsizemetrics:
         input:
-            bam="data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam",
+            bam="data/chipseq_merged/{sample}/{sample}.cutadapt.unique.nodups.merged.bam",
         output:
             pdf="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.collectinsertsizemetrics.pdf",
             metrics="data/chipseq_samples/{sample}/{sample}.cutadapt.unique.nodups.bam.collectinsertsizemetrics.metrics",
@@ -422,22 +422,22 @@ rule macs:
     input:
         ip=lambda wc: expand(
             "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam",
-            label=chipseq.samples_for_run(config, wc.macs_run, "macs", "ip"),
+            label=chipseq.samples_for_run(config, wc.macs_run, "macs2", "ip"),
         ),
         control=lambda wc: expand(
             "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam",
-            label=chipseq.samples_for_run(config, wc.macs_run, "macs", "control"),
+            label=chipseq.samples_for_run(config, wc.macs_run, "macs2", "control"),
         ),
         chromsizes=rules.chromsizes.output,
     output:
-        bed="data/chipseq_peaks/macs/{macs_run}/peaks.bed",
+        bed="data/chipseq_peaks/macs2/{macs_run}/peaks.bed",
     resources:
         mem="16g",
         runtime="2h",
     log:
-        "data/chipseq_peaks/macs/{macs_run}/peaks.bed.log",
+        "data/chipseq_peaks/macs2/{macs_run}/peaks.bed.log",
     params:
-        block=lambda wc: chipseq.block_for_run(config, wc.macs_run, "macs"),
+        block=lambda wc: chipseq.block_for_run(config, wc.macs_run, "macs2"),
     script:
         "../../scripts/macs_callpeak.py"
 
@@ -480,15 +480,15 @@ rule bed_to_bigbed:
     Convert BED to bigBed
     """
     input:
-        bed="{prefix}.bed",
+        bed="data/chipseq_peaks/{peakcaller}/{peakcaller_run}/peaks.bed",
         chromsizes=rules.chromsizes.output,
     output:
-        "{prefix}.bigbed",
+        "data/chipseq_peaks/{peakcaller}/{peakcaller_run}/peaks.bigbed",
     resources:
         mem="2g",
         runtime="2h",
     log:
-        "{prefix}.bigbed.log",
+        "data/chipseq_peaks/{peakcaller}/{peakcaller_run}/peaks.bigbed.log",
     script:
         "../../scripts/bed_to_bigbed.py"
 
@@ -606,7 +606,7 @@ rule multiqc:
         expand(rules.samtools_idxstats.output, sample=SAMPLES),
         expand(rules.bigwig.output, label=LABELS),
         expand(rules.merge_techreps.output, label=LABELS),
-        expand(rules.collectinsertsizemetrics.output.metric, sample=SAMPLES)
+        expand(rules.collectinsertsizemetrics.output.metrics, sample=SAMPLES)
         if is_paired
         else [],
         [v["bigbed"] for v in peaks.values()],
