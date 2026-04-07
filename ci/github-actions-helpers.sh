@@ -9,10 +9,12 @@ export LC_ALL="${LC_ALL:-en_US.utf8}"
 export LANG="${LANG:-en_US.utf8}"
 export MINIFORGE_DIR="${MINIFORGE_DIR:-$HOME/miniforge3}"
 
+# Get top-level dir
 lcdbwf_repo_root() {
   git rev-parse --show-toplevel
 }
 
+# Ubuntu packages to be installed each time
 lcdbwf_install_system_deps() {
   export DEBIAN_FRONTEND=noninteractive
   sudo apt-get update
@@ -30,6 +32,8 @@ lcdbwf_install_system_deps() {
   sudo localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 || true
 }
 
+# Install if needed, activate, and add channels. This is for the main conda
+# installation.
 lcdbwf_init_conda() {
   if [ ! -x "${MINIFORGE_DIR}/bin/conda" ]; then
     curl -L -o /tmp/miniforge.sh \
@@ -45,6 +49,7 @@ lcdbwf_init_conda() {
   conda config --system --set channel_priority strict
 }
 
+# Create envs if they don't already exist (e.g., from restoring a cache)
 lcdbwf_ensure_envs() {
   lcdbwf_init_conda
 
@@ -57,7 +62,10 @@ lcdbwf_ensure_envs() {
   fi
 }
 
-lcdbwf_get_data() {
+# Clone locally to a temp dir, use the deploy script there to deploy to a new
+# dir, copy over necessary test files (that are intentionally excluded by the
+# normal deploy process) and download test data.
+lcdbwf_deploy_and_get_data() {
   local orig staging
 
   orig="$(lcdbwf_repo_root)"
