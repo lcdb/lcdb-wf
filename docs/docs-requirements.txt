@@ -1,5 +1,6 @@
-sphinx
-pyyaml
-pandas>=1.0.3
 biopython>=1.76
+pandas>=1.0.3
+pyyaml
+shibuya
 snakemake-minimal
+sphinx
