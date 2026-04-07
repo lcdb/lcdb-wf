@@ -1,6 +1,72 @@
 Changelog
 =========
 
+v1.14
+-----
+
+New variant-calling workflow
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- New variant-calling workflow (``workflows/variant-calling``) implementing
+  GATK best practices for germline (HaplotypeCaller) and somatic (Mutect2)
+  variant calling, annotation via SnpEff and SnpSift, with dbNSFP annotation
+  support (thanks Gus Fridell).
+
+- Documentation added in ``workflows/variant-calling/variant-calling.rst``.
+
+- Deployment support: ``deploy.py`` now supports a ``variant-calling`` flavor.
+- ``lib/helpers.smk`` with Snakemake helper functions
+
+References
+~~~~~~~~~~
+
+- New ``bwa_index`` rule for generating BWA indices from reference genomes
+  (added for variant calling)
+
+- New ``genome_index`` rule for creating FASTA indices with samtools (added for
+  variant calling)
+
+- New ``known_variation`` rule for downloading and combining known variation
+  VCFs from Ensembl FTP, with species/build-specific handling (added for
+  variant calling)
+
+- References path is now relative to the workflow directory.
+
+- Updated SILVA database URLs to release 138.1 FTP.
+
+- Updated ERCC URLs to current NIST domain.
+
+- Updated Drosophila reference config to use FTP URLs.
+
+- Changed download tool from ``wget`` to ``curl`` for better redirect handling;
+  use ``lftp`` for FTP downloads.
+
+RNA-seq
+~~~~~~~
+
+- Updated ``functional-enrichment.Rmd`` with GSEA support, conditional
+  background gene handling (universe only used for ORA), and improved parallel
+  configuration (thanks Brandon Fuller)
+
+General
+~~~~~~~
+
+- New BWA index helper functions in ``lib/aligners.py``
+  (``bwa_index_from_prefix()``, ``bwa_prefix_from_index()``).
+
+- New ``get_top_level_dir()`` function in ``lib/helpers.py`` to locate the
+  lcdb-wf root directory.
+
+- Improved SRA sampletable handling: better detection of layout columns
+  (``Layout``, ``LibraryLayout``, ``layout``) and more informative error
+  messages (thanks Brandon Fuller)
+
+- Pinned sra-tools below 3.4.1 due to segfaults in that version.
+
+- Updated ``env.yml`` with recent package versions.
+
+- various updates to testing infrastructure
+
 v1.13.1
 -------
 Bugfixes:

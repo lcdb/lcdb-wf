@@ -13,8 +13,11 @@ import binascii
 from lib.imports import resolve_name
 from lib import aligners
 from lib import utils
+from urllib.parse import urlparse
 from snakemake.shell import shell
 from snakemake.io import expand
+from lib import helpers
+from pathlib import Path
 
 # List of possible keys in config that are to be interpreted as paths
 PATH_KEYS = [
@@ -313,6 +316,7 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
     if isinstance(urls, str):
         urls = [urls]
 
+
     # Download tempfiles into reasonably-named filenames
     tmpfiles = ['{0}.{1}.tmp'.format(outfile, i) for i in range(len(urls))]
     tmpinputfiles = tmpfiles
@@ -322,7 +326,7 @@ def download_and_postprocess(outfile, config, organism, tag, type_):
                 url = url.replace('file://', '')
                 shell('cp {url} {tmpfile} 2> {outfile}.log')
             else:
-                shell("wget {url} -O- > {tmpfile} 2> {outfile}.log")
+                shell("curl -L {url} > {tmpfile}")
 
         for func, args, kwargs, outfile in funcs:
             func(tmpinputfiles, outfile, *args, **kwargs)
@@ -419,6 +423,7 @@ def references_dict(config):
         'bowtie2': aligners.bowtie2_index_from_prefix('')[0],
         'hisat2': aligners.hisat2_index_from_prefix('')[0],
         'star': '/Genome',
+        'bwa': aligners.bwa_index_from_prefix('')[0],
 
         # Notes on salmon indexing:
         #   - pre-1.0 versions had hash.bin
@@ -451,13 +456,39 @@ def references_dict(config):
     type_extensions = {
         'genome': 'fasta',
         'annotation': 'gtf',
-        'transcriptome': 'fasta'
+        'transcriptome': 'fasta',
+        'known': 'vcf.gz'
     }
 
     for organism in merged_references.keys():
         d[organism] = {}
         for tag in merged_references[organism].keys():
             e = {}
+            if tag == 'variation':
+                # variation databases should be the the keys of a dictionary
+                # containing a URL and postprocess block
+                for type_ in merged_references[organism][tag].keys():
+                    ext = '.vcf.gz'
+                    if type_ == 'dbnsfp':
+                        type_ = merged_references[organism][tag][type_]['version'] + '_' +  merged_references[organism][tag][type_]['build']
+                        e[type_] = (
+                            '{references_dir}/'
+                            '{organism}/'
+                            '{tag}/'
+                            '{type_}/'
+                            '{organism}_{tag}{ext}'.format(**locals())
+                        )
+                        d[organism][tag] = e
+                        continue
+                    e[type_] = (
+                        '{references_dir}/'
+                        '{organism}/'
+                        '{tag}/'
+                        '{type_}/'
+                        '{organism}_{tag}{ext}'.format(**locals())
+                    )
+                    d[organism][tag] = e
+                continue
             for type_, block in merged_references[organism][tag].items():
                 if type_ == 'metadata':
                     continue
@@ -537,7 +568,8 @@ def references_dict(config):
                             .format(**locals())
                         )
 
-                    # Only makes sense to have chromsizes for genome fasta, not transcriptome.
+                    # Only makes sense to have chromsizes and faidx for genome
+                    # fasta, not transcriptome.
                     if type_ == 'genome':
                         e['chromsizes'] = (
                             '{references_dir}/'
@@ -546,6 +578,16 @@ def references_dict(config):
                             '{type_}/'
                             '{organism}_{tag}.chromsizes'.format(**locals())
                         )
+                        e['faidx'] = (
+                            '{references_dir}/'
+                            '{organism}/'
+                            '{tag}/'
+                            '{type_}/'
+                            '{organism}_{tag}.fai'.format(**locals())
+                        )
+
+
+
                 d[organism][tag] = e
     return d, conversion_kwargs
 
@@ -623,8 +665,6 @@ def load_config(config, missing_references_ok=False):
     Resolves any included references directories/files and runs the deprecation
     handler.
     """
-    if isinstance(config, str):
-        config = yaml.load(open(config), Loader=yaml.FullLoader)
 
     # Here we populate a list of reference sections. Items later on the list
     # will have higher priority
@@ -722,32 +762,22 @@ def is_paired_end(sampletable, sample):
     # We can't fall back to detecting PE based on two fastq files provided for
     # each sample when it's an SRA sampletable (which only has SRR accessions).
     #
-    # So detect first detect if SRA sampletable based on presence of "Run"
-    # column and all values of that column starting with "SRR", and then raise
-    # an error if the Layout column does not exist.
-
-    if "Run" in sampletable.columns:
-        if all(sampletable["Run"].str.startswith("SRR")):
-            if "Layout" not in sampletable.columns and "layout" not in sampletable.columns:
-                raise ValueError(
-                    "Sampletable appears to be SRA, but no 'Layout' column "
-                    "found. This is required to specify single- or paired-end "
-                    "libraries.")
+    # So instead first detect if there is in fact a second fastq file listed,
+    # and if not then check if the layout of the library is listed
 
     row = sampletable.set_index(sampletable.columns[0]).loc[sample]
     if 'orig_filename_R2' in row:
         return True
-    if 'layout' in row and 'LibraryLayout' in row:
-        raise ValueError("Expecting column 'layout' or 'LibraryLayout', "
-                         "not both")
-    try:
-        return row['layout'].lower() in ['pe', 'paired']
-    except KeyError:
-        pass
-    try:
-        return row['LibraryLayout'].lower() in ['pe', 'paired']
-    except KeyError:
-        pass
+    if "Run" in sampletable.columns:
+        if all(sampletable["Run"].str.startswith("SRR")):
+            layout_columns = set(sampletable.columns).intersection(['layout', 'LibraryLayout', 'Layout'])
+            if len(layout_columns) != 1:
+                raise ValueError("Expected exactly one of ['layout', 'LibraryLayout', 'Layout'] in sample table")
+            layout_column = list(layout_columns)[0]
+            try:
+                return row[layout_column].lower() in ['pe', 'paired']
+            except KeyError:
+                pass
     return False
 
 
@@ -912,3 +942,4 @@ def gff2gtf(gff, gtf):
         shell('gzip -d -S .gz.0.tmp {gff} -c | gffread - -T -o- | gzip -c > {gtf}')
     else:
         shell('gffread {gff} -T -o- | gzip -c > {gtf}')
+

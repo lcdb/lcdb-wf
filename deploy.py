@@ -108,6 +108,12 @@ def write_include_file(source, flavor="all"):
             "recursive-include workflows/figures *",
             "recursive-include workflows/external *",
         ],
+
+        "variant-calling": [
+            "include workflows/variant-calling/Snakefile",
+            "recursive-include workflows/variant-calling/config *",
+        ],
+
     }
 
     patterns = []
@@ -115,6 +121,8 @@ def write_include_file(source, flavor="all"):
         patterns.extend(PATTERN_DICT["rnaseq"])
     if flavor in ("full", "chipseq"):
         patterns.extend(PATTERN_DICT["chipseq"])
+    if flavor in ("full", "variant-calling"):
+        patterns.extend(PATTERN_DICT["variant-calling"])
     if flavor == "full":
         patterns.extend(PATTERN_DICT["full"])
     patterns.extend(PATTERN_DICT["all"])
@@ -348,7 +356,7 @@ if __name__ == "__main__":
         "--flavor",
         default="full",
         help="""Options are {0}. Default is full.""".format(
-            ["full", "rnaseq", "chipseq"]
+            ["full", "rnaseq", "chipseq", "variant-calling"]
         ),
     )
     ap.add_argument(
