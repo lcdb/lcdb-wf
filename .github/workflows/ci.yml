@@ -65,7 +65,7 @@ jobs:
           source ci/github-actions-helpers.sh
           lcdbwf_install_system_deps
           lcdbwf_ensure_envs
-          lcdbwf_get_data
+          lcdbwf_deploy_and_get_data
 
       - name: Run chipseq workflow
         run: |
@@ -110,7 +110,7 @@ jobs:
           source ci/github-actions-helpers.sh
           lcdbwf_install_system_deps
           lcdbwf_ensure_envs
-          lcdbwf_get_data
+          lcdbwf_deploy_and_get_data
 
       - name: Run chipseq misc workflow tests
         run: |
@@ -152,7 +152,7 @@ jobs:
           source ci/github-actions-helpers.sh
           lcdbwf_install_system_deps
           lcdbwf_ensure_envs
-          lcdbwf_get_data
+          lcdbwf_deploy_and_get_data
 
       - name: Run rnaseq workflow
         run: |
@@ -211,7 +211,7 @@ jobs:
           source ci/github-actions-helpers.sh
           lcdbwf_install_system_deps
           lcdbwf_ensure_envs
-          lcdbwf_get_data
+          lcdbwf_deploy_and_get_data
 
       - name: Run rnaseq misc tests
         run: |
@@ -254,7 +254,7 @@ jobs:
           source ci/github-actions-helpers.sh
           lcdbwf_install_system_deps
           lcdbwf_ensure_envs
-          lcdbwf_get_data
+          lcdbwf_deploy_and_get_data
 
       - name: Run references workflows
         run: |
@@ -293,7 +293,7 @@ jobs:
           source ci/github-actions-helpers.sh
           lcdbwf_install_system_deps
           lcdbwf_ensure_envs
-          lcdbwf_get_data
+          lcdbwf_deploy_and_get_data
 
       - name: Run variantcalling workflow
         run: |
