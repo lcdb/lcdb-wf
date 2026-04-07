@@ -21,6 +21,19 @@ env:
   LANG: en_US.utf8
   MINIFORGE_DIR: /home/runner/miniforge3
 
+  # Notes on caching:
+  #
+  # The user-settings.mkfg file included in the cache is created by sra-tools
+  # upon installation by conda. If it's not included, fastq-dump thinks it's
+  # mis-configured
+  #
+  # Named environments are kept in the /home/runner/miniforge3 dir, and
+  # restored upon cache hit.
+  #
+  # Notes on artifacts:
+  #
+  # Log files are uploaded as artifacts, even when a job fails, for easier
+  # debugging. They have a default retention time of 90 days.
 jobs:
   pytest:
     runs-on: ubuntu-latest
