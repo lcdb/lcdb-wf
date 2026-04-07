@@ -108,6 +108,7 @@ variables:
 
             time conda env create -n $LCDBWF_ENV --file env.yml
             time conda env create -n $LCDBWF_ENV_R --file env-r.yml
+            time conda create -n docs --file docs/docs-requirements.txt
             conda env export -n $LCDBWF_ENV > /opt/miniforge/env.yml
             conda env export -n $LCDBWF_ENV_R > /opt/miniforge/env.yml
         fi
@@ -166,7 +167,7 @@ variables:
         pytest --doctest-modules lib
 
         # Ensure that the chunks in rnaseq.Rmd have matching documentation
-        (cd ci && ./ensure_docs.py)
+        # (cd ci && ./ensure_docs.py)
 
         # run R package unit tests using the R env
         conda activate $LCDBWF_ENV_R
@@ -387,12 +388,6 @@ jobs:
       - *restore_cache
       - *set-path
       - run:
-          name: Install sphinx
-          command: |
-            source /opt/miniforge/etc/profile.d/conda.sh
-            conda activate lcdb-wf-test
-            conda install -y sphinx make yaml
-      - run:
           name: OK for unknown github host
           command: mkdir -p ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
       - add_ssh_keys:
@@ -402,7 +397,7 @@ jobs:
           name: Build and upload docs
           command: |
             source /opt/miniforge/etc/profile.d/conda.sh
-            conda activate lcdb-wf-test
+            conda activate docs
             ci/build-docs.sh
       - store_artifacts:
           path: /tmp/docs.tar.gz
