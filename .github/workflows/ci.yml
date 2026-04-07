@@ -78,14 +78,14 @@ jobs:
           "${DEPLOY}/test/lcdb-wf-test" chipseq --run-workflow --use-conda -j2 -k -p
           "${DEPLOY}/test/lcdb-wf-test" chipseq --trackhub
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: chipseq-multiqc
           path: /tmp/lcdb-wf-test/workflows/chipseq/data/chipseq_aggregation/multiqc.html
           if-no-files-found: warn
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: chipseq-logs
@@ -127,7 +127,7 @@ jobs:
             merged_bigwigs="{}" \
             --until bed_to_bigbed
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: chipseq-misc-logs
@@ -174,7 +174,7 @@ jobs:
           cp workflows/rnaseq/downstream-test/gene-patterns.html /tmp/gene-patterns.html
           cp workflows/rnaseq/data/rnaseq_aggregation/multiqc.html /tmp/multiqc.html
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: rnaseq-artifacts
@@ -186,7 +186,7 @@ jobs:
             /tmp/gene-patterns.html
           if-no-files-found: warn
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: rnaseq-logs
@@ -229,7 +229,7 @@ jobs:
           "${DEPLOY}/test/lcdb-wf-test" rnaseq --run-workflow --star-1pass -k -p -j2 --use-conda --orig "${ORIG}"
           "${DEPLOY}/test/lcdb-wf-test" rnaseq --run-workflow --pe -k -p -j2 --use-conda --orig "${ORIG}"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: rnaseq-misc-logs
@@ -268,7 +268,7 @@ jobs:
           "${DEPLOY}/test/lcdb-wf-test" references --run-workflow --configfile=config/config.yaml -j2 -p -k --orig "${ORIG}"
           "${DEPLOY}/test/lcdb-wf-test" references --run-workflow --configfile="${ORIG}/test/test_configs/variant-calling.yaml" -j2 -p -k --orig "${ORIG}"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: references-logs
@@ -307,7 +307,7 @@ jobs:
           "${DEPLOY}/test/lcdb-wf-test" variantcalling --run-workflow --use-conda -j2
           tar -zcf /tmp/variantcalling.tar.gz workflows/variant-calling/results
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: variantcalling-logs
@@ -316,7 +316,7 @@ jobs:
             /tmp/lcdb-wf-test/workflows/variant-calling/**/*.log
           if-no-files-found: warn
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: variantcalling-results
@@ -351,7 +351,7 @@ jobs:
           make -C docs clean html SPHINXOPTS="-j2"
           tar -zcf /tmp/docs.tar.gz -C docs/_build html
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: docs-build
@@ -408,7 +408,7 @@ jobs:
           conda env export -n "${LCDBWF_ENV}" > /tmp/env.yaml
           conda env export -n "${LCDBWF_ENV_R}" > /tmp/env-r.yaml
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: exported-envs
