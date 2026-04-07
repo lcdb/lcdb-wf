@@ -305,7 +305,6 @@ jobs:
           cd "${DEPLOY}"
           "${DEPLOY}/test/lcdb-wf-test" variantcalling --run-workflow -n
           "${DEPLOY}/test/lcdb-wf-test" variantcalling --run-workflow --use-conda -j2
-          tar -zcf /tmp/variantcalling.tar.gz workflows/variant-calling/results
 
       - uses: actions/upload-artifact@v6
         if: always()
@@ -316,12 +315,6 @@ jobs:
             /tmp/lcdb-wf-test/workflows/variant-calling/**/*.log
           if-no-files-found: warn
 
-      - uses: actions/upload-artifact@v6
-        if: always()
-        with:
-          name: variantcalling-results
-          path: /tmp/variantcalling.tar.gz
-          if-no-files-found: warn
 
   build-docs:
     runs-on: ubuntu-latest
