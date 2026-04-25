@@ -621,7 +621,7 @@ compose_results <- function(res_list=NULL,
   }
 
   # remove duplicates
-  idx <- !duplicated(gene2symbol)
+  idx <- duplicated(gene2symbol)
   gene2symbol <- gene2symbol[!idx]
   names(gene2symbol) <- gene2symbol_names[!idx]
 
