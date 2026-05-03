@@ -1,0 +1,424 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+env:
+  DEPLOY: /tmp/lcdb-wf-test
+  LCDBWF_ENV: lcdb-wf-test
+  LCDBWF_ENV_R: lcdb-wf-test-r
+  LC_ALL: en_US.utf8
+  LANG: en_US.utf8
+  MINIFORGE_DIR: /home/runner/miniforge3
+
+  # Notes on caching:
+  #
+  # The user-settings.mkfg file included in the cache is created by sra-tools
+  # upon installation by conda. If it's not included, fastq-dump thinks it's
+  # mis-configured
+  #
+  # Named environments are kept in the /home/runner/miniforge3 dir, and
+  # restored upon cache hit.
+  #
+  # Notes on artifacts:
+  #
+  # Log files are uploaded as artifacts, even when a job fails, for easier
+  # debugging. They have a default retention time of 90 days.
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/cache@v5
+        with:
+          key: miniforge-${{ runner.os }}-${{ hashFiles('env.yml', 'env-r.yml') }}
+          path: |
+            /home/runner/miniforge3
+            /home/runner/.ncbi/user-settings.mkfg
+
+      - name: Install dependencies and conda envs
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_install_system_deps
+          lcdbwf_ensure_envs
+
+      - name: Run pytest and R test suites
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_init_conda
+          conda activate "${LCDBWF_ENV}"
+          test/lcdb-wf-test unit_tests --pytest
+          test/lcdb-wf-test unit_tests --ensure-docs
+          test/lcdb-wf-test unit_tests --r-test
+
+  chipseq:
+    runs-on: ubuntu-latest
+    needs: pytest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/cache@v5
+        with:
+          key: miniforge-${{ runner.os }}-${{ hashFiles('env.yml', 'env-r.yml') }}
+          path: |
+            /home/runner/miniforge3
+            /home/runner/.ncbi/user-settings.mkfg
+
+      - name: Set up test environment
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_install_system_deps
+          lcdbwf_ensure_envs
+          lcdbwf_deploy_and_get_data
+
+      - name: Run chipseq workflow
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_init_conda
+          conda activate "${LCDBWF_ENV}"
+          cd "${DEPLOY}/workflows/chipseq"
+          "${DEPLOY}/test/lcdb-wf-test" chipseq --run-workflow --use-conda -j2 -k -p
+          "${DEPLOY}/test/lcdb-wf-test" chipseq --trackhub
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: chipseq-multiqc
+          path: /tmp/lcdb-wf-test/workflows/chipseq/data/chipseq_aggregation/multiqc.html
+          if-no-files-found: warn
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: chipseq-logs
+          path: |
+            /tmp/lcdb-wf-test/workflows/chipseq/.snakemake/log/**/*.log
+            /tmp/lcdb-wf-test/workflows/chipseq/**/*.log
+          if-no-files-found: warn
+
+  chipseq-misc:
+    runs-on: ubuntu-latest
+    needs: pytest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/cache@v5
+        with:
+          key: miniforge-${{ runner.os }}-${{ hashFiles('env.yml', 'env-r.yml') }}
+          path: |
+            /home/runner/miniforge3
+            /home/runner/.ncbi/user-settings.mkfg
+
+      - name: Set up test environment
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_install_system_deps
+          lcdbwf_ensure_envs
+          lcdbwf_deploy_and_get_data
+
+      - name: Run chipseq misc workflow tests
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_init_conda
+          conda activate "${LCDBWF_ENV}"
+          ORIG="$(lcdbwf_repo_root)"
+          cd "${DEPLOY}/workflows/chipseq"
+          ./run_test.sh --use-conda -j2 -k -p \
+            --configfile "${ORIG}/test/test_configs/test_chipseq_regression.yaml" \
+            --config sampletable="${ORIG}/test/test_configs/chipseq_one_run.tsv" \
+            merged_bigwigs="{}" \
+            --until bed_to_bigbed
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: chipseq-misc-logs
+          path: |
+            /tmp/lcdb-wf-test/workflows/chipseq/.snakemake/log/**/*.log
+            /tmp/lcdb-wf-test/workflows/chipseq/**/*.log
+          if-no-files-found: warn
+
+  rnaseq:
+    runs-on: ubuntu-latest
+    needs: pytest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/cache@v5
+        with:
+          key: miniforge-${{ runner.os }}-${{ hashFiles('env.yml', 'env-r.yml') }}
+          path: |
+            /home/runner/miniforge3
+            /home/runner/.ncbi/user-settings.mkfg
+
+      - name: Set up test environment
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_install_system_deps
+          lcdbwf_ensure_envs
+          lcdbwf_deploy_and_get_data
+
+      - name: Run rnaseq workflow
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_init_conda
+          conda activate "${LCDBWF_ENV}"
+          ORIG="$(lcdbwf_repo_root)"
+          cd "${DEPLOY}"
+          "${DEPLOY}/test/lcdb-wf-test" rnaseq --run-workflow -n
+          "${DEPLOY}/test/lcdb-wf-test" rnaseq --run-workflow --use-conda -j2 -k -p --orig "${ORIG}"
+          "${DEPLOY}/test/lcdb-wf-test" rnaseq --trackhub --orig "${ORIG}"
+          "${DEPLOY}/test/lcdb-wf-test" rnaseq --downstream
+
+          tar -zcf /tmp/downstream.tar.gz workflows/rnaseq/downstream-test/
+          cp workflows/rnaseq/downstream-test/rnaseq.html /tmp/rnaseq.html
+          cp workflows/rnaseq/downstream-test/functional-enrichment.html /tmp/functional-enrichment.html
+          cp workflows/rnaseq/downstream-test/gene-patterns.html /tmp/gene-patterns.html
+          cp workflows/rnaseq/data/rnaseq_aggregation/multiqc.html /tmp/multiqc.html
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: rnaseq-artifacts
+          path: |
+            /tmp/downstream.tar.gz
+            /tmp/rnaseq.html
+            /tmp/multiqc.html
+            /tmp/functional-enrichment.html
+            /tmp/gene-patterns.html
+          if-no-files-found: warn
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: rnaseq-logs
+          path: |
+            /tmp/lcdb-wf-test/workflows/rnaseq/.snakemake/log/**/*.log
+            /tmp/lcdb-wf-test/workflows/rnaseq/**/*.log
+          if-no-files-found: warn
+
+  rnaseq-misc:
+    runs-on: ubuntu-latest
+    needs: pytest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/cache@v5
+        with:
+          key: miniforge-${{ runner.os }}-${{ hashFiles('env.yml', 'env-r.yml') }}
+          path: |
+            /home/runner/miniforge3
+            /home/runner/.ncbi/user-settings.mkfg
+
+      - name: Set up test environment
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_install_system_deps
+          lcdbwf_ensure_envs
+          lcdbwf_deploy_and_get_data
+
+      - name: Run rnaseq misc tests
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_init_conda
+          conda activate "${LCDBWF_ENV}"
+          ORIG="$(lcdbwf_repo_root)"
+          cd "${DEPLOY}"
+          "${DEPLOY}/test/lcdb-wf-test" rnaseq --run-workflow --sra-pe -k -p -j2 --use-conda --orig "${ORIG}"
+          "${DEPLOY}/test/lcdb-wf-test" rnaseq --run-workflow --sra-se -k -p -j2 --use-conda --orig "${ORIG}"
+          "${DEPLOY}/test/lcdb-wf-test" rnaseq --run-workflow --strandedness-pe -k -p -j2 --use-conda --orig "${ORIG}"
+          "${DEPLOY}/test/lcdb-wf-test" rnaseq --run-workflow --star-2pass -k -p -j2 --use-conda --orig "${ORIG}"
+          "${DEPLOY}/test/lcdb-wf-test" rnaseq --run-workflow --star-1pass -k -p -j2 --use-conda --orig "${ORIG}"
+          "${DEPLOY}/test/lcdb-wf-test" rnaseq --run-workflow --pe -k -p -j2 --use-conda --orig "${ORIG}"
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: rnaseq-misc-logs
+          path: |
+            /tmp/lcdb-wf-test/workflows/rnaseq/.snakemake/log/**/*.log
+            /tmp/lcdb-wf-test/workflows/rnaseq/**/*.log
+          if-no-files-found: warn
+
+  references:
+    runs-on: ubuntu-latest
+    needs: pytest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/cache@v5
+        with:
+          key: miniforge-${{ runner.os }}-${{ hashFiles('env.yml', 'env-r.yml') }}
+          path: |
+            /home/runner/miniforge3
+            /home/runner/.ncbi/user-settings.mkfg
+
+      - name: Set up test environment
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_install_system_deps
+          lcdbwf_ensure_envs
+          lcdbwf_deploy_and_get_data
+
+      - name: Run references workflows
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_init_conda
+          conda activate "${LCDBWF_ENV}"
+          ORIG="$(lcdbwf_repo_root)"
+          cd "${DEPLOY}"
+          "${DEPLOY}/test/lcdb-wf-test" references --run-workflow --configfile=config/config.yaml -j2 -p -k --orig "${ORIG}"
+          "${DEPLOY}/test/lcdb-wf-test" references --run-workflow --configfile="${ORIG}/test/test_configs/variant-calling.yaml" -j2 -p -k --orig "${ORIG}"
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: references-logs
+          path: |
+            /tmp/lcdb-wf-test/workflows/references/.snakemake/log/**/*.log
+            /tmp/lcdb-wf-test/workflows/references/**/*.log
+          if-no-files-found: warn
+
+  variantcalling:
+    runs-on: ubuntu-latest
+    needs: pytest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/cache@v5
+        with:
+          key: miniforge-${{ runner.os }}-${{ hashFiles('env.yml', 'env-r.yml') }}
+          path: |
+            /home/runner/miniforge3
+            /home/runner/.ncbi/user-settings.mkfg
+
+      - name: Set up test environment
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_install_system_deps
+          lcdbwf_ensure_envs
+          lcdbwf_deploy_and_get_data
+
+      - name: Run variantcalling workflow
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_init_conda
+          conda activate "${LCDBWF_ENV}"
+          cd "${DEPLOY}"
+          "${DEPLOY}/test/lcdb-wf-test" variantcalling --run-workflow -n
+          "${DEPLOY}/test/lcdb-wf-test" variantcalling --run-workflow --use-conda -j2
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: variantcalling-logs
+          path: |
+            /tmp/lcdb-wf-test/workflows/variant-calling/.snakemake/log/**/*.log
+            /tmp/lcdb-wf-test/workflows/variant-calling/**/*.log
+          if-no-files-found: warn
+
+
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/cache@v5
+        with:
+          key: miniforge-${{ runner.os }}-${{ hashFiles('env.yml', 'env-r.yml') }}
+          path: |
+            /home/runner/miniforge3
+            /home/runner/.ncbi/user-settings.mkfg
+
+      - name: Set up docs environment
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_install_system_deps
+          lcdbwf_ensure_envs
+          lcdbwf_init_conda
+          conda install -n "${LCDBWF_ENV}" -y sphinx make yaml
+
+      - name: Build docs
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_init_conda
+          conda activate "${LCDBWF_ENV}"
+          make -C docs clean html SPHINXOPTS="-j2"
+          tar -zcf /tmp/docs.tar.gz -C docs/_build html
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: docs-build
+          path: /tmp/docs.tar.gz
+          if-no-files-found: warn
+
+      - uses: actions/upload-pages-artifact@v3
+        if: always()
+        with:
+          path: docs/_build/html
+
+  deploy-docs:
+    runs-on: ubuntu-latest
+    needs: build-docs
+    if: github.repository == 'lcdb/lcdb-wf' && github.event_name == 'push' && github.ref == 'refs/heads/master'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  report-env:
+    runs-on: ubuntu-latest
+    needs:
+      - chipseq
+      - chipseq-misc
+      - rnaseq
+      - rnaseq-misc
+      - references
+      - variantcalling
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/cache@v5
+        with:
+          key: miniforge-${{ runner.os }}-${{ hashFiles('env.yml', 'env-r.yml') }}
+          path: |
+            /home/runner/miniforge3
+            /home/runner/.ncbi/user-settings.mkfg
+
+      - name: Export environment definitions
+        run: |
+          source ci/github-actions-helpers.sh
+          lcdbwf_install_system_deps
+          lcdbwf_ensure_envs
+          lcdbwf_init_conda
+          conda env export -n "${LCDBWF_ENV}" > /tmp/env.yaml
+          conda env export -n "${LCDBWF_ENV_R}" > /tmp/env-r.yaml
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: exported-envs
+          path: |
+            /tmp/env.yaml
+            /tmp/env-r.yaml
+          if-no-files-found: warn
