@@ -59,7 +59,7 @@ rule fasta:
     log:
         f"{REFERENCES}/logs/genome.fa.gz.log",
     resources:
-        mem_mb="4g",
+        mem="4g",
         runtime="2h",
     params:
         urls=config["genome"]["url"],
@@ -79,7 +79,7 @@ rule faidx:
     output:
         f"{REFERENCES}/genome.fa.fai",
     resources:
-        mem_mb="4g",
+        mem="4g",
         runtime="2h",
     shell:
         "samtools faidx {input}"
