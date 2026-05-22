@@ -8,6 +8,10 @@
 if [[ ! -e logs ]]; then mkdir -p logs; fi
 
 # use SNAKEMAKE_PROFILE if one is set in the environment variables
+if [ ! -z "$LCDBWF_SNAKEMAKE_PROFILE_V8" ]; then
+    # If V8 is set, for backwards compatibility, we use that.
+    LCDBWF_SNAKEMAKE_PROFILE=$LCDBWF_SNAKEMAKE_PROFILE_V8
+fi
 if [ -z "$LCDBWF_SNAKEMAKE_PROFILE" ]; then
     if [ -z "$SNAKEMAKE_PROFILE" ]; then
         # no snakemake profile found
