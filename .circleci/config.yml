@@ -60,8 +60,10 @@ variables:
             x11-utils
 
           # support en_US.utf8
-          rm -rf /var/lib/apt/lists/*
-          localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+          echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+          locale-gen
+          update-locale LANG=en_US.UTF-8
+
 
           # Set env vars to be used throughout; this is specific to how
           # circleci handles env vars.
