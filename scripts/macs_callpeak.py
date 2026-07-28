@@ -10,20 +10,13 @@ outdir, basebed = os.path.split(snakemake.output.bed)
 label = snakemake.params.block['label']
 extra = snakemake.params.block.get('extra', '')
 
-effective_genome_count = snakemake.params.block.get('effective_genome_count',
-                                                    snakemake.params.block.get('reference_effective_genome_count', ''))
-
-genome_count_flag = ''
-if effective_genome_count != '':
-    genome_count_flag = ' -g ' + effective_genome_count + ' '
-
 cmds = (
     'macs3 '
     'callpeak '
     '-c {snakemake.input.control} '
     '-t {snakemake.input.ip} '
     '--outdir {outdir} '
-    '--name {label} ' + genome_count_flag
+    '--name {label} '
 )
 # add any per-peak-calling-run extra commands
 cmds += extra
