@@ -28,6 +28,7 @@ rseqc
 salmon>=1.10.1
 
 samtools
+seacr
 snakemake>8
 sra-tools
 star

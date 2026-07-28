@@ -475,6 +475,41 @@ rule epic2:
         "../../scripts/epic2.py"
 
 
+rule seacr:
+    input:
+        ip=lambda wc: expand(
+            "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam",
+            label=chipseq.samples_for_run(config, wc.seacr_run, "seacr", "ip"),
+        ),
+        control=lambda wc: expand(
+            "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam",
+            label=chipseq.samples_for_run(config, wc.seacr_run, "seacr", "control"),
+        ),
+        bai=lambda wc: expand(
+            "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam.bai",
+            label=chipseq.samples_for_run(config, wc.seacr_run, "seacr", "ip"),
+        )
+        + expand(
+            "data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.merged.bam.bai",
+            label=chipseq.samples_for_run(config, wc.seacr_run, "seacr", "control"),
+        ),
+        chromsizes=rules.chromsizes.output,
+    output:
+        bed="data/chipseq_peaks/seacr/{seacr_run}/peaks.bed"
+    resources:
+        mem="16g",
+        runtime="2h"
+    threads:
+        8
+    log:
+        "data/chipseq_peaks/seacr/{seacr_run}/peaks.bed.log",
+    params:
+        block=lambda wc: chipseq.block_for_run(config, wc.seacr_run, 'seacr'),
+        is_paired=is_paired
+    script: 
+        "../../scripts/seacr.py"
+
+
 rule bed_to_bigbed:
     """
     Convert BED to bigBed
