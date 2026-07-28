@@ -22,7 +22,6 @@ cmds = (
     'callpeak '
     '-c {snakemake.input.control} '
     '-t {snakemake.input.ip} '
-    '-f BAM '
     '--outdir {outdir} '
     '--name {label} ' + genome_count_flag
 )
