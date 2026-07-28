@@ -182,21 +182,6 @@ dds_diagnostics <- function(dds_list, text){
     mdcat(text$dds_diagnostics$dispersion)
     DESeq2::plotDispEsts(dds_list[[name]])
 
-    mdcat("#### Sparsity plot")
-    mdcat(text$dds_diagnostics$sparsity)
-    print(lcdbwf:::plotSparsity2(dds_list[[name]]))
-
-    mdcat("#### Outliers")
-    mdcat(text$dds_diagnostics$outliers)
-    p <- assays(dds_list[[name]])[['cooks']] %>%
-      as.data.frame() %>%
-      tidyr::pivot_longer(everything()) %>%
-      ggplot2::ggplot() +
-        ggplot2::aes(x=name, y=log10(value)) +
-        ggplot2::geom_boxplot() +
-        ggplot2::ylab("log10(Cook's distance)")
-    print(p)
-
     mdcat("#### colData")
     mdcat(text$dds_diagnostics$colData)
     cdata <- SummarizedExperiment::colData(dds_list[[name]]) %>% as.data.frame
