@@ -142,11 +142,13 @@ def decide_color(samplename):
     return hex2rgb('#000000')
 
 
-for label in df['label'].unique():
+for label in df['merged_label'].unique():
 
     bigwig = f"data/chipseq_merged/{label}/{label}.cutadapt.unique.nodups.bam.bigwig"
 
-    subgroup = df[df.loc[:, 'label'] == label].to_dict('records')[0]
+    print(label)
+    subgroup = df[df.loc[:, 'merged_label'] == label].to_dict('records')[0]
+
     subgroup = {
         sanitize(k, strict=True): sanitize(v, strict=True)
         for k, v in subgroup.items()
